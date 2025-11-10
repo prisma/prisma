@@ -39,10 +39,10 @@ describe('push', () => {
       "P1012
 
       error: Native type VarChar is not supported for sqlite connector.
-        -->  prisma/schema.prisma:12
+        -->  prisma/schema.prisma:11
          | 
-      11 |   id   Int    @id
-      12 |   name String @db.VarChar(100)
+      10 |   id   Int    @id
+      11 |   name String @db.VarChar(100)
          | 
 
       "

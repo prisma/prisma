@@ -1,4 +1,3 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import { getDMMF, isRustPanic } from '@prisma/internals'
@@ -6,8 +5,9 @@ import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'
+import { configContextContributor } from './_utils/config-context'
 
-const ctx = jestContext.new().assemble()
+const ctx = jestContext.new().add(configContextContributor()).assemble()
 
 function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
   for (const key of Object.keys(process.env)) {
@@ -45,7 +45,7 @@ describe('artificial-panic introspection', () => {
 
     const command = new DbPull()
     try {
-      await command.parse(['--print'], defaultTestConfig())
+      await command.parse(['--print'], await ctx.config())
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
         "Error in Schema engine.
@@ -75,7 +75,7 @@ describe('artificial-panic formatter', () => {
 
     const command = new Format()
     try {
-      await command.parse([], defaultTestConfig())
+      await command.parse([], await ctx.config())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
@@ -101,7 +101,7 @@ describe('artificial-panic get-config', () => {
 
     const command = new Validate()
     try {
-      await command.parse([], defaultTestConfig())
+      await command.parse([], await ctx.config())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
@@ -127,7 +127,7 @@ describe('artificial-panic validate', () => {
 
     const command = new Validate()
     try {
-      await command.parse([], defaultTestConfig())
+      await command.parse([], await ctx.config())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
@@ -145,7 +145,7 @@ describe('artificial-panic validate', () => {
 
     const command = new Format()
     try {
-      await command.parse([], defaultTestConfig())
+      await command.parse([], await ctx.config())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:

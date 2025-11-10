@@ -1,17 +1,7 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
-import {
-  arg,
-  Command,
-  format,
-  getEffectiveUrl,
-  HelpError,
-  isError,
-  loadSchemaContext,
-  mergeSchemas,
-  resolveUrl,
-} from '@prisma/internals'
+import { arg, Command, format, HelpError, isError, loadSchemaContext, mergeSchemas } from '@prisma/internals'
 import { StudioServer } from '@prisma/studio-server'
 import getPort, { portNumbers } from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
@@ -103,7 +93,6 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
 
     const hostname = args['--hostname']
@@ -118,7 +107,9 @@ ${bold('Examples')}
 
     const adapter = await config.studio?.adapter()
 
-    if (!schemaContext.primaryDatasource) throw new Error('No datasource found in schema')
+    if (config.engine !== 'classic') {
+      throw new Error('Using driver adapters in Studio is not yet supported')
+    }
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
@@ -132,7 +123,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: resolveUrl(getEffectiveUrl(schemaContext.primaryDatasource)),
+        directUrl: config.datasource.url,
       },
       versions: {
         prisma: packageJson.version,

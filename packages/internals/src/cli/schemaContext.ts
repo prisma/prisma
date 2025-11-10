@@ -1,8 +1,8 @@
+import path from 'node:path'
+
 import { SchemaEngineConfigInternal } from '@prisma/config'
-import { DataSource, GeneratorConfig } from '@prisma/generator'
+import { ActiveConnectorType, DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
-import path from 'path'
-import { match } from 'ts-pattern'
 
 import { getConfig } from '../engine-commands'
 import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
@@ -62,14 +62,10 @@ type LoadSchemaContextOptions = {
 export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
-export async function loadSchemaContext(
-  opts?: LoadSchemaContextOptions & { schemaEngineConfig: { engine: 'classic' } },
-): Promise<Omit<SchemaContext, 'primaryDatasource'> & { primaryDatasource: DataSource }>
 export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
-  schemaEngineConfig,
   printLoadMessage = true,
   allowNull = false,
   schemaPathArgumentName = '--schema',
@@ -90,17 +86,15 @@ export async function loadSchemaContext({
     })
   }
 
-  return processSchemaResult({ schemaResult, schemaEngineConfig, printLoadMessage, cwd })
+  return processSchemaResult({ schemaResult, printLoadMessage, cwd })
 }
 
 export async function processSchemaResult({
   schemaResult,
-  schemaEngineConfig,
   printLoadMessage = true,
   cwd = process.cwd(),
 }: {
   schemaResult: GetSchemaResult
-  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
   cwd?: string
 }): Promise<SchemaContext> {
@@ -113,22 +107,9 @@ export async function processSchemaResult({
 
   const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
 
-  const datasourceFromPsl = configFromPsl.datasources.at(0)
+  const primaryDatasource = configFromPsl.datasources.at(0)
 
-  const primaryDatasource = match(schemaEngineConfig)
-    .with({ engine: 'classic' }, ({ datasource }) => {
-      const { url } = datasource
-
-      const primaryDatasource: DataSource = {
-        ...datasourceFromPsl,
-        url: { fromEnvVar: null, value: url },
-      } as DataSource
-
-      return primaryDatasource
-    })
-    .otherwise(() => datasourceFromPsl)
-
-  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
+  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(primaryDatasource) || schemaRootDir
 
   return {
     schemaFiles: schemaResult.schemas,
@@ -149,4 +130,11 @@ function getPrimaryDatasourceDirectory(primaryDatasource: DataSource | undefined
     return path.dirname(datasourcePath)
   }
   return null
+}
+
+export function getSchemaDatasourceProvider(schemaContext: SchemaContext): ActiveConnectorType {
+  if (schemaContext.primaryDatasource === undefined) {
+    throw new Error('Schema must contain a datasource block')
+  }
+  return schemaContext.primaryDatasource.activeProvider
 }

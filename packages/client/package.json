@@ -71,11 +71,11 @@
       "import": "./index.js",
       "default": "./index.js"
     },
-    "./wasm": {
-      "types": "./wasm.d.ts",
-      "require": "./wasm.js",
-      "import": "./wasm.mjs",
-      "default": "./wasm.mjs"
+    "./edge": {
+      "types": "./edge.d.ts",
+      "require": "./edge.js",
+      "import": "./edge.js",
+      "default": "./edge.js"
     },
     "./runtime/client": {
       "types": "./runtime/client.d.ts",
@@ -152,8 +152,8 @@
     "runtime",
     "scripts",
     "generator-build",
-    "wasm.js",
-    "wasm.d.ts",
+    "edge.js",
+    "edge.d.ts",
     "index.js",
     "index.d.ts",
     "default.js",
@@ -201,7 +201,7 @@
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "6.19.0-33.next-fca7ed8aa5fe6347594ad793adb59b37f021379a",
+    "@prisma/engines-version": "6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -209,7 +209,7 @@
     "@prisma/instrumentation": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/query-compiler-wasm": "6.19.0-33.next-fca7ed8aa5fe6347594ad793adb59b37f021379a",
+    "@prisma/query-compiler-wasm": "6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95",
     "@prisma/query-plan-executor": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
     "@snaplet/copycat": "6.0.0",

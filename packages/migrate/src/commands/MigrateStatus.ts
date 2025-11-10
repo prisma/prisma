@@ -78,9 +78,9 @@ Check the status of your database migrations
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
-    checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
+    checkUnsupportedDataProxy({ cmd: 'migrate status', config })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -95,10 +95,7 @@ Check the status of your database migrations
       extensions: config['extensions'],
     })
 
-    // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
-    if (!adapter) {
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
-    }
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

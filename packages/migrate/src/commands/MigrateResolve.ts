@@ -87,9 +87,9 @@ ${bold('Examples')}
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
-    checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
+    checkUnsupportedDataProxy({ cmd: 'migrate resolve', config })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -115,9 +115,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
       // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-      if (!adapter) {
-        await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
-      }
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,
@@ -145,7 +143,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,

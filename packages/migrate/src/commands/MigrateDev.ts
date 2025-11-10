@@ -9,6 +9,7 @@ import {
   Command,
   format,
   getCommandWithExecutor,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
@@ -96,9 +97,9 @@ ${bold('Examples')}
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
+    checkUnsupportedDataProxy({ cmd: 'migrate dev', config })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
     printDatasource({ datasourceInfo, adapter })
@@ -108,15 +109,15 @@ ${bold('Examples')}
     // Validate schema (same as prisma validate)
     validate({ schemas: schemaContext.schemaFiles })
 
-    let wasDbCreated: string | undefined
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
-      // Automatically create the database if it doesn't exist
-      wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write(wasDbCreated + '\n\n')
-      }
+    // Automatically create the database if it doesn't exist
+    const successMessage = await ensureDatabaseExists(
+      schemaContext.primaryDatasourceDirectory,
+      getSchemaDatasourceProvider(schemaContext),
+      config,
+    )
+    if (successMessage) {
+      process.stdout.write(successMessage + '\n\n')
     }
 
     const schemaFilter: MigrateTypes.SchemaFilter = {

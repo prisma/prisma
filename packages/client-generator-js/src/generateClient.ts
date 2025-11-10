@@ -132,9 +132,9 @@ export async function buildClient({
   // to go from more specific to more generic.
   const exportsMapBase = {
     node: './index.js',
-    'edge-light': './wasm.js',
-    workerd: './wasm.js',
-    worker: './wasm.js',
+    'edge-light': './edge.js',
+    workerd: './edge.js',
+    worker: './edge.js',
     browser: './index-browser.js',
     default: './index.js',
   }
@@ -234,8 +234,8 @@ export async function buildClient({
     wasm: true,
   })
 
-  fileMap['wasm.js'] = JS(wasmClient)
-  fileMap['wasm.d.ts'] = TS(wasmClient)
+  fileMap['edge.js'] = JS(wasmClient)
+  fileMap['edge.d.ts'] = TS(wasmClient)
 
   if (typedSql && typedSql.length > 0) {
     const edgeRuntimeName = 'wasm-compiler-edge'
@@ -412,6 +412,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
     await fs.writeFile(path.join(outputDir, `${filename}.wasm`), Buffer.from(wasmBase64, 'base64'))
     await fs.copyFile(path.join(runtimeSourcePath, `${filename}.${suffix}.js`), path.join(outputDir, `${filename}.js`))
+    await fs.copyFile(wasmJsBundlePath, path.join(outputDir, `${filename}.wasm-base64.js`))
   }
 
   try {

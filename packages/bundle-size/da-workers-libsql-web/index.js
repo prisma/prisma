@@ -1,6 +1,6 @@
 import { PrismaLibSql } from '@prisma/adapter-libsql/web'
 
-import { PrismaClient } from './client/wasm'
+import { PrismaClient } from './client/edge'
 
 export default {
   async fetch(request, env) {

@@ -51,7 +51,6 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "datasource db {
         provider = "mysql"
-        url      = env("TEST_MYSQL_URI")
       }
 
       model your_log {

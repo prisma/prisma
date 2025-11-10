@@ -7,6 +7,7 @@ import {
   format,
   formatms,
   getCommandWithExecutor,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
@@ -86,9 +87,9 @@ ${bold('Examples')}
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })
+    checkUnsupportedDataProxy({ cmd: 'db push', config })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
     printDatasource({ datasourceInfo, adapter })
     const schemaFilter: MigrateTypes.SchemaFilter = {
@@ -104,18 +105,19 @@ ${bold('Examples')}
       extensions: config['extensions'],
     })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
-      try {
-        // Automatically create the database if it doesn't exist
-        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-        if (wasDbCreated) {
-          process.stdout.write('\n' + wasDbCreated + '\n')
-        }
-      } catch (e) {
-        process.stdout.write('\n') // empty line
-        throw e
+    try {
+      // Automatically create the database if it doesn't exist
+      const successMessage = await ensureDatabaseExists(
+        schemaContext.primaryDatasourceDirectory,
+        getSchemaDatasourceProvider(schemaContext),
+        config,
+      )
+      if (successMessage) {
+        process.stdout.write('\n' + successMessage + '\n')
       }
+    } catch (e) {
+      process.stdout.write('\n') // empty line
+      throw e
     }
 
     let wasDatabaseReset = false

@@ -53,7 +53,6 @@ export interface DataSource {
   provider: ConnectorType
   // In Rust, this comes from `Connector::provider_name()`
   activeProvider: ActiveConnectorType
-  url: EnvValue
   schemas: string[] | []
   sourceFilePath: string
 }
