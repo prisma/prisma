@@ -1,6 +1,7 @@
 {
   "type": "module",
   "name": "@prisma/type-benchmark-tests",
+  "private": true,
   "version": "0.0.0",
   "description": "This package is intended for Prisma's internal use and only performs type benchmark tests.",
   "repository": {
