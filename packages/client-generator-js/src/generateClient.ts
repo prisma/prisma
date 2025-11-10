@@ -10,7 +10,6 @@ import type {
 import { pathToPosix, setClassName } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
-import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -56,8 +55,6 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: ActiveConnectorType
-  /** When --postinstall is passed via CLI */
-  postinstall?: boolean
   typedSql?: SqlQueryOutput[]
 }
 
@@ -84,7 +81,6 @@ export async function buildClient({
   engineVersion,
   clientVersion,
   activeProvider,
-  postinstall,
   typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
@@ -99,7 +95,6 @@ export async function buildClient({
     clientVersion,
     engineVersion,
     activeProvider,
-    postinstall,
     datamodel,
     browser: false,
     edge: false,
@@ -294,26 +289,9 @@ function getTypedSqlRuntimeBase(runtimeBase: string) {
   return `../${runtimeBase}`
 }
 
-// TODO: explore why we have a special case for excluding pnpm
-async function getDefaultOutdir(outputDir: string): Promise<string> {
+function getDefaultOutdir(outputDir: string): string {
   if (outputDir.endsWith(path.normalize('node_modules/@prisma/client'))) {
     return path.join(outputDir, '../../.prisma/client')
-  }
-  if (
-    process.env.INIT_CWD &&
-    process.env.npm_lifecycle_event === 'postinstall' &&
-    !process.env.PWD?.includes('.pnpm')
-  ) {
-    // INIT_CWD is the dir, in which "npm install" has been invoked. That can e.g. be in ./src
-    // If we're in ./ - there'll also be a package.json, so we can directly go for it
-    // otherwise, we'll go up in the filesystem and look for the first package.json
-    if (existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
-      return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
-    }
-    const packagePath = await packageUp({ cwd: process.env.INIT_CWD })
-    if (packagePath) {
-      return path.join(path.dirname(packagePath), 'node_modules/.prisma/client')
-    }
   }
 
   return path.join(outputDir, '../../.prisma/client')
@@ -334,7 +312,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     clientVersion,
     engineVersion,
     activeProvider,
-    postinstall,
     typedSql,
   } = options
 
@@ -353,7 +330,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     clientVersion,
     engineVersion,
     activeProvider,
-    postinstall,
     testMode,
     typedSql,
   })
@@ -551,7 +527,7 @@ async function getGenerationDirs({
   const isCustomOutput = generator.isCustomOutput === true
   const normalizedOutputDir = path.normalize(outputDir)
   let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
-  let userOutputDir = isCustomOutput ? normalizedOutputDir : await getDefaultOutdir(normalizedOutputDir)
+  let userOutputDir = isCustomOutput ? normalizedOutputDir : getDefaultOutdir(normalizedOutputDir)
 
   if (testMode && runtimeBase) {
     userOutputDir = outputDir

@@ -77,7 +77,6 @@ export class TSClient implements Generable {
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
       inlineSchema,
     }
