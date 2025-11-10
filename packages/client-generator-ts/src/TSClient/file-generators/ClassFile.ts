@@ -34,8 +34,7 @@ ${clientConfig(context, options)}
 
 ${prismaClientClass.toTS()}
 
-export function getPrismaClientClass(dirname: string): PrismaClientConstructor {
-  config.dirname = dirname
+export function getPrismaClientClass(): PrismaClientConstructor {
   return runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
 }
 `
