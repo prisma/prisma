@@ -5,7 +5,6 @@ export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
     datasource db {
       provider = "${provider}"
-      url      = env("DATABASE_URI_${provider}")
     }
     
     generator client {
