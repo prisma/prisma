@@ -155,7 +155,11 @@ ${bold('Examples')}
     const connectionString = args['--url'] || (config as { datasource?: { url?: string } }).datasource?.url
 
     if (!connectionString) {
-      return new Error('No URL found.')
+      return new Error('No database URL found.')
+    }
+
+    if (!URL.canParse(connectionString)) {
+      return new Error('The provided database URL is not valid.')
     }
 
     const provider = new URL(connectionString).protocol.replace(':', '')
