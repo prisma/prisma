@@ -14,7 +14,6 @@ export type GetPrismaClientConfig = {
   // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
-  relativePath: string
   clientVersion: string
   engineVersion: string
   activeProvider: ActiveConnectorType

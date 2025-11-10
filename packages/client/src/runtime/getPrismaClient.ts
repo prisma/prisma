@@ -281,8 +281,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           Debug.enable('prisma:client')
         }
 
-        debug('relativePath', config.relativePath)
-
         if (options.errorFormat) {
           this._errorFormat = options.errorFormat
         } else if (process.env.NODE_ENV === 'production') {

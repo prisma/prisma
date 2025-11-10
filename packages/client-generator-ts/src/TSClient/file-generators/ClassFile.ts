@@ -1,7 +1,4 @@
-import path from 'node:path'
-
 import { GetPrismaClientConfig } from '@prisma/client-common'
-import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
@@ -48,20 +45,16 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
   const {
     edge,
     generator,
-    outputDir,
     datamodel: inlineSchema,
     runtimeBase,
     runtimeName,
-    datasources,
     target,
     activeProvider,
     moduleFormat,
   } = options
 
-  const datasourceFilePath = datasources[0].sourceFilePath
   const config: GetPrismaClientConfig = {
     generator,
-    relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
     clientVersion: options.clientVersion,
     engineVersion: options.engineVersion,
     activeProvider: options.activeProvider,

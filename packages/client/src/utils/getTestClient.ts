@@ -40,7 +40,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
     generator,
-    relativePath: path.relative(outputDir, absSchemaDir),
     clientVersion: '0.0.0',
     engineVersion: '0000000000000000000000000000000000000000',
     activeProvider,
