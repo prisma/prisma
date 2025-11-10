@@ -81,7 +81,6 @@ describe('getGenerators', () => {
       {
         "datamodel": "datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       generator gen {
@@ -101,10 +100,6 @@ describe('getGenerators', () => {
             "provider": "sqlite",
             "schemas": [],
             "sourceFilePath": "valid-minimal-schema.prisma",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
           },
         ],
         "otherGenerators": [],
@@ -161,7 +156,6 @@ describe('getGenerators', () => {
       {
         "datamodel": "datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       generator gen_env {
@@ -181,10 +175,6 @@ describe('getGenerators', () => {
             "provider": "sqlite",
             "schemas": [],
             "sourceFilePath": "valid-minimal-schema-binaryTargets.prisma",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
           },
         ],
         "otherGenerators": [],
@@ -249,7 +239,6 @@ describe('getGenerators', () => {
       {
         "datamodel": "datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       generator gen_env {
@@ -269,10 +258,6 @@ describe('getGenerators', () => {
             "provider": "sqlite",
             "schemas": [],
             "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
           },
         ],
         "otherGenerators": [],
@@ -337,7 +322,6 @@ describe('getGenerators', () => {
       {
         "datamodel": "datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       generator gen_env {
@@ -357,10 +341,6 @@ describe('getGenerators', () => {
             "provider": "sqlite",
             "schemas": [],
             "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
           },
         ],
         "otherGenerators": [],
@@ -426,7 +406,6 @@ describe('getGenerators', () => {
       {
         "datamodel": "datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       generator gen_env {
@@ -446,10 +425,6 @@ describe('getGenerators', () => {
             "provider": "sqlite",
             "schemas": [],
             "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
           },
         ],
         "otherGenerators": [],
@@ -529,7 +504,6 @@ describe('getGenerators', () => {
       {
         "datamodel": "datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       generator gen_env {
@@ -549,10 +523,6 @@ describe('getGenerators', () => {
             "provider": "sqlite",
             "schemas": [],
             "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
           },
         ],
         "otherGenerators": [],
@@ -659,7 +629,6 @@ describe('getGenerators', () => {
 
         datasource db {
           provider = "postgresql"
-          url      = env("DB_URL")
         }
 
         More information in our documentation:

@@ -11,7 +11,7 @@ import { listMigrations } from './utils/listMigrations'
 import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
 type MigrateSetupInput = {
-  schemaEngineConfig?: SchemaEngineConfigInternal
+  schemaEngineConfig: SchemaEngineConfigInternal
   migrationsDirPath?: string
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
@@ -48,13 +48,13 @@ export class Migrate {
 
   static async setup({ schemaContext, schemaEngineConfig, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const schemaEngine = await (async () => {
-      if (schemaEngineConfig?.engine === 'js') {
+      if (schemaEngineConfig.engine === 'js') {
         const adapter = await schemaEngineConfig.adapter()
         warnDatasourceDriverAdapter(schemaContext)
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
       }
 
-      const datasource = schemaEngineConfig?.engine === 'classic' ? schemaEngineConfig.datasource : undefined
+      const datasource = schemaEngineConfig.engine === 'classic' ? schemaEngineConfig.datasource : undefined
 
       return await SchemaEngineCLI.setup({ datasource, schemaContext, ...rest })
     })()
