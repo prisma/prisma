@@ -128,13 +128,11 @@ Set composite types introspection depth to 2 levels
 
     checkUnsupportedDataProxy({ cmd, config })
 
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
-      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource, config), adapter })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource, config) })
     }
 
     if (!schemaContext) {

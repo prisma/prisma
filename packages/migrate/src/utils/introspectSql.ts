@@ -54,17 +54,18 @@ export async function introspectSql(
     throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
   }
 
-  if (config.engine !== 'classic') {
-    throw new Error('TypedSQL currently requires classic engine')
-  }
-
   const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config })
   const schemaEngine = migrate.engine
   const results: SqlQueryOutput[] = []
   const errors: IntrospectSqlError[] = []
   try {
     for (const query of queries) {
-      const queryResult = await introspectSingleQuery(schemaEngine, config.datasource.url, query)
+      const queryResult = await introspectSingleQuery(
+        schemaEngine,
+        // TODO: can we valid the presence of `config.datasource.url` early and make this unreachable?
+        config.datasource?.url ?? '<introspect-sql-no-url>',
+        query,
+      )
       if (queryResult.ok) {
         results.push(queryResult.result)
       } else {

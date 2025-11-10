@@ -15,7 +15,6 @@ export async function migrateDb({ schemaPath }: { schemaPath: string }) {
 
   const runtimeConfig: PrismaConfigInternal = {
     ...defaultTestConfig(),
-    engine: 'classic',
     schema: schemaPath,
     datasource: {
       url: databaseUrl,

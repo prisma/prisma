@@ -76,11 +76,9 @@ Check the status of your database migrations
       schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-
     checkUnsupportedDataProxy({ cmd: 'migrate status', config })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],

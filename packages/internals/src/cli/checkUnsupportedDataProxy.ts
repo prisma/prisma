@@ -22,9 +22,7 @@ More information about this limitation: ${link('https://pris.ly/d/accelerate-lim
  * @param schemaContexts list of schema contexts to check
  */
 export function checkUnsupportedDataProxy({ cmd, config }: { cmd: string; config?: PrismaConfigInternal }) {
-  if (config?.engine === 'classic') {
-    if (config.datasource.url.startsWith('prisma://')) {
-      throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
-    }
+  if (config?.datasource?.url.startsWith('prisma://')) {
+    throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
   }
 }

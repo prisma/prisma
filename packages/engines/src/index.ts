@@ -11,18 +11,15 @@ export function getEnginesPath() {
 }
 
 type EnsureSomeBinariesExistInput = {
-  hasMigrateAdapterInConfig: boolean
   download: (options: DownloadOptions) => Promise<BinaryPaths>
 }
 
-export async function ensureNeededBinariesExist({ download, hasMigrateAdapterInConfig }: EnsureSomeBinariesExistInput) {
+export async function ensureNeededBinariesExist({ download }: EnsureSomeBinariesExistInput) {
   const binaryDir = path.join(__dirname, '../')
 
-  const binaries = {} as Record<BinaryType, string>
-
-  if (!hasMigrateAdapterInConfig) {
-    binaries[BinaryType.SchemaEngineBinary] = binaryDir
-  }
+  const binaries = {
+    [BinaryType.SchemaEngineBinary]: binaryDir,
+  } satisfies Record<BinaryType, string>
 
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
 

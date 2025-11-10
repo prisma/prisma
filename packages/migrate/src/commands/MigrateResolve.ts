@@ -85,11 +85,9 @@ ${bold('Examples')}
       schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-
     checkUnsupportedDataProxy({ cmd: 'migrate resolve', config })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config) })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {

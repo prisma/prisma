@@ -7,33 +7,28 @@ import packageJson from '../../../package.json'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('version', () => {
-  describe('shows @prisma/schema-engine-wasm when config.migrate.adapter is set', () => {
-    describe('bypassing query engine env vars', () => {
-      test('does not download query-engine when engine type is client', async () => {
-        ctx.fixture('prisma-config-dont-download-engines')
-        const data = await ctx.cli('version')
-        expect(data.exitCode).toBe(0)
-        expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-          "Prisma schema loaded from schema.prisma
-          prisma                : 0.0.0
-          @prisma/client        : 0.0.0
-          Operating System      : OS
-          Architecture          : ARCHITECTURE
-          Node.js               : NODEJS_VERSION
-          TypeScript            : TYPESCRIPT_VERSION
-          Query Compiler        : enabled
-          PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
-          Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-          Schema Engine Adapter : @prisma/adapter-mock
-          Default Engines Hash  : ENGINE_VERSION
-          Studio                : STUDIO_VERSION"
-        `)
-        expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
-          "Loaded Prisma config from prisma.config.ts.
-          "
-        `)
-      })
-    })
+  test('does not download query-engine', async () => {
+    ctx.fixture('version')
+    const data = await ctx.cli('version')
+    expect(data.exitCode).toBe(0)
+    expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma
+      prisma               : 0.0.0
+      @prisma/client       : 0.0.0
+      Operating System     : OS
+      Architecture         : ARCHITECTURE
+      Node.js              : NODEJS_VERSION
+      TypeScript           : TYPESCRIPT_VERSION
+      Query Compiler       : enabled
+      PSL                  : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
+      Schema Engine        : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
+      Default Engines Hash : ENGINE_VERSION
+      Studio               : STUDIO_VERSION"
+    `)
+    expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+      "
+    `)
   })
 })
 

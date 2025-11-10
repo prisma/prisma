@@ -33,11 +33,7 @@ export type DatasourceInfo = {
 }
 
 export function parseDatasourceInfo(datasource: DataSource | undefined, config: PrismaConfigInternal): DatasourceInfo {
-  let url: string | undefined
-
-  if (config.engine === 'classic') {
-    url = config.datasource.url
-  }
+  const url = config.datasource?.url
 
   if (!datasource) {
     return {
@@ -120,13 +116,12 @@ export async function ensureCanConnectToDatabase(
   pathResolutionRoot: string,
   config: PrismaConfigInternal,
 ): Promise<void> {
-  if (config.engine !== 'classic') {
-    // TODO: probably can already be implemented with the current driver adapter interface
-    // but we don't care about it right now.
-    return
-  }
+  const url = config.datasource?.url
 
-  const url = config.datasource.url
+  // TODO: can we valid the presence of `config.datasource.url` early and make this unreachable?
+  if (!url) {
+    return undefined
+  }
 
   const canConnect = await canConnectToDatabase(url, pathResolutionRoot)
 
@@ -145,12 +140,12 @@ export async function ensureDatabaseExists(
   provider: ConnectorType,
   config: PrismaConfigInternal,
 ): Promise<SuccessMessage | undefined> {
-  if (config.engine !== 'classic') {
-    // TODO: migration-aware driver adapters need to expose new methods we'd call here
+  const url = config.datasource?.url
+
+  // TODO: can we valid the presence of `config.datasource.url` early and make this unreachable?
+  if (!url) {
     return undefined
   }
-
-  const url = config.datasource.url
 
   const canConnect = await canConnectToDatabase(url, pathResolutionRoot)
   if (canConnect === true) {

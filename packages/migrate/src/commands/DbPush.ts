@@ -90,8 +90,7 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'db push', config })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo, adapter })
+    printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
@@ -235,8 +234,7 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      // Favor the adapter if any, fallback to the provider defined in the schema
-      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
+      const provider = schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${

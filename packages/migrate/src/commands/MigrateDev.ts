@@ -100,9 +100,7 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'migrate dev', config })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-
-    printDatasource({ datasourceInfo, adapter })
+    printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
 
