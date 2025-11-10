@@ -9,9 +9,6 @@ import { RuntimeDataModel } from './runtimeDataModel'
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
 export type GetPrismaClientConfig = {
-  // Case for normal client (with both protocols) or data proxy
-  // client (with json protocol): only runtime datamodel is provided,
-  // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
   clientVersion: string
@@ -20,7 +17,6 @@ export type GetPrismaClientConfig = {
 
   /**
    * The contents of the schema encoded into a string
-   * @remarks only used for the purpose of data proxy
    */
   inlineSchema: string
 
