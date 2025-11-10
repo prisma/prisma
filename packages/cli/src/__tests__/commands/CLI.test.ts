@@ -50,7 +50,7 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
-    it('should download schema engine without `engine: "js"`', async () => {
+    it('should download schema engine', async () => {
       ctx.fixture('ensure-needed-binaries-exist')
 
       await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], defaultTestConfig())

@@ -30,20 +30,6 @@ const ctx = createDefaultTestContext()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
-  describe('using Prisma Config', () => {
-    it('engine "js" is not supported yet', async () => {
-      ctx.fixture('prisma-config-validation/sqlite-d1')
-
-      fs.writeFileSync('script.sql', '')
-
-      const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"engine: "js" is not yet supported in \`db execute\`."`,
-      )
-    })
-  })
-
   describe('generic', () => {
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
