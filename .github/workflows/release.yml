@@ -48,12 +48,11 @@ env:
   PRISMA_HIDE_UPDATE_MESSAGE: 'true'
   # Environment variables based on trigger type and parameters
   RELEASE_VERSION: ${{ github.event.inputs.targetVersion }}
-  SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks || '' }}
+  SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks || 'false' }}
   SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
   ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
-  DRY_RUN: ${{ github.event.inputs.dryRun || '' }}
-  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || '' }}
-  INCLUDE_FAILURE_NOTIFICATIONS: ${{ github.event.inputs.targetVersion && 'true' || '' }}
+  DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
+  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || 'false' }}
   FAILURE_TITLE_TEMPLATE: >-
     ${{
       github.event.inputs.targetVersion &&

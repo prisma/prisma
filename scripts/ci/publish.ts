@@ -469,7 +469,7 @@ async function publish() {
     throw new Error(`Missing env var GITHUB_REF_NAME`)
   }
 
-  if (process.env.DRY_RUN) {
+  if (process.env.DRY_RUN === 'true') {
     console.log(blue(bold(`\nThe DRY_RUN env var is set, so we'll do a dry run!\n`)))
     args['--dry-run'] = true
   }
@@ -531,7 +531,7 @@ async function publish() {
   console.log({ branch })
 
   // For branches that are named "integration/" we publish to the integration npm tag
-  if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
+  if (branch && (process.env.FORCE_INTEGRATION_RELEASE === 'true' || branch.startsWith('integration/'))) {
     prismaVersion = await getNewIntegrationVersion(packages, branch)
     tag = 'integration'
   }
@@ -583,7 +583,7 @@ async function publish() {
         throw new Error(`tagForEcosystemTestsCheck missing`)
       }
       const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
-      if (!passing && !process.env.SKIP_ECOSYSTEMTESTS_CHECK) {
+      if (!passing && process.env.SKIP_ECOSYSTEMTESTS_CHECK !== 'true') {
         throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag} npm tag!
 Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
       }
