@@ -8,7 +8,6 @@ import { SchemaEngineWasm } from './SchemaEngineWasm'
 import type { EngineArgs, EngineResults } from './types'
 import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
 import { listMigrations } from './utils/listMigrations'
-import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
 type MigrateSetupInput = {
   schemaEngineConfig: SchemaEngineConfigInternal
@@ -50,7 +49,6 @@ export class Migrate {
     const schemaEngine = await (async () => {
       if (schemaEngineConfig.engine === 'js') {
         const adapter = await schemaEngineConfig.adapter()
-        warnDatasourceDriverAdapter(schemaContext)
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
       }
 
