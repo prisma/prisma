@@ -412,6 +412,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
     await fs.writeFile(path.join(outputDir, `${filename}.wasm`), Buffer.from(wasmBase64, 'base64'))
     await fs.copyFile(path.join(runtimeSourcePath, `${filename}.${suffix}.js`), path.join(outputDir, `${filename}.js`))
+    await fs.copyFile(wasmJsBundlePath, path.join(outputDir, `${filename}.wasm-base64.js`))
   }
 
   try {
