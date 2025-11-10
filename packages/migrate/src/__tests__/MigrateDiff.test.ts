@@ -159,42 +159,42 @@ describe('migrate diff', () => {
     })
 
     it('should fail if missing --from-... and --to-...', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('schema-only')
 
       const result = MigrateDiff.new().parse([], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('schema-only')
 
       const result = MigrateDiff.new().parse(['--from-empty'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('schema-only')
 
       const result = MigrateDiff.new().parse(['--to-empty'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('schema-only')
 
       const result = MigrateDiff.new().parse(['--from-empty', '--from-config-datasource'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('schema-only')
 
       const result = MigrateDiff.new().parse(['--to-empty', '--to-config-datasource'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail for empty/empty', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('schema-only')
       expect.assertions(2)
 
       try {
