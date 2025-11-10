@@ -17,8 +17,7 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
 } from '@prisma/internals'
-import { validateConfig } from '@prisma/migrate'
-import { ValidatedPrismaConfig } from '@prisma/migrate/dist/migrate/src/utils/validateConfig'
+import { validateConfig, type ValidatedPrismaConfig } from '@prisma/migrate'
 import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'

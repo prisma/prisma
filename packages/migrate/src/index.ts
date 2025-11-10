@@ -23,4 +23,4 @@ export {
   type IntrospectSqlInput,
   type IntrospectSqlResult,
 } from './utils/introspectSql'
-export { validateConfig } from './utils/validateConfig'
+export { validateConfig, type ValidatedPrismaConfig } from './utils/validateConfig'
