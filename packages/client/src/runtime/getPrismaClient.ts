@@ -299,7 +299,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engineConfig = {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          generator: config.generator,
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:
             options.log &&
