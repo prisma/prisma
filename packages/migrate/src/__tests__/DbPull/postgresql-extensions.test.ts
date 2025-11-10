@@ -59,7 +59,6 @@ describeMatrix(postgresOnly, 'postgresql-extensions', () => {
 
       datasource db {
         provider   = "postgresql"
-        url        = env("TEST_POSTGRES_URI_MIGRATE")
         extensions = [citext(schema: "public")]
       }
 
@@ -109,7 +108,6 @@ describeMatrix(postgresOnly, 'postgresql-extensions', () => {
 
       datasource db {
         provider   = "postgresql"
-        url        = env("TEST_POSTGRES_URI_MIGRATE")
         extensions = [citext(schema: "public")]
       }
 

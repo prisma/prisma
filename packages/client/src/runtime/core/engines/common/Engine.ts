@@ -1,4 +1,4 @@
-import { CompilerWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import { CompilerWasmLoadingConfig } from '@prisma/client-common'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
@@ -137,13 +137,6 @@ export interface EngineConfig {
    * The contents of the schema encoded into a string
    */
   inlineSchema: string
-
-  /**
-   * The contents of the datasource url saved in a string
-   * @remarks only used by RemoteExecutor.ts
-   * @remarks this field is used internally by Policy, do not rename or remove
-   */
-  inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
   /**
    * The helper for interaction with OTEL tracing

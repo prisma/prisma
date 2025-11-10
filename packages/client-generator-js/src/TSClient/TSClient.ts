@@ -14,7 +14,6 @@ import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
-import { buildInlineDatasources } from '../utils/buildInlineDatasources'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
@@ -79,7 +78,6 @@ export class TSClient implements Generable {
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
       ciName: ciInfo.name ?? undefined,
-      inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
     }
 

@@ -20,7 +20,7 @@ async function testDirectoryConfig({
 
   const schemaContext = await loadSchemaContext({
     schemaPathFromArg: schemaPath,
-    schemaEngineConfig: config,
+
     cwd,
     allowNull: true,
   })
@@ -36,7 +36,7 @@ describe('with .config/prisma.ts', () => {
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: './prisma',
-      schemaEngineConfig: config.config,
+
       cwd,
       allowNull: true,
     })

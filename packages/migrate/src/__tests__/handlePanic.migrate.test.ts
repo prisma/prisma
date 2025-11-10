@@ -24,7 +24,7 @@ describe('handlePanic migrate', () => {
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     try {
-      const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
+      const migrate = await Migrate.setup({ migrationsDirPath, schemaContext, schemaEngineConfig: await ctx.config() })
       await migrate.createMigration({
         migrationName: 'setup',
         draft: false,

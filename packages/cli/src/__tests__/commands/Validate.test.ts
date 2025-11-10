@@ -194,10 +194,10 @@ describe('validate', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:11
+            -->  prisma/schema/schema_with_config.prisma:10
              | 
-          10 | model User {
-          11 |   id    Int     @id @default(now())
+           9 | model User {
+          10 |   id    Int     @id @default(now())
              | 
 
           Validation Error Count: 1
@@ -312,16 +312,16 @@ describe('validate', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:21
+            -->  prisma/postgres.prisma:20
              | 
-          20 |   id       String @id @default(cuid())
-          21 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
+          19 |   id       String @id @default(cuid())
+          20 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
              | 
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:28
+            -->  prisma/postgres.prisma:27
              | 
-          27 |   id       String @id @default(cuid())
-          28 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
+          26 |   id       String @id @default(cuid())
+          27 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
              | 
 
           Validation Error Count: 2
@@ -342,16 +342,16 @@ describe('validate', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:21
+            -->  prisma/postgres.prisma:20
              | 
-          20 |   id       String @id @default(cuid())
-          21 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
+          19 |   id       String @id @default(cuid())
+          20 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
              | 
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:28
+            -->  prisma/postgres.prisma:27
              | 
-          27 |   id       String @id @default(cuid())
-          28 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
+          26 |   id       String @id @default(cuid())
+          27 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
              | 
 
           Validation Error Count: 2

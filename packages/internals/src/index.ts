@@ -11,7 +11,12 @@ export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
 export { HelpError } from './cli/Help'
-export { loadSchemaContext, processSchemaResult, type SchemaContext } from './cli/schemaContext'
+export {
+  getSchemaDatasourceProvider,
+  loadSchemaContext,
+  processSchemaResult,
+  type SchemaContext,
+} from './cli/schemaContext'
 export type {
   Command,
   Commands,
@@ -26,7 +31,6 @@ export type {
 export { arg, format, isError } from './cli/utils'
 export { credentialsToUri, protocolToConnectorType, uriToCredentials } from './convertCredentials'
 export * from './engine-commands'
-export { resolveUrl } from './engine-commands/getConfig'
 export { relativizePathInPSLError } from './engine-commands/relativizePathInPSLError'
 export { Generator } from './Generator'
 export {
@@ -79,7 +83,6 @@ export { isValidJsIdentifier } from './utils/isValidJsIdentifier'
 export { keyBy } from './utils/keyBy'
 export { link } from './utils/link'
 export { mapObjectValues } from './utils/mapObjectValues'
-export { maskSchema } from './utils/maskSchema'
 export { maxBy, maxWithComparator } from './utils/max'
 export { maybeInGitHook } from './utils/maybeInGitHook'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'

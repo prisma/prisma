@@ -1,5 +1,5 @@
 import { PrismaD1 } from '@prisma/adapter-d1'
-import { Prisma, PrismaClient, Role } from '@prisma/client'
+import { Prisma, PrismaClient, Role } from '@prisma/client/edge'
 
 export default {
   fetch() {

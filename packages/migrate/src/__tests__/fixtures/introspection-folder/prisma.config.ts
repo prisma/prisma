@@ -1,0 +1,11 @@
+import path from 'node:path'
+
+import { defineConfig } from '@prisma/config'
+
+export default defineConfig({
+  engine: 'classic',
+  datasource: {
+    url: 'file:../../dev.db',
+  },
+  schema: path.join(__dirname, 'prisma', 'schema'),
+})
