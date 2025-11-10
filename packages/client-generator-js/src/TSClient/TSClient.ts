@@ -59,7 +59,7 @@ export class TSClient implements Generable {
     }
 
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel'> = {
-      generator,
+      previewFeatures: generator.previewFeatures,
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       activeProvider: this.options.activeProvider,

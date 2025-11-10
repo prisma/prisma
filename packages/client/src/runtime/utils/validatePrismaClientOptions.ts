@@ -20,7 +20,7 @@ type OmitValidationError =
  * Feel free to allow more properties when necessary but don't forget to add
  * them in the mock config in `validatePrismaClientOptions.test.ts`.
  */
-export type ClientConfig = Pick<GetPrismaClientConfig, 'generator' | 'runtimeDataModel'>
+export type ClientConfig = Pick<GetPrismaClientConfig, 'previewFeatures' | 'runtimeDataModel'>
 
 const validators: {
   [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: ClientConfig) => void

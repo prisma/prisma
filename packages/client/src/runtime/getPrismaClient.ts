@@ -19,7 +19,6 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { getEngineInstance } from './core/init/getEngineInstance'
-import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import {
   applyModelsAndClientExtensions,
@@ -235,7 +234,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
-      this._previewFeatures = getPreviewFeatures(config)
+      this._previewFeatures = config.previewFeatures
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit

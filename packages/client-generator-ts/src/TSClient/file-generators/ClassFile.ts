@@ -54,7 +54,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
   } = options
 
   const config: GetPrismaClientConfig = {
-    generator,
+    previewFeatures: generator.previewFeatures,
     clientVersion: options.clientVersion,
     engineVersion: options.engineVersion,
     activeProvider: options.activeProvider,

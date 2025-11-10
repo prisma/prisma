@@ -1,4 +1,4 @@
-import { ActiveConnectorType, GeneratorConfig } from '@prisma/generator'
+import { ActiveConnectorType } from '@prisma/generator'
 
 import { CompilerWasmLoadingConfig } from './QueryCompiler'
 import { RuntimeDataModel } from './runtimeDataModel'
@@ -10,7 +10,7 @@ import { RuntimeDataModel } from './runtimeDataModel'
  */
 export type GetPrismaClientConfig = {
   runtimeDataModel: RuntimeDataModel
-  generator?: GeneratorConfig
+  previewFeatures: string[]
   clientVersion: string
   engineVersion: string
   activeProvider: ActiveConnectorType
