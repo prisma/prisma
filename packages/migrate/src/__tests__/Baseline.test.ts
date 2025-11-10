@@ -5,7 +5,7 @@ import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { MigrateDev } from '../commands/MigrateDev'
 import { MigrateReset } from '../commands/MigrateReset'
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { allDriverAdapters, describeMatrix } from './__helpers__/conditionalTests'
+import { describeMatrix } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -20,7 +20,7 @@ describe('Baselining', () => {
     process.env.GITHUB_ACTIONS = '1'
   })
 
-  describeMatrix({ providers: { sqlite: true }, driverAdapters: allDriverAdapters }, 'SQLite', () => {
+  describeMatrix({ providers: { sqlite: true } }, 'SQLite', () => {
     it('should succeed', async () => {
       ctx.fixture('baseline-sqlite')
       fs.remove('prisma/migrations')

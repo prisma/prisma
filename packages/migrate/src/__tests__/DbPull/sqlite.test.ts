@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
+describeMatrix({ providers: { d1: true } }, 'D1', () => {
   const urlValueRegex = /url\s*=\s*".*"/
 
   test('should succeed with listLocalDatabases() when a single local Cloudflare D1 database exists', async () => {
