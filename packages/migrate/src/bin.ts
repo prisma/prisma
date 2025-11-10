@@ -74,23 +74,41 @@ async function main(): Promise<number> {
     return 1
   }
 
-  // Execute the command
-  const result = await cli.parse(commandArray, config)
-  // Did it error?
-  if (result instanceof HelpError) {
-    console.error(result)
-    // TODO: We could do like Bash (and other)
-    // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
-    // https://tldp.org/LDP/abs/html/exitcodes.html
-    return 1
-  } else if (isError(result)) {
-    console.error(result)
+  if (!config) {
+    console.error('`prisma.config.ts` not found')
     return 1
   }
 
-  // Success
-  console.log(result)
-  return 0
+  try {
+    // Execute the command
+    const result = await cli.parse(commandArray, config)
+    // Did it error?
+    if (result instanceof HelpError) {
+      console.error(result)
+      // TODO: We could do like Bash (and other)
+      // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
+      // https://tldp.org/LDP/abs/html/exitcodes.html
+      return 1
+    } else if (isError(result)) {
+      console.error(result)
+      return 1
+    }
+
+    // Success
+    console.log(result)
+    return 0
+  } catch (error) {
+    if (error.rustStack) {
+      await handlePanic({
+        error,
+        cliVersion: packageVersion,
+        enginesVersion,
+        command: commandArray.join(' '),
+        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config),
+      })
+    }
+    throw error
+  }
 }
 
 /**
@@ -103,30 +121,10 @@ main()
     }
   })
   .catch((error) => {
-    if (error.rustStack) {
-      handlePanic({
-        error,
-        cliVersion: packageVersion,
-        enginesVersion,
-        command: commandArray.join(' '),
-        getDatabaseVersionSafe,
-      })
-        .catch((e) => {
-          if (Debug.enabled('migrate')) {
-            console.error(red(bold('Error: ')) + e.stack)
-          } else {
-            console.error(red(bold('Error: ')) + e.message)
-          }
-        })
-        .finally(() => {
-          process.exit(1)
-        })
+    if (Debug.enabled('migrate')) {
+      console.error(red(bold('Error: ')) + error.stack)
     } else {
-      if (Debug.enabled('migrate')) {
-        console.error(red(bold('Error: ')) + error.stack)
-      } else {
-        console.error(red(bold('Error: ')) + error.message)
-      }
-      process.exit(1)
+      console.error(red(bold('Error: ')) + error.message)
     }
+    process.exit(1)
   })

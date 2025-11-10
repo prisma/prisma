@@ -3,7 +3,6 @@
 exports[`format valid blog schema 1`] = `
 "datasource db {
   provider = "sqlite"
-  url      = "file:dev.db"
 }
 
 generator client {
@@ -46,7 +45,6 @@ model Like {
 exports[`format valid blog schemaPath 1`] = `
 "datasource db {
   provider = "sqlite"
-  url      = "file:dev.db"
 }
 
 generator client {
@@ -93,7 +91,6 @@ exports[`format valid schema with 1 preview feature flag warning 1`] = `
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("TEST_POSTGRES_URI")
 }
 
 model SomeUser {
@@ -110,7 +107,6 @@ exports[`format valid schema with 3 preview feature flag warnings 1`] = `
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("TEST_POSTGRES_URI")
 }
 
 model SomeUser {

@@ -31,7 +31,6 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
 
       datasource db {
         provider = "sqlite"
-        url = "REPLACED_BY_TEST"
       }
 
       model Post {
@@ -87,7 +86,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
 
       model Post {
@@ -132,7 +130,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
 
       model Post {
@@ -182,7 +179,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
         datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
 
         model Post {
@@ -227,20 +223,9 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       // not in the datasource block. The message needs to be updated when removing the
       // `url` property from the PSL.
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        "P1012
+        "P1013
 
-        error: Error validating datasource \`db\`: the URL must start with the protocol \`file:\`.
-          -->  schema.prisma:7
-           | 
-         6 |   provider = "sqlite"
-         7 |   url      = "file:dev.db"
-           | 
-
-
-        Introspection failed as your current Prisma schema file is invalid
-
-        Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-        Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+        The provided database string is invalid. \`datasource.url\` in \`prisma.config.ts\` is invalid: must start with the protocol \`file:\`.
         "
       `)
 
@@ -300,7 +285,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:../dev.db"
       }
 
       model AwesomeUser {
@@ -350,7 +334,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:../dev.db"
       }
 
       model AwesomeUser {
@@ -492,12 +475,12 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       "P1012
 
       error: Error validating model "something": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
-        -->  prisma/invalid.prisma:11
+        -->  prisma/invalid.prisma:10
          | 
-      10 | 
-      11 | model something {
-      12 |   id Int
-      13 | }
+       9 | 
+      10 | model something {
+      11 |   id Int
+      12 | }
          | 
 
 
@@ -544,7 +527,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:../dev.db"
       }
 
       model Post {

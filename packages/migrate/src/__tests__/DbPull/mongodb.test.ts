@@ -82,7 +82,6 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
 
       datasource my_db {
         provider = "mongodb"
-        url      = env("TEST_MONGO_URI_MIGRATE")
       }
 
       type UsersHobbies {
@@ -142,7 +141,6 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
 
       datasource my_db {
         provider = "mongodb"
-        url      = env("TEST_MONGO_URI_MIGRATE")
       }
 
       model users {
@@ -183,7 +181,6 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
 
       datasource my_db {
         provider = "mongodb"
-        url      = env("TEST_MONGO_URI_MIGRATE")
       }
 
       type UsersHobbies {
@@ -263,7 +260,6 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
 
       datasource my_db {
         provider = "mongodb"
-        url      = env("TEST_MONGO_URI_MIGRATE")
       }
 
       type UsersHobbies {

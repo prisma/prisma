@@ -69,11 +69,11 @@ describe('common', () => {
         "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
-          -->  prisma/invalid.prisma:10
+          -->  prisma/invalid.prisma:9
            | 
-         9 | }
-        10 | model Blog {
-        11 | 
+         8 | }
+         9 | model Blog {
+        10 | 
            | 
 
         Validation Error Count: 1

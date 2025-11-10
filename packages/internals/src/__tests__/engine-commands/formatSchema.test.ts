@@ -49,7 +49,6 @@ describe('format custom options', () => {
   const schema = /* prisma */ `
   datasource db {
    provider = "sqlite"
-   url  = "file:dev.db"
   }
   
   model User {
@@ -68,7 +67,6 @@ describe('format custom options', () => {
     expect(formattedContent[0]).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
 
       model User {
@@ -88,7 +86,6 @@ describe('format custom options', () => {
     expect(formattedContent[0]).toMatchInlineSnapshot(`
       "datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
       }
 
       model User {
@@ -119,7 +116,6 @@ describe('format', () => {
           `
       datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
       
       generator client {
@@ -172,7 +168,6 @@ describe('format', () => {
 
       datasource db {
         provider = "cockroachdb"
-        url = env("TEST_POSTGRES_URI")
       }
 
       model SomeUser {
@@ -204,7 +199,6 @@ describe('format', () => {
 
       datasource db {
         provider = "cockroachdb"
-        url = env("TEST_POSTGRES_URI")
       }
 
       model SomeUser {
@@ -238,7 +232,6 @@ describe('format', () => {
 
       datasource db {
         provider = "cockroachdb"
-        url      = env("TEST_POSTGRES_URI")
       }
 
       model SomeUser {
@@ -265,7 +258,6 @@ describe('format', () => {
 
       datasource db {
         provider = "cockroachdb"
-        url      = env("TEST_POSTGRES_URI")
       }
 
       model SomeUser {

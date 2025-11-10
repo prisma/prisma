@@ -59,7 +59,6 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
       datasource db {
         provider = "cockroachdb"
-        url      = env("TEST_COCKROACH_URI_MIGRATE")
       }
 
       model Post {

@@ -244,20 +244,20 @@ describe('generator', () => {
       [GetDmmfError: Prisma schema validation - (get-dmmf wasm)
       Error code: P1012
       error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-        -->  tests/denylist.prisma:10
+        -->  tests/denylist.prisma:9
          | 
-       9 | 
-      10 | model public {
-      11 |   id Int @id
-      12 | }
+       8 | 
+       9 | model public {
+      10 |   id Int @id
+      11 | }
          | 
       error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-        -->  tests/denylist.prisma:14
+        -->  tests/denylist.prisma:13
          | 
-      13 | 
-      14 | model return {
-      15 |   id Int @id
-      16 | }
+      12 | 
+      13 | model return {
+      14 |   id Int @id
+      15 | }
          | 
 
       Validation Error Count: 2
@@ -304,9 +304,9 @@ describe('generator', () => {
       Suggestion:
       In /project/main-package-override.prisma replace:
 
-      8 output   = "./__fixture__/@prisma/client"
+      7 output   = "./__fixture__/@prisma/client"
       with
-      8 output   = "./__fixture__/.prisma/client"
+      7 output   = "./__fixture__/.prisma/client"
 
       You won't need to change your imports.
       Imports from \`@prisma/client\` will be automatically forwarded to \`.prisma/client\`]

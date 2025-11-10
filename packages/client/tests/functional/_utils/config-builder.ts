@@ -13,7 +13,7 @@ export function buildPrismaConfig({
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
-}) {
+}): PrismaConfigInternal {
   const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
   return buildPrismaConfigInternal(schemaPath, datasourceInfo.databaseUrl)
 }
