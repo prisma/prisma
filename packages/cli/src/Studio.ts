@@ -163,7 +163,7 @@ ${bold('Examples')}
     const studioStuff = PRISMA_PROVIDER_TO_STUDIO_STUFF[provider]
 
     if (!studioStuff) {
-      return new Error(`Prisma Studio is not supported for the "${provider}" provider.`)
+      return new Error(`Prisma Studio is not supported for the "${provider}".`)
     }
 
     const executor = await studioStuff.createExecutor(connectionString)
