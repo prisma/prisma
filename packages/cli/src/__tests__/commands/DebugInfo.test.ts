@@ -57,9 +57,6 @@ const envVars = {
   BINARY_DOWNLOAD_VERSION: 'true',
   PRISMA_SCHEMA_ENGINE_BINARY: 'some/path',
   PRISMA_MIGRATION_ENGINE_BINARY: 'true',
-  PRISMA_GENERATE_SKIP_AUTOINSTALL: 'true',
-  PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
-  PRISMA_GENERATE_IN_POSTINSTALL: 'true',
   PRISMA_SHOW_ALL_TRACES: 'true',
   PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: 'true',
   PRISMA_MIGRATE_SKIP_SEED: 'true',
@@ -134,11 +131,6 @@ describe('debug', () => {
       For custom engines
       - PRISMA_SCHEMA_ENGINE_BINARY:
       - PRISMA_MIGRATION_ENGINE_BINARY:
-
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL:
-      - PRISMA_SKIP_POSTINSTALL_GENERATE:
-      - PRISMA_GENERATE_IN_POSTINSTALL:
 
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES:
@@ -215,11 +207,6 @@ describe('debug', () => {
       - PRISMA_SCHEMA_ENGINE_BINARY: \`\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`\`
 
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`\`
-      - PRISMA_SKIP_POSTINSTALL_GENERATE: \`\`
-      - PRISMA_GENERATE_IN_POSTINSTALL: \`\`
-
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`\`
 
@@ -291,11 +278,6 @@ describe('debug', () => {
       For custom engines
       - PRISMA_SCHEMA_ENGINE_BINARY: \`some/path\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`true\`
-
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`true\`
-      - PRISMA_SKIP_POSTINSTALL_GENERATE: \`true\`
-      - PRISMA_GENERATE_IN_POSTINSTALL: \`true\`
 
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`true\`

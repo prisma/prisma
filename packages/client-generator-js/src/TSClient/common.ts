@@ -184,6 +184,7 @@ export import Exact = $Public.Exact
  */
 export type PrismaVersion = {
   client: string
+  engine: string
 }
 
 export const prismaVersion: PrismaVersion
