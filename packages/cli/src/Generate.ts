@@ -7,21 +7,18 @@ import {
   Command,
   format,
   Generator,
-  getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
   GetSchemaResult,
   getSchemaWithPath,
-  getSchemaWithPathOptional,
   HelpError,
   isError,
-  link,
   logger,
   missingGeneratorMessage,
   parseEnvValue,
 } from '@prisma/internals'
 import fs from 'fs'
-import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
+import { bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
@@ -115,8 +112,6 @@ ${bold('Examples')}
       '--config': String,
       '--no-hints': Boolean,
       '--generator': [String],
-      // Only used for checkpoint information
-      '--postinstall': String,
       '--telemetry-information': String,
       '--require-models': Boolean,
       '--sql': Boolean,
@@ -124,11 +119,7 @@ ${bold('Examples')}
 
     const allowNoModels = !args['--require-models']
 
-    const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
-    let cwd = process.cwd()
-    if (postinstallCwd && postinstallCwd !== 'true') {
-      cwd = postinstallCwd
-    }
+    const cwd = process.cwd()
     if (isError(args)) {
       return this.help(args.message)
     }
@@ -139,7 +130,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
+    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
@@ -160,7 +151,6 @@ ${bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         generatorNames: args['--generator'],
-        postinstall: Boolean(args['--postinstall']),
         typedSql,
         allowNoModels,
         registry: defaultRegistry.toInternal(),
@@ -185,12 +175,6 @@ ${bold('Examples')}
         }
       }
     } catch (errGetGenerators) {
-      if (postinstallCwd) {
-        console.error(`${blue('info')} The postinstall script automatically ran \`prisma generate\`, which failed.
-The postinstall script still succeeds but won't generate the Prisma Client.
-Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
-        return ''
-      }
       if (watchMode) {
         this.logText += `${errGetGenerators.message}\n\n`
       } else {
@@ -215,7 +199,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
-    if (postinstallCwd && printBreakingChangesMessage && logger.should.warn()) {
+    if (printBreakingChangesMessage && logger.should.warn()) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
 Please run \`prisma generate\` manually.`
@@ -263,12 +247,6 @@ ${breakingChangesStr}${versionsWarning}`
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
 
       if (this.hasGeneratorErrored) {
-        if (postinstallCwd) {
-          logger.info(`The postinstall script automatically ran \`prisma generate\`, which failed.
-The postinstall script still succeeds but won't generate the Prisma Client.
-Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
-          return ''
-        }
         throw new Error(message)
       } else {
         if (!hideHints) {
@@ -288,7 +266,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
 
-        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
+        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
         if (!schemaResult) return ''
 
         const schemaContext = await processSchemaResult({ schemaResult })
@@ -368,21 +346,6 @@ async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
   schemaFromConfig: string | undefined,
   cwd: string,
-  isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {
-  if (isPostinstall) {
-    const schema = await getSchemaWithPathOptional(schemaFromArgs, schemaFromConfig, { cwd })
-    if (schema) {
-      return schema
-    }
-    logger.warn(`We could not find your Prisma schema in the default locations (see: ${link(
-      'https://pris.ly/d/prisma-schema-location',
-    )}).
-If you have a Prisma schema file in a custom path, you will need to run
-\`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
-If you do not have a Prisma schema file yet, you can ignore this message.`)
-    return null
-  }
-
   return getSchemaWithPath(schemaFromArgs, schemaFromConfig, { cwd })
 }
