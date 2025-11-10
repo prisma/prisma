@@ -34,7 +34,6 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
-    "ci-info": "4.2.0",
     "fast-glob": "3.3.3",
     "get-tsconfig": "4.10.0",
     "indent-string": "4.0.0",

@@ -1,8 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
-import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
-import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import path from 'path'
 import type { O } from 'ts-toolbelt'
@@ -54,30 +52,17 @@ export class TSClient implements Generable {
   }
 
   public toJS(): string {
-    const {
-      edge,
-      wasm,
-      generator,
-      outputDir,
-      datamodel: inlineSchema,
-      runtimeNameJs,
-      datasources,
-      reusedJs,
-    } = this.options
+    const { edge, wasm, generator, outputDir, datamodel: inlineSchema, runtimeNameJs, reusedJs } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
     }
 
-    const datasourceFilePath = datasources[0].sourceFilePath
-    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
-      generator,
-      relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel'> = {
+      previewFeatures: generator.previewFeatures,
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
-      datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      ciName: ciInfo.name ?? undefined,
       inlineSchema,
     }
 
