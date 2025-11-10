@@ -71,63 +71,63 @@ export class DebugInfo implements Command {
     const rootCacheDir = link(await getRootCacheDir())
 
     return `${underline('-- Prisma schema --')}
-  Path: ${schemaPath}
+Path: ${schemaPath}
 
-  ${underline('-- Local cache directory for engines files --')}
-  Path: ${rootCacheDir}
+${underline('-- Local cache directory for engines files --')}
+Path: ${rootCacheDir}
 
-  ${underline('-- Environment variables --')}
-  When not set, the line is dimmed and no value is displayed.
-  When set, the line is bold and the value is inside the \`\` backticks.
+${underline('-- Environment variables --')}
+When not set, the line is dimmed and no value is displayed.
+When set, the line is bold and the value is inside the \`\` backticks.
 
-  For general debugging
-  ${formatEnvValue('CI')}
-  ${formatEnvValue('DEBUG')}
-  ${formatEnvValue('NODE_ENV')}
-  ${formatEnvValue('RUST_LOG')}
-  ${formatEnvValue('RUST_BACKTRACE')}
-  ${formatEnvValue('NO_COLOR')}
-  ${formatEnvValue('TERM')}
-  ${formatEnvValue('NODE_TLS_REJECT_UNAUTHORIZED')}
-  ${formatEnvValue('NO_PROXY')}
-  ${formatEnvValue('http_proxy')}
-  ${formatEnvValue('HTTP_PROXY')}
-  ${formatEnvValue('https_proxy')}
-  ${formatEnvValue('HTTPS_PROXY')}
+For general debugging
+${formatEnvValue('CI')}
+${formatEnvValue('DEBUG')}
+${formatEnvValue('NODE_ENV')}
+${formatEnvValue('RUST_LOG')}
+${formatEnvValue('RUST_BACKTRACE')}
+${formatEnvValue('NO_COLOR')}
+${formatEnvValue('TERM')}
+${formatEnvValue('NODE_TLS_REJECT_UNAUTHORIZED')}
+${formatEnvValue('NO_PROXY')}
+${formatEnvValue('http_proxy')}
+${formatEnvValue('HTTP_PROXY')}
+${formatEnvValue('https_proxy')}
+${formatEnvValue('HTTPS_PROXY')}
 
-  For more information about Prisma environment variables:
-  See ${link('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
+For more information about Prisma environment variables:
+See ${link('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
 
-  For hiding messages
-  ${formatEnvValue('PRISMA_DISABLE_WARNINGS')}
-  ${formatEnvValue('PRISMA_HIDE_PREVIEW_FLAG_WARNINGS')}
-  ${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
+For hiding messages
+${formatEnvValue('PRISMA_DISABLE_WARNINGS')}
+${formatEnvValue('PRISMA_HIDE_PREVIEW_FLAG_WARNINGS')}
+${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
 
-  For downloading engines
-  ${formatEnvValue('PRISMA_ENGINES_MIRROR')}
-  ${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
-  ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
-  ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
+For downloading engines
+${formatEnvValue('PRISMA_ENGINES_MIRROR')}
+${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
+${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
+${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
-  For custom engines
-  ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
-  ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
+For custom engines
+${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
+${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
 
-  For Prisma Client
-  ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
+For Prisma Client
+${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
 
-  For Prisma Migrate
-  ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
-  ${formatEnvValue('PRISMA_MIGRATE_SKIP_SEED')}
+For Prisma Migrate
+${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
+${formatEnvValue('PRISMA_MIGRATE_SKIP_SEED')}
 
-  For Prisma Studio
-  ${formatEnvValue('BROWSER')}
+For Prisma Studio
+${formatEnvValue('BROWSER')}
 
-  ${underline('-- Terminal is interactive? --')}
-  ${isInteractive()}
+${underline('-- Terminal is interactive? --')}
+${isInteractive()}
 
-  ${underline('-- CI detected? --')}
-  ${isCi()}
-  `
+${underline('-- CI detected? --')}
+${isCi()}
+`
   }
 }
