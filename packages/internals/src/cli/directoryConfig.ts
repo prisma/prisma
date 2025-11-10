@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { PrismaConfigInternal } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 
 import { SchemaContext } from './schemaContext'
 
@@ -15,7 +15,7 @@ export type DirectoryConfig = {
  */
 export function inferDirectoryConfig(
   schemaContext?: SchemaContext | null,
-  config?: PrismaConfigInternal,
+  config?: Pick<PrismaConfig, 'views' | 'typedSql' | 'migrations'>,
   cwd: string = process.cwd(),
 ): DirectoryConfig {
   const baseDir =

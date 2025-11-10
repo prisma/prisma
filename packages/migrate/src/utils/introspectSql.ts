@@ -1,6 +1,6 @@
-import { PrismaConfigInternal } from '@prisma/config'
+import { PrismaConfig } from '@prisma/config'
 import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
-import { SchemaContext } from '@prisma/internals'
+import { RequireKey, SchemaContext } from '@prisma/internals'
 
 import { Migrate } from '../Migrate'
 import { SchemaEngine } from '../SchemaEngine'
@@ -39,7 +39,7 @@ export type IntrospectSqlResult =
 
 export async function introspectSql(
   schemaContext: SchemaContext,
-  config: PrismaConfigInternal,
+  config: RequireKey<PrismaConfig, 'datasource'>,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
   if (!isTypedSqlEnabled(schemaContext.generators)) {
@@ -60,12 +60,7 @@ export async function introspectSql(
   const errors: IntrospectSqlError[] = []
   try {
     for (const query of queries) {
-      const queryResult = await introspectSingleQuery(
-        schemaEngine,
-        // TODO: can we valid the presence of `config.datasource.url` early and make this unreachable?
-        config.datasource?.url ?? '<introspect-sql-no-url>',
-        query,
-      )
+      const queryResult = await introspectSingleQuery(schemaEngine, config.datasource.url, query)
       if (queryResult.ok) {
         results.push(queryResult.result)
       } else {

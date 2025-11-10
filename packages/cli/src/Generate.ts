@@ -17,6 +17,8 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
 } from '@prisma/internals'
+import { validateConfig } from '@prisma/migrate'
+import { ValidatedPrismaConfig } from '@prisma/migrate/dist/migrate/src/utils/validateConfig'
 import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
@@ -141,17 +143,24 @@ ${bold('Examples')}
     let hasJsClient = false
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
-    let typedSql: SqlQueryOutput[] | undefined
+
+    let typedSqlData: { validatedConfig: ValidatedPrismaConfig; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
-      typedSql = await introspectSql(config, schemaContext)
+      const validatedConfig = validateConfig({ config, cmd: 'generate --sql' })
+      const typedSql = await introspectSql(validatedConfig, schemaContext)
+      typedSqlData = {
+        validatedConfig,
+        typedSql,
+      }
     }
+
     try {
       generators = await getGenerators({
         schemaContext,
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         generatorNames: args['--generator'],
-        typedSql,
+        typedSql: typedSqlData?.typedSql,
         allowNoModels,
         registry: defaultRegistry.toInternal(),
       })
@@ -273,8 +282,8 @@ ${breakingChangesStr}${versionsWarning}`
 
         let generatorsWatch: Generator[] | undefined
         try {
-          if (args['--sql']) {
-            typedSql = await introspectSql(config, schemaContext)
+          if (typedSqlData !== undefined) {
+            typedSqlData.typedSql = await introspectSql(typedSqlData.validatedConfig, schemaContext)
           }
 
           generatorsWatch = await getGenerators({
@@ -282,7 +291,7 @@ ${breakingChangesStr}${versionsWarning}`
             printDownloadProgress: !watchMode,
             version: enginesVersion,
             generatorNames: args['--generator'],
-            typedSql,
+            typedSql: typedSqlData?.typedSql,
             registry: defaultRegistry.toInternal(),
           })
 
