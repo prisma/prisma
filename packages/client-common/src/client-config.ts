@@ -28,15 +28,6 @@ export type GetPrismaClientConfig = {
   inlineSchema: string
 
   /**
-   * Information about the CI where the Prisma Client has been generated. The
-   * name of the CI environment is stored at generation time because CI
-   * information is not always available at runtime. Moreover, the edge client
-   * has no notion of environment variables, so this works around that.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  ciName?: string
-
-  /**
    * Optional wasm loading configuration
    */
   compilerWasm?: CompilerWasmLoadingConfig

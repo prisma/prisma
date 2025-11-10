@@ -3,7 +3,6 @@ import path from 'node:path'
 import { GetPrismaClientConfig } from '@prisma/client-common'
 import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
-import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
@@ -67,7 +66,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     engineVersion: options.engineVersion,
     datasourceNames: datasources.map((d) => d.name),
     activeProvider: options.activeProvider,
-    ciName: ciInfo.name ?? undefined,
     inlineSchema,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
     dirname: '',

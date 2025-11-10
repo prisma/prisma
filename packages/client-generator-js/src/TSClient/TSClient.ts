@@ -2,7 +2,6 @@ import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
-import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import path from 'path'
 import type { O } from 'ts-toolbelt'
@@ -77,7 +76,6 @@ export class TSClient implements Generable {
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      ciName: ciInfo.name ?? undefined,
       inlineSchema,
     }
 
