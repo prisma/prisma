@@ -281,7 +281,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           Debug.enable('prisma:client')
         }
 
-        debug('dirname', config.dirname)
         debug('relativePath', config.relativePath)
 
         if (options.errorFormat) {
@@ -297,7 +296,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._runtimeDataModel = config.runtimeDataModel
 
         this._engineConfig = {
-          dirname: config.dirname,
           enableDebugLogs: useDebug,
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:

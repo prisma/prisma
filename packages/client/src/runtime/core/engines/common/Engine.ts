@@ -108,7 +108,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 }
 
 export interface EngineConfig {
-  dirname: string
   enableDebugLogs?: boolean
   prismaPath?: string
   logQueries?: boolean

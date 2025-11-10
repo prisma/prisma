@@ -67,7 +67,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     activeProvider: options.activeProvider,
     inlineSchema,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
-    dirname: '',
   }
 
   return `

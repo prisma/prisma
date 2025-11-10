@@ -69,7 +69,7 @@ export class TSClient implements Generable {
     }
 
     const datasourceFilePath = datasources[0].sourceFilePath
-    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel'> = {
       generator,
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,

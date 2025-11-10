@@ -15,7 +15,6 @@ export type GetPrismaClientConfig = {
   runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
   relativePath: string
-  dirname: string
   clientVersion: string
   engineVersion: string
   activeProvider: ActiveConnectorType
