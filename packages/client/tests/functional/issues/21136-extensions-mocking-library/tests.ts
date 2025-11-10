@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type $ from './generated/prisma/client'
+import type * as $ from './generated/prisma/client'
 
 declare let prisma: $.PrismaClient
 
@@ -240,8 +240,5 @@ testMatrix.setupTestSuite(
       reason: 'this is a type-level only test',
     },
     skipDb: true,
-    skip(when, { generatorType }) {
-      when(generatorType === 'prisma-client-ts', '`prisma-client-ts` broke client extension types, apparently ')
-    },
   },
 )
