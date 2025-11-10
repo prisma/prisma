@@ -5,7 +5,6 @@ import { ClientConfig, validatePrismaClientOptions } from '../runtime/utils/vali
 
 const config: ClientConfig = {
   runtimeDataModel: {} as RuntimeDataModel,
-  datasourceNames: ['db'],
   generator: {
     binaryTargets: [],
     name: 'prisma-client',

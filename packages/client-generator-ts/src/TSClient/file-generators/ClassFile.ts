@@ -64,7 +64,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
     clientVersion: options.clientVersion,
     engineVersion: options.engineVersion,
-    datasourceNames: datasources.map((d) => d.name),
     activeProvider: options.activeProvider,
     inlineSchema,
     runtimeDataModel: { models: {}, enums: {}, types: {} },

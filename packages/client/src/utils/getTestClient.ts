@@ -45,7 +45,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativePath: path.relative(outputDir, absSchemaDir),
     clientVersion: '0.0.0',
     engineVersion: '0000000000000000000000000000000000000000',
-    datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     inlineSchema: datamodel[0][1], // TODO: merge schemas
   }

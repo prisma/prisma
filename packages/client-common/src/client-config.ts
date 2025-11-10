@@ -18,7 +18,6 @@ export type GetPrismaClientConfig = {
   dirname: string
   clientVersion: string
   engineVersion: string
-  datasourceNames: string[]
   activeProvider: ActiveConnectorType
 
   /**

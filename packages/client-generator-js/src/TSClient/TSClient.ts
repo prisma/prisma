@@ -74,7 +74,6 @@ export class TSClient implements Generable {
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
-      datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
       inlineSchema,
     }
