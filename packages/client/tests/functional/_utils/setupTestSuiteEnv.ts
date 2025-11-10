@@ -3,9 +3,11 @@ import { Script } from 'node:vm'
 
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
-import { execa } from 'execa'
+import { MigrateDiff } from '@prisma/migrate'
 import fs from 'fs-extra'
+import { temporaryFile } from 'tempy'
 import { match } from 'ts-pattern'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
@@ -158,7 +160,12 @@ export async function setupTestSuiteDatabase({
 
   try {
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
-      await setupTestSuiteDatabaseD1({ schemaPath, cfWorkerBindings: cfWorkerBindings!, alterStatementCallback })
+      await setupTestSuiteDatabaseD1({
+        schemaPath,
+        cfWorkerBindings: cfWorkerBindings!,
+        alterStatementCallback,
+        prismaConfig: buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo }),
+      })
     } else {
       const dbPushParams = [] as string[]
 
@@ -227,26 +234,17 @@ export async function setupTestSuiteDatabaseD1({
   schemaPath,
   cfWorkerBindings,
   alterStatementCallback,
+  prismaConfig,
 }: {
   schemaPath: string
   cfWorkerBindings: { [key: string]: unknown }
   alterStatementCallback?: AlterStatementCallback
+  prismaConfig: PrismaConfigInternal
 }) {
   // Cleanup the database
   await prepareD1Database({ cfWorkerBindings })
 
-  // Use `migrate diff` to get the DDL statements
-  const diffResult = await execa(
-    '../cli/src/bin.ts',
-    ['migrate', 'diff', '--from-empty', '--to-schema', schemaPath, '--script'],
-    {
-      env: {
-        DEBUG: process.env.DEBUG,
-      },
-    },
-  )
-  const sqlStatements = diffResult.stdout
-
+  const sqlStatements = await getD1MigrationScript({ schemaPath, prismaConfig })
   const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
   // Execute the DDL statements
@@ -271,6 +269,31 @@ export async function setupTestSuiteDatabaseD1({
       }
     }
   }
+}
+
+async function getD1MigrationScript({
+  schemaPath,
+  prismaConfig,
+}: {
+  schemaPath: string
+  prismaConfig: PrismaConfigInternal
+}): Promise<string> {
+  const sqlScriptPath = temporaryFile()
+
+  const diffResult = await MigrateDiff.new().parse(
+    ['--from-empty', '--to-schema', schemaPath, '--script', '--output', sqlScriptPath],
+    prismaConfig,
+  )
+
+  if (diffResult instanceof Error) {
+    throw diffResult
+  }
+
+  const ddlStatements = await fs.readFile(sqlScriptPath, 'utf-8')
+
+  await fs.remove(sqlScriptPath)
+
+  return ddlStatements
 }
 
 /**

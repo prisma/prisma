@@ -253,10 +253,9 @@ export default testMatrix.setupSchema(({ provider }) => {
       provider = "prisma-client-js"
     }
 
-    datasource db {
-      provider = "${provider}"
-      url      = env("DATABASE_URI_${provider}")
-    }
+  datasource db {
+    provider = "${provider}"
+  }
 
     model User {
       id ${idForProvider(provider)}

@@ -4,7 +4,7 @@ import { context, trace } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
 import { InjectFormatters } from '@prisma/config'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
 import { arg, handlePanic, HelpError, isRustPanic, link } from '@prisma/internals'
@@ -195,22 +195,35 @@ async function main(): Promise<number> {
     configDiagnostic.value(configDiagnosticFormatters)()
   }
 
-  const startCliExec = performance.now()
-  // Execute the command
-  const result = await cli.parse(commandArray, config)
-  const endCliExec = performance.now()
-  const cliExecElapsedTime = endCliExec - startCliExec
-  debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
+  try {
+    const startCliExec = performance.now()
+    // Execute the command
+    const result = await cli.parse(commandArray, config)
+    const endCliExec = performance.now()
+    const cliExecElapsedTime = endCliExec - startCliExec
+    debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
 
-  if (result instanceof Error) {
-    console.error(result instanceof HelpError ? result.message : result)
-    return 1
+    if (result instanceof Error) {
+      console.error(result instanceof HelpError ? result.message : result)
+      return 1
+    }
+
+    // Success
+    console.log(result)
+
+    return 0
+  } catch (error) {
+    if (isRustPanic(error)) {
+      await handlePanic({
+        error,
+        cliVersion: packageJson.version,
+        enginesVersion,
+        command: redactCommandArray([...commandArray]).join(' '),
+        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config),
+      })
+    }
+    throw error
   }
-
-  // Success
-  console.log(result)
-
-  return 0
 }
 
 /**
@@ -236,32 +249,13 @@ if (eval('require.main === module')) {
 }
 
 function handleIndividualError(error: Error): void {
-  if (isRustPanic(error)) {
-    handlePanic({
-      error,
-      cliVersion: packageJson.version,
-      enginesVersion,
-      command: redactCommandArray([...commandArray]).join(' '),
-      getDatabaseVersionSafe,
-    })
-      .catch((e) => {
-        if (Debug.enabled('prisma')) {
-          console.error(bold(red('Error: ')) + e.stack)
-        } else {
-          console.error(bold(red('Error: ')) + e.message)
-        }
-      })
-      .finally(() => {
-        process.exit(1)
-      })
+  if (Debug.enabled('prisma')) {
+    console.error(bold(red('Error: ')) + error.stack)
   } else {
-    if (Debug.enabled('prisma')) {
-      console.error(bold(red('Error: ')) + error.stack)
-    } else {
-      console.error(bold(red('Error: ')) + error.message)
-    }
-    process.exit(1)
+    console.error(bold(red('Error: ')) + error.message)
   }
+
+  process.exit(1)
 }
 
 /**

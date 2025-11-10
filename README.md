@@ -67,7 +67,6 @@ Every project that uses a tool from the Prisma toolkit starts with a [Prisma sch
 // Data source
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Generator

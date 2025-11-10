@@ -64,10 +64,10 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
-        -->  with-schemas-in-datasource-0-value.prisma:4
+        -->  with-schemas-in-datasource-0-value.prisma:3
          | 
-       3 |   url      = env("TEST_POSTGRES_URI_MIGRATE")
-       4 |   schemas  = []
+       2 |   provider = "postgres"
+       3 |   schemas  = []
          | 
 
       Validation Error Count: 1
@@ -94,7 +94,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
 
       datasource db {
         provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
         schemas  = ["base", "transactional"]
       }
 
@@ -181,7 +180,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
 
       datasource db {
         provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
         schemas  = ["base"]
       }
 
@@ -240,7 +238,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
 
       datasource db {
         provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
         schemas  = ["base", "does-not-exist"]
       }
 
