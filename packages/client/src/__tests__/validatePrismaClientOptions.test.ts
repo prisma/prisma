@@ -5,18 +5,7 @@ import { ClientConfig, validatePrismaClientOptions } from '../runtime/utils/vali
 
 const config: ClientConfig = {
   runtimeDataModel: {} as RuntimeDataModel,
-  datasourceNames: ['db'],
-  generator: {
-    binaryTargets: [],
-    name: 'prisma-client',
-    output: { fromEnvVar: null, value: './generated/prisma' },
-    previewFeatures: [],
-    provider: { fromEnvVar: null, value: 'postgresql' },
-    sourceFilePath: 'app.ts',
-    config: {
-      engineType: 'client',
-    },
-  },
+  previewFeatures: [],
 }
 
 {
