@@ -459,6 +459,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
   })
 
   it('should fail when Prisma schema is missing', async () => {
+    ctx.fixture('valid-config-only')
     const result = DbPull.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find a schema.prisma file that is required for this command.
