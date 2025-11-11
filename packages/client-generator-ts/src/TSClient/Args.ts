@@ -93,6 +93,27 @@ export class ArgsTypeBuilder {
     return this
   }
 
+  addWhereUniqueArg(relatedModelName: string): this {
+    const whereUniqueInputType = `${relatedModelName}WhereUniqueInput`
+    this.addProperty(
+      ts
+        .property(
+          'whereUnique',
+          ts.unionType([
+            ts.namedType(`Prisma.${whereUniqueInputType}`).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
+        )
+        .optional()
+        .setDocComment(
+          ts.docComment(
+            `Filter by unique fields on the related ${relatedModelName} model. Returns 0 or 1 result instead of an array.`,
+          ),
+        ),
+    )
+    return this
+  }
+
   setGeneratedName(name: string): this {
     this.moduleExport.declaration.setName(name)
     return this

@@ -16,13 +16,19 @@ export type GetFindResult<P extends OperationPayload, A, GlobalOmitOptions> =
   ? {
       [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]:
         (S & I)[K] extends object
-        ? P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions>[] : never
-          : P extends SelectablePayloadFields<K, infer O | null>
+        ? (S & I)[K] extends { whereUnique: any }
+          ? P extends SelectablePayloadFields<K, (infer O)[]>
             ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions> | SelectField<P, K> & null : never
-            : K extends '_count'
-              ? Count<GetFindResult<P, (S & I)[K], GlobalOmitOptions>>
+            : P extends SelectablePayloadFields<K, infer O | null>
+              ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions> | SelectField<P, K> & null : never
               : never
+          : P extends SelectablePayloadFields<K, (infer O)[]>
+            ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions>[] : never
+            : P extends SelectablePayloadFields<K, infer O | null>
+              ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions> | SelectField<P, K> & null : never
+              : K extends '_count'
+                ? Count<GetFindResult<P, (S & I)[K], GlobalOmitOptions>>
+                : never
         : P extends SelectablePayloadFields<K, (infer O)[]>
           ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions>[] : never
           : P extends SelectablePayloadFields<K, infer O | null>
