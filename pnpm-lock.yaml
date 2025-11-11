@@ -3237,6 +3237,9 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  '@prisma/ppg@1.0.1':
+    resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
+
   '@prisma/prisma-schema-wasm@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab':
     resolution: {integrity: sha512-TfVGG5U4GHCAW+lnNXvYfjgAaoeTVu+JTRHvMwGa60P9y2nkLtJMVXWBoB7ZhxqAoIkUWdDbX758Zl8ZJ+47jQ==}
 
@@ -9270,7 +9273,7 @@ snapshots:
   '@libsql/isomorphic-ws@0.1.5':
     dependencies:
       '@types/ws': 8.5.6
-      ws: 8.18.0
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -9555,6 +9558,13 @@ snapshots:
   '@prisma/engines-version@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab': {}
 
   '@prisma/mini-proxy@0.9.5': {}
+
+  '@prisma/ppg@1.0.1':
+    dependencies:
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@prisma/prisma-schema-wasm@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab': {}
 
