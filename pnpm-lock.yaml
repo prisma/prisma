@@ -402,8 +402,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/studio-core-licensed':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.0.0-dev.202511120235
+        version: 0.0.0-dev.202511120235
       postgres:
         specifier: 3.4.7
         version: 3.4.7
@@ -468,6 +468,9 @@ importers:
       '@swc/jest':
         specifier: 0.2.37
         version: 0.2.37(@swc/core@1.11.5)
+      '@types/better-sqlite3':
+        specifier: 7.6.12
+        version: 7.6.12
       '@types/fs-extra':
         specifier: 11.0.4
         version: 11.0.4
@@ -480,6 +483,9 @@ importers:
       async-listen:
         specifier: 3.1.0
         version: 3.1.0
+      better-sqlite3:
+        specifier: ^11.10.0
+        version: 11.10.0
       checkpoint-client:
         specifier: 1.1.33
         version: 1.1.33(encoding@0.1.13)
@@ -3414,8 +3420,8 @@ packages:
   '@prisma/schema-engine-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95':
     resolution: {integrity: sha512-FC7XGmH3RV5Vumg1a7OAMSM+1KFWp4LkNJ0Kb6S2Mir+RLWFkE1s3tL2ROJZXvumM8Voy5d/kpzOBwkh2AIRvA==}
 
-  '@prisma/studio-core-licensed@0.6.0':
-    resolution: {integrity: sha512-LNC8ohLosuWz6n9oKNqfR5Ep/JYiPavk4RxrU6inOS4LEvMQts8N+Vtt7NAB9i06BaiIRKnPsg1Hcaao5pRjSw==}
+  '@prisma/studio-core-licensed@0.0.0-dev.202511120235':
+    resolution: {integrity: sha512-AgqJ0gjG8o6jJR7SVCLI3R6yMutdOf/QQNwCcv1iytrSNDsaCtMbr73K5R1JDqCrJuHSj9T2vXS/hjORP2Mkuw==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -9701,7 +9707,7 @@ snapshots:
 
   '@prisma/schema-engine-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
 
-  '@prisma/studio-core-licensed@0.6.0': {}
+  '@prisma/studio-core-licensed@0.0.0-dev.202511120235': {}
 
   '@rollup/rollup-android-arm-eabi@4.52.5':
     optional: true
@@ -9991,7 +9997,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.12':
     dependencies:
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
 
   '@types/chai@5.2.3':
     dependencies:

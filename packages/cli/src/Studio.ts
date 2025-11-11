@@ -2,17 +2,17 @@ import { readFile } from 'node:fs/promises'
 
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { ConnectorType } from '@prisma/generator'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
 import type { Executor, Query } from '@prisma/studio-core-licensed/data'
 import { serializeError } from '@prisma/studio-core-licensed/data/bff'
+import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
 import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
-import { extname, join } from 'pathe'
+import { dirname, extname, join, resolve } from 'pathe'
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -48,13 +48,15 @@ const ADAPTER_FILE_NAME = 'adapter.js'
 const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
 
 interface StudioStuff {
-  createExecutor(connectionString: string): Promise<Executor>
+  createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
   reExportAdapterScript: string
 }
 
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
-  async createExecutor(connectionString: string) {
-    const postgres = await import('postgres').then((mod) => mod.default(connectionString))
+  async createExecutor(connectionString) {
+    const postgresModule = await import('postgres')
+
+    const postgres = postgresModule.default(connectionString)
 
     process.once('SIGINT', () => postgres.end())
     process.once('SIGTERM', () => postgres.end())
@@ -64,14 +66,42 @@ const POSTGRES_STUDIO_STUFF: StudioStuff = {
   reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
 }
 
-const PRISMA_PROVIDER_TO_STUDIO_STUFF: Record<ConnectorType, StudioStuff | null> = {
-  cockroachdb: POSTGRES_STUDIO_STUFF,
+const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | null> = {
+  // TODO: figure out PGLite support later.
+  file: {
+    async createExecutor(uri, relativeTo) {
+      const path = uri.replace('file:', '')
+
+      const resolvedPath = path !== ':memory:' ? resolve(dirname(relativeTo), path) : path
+
+      let database: import('better-sqlite3').Database | undefined = undefined
+
+      try {
+        // TODO: remove 'as' once Node.js v22 is the minimum supported version.
+        const { DatabaseSync } = (await import('node:sqlite' as never)) as {
+          DatabaseSync: { new (path: string): import('better-sqlite3').Database }
+        }
+
+        database = new DatabaseSync(resolvedPath)
+      } catch (error) {
+        // TODO: better-sqlite3 fallback for Node.js < v22.5 users, until v20 is EOL.
+
+        const { default: Database } = await import('better-sqlite3')
+
+        database = new Database(resolvedPath)
+      }
+
+      process.once('SIGINT', () => database!.close())
+      process.once('SIGTERM', () => database!.close())
+
+      return createNodeSQLiteExecutor(database)
+    },
+    reExportAdapterScript: `export { createSQLiteAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/sqlite-core/index.js';`,
+  },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
   'prisma+postgres': POSTGRES_STUDIO_STUFF,
-  mongodb: null,
   mysql: null,
-  sqlite: null,
   sqlserver: null,
 }
 
@@ -152,7 +182,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    const connectionString = args['--url'] || (config as { datasource?: { url?: string } }).datasource?.url
+    const connectionString = args['--url'] || config.datasource?.url
 
     if (!connectionString) {
       return new Error('No database URL found.')
@@ -162,15 +192,18 @@ ${bold('Examples')}
       return new Error('The provided database URL is not valid.')
     }
 
-    const provider = new URL(connectionString).protocol.replace(':', '')
+    const protocol = new URL(connectionString).protocol.replace(':', '')
 
-    const studioStuff = PRISMA_PROVIDER_TO_STUDIO_STUFF[provider]
+    const studioStuff = CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF[protocol]
 
     if (!studioStuff) {
-      return new Error(`Prisma Studio is not supported for the "${provider}".`)
+      return new Error(`Prisma Studio is not supported for the "${protocol}" protocol.`)
     }
 
-    const executor = await studioStuff.createExecutor(connectionString)
+    const executor = await studioStuff.createExecutor(
+      connectionString,
+      args['--url'] ? process.cwd() : config.loadedFromFile || process.cwd(),
+    )
 
     const app = new Hono()
 
@@ -212,8 +245,11 @@ ${bold('Examples')}
       return ctx.json([null, results])
     })
 
-    app.post('/telemetry', (ctx) => {
+    app.post('/telemetry', async (ctx) => {
       // TODO: ...
+
+      console.log(await ctx.req.json())
+
       return ctx.body(null, 200)
     })
 
@@ -287,6 +323,8 @@ const INDEX_HTML =
       });
 
       const onEvent = (event) => {
+        console.log(event);
+
         fetch('/telemetry', {
           body: JSON.stringify(event),
           method: 'POST',
