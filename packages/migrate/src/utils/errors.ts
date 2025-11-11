@@ -1,6 +1,13 @@
 import { getCommandWithExecutor, link, setClassName } from '@prisma/internals'
 import { bold, green } from 'kleur/colors'
 
+export class ConfigValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+  }
+}
+
+setClassName(ConfigValidationError, 'ConfigValidationError')
 export class NoSchemaFoundError extends Error {
   constructor() {
     super(
@@ -8,7 +15,7 @@ export class NoSchemaFoundError extends Error {
         'schema.prisma',
       )} file that is required for this command.\nYou can either provide it with ${green(
         '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
+      )}, set its path in the \`schema\` property in your Prisma Config file, or put it into the default location ${green(
         './prisma/schema.prisma',
       )} ${link('https://pris.ly/d/prisma-schema-location')}`,
     )

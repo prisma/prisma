@@ -9,6 +9,7 @@ import {
   getCommandWithExecutor,
   HelpError,
   isError,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import fs from 'fs'
 import { bold, dim, green, italic } from 'kleur/colors'
@@ -20,14 +21,14 @@ import type { EngineArgs } from '../types'
 const helpOptions = format(
   `${bold('Usage')}
 
-${dim('$')} prisma db execute [options]
+  ${dim('$')} prisma db execute [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
 -h, --help            Display this help message
 --config              Custom path to your Prisma config file
-
-Datasource configuration is read from ${italic('prisma.config.ts')}.
 
 ${italic('Script input, only 1 must be provided:')}
 --file                Path to a file. The content will be sent as the script to be executed
@@ -95,6 +96,7 @@ ${bold('Examples')}
     }
 
     const cmd = 'db execute'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
@@ -128,22 +130,11 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       script = await streamConsumer.text(process.stdin)
     }
 
-    if (config.engine === 'js') {
-      throw new Error('engine: "js" is not yet supported in `db execute`.')
-    }
-
-    if (config.engine !== 'classic' || !config.datasource?.url) {
-      throw new Error(
-        `A datasource URL must be provided via prisma.config.ts.
-See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
-      )
-    }
-
-    checkUnsupportedDataProxy({ cmd, config })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
 
     const datasourceType: EngineArgs.DbExecuteDatasourceType = {
       tag: 'url',
-      url: config.datasource.url,
+      url: validatedConfig.datasource.url,
     }
 
     const migrate = await Migrate.setup({ schemaEngineConfig: config, extensions: config['extensions'] })

@@ -1,8 +1,4 @@
-import {
-  Debug,
-  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
-  SqlMigrationAwareDriverAdapterFactory,
-} from '@prisma/driver-adapter-utils'
+import { Debug, SqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -11,6 +7,9 @@ import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
+/**
+ * @deprecated This is still "used" by `studio`, but it will change signature before Prisma 7.
+ */
 const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   (input: any): input is () => Promise<SqlMigrationAwareDriverAdapterFactory> => {
     return typeof input === 'function'
@@ -26,22 +25,7 @@ export type SqlMigrationAwareDriverAdapterFactoryShape =
   | undefined
   | (() => Promise<SqlMigrationAwareDriverAdapterFactory>)
 
-const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
-  (input: any): input is () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
-    return typeof input === 'function'
-  },
-  {
-    identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory',
-    encode: identity,
-    decode: identity,
-  },
-)
-
 export type ExperimentalConfig = {
-  /**
-   * Enable experimental adapter support.
-   */
-  adapter?: boolean
   /**
    * Enable experimental Prisma Studio features.
    */
@@ -56,91 +40,21 @@ export type ExperimentalConfig = {
   extensions?: boolean
 }
 
-const SchemaEngineConfigClassicShape = Shape.Struct({
-  engine: Shape.Literal('classic'),
-  datasource: Shape.Struct({
-    url: Shape.String,
-    shadowDatabaseUrl: Shape.optional(Shape.String),
-  }),
+const DatasourceShape = Shape.Struct({
+  url: Shape.String,
+  shadowDatabaseUrl: Shape.optional(Shape.String),
 })
 
-const SchemaEngineConfigJsShape = Shape.Struct({
-  engine: Shape.Literal('js'),
-  adapter: SqlMigrationAwareDriverAdapterFactoryShape,
-})
-
-const SchemaEngineConfigAbsentShape = Shape.Struct({
-  engine: Shape.optional(Shape.Never),
-})
-
-const SchemaEngineConfigShape = Shape.Union(
-  SchemaEngineConfigClassicShape,
-  SchemaEngineConfigJsShape,
-  SchemaEngineConfigAbsentShape,
-)
-
-type SchemaEngineConfigJs = {
-  /**
-   * Uses the new, unstable JavaScript based Schema Engine.
-   */
-  engine: 'js'
-  /**
-   * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
-   */
-  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
-}
-
-type SchemaEngineConfigJsInternal = {
-  /**
-   * Uses the new, unstable JavaScript based Schema Engine.
-   */
-  engine: 'js'
-  /**
-   * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
-   */
-  adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
-}
-
-export type SchemaEngineConfigClassicDatasource = {
+export type Datasource = {
   url: string
   shadowDatabaseUrl?: string
 }
 
-type SchemaEngineConfigClassic = {
-  /**
-   * Uses the "old classic" Schema Engine binary
-   */
-  engine: 'classic'
-  /**
-   * The database connection configuration, which overwrites the `datasource` block's `url`-like attributes in the Prisma schema file.
-   */
-  datasource: SchemaEngineConfigClassicDatasource
+export type SchemaEngineConfigInternal = {
+  datasource?: Datasource
 }
-
-type SchemaEngineConfigAbsent = {
-  engine?: never
-}
-
-type SchemaEngineConfig = SchemaEngineConfigJs | SchemaEngineConfigClassic | SchemaEngineConfigAbsent
-
-export type SchemaEngineConfigInternal =
-  | SchemaEngineConfigJsInternal
-  | SchemaEngineConfigClassic
-  | SchemaEngineConfigAbsent
-
-const SchemaEngineConfigJsInternal = Shape.Struct({
-  engine: Shape.Literal('js'),
-  adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape,
-})
-
-const SchemaEngineConfigInternal = Shape.Union(
-  SchemaEngineConfigClassicShape,
-  SchemaEngineConfigJsInternal,
-  SchemaEngineConfigAbsentShape,
-)
 
 const ExperimentalConfigShape = Shape.Struct({
-  adapter: Shape.optional(Shape.Boolean),
   studio: Shape.optional(Shape.Boolean),
   externalTables: Shape.optional(Shape.Boolean),
   extensions: Shape.optional(Shape.Boolean),
@@ -307,8 +221,10 @@ if (false) {
   __testPrismaConfigInternal satisfies typeof __testPrismaConfig
 }
 
-const PrismaConfigUnconditionalShape = Shape.Struct({
+// Define the shape for the user-facing `PrismaConfig` type.
+const PrismaConfigShape = Shape.Struct({
   experimental: Shape.optional(ExperimentalConfigShape),
+  datasource: Shape.optional(DatasourceShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
   migrations: Shape.optional(MigrationsConfigShape),
@@ -319,14 +235,19 @@ const PrismaConfigUnconditionalShape = Shape.Struct({
   extensions: Shape.optional(Shape.Any),
 })
 
-// Define the shape for the user-facing `PrismaConfig` type.
-const PrismaConfigShape = Shape.extend(SchemaEngineConfigShape, PrismaConfigUnconditionalShape)
-
-type PrismaConfigUnconditional = {
+/**
+ * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
+ * Thanks to the branding, this type is opaque and cannot be constructed directly.
+ */
+export type PrismaConfig = {
   /**
    * Experimental feature gates. Each experimental feature must be explicitly enabled.
    */
   experimental?: Simplify<ExperimentalConfig>
+  /**
+   * The datasource configuration. Optional for most cases, but required for migration / introspection commands.
+   */
+  datasource?: Simplify<Datasource>
   /**
    * The path to the schema file, or path to a folder that shall be recursively searched for *.prisma files.
    */
@@ -357,18 +278,12 @@ type PrismaConfigUnconditional = {
   typedSql?: Simplify<TypedSqlConfigShape>
 }
 
-/**
- * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
- * Thanks to the branding, this type is opaque and cannot be constructed directly.
- */
-export type PrismaConfig = PrismaConfigUnconditional & SchemaEngineConfig
-
-declare const __testPrismaConfigValueA: (typeof PrismaConfigUnconditionalShape)['Type']
-declare const __testPrismaConfigValueB: PrismaConfigUnconditional
+declare const __testPrismaConfigValueA: (typeof PrismaConfigShape)['Type']
+declare const __testPrismaConfigValueB: PrismaConfig
 // eslint-disable-next-line no-constant-condition
 if (false) {
-  __testPrismaConfigValueA satisfies PrismaConfigUnconditional
-  __testPrismaConfigValueB satisfies (typeof PrismaConfigUnconditionalShape)['Type']
+  __testPrismaConfigValueA satisfies PrismaConfig
+  __testPrismaConfigValueB satisfies (typeof PrismaConfigShape)['Type']
 }
 
 /**
@@ -376,13 +291,6 @@ if (false) {
  */
 function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
   const experimental = config.experimental || {}
-
-  // Check adapter configuration
-  if (config.engine === 'js' && !experimental.adapter) {
-    return Either.left(
-      new Error("The `engine === 'js'` configuration requires `experimental.adapter` to be set to `true`."),
-    )
-  }
 
   // Check studio configuration
   if (config.studio && !experimental.studio) {
@@ -438,34 +346,14 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
-const PrismaConfigInternalShape = Shape.extend(
-  PrismaConfigUnconditionalShape,
-  Shape.extend(
-    SchemaEngineConfigInternal,
-    Shape.Struct({
-      loadedFromFile: Shape.NullOr(Shape.String),
-    }),
-  ),
-)
+const PrismaConfigInternalShape = Shape.Struct({
+  ...PrismaConfigShape.fields,
+  loadedFromFile: Shape.NullOr(Shape.String),
+})
 
-type _PrismaConfigInternal = Omit<PrismaConfig, 'engine' | 'datasource' | 'adapter'> & {
+type _PrismaConfigInternal = PrismaConfig & {
   loadedFromFile: string | null
-} & (
-    | {
-        engine: 'classic'
-        datasource: {
-          url: string
-          shadowDatabaseUrl?: string
-        }
-      }
-    | {
-        engine: 'js'
-        adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
-      }
-    | {
-        engine?: never
-      }
-  )
+}
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed
@@ -514,7 +402,7 @@ function parsePrismaConfigInternalShape(input: unknown): Either.Either<PrismaCon
 }
 
 export function makePrismaConfigInternal(makeArgs: _PrismaConfigInternal): PrismaConfigInternal {
-  return brandPrismaConfigInternal(makeArgs)
+  return pipe(PrismaConfigInternalShape.make(makeArgs), brandPrismaConfigInternal)
 }
 
 export function parseDefaultExport(defaultExport: unknown) {

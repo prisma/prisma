@@ -54,7 +54,7 @@ export { canConnectToDatabase, createDatabase, dropDatabase } from './schemaEngi
 export { SchemaEngineExitCode } from './schemaEngineCommands'
 export { sendPanic } from './sendPanic'
 export * from './tracing/types'
-export type { DatabaseCredentials } from './types'
+export type { DatabaseCredentials, RequireKey } from './types'
 export { assertAlways } from './utils/assertAlways'
 export { assertNever } from './utils/assertNever'
 export { binaryTargetRegex } from './utils/binaryTargetRegex'
@@ -101,6 +101,10 @@ export { extractSchemaContent, type SchemaFileInput } from './utils/schemaFileIn
 export { type MultipleSchemas } from './utils/schemaFileInput'
 export { setClassName } from './utils/setClassName'
 export { toSchemasContainer, toSchemasWithConfigDir } from './utils/toSchemasContainer'
+export {
+  type PrismaConfigWithDatasource,
+  validatePrismaConfigWithDatasource,
+} from './utils/validatePrismaConfigWithDatasource'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { warnOnce } from './warnOnce'
 export * as wasm from './wasm'

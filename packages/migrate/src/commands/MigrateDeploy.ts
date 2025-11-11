@@ -11,8 +11,9 @@ import {
   isError,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -32,6 +33,8 @@ Apply pending migrations to update the database schema in production/staging
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate deploy [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -73,14 +76,15 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'migrate deploy', config })
+    const cmd = 'migrate deploy'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -100,7 +104,7 @@ ${bold('Examples')}
       const successMessage = await ensureDatabaseExists(
         schemaContext.primaryDatasourceDirectory,
         getSchemaDatasourceProvider(schemaContext),
-        config,
+        validatedConfig,
       )
       if (successMessage) {
         process.stdout.write('\n' + successMessage + '\n')
