@@ -7,6 +7,17 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
+describe('prisma.config.ts', () => {
+  it('should require a datasource in the config', async () => {
+    ctx.fixture('no-config')
+
+    const result = MigrateResolve.new().parse([], await ctx.config())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"The datasource property is required in your Prisma config file when using prisma migrate resolve."`,
+    )
+  })
+})
+
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')

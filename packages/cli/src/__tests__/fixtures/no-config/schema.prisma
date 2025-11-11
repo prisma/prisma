@@ -1,11 +1,10 @@
 generator client {
   provider = "prisma-client"
-  output   = "./.generated/prisma"
+  output   = "./generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
 }
 
 model User {

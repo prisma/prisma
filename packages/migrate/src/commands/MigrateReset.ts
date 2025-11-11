@@ -11,8 +11,9 @@ import {
   isError,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -33,6 +34,8 @@ Reset your database and apply all migrations, all data will be lost
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate reset [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -75,22 +78,23 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
+
+    const cmd = 'migrate reset'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
 
-    printDatasource({ datasourceInfo, adapter })
-
-    checkUnsupportedDataProxy({ cmd: 'migrate reset', config })
+    printDatasource({ datasourceInfo })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
 
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
     // Automatically create the database if it doesn't exist
     const successMessage = await ensureDatabaseExists(
       schemaContext.primaryDatasourceDirectory,
       getSchemaDatasourceProvider(schemaContext),
-      config,
+      validatedConfig,
     )
     if (successMessage) {
       process.stdout.write('\n' + successMessage + '\n')

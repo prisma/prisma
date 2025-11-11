@@ -13,8 +13,9 @@ import {
   isError,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red, yellow } from 'kleur/colors'
+import { bold, dim, green, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -35,6 +36,8 @@ ${process.platform === 'win32' ? '' : '🙌  '}Push the state from your Prisma s
 ${bold('Usage')}
 
   ${dim('$')} prisma db push [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -82,16 +85,17 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'db push', config })
+    const cmd = 'db push'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo, adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
+    printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
@@ -110,7 +114,7 @@ ${bold('Examples')}
       const successMessage = await ensureDatabaseExists(
         schemaContext.primaryDatasourceDirectory,
         getSchemaDatasourceProvider(schemaContext),
-        config,
+        validatedConfig,
       )
       if (successMessage) {
         process.stdout.write('\n' + successMessage + '\n')
@@ -235,8 +239,7 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      // Favor the adapter if any, fallback to the provider defined in the schema
-      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
+      const provider = schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${

@@ -107,10 +107,6 @@ ${bold('Examples')}
 
     const adapter = await config.studio?.adapter()
 
-    if (config.engine !== 'classic') {
-      throw new Error('Using driver adapters in Studio is not yet supported')
-    }
-
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
       schemaPath: schemaContext.schemaPath,
@@ -123,7 +119,8 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: config.datasource.url,
+        // Note: this whole command will get replaced anyway
+        directUrl: config.datasource!.url!,
       },
       versions: {
         prisma: packageJson.version,

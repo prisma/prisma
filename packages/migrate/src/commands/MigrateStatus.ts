@@ -12,8 +12,9 @@ import {
   link,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
@@ -33,6 +34,8 @@ Check the status of your database migrations
   ${bold('Usage')}
 
     ${dim('$')} prisma migrate status [options]
+
+    The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
   ${bold('Options')}
 
@@ -73,14 +76,15 @@ Check the status of your database migrations
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
-    checkUnsupportedDataProxy({ cmd: 'migrate status', config })
+    const cmd = 'migrate status'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -95,7 +99,7 @@ Check the status of your database migrations
       extensions: config['extensions'],
     })
 
-    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
