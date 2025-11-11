@@ -1,8 +1,7 @@
 import path from 'node:path'
 
-import { PrismaConfigInternal } from '@prisma/config'
 import { DataSource } from '@prisma/generator'
-import type { DatabaseCredentials } from '@prisma/internals'
+import type { DatabaseCredentials, PrismaConfigWithDatasource } from '@prisma/internals'
 import { canConnectToDatabase, createDatabase, PRISMA_POSTGRES_PROVIDER, uriToCredentials } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
@@ -32,12 +31,11 @@ export type DatasourceInfo = {
   configDir?: string
 }
 
-export function parseDatasourceInfo(datasource: DataSource | undefined, config: PrismaConfigInternal): DatasourceInfo {
-  let url: string | undefined
-
-  if (config.engine === 'classic') {
-    url = config.datasource.url
-  }
+export function parseDatasourceInfo(
+  datasource: DataSource | undefined,
+  config: PrismaConfigWithDatasource,
+): DatasourceInfo {
+  const url = config.datasource.url
 
   if (!datasource) {
     return {
@@ -55,13 +53,13 @@ export function parseDatasourceInfo(datasource: DataSource | undefined, config: 
   const prettyProvider = prettifyProvider(datasource.provider)
 
   // url parsing for sql server is not implemented
-  if (!url || datasource.provider === 'sqlserver') {
+  if (datasource.provider === 'sqlserver') {
     return {
       name: datasource.name,
       prettyProvider,
       dbName: undefined,
       dbLocation: undefined,
-      url: url || undefined,
+      url,
       schema: undefined,
       schemas: datasource.schemas,
       configDir: path.dirname(datasource.sourceFilePath),
@@ -118,14 +116,8 @@ export function parseDatasourceInfo(datasource: DataSource | undefined, config: 
  */
 export async function ensureCanConnectToDatabase(
   pathResolutionRoot: string,
-  config: PrismaConfigInternal,
+  config: PrismaConfigWithDatasource,
 ): Promise<void> {
-  if (config.engine !== 'classic') {
-    // TODO: probably can already be implemented with the current driver adapter interface
-    // but we don't care about it right now.
-    return
-  }
-
   const url = config.datasource.url
 
   const canConnect = await canConnectToDatabase(url, pathResolutionRoot)
@@ -143,13 +135,8 @@ type SuccessMessage = string
 export async function ensureDatabaseExists(
   pathResolutionRoot: string,
   provider: ConnectorType,
-  config: PrismaConfigInternal,
+  config: PrismaConfigWithDatasource,
 ): Promise<SuccessMessage | undefined> {
-  if (config.engine !== 'classic') {
-    // TODO: migration-aware driver adapters need to expose new methods we'd call here
-    return undefined
-  }
-
   const url = config.datasource.url
 
   const canConnect = await canConnectToDatabase(url, pathResolutionRoot)

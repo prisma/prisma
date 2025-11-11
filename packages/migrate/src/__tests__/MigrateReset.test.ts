@@ -5,6 +5,17 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
+describe('prisma.config.ts', () => {
+  it('should require a datasource in the config', async () => {
+    ctx.fixture('no-config')
+
+    const result = MigrateReset.new().parse([], await ctx.config())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"The datasource property is required in your Prisma config file when using prisma migrate reset."`,
+    )
+  })
+})
+
 describe('common', () => {
   it('wrong flag', async () => {
     const commandInstance = MigrateReset.new()

@@ -30,23 +30,22 @@ const ctx = createDefaultTestContext()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
-  describe('using Prisma Config', () => {
-    it('engine "js" is not supported yet', async () => {
-      ctx.fixture('prisma-config-validation/sqlite-d1')
+  describe('prisma.config.ts', () => {
+    it('should require a datasource in the config', async () => {
+      ctx.fixture('no-config')
 
-      fs.writeFileSync('script.sql', '')
+      fs.writeFileSync('script.sql', '-- noop')
 
       const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"engine: "js" is not yet supported in \`db execute\`."`,
+        `"The datasource property is required in your Prisma config file when using prisma db execute."`,
       )
     })
   })
 
   describe('generic', () => {
     it('should fail if missing --file and --stdin', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('valid-config-only')
 
       const result = DbExecute.new().parse([], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -56,7 +55,7 @@ describe('db execute', () => {
     })
 
     it('should fail if both --file and --stdin are provided', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('valid-config-only')
 
       const result = DbExecute.new().parse(['--file=1', '--stdin'], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -65,20 +64,8 @@ describe('db execute', () => {
       `)
     })
 
-    it('should require a datasource in the config', async () => {
-      ctx.fixture('empty')
-
-      fs.writeFileSync('script.sql', '-- noop')
-
-      const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        "A datasource URL must be provided via prisma.config.ts.
-        See \`prisma db execute -h\`"
-      `)
-    })
-
     it('should fail if --file does no exists', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('valid-config-only')
       expect.assertions(2)
 
       try {
@@ -165,7 +152,7 @@ COMMIT;`,
 
     describeMatrix(noDriverAdapters, 'non driver adapter', () => {
       it('should pass when datasource is provided programmatically', async () => {
-        ctx.fixture('empty')
+        ctx.fixture('valid-config-only')
         fs.writeFileSync('script.sql', sqlScript)
 
         ctx.setDatasource({ url: 'file:./dev.db' })

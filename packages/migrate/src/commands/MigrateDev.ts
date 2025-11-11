@@ -16,8 +16,9 @@ import {
   loadSchemaContext,
   MigrateTypes,
   validate,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -46,6 +47,8 @@ ${
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate dev [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -93,16 +96,16 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'migrate dev', config })
+    const cmd = 'migrate dev'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
 
-    printDatasource({ datasourceInfo, adapter })
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
+    printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
 
@@ -114,7 +117,7 @@ ${bold('Examples')}
     const successMessage = await ensureDatabaseExists(
       schemaContext.primaryDatasourceDirectory,
       getSchemaDatasourceProvider(schemaContext),
-      config,
+      validatedConfig,
     )
     if (successMessage) {
       process.stdout.write(successMessage + '\n\n')

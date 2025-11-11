@@ -50,12 +50,9 @@ export class CLI implements Command {
       return this.help()
     }
 
-    const hasMigrateAdapterInConfig = config.engine === 'js'
-
     if (args['--version']) {
       await ensureNeededBinariesExist({
         download: this.download,
-        hasMigrateAdapterInConfig,
       })
       return Version.new().parse(argv, config)
     }
@@ -78,7 +75,6 @@ export class CLI implements Command {
       if (this.ensureBinaries.includes(cmdName)) {
         await ensureNeededBinariesExist({
           download: this.download,
-          hasMigrateAdapterInConfig,
         })
       }
 

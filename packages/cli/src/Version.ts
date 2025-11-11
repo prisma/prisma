@@ -16,7 +16,6 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
-import { match } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -70,29 +69,11 @@ export class Version implements Command {
     if (args['--help']) {
       return this.help()
     }
-    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config)
-      .with({ engine: 'js' }, async ({ adapter: adapterFn }) => {
-        const adapter = await adapterFn()
-        const enginesRetrievalErrors = [] as Error[]
 
-        return {
-          schemaEngineRows: [
-            ['Schema Engine', `@prisma/schema-engine-wasm ${wasm.schemaEngineWasmVersion}`] as const,
-            ['Schema Engine Adapter', adapter.adapterName] as const,
-          ],
-          schemaEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .otherwise(async () => {
-        const name = BinaryType.SchemaEngineBinary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
+    const engineResult = await resolveEngine(BinaryType.SchemaEngineBinary)
+    const [enginesInfo, schemaEngineRetrievalErrors] = getEnginesInfo(engineResult)
 
-        return {
-          schemaEngineRows: [['Schema Engine', enginesInfo] as const],
-          schemaEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
+    const schemaEngineRows = [['Schema Engine', enginesInfo] as const]
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
