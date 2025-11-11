@@ -1,13 +1,8 @@
 import { PrismaConfig, SchemaEngineConfigInternal } from '@prisma/config'
-import type { RequireKey } from '@prisma/internals'
+import { type RequireKey } from '@prisma/internals'
 import { green, red } from 'kleur/colors'
 
-class ConfigValidationError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'ConfigValidationError'
-  }
-}
+import { ConfigValidationError } from './errors'
 
 /**
  * A Prisma Config that has been validated w.r.t. the command that is being executed.

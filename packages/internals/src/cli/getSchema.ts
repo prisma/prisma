@@ -136,8 +136,8 @@ async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<Lookup
 
 /**
  * Tries to load schema from either provided
- * arg, package.json configured location, prisma.config.ts location,
- * default location relative to cwd or any of the Yarn1Workspaces.
+ * arg, prisma.config.ts location, default location relative to cwd
+ * or any of the Yarn1Workspaces.
  *
  * If schema is specified explicitly with any of the methods but can
  * not be loaded, error will be thrown. If no explicit schema is given, then

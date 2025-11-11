@@ -463,7 +463,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     const result = DbPull.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find a schema.prisma file that is required for this command.
-      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+      You can either provide it with --schema, set its path in the \`schema\` property in your Prisma Config file, or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
