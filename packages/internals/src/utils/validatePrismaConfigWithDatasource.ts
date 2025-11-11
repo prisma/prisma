@@ -21,12 +21,15 @@ function isValidPrismaConfig(prismaConfig: SchemaEngineConfigInternal): prismaCo
   return prismaConfig.datasource !== undefined
 }
 
-type ValidateConfigInput = {
+type ValidatePrismaConfigWithDatasourceInput = {
   config: Pick<PrismaConfig, 'datasource'>
   cmd: string
 }
 
-export function validatePrismaConfigWithDatasource({ config, cmd }: ValidateConfigInput): PrismaConfigWithDatasource {
+export function validatePrismaConfigWithDatasource({
+  config,
+  cmd,
+}: ValidatePrismaConfigWithDatasourceInput): PrismaConfigWithDatasource {
   if (!isValidPrismaConfig(config)) {
     throw new ConfigValidationError(
       `The ${red(`datasource`)} property is required in your Prisma config file when using ${green(`prisma ${cmd}`)}.`,
