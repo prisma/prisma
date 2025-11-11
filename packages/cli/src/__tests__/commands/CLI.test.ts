@@ -25,14 +25,13 @@ function createCLI(download = jest.fn()) {
       //   seed: DbSeed.new(),
       // }),
       // dev: Dev.new(),
-      // studio: Studio.new(),
       // generate: Generate.new(),
       // version: Version.new(),
       validate: Validate.new(),
       // format: Format.new(),
       // telemetry: Telemetry.new(),
     },
-    ['version', 'init', 'migrate', 'db', 'dev', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'dev', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 }
