@@ -1,51 +1,83 @@
-name: npm - release to latest
-run-name: npm - release ${{ github.event.inputs.targetVersion }} from ${{ github.ref_name }} on latest tag
+name: npm - release
 
 on:
+  push:
+    branches:
+      - main
+      - 'integration/*'
+      - '*.*.x'
+    paths-ignore:
+      # Any update here needs to be done for all files
+      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
+      - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      # - 'scripts/ci/publish.ts' -> should not be ignored in this workflow
+      - '.github/CODEOWNERS'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
+      - 'sandbox/**'
+
   workflow_dispatch:
     inputs:
       targetVersion:
         description: 'Version to publish on latest tag (e.g. 5.0.0)'
         type: string
-        required: true
       skipEcosystemTestsChecks:
         description: 'Skip ecosystem tests checks'
         type: boolean
       skipPackages:
         description: 'Skip publishing some packages? (e.g. `@prisma/debug,@prisma/internals`)'
         type: string
-        required: false
       onlyPackages:
         description: 'Only publish some packages? (e.g. `@prisma/debug,@prisma/internals`)'
         type: string
-        required: false
       dryRun:
         description: 'Check to do a dry run (does not publish packages)'
+        type: boolean
+      forceIntegrationRelease:
+        description: 'Check to force an integration release for any given branch name'
         type: boolean
 
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: 'true'
+  # Environment variables based on trigger type and parameters
+  RELEASE_VERSION: ${{ github.event.inputs.targetVersion }}
+  SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks || 'false' }}
+  SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
+  ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
+  DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
+  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || 'false' }}
+  FAILURE_TITLE_TEMPLATE: >-
+    ${{
+      github.event.inputs.targetVersion &&
+      format('prisma/prisma Release {0} from {1} on latest tag failed :x:', github.event.inputs.targetVersion, github.ref_name) ||
+      'prisma/prisma Release failed :x:'
+    }}
 
 jobs:
   release:
-    timeout-minutes: 45
+    timeout-minutes: ${{ github.event.inputs.targetVersion && 45 || 75 }}
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.workflow }}
+      group: ${{ github.event.inputs.targetVersion && 'release-version' || 'release-push' }}
       cancel-in-progress: false
 
     permissions:
-      # required for publishing to npm with --provenance
-      # see https://docs.npmjs.com/generating-provenance-statements
-      id-token: write
+      id-token: write # required for OIDC / Trusted Publishers
 
     outputs:
       prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
+      enginesCommitHash: ${{ steps.publish.outputs.enginesCommitHash }}
 
     steps:
-      - name: Print input
+      - name: Print inputs
         env:
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
@@ -53,25 +85,26 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/setup
+      - name: Install & build
+        uses: ./.github/actions/setup
         with:
-          node-version: 18
+          node-version: 20
           skip-tsc: false
+
+      - name: Update npm to support Trusted Publishers
+        run: npm install -g npm@^11.5
 
       - name: Publish all packages to npm
         id: publish
         run: |
-          echo "RELEASE_VERSION $RELEASE_VERSION"
-          echo "SKIP_ECOSYSTEMTESTS_CHECK $SKIP_ECOSYSTEMTESTS_CHECK"
+          if [ -n "$RELEASE_VERSION" ]; then
+            echo "RELEASE_VERSION: $RELEASE_VERSION"
+          fi
+          if [ "$SKIP_ECOSYSTEMTESTS_CHECK" = "true" ]; then
+            echo "SKIP_ECOSYSTEMTESTS_CHECK: $SKIP_ECOSYSTEMTESTS_CHECK"
+          fi
           pnpm run publish-all
         env:
-          # Inputs
-          RELEASE_VERSION: ${{ github.event.inputs.targetVersion }}
-          SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks }}
-          ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
-          SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
-          DRY_RUN: ${{ github.event.inputs.dryRun == 'true' && 'true' || '' }}
-          # Other
           GITHUB_CONTEXT: ${{ toJson(github) }}
           # https://docs.npmjs.com/generating-provenance-statements
           NPM_CONFIG_PROVENANCE: true
@@ -79,7 +112,6 @@ jobs:
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           SLACK_RELEASE_FEED_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
 
       - name: Print output
@@ -90,7 +122,9 @@ jobs:
 
       - name: Create a tag on prisma repository
         id: tag-prisma
-        if: ${{ steps.publish.outputs.prismaVersion != '' && github.event.inputs.dryRun != 'true' }}
+        if: >-
+          steps.publish.outputs.prismaVersion != '' &&
+          env.DRY_RUN != 'true'
         uses: ./.github/actions/create-git-tag
         with:
           token: ${{ secrets.BOT_TOKEN }}
@@ -100,13 +134,14 @@ jobs:
       - name: Create a tag on prisma-engines repository
         uses: ./.github/actions/create-git-tag
         id: tag-prisma-engines
-        if: ${{ steps.publish.outputs.prismaVersion != '' && github.event.inputs.dryRun != 'true' }}
+        if: >-
+          steps.publish.outputs.prismaVersion != '' &&
+          env.DRY_RUN != 'true'
         with:
           token: ${{ secrets.BOT_TOKEN }}
           repository: prisma/prisma-engines
           tag-name: ${{ steps.publish.outputs.prismaVersion }}
           commit-sha: ${{ steps.publish.outputs.enginesCommitHash }}
-          message: ${{ steps.publish.outputs.changelogSanitized }}
 
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information
@@ -131,7 +166,7 @@ jobs:
   failure:
     needs:
       - release
-    if: ${{ failure() }}
+    if: ${{ failure() && github.event.inputs.targetVersion }}
     name: Communicate failure
     runs-on: ubuntu-latest
     steps:
@@ -141,7 +176,7 @@ jobs:
       - name: Slack Notification on Failure
         uses: rtCamp/action-slack-notify@v2.3.2
         env:
-          SLACK_TITLE: 'prisma/prisma Release ${{ github.event.inputs.targetVersion }} from ${{ github.ref_name }} on latest tag failed :x:'
+          SLACK_TITLE: ${{ env.FAILURE_TITLE_TEMPLATE }}
           SLACK_COLOR: '#FF0000'
           SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
           SLACK_CHANNEL: feed-prisma-publish-failures
