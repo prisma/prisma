@@ -33,6 +33,7 @@ import { Format } from './Format'
 import { Generate } from './Generate'
 import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
+import { Studio } from './Studio'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -145,7 +146,6 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      // studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
@@ -159,8 +159,9 @@ async function main(): Promise<number> {
       deploy: new SubCommand('@prisma/cli-deploy'),
       // TODO: add login subcommand to --help after it works.
       login: new SubCommand('@prisma/cli-login'),
+      studio: Studio.new(),
     },
-    ['version', 'init', 'migrate', 'db', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 
