@@ -920,9 +920,6 @@ importers:
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
-      ci-info:
-        specifier: 4.2.0
-        version: 4.2.0
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
@@ -1000,9 +997,6 @@ importers:
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
-      ci-info:
-        specifier: 4.2.0
-        version: 4.2.0
       fast-glob:
         specifier: 3.3.3
         version: 3.3.3
@@ -4507,10 +4501,6 @@ packages:
 
   ci-info@4.0.0:
     resolution: {integrity: sha512-TdHqgGf9odd8SXNuxtUBVx8Nv+qZOejE6qyqiy5NtbYYQOeFa6zmHkxlPzmaLxWWHsU6nJmB7AETdVPi+2NBUg==}
-    engines: {node: '>=8'}
-
-  ci-info@4.2.0:
-    resolution: {integrity: sha512-cYY9mypksY8NRqgDB1XD1RiJL338v/551niynFTGkZOO2LHuB2OmOYxDIe/ttN9AHwrqdum1360G3ald0W9kCg==}
     engines: {node: '>=8'}
 
   ci-info@4.3.1:
@@ -11088,8 +11078,6 @@ snapshots:
   ci-info@3.9.0: {}
 
   ci-info@4.0.0: {}
-
-  ci-info@4.2.0: {}
 
   ci-info@4.3.1: {}
 

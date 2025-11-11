@@ -1,4 +1,4 @@
-import { ActiveConnectorType, GeneratorConfig } from '@prisma/generator'
+import { ActiveConnectorType } from '@prisma/generator'
 
 import { CompilerWasmLoadingConfig } from './QueryCompiler'
 import { RuntimeDataModel } from './runtimeDataModel'
@@ -9,32 +9,16 @@ import { RuntimeDataModel } from './runtimeDataModel'
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
 export type GetPrismaClientConfig = {
-  // Case for normal client (with both protocols) or data proxy
-  // client (with json protocol): only runtime datamodel is provided,
-  // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
-  generator?: GeneratorConfig
-  relativePath: string
-  dirname: string
+  previewFeatures: string[]
   clientVersion: string
   engineVersion: string
-  datasourceNames: string[]
   activeProvider: ActiveConnectorType
 
   /**
    * The contents of the schema encoded into a string
-   * @remarks only used for the purpose of data proxy
    */
   inlineSchema: string
-
-  /**
-   * Information about the CI where the Prisma Client has been generated. The
-   * name of the CI environment is stored at generation time because CI
-   * information is not always available at runtime. Moreover, the edge client
-   * has no notion of environment variables, so this works around that.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  ciName?: string
 
   /**
    * Optional wasm loading configuration

@@ -46,8 +46,7 @@ export class Migrate {
 
   static async setup({ schemaContext, schemaEngineConfig, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const schemaEngine = await (async () => {
-      const { datasource } = schemaEngineConfig ?? {}
-
+      const datasource = schemaEngineConfig.datasource
       return await SchemaEngineCLI.setup({ datasource, schemaContext, ...rest })
     })()
 

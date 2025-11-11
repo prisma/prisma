@@ -108,10 +108,8 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 }
 
 export interface EngineConfig {
-  dirname: string
   enableDebugLogs?: boolean
   prismaPath?: string
-  generator?: GeneratorConfig
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
   clientVersion: string
