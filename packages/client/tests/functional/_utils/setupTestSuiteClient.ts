@@ -8,8 +8,7 @@ import {
   type GenerateClientOptions as GenerateClientESMOptions,
 } from '@prisma/client-generator-ts'
 import { SqlQueryOutput } from '@prisma/generator'
-import { getDMMF, parseEnvValue, processSchemaResult } from '@prisma/internals'
-import { validateConfig } from '@prisma/migrate'
+import { getDMMF, parseEnvValue, processSchemaResult, validatePrismaConfigWithDatasource } from '@prisma/internals'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
@@ -89,7 +88,7 @@ export async function setupTestSuiteClient({
   let typedSql: SqlQueryOutput[] | undefined
   if (hasTypedSql) {
     const config = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
-    const validatedConfig = validateConfig({ config, cmd: '<test-suite> generate --sql' })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd: '<test-suite> generate --sql' })
     const schemaContextIntrospect = await processSchemaResult({
       schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
     })
