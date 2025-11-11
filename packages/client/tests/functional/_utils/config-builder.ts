@@ -21,7 +21,6 @@ export function buildPrismaConfig({
 function buildPrismaConfigInternal(schemaPath: string, databaseUrl: string): PrismaConfigInternal {
   return {
     ...defaultTestConfig(),
-    engine: 'classic',
     schema: schemaPath,
     datasource: {
       url: absolutizeSqliteUrl({ schemaPath, databaseUrl }),

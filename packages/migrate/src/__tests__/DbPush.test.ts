@@ -13,6 +13,17 @@ describe('push', () => {
   // A test that requires docker (e.g, because it relies on extensions being installed)
   const inDockerIt = process.env.TEST_NO_DOCKER ? it.skip : it
 
+  describe('prisma.config.ts', () => {
+    it('should require a datasource in the config', async () => {
+      ctx.fixture('no-config')
+
+      const result = DbPush.new().parse([], await ctx.config())
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"The datasource property is required in your Prisma config file when using prisma db push."`,
+      )
+    })
+  })
+
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 

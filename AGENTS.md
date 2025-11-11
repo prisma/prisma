@@ -13,9 +13,7 @@
 
 - **CLI commands**: Most commands already accept `--config` for custom config paths. Upcoming work removes `--schema` / `--url` in favour of config-based resolution. When editing CLI help text, keep examples aligned with new config-first workflow.
 
-- **Driver adapters vs classic engine**:
-  - `engine: 'classic'` requires `config.datasource.url`.
-  - `engine: 'js'` (driver adapters) still experimental; commands need explicit support and should throw when not implemented.
+- **Driver adapters datasource**:
   - Helper `ctx.setDatasource()` in tests overrides config.datasource for connection-specific scenarios.
 
 - **Testing patterns**:

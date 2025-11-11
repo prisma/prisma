@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
+describeMatrix({ providers: { d1: true } }, 'D1', () => {
   const urlValueRegex = /url\s*=\s*".*"/
 
   test('should succeed with listLocalDatabases() when a single local Cloudflare D1 database exists', async () => {
@@ -459,10 +459,11 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
   })
 
   it('should fail when Prisma schema is missing', async () => {
+    ctx.fixture('valid-config-only')
     const result = DbPull.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find a schema.prisma file that is required for this command.
-      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+      You can either provide it with --schema, set its path in the \`schema\` property in your Prisma Config file, or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)

@@ -287,7 +287,6 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
   const migrate = await Migrate.setup({
     schemaEngineConfig: {
-      engine: 'classic',
       datasource: {
         url:
           typeof input.database.datasource.url === 'function'

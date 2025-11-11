@@ -10,8 +10,9 @@ import {
   isError,
   link,
   loadSchemaContext,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -35,6 +36,8 @@ Read more about resolving migration history issues: ${link('https://pris.ly/d/mi
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate resolve [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -82,14 +85,15 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
-    checkUnsupportedDataProxy({ cmd: 'migrate resolve', config })
+    const cmd = 'migrate resolve'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -115,7 +119,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
       // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,
@@ -143,7 +147,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,

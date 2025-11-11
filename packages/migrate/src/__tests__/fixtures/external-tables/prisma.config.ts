@@ -3,7 +3,6 @@ export default defineConfig({
   datasource: {
     url: env('TEST_POSTGRES_URI_MIGRATE'),
   },
-  engine: 'classic',
   experimental: {
     externalTables: true,
   },

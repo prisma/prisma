@@ -11,7 +11,6 @@ import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import {
-  allDriverAdapters,
   cockroachdbOnly,
   describeMatrix,
   mongodbOnly,
@@ -697,7 +696,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
+  describeMatrix({ providers: { mysql: true } }, 'mysql', () => {
     const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!
 
     const setupParams: SetupParams = {
