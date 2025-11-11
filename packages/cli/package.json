@@ -126,10 +126,12 @@
     "@prisma/migrate": "workspace:*",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
+    "@types/better-sqlite3": "7.6.12",
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.14",
     "@types/node": "~20.19.24",
     "async-listen": "3.1.0",
+    "better-sqlite3": "^11.10.0",
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",
     "env-paths": "2.2.1",
@@ -168,13 +170,18 @@
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/studio-core-licensed": "0.6.0",
+    "@prisma/studio-core": "0.0.0-dev.202511161417",
+    "@prisma/studio-core-licensed": "0.0.0-dev.202511132256",
     "postgres": "3.4.7"
   },
   "peerDependencies": {
+    "better-sqlite3": ">=9.0.0",
     "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
+    "better-sqlite3": {
+      "optional": true
+    },
     "typescript": {
       "optional": true
     }
