@@ -9,7 +9,7 @@ import { configContextContributor } from '../_utils/config-context'
 const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describe('prisma.config.ts', () => {
-  it('should not usually require a datasource in the config', async () => {
+  it('should not require a datasource in the config by default', async () => {
     ctx.fixture('no-config')
 
     const result = Generate.new().parse([], await ctx.config())
