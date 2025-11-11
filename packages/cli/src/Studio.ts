@@ -1,27 +1,81 @@
+import { readFile } from 'node:fs/promises'
+
+import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Debug } from '@prisma/debug'
-import { enginesVersion } from '@prisma/engines'
-import { arg, Command, format, HelpError, isError, loadSchemaContext, mergeSchemas } from '@prisma/internals'
-import { StudioServer } from '@prisma/studio-server'
-import getPort, { portNumbers } from 'get-port'
+import type { ConnectorType } from '@prisma/generator'
+import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
+import type { Executor, Query } from '@prisma/studio-core-licensed/data'
+import { serializeError } from '@prisma/studio-core-licensed/data/bff'
+import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
+import { getPort } from 'get-port-please'
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
-import path from 'path'
+import { extname, join } from 'pathe'
 
-// Note that we have a test relying on the namespace
-// Any change to the namespace must be done in the test as well
-// See packages/client/tests/e2e/issues/studio-1128-spawn-enoent/_steps.ts
-const debug = Debug('prisma:cli:studio')
+/**
+ * `prisma dev`'s `51_213 - 1`
+ */
+const DEFAULT_PORT = 51_212
 
-const packageJson = require('../package.json')
+const MIN_PORT = 49_152
+
+const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core-licensed/data'), '../..')
+
+const FILE_EXTENSION_TO_CONTENT_TYPE: Record<string, string> = {
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.mjs': 'application/javascript',
+  '.html': 'text/html',
+  '.htm': 'text/html',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.otf': 'font/otf',
+  '.eot': 'application/vnd.ms-fontobject',
+}
+
+const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
+
+const ADAPTER_FILE_NAME = 'adapter.js'
+const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
+
+interface StudioStuff {
+  createExecutor(connectionString: string): Promise<Executor>
+  reExportAdapterScript: string
+}
+
+const POSTGRES_STUDIO_STUFF: StudioStuff = {
+  async createExecutor(connectionString: string) {
+    const postgres = await import('postgres').then((mod) => mod.default(connectionString))
+
+    process.once('SIGINT', () => postgres.end())
+    process.once('SIGTERM', () => postgres.end())
+
+    return createPostgresJSExecutor(postgres)
+  },
+  reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
+}
+
+const PRISMA_PROVIDER_TO_STUDIO_STUFF: Record<ConnectorType, StudioStuff | null> = {
+  cockroachdb: POSTGRES_STUDIO_STUFF,
+  postgres: POSTGRES_STUDIO_STUFF,
+  postgresql: POSTGRES_STUDIO_STUFF,
+  'prisma+postgres': POSTGRES_STUDIO_STUFF,
+  mongodb: null,
+  mysql: null,
+  sqlite: null,
+  sqlserver: null,
+}
 
 export class Studio implements Command {
-  public instance?: StudioServer
-
-  public static new(): Studio {
-    return new Studio()
-  }
-
   private static help = format(`
 Browse your data with Prisma Studio
 
@@ -34,9 +88,8 @@ ${bold('Options')}
   -h, --help        Display this help message
   -p, --port        Port to start Studio on
   -b, --browser     Browser to open Studio in
-  -n, --hostname    Hostname to bind the Express server to
   --config          Custom path to your Prisma config file
-  --schema          Custom path to your Prisma schema
+  --url             Database connection string (overrides the one in your Prisma config)
 
 ${bold('Examples')}
 
@@ -54,12 +107,24 @@ ${bold('Examples')}
     ${dim('$')} prisma studio --port 5555 --browser none
     ${dim('$')} BROWSER=none prisma studio --port 5555
 
-  Specify a schema
-    ${dim('$')} prisma studio --schema=./schema.prisma
-
   Specify a custom prisma config file
     ${dim('$')} prisma studio --config=./prisma.config.ts
+
+  Specify a direct database connection string
+    ${dim('$')} prisma studio --url="postgresql://user:password@localhost:5432/dbname"
 `)
+
+  static new(): Studio {
+    return new Studio()
+  }
+
+  help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Studio.help}`)
+    }
+
+    return Studio.help
+  }
 
   /**
    * Parses arguments passed to this command, and starts Studio
@@ -67,7 +132,7 @@ ${bold('Examples')}
    * @param argv Array of all arguments
    * @param config The loaded Prisma config
    */
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -76,10 +141,7 @@ ${bold('Examples')}
       '-p': '--port',
       '--browser': String,
       '-b': '--browser',
-      '--hostname': String,
-      '-n': '--hostname',
-      '--schema': String,
-      '--telemetry-information': String,
+      '--url': String,
     })
 
     if (isError(args)) {
@@ -90,81 +152,153 @@ ${bold('Examples')}
       return this.help()
     }
 
-    const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+    const connectionString = args['--url'] || (config as { datasource?: { url?: string } }).datasource?.url
+
+    if (!connectionString) {
+      return new Error('No database URL found.')
+    }
+
+    if (!URL.canParse(connectionString)) {
+      return new Error('The provided database URL is not valid.')
+    }
+
+    const provider = new URL(connectionString).protocol.replace(':', '')
+
+    const studioStuff = PRISMA_PROVIDER_TO_STUDIO_STUFF[provider]
+
+    if (!studioStuff) {
+      return new Error(`Prisma Studio is not supported for the "${provider}".`)
+    }
+
+    const executor = await studioStuff.createExecutor(connectionString)
+
+    const app = new Hono()
+
+    app.use('*', cors())
+
+    app.get('/', (ctx) => {
+      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
+
+      return ctx.text(INDEX_HTML, 200, { 'Content-Type': contentType })
     })
 
-    const hostname = args['--hostname']
-    const port = args['--port'] || (await getPort({ port: portNumbers(5555, 5600) }))
-    const browser = args['--browser'] || process.env.BROWSER
+    app.get(`/${ADAPTER_FILE_NAME}`, (ctx) => {
+      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(ctx.req.path)]
 
-    const staticAssetDir = path.resolve(__dirname, '../build/public')
-
-    const mergedSchema = mergeSchemas({
-      schemas: schemaContext.schemaFiles,
+      return ctx.text(studioStuff.reExportAdapterScript, 200, { 'Content-Type': contentType })
     })
 
-    const adapter = await config.studio?.adapter()
+    app.get('/*', async (ctx) => {
+      const filePath = join(STATIC_ASSETS_DIR, ctx.req.path.substring(1))
 
-    process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
-    const studio = new StudioServer({
-      schemaPath: schemaContext.schemaPath,
-      adapter,
-      schemaText: mergedSchema,
-      hostname,
-      port,
-      staticAssetDir,
-      prismaClient: {
-        resolve: {
-          '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
-        },
-        // Note: this whole command will get replaced anyway
-        directUrl: config.datasource!.url!,
-      },
-      versions: {
-        prisma: packageJson.version,
-        queryEngine: enginesVersion,
-      },
-    })
+      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(filePath)] || DEFAULT_CONTENT_TYPE
 
-    await studio.start()
-
-    const serverUrl = `http://localhost:${port}`
-    if (!browser || browser.toLowerCase() !== 'none') {
       try {
-        const subprocess = await open(serverUrl, {
-          app: browser,
-          url: true,
-        })
-
-        subprocess.on('spawn', () => {
-          // We match on this string in debug logs in tests
-          debug(`requested to open the url ${serverUrl}`)
-        })
-
-        subprocess.on('error', (e) => {
-          debug(e)
-          // We match on this string in debug logs in tests
-          debug(`failed to open the url ${serverUrl} in browser`)
-        })
-      } catch (e) {
-        // Ignore any errors that occur when trying to open the browser, since they should not halt the process
-        debug(e)
+        return ctx.body(await readFile(filePath), 200, { 'Content-Type': contentType })
+      } catch {
+        return ctx.text('Not Found', 404)
       }
-    }
+    })
 
-    this.instance = studio
+    app.post('/bff', async (ctx) => {
+      const { query } = (await ctx.req.json()) as { query: Query }
 
-    return `Prisma Studio is up on ${serverUrl}`
-  }
+      const [error, results] = await executor.execute(query)
 
-  // help message
-  public help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Studio.help}`)
-    }
+      if (error) {
+        return ctx.json([serializeError(error)])
+      }
 
-    return Studio.help
+      return ctx.json([null, results])
+    })
+
+    app.post('/telemetry', (ctx) => {
+      // TODO: ...
+      return ctx.body(null, 200)
+    })
+
+    const port = args['--port'] || (await getPort({ port: DEFAULT_PORT, portRange: [MIN_PORT, DEFAULT_PORT - 1] }))
+
+    const url = `http://localhost:${port}`
+
+    const server = serve({ fetch: app.fetch, overrideGlobalObjects: false, port }, () => {
+      process.once('SIGINT', () => server.close())
+      process.once('SIGTERM', () => server.close())
+
+      console.log(bold(`\nPrisma Studio is running at:`), url)
+
+      const browser = args['--browser'] || process.env.BROWSER
+
+      if (browser?.toLowerCase() !== 'none') {
+        void open(url, { app: browser ? { name: browser } : undefined })
+      }
+    })
+
+    return ''
   }
 }
+
+// prettier-ignore
+const INDEX_HTML =
+`<!doctype html>
+<html lang="en" style="height: 100%">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.17"></script>
+    <link rel="stylesheet" href="/ui/index.css">
+    <style>
+      body {
+        color: black;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #root {
+        height: 100%;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.2.0",
+          "react/jsx-runtime": "https://esm.sh/react@19.2.0/jsx-runtime",
+          "react-dom": "https://esm.sh/react-dom@19.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@19.2.0/client"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      'use strict';
+      import React from 'react';
+      import ReactDOMClient from 'react-dom/client';
+
+      import { ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/${ADAPTER_FILE_NAME}';
+      import { createStudioBFFClient } from '/data/bff/index.js';
+      import { Studio } from '/ui/index.js';
+
+      const adapter = ${ADAPTER_FACTORY_FUNCTION_NAME}({
+        executor: createStudioBFFClient({ url: '/bff' }),
+        // noParameters: true,
+      });
+
+      const onEvent = (event) => {
+        fetch('/telemetry', {
+          body: JSON.stringify(event),
+          method: 'POST',
+        });
+      };
+
+      window.__PVCE__ = true;
+
+      const container = document.getElementById('root');
+      const root = ReactDOMClient.createRoot(container);
+
+      root.render(React.createElement(Studio, { adapter, onEvent }));
+    </script>
+  </body>
+</html>`
