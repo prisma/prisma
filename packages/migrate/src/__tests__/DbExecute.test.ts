@@ -45,7 +45,7 @@ describe('db execute', () => {
 
   describe('generic', () => {
     it('should fail if missing --file and --stdin', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('valid-config-only')
 
       const result = DbExecute.new().parse([], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -55,7 +55,7 @@ describe('db execute', () => {
     })
 
     it('should fail if both --file and --stdin are provided', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('valid-config-only')
 
       const result = DbExecute.new().parse(['--file=1', '--stdin'], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -65,7 +65,7 @@ describe('db execute', () => {
     })
 
     it('should fail if --file does no exists', async () => {
-      ctx.fixture('empty')
+      ctx.fixture('valid-config-only')
       expect.assertions(2)
 
       try {
@@ -152,7 +152,7 @@ COMMIT;`,
 
     describeMatrix(noDriverAdapters, 'non driver adapter', () => {
       it('should pass when datasource is provided programmatically', async () => {
-        ctx.fixture('empty')
+        ctx.fixture('valid-config-only')
         fs.writeFileSync('script.sql', sqlScript)
 
         ctx.setDatasource({ url: 'file:./dev.db' })
