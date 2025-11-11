@@ -101,6 +101,10 @@ export { extractSchemaContent, type SchemaFileInput } from './utils/schemaFileIn
 export { type MultipleSchemas } from './utils/schemaFileInput'
 export { setClassName } from './utils/setClassName'
 export { toSchemasContainer, toSchemasWithConfigDir } from './utils/toSchemasContainer'
+export {
+  type PrismaConfigWithDatasource,
+  validatePrismaConfigWithDatasource,
+} from './utils/validatePrismaConfigWithDatasource'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { warnOnce } from './warnOnce'
 export * as wasm from './wasm'

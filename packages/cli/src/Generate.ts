@@ -16,8 +16,9 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
+  type PrismaConfigWithDatasource,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { validateConfig, type ValidatedPrismaConfig } from '@prisma/migrate'
 import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
@@ -143,9 +144,9 @@ ${bold('Examples')}
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
 
-    let typedSqlData: { validatedConfig: ValidatedPrismaConfig; typedSql: SqlQueryOutput[] } | undefined
+    let typedSqlData: { validatedConfig: PrismaConfigWithDatasource; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
-      const validatedConfig = validateConfig({ config, cmd: 'generate --sql' })
+      const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd: 'generate --sql' })
       const typedSql = await introspectSql(validatedConfig, schemaContext)
       typedSqlData = {
         validatedConfig,

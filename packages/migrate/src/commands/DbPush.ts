@@ -13,6 +13,7 @@ import {
   isError,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, green, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
@@ -23,7 +24,6 @@ import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
-import { validateConfig } from '../utils/validateConfig'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -90,7 +90,7 @@ ${bold('Examples')}
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     const cmd = 'db push'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 

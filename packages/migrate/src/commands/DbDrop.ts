@@ -10,6 +10,7 @@ import {
   isError,
   link,
   loadSchemaContext,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
@@ -19,7 +20,6 @@ import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { printDatasource } from '../utils/printDatasource'
-import { validateConfig } from '../utils/validateConfig'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -90,7 +90,7 @@ ${bold('Examples')}
     })
 
     const cmd = 'db drop'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 

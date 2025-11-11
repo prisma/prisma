@@ -48,7 +48,7 @@ describe('loadConfigFromFile', () => {
       })
     })
 
-    test('when `datasource` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+    test('when `datasource` configuration is provided, it should set the datasource URLs', async () => {
       ctx.fixture('loadConfigFromFile/datasource')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})

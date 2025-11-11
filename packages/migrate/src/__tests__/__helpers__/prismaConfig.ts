@@ -1,11 +1,10 @@
 import { Datasource, defaultTestConfig, defineConfig, PrismaConfigInternal } from '@prisma/config'
 import type { BaseContext } from '@prisma/get-platform'
-
-import { validateConfig, type ValidatedPrismaConfig } from '../../utils/validateConfig'
+import { type PrismaConfigWithDatasource, validatePrismaConfigWithDatasource } from '@prisma/internals'
 
 type ConfigContext = {
   config: () => Promise<PrismaConfigInternal>
-  validatedConfig: () => Promise<ValidatedPrismaConfig>
+  configWithDatasource: () => Promise<PrismaConfigWithDatasource>
   datasource: () => Promise<Datasource | undefined>
   configFileName: () => string
 
@@ -37,10 +36,10 @@ export const configContextContributor =
         }
       }
 
-      ctx.validatedConfig = async () => {
+      ctx.configWithDatasource = async () => {
         const config = await ctx.config()
 
-        return validateConfig({ config, cmd: 'test' })
+        return validatePrismaConfigWithDatasource({ config, cmd: 'test' })
       }
 
       ctx.datasource = async () => {

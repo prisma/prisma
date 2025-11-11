@@ -16,6 +16,7 @@ import {
   printSchemaLoadedMessage,
   relativizePathInPSLError,
   toSchemasContainer,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, green, italic, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
@@ -31,7 +32,6 @@ import { printIntrospectedSchema } from '../utils/printIntrospectedSchema'
 import { removeSchemaFiles } from '../utils/removeSchemaFiles'
 import { saveSchemaFiles } from '../utils/saveSchemaFiles'
 import { createSpinner } from '../utils/spinner'
-import { validateConfig } from '../utils/validateConfig'
 
 const debug = Debug('prisma:db:pull')
 
@@ -112,7 +112,7 @@ Set composite types introspection depth to 2 levels
     })
 
     const cmd = 'db pull'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 

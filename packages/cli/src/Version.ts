@@ -71,10 +71,9 @@ export class Version implements Command {
     }
 
     const engineResult = await resolveEngine(BinaryType.SchemaEngineBinary)
-    const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
+    const [enginesInfo, schemaEngineRetrievalErrors] = getEnginesInfo(engineResult)
 
     const schemaEngineRows = [['Schema Engine', enginesInfo] as const]
-    const schemaEngineRetrievalErrors = enginesRetrievalErrors
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()

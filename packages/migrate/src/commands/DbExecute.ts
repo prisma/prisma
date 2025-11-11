@@ -9,6 +9,7 @@ import {
   getCommandWithExecutor,
   HelpError,
   isError,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import fs from 'fs'
 import { bold, dim, green, italic } from 'kleur/colors'
@@ -16,7 +17,6 @@ import path from 'path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
-import { validateConfig } from '../utils/validateConfig'
 
 const helpOptions = format(
   `${bold('Usage')}
@@ -96,7 +96,7 @@ ${bold('Examples')}
     }
 
     const cmd = 'db execute'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {

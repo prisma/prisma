@@ -11,6 +11,7 @@ import {
   isError,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, green, italic, red } from 'kleur/colors'
 import prompt from 'prompts'
@@ -21,7 +22,6 @@ import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDataba
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { validateConfig } from '../utils/validateConfig'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -81,7 +81,7 @@ ${bold('Examples')}
     })
 
     const cmd = 'migrate reset'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)

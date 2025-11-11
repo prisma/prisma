@@ -11,6 +11,7 @@ import {
   isError,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, green, italic, red } from 'kleur/colors'
 
@@ -18,7 +19,6 @@ import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { validateConfig } from '../utils/validateConfig'
 
 const debug = Debug('prisma:migrate:deploy')
 
@@ -80,7 +80,7 @@ ${bold('Examples')}
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     const cmd = 'migrate deploy'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 

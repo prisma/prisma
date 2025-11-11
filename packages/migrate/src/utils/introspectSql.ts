@@ -1,6 +1,5 @@
-import { PrismaConfig } from '@prisma/config'
 import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
-import { RequireKey, SchemaContext } from '@prisma/internals'
+import type { PrismaConfigWithDatasource, SchemaContext } from '@prisma/internals'
 
 import { Migrate } from '../Migrate'
 import { SchemaEngine } from '../SchemaEngine'
@@ -39,7 +38,7 @@ export type IntrospectSqlResult =
 
 export async function introspectSql(
   schemaContext: SchemaContext,
-  config: RequireKey<PrismaConfig, 'datasource'>,
+  config: PrismaConfigWithDatasource,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
   if (!isTypedSqlEnabled(schemaContext.generators)) {

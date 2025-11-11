@@ -12,6 +12,7 @@ import {
   link,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, green, italic, red } from 'kleur/colors'
 
@@ -19,7 +20,6 @@ import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
-import { validateConfig } from '../utils/validateConfig'
 
 const debug = Debug('prisma:migrate:status')
 
@@ -80,7 +80,7 @@ Check the status of your database migrations
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     const cmd = 'migrate status'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 

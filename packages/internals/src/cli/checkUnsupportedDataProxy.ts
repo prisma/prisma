@@ -1,8 +1,7 @@
-import { PrismaConfig } from '@prisma/config'
 import { green } from 'kleur/colors'
 
 import { link } from '..'
-import type { RequireKey } from '../types'
+import type { PrismaConfigWithDatasource } from '../utils/validatePrismaConfigWithDatasource'
 
 /**
  * Get the message to display when a command is forbidden with a data proxy flag
@@ -26,7 +25,7 @@ export function checkUnsupportedDataProxy({
   validatedConfig,
 }: {
   cmd: string
-  validatedConfig: RequireKey<PrismaConfig, 'datasource'>
+  validatedConfig: PrismaConfigWithDatasource
 }) {
   if (validatedConfig.datasource.url.startsWith('prisma://')) {
     throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))

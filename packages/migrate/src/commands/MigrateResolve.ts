@@ -10,13 +10,13 @@ import {
   isError,
   link,
   loadSchemaContext,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
 import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
-import { validateConfig } from '../utils/validateConfig'
 
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {
@@ -89,7 +89,7 @@ ${bold('Examples')}
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     const cmd = 'migrate resolve'
-    const validatedConfig = validateConfig({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 

@@ -1,8 +1,7 @@
 import path from 'node:path'
 
-import { PrismaConfig } from '@prisma/config'
 import { DataSource } from '@prisma/generator'
-import type { DatabaseCredentials, RequireKey } from '@prisma/internals'
+import type { DatabaseCredentials, PrismaConfigWithDatasource } from '@prisma/internals'
 import { canConnectToDatabase, createDatabase, PRISMA_POSTGRES_PROVIDER, uriToCredentials } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
@@ -34,7 +33,7 @@ export type DatasourceInfo = {
 
 export function parseDatasourceInfo(
   datasource: DataSource | undefined,
-  config: RequireKey<PrismaConfig, 'datasource'>,
+  config: PrismaConfigWithDatasource,
 ): DatasourceInfo {
   const url = config.datasource.url
 
@@ -117,7 +116,7 @@ export function parseDatasourceInfo(
  */
 export async function ensureCanConnectToDatabase(
   pathResolutionRoot: string,
-  config: RequireKey<PrismaConfig, 'datasource'>,
+  config: PrismaConfigWithDatasource,
 ): Promise<void> {
   const url = config.datasource.url
 
@@ -136,7 +135,7 @@ type SuccessMessage = string
 export async function ensureDatabaseExists(
   pathResolutionRoot: string,
   provider: ConnectorType,
-  config: RequireKey<PrismaConfig, 'datasource'>,
+  config: PrismaConfigWithDatasource,
 ): Promise<SuccessMessage | undefined> {
   const url = config.datasource.url
 
