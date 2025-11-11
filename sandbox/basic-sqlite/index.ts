@@ -1,17 +1,18 @@
-// Import from the local generated client
-import { PrismaClient } from './prisma/generated/client/client'
+import { PrismaClient } from './prisma/generated/client'
+
 const prisma = new PrismaClient()
 
 async function main() {
   const email = `user.${Date.now()}@prisma.io`
-  await prisma.user.create({
+  const newUser = await prisma.user.create({
     data: {
       email: email,
     },
   })
+  console.log('✅ New user created:', newUser)
 
   const users = await prisma.user.findMany()
-  console.log('✅ Success! User created:', users)
+  console.log(`📊 Total users in database: ${users.length}`)
 }
 
 void main().catch((e) => {

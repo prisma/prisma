@@ -1,8 +1,8 @@
 import { defineConfig } from '@prisma/config'
 
 export default defineConfig({
-  engines: 'classic',
+  engine: 'classic',
   datasource: {
-    uri: 'file:dev.db',
+    url: 'file:dev.db',
   },
 })
