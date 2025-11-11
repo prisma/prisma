@@ -8,6 +8,24 @@ import { configContextContributor } from '../_utils/config-context'
 
 const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
+describe('prisma.config.ts', () => {
+  it('should not require a datasource in the config by default', async () => {
+    ctx.fixture('no-config')
+
+    const result = Generate.new().parse([], await ctx.config())
+    await expect(result).resolves.toBeDefined()
+  })
+
+  it('using `--sql` should require a datasource in the config', async () => {
+    ctx.fixture('no-config')
+
+    const result = Generate.new().parse(['--sql'], await ctx.config())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"The datasource property is required in your Prisma config file when using prisma generate --sql."`,
+    )
+  })
+})
+
 describe('using cli', () => {
   // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
   function sanitiseStdout(stdout: string): string {

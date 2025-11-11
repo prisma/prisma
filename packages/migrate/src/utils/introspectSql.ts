@@ -1,6 +1,5 @@
-import { PrismaConfigInternal } from '@prisma/config'
 import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
-import { SchemaContext } from '@prisma/internals'
+import type { PrismaConfigWithDatasource, SchemaContext } from '@prisma/internals'
 
 import { Migrate } from '../Migrate'
 import { SchemaEngine } from '../SchemaEngine'
@@ -39,7 +38,7 @@ export type IntrospectSqlResult =
 
 export async function introspectSql(
   schemaContext: SchemaContext,
-  config: PrismaConfigInternal,
+  config: PrismaConfigWithDatasource,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
   if (!isTypedSqlEnabled(schemaContext.generators)) {
@@ -52,10 +51,6 @@ export async function introspectSql(
   }
   if (!supportedProviders.includes(firstDatasource.activeProvider)) {
     throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
-  }
-
-  if (config.engine !== 'classic') {
-    throw new Error('TypedSQL currently requires classic engine')
   }
 
   const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config })

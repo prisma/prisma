@@ -1,6 +1,5 @@
 import path from 'node:path'
 
-import { SchemaEngineConfigInternal } from '@prisma/config'
 import { ActiveConnectorType, DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
 
@@ -52,7 +51,6 @@ export type SchemaContext = {
 type LoadSchemaContextOptions = {
   schemaPathFromArg?: string
   schemaPathFromConfig?: string
-  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
   allowNull?: boolean
   schemaPathArgumentName?: string
