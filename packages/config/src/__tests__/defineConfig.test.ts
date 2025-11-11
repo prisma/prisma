@@ -84,7 +84,7 @@ describe('defineConfig', () => {
   })
 
   describe('datasource', () => {
-    test('if `datasource` configuration is provided, it should configure Prisma Migrate using the provided adapter', () => {
+    test('when `datasource` configuration is provided, it should set the datasource URLs', () => {
       const config = defineConfig({
         datasource: {
           url: 'postgresql://DATABASE_URL',
