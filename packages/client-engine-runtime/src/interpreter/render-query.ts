@@ -30,6 +30,8 @@ export function renderQuery(
       const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
       return chunks.map((params) => {
         if (maxChunkSize !== undefined && params.length > maxChunkSize) {
+          // TODO: this should probably say something along the lines of `Query parameter limit exceeded error`, like in
+          // https://github.com/prisma/prisma-engines/blob/9c30299f5a0ea26a96790e13f796dc6094db3173/libs/user-facing-errors/src/query_engine/mod.rs#L276.
           throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
         }
 

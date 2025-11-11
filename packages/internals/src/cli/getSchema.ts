@@ -1,4 +1,3 @@
-import { loadConfigFromPackageJson } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import type {
   GetSchemaResult,
@@ -34,15 +33,6 @@ type DefaultLookupResult =
   | {
       ok: false
       error: DefaultLookupError
-    }
-
-type PackageJsonLookupResult =
-  | SuccessfulLookupResult
-  | {
-      ok: false
-      error: {
-        kind: 'PackageJsonNotConfigured'
-      }
     }
 
 export type GetSchemaOptions = {
@@ -146,8 +136,8 @@ async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<Lookup
 
 /**
  * Tries to load schema from either provided
- * arg, package.json configured location, prisma.config.ts location,
- * default location relative to cwd or any of the Yarn1Workspaces.
+ * arg, prisma.config.ts location, default location relative to cwd
+ * or any of the Yarn1Workspaces.
  *
  * If schema is specified explicitly with any of the methods but can
  * not be loaded, error will be thrown. If no explicit schema is given, then
@@ -180,13 +170,7 @@ async function getSchemaWithPathInternal(
     return prismaConfigResult
   }
 
-  // 3. Use the "prisma"."schema" attribute from the project's package.json
-  const pkgJsonResult = await getSchemaFromPackageJson(cwd)
-  if (pkgJsonResult.ok) {
-    return pkgJsonResult
-  }
-
-  // 4. Look into the default, "canonical" locations in the cwd (e.g., `./schema.prisma` or `./prisma/schema.prisma`)
+  // 3. Look into the default, "canonical" locations in the cwd (e.g., `./schema.prisma` or `./prisma/schema.prisma`)
   const defaultResult = await getDefaultSchema(cwd)
   if (defaultResult.ok) {
     return defaultResult
@@ -249,51 +233,6 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: str
   }
 
   return schemaResult
-}
-
-/**
- * Trying to access this function results in a deprecation warning.
- * Users should be instructed to use the Prisma config file instead.
- * See: https://pris.ly/prisma-config.
- * @deprecated
- */
-export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJsonLookupResult> {
-  const prismaConfig = await loadConfigFromPackageJson(cwd)
-  debug('prismaConfig', prismaConfig)
-
-  if (!prismaConfig || !prismaConfig.config?.schema) {
-    return { ok: false, error: { kind: 'PackageJsonNotConfigured' } }
-  }
-
-  const schemaPathFromPkgJson = prismaConfig.config.schema
-
-  if (typeof schemaPathFromPkgJson !== 'string') {
-    throw new Error(
-      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
-        cwd,
-        prismaConfig.loadedFromFile,
-      )}\` must be of type string`,
-    )
-  }
-
-  const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
-    ? schemaPathFromPkgJson
-    : path.resolve(path.dirname(prismaConfig.loadedFromFile), schemaPathFromPkgJson)
-
-  const lookupResult = await readSchemaFromFileOrDirectory(absoluteSchemaPath)
-
-  if (!lookupResult.ok) {
-    throw new Error(
-      `Could not load schema from \`${path.relative(
-        cwd,
-        absoluteSchemaPath,
-      )}\` provided by "prisma.schema" config of \`${path.relative(
-        cwd,
-        prismaConfig.loadedFromFile,
-      )}\`: ${renderLookupError(lookupResult.error)}`,
-    )
-  }
-  return lookupResult
 }
 
 async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[] = []): Promise<DefaultLookupResult> {

@@ -6,16 +6,6 @@ import * as ts from '@prisma/ts-builders'
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 type RuntimeExport = keyof typeof import('@prisma/client/runtime/library') & string
 
-/**
- * Helps to ensure that when we want to refer to a type or value, imported from runtime Module
- * we are referring to the name, that is actually exported
- *
- * @param name imported name
- */
-export function runtimeImport(name: RuntimeExport): string {
-  return name
-}
-
 export function runtimeImportedType(name: RuntimeExport): ts.NamedType {
   return ts.namedType(`runtime.${name}`)
 }

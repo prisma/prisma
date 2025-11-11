@@ -1,4 +1,4 @@
-import type { SchemaEngineConfigClassicDatasource } from '@prisma/config'
+import type { Datasource } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -40,7 +40,7 @@ setClassName(EngineError, 'EngineError')
 let messageId = 1
 
 interface SchemaEngineCLISetupInput {
-  datasource?: SchemaEngineConfigClassicDatasource
+  datasource?: Datasource
   debug?: boolean
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
@@ -53,7 +53,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private debug: boolean
   private child?: ChildProcess
   private schemaContext?: SchemaContext
-  private datasource?: SchemaEngineConfigClassicDatasource
+  private datasource?: Datasource
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []

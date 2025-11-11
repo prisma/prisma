@@ -1,9 +1,9 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { arg, Command, format, HelpError, isError } from '@prisma/internals'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
+import { executeSeedCommand } from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -54,12 +54,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
-    const seedCommandFromPrismaConfig = config.migrations?.seed
-    const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-    const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+    const seedCommand = config.migrations?.seed
 
     if (!seedCommand) return ``
 

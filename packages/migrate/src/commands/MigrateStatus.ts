@@ -10,11 +10,11 @@ import {
   inferDirectoryConfig,
   isError,
   link,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
@@ -34,7 +34,9 @@ Check the status of your database migrations
   ${bold('Usage')}
 
     ${dim('$')} prisma migrate status [options]
-    
+
+    The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+
   ${bold('Options')}
 
   -h, --help   Display this help message
@@ -71,19 +73,18 @@ Check the status of your database migrations
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
-    checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
+    const cmd = 'migrate status'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -98,10 +99,7 @@ Check the status of your database migrations
       extensions: config['extensions'],
     })
 
-    // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
-    if (!adapter) {
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
-    }
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
@@ -176,7 +174,7 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`)
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
         console.error(`The current database is not managed by Prisma Migrate.
-        
+
 Read more about how to baseline an existing production database:
 ${link('https://pris.ly/d/migrate-baseline')}`)
         // Exit 1 to signal that the status is not in sync
@@ -210,7 +208,7 @@ During development if the failed migration(s) have not been deployed to a produc
       )
 
       console.error(`The failed migration(s) can be marked as rolled back or applied:
-      
+
 - If you rolled back the migration(s) manually:
 ${bold(green(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`)))}
 

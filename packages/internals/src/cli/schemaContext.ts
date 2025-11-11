@@ -1,8 +1,7 @@
-import { SchemaEngineConfigInternal } from '@prisma/config'
-import { DataSource, GeneratorConfig } from '@prisma/generator'
+import path from 'node:path'
+
+import { ActiveConnectorType, DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
-import path from 'path'
-import { match } from 'ts-pattern'
 
 import { getConfig } from '../engine-commands'
 import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
@@ -52,9 +51,7 @@ export type SchemaContext = {
 type LoadSchemaContextOptions = {
   schemaPathFromArg?: string
   schemaPathFromConfig?: string
-  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
   allowNull?: boolean
   schemaPathArgumentName?: string
   cwd?: string
@@ -63,16 +60,11 @@ type LoadSchemaContextOptions = {
 export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
-export async function loadSchemaContext(
-  opts?: LoadSchemaContextOptions & { schemaEngineConfig: { engine: 'classic' } },
-): Promise<Omit<SchemaContext, 'primaryDatasource'> & { primaryDatasource: DataSource }>
 export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
-  schemaEngineConfig,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
   allowNull = false,
   schemaPathArgumentName = '--schema',
   cwd = process.cwd(),
@@ -92,20 +84,16 @@ export async function loadSchemaContext({
     })
   }
 
-  return processSchemaResult({ schemaResult, schemaEngineConfig, printLoadMessage, ignoreEnvVarErrors, cwd })
+  return processSchemaResult({ schemaResult, printLoadMessage, cwd })
 }
 
 export async function processSchemaResult({
   schemaResult,
-  schemaEngineConfig,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
   cwd = process.cwd(),
 }: {
   schemaResult: GetSchemaResult
-  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
   cwd?: string
 }): Promise<SchemaContext> {
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
@@ -115,27 +103,11 @@ export async function processSchemaResult({
     printSchemaLoadedMessage(loadedFromPathForLogMessages)
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
+  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
 
-  const datasourceFromPsl = configFromPsl.datasources.at(0)
+  const primaryDatasource = configFromPsl.datasources.at(0)
 
-  const primaryDatasource = match(schemaEngineConfig)
-    .with({ engine: 'classic' }, ({ datasource }) => {
-      const { url, directUrl, shadowDatabaseUrl } = datasource
-
-      const primaryDatasource = {
-        ...datasourceFromPsl,
-        url: { fromEnvVar: null, value: url },
-        directUrl: directUrl ? { fromEnvVar: null, value: directUrl } : undefined,
-        shadowDatabaseUrl: shadowDatabaseUrl ? { fromEnvVar: null, value: shadowDatabaseUrl } : undefined,
-        [Symbol.for('engine.classic')]: true,
-      } as DataSource
-
-      return primaryDatasource
-    })
-    .otherwise(() => datasourceFromPsl)
-
-  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
+  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(primaryDatasource) || schemaRootDir
 
   return {
     schemaFiles: schemaResult.schemas,
@@ -156,4 +128,11 @@ function getPrimaryDatasourceDirectory(primaryDatasource: DataSource | undefined
     return path.dirname(datasourcePath)
   }
   return null
+}
+
+export function getSchemaDatasourceProvider(schemaContext: SchemaContext): ActiveConnectorType {
+  if (schemaContext.primaryDatasource === undefined) {
+    throw new Error('Schema must contain a datasource block')
+  }
+  return schemaContext.primaryDatasource.activeProvider
 }

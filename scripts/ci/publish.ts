@@ -70,7 +70,6 @@ async function run(cwd: string, cmd: string, dry = false, hidden = false): Promi
       shell: true,
       env: {
         ...process.env,
-        PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
       },
     })
   } catch (_e) {

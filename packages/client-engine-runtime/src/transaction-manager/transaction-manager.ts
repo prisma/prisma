@@ -241,8 +241,13 @@ export class TransactionManager {
             await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
           } else {
             const query = COMMIT_QUERY()
-            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-            await tx.transaction.commit()
+            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query)).then(
+              () => tx.transaction!.commit(),
+              (err) => {
+                const fail = () => Promise.reject(err)
+                return tx.transaction!.rollback().then(fail, fail)
+              },
+            )
           }
         } else if (tx.transaction) {
           if (tx.transaction.options.usePhantomQuery) {
@@ -251,8 +256,11 @@ export class TransactionManager {
             )
           } else {
             const query = ROLLBACK_QUERY()
-            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-            await tx.transaction.rollback()
+            try {
+              await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+            } finally {
+              await tx.transaction.rollback()
+            }
           }
         }
       } finally {

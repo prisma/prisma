@@ -12,8 +12,9 @@ export function buildQueryCompilerWasmModule(
     return `config.compilerWasm = {
       getRuntime: async () => require('./query_compiler_bg.js'),
       getQueryCompilerWasmModule: async () => {
-        const queryCompilerWasmFilePath = require('path').join(config.dirname, 'query_compiler_bg.wasm')
-        const queryCompilerWasmFileBytes = require('fs').readFileSync(queryCompilerWasmFilePath)
+        const { Buffer } = require('node:buffer')
+        const { wasm } = require('./query_compiler_bg.wasm-base64.js')
+        const queryCompilerWasmFileBytes = Buffer.from(wasm, 'base64')
 
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
       }

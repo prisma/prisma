@@ -53,9 +53,9 @@ export function validate(options: ValidateOptions): void {
         /**
          * Note: `validate` was introduced as a substitute of `getDMMF` to validate schemas the
          * same way `getDMMF` did, but without the expensive DMMF document computation, so we
-         * keep using `FORCE_PANIC_QUERY_ENGINE_GET_DMMF` to avoid breaking changes in env vars.
+         * keep using `FORCE_PANIC_GET_DMMF` to avoid breaking changes in env vars.
          */
-        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+        if (process.env.FORCE_PANIC_GET_DMMF) {
           debug('Triggering a Rust panic...')
           prismaSchemaWasm.debug_panic()
         }

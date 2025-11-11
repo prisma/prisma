@@ -8,21 +8,22 @@ import {
   TransactionInfo,
   UserFacingError,
 } from '@prisma/client-engine-runtime'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { version as clientVersion } from '../../../../../package.json'
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
@@ -83,7 +84,10 @@ type ExecutorKind =
       remote: false
       driverAdapterFactory: SqlDriverAdapterFactory
     }
-  | { remote: true }
+  | {
+      remote: true
+      accelerateUrl: string
+    }
 
 export class ClientEngine implements Engine {
   name = 'ClientEngine' as const
@@ -103,9 +107,9 @@ export class ClientEngine implements Engine {
 
   #emitQueryEvent?: (event: QueryEvent) => void
 
-  constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
-    if (remote) {
-      this.#executorKind = { remote: true }
+  constructor(config: EngineConfig, queryCompilerLoader?: QueryCompilerLoader) {
+    if (config.accelerateUrl !== undefined) {
+      this.#executorKind = { remote: true, accelerateUrl: config.accelerateUrl }
     } else if (config.adapter) {
       this.#executorKind = { remote: false, driverAdapterFactory: config.adapter }
       debug('Using driver adapter: %O', config.adapter)
@@ -151,10 +155,6 @@ export class ClientEngine implements Engine {
         } satisfies ClientQueryEvent)
       }
     }
-  }
-
-  applyPendingMigrations(): Promise<void> {
-    throw new Error('Cannot call applyPendingMigrations on engine type client.')
   }
 
   async #ensureStarted(): Promise<ConnectedEngine> {
@@ -208,12 +208,10 @@ export class ClientEngine implements Engine {
     if (this.#executorKind.remote) {
       return new RemoteExecutor({
         clientVersion: this.config.clientVersion,
-        env: this.config.env,
-        inlineDatasources: this.config.inlineDatasources,
+        accelerateUrl: this.#executorKind.accelerateUrl,
         logEmitter: this.logEmitter,
         logLevel: this.logLevel,
         logQueries: this.logQueries,
-        overrideDatasources: this.config.overrideDatasources,
         tracingHelper: this.tracingHelper,
       })
     } else {
@@ -584,12 +582,6 @@ export class ClientEngine implements Engine {
     } catch (e: any) {
       throw this.#transformRequestError(e, request)
     }
-  }
-
-  metrics(options: MetricsOptionsJson): Promise<Metrics>
-  metrics(options: MetricsOptionsPrometheus): Promise<string>
-  metrics(_options: EngineMetricsOptions): Promise<Metrics | string> {
-    throw new Error('Method not implemented.')
   }
 
   /**

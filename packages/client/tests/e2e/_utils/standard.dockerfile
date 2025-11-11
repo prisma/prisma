@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:20.19
 
 RUN npm -v
 

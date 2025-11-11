@@ -55,15 +55,12 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      databaseName,
-    )
-    process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+    const url = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace('tests-migrate', databaseName)
+    const shadowDatabaseUrl = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
       'tests-migrate-shadowdb',
       `${databaseName}-shadowdb`,
     )
+    ctx.setDatasource({ url, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
@@ -81,30 +78,6 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
-      }
-
-      model jobs {
-        job_id      Int       @id(map: "PK__jobs__CustomNameToAvoidRandomNumber") @default(autoincrement())
-        customer_id Int?
-        description String?   @db.VarChar(200)
-        created_at  DateTime?
-      }
-
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = "sqlserver"
-        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
       }
 
       model jobs {
@@ -131,6 +104,9 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
   }
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+  }
 
   // Note that this needs to be exactly the same as the one in the setup.sql file
   const databaseName = 'tests-migrate-db-pull-sqlserver-multischema'
@@ -152,11 +128,8 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      databaseName,
-    )
+    const url = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace('tests-migrate', databaseName)
+    ctx.setDatasource({ url })
   })
 
   afterEach(async () => {
@@ -185,10 +158,10 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
-        -->  with-schemas-in-datasource-0-value.prisma:4
+        -->  with-schemas-in-datasource-0-value.prisma:3
          | 
-       3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
-       4 |   schemas  = []
+       2 |   provider = "sqlserver"
+       3 |   schemas  = []
          | 
 
       Validation Error Count: 1
@@ -218,16 +191,16 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                // *** WARNING ***
-                                                // 
-                                                // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                                                //   - transactional_some_table
-                                                // 
-                                                // These items were renamed due to their names being duplicates in the Prisma schema:
-                                                //   - type: model, name: base_some_table
-                                                //   - type: model, name: transactional_some_table
-                                                // 
-                                `)
+                                // *** WARNING ***
+                                //
+                                // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                //   - transactional_some_table
+                                //
+                                // These items were renamed due to their names being duplicates in the Prisma schema:
+                                //   - type: model, name: base_some_table
+                                //   - type: model, name: transactional_some_table
+                                //
+        `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
@@ -245,7 +218,6 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
       datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
         schemas  = ["base"]
       }
 
@@ -296,7 +268,6 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
       datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
         schemas  = ["base", "does-not-exist"]
       }
 
@@ -320,24 +291,31 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+  test('url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+    ctx.fixture('introspection/sqlserver')
+    ctx.setDatasource({
+      url: `${(await ctx.datasource())?.url}schema=does-not-exist`,
+    })
+
     const introspect = new DbPull()
-    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
-    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('--url with `?schema=base` should succeed', async () => {
+  test('url with `?schema=base` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver')
+    ctx.setDatasource({
+      url: `${(await ctx.datasource())?.url}schema=base`,
+    })
+
     const introspect = new DbPull()
-    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlserver"
-        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver-multischema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
       }
 
       model some_table {

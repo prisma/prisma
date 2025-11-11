@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import {
   arg,
   getCLIPathHash,
@@ -120,7 +120,6 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: schemaPath,
       schemaPathFromConfig,
-      ignoreEnvVarErrors: true,
       printLoadMessage: false,
     })
 
@@ -134,16 +133,16 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
       .filter((generator) => generator && generator.provider)
       .map((generator) => parseEnvValue(generator.provider))
 
-    // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
-    // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-    // TODO: we should normalize how `previewFeatures` are extracted, since we currently support
-    // multiple generators (`prisma-client-js`, `prisma-client`), and each generator can occur
-    // more than once.
-    const prismaClientJSGenerator = schemaContext.generators.find(
-      (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
-    )
-    if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
-      schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
+    const clientGeneratorProviders = ['prisma-client', 'prisma-client-js']
+    const previewFeatures = schemaContext.generators
+      .filter((generator) => {
+        const provider = generator?.provider ? parseEnvValue(generator.provider) : undefined
+        return provider !== undefined && clientGeneratorProviders.includes(provider)
+      })
+      .flatMap((generator) => generator.previewFeatures ?? [])
+
+    if (previewFeatures.length > 0) {
+      schemaPreviewFeatures = Array.from(new Set(previewFeatures))
     }
   } catch (e) {
     debug(
@@ -166,17 +165,14 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
 export const SENSITIVE_CLI_OPTIONS = [
   // 1. Connection strings
   '--url',
-  '--shadow-database-url',
-  '--from-url',
-  '--to-url',
-  // 2. Paths
+  // 1. Paths
   '--schema',
   '--config',
   '--file',
-  '--from-schema-datamodel',
-  '--to-schema-datamodel',
-  '--from-schema-datasource',
-  '--to-schema-datasource',
+  '--from-schema',
+  '--to-schema',
+  '--from-config-datasource',
+  '--to-config-datasource',
   '--from-migrations',
   '--to-migrations',
   '--hostname',

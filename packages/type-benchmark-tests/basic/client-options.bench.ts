@@ -56,9 +56,9 @@ bench('log config applied', () => {
   passToAnyClientAround(client)
 }).types([688, 'instantiations'])
 
-bench('datasourceUrl applied', () => {
+bench('errorFormat applied', () => {
   const client = new PrismaClientConstructor({
-    datasourceUrl: 'postgres://localhost:5432/prisma',
+    errorFormat: 'pretty',
   })
 
   const passClientAround = (prisma: PrismaClient) => {
@@ -107,7 +107,7 @@ bench('global omit applied', async () => {
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
-    datasourceUrl: 'sqlite://localhost:5432/prisma',
+    errorFormat: 'pretty',
   }).$extends({})
 
   const passClientAround = (prisma: PrismaClient) => {
@@ -121,7 +121,7 @@ bench('extended client then pass around', () => {
 
 bench('passed around client then extend', () => {
   const client = new PrismaClientConstructor({
-    datasourceUrl: 'sqlite://localhost:5432/prisma',
+    errorFormat: 'pretty',
   })
 
   const passClientAround = (prisma: PrismaClient) => {
@@ -134,7 +134,7 @@ bench('passed around client then extend', () => {
 
 bench('fully extended', () => {
   const client = new PrismaClientConstructor({
-    datasourceUrl: 'sqlite://localhost:5432/prisma',
+    errorFormat: 'pretty',
   })
 
   const passClientAround = (prisma: PrismaClient) => {

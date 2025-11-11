@@ -18,7 +18,6 @@ export TEST_E2E_COCKROACH_URI="postgresql://prisma@${DOCKER_BRIDGE_HOST}:26257/$
 export NODE_PATH=$(npm root --quiet -g) # make global packages available
 export NEXT_TELEMETRY_DISABLED=1
 export NO_COLOR=1
-export PRISMA_SKIP_POSTINSTALL_GENERATE='true' # because we run generate already
 
 # Script variables
 BASE_DIR=$(echo "$NAME" | awk -F "/" '{print $1}')

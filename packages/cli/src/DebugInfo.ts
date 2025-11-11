@@ -1,16 +1,6 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
-import {
-  arg,
-  format,
-  getSchemaWithPath,
-  HelpError,
-  isCi,
-  isError,
-  isInteractive,
-  link,
-  loadEnvFile,
-} from '@prisma/internals'
+import { arg, format, getSchemaWithPath, HelpError, isCi, isError, isInteractive, link } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'
@@ -37,6 +27,14 @@ export class DebugInfo implements Command {
     --schema       Custom path to your Prisma schema
 `)
 
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DebugInfo.help}`)
+    }
+
+    return DebugInfo.help
+  }
+
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -53,8 +51,6 @@ export class DebugInfo implements Command {
     if (args['--help']) {
       return this.help()
     }
-
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
@@ -113,33 +109,15 @@ ${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
-For configuring the Query Engine Type
-${formatEnvValue('PRISMA_CLI_QUERY_ENGINE_TYPE')}
-${formatEnvValue('PRISMA_CLIENT_ENGINE_TYPE')}
-
 For custom engines
-${formatEnvValue('PRISMA_QUERY_ENGINE_BINARY')}
-${formatEnvValue('PRISMA_QUERY_ENGINE_LIBRARY')}
 ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
 
-For the "postinstall" npm hook
-${formatEnvValue('PRISMA_GENERATE_SKIP_AUTOINSTALL')}
-${formatEnvValue('PRISMA_SKIP_POSTINSTALL_GENERATE')}
-${formatEnvValue('PRISMA_GENERATE_IN_POSTINSTALL')}
-
-For "prisma generate"
-${formatEnvValue('PRISMA_GENERATE_DATAPROXY')}
-${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
-
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
-${formatEnvValue('PRISMA_CLIENT_NO_RETRY', '(Binary engine only)')}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
-${formatEnvValue('PRISMA_MIGRATE_SKIP_GENERATE')}
-${formatEnvValue('PRISMA_MIGRATE_SKIP_SEED')}
 
 For Prisma Studio
 ${formatEnvValue('BROWSER')}
@@ -150,13 +128,5 @@ ${isInteractive()}
 ${underline('-- CI detected? --')}
 ${isCi()}
 `
-  }
-
-  public help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DebugInfo.help}`)
-    }
-
-    return DebugInfo.help
   }
 }

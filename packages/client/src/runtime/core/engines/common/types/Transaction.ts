@@ -19,8 +19,7 @@ export type InteractiveTransactionInfo<Payload = unknown> = {
 
   /**
    * Arbitrary payload the meaning of which depends on the `Engine` implementation.
-   * For example, `DataProxyEngine` needs to associate different API endpoints with transactions.
-   * In `LibraryEngine` and `BinaryEngine` it is currently not used.
+   * It is currently not used in `LibraryEngine`.
    */
   payload: Payload
 }

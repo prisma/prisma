@@ -7,6 +7,17 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
+describe('prisma.config.ts', () => {
+  it('should require a datasource in the config', async () => {
+    ctx.fixture('no-config')
+
+    const result = MigrateResolve.new().parse([], await ctx.config())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"The datasource property is required in your Prisma config file when using prisma migrate resolve."`,
+    )
+  })
+})
+
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
@@ -49,10 +60,9 @@ describe('common', () => {
 describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/empty.prisma', '--applied=something_applied'],
-      await ctx.config(),
-    )
+    ctx.setConfigFile('empty.config.ts')
+
+    const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -114,10 +124,9 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
   it('--applied should work on a failed migration (schema folder)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma', '--applied', '20240527130802_init'],
-      await ctx.config(),
-    )
+    ctx.setConfigFile('folder.config.ts')
+
+    const result = MigrateResolve.new().parse(['--applied', '20240527130802_init'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
@@ -193,22 +202,17 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 describeMatrix(postgresOnly, 'postgres', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
+    ctx.setConfigFile('invalid-url.config.ts')
     jest.setTimeout(10_000)
 
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      await ctx.config(),
-    )
+    const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
 
       Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
 
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
@@ -220,21 +224,16 @@ describeMatrix(postgresOnly, 'postgres', () => {
 describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
+    ctx.setConfigFile('invalid-url.config.ts')
 
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      await ctx.config(),
-    )
+    const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
-      "P1001: Can't reach database server at \`something.cockroachlabs.cloud:26257\`
+      "P1001: Can't reach database server at \`cockroach.invalid:26257\`
 
-      Please make sure your database server is running at \`something.cockroachlabs.cloud:26257\`."
+      Please make sure your database server is running at \`cockroach.invalid:26257\`."
     `)
 
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" <location placeholder>

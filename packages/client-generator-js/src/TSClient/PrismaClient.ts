@@ -14,7 +14,7 @@ import {
   getModelArgName,
   getPayloadName,
 } from '../utils'
-import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
+import { runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
@@ -347,30 +347,6 @@ function queryRawTypedDefinition(context: GenerateContext) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function metricDefinition(context: GenerateContext) {
-  if (!context.isPreviewFeatureOn('metrics')) {
-    return ''
-  }
-
-  const property = ts
-    .property('$metrics', ts.namedType(`runtime.${runtimeImport('MetricsClient')}`))
-    .setDocComment(
-      ts.docComment`
-        Gives access to the client metrics in json or prometheus format.
-
-        @example
-        \`\`\`
-        const metrics = await prisma.$metrics.json()
-        // or
-        const metrics = await prisma.$metrics.prometheus()
-        \`\`\`
-    `,
-    )
-    .readonly()
-
-  return ts.stringify(property, { indentLevel: 1, newLine: 'leading' })
-}
-
 function runCommandRawDefinition(context: GenerateContext) {
   // we do not generate `$runCommandRaw` definitions if not supported
   if (!context.dmmf.mappings.otherOperations.write.includes('runCommandRaw')) {
@@ -393,21 +369,6 @@ function runCommandRawDefinition(context: GenerateContext) {
 
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
-
-  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
-}
-
-function applyPendingMigrationsDefinition(this: PrismaClientClass) {
-  if (this.runtimeNameTs !== 'react-native') {
-    return null
-  }
-
-  const method = ts
-    .method('$applyPendingMigrations')
-    .setReturnType(tsx.promise(ts.voidType))
-    .setDocComment(
-      ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
-    )
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
@@ -491,8 +452,6 @@ ${[
   batchingTransactionDefinition(this.context),
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),
-  metricDefinition(this.context),
-  applyPendingMigrationsDefinition.bind(this)(),
   extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)
@@ -611,12 +570,6 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
       )
       .add(
         ts
-          .property('datasourceUrl', ts.stringType)
-          .optional()
-          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
-      )
-      .add(
-        ts
           .property('errorFormat', ts.namedType('ErrorFormat'))
           .optional()
           .setDocComment(ts.docComment('@default "colorless"')),
@@ -673,13 +626,24 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     ) {
       clientOptions.add(
         ts
-          .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
+          .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
           .optional()
           .setDocComment(
             ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
           ),
       )
     }
+
+    clientOptions.add(
+      ts
+        .property('accelerateUrl', ts.stringType)
+        .optional()
+        .setDocComment(
+          ts.docComment(
+            'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
+          ),
+        ),
+    )
 
     clientOptions.add(
       ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`

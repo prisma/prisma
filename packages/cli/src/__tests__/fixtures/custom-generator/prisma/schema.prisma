@@ -1,6 +1,6 @@
 generator min {
-  // https://github.com/timsuchanek/minimal-generator
-  provider = "npx @timsuchanek/minimal-generator"
+  // https://github.com/prisma/minimal-generator
+  provider = "npx github:prisma/minimal-generator"
   // Other examples:
   // https://github.com/search?q=path%3A**%2F**.prisma+provider+%3D+%22npx+&type=code
   // provider = "npx prisma-typegraphql-types-generator"
@@ -10,7 +10,6 @@ generator min {
 
 datasource db {
   provider = "sqlite"
-  url      = env("ENV_VAR_DOES_NOT_EXIST")
 }
 
 model Post {

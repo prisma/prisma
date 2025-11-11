@@ -26,13 +26,13 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@prisma/internals": "workspace:*",
-    "@types/node": "18.19.76",
     "@opentelemetry/api": "1.9.0",
+    "@prisma/internals": "workspace:*",
+    "@types/node": "~20.19.24",
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "@opentelemetry/instrumentation": ">=0.52.0 <1"
+    "@opentelemetry/instrumentation": "^0.207.0"
   },
   "peerDependencies": {
     "@opentelemetry/api": "^1.8"

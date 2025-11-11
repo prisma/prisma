@@ -5,7 +5,19 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
+// TODO: prepare custom fixtures for `db drop`, which isn't used in the CLI.
 describe('drop', () => {
+  describe('prisma.config.ts', () => {
+    it('should require a datasource in the config', async () => {
+      ctx.fixture('no-config')
+
+      const result = DbDrop.new().parse(['--preview-feature'], await ctx.config())
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"The datasource property is required in your Prisma config file when using prisma db drop."`,
+      )
+    })
+  })
+
   it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 

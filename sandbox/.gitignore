@@ -16,6 +16,8 @@
 !d1/**
 !query-compiler
 !query-compiler/**
+!studio
+!studio/**
 
 # Ignore node_modules
 **/node_modules

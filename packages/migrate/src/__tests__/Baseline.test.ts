@@ -5,7 +5,7 @@ import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { MigrateDev } from '../commands/MigrateDev'
 import { MigrateReset } from '../commands/MigrateReset'
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { allDriverAdapters, describeMatrix } from './__helpers__/conditionalTests'
+import { describeMatrix } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -18,18 +18,18 @@ describe('Baselining', () => {
   beforeEach(() => {
     // Disable prompts
     process.env.GITHUB_ACTIONS = '1'
-    // Disable generate
-    process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
   })
 
-  describeMatrix({ providers: { sqlite: true }, driverAdapters: allDriverAdapters }, 'SQLite', () => {
+  describeMatrix({ providers: { sqlite: true } }, 'SQLite', () => {
     it('should succeed', async () => {
       ctx.fixture('baseline-sqlite')
       fs.remove('prisma/migrations')
       fs.copy('dev.db', 'prod.db')
 
       // Start with the dev database
-      process.env.DATABASE_URL = 'file:../dev.db'
+      ctx.setDatasource({
+        url: `file:${ctx.fs.path('dev.db')}`,
+      })
 
       // db pull
       const dbPull = DbPull.new().parse([], await ctx.config())
@@ -102,7 +102,9 @@ describe('Baselining', () => {
       ctx.clearCapturedStdout()
 
       // Switch to PROD database
-      process.env.DATABASE_URL = 'file:../prod.db'
+      ctx.setDatasource({
+        url: `file:${ctx.fs.path('prod.db')}`,
+      })
 
       // migrate resolve --applied migration_name
       const migrationName = fs.list('prisma/migrations')![0]

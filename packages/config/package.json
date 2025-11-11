@@ -20,6 +20,7 @@
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/get-platform": "workspace:*",
+    "dotenv": "17.2.3",
     "vitest": "3.2.4"
   },
   "scripts": {

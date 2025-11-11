@@ -36,9 +36,5 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     browser: false,
     edge: false,
     wasm: false,
-    envPaths: {
-      rootEnvPath: null,
-      schemaEnvPath: undefined,
-    },
   }).toTS()
 }

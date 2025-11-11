@@ -1,6 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
-import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
   arg,
   BinaryType,
@@ -11,16 +10,13 @@ import {
   getTypescriptVersion,
   HelpError,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   resolveEngine,
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
-import { match } from 'ts-pattern'
 
-import { getClientGeneratorInfo } from './utils/client'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json')
@@ -47,6 +43,14 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
+    }
+
+    return Version.help
+  }
+
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -66,79 +70,10 @@ export class Version implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ printMessage: !args['--json'], config })
+    const engineResult = await resolveEngine(BinaryType.SchemaEngineBinary)
+    const [enginesInfo, schemaEngineRetrievalErrors] = getEnginesInfo(engineResult)
 
-    const schemaPathFromArg = args['--schema']
-
-    const { engineType } = await getClientGeneratorInfo({
-      schemaPathFromConfig: config.schema,
-      schemaPathFromArg,
-    }).catch((_) => {
-      const id = <const T>(x: T): T => x
-      const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
-        .with('binary', id)
-        .with('library', id)
-        .otherwise(() => 'library' as const)
-
-      return { engineType }
-    })
-
-    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config)
-      .with({ engine: 'js' }, async ({ adapter: adapterFn }) => {
-        const adapter = await adapterFn()
-        const enginesRetrievalErrors = [] as Error[]
-
-        return {
-          schemaEngineRows: [
-            ['Schema Engine', `@prisma/schema-engine-wasm ${wasm.schemaEngineWasmVersion}`] as const,
-            ['Schema Engine Adapter', adapter.adapterName] as const,
-          ],
-          schemaEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .otherwise(async () => {
-        const name = BinaryType.SchemaEngineBinary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          schemaEngineRows: [['Schema Engine', enginesInfo] as const],
-          schemaEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-
-    const { queryEngineRows, queryEngineRetrievalErrors } = await match(engineType)
-      // eslint-disable-next-line @typescript-eslint/require-await
-      .with('client', async () => {
-        const engineRetrievalErrors = [] as Error[]
-        return {
-          queryEngineRows: [['Query Compiler', 'enabled']],
-          queryEngineRetrievalErrors: engineRetrievalErrors,
-        }
-      })
-      .with('library', async () => {
-        const name = BinaryType.QueryEngineLibrary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          queryEngineRows: [['Query Engine (Node-API)', enginesInfo] as const],
-          queryEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .with('binary', async () => {
-        const name = BinaryType.QueryEngineBinary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          queryEngineRows: [['Query Engine (Binary)', enginesInfo] as const],
-          queryEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .exhaustive()
-
-    const binaryTarget = await getBinaryTargetForCurrentPlatform()
+    const schemaEngineRows = [['Schema Engine', enginesInfo] as const]
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
@@ -146,12 +81,11 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Computed binaryTarget', binaryTarget],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
       ['TypeScript', typescriptVersion],
-      ...queryEngineRows,
+      ['Query Compiler', 'enabled'],
       ['PSL', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
       ...schemaEngineRows,
 
@@ -164,11 +98,9 @@ export class Version implements Command {
      * and let Node.js exit naturally, but with error code 1.
      */
 
-    const enginesMetaInfoErrors = [...queryEngineRetrievalErrors, ...schemaEngineRetrievalErrors]
-
-    if (enginesMetaInfoErrors.length > 0) {
+    if (schemaEngineRetrievalErrors.length > 0) {
       process.exitCode = 1
-      enginesMetaInfoErrors.forEach((e) => console.error(e))
+      schemaEngineRetrievalErrors.forEach((e) => console.error(e))
     }
 
     const featureFlags = await this.getFeatureFlags(config.schema)
@@ -191,13 +123,5 @@ export class Version implements Command {
       // console.error(e)
     }
     return []
-  }
-
-  public help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
-    }
-
-    return Version.help
   }
 }

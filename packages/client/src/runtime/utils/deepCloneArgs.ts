@@ -1,11 +1,9 @@
+import { Decimal, ObjectEnumValue, Sql } from '@prisma/client-runtime-utils'
 import { assertNever } from '@prisma/internals'
-import Decimal from 'decimal.js'
-import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
 import { isTypedSql, TypedSql, UnknownTypedSql } from '../core/types/exported'
 import { JsArgs, JsInputValue } from '../core/types/exported/JsApi'
-import { ObjectEnumValue } from '../core/types/exported/ObjectEnums'
 import { RawQueryArgs } from '../core/types/exported/RawQueryArgs'
 import { isDate } from './date'
 import { isDecimalJsLike } from './decimalJsLike'

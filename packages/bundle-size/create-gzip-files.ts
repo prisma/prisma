@@ -55,7 +55,7 @@ void (async () => {
     await $`pnpm wrangler deploy ${projectDir}/index.js \
       --dry-run \
       --outdir=${projectDir}/output \
-      --compatibility-date 2024-09-23 \
+      --compatibility-date 2025-10-23 \
       --compatibility-flags "${compatFlags}" \
       --name ${project} \
       --tsconfig ${__dirname}/tsconfig.json`

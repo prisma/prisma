@@ -177,7 +177,13 @@ testMatrix.setupTestSuite(
         const ids = generatedIds(EXCESS_BIND_VALUES)
 
         if (usingRelationJoins) {
-          await expect(selectWith2InFilters(ids)).rejects.toThrow(RELATION_JOINS_NO_CHUNKING_ERROR_MSG)
+          if (driverAdapter === 'js_pg' || driverAdapter === 'js_pg_cockroachdb') {
+            await expect(selectWith2InFilters(ids)).rejects.toThrow(
+              'The query parameter limit supported by your database is exceeded',
+            )
+          } else {
+            await expect(selectWith2InFilters(ids)).rejects.toThrow(RELATION_JOINS_NO_CHUNKING_ERROR_MSG)
+          }
         } else {
           await expect(selectWith2InFilters(ids)).rejects.toThrow()
         }

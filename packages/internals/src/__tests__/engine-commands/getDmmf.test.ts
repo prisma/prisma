@@ -115,7 +115,6 @@ describe('getDMMF', () => {
       const datamodel = `
         datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
         model User {
           id        Int      @default(autoincrement())
@@ -130,18 +129,18 @@ describe('getDMMF', () => {
           "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
-            -->  schema.prisma:7
+            -->  schema.prisma:6
              | 
-           6 |         model User {
-           7 |           id        Int      @default(autoincrement())
-           8 |           email     String   @unique
+           5 |         model User {
+           6 |           id        Int      @default(autoincrement())
+           7 |           email     String   @unique
              | 
           error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
-            -->  schema.prisma:7
+            -->  schema.prisma:6
              | 
-           6 |         model User {
-           7 |           id        Int      @default(autoincrement())
-           8 |           email     String   @unique
+           5 |         model User {
+           6 |           id        Int      @default(autoincrement())
+           7 |           email     String   @unique
              | 
 
           Validation Error Count: 2
@@ -157,7 +156,6 @@ describe('getDMMF', () => {
       const datamodel = `
         datasource db {
           provider = "mysql"
-          url      = env("MY_MYSQL_DB")
         }
         model User {
           id        Int      @default(autoincrement())
@@ -172,11 +170,11 @@ describe('getDMMF', () => {
           "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
-            -->  schema.prisma:7
+            -->  schema.prisma:6
              | 
-           6 |         model User {
-           7 |           id        Int      @default(autoincrement())
-           8 |           email     String   @unique
+           5 |         model User {
+           6 |           id        Int      @default(autoincrement())
+           7 |           email     String   @unique
              | 
 
           Validation Error Count: 1
@@ -195,7 +193,6 @@ describe('getDMMF', () => {
       
       datasource my_db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
       
       model User {
@@ -232,50 +229,50 @@ describe('getDMMF', () => {
           "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Field "id" is already defined on model "User".
-            -->  schema.prisma:12
+            -->  schema.prisma:11
              | 
+          10 |         id           String     @id @default(cuid())
           11 |         id           String     @id @default(cuid())
-          12 |         id           String     @id @default(cuid())
              | 
           error: Field "permissions" is already defined on model "User".
-            -->  schema.prisma:17
-             | 
-          16 |         permissions  Permission @default()
-          17 |         permissions  Permission @default("")
-             | 
-          error: Field "posts" is already defined on model "User".
-            -->  schema.prisma:19
-             | 
-          18 |         posts        Post[]
-          19 |         posts        Post[]
-             | 
-          error: Error validating model "User": At most one field must be marked as the id field with the \`@id\` attribute.
-            -->  schema.prisma:10
-             | 
-           9 |       
-          10 |       model User {
-          11 |         id           String     @id @default(cuid())
-          12 |         id           String     @id @default(cuid())
-          13 |         name         String
-          14 |         email        String     @unique
-          15 |         status       String     @default("")
-          16 |         permissions  Permission @default()
-          17 |         permissions  Permission @default("")
-          18 |         posts        Post[]
-          19 |         posts        Post[]
-          20 |       }
-             | 
-          error: Argument "value" is missing.
             -->  schema.prisma:16
              | 
-          15 |         status       String     @default("")
-          16 |         permissions  Permission @default()
+          15 |         permissions  Permission @default()
+          16 |         permissions  Permission @default("")
+             | 
+          error: Field "posts" is already defined on model "User".
+            -->  schema.prisma:18
+             | 
+          17 |         posts        Post[]
+          18 |         posts        Post[]
+             | 
+          error: Error validating model "User": At most one field must be marked as the id field with the \`@id\` attribute.
+            -->  schema.prisma:9
+             | 
+           8 |       
+           9 |       model User {
+          10 |         id           String     @id @default(cuid())
+          11 |         id           String     @id @default(cuid())
+          12 |         name         String
+          13 |         email        String     @unique
+          14 |         status       String     @default("")
+          15 |         permissions  Permission @default()
+          16 |         permissions  Permission @default("")
+          17 |         posts        Post[]
+          18 |         posts        Post[]
+          19 |       }
+             | 
+          error: Argument "value" is missing.
+            -->  schema.prisma:15
+             | 
+          14 |         status       String     @default("")
+          15 |         permissions  Permission @default()
              | 
           error: Error parsing attribute "@default": Expected an enum value, but found \`""\`.
-            -->  schema.prisma:17
+            -->  schema.prisma:16
              | 
-          16 |         permissions  Permission @default()
-          17 |         permissions  Permission @default("")
+          15 |         permissions  Permission @default()
+          16 |         permissions  Permission @default("")
              | 
 
           Validation Error Count: 6
@@ -298,7 +295,6 @@ describe('getDMMF', () => {
         
         datasource my_db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
       `
 
@@ -331,7 +327,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
         model A {
           id Int @id
@@ -349,7 +344,6 @@ describe('getDMMF', () => {
           'ds.prisma',
           `datasource db {
             provider = "sqlite"
-            url      = "file:dev.db"
           }`,
         ],
         [
@@ -376,7 +370,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgresql"
-          url      = env("MY_POSTGRESQL_DB")
         }
         model A {
           id Int @id
@@ -393,7 +386,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "mysql"
-          url      = env("MY_MYSQL_DB")
         }
         model A {
           id Int @id
@@ -410,7 +402,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "sqlserver"
-          url      = env("MY_SQLSERVER_DB")
         }
         model A {
           id Int @id
@@ -427,7 +418,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "mongodb"
-          url      = "MY_MONGODB_DB"
         }
         model A {
           id Int @id @map("_id")
@@ -444,7 +434,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgresql"
-          url      = env("MY_POSTGRESQL_DB")
         }
         model User {
           id        Int      @default(autoincrement())
@@ -461,7 +450,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgres"
-          url      = env("MY_POSTGRES_DB")
         }
   
         // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
@@ -509,7 +497,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgres"
-          url      = env("MY_POSTGRES_DB")
         }
         generator client {
           provider = "prisma-client-js"

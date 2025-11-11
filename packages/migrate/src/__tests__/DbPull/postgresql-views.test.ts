@@ -48,9 +48,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
     beforeEach(async () => {
       await setupPostgres(setupParams)
-
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+      ctx.setDatasource({ url: connectionString })
     })
 
     afterEach(async () => {
@@ -69,9 +67,12 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -91,9 +92,11 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -115,12 +118,20 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         // Empty dir should be deleted along the views dir
         await ctx.fs.dirAsync('views/empty-dir')
 
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -135,19 +146,27 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(undefined)
         // The views folder is deleted
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'prisma.config.ts', 'schema.prisma', 'setup.sql'])
       })
 
       it('`views` is [] and a non-empty existing views folder is kept', async () => {
         ctx.fixture(path.join(fixturePath))
 
         ctx.fs.write('views/README.md', 'Some readme markdown')
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -161,7 +180,13 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(['README.md'])
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
       })
     })
   })

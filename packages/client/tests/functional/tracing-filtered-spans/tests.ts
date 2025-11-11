@@ -51,7 +51,7 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ clientRuntime, engineType }) => {
+  ({ engineType }) => {
     beforeAll(() => {
       inMemorySpanExporter.reset()
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
@@ -63,25 +63,9 @@ testMatrix.setupTestSuite(
 
       const spans = inMemorySpanExporter.getFinishedSpans()
 
-      const expectedSpans = [
-        'prisma:client:detect_platform',
-        'prisma:client:load_engine',
-        // 'prisma:engine:connection',                  <-- Filtered out individually
-        'prisma:engine:connect',
-        'prisma:client:connect',
-        'prisma:client:serialize',
-        // 'prisma:engine:compile',                     <-- Filtered out individually
-        // 'prisma:engine:connection',                  <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:db_query',                    <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:serialize',                   <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:response_json_serialization', <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:query',                       <-- Child span of filtered out parent span 'prisma:client:operation'
-        // 'prisma:client:operation',                   <-- Filtered out parent span (by regex)
-      ]
+      const expectedSpans = ['prisma:client:connect', 'prisma:client:serialize']
 
-      if (clientRuntime === 'wasm-engine-edge') {
-        expectedSpans.shift() // With wasm we do not perform platform detection
-      } else if (engineType === 'client') {
+      if (engineType === 'client') {
         expectedSpans.splice(0, 3) // Client engine performs no binary engine related spans
       }
 
@@ -90,9 +74,5 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
-    skipDataProxy: {
-      runtimes: ['edge', 'node', 'wasm-engine-edge', 'wasm-compiler-edge', 'client'],
-      reason: 'Data proxy creates different traces',
-    },
   },
 )
