@@ -332,6 +332,25 @@ importers:
         specifier: 7.4.0
         version: 7.4.0
 
+  packages/adapter-ppg:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      '@prisma/ppg':
+        specifier: ^1.0.1
+        version: 1.0.1
+      pg-types:
+        specifier: 4.0.2
+        version: 4.0.2
+      postgres-array:
+        specifier: 3.0.4
+        version: 3.0.4
+    devDependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
+
   packages/bundle-size:
     dependencies:
       '@libsql/client':
@@ -3217,6 +3236,9 @@ packages:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
+
+  '@prisma/ppg@1.0.1':
+    resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
 
   '@prisma/prisma-schema-wasm@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab':
     resolution: {integrity: sha512-TfVGG5U4GHCAW+lnNXvYfjgAaoeTVu+JTRHvMwGa60P9y2nkLtJMVXWBoB7ZhxqAoIkUWdDbX758Zl8ZJ+47jQ==}
@@ -7924,6 +7946,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xdg-app-paths@8.3.0:
     resolution: {integrity: sha512-mgxlWVZw0TNWHoGmXq+NC3uhCIc55dDpAlDkMQUaIAcQzysb0kxctwv//fvuW61/nAAeUBJMQ8mnZjMmuYwOcQ==}
     engines: {node: '>= 4.0'}
@@ -9239,7 +9273,7 @@ snapshots:
   '@libsql/isomorphic-ws@0.1.5':
     dependencies:
       '@types/ws': 8.5.6
-      ws: 8.18.0
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -9524,6 +9558,13 @@ snapshots:
   '@prisma/engines-version@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab': {}
 
   '@prisma/mini-proxy@0.9.5': {}
+
+  '@prisma/ppg@1.0.1':
+    dependencies:
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@prisma/prisma-schema-wasm@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab': {}
 
@@ -14878,6 +14919,8 @@ snapshots:
       signal-exit: 3.0.7
 
   ws@8.18.0: {}
+
+  ws@8.18.3: {}
 
   xdg-app-paths@8.3.0:
     dependencies:
