@@ -8,7 +8,8 @@
     "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
     "start": "npm run generate && npm run test",
     "test": "ts-node index.ts",
-    "debug": "node -r ts-node/register --enable-source-maps index.ts"
+    "debug": "node -r ts-node/register --enable-source-maps index.ts",
+    "dev": "pnpm prisma db push && pnpm ts-node index.ts"
   },
   "keywords": [],
   "author": "",

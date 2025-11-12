@@ -1,11 +1,8 @@
-export default {
-  earlyAccess: true,
-  schema: './prisma/schema.prisma',
-  migrate: {
-    adapter: async () => {
-      return Promise.resolve({
-        adapterName: '@prisma/adapter-mock-sqlite',
-      })
-    }
-  }
-}
+import { defineConfig } from '@prisma/config'
+
+export default defineConfig({
+  engine: 'classic',
+  datasource: {
+    url: 'file:dev.db',
+  },
+})
