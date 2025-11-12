@@ -117,7 +117,6 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
       // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
       await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
 
