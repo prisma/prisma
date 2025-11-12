@@ -41,10 +41,14 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-   -h, --help   Display this help message
-     --config   Custom path to your Prisma config file
-     --schema   Custom path to your Prisma schema
-  -f, --force   Skip the confirmation prompt
+  -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
+    --schema   Custom path to your Prisma schema
+
+${bold('Flags')}
+
+  -f, --force           Skip the confirmation prompt
+  --preview-feature     Opt-in to the preview feature
 
 ${bold('Examples')}
 

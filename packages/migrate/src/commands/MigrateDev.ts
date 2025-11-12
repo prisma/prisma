@@ -50,10 +50,13 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-       -h, --help   Display this help message
-         --config   Custom path to your Prisma config file
-         --schema   Custom path to your Prisma schema
-       -n, --name   Name the migration
+  -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
+    --schema   Custom path to your Prisma schema
+  -n, --name   Name the migration
+
+${bold('Flags')}
+
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
