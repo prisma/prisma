@@ -438,8 +438,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   await writeFileMap(outputDir, fileMap)
 
-  // if users use a custom output dir
-  if (copyRuntime || generator.isCustomOutput === true) {
+  // if users use a custom output dir and don't want to use external runtime
+  const useExternalRuntime = generator.config.useExternalRuntime === 'true'
+  if ((copyRuntime || generator.isCustomOutput === true) && !useExternalRuntime) {
     const copiedRuntimeDir = path.join(outputDir, 'runtime')
     await ensureDir(copiedRuntimeDir)
 
@@ -635,7 +636,11 @@ async function getGenerationDirs({
 }: GenerateClientOptions) {
   const isCustomOutput = generator.isCustomOutput === true
   const normalizedOutputDir = path.normalize(outputDir)
-  let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
+
+  // Check if user explicitly wants to use external runtime (for Lambda/monorepo scenarios)
+  const useExternalRuntime = generator.config.useExternalRuntime === 'true'
+
+  let userRuntimeImport = isCustomOutput && !useExternalRuntime ? './runtime' : '@prisma/client/runtime'
   let userOutputDir = isCustomOutput ? normalizedOutputDir : await getDefaultOutdir(normalizedOutputDir)
 
   if (testMode && runtimeBase) {
