@@ -59,7 +59,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -118,10 +118,11 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       }
 
       // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
+      await ensureCanConnectToDatabase(configDir, validatedConfig)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,
+        configDir,
         migrationsDirPath,
         schemaContext,
         extensions: config['extensions'],
@@ -146,10 +147,11 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
+      await ensureCanConnectToDatabase(configDir, validatedConfig)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,
+        configDir,
         migrationsDirPath,
         schemaContext,
         extensions: config['extensions'],

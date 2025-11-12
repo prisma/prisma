@@ -39,7 +39,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([], await ctx.config())
+        await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchSnapshot()
       }
@@ -48,7 +48,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([], await ctx.config())
+        await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
           "P1013
@@ -64,7 +64,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
+        await DbExecute.new().parse(['--file=./script.sql'], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
           "P1013
@@ -78,7 +78,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([], await ctx.config())
+        await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"P1013: The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."`,
@@ -89,7 +89,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([], await ctx.config())
+        await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"P1013: The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."`,
@@ -117,7 +117,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([], await ctx.config())
+        await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
@@ -128,7 +128,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([], await ctx.config())
+        await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
@@ -142,7 +142,7 @@ describe('[wasm] incomplete-schemas', () => {
 
       try {
         const config = await ctx.config()
-        await DbExecute.new().parse(['--file=./script.sql'], config)
+        await DbExecute.new().parse(['--file=./script.sql'], config, ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
@@ -153,7 +153,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([], await ctx.config())
+        await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
@@ -164,7 +164,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([], await ctx.config())
+        await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
@@ -218,7 +218,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([], await ctx.config())
+        await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"The datasource property is required in your Prisma config file when using prisma db push."`,
@@ -229,7 +229,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([], await ctx.config())
+        await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"The datasource property is required in your Prisma config file when using prisma db pull."`,
@@ -242,8 +242,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        const config = await ctx.config()
-        await DbExecute.new().parse(['--file=./script.sql'], config)
+        await DbExecute.new().parse(['--file=./script.sql'], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"The datasource property is required in your Prisma config file when using prisma db execute."`,
@@ -254,7 +253,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([], await ctx.config())
+        await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"The datasource property is required in your Prisma config file when using prisma migrate reset."`,
@@ -265,7 +264,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([], await ctx.config())
+        await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"The datasource property is required in your Prisma config file when using prisma migrate dev."`,
@@ -284,7 +283,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([], await ctx.config())
+        await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
       }
@@ -293,7 +292,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([], await ctx.config())
+        await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
           "There is no datasource in the schema.
@@ -305,13 +304,15 @@ describe('[normalized library/binary] incomplete-schemas', () => {
 
     it('db execute', async () => {
       fs.writeFileSync('script.sql', dbExecuteSQLScript)
-      await expect(DbExecute.new().parse(['--file=./script.sql'], await ctx.config())).resolves.not.toThrow()
+      await expect(
+        DbExecute.new().parse(['--file=./script.sql'], await ctx.config(), ctx.configDir()),
+      ).resolves.not.toThrow()
     })
 
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([], await ctx.config())
+        await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
       }
@@ -320,7 +321,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([], await ctx.config())
+        await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
       }

@@ -7,6 +7,7 @@ type ConfigContext = {
   configWithDatasource: () => Promise<PrismaConfigWithDatasource>
   datasource: () => Promise<Datasource | undefined>
   configFileName: () => string
+  configDir: () => string
 
   setDatasource: (ds: Datasource) => void
   resetDatasource: () => void
@@ -63,6 +64,10 @@ export const configContextContributor =
 
       ctx.resetConfigFile = () => {
         overrideConfigFile = undefined
+      }
+
+      ctx.configDir = () => {
+        return ctx.fs.path(ctx.configFileName(), '..')
       }
     })
 

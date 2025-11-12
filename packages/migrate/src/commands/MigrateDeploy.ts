@@ -52,7 +52,7 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -93,6 +93,7 @@ ${bold('Examples')}
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      configDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
@@ -102,7 +103,7 @@ ${bold('Examples')}
     try {
       // Automatically create the database if it doesn't exist
       const successMessage = await ensureDatabaseExists(
-        schemaContext.primaryDatasourceDirectory,
+        configDir,
         getSchemaDatasourceProvider(schemaContext),
         validatedConfig,
       )

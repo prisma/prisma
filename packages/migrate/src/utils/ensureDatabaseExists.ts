@@ -28,7 +28,6 @@ export type DatasourceInfo = {
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
   schemas?: string[] // database schemas from the datasource (multiSchema feature)
-  configDir?: string
 }
 
 export function parseDatasourceInfo(
@@ -46,7 +45,6 @@ export function parseDatasourceInfo(
       url,
       schema: undefined,
       schemas: undefined,
-      configDir: undefined,
     }
   }
 
@@ -62,7 +60,6 @@ export function parseDatasourceInfo(
       url,
       schema: undefined,
       schemas: datasource.schemas,
-      configDir: path.dirname(datasource.sourceFilePath),
     }
   }
 
@@ -106,7 +103,6 @@ export function parseDatasourceInfo(
       url,
       schema: undefined,
       schemas: datasource.schemas,
-      configDir: path.dirname(datasource.sourceFilePath),
     }
   }
 }

@@ -13,7 +13,7 @@ describe('introspection panic', () => {
 
     const introspect = new DbPull()
     try {
-      await introspect.parse(['--print'], await ctx.config())
+      await introspect.parse(['--print'], await ctx.config(), ctx.configDir())
     } catch (e) {
       expect(e.message).toContain('This is the debugPanic artificial panic')
     }
