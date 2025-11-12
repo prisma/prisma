@@ -136,12 +136,19 @@ export class Model {
       if (!fieldOutput) {
         continue
       }
+      const argsBuilder = new ArgsTypeBuilder(fieldOutput, this.context)
+        .addSelectArg()
+        .addOmitArg()
+        .addIncludeArgIfHasRelations()
+        .addSchemaArgs(field.args)
+
+      // Add whereUnique if the related model has compound unique constraints
+      if (field.outputType.isList && this.canUseWhereUnique(field, fieldOutput.name)) {
+        argsBuilder.addWhereUniqueArg(fieldOutput.name)
+      }
+
       argsTypes.push(
-        new ArgsTypeBuilder(fieldOutput, this.context)
-          .addSelectArg()
-          .addOmitArg()
-          .addIncludeArgIfHasRelations()
-          .addSchemaArgs(field.args)
+        argsBuilder
           .setGeneratedName(getModelFieldArgsName(field, this.model.name))
           .setComment(`${this.model.name}.${field.name}`)
           .createExport(),
@@ -157,6 +164,39 @@ export class Model {
     )
 
     return argsTypes
+  }
+
+  /**
+   * Checks if a relation field can use whereUnique.
+   * This is true if the related model has compound unique constraints
+   * that include the relation fields. The remaining fields can be provided
+   * in whereUnique to uniquely identify a related record.
+   */
+  private canUseWhereUnique(field: DMMF.SchemaField, relatedModelName: string): boolean {
+    const relatedModel = this.dmmf.typeAndModelMap[relatedModelName]
+    if (!relatedModel) {
+      return false
+    }
+
+    // Check if the related model has compound unique constraints
+    const compoundUniqueConstraints = relatedModel.uniqueFields.filter((fields) => fields.length > 1)
+    if (compoundUniqueConstraints.length === 0) {
+      return false
+    }
+
+    // Find the relation field in the parent model that connects to this field
+    const parentModelField = this.model.fields.find((f) => f.name === field.name)
+    if (!parentModelField || !parentModelField.relationFromFields || !parentModelField.relationToFields) {
+      return false
+    }
+
+    // Check if any compound unique constraint includes all the relationToFields
+    // This means the constraint can be satisfied by providing the remaining fields in whereUnique
+    return compoundUniqueConstraints.some((uniqueFields) => {
+      // All relationToFields must be in the unique constraint
+      const relationToFields = parentModelField.relationToFields || []
+      return relationToFields.every((fieldName) => uniqueFields.includes(fieldName))
+    })
   }
 
   private rootFieldNameForAction(action: DMMF.ModelAction) {
