@@ -6,7 +6,7 @@ const basePath = process.cwd()
 
 export default defineConfig({
   datasource: {
-    url: `file:${path.join(basePath, 'prisma', 'dev.db')}`,
+    url: 'file:prisma/dev.db',
   },
   schema: path.join(basePath, 'prisma', 'schema'),
 })

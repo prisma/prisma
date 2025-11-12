@@ -4,9 +4,8 @@ import { isError } from '@prisma/internals'
 import { $ as platform } from './$'
 
 describe('--early-access flag', () => {
-  it('should not work without it', () => {
-    // eslint-disable-next-line
-    expect(platform.new({}).parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
+  it('should not work without it', async () => {
+    await expect(platform.new({}).parse([], defaultTestConfig(), process.cwd())).rejects.toMatchInlineSnapshot(`
       "This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
       Please provide the --early-access flag to use this command."
     `)
@@ -15,7 +14,7 @@ describe('--early-access flag', () => {
   it('should output help if no subcommand or parameter is passed', async () => {
     const commandInstance = platform.new({})
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
-    const result = await commandInstance.parse(['--early-access'], defaultTestConfig())
+    const result = await commandInstance.parse(['--early-access'], defaultTestConfig(), process.cwd())
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()
     expect(spy).toHaveBeenCalledTimes(1)
@@ -25,7 +24,7 @@ describe('--early-access flag', () => {
   it('should output help if -h is passed', async () => {
     const commandInstance = platform.new({})
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
-    const result = await commandInstance.parse(['--early-access', '-h'], defaultTestConfig())
+    const result = await commandInstance.parse(['--early-access', '-h'], defaultTestConfig(), process.cwd())
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()
     expect(spy).toHaveBeenCalledTimes(1)
@@ -34,7 +33,7 @@ describe('--early-access flag', () => {
 
   it('should output the help', async () => {
     const commandInstance = platform.new({})
-    const result = await commandInstance.parse(['--early-access'], defaultTestConfig())
+    const result = await commandInstance.parse(['--early-access'], defaultTestConfig(), process.cwd())
     expect(result).toMatchInlineSnapshot(`
       "
       Usage

@@ -6,6 +6,7 @@ import { loadConfig } from '../../utils/loadConfig'
 
 type ConfigContext = {
   config: () => Promise<PrismaConfigInternal>
+  configDir: () => string
 }
 
 /**
@@ -43,6 +44,8 @@ export const configContextContributor =
 
         return config
       }
+
+      ctx.configDir = () => ctx.fs.cwd()
     })
 
     return ctx

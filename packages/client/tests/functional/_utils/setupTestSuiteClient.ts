@@ -92,7 +92,7 @@ export async function setupTestSuiteClient({
     const schemaContextIntrospect = await processSchemaResult({
       schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
     })
-    typedSql = await introspectSql(validatedConfig, schemaContextIntrospect)
+    typedSql = await introspectSql(validatedConfig, path.dirname(schemaPath), schemaContextIntrospect)
   }
 
   if (datasourceInfo.accelerateUrl !== undefined) {

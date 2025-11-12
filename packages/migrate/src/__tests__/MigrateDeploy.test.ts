@@ -12,7 +12,7 @@ describe('prisma.config.ts', () => {
   it('should require a datasource in the config', async () => {
     ctx.fixture('no-config')
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"The datasource property is required in your Prisma config file when using prisma migrate deploy."`,
     )
@@ -22,7 +22,7 @@ describe('prisma.config.ts', () => {
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -44,7 +44,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     ctx.fixture('schema-only-sqlite')
     ctx.setConfigFile('empty.config.ts')
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -64,7 +64,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     ctx.fixture('existing-db-1-migration')
     fs.remove('dev.db')
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -76,7 +76,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse([], await ctx.config())
+    const resultBis = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -104,7 +104,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
     ctx.setConfigFile('folder.config.ts')
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -116,7 +116,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse([], await ctx.config())
+    const resultBis = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -141,7 +141,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should throw if database is not empty', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P3005
 
@@ -189,7 +189,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       url: 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY',
     })
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
@@ -206,7 +206,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       url: connectionString,
     })
 
-    const result = MigrateDeploy.new().parse([], await ctx.config())
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
     expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
