@@ -15,12 +15,23 @@ void executeSteps({
       const wranglerProcess = $`pnpm wrangler dev --ip 127.0.0.1 --port 8787 src/index.ts`.nothrow()
 
       try {
-        // wait for the server to be fully ready
-        for await (const line of wranglerProcess.stdout) {
-          if (line.includes('Ready')) break
-        }
+        // wait for the server to be fully ready - check both stdout and stderr
+        const outputPromise = (async () => {
+          for await (const line of wranglerProcess.stdout) {
+            if (line.includes('Ready')) return
+          }
+        })()
 
-        await timers.setTimeout(100)
+        const errorPromise = (async () => {
+          for await (const line of wranglerProcess.stderr) {
+            if (line.includes('Ready')) return
+          }
+        })()
+
+        await Promise.race([outputPromise, errorPromise])
+
+        // Increased delay to ensure wrangler is fully stable
+        await timers.setTimeout(1000)
 
         return await $`curl http://localhost:8787/ -s`
       } finally {
