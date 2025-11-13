@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import path from 'node:path'
 
-import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
 import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import type { ParseError } from 'effect/ParseResult'
 import { PrismaConfigInternal } from 'src/PrismaConfig'
@@ -42,9 +41,12 @@ describe('loadConfigFromFile', () => {
       assertConfigDefined(config)
       expect(config).toMatchObject({
         experimental: {
-          studio: true,
+          externalTables: true,
         },
         schema: path.join(cwd, 'schema.prisma'),
+        tables: {
+          external: ['table1', 'specific_schema.table2'],
+        },
       })
     })
 
@@ -348,9 +350,11 @@ describe('loadConfigFromFile', () => {
         expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
-        expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-          `"Expected { readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: initShadowDb | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
-        )
+        expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
+          "{ readonly experimental?: { readonly externalTables?: boolean | undefined; readonly extensions?: boolean | undefined } | undefined; readonly datasource?: { readonly url: string; readonly shadowDatabaseUrl?: string | undefined } | undefined; readonly schema?: string | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: string | undefined; readonly seed?: NonEmptyString | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly enums?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly extensions?: any | undefined; readonly loadedFromFile: string | null }
+          └─ ["__esModule"]
+             └─ is unexpected, expected: "experimental" | "datasource" | "schema" | "migrations" | "tables" | "enums" | "views" | "typedSql" | "extensions" | "loadedFromFile""
+        `)
       })
 
       it(`fails with \`ConfigFileSyntaxError\` when the default export in the Prisma config file does
@@ -362,9 +366,9 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-          "{ readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: initShadowDb | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }
+          "{ readonly experimental?: { readonly externalTables?: boolean | undefined; readonly extensions?: boolean | undefined } | undefined; readonly datasource?: { readonly url: string; readonly shadowDatabaseUrl?: string | undefined } | undefined; readonly schema?: string | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: string | undefined; readonly seed?: NonEmptyString | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly enums?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly extensions?: any | undefined; readonly loadedFromFile: string | null }
           └─ ["thisShouldFail"]
-            └─ is unexpected, expected: "schema" | "studio" | "migrations" | "tables" | "views" | "typedSql" | "adapter" | "loadedFromFile""
+             └─ is unexpected, expected: "experimental" | "datasource" | "schema" | "migrations" | "tables" | "enums" | "views" | "typedSql" | "extensions" | "loadedFromFile""
         `)
       })
     })
@@ -663,66 +667,36 @@ describe('loadConfigFromFile', () => {
 
   it('typescript-cjs-ext-ts', async () => {
     ctx.fixture('loadConfigFromFile/typescript-cjs-ext-ts')
-    const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
 
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
       experimental: {
-        studio: true,
+        externalTables: true,
       },
-      studio: {
-        adapter: expect.any(Function),
+      tables: {
+        external: ['table1', 'specific_schema.table2'],
       },
       loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
-
-    if (!config?.studio) {
-      throw new Error('Expected config.studio to be defined')
-    }
-
-    const { adapter: adapterFactory } = config.studio
-    expect(adapterFactory).toBeDefined()
-
-    // @ts-ignore
-    const adapter = await adapterFactory(process.env)
-    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(expectedAdapter))
-
-    expect(adapter).toBeDefined()
-    expect(adapter.provider).toEqual('postgres')
   })
 
   it('typescript-esm-ext-ts', async () => {
     ctx.fixture('loadConfigFromFile/typescript-esm-ext-ts')
-    const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
 
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
       experimental: {
-        studio: true,
+        externalTables: true,
       },
-      studio: {
-        adapter: expect.any(Function),
+      tables: {
+        external: ['table1', 'specific_schema.table2'],
       },
       loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
-
-    if (!config?.studio) {
-      throw new Error('Expected config.studio to be defined')
-    }
-
-    const { adapter: adapterFactory } = config.studio
-    expect(adapterFactory).toBeDefined()
-
-    // @ts-ignore
-    const adapter = await adapterFactory(process.env)
-    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(expectedAdapter))
-
-    expect(adapter).toBeDefined()
-    expect(adapter.provider).toEqual('postgres')
   })
 
   describe('environment variables', () => {
