@@ -19,6 +19,8 @@ database.exec(
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE
-  )`
+  );
+  insert into User (name, email) values ('Alice', 'alice@example.com');
+  `
 )
 database.close()

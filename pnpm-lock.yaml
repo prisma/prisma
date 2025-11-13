@@ -402,8 +402,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/studio-core-licensed':
-        specifier: 0.0.0-dev.202511120235
-        version: 0.0.0-dev.202511120235
+        specifier: 0.0.0-dev.202511132256
+        version: 0.0.0-dev.202511132256
       postgres:
         specifier: 3.4.7
         version: 3.4.7
@@ -3420,8 +3420,8 @@ packages:
   '@prisma/schema-engine-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95':
     resolution: {integrity: sha512-FC7XGmH3RV5Vumg1a7OAMSM+1KFWp4LkNJ0Kb6S2Mir+RLWFkE1s3tL2ROJZXvumM8Voy5d/kpzOBwkh2AIRvA==}
 
-  '@prisma/studio-core-licensed@0.0.0-dev.202511120235':
-    resolution: {integrity: sha512-AgqJ0gjG8o6jJR7SVCLI3R6yMutdOf/QQNwCcv1iytrSNDsaCtMbr73K5R1JDqCrJuHSj9T2vXS/hjORP2Mkuw==}
+  '@prisma/studio-core-licensed@0.0.0-dev.202511132256':
+    resolution: {integrity: sha512-gpXqpl6RInpC7qy4pELx9UHOLzW1r6toQFRDI2OHTcWBOWL4mUHstr5JgROTi/yvCU2xXBOKAOiDOIosIOEFng==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -9707,7 +9707,7 @@ snapshots:
 
   '@prisma/schema-engine-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
 
-  '@prisma/studio-core-licensed@0.0.0-dev.202511120235': {}
+  '@prisma/studio-core-licensed@0.0.0-dev.202511132256': {}
 
   '@rollup/rollup-android-arm-eabi@4.52.5':
     optional: true

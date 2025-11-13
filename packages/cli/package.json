@@ -170,7 +170,7 @@
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/studio-core-licensed": "0.0.0-dev.202511120235",
+    "@prisma/studio-core-licensed": "0.0.0-dev.202511132256",
     "postgres": "3.4.7"
   },
   "peerDependencies": {
