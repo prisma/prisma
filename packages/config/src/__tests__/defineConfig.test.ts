@@ -1,3 +1,4 @@
+import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
 import { describe, expect, test } from 'vitest'
 
 import { defaultConfig } from '../defaultConfig'
@@ -38,13 +39,47 @@ describe('defineConfig', () => {
     test('if `experimental` features are provided, they should be configured', () => {
       const config = defineConfig({
         experimental: {
+          studio: true,
           externalTables: true,
         },
       })
       expect(config.experimental).toEqual({
+        studio: true,
         externalTables: true,
       })
       expect(typeof config.__brand).toEqual('symbol')
+    })
+  })
+
+  describe('studio', () => {
+    test('if no `studio` configuration is provided, it should not configure Prisma Studio', () => {
+      const config = defineConfig(baselineConfig)
+      expect(config.studio).toBeUndefined()
+    })
+
+    test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', async () => {
+      const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
+      const config = defineConfig({
+        experimental: {
+          studio: true,
+        },
+        studio: {
+          adapter: () => Promise.resolve(expectedAdapter),
+        },
+      })
+      expect(config.studio).toStrictEqual({
+        adapter: expect.any(Function),
+      })
+
+      if (!config?.studio) {
+        throw new Error('Expected config.studio to be defined')
+      }
+
+      const { adapter: adapterFactory } = config.studio
+      expect(adapterFactory).toBeDefined()
+
+      const adapter = await adapterFactory()
+      expect(JSON.stringify(adapter)).toEqual(JSON.stringify(expectedAdapter))
     })
   })
 
@@ -75,6 +110,16 @@ describe('defineConfig', () => {
   })
 
   describe('experimental validation', () => {
+    test('should throw error when studio is used without experimental.studio', () => {
+      expect(() =>
+        defineConfig({
+          studio: {
+            adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
+          },
+        }),
+      ).toThrow('The `studio` configuration requires `experimental.studio` to be set to `true`.')
+    })
+
     test('should throw error when tables.external is used without experimental.externalTables', () => {
       expect(() =>
         defineConfig({
