@@ -84,8 +84,6 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
 
         database = new DatabaseSync(resolvedPath)
       } catch (error) {
-        // TODO: better-sqlite3 fallback for Node.js < v22.5 users, until v20 is EOL.
-
         try {
           const { default: Database } = await import('better-sqlite3')
 
