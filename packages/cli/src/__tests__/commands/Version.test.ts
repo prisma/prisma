@@ -68,7 +68,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')
 
   // replace studio version
-  str = str.replace(packageJson.dependencies['@prisma/studio-core-licensed'], 'STUDIO_VERSION')
+  str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')
 
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
