@@ -116,6 +116,7 @@ jobs:
         id: extract-engine-commit-hash
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const hash = context.payload.inputs.version.split('.').pop()
             core.setOutput('hash', hash)
@@ -213,6 +214,7 @@ jobs:
         id: extract-patch-branch-name
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const parts = context.payload.inputs.version.split('.')
             const patchBranch = `${parts[0]}.${parts[1]}.x`
