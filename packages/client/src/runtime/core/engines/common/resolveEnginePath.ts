@@ -89,7 +89,8 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
 
   const searchLocations: string[] = [
     config.dirname, // generation directory
-    path.resolve(__dirname, '..'), // generation directory one level up
+    __dirname, // runtime directory
+    path.resolve(__dirname, '..'), // runtime directory one level up
     config.generator?.output?.value ?? __dirname, // custom generator local path
     path.resolve(__dirname, '../../../.prisma/client'), // dot prisma node_modules ???
     '/tmp/prisma-engines', // used for netlify
