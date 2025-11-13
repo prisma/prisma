@@ -12,6 +12,9 @@ import { BinaryType } from './BinaryType'
 const debug = Debug('prisma:fetch-engine:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
+  if (process.env.PRISMA_DOWNLOAD_CACHE_DIR) {
+    return process.env.PRISMA_DOWNLOAD_CACHE_DIR
+  }
   if (os.platform() === 'win32') {
     const cacheDir = findCacheDir({ name: 'prisma', create: true })
     if (cacheDir) {
