@@ -1,5 +1,5 @@
-import { Debug } from '@prisma/debug'
-import { Either, Schema as Shape } from 'effect'
+import { Debug, SqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
 import { defineConfig } from './defineConfig'
@@ -7,7 +7,29 @@ import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
+/**
+ * @deprecated This is still "used" by `studio`, but it will change signature before Prisma 7.
+ */
+const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
+  (input: any): input is () => Promise<SqlMigrationAwareDriverAdapterFactory> => {
+    return typeof input === 'function'
+  },
+  {
+    identifier: 'SqlMigrationAwareDriverAdapterFactory',
+    encode: identity,
+    decode: identity,
+  },
+)
+
+export type SqlMigrationAwareDriverAdapterFactoryShape =
+  | undefined
+  | (() => Promise<SqlMigrationAwareDriverAdapterFactory>)
+
 export type ExperimentalConfig = {
+  /**
+   * Enable experimental Prisma Studio features.
+   */
+  studio?: boolean
   /**
    * Enable experimental external tables support.
    */
@@ -33,6 +55,7 @@ export type SchemaEngineConfigInternal = {
 }
 
 const ExperimentalConfigShape = Shape.Struct({
+  studio: Shape.optional(Shape.Boolean),
   externalTables: Shape.optional(Shape.Boolean),
   extensions: Shape.optional(Shape.Boolean),
 })
@@ -166,6 +189,26 @@ if (false) {
   __testTypedSqlConfigShapeValueB satisfies (typeof TypedSqlConfigShape)['Type']
 }
 
+export type PrismaStudioConfigShape = {
+  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
+}
+
+const PrismaStudioConfigShape = Shape.Struct({
+  /**
+   * Instantiates the Prisma driver adapter to use for Prisma Studio.
+   */
+  adapter: SqlMigrationAwareDriverAdapterFactoryShape,
+})
+
+declare const __testPrismaStudioConfigShapeValueA: (typeof PrismaStudioConfigShape)['Type']
+declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape
+  __testPrismaStudioConfigShapeValueB satisfies (typeof PrismaStudioConfigShape)['Type']
+}
+
 // Ensure that the keys of the `PrismaConfig` type are the same as the keys of the `PrismaConfigInternal` type.
 // (Except for the internal only `loadedFromFile` property)
 // This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
@@ -183,6 +226,7 @@ const PrismaConfigShape = Shape.Struct({
   experimental: Shape.optional(ExperimentalConfigShape),
   datasource: Shape.optional(DatasourceShape),
   schema: Shape.optional(Shape.String),
+  studio: Shape.optional(PrismaStudioConfigShape),
   migrations: Shape.optional(MigrationsConfigShape),
   tables: Shape.optional(TablesConfigShape),
   enums: Shape.optional(EnumsConfigShape),
@@ -208,6 +252,10 @@ export type PrismaConfig = {
    * The path to the schema file, or path to a folder that shall be recursively searched for *.prisma files.
    */
   schema?: string
+  /**
+   * The configuration for Prisma Studio.
+   */
+  studio?: Simplify<PrismaStudioConfigShape>
   /**
    * Configuration for Prisma migrations.
    */
@@ -243,6 +291,11 @@ if (false) {
  */
 function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
   const experimental = config.experimental || {}
+
+  // Check studio configuration
+  if (config.studio && !experimental.studio) {
+    return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
+  }
 
   // Check external tables configuration
   if (config.tables?.external && !experimental.externalTables) {
