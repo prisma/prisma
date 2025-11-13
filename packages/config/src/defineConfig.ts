@@ -1,4 +1,4 @@
-import { Debug } from '@prisma/driver-adapter-utils'
+import { Debug } from '@prisma/debug'
 import { Either } from 'effect'
 import type { DeepMutable } from 'effect/Types'
 
@@ -10,11 +10,6 @@ import type { PrismaConfig, PrismaConfigInternal } from './PrismaConfig'
  */
 function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
   const experimental = config.experimental || {}
-
-  // Check studio configuration
-  if (config.studio && !experimental.studio) {
-    return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
-  }
 
   // Check external tables configuration
   if (config.tables?.external && !experimental.externalTables) {
@@ -64,7 +59,6 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   defineExperimentalConfig(config, configInput)
   defineSchemaConfig(config, configInput)
   defineDatasource(config, configInput)
-  defineStudioConfig(config, configInput)
   defineMigrationsConfig(config, configInput)
   defineTablesConfig(config, configInput)
   defineEnumsConfig(config, configInput)
@@ -161,26 +155,6 @@ function defineEnumsConfig(config: DeepMutable<PrismaConfigInternal>, configInpu
 
   config.enums = configInput.enums
   debug('[config.enums]: %o', config.enums)
-}
-
-/**
- * `configInput.studio` is forwarded to `config.studio` as is.
- */
-function defineStudioConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
-  if (!configInput.studio?.adapter) {
-    return
-  }
-
-  const { adapter: getAdapterFactory } = configInput.studio
-
-  config.studio = {
-    adapter: async () => {
-      const adapterFactory = await getAdapterFactory()
-      debug('[config.studio.adapter]: %o', adapterFactory.adapterName)
-      return adapterFactory
-    },
-  }
-  debug('[config.studio]: %o', config.studio)
 }
 
 function defineDatasource(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
