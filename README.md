@@ -72,7 +72,7 @@ datasource db {
 // Generator
 generator client {
   provider = "prisma-client"
-  output   = "./generated"
+  output   = "../generated"
 }
 
 // Data model
@@ -141,7 +141,7 @@ Ensure your Prisma schema includes a `generator` block with an `output` path spe
 ```prisma
 generator client {
   provider = "prisma-client"
-  output   = "./generated"
+  output   = "../generated"
 }
 
 datasource db {
@@ -171,7 +171,7 @@ export default defineConfig({
 });
 ```
 
-**Note**: Environment variables from `.env` files are not automatically loaded when using `prisma.config.ts`. You can use `dotenv` by importing `dotenv/config` at the top of your config file, or when using `tsx`, you can pass a `--env-file` flag to load environment variables. For Bun, `.env` files are automatically loaded.
+**Note**: Environment variables from `.env` files are not automatically loaded when using `prisma.config.ts`. You can use `dotenv` by importing `dotenv/config` at the top of your config file. For Bun, `.env` files are automatically loaded.
 
 Learn more about [Prisma Config](https://www.prisma.io/docs/orm/reference/prisma-config-reference) and all available configuration options.
 
@@ -207,14 +207,6 @@ import { PrismaClient } from './generated/client'
 const prisma = new PrismaClient()
 ```
 
-or
-
-```js
-const { PrismaClient } = require('./generated/client')
-
-const prisma = new PrismaClient()
-```
-
 **Note**: Depending on your database, you may need to use a [driver adapter](https://www.prisma.io/docs/orm/overview/databases/database-drivers#driver-adapters). For example, when using PostgreSQL with a driver adapter:
 
 ```ts
@@ -224,6 +216,8 @@ import { PrismaPg } from '@prisma/adapter-pg'
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
 ```
+
+To load environment variables, you can use `dotenv` by importing `dotenv/config`, use `tsx --env-file=.env`, `node --env-file=.env` (Node.js 20+), or Bun (which loads `.env` automatically).
 
 Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
 
