@@ -52,7 +52,8 @@ env:
   SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
   ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
   DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
-  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || 'false' }}
+  FORCE_INTEGRATION_RELEASE: ${{ github.event.inputs.forceIntegrationRelease || 'false' }}
+
   FAILURE_TITLE_TEMPLATE: >-
     ${{
       github.event.inputs.targetVersion &&
