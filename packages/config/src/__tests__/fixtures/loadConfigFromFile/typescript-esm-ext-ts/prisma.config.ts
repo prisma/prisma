@@ -1,11 +1,13 @@
-import type { PrismaConfig } from 'src/index'
+import { defineConfig } from 'src/index'
 
-export default {
+export default defineConfig({
   experimental: {
-    externalTables: true,
+    studio: true,
   },
-  schema: 'schema.prisma',
-  tables: {
-    external: ['table1', 'specific_schema.table2'],
+  studio: {
+    adapter: async () => {
+      const { mockMigrationAwareAdapterFactory } = await import('test-utils/mock-adapter')
+      return mockMigrationAwareAdapterFactory('postgres')
+    },
   },
-} satisfies PrismaConfig
+})
