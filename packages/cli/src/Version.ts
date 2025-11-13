@@ -90,7 +90,7 @@ export class Version implements Command {
       ...schemaEngineRows,
 
       ['Default Engines Hash', enginesVersion],
-      ['Studio', packageJson.dependencies['@prisma/studio-core-licensed']],
+      ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
     /**
