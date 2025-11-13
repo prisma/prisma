@@ -86,9 +86,15 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
       } catch (error) {
         // TODO: better-sqlite3 fallback for Node.js < v22.5 users, until v20 is EOL.
 
-        const { default: Database } = await import('better-sqlite3')
+        try {
+          const { default: Database } = await import('better-sqlite3')
 
-        database = new Database(resolvedPath)
+          database = new Database(resolvedPath)
+        } catch {
+          throw new Error(
+            `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}\n\nPlease use Node.js >=22.5 or ensure you have \`better-sqlite3\` installed.`,
+          )
+        }
       }
 
       process.once('SIGINT', () => database!.close())
