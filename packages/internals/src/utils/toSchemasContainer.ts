@@ -8,10 +8,13 @@ export function toSchemasContainer(schemas: MultipleSchemas): MigrateTypes.Schem
   }
 }
 
-export function toSchemasWithConfigDir(schemaContext: SchemaContext): MigrateTypes.SchemasWithConfigDir {
+export function toSchemasWithConfigDir(
+  schemaContext: SchemaContext,
+  configDir: string,
+): MigrateTypes.SchemasWithConfigDir {
   return {
     files: multipleSchemasToSchemaContainers(schemaContext.schemaFiles),
-    configDir: schemaContext.primaryDatasourceDirectory,
+    configDir,
   }
 }
 
