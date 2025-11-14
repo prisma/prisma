@@ -372,20 +372,12 @@ function runCommandRawDefinition(context: GenerateContext) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
-  if (runtimeNameTs === 'binary.js') {
-    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
-  } else {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
-  }
-}
-
 export class PrismaClientClass implements Generable {
   constructor(
     protected readonly context: GenerateContext,
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
-    protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
+    protected readonly runtimeName: TSClientOptions['runtimeName'],
     protected readonly browser?: boolean,
   ) {}
   private get jsDoc(): string {
@@ -432,7 +424,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
 
   /**
    * Connect with the database
@@ -612,7 +604,6 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     )
 
     if (
-      ['client.js', 'wasm-compiler-edge.js'].includes(this.runtimeNameTs) &&
       // We don't support a custom adapter with MongoDB for now.
       this.internalDatasources.some((d) => d.provider !== 'mongodb')
     ) {
