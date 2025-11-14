@@ -21,9 +21,9 @@
 
 // @ts-ignore
 
-import stream from 'stream'
-import { StringDecoder } from 'string_decoder'
-import util from 'util'
+import stream from 'node:stream'
+import { StringDecoder } from 'node:string_decoder'
+import util from 'node:util'
 
 // convenience API
 export default function byline(readStream, options?: any) {

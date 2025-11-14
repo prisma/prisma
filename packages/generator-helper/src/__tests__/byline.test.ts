@@ -1,4 +1,5 @@
-import { Readable } from 'stream'
+import { Readable } from 'node:stream'
+
 import { describe, expect, test } from 'vitest'
 
 import byline from '../byline'
