@@ -2,7 +2,6 @@ import { datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
 import { commonCodeTS } from '../common'
-import { Datasources } from '../Datasources'
 import { Enum } from '../Enum'
 import { FieldRefInput } from '../FieldRefInput'
 import { GenerateContext } from '../GenerateContext'
@@ -77,7 +76,6 @@ export type BatchPayload = {
   count: number
 }
 
-${new Datasources(options.datasources).toTS()}
 ${clientExtensionsDefinitions()}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
@@ -170,12 +168,6 @@ function clientExtensionsDefinitions() {
 function buildClientOptions(context: GenerateContext, options: TSClientOptions) {
   const clientOptions = ts
     .interfaceDeclaration('PrismaClientOptions')
-    .add(
-      ts
-        .property('datasources', ts.namedType('Datasources'))
-        .optional()
-        .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
-    )
     .add(
       ts
         .property('errorFormat', ts.namedType('ErrorFormat'))
