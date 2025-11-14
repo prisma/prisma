@@ -5,22 +5,24 @@
   "type": "module",
   "scripts": {
     "studio": "dotenvx run -- tsx ../../packages/cli/build/index.js studio --config ./prisma.config.ts",
-    "studio:debug": "DEBUG=prisma:* pnpm studio"
+    "studio:debug": "DEBUG=prisma:* pnpm studio",
+    "studio:sqlite": "PROVIDER=sqlite NODE_OPTIONS=--experimental-sqlite pnpm studio",
+    "studio:sqlite:debug": "PROVIDER=sqlite NODE_OPTIONS=--experimental-sqlite pnpm studio:debug",
+    "studio:postgres": "PROVIDER=postgres pnpm studio",
+    "studio:postgres:debug": "PROVIDER=postgres pnpm studio:debug"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/adapter-pg": "../../packages/adapter-pg",
-    "@prisma/client": "../../packages/client",
-    "pg": "^8.13.1"
+    "@prisma/config": "../../packages/config"
   },
   "devDependencies": {
-    "@types/node": "24.10.0",
-    "@types/pg": "^8.11.10",
     "@dotenvx/dotenvx": "^1.29.3",
-    "prisma": "../../packages/cli",
     "tsx": "^4.20.6",
     "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.5.0"
   }
 }
