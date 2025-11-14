@@ -10,7 +10,7 @@ test('prisma versions', () => {
 
 test('simple extension', () => {
   const adapter = new PrismaBetterSqlite3({
-    url: './prisma/dev.db',
+    url: './dev.db',
   })
   const prisma = new PrismaClient({ adapter }).$extends(simpleExtension)
 

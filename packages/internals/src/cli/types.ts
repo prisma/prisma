@@ -4,7 +4,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
  * Command interface
  */
 export interface Command {
-  parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error>
+  parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error>
 }
 
 /**

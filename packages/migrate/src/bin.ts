@@ -1,5 +1,7 @@
 #!/usr/bin/env tsx
 
+import path from 'node:path'
+
 import { loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
@@ -68,7 +70,10 @@ async function main(): Promise<number> {
     }),
   })
 
-  const { config, error } = await loadConfigFromFile({ configFile: args['--config'] })
+  const configFile = args['--config']
+  const configDir = configFile ? path.resolve(configFile, '..') : process.cwd()
+
+  const { config, error } = await loadConfigFromFile({ configFile })
   if (error) {
     console.error(`Failed to load config file: ${error._tag}`)
     return 1
@@ -81,7 +86,7 @@ async function main(): Promise<number> {
 
   try {
     // Execute the command
-    const result = await cli.parse(commandArray, config)
+    const result = await cli.parse(commandArray, config, configDir)
     // Did it error?
     if (result instanceof HelpError) {
       console.error(result)
@@ -104,7 +109,7 @@ async function main(): Promise<number> {
         cliVersion: packageVersion,
         enginesVersion,
         command: commandArray.join(' '),
-        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config),
+        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config, configDir),
       })
     }
     throw error

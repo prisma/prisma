@@ -17,7 +17,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], await ctx.config())
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -45,7 +45,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
   test('introspection --force (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], await ctx.config())
+    const result = introspect.parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -73,7 +73,11 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
   test('introspection --print (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], await ctx.config())
+    const result = introspect.parse(
+      ['--schema=./prisma/no-model.prisma', '--print'],
+      await ctx.config(),
+      ctx.configDir(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
@@ -132,6 +136,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -172,6 +177,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -220,7 +226,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force', '--composite-type-depth=-1'], await ctx.config())
+    const result = introspect.parse(['--force', '--composite-type-depth=-1'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -251,6 +257,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -307,7 +314,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
   test('introspection with --force', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], await ctx.config())
+    const result = introspect.parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -335,7 +342,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
   test('re-introspection should error (not supported) (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse([], await ctx.config())
+    const result = introspect.parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
       You can explicitly ignore and override your current local schema file with prisma db pull --force

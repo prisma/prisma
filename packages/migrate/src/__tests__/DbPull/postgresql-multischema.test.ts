@@ -47,7 +47,12 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'], await ctx.config())
+
+    const result = introspect.parse(
+      ['--print', '--schema', 'without-schemas-in-datasource.prisma'],
+      await ctx.config(),
+      ctx.configDir(),
+    )
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -59,6 +64,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma schema validation - (get-config wasm)
@@ -85,6 +91,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -171,6 +178,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -216,6 +224,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
@@ -229,6 +238,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
       await ctx.config(),
+      ctx.configDir(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

@@ -1,5 +1,7 @@
 #!/usr/bin/env tsx
 
+import path from 'node:path'
+
 import { context, trace } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
@@ -25,7 +27,6 @@ import {
   MigrateStatus,
 } from '@prisma/migrate'
 import { bold, dim, red, yellow } from 'kleur/colors'
-import path from 'path'
 
 import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
@@ -169,7 +170,10 @@ async function main(): Promise<number> {
     debug(`Failed to initialize the command state: ${err}`)
   })
 
-  const configEither = await loadConfig(args['--config'])
+  const configFile = args['--config']
+  const configDir = configFile ? path.resolve(configFile, '..') : process.cwd()
+
+  const configEither = await loadConfig(configFile)
 
   if (configEither instanceof HelpError) {
     console.error(configEither.message)
@@ -199,7 +203,7 @@ async function main(): Promise<number> {
   try {
     const startCliExec = performance.now()
     // Execute the command
-    const result = await cli.parse(commandArray, config)
+    const result = await cli.parse(commandArray, config, configDir)
     const endCliExec = performance.now()
     const cliExecElapsedTime = endCliExec - startCliExec
     debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
@@ -220,7 +224,7 @@ async function main(): Promise<number> {
         cliVersion: packageJson.version,
         enginesVersion,
         command: redactCommandArray([...commandArray]).join(' '),
-        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config),
+        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config, configDir),
       })
     }
     throw error
