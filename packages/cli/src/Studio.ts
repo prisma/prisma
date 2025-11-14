@@ -329,8 +329,6 @@ const INDEX_HTML =
       });
 
       const onEvent = (event) => {
-        console.log(event);
-
         fetch('/telemetry', {
           body: JSON.stringify(event),
           method: 'POST',
