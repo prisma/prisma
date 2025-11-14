@@ -140,13 +140,11 @@ LineStream.prototype._flush = function (done) {
   // Finalize decoder and get any remaining buffered bytes
   if (this._decoder) {
     const remaining = this._decoder.end()
-    if (remaining) {
+    if (remaining && this._lineBuffer.length > 0) {
       // Append remaining bytes to last line in buffer
-      if (this._lineBuffer.length > 0) {
-        this._lineBuffer[this._lineBuffer.length - 1] += remaining
-      } else {
-        this._lineBuffer.push(remaining)
-      }
+      // Note: _lineBuffer always has at least one element (even if empty string)
+      // because split() always returns an array with at least one element
+      this._lineBuffer[this._lineBuffer.length - 1] += remaining
     }
   }
 
