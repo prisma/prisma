@@ -52,7 +52,7 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -93,13 +93,14 @@ Check the status of your database migrations
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      configDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
       extensions: config['extensions'],
     })
 
-    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
+    await ensureCanConnectToDatabase(configDir, validatedConfig)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

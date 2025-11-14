@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import { defaultTestConfig, type PrismaConfigInternal } from '@prisma/config'
 
 import { getTestSuiteSchemaPath, type NamedTestSuiteConfig, type TestSuiteMeta } from './getTestSuiteInfo'
@@ -23,18 +21,7 @@ function buildPrismaConfigInternal(schemaPath: string, databaseUrl: string): Pri
     ...defaultTestConfig(),
     schema: schemaPath,
     datasource: {
-      url: absolutizeSqliteUrl({ schemaPath, databaseUrl }),
+      url: databaseUrl,
     },
   }
-}
-
-const FILE_PROTOCOL = 'file:'
-
-function absolutizeSqliteUrl({ databaseUrl, schemaPath }: { databaseUrl: string; schemaPath: string }): string {
-  if (!databaseUrl.startsWith(FILE_PROTOCOL)) {
-    return databaseUrl
-  }
-  const relativePath = databaseUrl.slice(FILE_PROTOCOL.length)
-  const absolutePath = path.resolve(path.dirname(schemaPath), relativePath)
-  return FILE_PROTOCOL + absolutePath
 }

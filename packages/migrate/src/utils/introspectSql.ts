@@ -39,6 +39,7 @@ export type IntrospectSqlResult =
 export async function introspectSql(
   schemaContext: SchemaContext,
   config: PrismaConfigWithDatasource,
+  configDir: string,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
   if (!isTypedSqlEnabled(schemaContext.generators)) {
@@ -53,7 +54,7 @@ export async function introspectSql(
     throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
   }
 
-  const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config })
+  const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config, configDir })
   const schemaEngine = migrate.engine
   const results: SqlQueryOutput[] = []
   const errors: IntrospectSqlError[] = []

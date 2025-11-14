@@ -73,7 +73,7 @@ ${bold('Examples')}
     --stdin
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -137,7 +137,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       url: validatedConfig.datasource.url,
     }
 
-    const migrate = await Migrate.setup({ schemaEngineConfig: config, extensions: config['extensions'] })
+    const migrate = await Migrate.setup({ schemaEngineConfig: config, extensions: config['extensions'], configDir })
 
     try {
       await migrate.engine.dbExecute({

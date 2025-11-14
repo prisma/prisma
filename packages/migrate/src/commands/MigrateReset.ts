@@ -56,7 +56,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset --force
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -92,7 +92,7 @@ ${bold('Examples')}
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
     // Automatically create the database if it doesn't exist
     const successMessage = await ensureDatabaseExists(
-      schemaContext.primaryDatasourceDirectory,
+      configDir,
       getSchemaDatasourceProvider(schemaContext),
       validatedConfig,
     )
@@ -130,6 +130,7 @@ ${bold('Examples')}
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      configDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,

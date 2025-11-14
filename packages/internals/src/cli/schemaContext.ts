@@ -17,12 +17,6 @@ export type SchemaContext = {
    */
   schemaRootDir: string
   /**
-   * The directory of the schema.prisma file that contains the datasource block.
-   * Some relative paths like SQLite paths or SSL file paths are resolved relative to it.
-   * TODO(prisma7): consider whether relative paths should be resolved relative to `prisma.config.ts` instead.
-   */
-  primaryDatasourceDirectory: string
-  /**
    * The path that shall be printed in user facing logs messages informing them from where the schema was loaded.
    */
   loadedFromPathForLogMessages: string
@@ -107,8 +101,6 @@ export async function processSchemaResult({
 
   const primaryDatasource = configFromPsl.datasources.at(0)
 
-  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(primaryDatasource) || schemaRootDir
-
   return {
     schemaFiles: schemaResult.schemas,
     schemaPath: schemaResult.schemaPath,
@@ -116,18 +108,9 @@ export async function processSchemaResult({
     datasources: configFromPsl.datasources,
     generators: configFromPsl.generators,
     primaryDatasource,
-    primaryDatasourceDirectory,
     warnings: configFromPsl.warnings,
     loadedFromPathForLogMessages,
   }
-}
-
-function getPrimaryDatasourceDirectory(primaryDatasource: DataSource | undefined) {
-  const datasourcePath = primaryDatasource?.sourceFilePath
-  if (datasourcePath) {
-    return path.dirname(datasourcePath)
-  }
-  return null
 }
 
 export function getSchemaDatasourceProvider(schemaContext: SchemaContext): ActiveConnectorType {

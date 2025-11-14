@@ -82,7 +82,7 @@ Set composite types introspection depth to 2 levels
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -150,6 +150,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      configDir,
       schemaContext,
       extensions: config['extensions'],
     })
