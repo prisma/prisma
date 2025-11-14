@@ -620,7 +620,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     )
 
     if (
-      ['library.js', 'client.js'].includes(this.runtimeNameTs) &&
+      ['client.js', 'wasm-compiler-edge.js'].includes(this.runtimeNameTs) &&
       // We don't support a custom adapter with MongoDB for now.
       this.internalDatasources.some((d) => d.provider !== 'mongodb')
     ) {
