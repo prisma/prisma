@@ -23,13 +23,11 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName = 'library' | 'wasm-compiler-edge' | 'index-browser' | 'client' | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+type RuntimeName = 'wasm-compiler-edge' | 'index-browser' | 'client' | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
-  runtimeNameJs: RuntimeName
-  /** More granular way to define TS runtime name */
-  runtimeNameTs: RuntimeName
+  runtimeName: RuntimeName
   /** When generating the browser client */
   browser: boolean
   /** When we are generating an /edge client */
@@ -52,7 +50,7 @@ export class TSClient implements Generable {
   }
 
   public toJS(): string {
-    const { edge, wasm, generator, outputDir, datamodel: inlineSchema, runtimeNameJs, reusedJs } = this.options
+    const { edge, wasm, generator, outputDir, datamodel: inlineSchema, runtimeName, reusedJs } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
@@ -96,8 +94,8 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
-${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
+${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
+${buildQueryCompilerWasmModule(wasm, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
@@ -126,7 +124,7 @@ Object.assign(exports, Prisma)
       context,
       this.options.datasources,
       this.options.outputDir,
-      this.options.runtimeNameTs,
+      this.options.runtimeName,
       this.options.browser,
     )
 
@@ -283,7 +281,7 @@ export const dmmf: runtime.BaseDMMF
   public toBrowserJS(): string {
     const code = `${commonCodeJS({
       ...this.options,
-      runtimeNameJs: 'index-browser',
+      runtimeName: 'index-browser',
       browser: true,
     })}
 /**

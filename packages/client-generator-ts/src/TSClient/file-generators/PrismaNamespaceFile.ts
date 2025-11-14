@@ -219,16 +219,14 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
           `),
   )
 
-  if (['client', 'wasm-compiler-edge'].includes(options.runtimeName)) {
-    clientOptions.add(
-      ts
-        .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
-        .optional()
-        .setDocComment(
-          ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
-        ),
-    )
-  }
+  clientOptions.add(
+    ts
+      .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
+      .optional()
+      .setDocComment(
+        ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
+      ),
+  )
 
   clientOptions.add(
     ts

@@ -6,10 +6,9 @@ export default testMatrix.setupSchema(({ provider }) => {
     datasource db {
       provider = "${provider}"
     }
-    
+
     generator client {
-      provider      = "prisma-client-js"
-      binaryTargets = ["native"]
+      provider = "prisma-client-js"
     }
 
     model User {
