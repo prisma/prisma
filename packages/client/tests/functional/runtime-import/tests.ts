@@ -3,13 +3,11 @@ import path from 'path'
 
 import testMatrix from './_matrix'
 
-const binaryRuntime = 'runtime/binary'
-const edgeRuntime = 'runtime/edge'
-const wasmRuntime = 'runtime/wasm-engine-edge'
+const nodeRuntime = 'runtime/client'
+const edgeRuntime = 'runtime/wasm-compiler-edge'
 
-// TODO: this fails with `wasm-compiler-edge`
 testMatrix.setupTestSuite(
-  ({ /* clientRuntime, */ generatorType }, suiteMeta, clientMeta) => {
+  ({ generatorType }, suiteMeta, clientMeta) => {
     const clientEntrypoint = `generated/prisma/client/client.js`
     const clientEntrypointPath = path.join(suiteMeta.generatedFolder, clientEntrypoint)
 
@@ -17,10 +15,17 @@ testMatrix.setupTestSuite(
       test('imports correct runtime', async () => {
         const generatedClientContents = await fs.readFile(clientEntrypointPath, 'utf-8')
 
-        if (clientMeta.driverAdapter) {
-          expect(generatedClientContents).not.toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
+        switch (clientMeta.runtime) {
+          case 'client':
+            expect(generatedClientContents).toContain(nodeRuntime)
+            expect(generatedClientContents).not.toContain(edgeRuntime)
+            break
+          case 'wasm-compiler-edge':
+            expect(generatedClientContents).not.toContain(nodeRuntime)
+            expect(generatedClientContents).toContain(edgeRuntime)
+            break
+          default:
+            clientMeta.runtime satisfies never
         }
       })
 
