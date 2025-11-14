@@ -16,7 +16,6 @@ import {
 } from '../utils'
 import { runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
-import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { globalOmitConfig } from './globalOmit'
@@ -486,8 +485,7 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
   public toTS(): string {
     const clientOptions = this.buildClientOptions()
 
-    return `${new Datasources(this.internalDatasources).toTS()}
-${clientExtensionsDefinitions(this.context)}
+    return `${clientExtensionsDefinitions(this.context)}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${ts.stringify(ts.moduleExport(clientOptions))}
@@ -562,12 +560,6 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
   private buildClientOptions() {
     const clientOptions = ts
       .interfaceDeclaration('PrismaClientOptions')
-      .add(
-        ts
-          .property('datasources', ts.namedType('Datasources'))
-          .optional()
-          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
-      )
       .add(
         ts
           .property('errorFormat', ts.namedType('ErrorFormat'))
