@@ -189,7 +189,9 @@ ${bold('Examples')}
     const connectionString = args['--url'] || config.datasource?.url
 
     if (!connectionString) {
-      return new Error('No database URL found.')
+      return new Error(
+        'No database URL found. Provide it via the `--url <url>` argument or define it in your Prisma config file as `datasource.url`.',
+      )
     }
 
     if (!URL.canParse(connectionString)) {
