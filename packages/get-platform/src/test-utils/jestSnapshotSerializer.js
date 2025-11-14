@@ -26,7 +26,24 @@ function normalizeLogs(str) {
 }
 
 function normalizeTmpDir(str) {
-  return str.replace(/\/tmp\/([a-z0-9]+)\//g, '/tmp/dir/')
+  const tempDirRegexes = [
+    // Linux
+    /\/tmp\/([a-z0-9]+)/g,
+    // macOS
+    /\/private\/var\/folders\/[^/]+\/[^/]+\/T\/[a-z0-9]+/g,
+  ]
+
+  // Windows
+  if (process.env.TEMP) {
+    const escapedPath = process.env.TEMP.replaceAll('\\', '\\\\')
+    tempDirRegexes.push(new RegExp(`${escapedPath}\\\\[a-z0-9]+`, 'g'))
+  }
+
+  for (const regex of tempDirRegexes) {
+    str = str.replace(regex, '/tmp/dir')
+  }
+
+  return str
 }
 
 function trimErrorPaths(str) {
