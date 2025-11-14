@@ -1,12 +1,7 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-import { defineConfig } from '@prisma/config'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
-  schema: path.join(__dirname, 'default-output.prisma'),
+  schema: './default-output.prisma',
   datasource: {
     url: 'postgresql://prisma:prisma@localhost:5432/prisma',
   },

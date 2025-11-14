@@ -79,7 +79,7 @@ describe('common', () => {
         "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
-          -->  prisma/invalid.prisma:9
+          -->  ./prisma/invalid.prisma:9
            | 
          8 | }
          9 | model Blog {
@@ -112,7 +112,7 @@ describe('common', () => {
         "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
-          -->  prisma/provider-array.prisma:2
+          -->  ./prisma/provider-array.prisma:2
            | 
          1 | datasource my_db {
          2 |     provider = ["postgresql", "sqlite"]

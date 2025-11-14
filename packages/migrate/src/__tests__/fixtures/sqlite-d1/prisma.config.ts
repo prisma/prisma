@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { defineConfig } from '@prisma/config'
 import { PrismaD1 } from '@prisma/adapter-d1'
 
@@ -18,7 +17,7 @@ export default defineConfig({
   experimental: {
     adapter: true,
   },
-  schema: path.join('schema.prisma'),
+  schema: 'schema.prisma',
   engine: 'js',
   async adapter() {
     return new PrismaD1({
