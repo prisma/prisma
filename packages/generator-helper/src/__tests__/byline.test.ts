@@ -83,5 +83,23 @@ describe('LineStream', () => {
       const lines = await collectLines(lineStream)
       expect(lines).toEqual(['Test あ'])
     })
+
+    test('handles truncated multibyte at end of stream', async () => {
+      // Test _flush method with truly incomplete bytes (data corruption scenario)
+      // Stream ends with incomplete UTF-8 sequence - decoder.end() returns replacement char
+      const text = 'Complete line\nIncomplete'
+      const fullBuffer = Buffer.from(text, 'utf8')
+
+      // Add incomplete UTF-8 bytes at the end (first 2 bytes of "あ": E3 81)
+      const incompleteBytes = Buffer.from([0xe3, 0x81])
+      const chunk = Buffer.concat([fullBuffer, incompleteBytes])
+
+      const stream = createReadableFromChunks([chunk])
+      const lineStream = byline(stream)
+
+      const lines = await collectLines(lineStream)
+      // Should get single replacement character (�) for incomplete UTF-8 sequence
+      expect(lines).toEqual(['Complete line', 'Incomplete�'])
+    })
   })
 })
