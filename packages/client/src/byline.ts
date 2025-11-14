@@ -21,8 +21,9 @@
 
 // @ts-ignore
 
-import stream from 'stream'
-import util from 'util'
+import stream from 'node:stream'
+import { StringDecoder } from 'node:string_decoder'
+import util from 'node:util'
 
 // convenience API
 export default function byline(readStream, options?: any) {
@@ -65,6 +66,9 @@ export function LineStream(this: any, options) {
   this._keepEmptyLines = options.keepEmptyLines || false
   this._lastChunkEndedWithCR = false
 
+  // StringDecoder for handling incomplete multibyte sequences
+  this._decoder = null
+
   // take the source's encoding if we don't have one
   this.on('pipe', function (this: any, src) {
     if (!this.encoding) {
@@ -83,11 +87,16 @@ LineStream.prototype._transform = function (chunk, encoding, done) {
 
   if (Buffer.isBuffer(chunk)) {
     if (encoding == 'buffer') {
-      chunk = chunk.toString() // utf8
       encoding = 'utf8'
-    } else {
-      chunk = chunk.toString(encoding)
     }
+
+    // Create decoder on first use
+    if (!this._decoder) {
+      this._decoder = new StringDecoder(encoding)
+    }
+
+    // Use StringDecoder to handle incomplete multibyte sequences
+    chunk = this._decoder.write(chunk)
   }
   this._chunkEncoding = encoding
 
@@ -128,6 +137,17 @@ LineStream.prototype._pushBuffer = function (encoding, keep, done) {
 }
 
 LineStream.prototype._flush = function (done) {
+  // Finalize decoder and get any remaining buffered bytes
+  if (this._decoder) {
+    const remaining = this._decoder.end()
+    if (remaining && this._lineBuffer.length > 0) {
+      // Append remaining bytes to last line in buffer
+      // Note: _lineBuffer always has at least one element (even if empty string)
+      // because split() always returns an array with at least one element
+      this._lineBuffer[this._lineBuffer.length - 1] += remaining
+    }
+  }
+
   this._pushBuffer(this._chunkEncoding, 0, done)
 }
 
