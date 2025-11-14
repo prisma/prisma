@@ -25,7 +25,7 @@ describeMatrix(postgresOnly, 'postgresql - missing database', () => {
     ctx.fixture('introspection/postgresql')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P1003 The introspected database does not exist:

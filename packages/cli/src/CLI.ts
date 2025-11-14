@@ -27,7 +27,7 @@ export class CLI implements Command {
     private readonly download: (options: DownloadOptions) => Promise<BinaryPaths>,
   ) {}
 
-  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -89,7 +89,7 @@ export class CLI implements Command {
         argsForCmd = args._.slice(1)
       }
 
-      const result = await cmd.parse(argsForCmd, config)
+      const result = await cmd.parse(argsForCmd, config, configDir)
 
       printUpdateMessage(await checkResultPromise)
 

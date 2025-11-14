@@ -10,7 +10,7 @@ export class MigrateCommand implements Command {
 
   private static help = format(`
 Update the database schema with migrations
-  
+
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate [command] [options]
@@ -23,7 +23,7 @@ ${bold('Commands for development')}
 
 ${bold('Commands for production/staging')}
 
-      deploy   Apply pending migrations to the database 
+      deploy   Apply pending migrations to the database
       status   Check the status of your database migrations
      resolve   Resolve issues with database migrations, i.e. baseline, failed migration, hotfix
 
@@ -63,7 +63,7 @@ ${bold('Examples')}
 
   private constructor(private readonly cmds: Commands) {}
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -95,7 +95,7 @@ ${bold('Examples')}
         argsForCmd = filteredArgs.slice(1)
       }
 
-      return cmd.parse(argsForCmd, config)
+      return cmd.parse(argsForCmd, config, configDir)
     }
 
     return unknownCommand(MigrateCommand.help, commandName)

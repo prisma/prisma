@@ -114,7 +114,7 @@ ${bold('Examples')}
     --to-[...]
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -215,7 +215,7 @@ ${bold('Examples')}
       })
       from = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schemaContext),
+        ...toSchemasWithConfigDir(schemaContext, configDir),
       }
     }
 
@@ -244,7 +244,7 @@ ${bold('Examples')}
       })
       to = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schemaContext),
+        ...toSchemasWithConfigDir(schemaContext, configDir),
       }
     }
 
@@ -254,6 +254,7 @@ ${bold('Examples')}
     }
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      configDir,
       schemaFilter,
       extensions: config['extensions'],
     })

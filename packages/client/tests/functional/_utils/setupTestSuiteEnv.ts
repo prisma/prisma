@@ -156,12 +156,14 @@ export async function setupTestSuiteDatabase({
   datasourceInfo: DatasourceInfo
 }) {
   const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
+  const testDirectoryPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
   const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
 
   try {
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
       await setupTestSuiteDatabaseD1({
         schemaPath,
+        testDirectoryPath,
         cfWorkerBindings: cfWorkerBindings!,
         alterStatementCallback,
         prismaConfig: buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo }),
@@ -175,7 +177,7 @@ export async function setupTestSuiteDatabase({
       }
 
       const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
-      await DbPush.new().parse(dbPushParams, runtimeConfig)
+      await DbPush.new().parse(dbPushParams, runtimeConfig, testDirectoryPath)
 
       if (
         suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -203,7 +205,13 @@ export async function setupTestSuiteDatabase({
       )
 
       const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
-      await DbExecute.new().parse(['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`], runtimeConfig)
+      const testDirectoryPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
+
+      await DbExecute.new().parse(
+        ['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`],
+        runtimeConfig,
+        testDirectoryPath,
+      )
     }
 
     consoleInfoMock.mockRestore()
@@ -232,11 +240,13 @@ export async function setupTestSuiteDatabase({
  */
 export async function setupTestSuiteDatabaseD1({
   schemaPath,
+  testDirectoryPath,
   cfWorkerBindings,
   alterStatementCallback,
   prismaConfig,
 }: {
   schemaPath: string
+  testDirectoryPath: string
   cfWorkerBindings: { [key: string]: unknown }
   alterStatementCallback?: AlterStatementCallback
   prismaConfig: PrismaConfigInternal
@@ -244,7 +254,7 @@ export async function setupTestSuiteDatabaseD1({
   // Cleanup the database
   await prepareD1Database({ cfWorkerBindings })
 
-  const sqlStatements = await getD1MigrationScript({ schemaPath, prismaConfig })
+  const sqlStatements = await getD1MigrationScript({ schemaPath, prismaConfig, testDirectoryPath })
   const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
   // Execute the DDL statements
@@ -274,15 +284,18 @@ export async function setupTestSuiteDatabaseD1({
 async function getD1MigrationScript({
   schemaPath,
   prismaConfig,
+  testDirectoryPath,
 }: {
   schemaPath: string
   prismaConfig: PrismaConfigInternal
+  testDirectoryPath: string
 }): Promise<string> {
   const sqlScriptPath = temporaryFile()
 
   const diffResult = await MigrateDiff.new().parse(
     ['--from-empty', '--to-schema', schemaPath, '--script', '--output', sqlScriptPath],
     prismaConfig,
+    testDirectoryPath,
   )
 
   if (diffResult instanceof Error) {
@@ -319,7 +332,8 @@ export async function dropTestSuiteDatabase({
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const runtimeConfig = buildPrismaConfig({ suiteConfig, suiteMeta, datasourceInfo })
-    await DbDrop.new().parse(['--force', '--preview-feature'], runtimeConfig)
+    const testDirectory = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
+    await DbDrop.new().parse(['--force', '--preview-feature'], runtimeConfig, testDirectory)
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)

@@ -32,6 +32,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(
         ['--to-empty', '--from-config-datasource', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -55,6 +56,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(
         ['--from-empty', '--to-config-datasource', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -77,6 +79,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(
         ['--to-empty', '--from-config-datasource', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -111,6 +114,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(
         ['--from-empty', '--to-config-datasource', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -143,7 +147,7 @@ describe('migrate diff', () => {
       const commandInstance = MigrateDiff.new()
       const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-      await commandInstance.parse(['--something'], await ctx.config())
+      await commandInstance.parse(['--something'], await ctx.config(), ctx.configDir())
       expect(spy).toHaveBeenCalledTimes(1)
       spy.mockRestore()
     })
@@ -152,7 +156,7 @@ describe('migrate diff', () => {
       const commandInstance = MigrateDiff.new()
       const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-      await commandInstance.parse(['--help'], await ctx.config())
+      await commandInstance.parse(['--help'], await ctx.config(), ctx.configDir())
       expect(spy).toHaveBeenCalledTimes(1)
       spy.mockRestore()
     })
@@ -160,35 +164,43 @@ describe('migrate diff', () => {
     it('should fail if missing --from-... and --to-...', async () => {
       ctx.fixture('schema-only')
 
-      const result = MigrateDiff.new().parse([], await ctx.config())
+      const result = MigrateDiff.new().parse([], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('schema-only')
 
-      const result = MigrateDiff.new().parse(['--from-empty'], await ctx.config())
+      const result = MigrateDiff.new().parse(['--from-empty'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('schema-only')
 
-      const result = MigrateDiff.new().parse(['--to-empty'], await ctx.config())
+      const result = MigrateDiff.new().parse(['--to-empty'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('schema-only')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--from-config-datasource'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--from-config-datasource'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('schema-only')
 
-      const result = MigrateDiff.new().parse(['--to-empty', '--to-config-datasource'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--to-empty', '--to-config-datasource'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).rejects.toThrow()
     })
 
@@ -197,7 +209,7 @@ describe('migrate diff', () => {
       expect.assertions(2)
 
       try {
-        await MigrateDiff.new().parse(['--from-empty', '--to-empty'], await ctx.config())
+        await MigrateDiff.new().parse(['--from-empty', '--to-empty'], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
@@ -220,7 +232,7 @@ describe('migrate diff', () => {
     ])('should fail with a hint when providing a %s parameter', async (param) => {
       ctx.fixture('schema-only')
 
-      const result = MigrateDiff.new().parse([param], await ctx.config())
+      const result = MigrateDiff.new().parse([param], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingSnapshot()
     })
   })
@@ -229,7 +241,11 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-schema=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema=./prisma/schema.prisma'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema=./prisma/schema.prisma'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -242,7 +258,11 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-schema=./prisma/schema (folder)', async () => {
       ctx.fixture('schema-folder-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema=./prisma/schema'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema=./prisma/schema'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -259,6 +279,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-empty', '--to-schema=./prisma/schema.prisma', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -274,7 +295,11 @@ describe('migrate diff', () => {
     it('should diff --from-schema=./prisma/schema.prisma --to-empty', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-schema=./prisma/schema.prisma', '--to-empty'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-schema=./prisma/schema.prisma', '--to-empty'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -287,7 +312,11 @@ describe('migrate diff', () => {
     it('should diff --from-schema=./prisma/schema (folder) --to-empty', async () => {
       ctx.fixture('schema-folder-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-schema=./prisma/schema', '--to-empty'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-schema=./prisma/schema', '--to-empty'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -304,6 +333,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-schema=./prisma/schema.prisma', '--to-empty', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -321,6 +351,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-schema=./prisma/schema.prisma', '--to-empty', '--script', '--output=./output.sql'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
@@ -339,6 +370,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-schema=./prisma/schema.prisma', '--to-empty', '--script', '--output=./subdir/output.sql'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
@@ -361,6 +393,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-schema=./prisma/schema.prisma', '--to-empty', '--script', '--output=./readonly.sql'],
         await ctx.config(),
+        ctx.configDir(),
       )
       // Example error message:
       // macOS
@@ -375,7 +408,11 @@ describe('migrate diff', () => {
         ctx.fixture('schema-only-sqlite')
         ctx.setDatasource({ url: 'file:doesnotexists.db' })
 
-        const result = MigrateDiff.new().parse(['--from-empty', '--to-config-datasource'], await ctx.config())
+        const result = MigrateDiff.new().parse(
+          ['--from-empty', '--to-config-datasource'],
+          await ctx.config(),
+          ctx.configDir(),
+        )
         await expect(result).rejects.toMatchInlineSnapshot(`
                   "P1003
 
@@ -388,7 +425,11 @@ describe('migrate diff', () => {
         ctx.fixture('schema-only-sqlite')
         ctx.setDatasource({ url: 'file:doesnotexists.db' })
 
-        const result = MigrateDiff.new().parse(['--from-config-datasource', '--to-empty'], await ctx.config())
+        const result = MigrateDiff.new().parse(
+          ['--from-config-datasource', '--to-empty'],
+          await ctx.config(),
+          ctx.configDir(),
+        )
         await expect(result).rejects.toMatchInlineSnapshot(`
                   "P1003
 
@@ -401,7 +442,11 @@ describe('migrate diff', () => {
         ctx.fixture('schema-only-sqlite')
         ctx.setDatasource({ url: 'file:./something/doesnotexists.db' })
 
-        const result = MigrateDiff.new().parse(['--from-config-datasource', '--to-empty'], await ctx.config())
+        const result = MigrateDiff.new().parse(
+          ['--from-config-datasource', '--to-empty'],
+          await ctx.config(),
+          ctx.configDir(),
+        )
         await expect(result).rejects.toMatchInlineSnapshot(`
                   "P1003
 
@@ -414,7 +459,11 @@ describe('migrate diff', () => {
       it('should diff --from-empty --to-config-datasource', async () => {
         ctx.fixture('introspection/sqlite')
 
-        const result = MigrateDiff.new().parse(['--from-empty', '--to-config-datasource'], await ctx.config())
+        const result = MigrateDiff.new().parse(
+          ['--from-empty', '--to-config-datasource'],
+          await ctx.config(),
+          ctx.configDir(),
+        )
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
                   "
@@ -439,6 +488,7 @@ describe('migrate diff', () => {
         const result = MigrateDiff.new().parse(
           ['--from-empty', '--to-config-datasource', '--script'],
           await ctx.config(),
+          ctx.configDir(),
         )
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -500,6 +550,7 @@ describe('migrate diff', () => {
         const result = MigrateDiff.new().parse(
           ['--from-schema=./prisma/schema.prisma', '--to-empty', '--exit-code'],
           await ctx.config(),
+          ctx.configDir(),
         )
 
         await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 2"`)
@@ -520,6 +571,7 @@ describe('migrate diff', () => {
         const result = MigrateDiff.new().parse(
           ['--from-schema=./prisma/schema.prisma', '--to-empty', '--script', '--exit-code'],
           await ctx.config(),
+          ctx.configDir(),
         )
 
         await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 2"`)
@@ -557,7 +609,11 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-schema=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-mongodb')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema=./prisma/schema.prisma'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema=./prisma/schema.prisma'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "[+] Collection \`User\`
@@ -568,7 +624,11 @@ describe('migrate diff', () => {
     it('should diff --from-schema=./prisma/schema.prisma --to-empty', async () => {
       ctx.fixture('schema-only-mongodb')
 
-      const result = MigrateDiff.new().parse(['--from-schema=./prisma/schema.prisma', '--to-empty'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-schema=./prisma/schema.prisma', '--to-empty'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "No difference detected.
@@ -582,6 +642,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-empty', '--to-schema=./prisma/schema.prisma', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Rendering to a script is not supported on MongoDB.
@@ -627,6 +688,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-config-datasource', '--to-schema=./prisma/schema.prisma', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -669,6 +731,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-config-datasource', '--to-schema=./prisma/schema.prisma', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -686,7 +749,11 @@ describe('migrate diff', () => {
     it('should exclude external tables from diff', async () => {
       ctx.fixture('external-tables')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema=./schema.prisma'], await ctx.config())
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema=./schema.prisma'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       // Note the missing warnings about the User table as it is marked as external and won't be modified
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -730,6 +797,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-config-datasource', '--to-schema=./prisma/schema.prisma', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -787,6 +855,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(
         ['--from-config-datasource', '--to-schema=./prisma/schema.prisma', '--script'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
