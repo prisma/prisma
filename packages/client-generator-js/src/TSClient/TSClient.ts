@@ -2,14 +2,12 @@ import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
-import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
-import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
 import { buildRequirePath } from '../utils/buildRequirePath'
@@ -52,7 +50,7 @@ export class TSClient implements Generable {
   }
 
   public toJS(): string {
-    const { edge, wasm, generator, outputDir, datamodel: inlineSchema, runtimeNameJs, reusedJs } = this.options
+    const { edge, wasm, generator, datamodel: inlineSchema, runtimeNameJs, reusedJs } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
@@ -65,10 +63,6 @@ export class TSClient implements Generable {
       activeProvider: this.options.activeProvider,
       inlineSchema,
     }
-
-    // get relative output dir for it to be preserved even after bundling, or
-    // being moved around as long as we keep the same project dir structure.
-    const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
@@ -95,7 +89,6 @@ ${new Enum(
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
