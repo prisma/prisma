@@ -72,6 +72,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
+          configDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -96,6 +97,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
+          configDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -131,6 +133,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
+          configDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -166,6 +169,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
+          configDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -199,7 +203,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspectWithViews = new DbPull()
-      const resultWithViews = introspectWithViews.parse([], await ctx.config())
+      const resultWithViews = introspectWithViews.parse([], await ctx.config(), ctx.configDir())
       await expect(resultWithViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithViews = await ctx.fs.listAsync('views')
@@ -229,7 +233,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       await runQueryPostgres(setupParams, dropViewsSQL!)
 
       const introspectWithoutViews = new DbPull()
-      const resultWithoutViews = introspectWithoutViews.parse([], await ctx.config())
+      const resultWithoutViews = introspectWithoutViews.parse([], await ctx.config(), ctx.configDir())
       await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithoutViews = await ctx.fs.listAsync('views')
@@ -264,7 +268,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -333,7 +337,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
         const introspect = new DbPull()
         const args = needsPathsArg ? ['--schema', `${schemaPath}`] : []
-        const result = introspect.parse(args, await ctx.config())
+        const result = introspect.parse(args, await ctx.config(), ctx.configDir())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
         // the folders in `views` match the database schema names (public, work) of the views
@@ -410,7 +414,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       // the folders in `views` match the database schema names (public, work) of the views
@@ -446,7 +450,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       ctx.fixture(path.join(fixturePath))
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -482,7 +486,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')

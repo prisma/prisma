@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 
 async function main() {
   const adapter = new PrismaBetterSqlite3({
-    url: './prisma/dev.db',
+    url: './dev.db',
   })
   const prisma = new PrismaClient({ adapter })
 

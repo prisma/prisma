@@ -17,7 +17,7 @@ describe('push', () => {
     it('should require a datasource in the config', async () => {
       ctx.fixture('no-config')
 
-      const result = DbPush.new().parse([], await ctx.config())
+      const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
         `"The datasource property is required in your Prisma config file when using prisma db push."`,
       )
@@ -27,7 +27,7 @@ describe('push', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -45,7 +45,7 @@ describe('push', () => {
 
   it('should fail if nativeTypes VarChar on sqlite', async () => {
     ctx.fixture('nativeTypes-sqlite')
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P1012
 
@@ -62,7 +62,7 @@ describe('push', () => {
 
   it('already in sync', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -75,7 +75,7 @@ describe('push', () => {
 
   inDockerIt('should load extensions from the config', async () => {
     ctx.fixture('prisma-config-extensions')
-    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
@@ -94,7 +94,7 @@ describe('push', () => {
     ctx.fixture('existing-db-warnings')
     process.env.GITHUB_ACTIONS = '1'
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(
       `"Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss"`,
     )
@@ -105,7 +105,7 @@ describe('push', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -128,7 +128,7 @@ describe('push', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -149,7 +149,7 @@ describe('push', () => {
 
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
-    const result = DbPush.new().parse(['--accept-data-loss'], await ctx.config())
+    const result = DbPush.new().parse(['--accept-data-loss'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -171,7 +171,7 @@ describe('push', () => {
 
     const sqliteDbSizeBefore = ctx.fs.inspect('dev.db')!.size
 
-    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     const sqliteDbSizeAfter = ctx.fs.inspect('dev.db')!.size
@@ -184,7 +184,7 @@ describe('push', () => {
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      The SQLite database "dev.db" at "file:../dev.db" was successfully reset.
+      The SQLite database "dev.db" at "file:dev.db" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
@@ -196,7 +196,7 @@ describe('push', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -219,7 +219,7 @@ describe('push', () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
     process.env.GITHUB_ACTIONS = '1'
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "
       ⚠️ We found changes that cannot be executed:
@@ -267,7 +267,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -284,7 +284,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
   it('should exclude external tables', async () => {
     ctx.fixture('external-tables')
 
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     // Note the missing warnings about the User table as it is marked as external and won't be modified
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -334,7 +334,7 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
@@ -376,7 +376,7 @@ describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
   it('--force-reset should succeed and print a log', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
 
-    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -395,7 +395,7 @@ describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
 
   it('does not create data loss warnings', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
-    const result = DbPush.new().parse([], await ctx.config())
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

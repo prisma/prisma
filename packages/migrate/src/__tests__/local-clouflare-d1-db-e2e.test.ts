@@ -63,6 +63,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
             './migrations/0001_init.sql',
           ],
           await ctx.config(),
+          ctx.configDir(),
         )
         await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -108,6 +109,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
             './migrations/0002_change_all_referenced_columns.sql',
           ],
           await ctx.config(),
+          ctx.configDir(),
         )
         await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -160,6 +162,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
       const prismaCreateInitMigration = cliInstance.parse(
         ['--from-empty', '--to-schema', './prisma/schema.prisma', '--script', '--output', './migrations/0001_init.sql'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -224,6 +227,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
           './migrations/0002_passport_number_to_string.sql',
         ],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -287,6 +291,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
             './migrations/0001_init.sql',
           ],
           await ctx.config(),
+          ctx.configDir(),
         )
         await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -330,6 +335,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
             './migrations/0002_add_mutual_references.sql',
           ],
           await ctx.config(),
+          ctx.configDir(),
         )
         await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -388,6 +394,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
       const prismaCreateInitMigration = cliInstance.parse(
         ['--from-empty', '--to-schema', './prisma/schema.prisma', '--script', '--output', './migrations/0001_init.sql'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -456,6 +463,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
           './migrations/0002_rename_new_field.sql',
         ],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -501,6 +509,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
       const prismaCreateInitMigration = cliInstance.parse(
         ['--from-empty', '--to-schema', './prisma/schema.prisma', '--script', '--output', './migrations/0001_init.sql'],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -555,6 +564,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
           './migrations/0002_add_count_to_user_table.sql',
         ],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -614,6 +624,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
           './migrations/0003_change_user_id_to_count.sql',
         ],
         await ctx.config(),
+        ctx.configDir(),
       )
       await expect(prisma3dMigration).resolves.toMatchInlineSnapshot(`""`)
 
