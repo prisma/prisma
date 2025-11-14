@@ -26,7 +26,13 @@ function normalizeLogs(str) {
 }
 
 function normalizeTmpDir(str) {
-  return str.replace(/\/tmp\/([a-z0-9]+)\//g, '/tmp/dir/')
+  for (const regex of [/\/tmp\/([a-z0-9]+)\//g, /\/private\/var\/folders\/[^/]+\/[^/]+\/T\/[a-z0-9]+\//]) {
+    str = str.replace(regex, '/tmp/dir/')
+  }
+  if (process.env.TEMP) {
+    str = str.replaceAll(process.env.TEMP, '/tmp/dir')
+  }
+  return str
 }
 
 function trimErrorPaths(str) {
