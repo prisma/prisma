@@ -101,7 +101,7 @@ describe('LineStream', () => {
       expect(lines).toEqual(['Complete line', 'Incomplete�'])
     })
 
-    it('handles encoding change between chunks', async () => {
+    test('handles encoding change between chunks', async () => {
       // Test that decoder is recreated when encoding changes
       // Without this fix, an ascii decoder would fail to decode utf8 multibyte chars
       const lineStream = createStream(null, {})
