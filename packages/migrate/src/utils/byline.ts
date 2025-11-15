@@ -68,6 +68,7 @@ export function LineStream(this: any, options) {
 
   // StringDecoder for handling incomplete multibyte sequences
   this._decoder = null
+  this._decoderEncoding = null
 
   // take the source's encoding if we don't have one
   this.on('pipe', function (this: any, src) {
@@ -90,9 +91,10 @@ LineStream.prototype._transform = function (chunk, encoding, done) {
       encoding = 'utf8'
     }
 
-    // Create decoder on first use
-    if (!this._decoder) {
+    // Create decoder on first use or when encoding changes
+    if (!this._decoder || this._decoderEncoding !== encoding) {
       this._decoder = new StringDecoder(encoding)
+      this._decoderEncoding = encoding
     }
 
     // Use StringDecoder to handle incomplete multibyte sequences
