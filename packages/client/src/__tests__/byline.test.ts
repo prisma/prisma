@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 
-import byline from '../byline'
+import byline, { createStream } from '../byline'
 
 /**
  * Helper function to collect all lines from a LineStream
@@ -99,6 +99,33 @@ describe('LineStream', () => {
       const lines = await collectLines(lineStream)
       // Should get single replacement character (�) for incomplete UTF-8 sequence
       expect(lines).toEqual(['Complete line', 'Incomplete�'])
+    })
+
+    it('handles encoding change between chunks', async () => {
+      // Test that decoder is recreated when encoding changes
+      // Without this fix, an ascii decoder would fail to decode utf8 multibyte chars
+      const lineStream = createStream(null, {})
+
+      const lines: string[] = []
+      lineStream.on('data', (line: Buffer | string) => {
+        lines.push(line.toString())
+      })
+
+      return new Promise<void>((resolve) => {
+        lineStream.on('end', () => {
+          // First chunk is ascii, second is utf8 with multibyte characters
+          // If decoder isn't recreated, the ascii decoder will corrupt the utf8 chars
+          expect(lines).toEqual(['ASCII line', 'UTF8 日本語 😀'])
+          resolve()
+        })
+
+        // Write first chunk as ascii
+        lineStream.write(Buffer.from('ASCII line\n', 'ascii'), 'ascii')
+        // Write second chunk as utf8 with multibyte characters
+        // Without decoder reset, these multibyte chars would be corrupted
+        lineStream.write(Buffer.from('UTF8 日本語 😀\n', 'utf8'), 'utf8')
+        lineStream.end()
+      })
     })
   })
 })
