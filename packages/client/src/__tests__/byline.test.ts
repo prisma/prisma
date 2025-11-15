@@ -35,7 +35,7 @@ function createReadableFromChunks(chunks: Buffer[]): Readable {
 
 describe('LineStream', () => {
   describe('single-byte characters', () => {
-    it('handles single chunk', async () => {
+    test('handles single chunk', async () => {
       const input = 'line1\nline2\nline3\n'
       const stream = createReadableFromChunks([Buffer.from(input, 'utf8')])
       const lineStream = byline(stream)
@@ -44,7 +44,7 @@ describe('LineStream', () => {
       expect(lines).toEqual(['line1', 'line2', 'line3'])
     })
 
-    it('handles split across chunk boundary', async () => {
+    test('handles split across chunk boundary', async () => {
       const chunk1 = Buffer.from('Hello ', 'utf8')
       const chunk2 = Buffer.from('World\n', 'utf8')
       const stream = createReadableFromChunks([chunk1, chunk2])
@@ -56,7 +56,7 @@ describe('LineStream', () => {
   })
 
   describe('multibyte characters', () => {
-    it('handles single chunk', async () => {
+    test('handles single chunk', async () => {
       const input = 'Hello 😀\n日本語\n'
       const stream = createReadableFromChunks([Buffer.from(input, 'utf8')])
       const lineStream = byline(stream)
@@ -65,7 +65,7 @@ describe('LineStream', () => {
       expect(lines).toEqual(['Hello 😀', '日本語'])
     })
 
-    it('handles split across chunk boundary', async () => {
+    test('handles split across chunk boundary', async () => {
       // Japanese "あ" is 3 bytes in UTF-8: E3 81 82
       const text = 'Test あ\n'
       const fullBuffer = Buffer.from(text, 'utf8')
@@ -83,7 +83,7 @@ describe('LineStream', () => {
       expect(lines).toEqual(['Test あ'])
     })
 
-    it('handles truncated multibyte at end of stream', async () => {
+    test('handles truncated multibyte at end of stream', async () => {
       // Test _flush method with truly incomplete bytes (data corruption scenario)
       // Stream ends with incomplete UTF-8 sequence - decoder.end() returns replacement char
       const text = 'Complete line\nIncomplete'
@@ -101,7 +101,7 @@ describe('LineStream', () => {
       expect(lines).toEqual(['Complete line', 'Incomplete�'])
     })
 
-    it('handles encoding change between chunks', async () => {
+    test('handles encoding change between chunks', async () => {
       // Test that decoder is recreated when encoding changes
       // Without this fix, an ascii decoder would fail to decode utf8 multibyte chars
       const lineStream = createStream(null, {})
