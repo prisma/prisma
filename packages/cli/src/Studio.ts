@@ -325,7 +325,6 @@ const INDEX_HTML =
 
       const adapter = ${ADAPTER_FACTORY_FUNCTION_NAME}({
         executor: createStudioBFFClient({ url: '/bff' }),
-        // noParameters: true,
       });
 
       const onEvent = (event) => {

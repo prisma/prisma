@@ -15,7 +15,8 @@ export default defineConfig({
 
 const database = new DatabaseSync(SQLITE_PATH.replace('file:', ''))
 database.exec(
-  `CREATE TABLE IF NOT EXISTS User (
+  `DROP TABLE IF EXISTS User;
+  CREATE TABLE User (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE
