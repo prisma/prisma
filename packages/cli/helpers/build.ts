@@ -110,7 +110,7 @@ const cliBuildConfig: BuildOptions = {
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
-  external: ['esbuild'],
+  external: ['better-sqlite3', 'esbuild'],
   emitTypes: false,
   minify: true,
 }
