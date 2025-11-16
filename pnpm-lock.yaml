@@ -421,8 +421,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/studio-core-licensed':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.7.0
+        version: 0.7.0
       postgres:
         specifier: 3.4.7
         version: 3.4.7
@@ -487,6 +487,9 @@ importers:
       '@swc/jest':
         specifier: 0.2.37
         version: 0.2.37(@swc/core@1.11.5)
+      '@types/better-sqlite3':
+        specifier: 7.6.12
+        version: 7.6.12
       '@types/fs-extra':
         specifier: 11.0.4
         version: 11.0.4
@@ -499,6 +502,9 @@ importers:
       async-listen:
         specifier: 3.1.0
         version: 3.1.0
+      better-sqlite3:
+        specifier: ^11.10.0
+        version: 11.10.0
       checkpoint-client:
         specifier: 1.1.33
         version: 1.1.33(encoding@0.1.13)
@@ -3448,8 +3454,8 @@ packages:
   '@prisma/schema-engine-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95':
     resolution: {integrity: sha512-FC7XGmH3RV5Vumg1a7OAMSM+1KFWp4LkNJ0Kb6S2Mir+RLWFkE1s3tL2ROJZXvumM8Voy5d/kpzOBwkh2AIRvA==}
 
-  '@prisma/studio-core-licensed@0.6.0':
-    resolution: {integrity: sha512-LNC8ohLosuWz6n9oKNqfR5Ep/JYiPavk4RxrU6inOS4LEvMQts8N+Vtt7NAB9i06BaiIRKnPsg1Hcaao5pRjSw==}
+  '@prisma/studio-core-licensed@0.7.0':
+    resolution: {integrity: sha512-z3kGS2qGryM6KR4w5birkzGUCHQigJCgb9iyMF41XYsTUSiBuUwER7Q/G3C1yktE7dDmeD4WuwdhUTYQCGSsIw==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -9819,7 +9825,7 @@ snapshots:
 
   '@prisma/schema-engine-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
 
-  '@prisma/studio-core-licensed@0.6.0': {}
+  '@prisma/studio-core-licensed@0.7.0': {}
 
   '@rollup/rollup-android-arm-eabi@4.36.0':
     optional: true
