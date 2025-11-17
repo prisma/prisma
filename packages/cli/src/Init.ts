@@ -73,7 +73,6 @@ ${
 
 datasource db {
   provider = "${datasourceProvider}"
-  url      = env("DATABASE_URL")
 }
 `
 
