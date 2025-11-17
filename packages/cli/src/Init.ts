@@ -1,4 +1,5 @@
 import { confirm, input, select } from '@inquirer/prompts'
+import { PrismaConfigInternal } from '@prisma/config'
 import { unstable_startServer } from '@prisma/dev'
 import { ServerState } from '@prisma/dev/internal/state'
 import type { ConnectorType } from '@prisma/generator'
@@ -281,7 +282,7 @@ export class Init implements Command {
     ${dim('$')} prisma init --with-model
   `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
