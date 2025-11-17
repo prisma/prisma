@@ -1,7 +1,6 @@
 import path from 'node:path'
 
 import { jestContext } from '@prisma/get-platform'
-import { expect, test } from 'vitest'
 
 import { determineClientOutputPath } from './client-output-path'
 
