@@ -79,7 +79,7 @@ export type BatchPayload = {
 ${clientExtensionsDefinitions()}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-${ts.stringify(ts.moduleExport(buildClientOptions(context, options)))}
+${ts.stringify(ts.moduleExport(buildClientOptions(context)))}
 ${ts.stringify(globalOmitConfig(context.dmmf))}
 
 /* Types for Logging */
@@ -165,7 +165,7 @@ function clientExtensionsDefinitions() {
   return ts.stringify(define)
 }
 
-function buildClientOptions(context: GenerateContext, options: TSClientOptions) {
+function buildClientOptions(context: GenerateContext) {
   const clientOptions = ts
     .interfaceDeclaration('PrismaClientOptions')
     .add(
@@ -219,16 +219,14 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
           `),
   )
 
-  if (['client', 'wasm-compiler-edge'].includes(options.runtimeName)) {
-    clientOptions.add(
-      ts
-        .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
-        .optional()
-        .setDocComment(
-          ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
-        ),
-    )
-  }
+  clientOptions.add(
+    ts
+      .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
+      .optional()
+      .setDocComment(
+        ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
+      ),
+  )
 
   clientOptions.add(
     ts

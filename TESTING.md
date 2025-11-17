@@ -428,7 +428,7 @@ By creating a Pull Request the following pipelines will be triggered
 
 `CI` will need to be successful before merging ("flaky" tests might show up and might be ignored).
 
-By default, some tests are tested only during daily builds (e.g. `binary` engine). If you need to run all of them for your PR leave a `ci test all` comment on the PR and re-run the workflow.
+By default, some tests are tested only during daily builds. If you need to run all of them for your PR leave a `ci test all` comment on the PR and re-run the workflow.
 
 ### Publishing all the packages to npm on the `integration` tag
 
