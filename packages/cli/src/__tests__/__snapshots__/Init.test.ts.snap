@@ -1,4 +1,4 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`appends when .env present 1`] = `
 "
@@ -35,7 +35,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -113,7 +112,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -170,7 +168,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -226,7 +223,6 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -288,7 +284,6 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -350,7 +345,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -412,7 +406,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -468,7 +461,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -525,7 +517,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -582,7 +573,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -637,7 +627,6 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -693,7 +682,6 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -746,7 +734,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -802,7 +789,6 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -858,7 +844,6 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -914,7 +899,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -970,7 +954,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 "
 `;
@@ -1006,7 +989,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 "
 `;
