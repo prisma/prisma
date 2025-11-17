@@ -217,7 +217,7 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
 ```
 
-To load environment variables, you can use `dotenv` by importing `dotenv/config`, use `tsx --env-file=.env`, `node --env-file=.env` (Node.js 20+), or Bun (which loads `.env` automatically).
+To load environment variables, you can use `dotenv` by importing `dotenv/config`, use `tsx --env-file=.env`, `node --env-file=.env`, or Bun (which loads `.env` automatically).
 
 Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
 
