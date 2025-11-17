@@ -54,22 +54,23 @@ Pull the state from the database to the Prisma schema using introspection
 
 ${bold('Usage')}
 
-  ${dim('$')} prisma db pull [flags/options]
-
-${bold('Flags')}
-
-              -h, --help   Display this help message
-                 --force   Ignore current Prisma schema file
-                 --print   Print the introspected Prisma schema to stdout
+  ${dim('$')} prisma db pull [options]
 
 ${bold('Options')}
 
-                --config   Custom path to your Prisma config file
-                --schema   Custom path to your Prisma schema
-  --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
-                           Number, default is -1 for infinite depth, 0 = off
-               --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
-              --local-d1   Generate a Prisma schema from a local Cloudflare D1 database
+                -h, --help   Display this help message
+                  --config   Custom path to your Prisma config file
+                  --schema   Custom path to your Prisma schema
+    --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
+                             Number, default is -1 for infinite depth, 0 = off
+                 --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
+
+${bold('Flags')}
+
+  --force      Ignore current Prisma schema file
+  --print      Print the introspected Prisma schema to stdout
+  --local-d1   Generate a Prisma schema from a local Cloudflare D1 database
+
 ${bold('Examples')}
 
 With an existing Prisma schema

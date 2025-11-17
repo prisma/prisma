@@ -37,9 +37,12 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-       -h, --help   Display this help message
-         --config   Custom path to your Prisma config file
-         --schema   Custom path to your Prisma schema
+  -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
+    --schema   Custom path to your Prisma schema
+
+${bold('Flags')}
+
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
