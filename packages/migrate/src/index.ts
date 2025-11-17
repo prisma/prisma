@@ -15,7 +15,6 @@ export { Migrate } from './Migrate'
 export { SchemaEngineCLI } from './SchemaEngineCLI'
 export { SchemaEngineWasm } from './SchemaEngineWasm'
 export * from './types'
-export { default as byline } from './utils/byline'
 export { getDatabaseVersionSafe } from './utils/getDatabaseVersionSafe'
 export {
   introspectSql,
