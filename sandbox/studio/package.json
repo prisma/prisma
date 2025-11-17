@@ -6,10 +6,12 @@
   "scripts": {
     "studio": "dotenvx run -- tsx ../../packages/cli/build/index.js studio --config ./prisma.config.ts",
     "studio:debug": "DEBUG=prisma:* pnpm studio",
-    "studio:sqlite": "PROVIDER=sqlite NODE_OPTIONS=--experimental-sqlite pnpm studio",
-    "studio:sqlite:debug": "PROVIDER=sqlite NODE_OPTIONS=--experimental-sqlite pnpm studio:debug",
+    "studio:mysql": "PROVIDER=mysql pnpm studio",
+    "studio:mysql:debug": "PROVIDER=mysql pnpm studio:debug",
     "studio:postgres": "PROVIDER=postgres pnpm studio",
-    "studio:postgres:debug": "PROVIDER=postgres pnpm studio:debug"
+    "studio:postgres:debug": "PROVIDER=postgres pnpm studio:debug",
+    "studio:sqlite": "PROVIDER=sqlite NODE_OPTIONS=--experimental-sqlite pnpm studio",
+    "studio:sqlite:debug": "PROVIDER=sqlite NODE_OPTIONS=--experimental-sqlite pnpm studio:debug"
   },
   "keywords": [],
   "author": "",

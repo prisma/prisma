@@ -7,6 +7,7 @@ const SQLITE_PATH = 'file:dev.db'
 export default defineConfig({
   datasource: {
     url: {
+      mysql: process.env.DATABASE_URL_MYSQL!,
       postgres: process.env.DATABASE_URL_POSTGRES!,
       sqlite: SQLITE_PATH,
     }[process.env.PROVIDER!]!,

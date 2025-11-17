@@ -5,6 +5,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
 import type { Executor, Query } from '@prisma/studio-core-licensed/data'
 import { serializeError } from '@prisma/studio-core-licensed/data/bff'
+import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
 import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
 import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
 import { getPort } from 'get-port-please'
@@ -105,7 +106,19 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
   'prisma+postgres': POSTGRES_STUDIO_STUFF,
-  mysql: null,
+  mysql: {
+    async createExecutor(connectionString) {
+      const { createPool } = await import('mysql2/promise')
+
+      const pool = createPool(connectionString)
+
+      process.once('SIGINT', () => pool.destroy())
+      process.once('SIGTERM', () => pool.destroy())
+
+      return createMySQL2Executor(pool)
+    },
+    reExportAdapterScript: `export { createMySQLAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/mysql-core/index.js';`,
+  },
   sqlserver: null,
 }
 
