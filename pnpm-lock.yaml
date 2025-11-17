@@ -3487,6 +3487,9 @@ packages:
   '@prisma/engines-version@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95':
     resolution: {integrity: sha512-DqrQqRIgeocvWpgN7t9PymiJdV8ISSSrZCuilAtpKEaKIt4JUGIxsAdWNMRSHk188hYA2W1YFG5KvWUYBaCO1A==}
 
+  '@prisma/get-platform@6.8.2':
+    resolution: {integrity: sha512-vXSxyUgX3vm1Q70QwzwkjeYfRryIvKno1SXbIqwSptKwqKzskINnDUcx85oX+ys6ooN2ATGSD0xN2UTfg6Zcow==}
+
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
 
@@ -9888,6 +9891,10 @@ snapshots:
       - typescript
 
   '@prisma/engines-version@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
+
+  '@prisma/get-platform@6.8.2':
+    dependencies:
+      '@prisma/debug': 6.8.2
 
   '@prisma/ppg@1.0.1':
     dependencies:
