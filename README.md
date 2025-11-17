@@ -154,21 +154,21 @@ datasource db {
 Configure the Prisma CLI using a `prisma.config.ts` file. This file configures Prisma CLI subcommands like `migrate` and `studio`. Create a `prisma.config.ts` file in your project root:
 
 ```ts
-import { defineConfig, env } from "prisma/config";
+import { defineConfig, env } from 'prisma/config'
 
 type Env = {
   DATABASE_URL: string
 }
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: 'prisma/schema.prisma',
   migrations: {
-    path: "prisma/migrations",
+    path: 'prisma/migrations',
   },
   datasource: {
-    url: env<Env>("DATABASE_URL"),
+    url: env<Env>('DATABASE_URL'),
   },
-});
+})
 ```
 
 **Note**: Environment variables from `.env` files are not automatically loaded when using `prisma.config.ts`. You can use `dotenv` by importing `dotenv/config` at the top of your config file. For Bun, `.env` files are automatically loaded.
