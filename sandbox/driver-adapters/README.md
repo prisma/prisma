@@ -12,6 +12,7 @@ This is very important to double-check if you have multiple versions installed, 
   ```bash
   pnpm i
   ```
+- generate the client (e.g. for Postgres: `pnpm prisma generate --schema prisma/postgres/schema.prisma`)
 
 ### PlanetScale
 
@@ -37,9 +38,17 @@ In the current directory:
 
 You can also observe more logs by specifying the environment variable `DEBUG="prisma:driver-adapter:neon"`.
 
+### PPg
+
+- Create a Prisma Postgres database in the prisma console, and generate the Direct TCP connection URL from the API Keys section
+- Paste the Direct TCP URL in the `JS_PPG_DATABASE_URL` env variable.
+
+You can also observe more logs by specifying the environment variable `DEBUG="prisma:driver-adapter:ppg"`.
+
 ## How to use
 
 In the current directory:
 
 - Run `pnpm planetscale` to run smoke tests against the PlanetScale database
-- Run `pnpm neon` to run smoke tests against the PlanetScale database
+- Run `pnpm neon` to run smoke tests against the Neon database
+- Run `pnpm ppg` to run smoke tests against the Prisma Postgres database

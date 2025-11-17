@@ -326,6 +326,25 @@ importers:
         specifier: 7.4.0
         version: 7.4.0
 
+  packages/adapter-ppg:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      '@prisma/ppg':
+        specifier: ^1.0.1
+        version: 1.0.1
+      pg-types:
+        specifier: 4.0.2
+        version: 4.0.2
+      postgres-array:
+        specifier: 3.0.4
+        version: 3.0.4
+    devDependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
+
   packages/bundle-size:
     dependencies:
       '@libsql/client':
@@ -898,7 +917,7 @@ importers:
         version: 20.19.24
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.4.5))
+        version: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -1783,7 +1802,7 @@ importers:
     dependencies:
       '@ark/attest':
         specifier: 0.48.2
-        version: 0.48.2(typescript@5.4.5)
+        version: 0.48.2(typescript@5.8.2)
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -3410,6 +3429,9 @@ packages:
 
   '@prisma/engines-version@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95':
     resolution: {integrity: sha512-DqrQqRIgeocvWpgN7t9PymiJdV8ISSSrZCuilAtpKEaKIt4JUGIxsAdWNMRSHk188hYA2W1YFG5KvWUYBaCO1A==}
+
+  '@prisma/ppg@1.0.1':
+    resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
 
   '@prisma/prisma-schema-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95':
     resolution: {integrity: sha512-a5oGoO93x7+lBQN2Nor2JLLv1C20loZSY12lVki/3sk+QMfv1+IYJR2RZItI1pWBHunaMRwvEL7iU2B0u0ZXWQ==}
@@ -6654,6 +6676,10 @@ packages:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
     engines: {node: '>=4'}
 
+  pg-types@4.0.2:
+    resolution: {integrity: sha512-cRL3JpS3lKMGsKaWndugWQoLOCoP+Cic8oseVcbr0qhPzYD5DWXK+RZ9LY9wxRf7RQia4SCwQlXk0q6FCPrVng==}
+    engines: {node: '>=10'}
+
   pg-types@4.1.0:
     resolution: {integrity: sha512-o2XFanIMy/3+mThw69O8d4n1E5zsLhdO+OPqswezu7Z5ekP4hYDqlDjlmOpYMbzY2Br0ufCwJLdDIXeNVwcWFg==}
     engines: {node: '>=10'}
@@ -8098,16 +8124,16 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.48.2(typescript@5.4.5)':
+  '@ark/attest@0.48.2(typescript@5.8.2)':
     dependencies:
       '@ark/fs': 0.46.0
       '@ark/util': 0.46.0
       '@prettier/sync': 0.5.5(prettier@3.5.3)
       '@typescript/analyze-trace': 0.10.1
-      '@typescript/vfs': 1.6.1(typescript@5.4.5)
+      '@typescript/vfs': 1.6.1(typescript@5.8.2)
       arktype: 2.1.20
       prettier: 3.5.3
-      typescript: 5.4.5
+      typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
@@ -9136,6 +9162,41 @@ snapshots:
       - supports-color
       - ts-node
 
+  '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))':
+    dependencies:
+      '@jest/console': 29.7.0
+      '@jest/reporters': 29.7.0
+      '@jest/test-result': 29.7.0
+      '@jest/transform': 29.7.0
+      '@jest/types': 29.6.3
+      '@types/node': 20.19.24
+      ansi-escapes: 4.3.2
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-changed-files: 29.7.0
+      jest-config: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
+      jest-haste-map: 29.7.0
+      jest-message-util: 29.7.0
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-resolve-dependencies: 29.7.0
+      jest-runner: 29.7.0
+      jest-runtime: 29.7.0
+      jest-snapshot: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      jest-watcher: 29.7.0
+      micromatch: 4.0.8
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-ansi: 6.0.1
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
   '@jest/create-cache-key-function@29.7.0':
     dependencies:
       '@jest/types': 29.6.3
@@ -9666,6 +9727,13 @@ snapshots:
 
   '@prisma/engines-version@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
 
+  '@prisma/ppg@1.0.1':
+    dependencies:
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@prisma/prisma-schema-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
 
   '@prisma/query-compiler-wasm@6.20.0-11.next-80ee0a44bf5668992b0c909c946a755b86b56c95': {}
@@ -10068,7 +10136,7 @@ snapshots:
     dependencies:
       '@types/node': 20.19.24
       pg-protocol: 1.10.3
-      pg-types: 4.1.0
+      pg-types: 4.0.2
 
   '@types/pluralize@0.0.33': {}
 
@@ -10255,10 +10323,10 @@ snapshots:
       treeify: 1.1.0
       yargs: 16.2.0
 
-  '@typescript/vfs@1.6.1(typescript@5.4.5)':
+  '@typescript/vfs@1.6.1(typescript@5.8.2)':
     dependencies:
       debug: 4.4.3
-      typescript: 5.4.5
+      typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
@@ -11027,6 +11095,21 @@ snapshots:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-config: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.4.5))
+      jest-util: 29.7.0
+      prompts: 2.4.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
+  create-jest@29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2)):
+    dependencies:
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-config: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -12218,6 +12301,25 @@ snapshots:
       - supports-color
       - ts-node
 
+  jest-cli@29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2)):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
+      '@jest/test-result': 29.7.0
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      create-jest: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
+      exit: 0.1.2
+      import-local: 3.2.0
+      jest-config: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
   jest-config@29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.4.5)):
     dependencies:
       '@babel/core': 7.28.5
@@ -12245,6 +12347,37 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.19.24
       ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.4.5)
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+
+  jest-config@29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2)):
+    dependencies:
+      '@babel/core': 7.28.5
+      '@jest/test-sequencer': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.28.5)
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      deepmerge: 4.3.1
+      glob: 7.2.3
+      graceful-fs: 4.2.11
+      jest-circus: 29.7.0
+      jest-environment-node: 29.7.0
+      jest-get-type: 29.6.3
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-runner: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      micromatch: 4.0.8
+      parse-json: 5.2.0
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 20.19.24
+      ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -12494,6 +12627,18 @@ snapshots:
       '@jest/types': 29.6.3
       import-local: 3.2.0
       jest-cli: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.4.5))
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
+  jest@29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2)):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
+      '@jest/types': 29.6.3
+      import-local: 3.2.0
+      jest-cli: 29.7.0(@types/node@20.19.24)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -13326,6 +13471,16 @@ snapshots:
       postgres-bytea: 1.0.0
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
+
+  pg-types@4.0.2:
+    dependencies:
+      pg-int8: 1.0.1
+      pg-numeric: 1.0.2
+      postgres-array: 3.0.4
+      postgres-bytea: 3.0.0
+      postgres-date: 2.1.0
+      postgres-interval: 3.0.0
+      postgres-range: 1.1.4
 
   pg-types@4.1.0:
     dependencies:
@@ -14303,6 +14458,27 @@ snapshots:
       yn: 3.1.1
     optionalDependencies:
       '@swc/core': 1.11.5
+
+  ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.24)(typescript@5.8.2):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 20.19.24
+      acorn: 8.15.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.8.2
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.11.5
+    optional: true
 
   ts-pattern@5.6.2: {}
 
