@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { confirm, input, select } from '@inquirer/prompts'
 import { PrismaConfigInternal } from '@prisma/config'
 import { unstable_startServer } from '@prisma/dev'
@@ -20,10 +23,8 @@ import {
 } from '@prisma/internals'
 import dotenv from 'dotenv'
 import { Schema as Shape } from 'effect'
-import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import ora from 'ora'
-import path from 'path'
 import { match, P } from 'ts-pattern'
 
 import { poll, printPpgInitOutput } from './platform/_'
@@ -144,8 +145,8 @@ export const defaultEnv = async (url: string | undefined, debug = false, comment
 
 ${
   url.startsWith('prisma+postgres:') && url.includes('localhost')
-    ? `# The following \`prisma+postgres\` URL is similar to the URL produced by running a local Prisma Postgres 
-# server with the \`prisma dev\` CLI command, when not choosing any non-default ports or settings. The API key, unlike the 
+    ? `# The following \`prisma+postgres\` URL is similar to the URL produced by running a local Prisma Postgres
+# server with the \`prisma dev\` CLI command, when not choosing any non-default ports or settings. The API key, unlike the
 # one found in a remote Prisma Postgres URL, does not contain any sensitive information.\n\n`
     : ''
 }`
