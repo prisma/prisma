@@ -170,6 +170,50 @@ function clientExtensionsDefinitions(context: GenerateContext) {
   return [typeMap, ts.stringify(define)].join('\n')
 }
 
+function schemaMethodDefinition(activeProvider: string) {
+  // Only generate .schema() method for PostgreSQL and CockroachDB
+  if (activeProvider !== 'postgresql' && activeProvider !== 'cockroachdb') {
+    return ''
+  }
+
+  const method = ts
+    .method('schema')
+    .setDocComment(
+      ts.docComment`
+        Switch PostgreSQL schema context for query execution.
+        Returns a new client instance that shares the same database connection but operates in a different schema.
+
+        **Multi-Tenant Use Case:**
+        This is particularly useful for multi-tenant applications where each tenant has isolated data
+        in separate PostgreSQL schemas. By using \`.schema()\`, you can dynamically switch between
+        tenant schemas while reusing the same connection pool, ensuring data isolation and optimal
+        resource usage.
+
+        @param schemaName - The PostgreSQL schema name to switch to
+        @returns A new PrismaClient instance with schema context
+        @example
+        \`\`\`ts
+        // Multi-tenant application with isolated tenant data
+        const prisma = new PrismaClient()
+
+        // Each tenant has their own schema with isolated data
+        const tenant1Client = prisma.schema('tenant_1')
+        const tenant2Client = prisma.schema('tenant_2')
+
+        // Queries are automatically scoped to the tenant's schema
+        await tenant1Client.user.findMany() // Only returns tenant_1 users
+        await tenant2Client.user.findMany() // Only returns tenant_2 users
+
+        // All clients share the same connection pool for efficiency
+        \`\`\`
+      `,
+    )
+    .addParameter(ts.parameter('schemaName', ts.stringType))
+    .setReturnType(ts.namedType('PrismaClient').addGenericArgument(ts.namedType('ClientOptions')))
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
 function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('$Extensions.ExtendsHook')
@@ -426,6 +470,7 @@ export class PrismaClientClass implements Generable {
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
     protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
+    protected readonly activeProvider: string,
     protected readonly browser?: boolean,
   ) {}
   private get jsDoc(): string {
@@ -493,9 +538,10 @@ ${[
   runCommandRawDefinition(this.context),
   metricDefinition(this.context),
   applyPendingMigrationsDefinition.bind(this)(),
+  schemaMethodDefinition(this.activeProvider),
   extendsPropertyDefinition(),
 ]
-  .filter((d) => d !== null)
+  .filter((d) => d !== null && d !== '')
   .join('\n')
   .trim()}
 

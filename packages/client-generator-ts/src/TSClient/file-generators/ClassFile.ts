@@ -32,7 +32,7 @@ export function createClassFile(context: GenerateContext, options: TSClientOptio
 
   const stringifiedImports = imports.map((i) => ts.stringify(i))
 
-  const prismaClientClass = new PrismaClientClass(context, options.runtimeName)
+  const prismaClientClass = new PrismaClientClass(context, options.runtimeName, options.activeProvider)
 
   return `${jsDocHeader}
 ${stringifiedImports.join('\n')}
