@@ -29,7 +29,6 @@ test('is schema and env written on disk replace', async () => {
       migrations: {
         path: "prisma/migrations",
       },
-      engine: "classic",
       datasource: {
         url: env("DATABASE_URL"),
       },
@@ -73,7 +72,6 @@ test('works with url param', async () => {
       migrations: {
         path: "prisma/migrations",
       },
-      engine: "classic",
       datasource: {
         url: env("DATABASE_URL"),
       },
@@ -119,7 +117,6 @@ test('works with provider param - postgresql', async () => {
       migrations: {
         path: "prisma/migrations",
       },
-      engine: "classic",
       datasource: {
         url: env("DATABASE_URL"),
       },

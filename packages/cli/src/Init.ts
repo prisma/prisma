@@ -225,7 +225,6 @@ export default defineConfig({
   migrations: {
     path: ${normalizePath(migrationsPath)},
   },
-  engine: "classic",
   datasource: {
     url: env("DATABASE_URL"),
   },
