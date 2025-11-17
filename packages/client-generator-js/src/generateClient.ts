@@ -83,7 +83,7 @@ export async function buildClient({
   activeProvider,
   typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
-  const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
+  const baseClientOptions: Omit<TSClientOptions, 'runtimeName'> = {
     dmmf: getPrismaClientDMMF(dmmf),
     datasources,
     generator,
@@ -103,8 +103,7 @@ export async function buildClient({
 
   const nodeClientOptions = {
     ...baseClientOptions,
-    runtimeNameJs: 'client',
-    runtimeNameTs: 'client.js',
+    runtimeName: 'client',
   }
 
   // we create a regular client that is fit for Node.js
@@ -222,8 +221,7 @@ export async function buildClient({
 
   const wasmClient = new TSClient({
     ...baseClientOptions,
-    runtimeNameJs: 'wasm-compiler-edge',
-    runtimeNameTs: 'library.js',
+    runtimeName: 'wasm-compiler-edge',
     reusedTs: 'default',
     edge: true,
     wasm: true,

@@ -207,7 +207,7 @@ const defaultIndexConfig: BuildOptions = {
 }
 
 function writeDtsRexport(fileName: string) {
-  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
+  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./client"\n')
 }
 
 function* allNodeRuntimeBuildConfigs(): Generator<BuildOptions> {
@@ -238,6 +238,5 @@ void build([
   ...allWasmBindgenRuntimeConfigs(),
   defaultIndexConfig,
 ]).then(() => {
-  writeDtsRexport('binary.d.ts')
   writeDtsRexport('wasm-compiler-edge.d.ts')
 })

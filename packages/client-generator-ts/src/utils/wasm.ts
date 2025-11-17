@@ -48,7 +48,7 @@ export function buildGetWasmModule({ runtimeName, runtimeBase, activeProvider, m
   // different directory!) would break loading the modules if we copied
   // them to the generated client directory because they would not be where we
   // expect them to be anymore. Therefore, we don't copy anything when
-  // generating code for `library` or `client` runtimes, and we always load from
+  // generating code for the `client` runtime, and we always load from
   // `@prisma/client/runtime` when doing it manually with `fs.readFile`. The
   // issues that can arise when importing Wasm from node_modules with bundlers
   // don't apply in this case because we are not *importing* them, we're just
