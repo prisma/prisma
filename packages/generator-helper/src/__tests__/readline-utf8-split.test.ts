@@ -6,8 +6,7 @@ import { describe, expect, test } from 'vitest'
 /**
  * Verify node:readline correctly handles multibyte UTF-8 characters split across chunks.
  *
- * The custom byline implementation we replaced had StringDecoder logic for this.
- * These tests confirm readline.createInterface() handles it correctly.
+ * This is a regression test for https://github.com/prisma/prisma/issues/27695
  *
  * Note: Integration tests can't reliably reproduce chunk splitting, so these unit tests
  * directly control chunk boundaries.
