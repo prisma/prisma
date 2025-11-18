@@ -149,6 +149,7 @@
     "log-update": "6.1.0",
     "node-fetch": "3.3.2",
     "npm-packlist": "5.1.3",
+    "ohash": "2.0.11",
     "open": "8.4.2",
     "ora": "8.2.0",
     "package-up": "5.0.0",
@@ -176,7 +177,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/dev": "0.13.0",
     "@prisma/engines": "workspace:*",
-    "@prisma/studio-core-licensed": "0.0.0-dev.202511162338",
+    "@prisma/studio-core-licensed": "0.8.0",
     "mysql2": "3.15.3",
     "postgres": "3.4.7"
   },

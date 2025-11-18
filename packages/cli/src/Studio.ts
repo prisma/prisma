@@ -3,18 +3,18 @@ import { readFile } from 'node:fs/promises'
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
-import { getProjectHash } from '@prisma/internals/src'
-import type { Executor, Query } from '@prisma/studio-core-licensed/data'
-import { serializeError } from '@prisma/studio-core-licensed/data/bff'
+import type { Executor, SequenceExecutor } from '@prisma/studio-core-licensed/data'
+import { serializeError, type StudioBFFRequest } from '@prisma/studio-core-licensed/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
 import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
 import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
-import type { Check } from 'checkpoint-client'
-import * as checkpoint from 'checkpoint-client'
+import type { StudioProps } from '@prisma/studio-core-licensed/ui'
+import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { bold, dim, red } from 'kleur/colors'
+import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
 
@@ -117,8 +117,8 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
 
       const pool = createPool(connectionString)
 
-      process.once('SIGINT', () => pool.destroy())
-      process.once('SIGTERM', () => pool.destroy())
+      process.once('SIGINT', () => pool.end())
+      process.once('SIGTERM', () => pool.end())
 
       return createMySQL2Executor(pool)
     },
@@ -258,36 +258,71 @@ ${bold('Examples')}
     })
 
     app.post('/bff', async (ctx) => {
-      const { query } = (await ctx.req.json()) as { query: Query }
+      const request = (await ctx.req.json()) as StudioBFFRequest
 
-      const [error, results] = await executor.execute(query)
+      const { procedure } = request
 
-      if (error) {
-        return ctx.json([serializeError(error)])
+      if (procedure === 'query') {
+        const [error, results] = await executor.execute(request.query)
+
+        if (error) {
+          return ctx.json([serializeError(error)])
+        }
+
+        return ctx.json([null, results])
       }
 
-      return ctx.json([null, results])
+      if (procedure === 'sequence') {
+        if (!('executeSequence' in executor)) {
+          return ctx.json([[serializeError(new Error('Executor does not support sequences'))]])
+        }
+
+        const [[error0, result0], maybeResult1] = await (executor as SequenceExecutor).executeSequence(request.sequence)
+
+        if (error0) {
+          return ctx.json([[serializeError(error0)]])
+        }
+
+        const [error1, result1] = maybeResult1 || []
+
+        if (error1) {
+          return ctx.json([[null, result0], [serializeError(error1)]])
+        }
+
+        return ctx.json([
+          [null, result0],
+          [null, result1],
+        ])
+      }
+
+      procedure satisfies undefined
+
+      return ctx.text('Unknown procedure', { status: 500 })
     })
 
-    app.post('/telemetry', async (ctx) => {
-      const event: StudioEvent = await ctx.req.json()
+    let projectHash: string | null = null
+    const version = packageJson.dependencies['@prisma/studio-core-licensed']
 
-      if (!isStudioLaunchedEvent(event)) {
+    app.post('/telemetry', async (ctx) => {
+      const { eventId, name, payload, timestamp } =
+        await ctx.req.json<Parameters<NonNullable<StudioProps['onEvent']>>[0]>()
+
+      if (name !== 'studio_launched') {
         return ctx.body(null, 200)
       }
 
-      const data: Check.Input = {
-        product: 'prisma-studio-cli',
-        version: packageJson.dependencies['@prisma/studio-core-licensed'],
-        project_hash: await getProjectHash(undefined, undefined),
-        command: event.name,
-        local_timestamp: event.timestamp,
-        client_event_id: event.eventId,
+      const input: Check.Input = {
         check_if_update_available: false,
-        information: JSON.stringify({ eventPayload: event.payload }),
+        client_event_id: eventId,
+        command: name,
+        information: JSON.stringify({ eventPayload: payload, protocol }),
+        local_timestamp: timestamp,
+        product: 'prisma-studio-cli',
+        project_hash: (projectHash ??= digest(process.cwd())),
+        version,
       }
 
-      await checkpoint.check(data).catch(() => {
+      await sendEvent(input).catch(() => {
         // noop
       })
 
@@ -313,6 +348,10 @@ ${bold('Examples')}
 
     return ''
   }
+}
+
+function getUrlBasePath(url: string | undefined, configPath: string | null): string {
+  return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
 }
 
 // prettier-ignore
@@ -378,24 +417,3 @@ const INDEX_HTML =
     </script>
   </body>
 </html>`
-
-function getUrlBasePath(url: string | undefined, configPath: string | null): string {
-  return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
-}
-
-export type StudioEvent =
-  | {
-      name: 'studio_launched'
-      payload: {
-        embeddingType?: string
-        vendorId?: string
-        tableCount: number
-      }
-      eventId: string
-      timestamp: string
-    }
-  | { name: string }
-
-function isStudioLaunchedEvent(event: StudioEvent): event is Extract<StudioEvent, { name: 'studio_launched' }> {
-  return event.name === 'studio_launched'
-}
