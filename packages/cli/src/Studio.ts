@@ -3,17 +3,22 @@ import { readFile } from 'node:fs/promises'
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
+import { getProjectHash } from '@prisma/internals/src'
 import type { Executor, Query } from '@prisma/studio-core-licensed/data'
 import { serializeError } from '@prisma/studio-core-licensed/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
 import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
 import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
+import type { Check } from 'checkpoint-client'
+import * as checkpoint from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
+
+const packageJson = require('../package.json')
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -265,9 +270,26 @@ ${bold('Examples')}
     })
 
     app.post('/telemetry', async (ctx) => {
-      // TODO: ...
+      const event: StudioEvent = await ctx.req.json()
 
-      console.log(await ctx.req.json())
+      if (!isStudioLaunchedEvent(event)) {
+        return ctx.body(null, 200)
+      }
+
+      const data: Check.Input = {
+        product: 'prisma-studio-cli',
+        version: packageJson.dependencies['@prisma/studio-core-licensed'],
+        project_hash: await getProjectHash(undefined, undefined),
+        command: event.name,
+        local_timestamp: event.timestamp,
+        client_event_id: event.eventId,
+        check_if_update_available: false,
+        information: JSON.stringify({ eventPayload: event.payload }),
+      }
+
+      await checkpoint.check(data).catch(() => {
+        // noop
+      })
 
       return ctx.body(null, 200)
     })
@@ -359,4 +381,21 @@ const INDEX_HTML =
 
 function getUrlBasePath(url: string | undefined, configPath: string | null): string {
   return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
+}
+
+export type StudioEvent =
+  | {
+      name: 'studio_launched'
+      payload: {
+        embeddingType?: string
+        vendorId?: string
+        tableCount: number
+      }
+      eventId: string
+      timestamp: string
+    }
+  | { name: string }
+
+function isStudioLaunchedEvent(event: StudioEvent): event is Extract<StudioEvent, { name: 'studio_launched' }> {
+  return event.name === 'studio_launched'
 }
