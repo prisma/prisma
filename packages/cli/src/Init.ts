@@ -17,7 +17,6 @@ import {
   isError,
   link,
   logger,
-  PRISMA_POSTGRES_PROTOCOL,
   PRISMA_POSTGRES_PROVIDER,
   protocolToConnectorType,
 } from '@prisma/internals'
@@ -28,10 +27,12 @@ import ora from 'ora'
 import { match, P } from 'ts-pattern'
 
 import { FileWriter } from './init/file-writer'
-import { poll, printPpgInitOutput } from './platform/_'
-import { credentialsFile } from './platform/_lib/credentials'
+import { ManagementApi, Region } from './management-api/api'
+import { login } from './management-api/auth'
+import { createAuthenticatedManagementApiClient } from './management-api/auth-client'
+import { loadCredentials, saveCredentials } from './management-api/credentials'
+import { printPpgInitOutput } from './platform/_'
 import { successMessage } from './platform/_lib/messages'
-import { getPrismaPostgresRegionsOrThrow } from './platform/accelerate/regions'
 import { determineClientOutputPath } from './utils/client-output-path'
 import { printError } from './utils/prompt/utils/print'
 
@@ -386,9 +387,9 @@ export class Init implements Command {
     }
 
     let prismaPostgresDatabaseUrl: string | undefined
-    let workspaceId = ``
-    let projectId = ``
-    let environmentId = ``
+    let workspaceId: string | undefined
+    let projectId: string | undefined
+    let environmentId: string | undefined
 
     const outputDir = process.cwd()
     const prismaFolder = path.join(outputDir, 'prisma')
@@ -399,10 +400,7 @@ export class Init implements Command {
     let generatedName: string | undefined
 
     if (isPpgCommand) {
-      const PlatformCommands = await import(`./platform/_`)
-
-      const credentials = await credentialsFile.load()
-      if (isError(credentials)) throw credentials
+      const credentials = await loadCredentials()
 
       if (!credentials) {
         if (args['--non-interactive']) {
@@ -415,8 +413,7 @@ export class Init implements Command {
         if (!authAnswer) {
           return 'Project creation aborted. You need to authenticate to use Prisma Postgres'
         }
-        const authenticationResult = await PlatformCommands.loginOrSignup()
-        console.log(`Successfully authenticated as ${bold(authenticationResult.email)}.`)
+        await saveCredentials(await login())
       }
 
       if (args['--prompt'] || args['--vibe']) {
@@ -451,19 +448,21 @@ export class Init implements Command {
       }
 
       console.log("Let's set up your Prisma Postgres database!")
-      const platformToken = await PlatformCommands.getTokenOrThrow(args)
-      const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
-      const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
+
+      const client = await createAuthenticatedManagementApiClient()
+      const api = new ManagementApi(client)
+
+      const regions = await api.getRegions()
 
       const ppgRegionSelection =
-        args['--region'] ||
+        (args['--region'] as Region) ||
         (await select({
           message: 'Select your region:',
           default: 'us-east-1',
           choices: regions.map((region) => ({
-            name: `${region.id} - ${region.displayName}`,
-            value: region.id,
-            disabled: region.ppgStatus === 'unavailable',
+            name: `${region.id} - ${region.name}`,
+            value: region.id as Region,
+            disabled: region.status !== 'available',
           })),
           loop: true,
         }))
@@ -478,39 +477,29 @@ export class Init implements Command {
       const spinner = ora(`Creating project ${bold(projectDisplayNameAnswer)} (this may take a few seconds)...`).start()
 
       try {
-        const project = await PlatformCommands.Project.createProjectOrThrow({
-          token: platformToken,
-          displayName: projectDisplayNameAnswer,
-          workspaceId: defaultWorkspace.id,
-          allowRemoteDatabases: false,
-          ppgRegion: ppgRegionSelection,
-        })
+        const project = await api.createProjectWithDatabase(projectDisplayNameAnswer, ppgRegionSelection)
 
-        spinner.text = `Waiting for your Prisma Postgres database to be ready...`
+        if (!project.database) {
+          // This should never happen: `database` should only be `null` when
+          // the request body has `createDatabase: false`.
+          throw new Error('Missing database info in response')
+        }
 
-        workspaceId = defaultWorkspace.id
+        if (!project.database.directConnection) {
+          // This should never happen: OpenAPI types are not entirely correct,
+          // `directConnection` is not independently nullable and must always
+          // be present if `database` is in the response body.
+          throw new Error('Missing connection string in response')
+        }
+
+        const { host, user, pass } = project.database.directConnection
+        prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}`
+
+        workspaceId = project.workspace.id
         projectId = project.id
-        environmentId = project.defaultEnvironment.id
 
-        await poll(
-          () =>
-            PlatformCommands.Environment.getEnvironmentOrThrow({
-              environmentId: project.defaultEnvironment.id,
-              token: platformToken,
-            }),
-          (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
-            environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
-          5000, // Poll every 5 seconds
-          120000, // if it takes more than two minutes, bail with an error
-        )
-
-        const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
-          token: platformToken,
-          environmentId: project.defaultEnvironment.id,
-          displayName: `database-setup-prismaPostgres-api-key`,
-        })
-
-        prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+        // TODO: there's currently no way to get the environment ID using the Management API
+        environmentId = undefined
 
         spinner.succeed(successMessage('Your Prisma Postgres database is ready ✅'))
       } catch (error) {
@@ -527,8 +516,8 @@ export class Init implements Command {
       if (isPpgCommand) {
         return printPpgInitOutput({
           databaseUrl: prismaPostgresDatabaseUrl!,
-          workspaceId,
-          projectId,
+          workspaceId: workspaceId!,
+          projectId: projectId!,
           environmentId,
           isExistingPrismaProject: true,
         })
@@ -682,7 +671,12 @@ Learn more: ${link('https://pris.ly/getting-started')}
  `
 
     return isPpgCommand
-      ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+      ? printPpgInitOutput({
+          databaseUrl: prismaPostgresDatabaseUrl!,
+          workspaceId: workspaceId!,
+          projectId: projectId!,
+          environmentId,
+        })
       : defaultOutput
   }
 
