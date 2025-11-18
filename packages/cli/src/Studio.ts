@@ -73,7 +73,7 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
-      const resolvedPath = path !== ':memory:' ? resolve(dirname(relativeTo), path) : path
+      const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
 
       let database: import('better-sqlite3').Database | undefined = undefined
 
@@ -89,7 +89,7 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
           const { default: Database } = await import('better-sqlite3')
 
           database = new Database(resolvedPath)
-        } catch {
+        } catch (error) {
           throw new Error(
             `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}\n\nPlease use Node.js >=22.5 or ensure you have \`better-sqlite3\` installed.`,
           )
@@ -221,7 +221,7 @@ ${bold('Examples')}
 
     const executor = await studioStuff.createExecutor(
       connectionString,
-      args['--url'] ? process.cwd() : config.loadedFromFile || process.cwd(),
+      getUrlBasePath(args['--url'], config.loadedFromFile),
     )
 
     const app = new Hono()
@@ -356,3 +356,7 @@ const INDEX_HTML =
     </script>
   </body>
 </html>`
+
+function getUrlBasePath(url: string | undefined, configPath: string | null): string {
+  return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
+}
