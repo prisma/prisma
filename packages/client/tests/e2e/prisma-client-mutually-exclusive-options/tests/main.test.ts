@@ -1,36 +1,40 @@
 import path from 'path'
 import * as ts from 'typescript'
 
-import { allOptions } from '../../_utils/prisma-client-imports'
-
 const baseTsConfig = require('../../tsconfig.base.json').compilerOptions
 
 const dirPath = path.join(__dirname, '..', 'src')
-const depTs = path.resolve(dirPath, 'dep.ts')
-const noDepTs = path.resolve(dirPath, 'no-dep.ts')
+const accelerateTs = path.resolve(dirPath, 'accelerate.ts')
+const adapterTs = path.resolve(dirPath, 'adapter.ts')
+const accelerateAndAdapterTs = path.resolve(dirPath, 'accelerate-adapter.ts')
 const defaultTs = path.resolve(dirPath, 'default.ts')
+const emptyTs = path.resolve(dirPath, 'empty.ts')
 
 describe('Typechecking', () => {
-  test('custom import via dependency', () => {
-    for (const options of allOptions) {
-      typeCheck(depTs, options)
-    }
+  const options = { module: 'ES2022', moduleResolution: 'Bundler' } as const
+
+  test('constructor with accelerateUrl', () => {
+    typeCheck(accelerateTs, options)
   })
 
-  test('custom direct import', () => {
-    for (const options of allOptions) {
-      typeCheck(noDepTs, options)
-    }
+  test('constructor with adapter', () => {
+    typeCheck(adapterTs, options)
   })
 
-  test('default import', () => {
-    for (const options of allOptions) {
-      typeCheck(defaultTs, options)
-    }
+  test('default constructor', () => {
+    expect(() => typeCheck(defaultTs, options)).toThrow()
+  })
+
+  test('empty constructor', () => {
+    expect(() => typeCheck(emptyTs, options)).toThrow()
+  })
+
+  test('constructor with both adapter and accelerateUrl', () => {
+    expect(() => typeCheck(accelerateAndAdapterTs, options)).toThrow()
   })
 })
 
-function typeCheck(fileName: string, options: any) {
+function typeCheck(fileName: string, options: Record<string, string>) {
   console.info(`Typechecking ${fileName} with options:`, options)
 
   const fullOptions = ts.convertCompilerOptionsFromJson(
