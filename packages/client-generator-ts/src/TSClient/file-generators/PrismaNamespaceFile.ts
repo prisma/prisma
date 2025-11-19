@@ -79,8 +79,7 @@ export type BatchPayload = {
 ${clientExtensionsDefinitions()}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-// PrismaClientOptions is re-exported from runtime to ensure type consistency with the union type definition
-export type PrismaClientOptions = runtime.PrismaClientOptions
+${ts.stringify(ts.moduleExport(buildClientOptions(context)))}
 ${ts.stringify(globalOmitConfig(context.dmmf))}
 
 /* Types for Logging */
@@ -166,100 +165,107 @@ function clientExtensionsDefinitions() {
   return ts.stringify(define)
 }
 
-// TODO: see if we can get rid of this.
-// function buildClientOptions(context: GenerateContext) {
-//   const clientOptions = ts
-//     .interfaceDeclaration('PrismaClientOptions')
-//     .add(
-//       ts
-//         .property('errorFormat', ts.namedType('ErrorFormat'))
-//         .optional()
-//         .setDocComment(ts.docComment('@default "colorless"')),
-//     )
-//     .add(
-//       ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
-//         .setDocComment(ts.docComment`
-//              @example
-//              \`\`\`
-//              // Shorthand for \`emit: 'stdout'\`
-//              log: ['query', 'info', 'warn', 'error']
+function buildClientOptions(context: GenerateContext) {
+  // Build the mutually exclusive options union type
+  // This matches PrismaClientMutuallyExclusiveOptions from runtime
+  const adapterOption = ts
+    .objectType()
+    .add(
+      ts
+        .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
+        .setDocComment(ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.')),
+    )
+    .add(ts.property('accelerateUrl', ts.neverType).optional())
 
-//              // Emit as events only
-//              log: [
-//                { emit: 'event', level: 'query' },
-//                { emit: 'event', level: 'info' },
-//                { emit: 'event', level: 'warn' }
-//                { emit: 'event', level: 'error' }
-//              ]
+  const accelerateUrlOption = ts
+    .objectType()
+    .add(
+      ts
+        .property('accelerateUrl', ts.stringType)
+        .setDocComment(
+          ts.docComment(
+            'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
+          ),
+        ),
+    )
+    .add(ts.property('adapter', ts.neverType).optional())
 
-//             // Emit as events and log to stdout
-//             log: [
-//               { emit: 'stdout', level: 'query' },
-//               { emit: 'stdout', level: 'info' },
-//               { emit: 'stdout', level: 'warn' }
-//               { emit: 'stdout', level: 'error' }
-//             ]
-//              \`\`\`
-//              Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
-//           `),
-//     )
+  const mutuallyExclusiveOptions = ts.unionType([adapterOption, accelerateUrlOption])
 
-//   const transactionOptions = ts
-//     .objectType()
-//     .add(ts.property('maxWait', ts.numberType).optional())
-//     .add(ts.property('timeout', ts.numberType).optional())
+  // Build the other optional properties
+  const otherOptions = ts
+    .objectType()
+    .add(
+      ts
+        .property('errorFormat', ts.namedType('ErrorFormat'))
+        .optional()
+        .setDocComment(ts.docComment('@default "colorless"')),
+    )
+    .add(
+      ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
+        .setDocComment(ts.docComment`
+             @example
+             \`\`\`
+             // Shorthand for \`emit: 'stdout'\`
+             log: ['query', 'info', 'warn', 'error']
 
-//   if (context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
-//     transactionOptions.add(ts.property('isolationLevel', ts.namedType('TransactionIsolationLevel')).optional())
-//   }
+             // Emit as events only
+             log: [
+               { emit: 'event', level: 'query' },
+               { emit: 'event', level: 'info' },
+               { emit: 'event', level: 'warn' }
+               { emit: 'event', level: 'error' }
+             ]
 
-//   clientOptions.add(
-//     ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
-//              The default values for transactionOptions
-//              maxWait ?= 2000
-//              timeout ?= 5000
-//           `),
-//   )
+            // Emit as events and log to stdout
+            log: [
+              { emit: 'stdout', level: 'query' },
+              { emit: 'stdout', level: 'info' },
+              { emit: 'stdout', level: 'warn' }
+              { emit: 'stdout', level: 'error' }
+            ]
+             \`\`\`
+             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+          `),
+    )
 
-//   // Note: adapter and accelerateUrl are mutually exclusive and at least one is required.
-//   // This is enforced by the runtime type PrismaClientMutuallyExclusiveOptions.
-//   // We define them as optional here for the interface, but the actual type constraint
-//   // comes from the runtime type definition.
-//   clientOptions.add(
-//     ts
-//       .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
-//       .optional()
-//       .setDocComment(
-//         ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
-//       ),
-//   )
-//   clientOptions.add(
-//     ts
-//       .property('accelerateUrl', ts.stringType)
-//       .optional()
-//       .setDocComment(
-//         ts.docComment(
-//           'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
-//         ),
-//       ),
-//   )
+  const transactionOptions = ts
+    .objectType()
+    .add(ts.property('maxWait', ts.numberType).optional())
+    .add(ts.property('timeout', ts.numberType).optional())
 
-//   clientOptions.add(
-//     ts.property('omit', ts.namedType('GlobalOmitConfig')).optional().setDocComment(ts.docComment`
-//         Global configuration for omitting model fields by default.
+  if (context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+    transactionOptions.add(ts.property('isolationLevel', ts.namedType('TransactionIsolationLevel')).optional())
+  }
 
-//         @example
-//         \`\`\`
-//         const prisma = new PrismaClient({
-//           omit: {
-//             user: {
-//               password: true
-//             }
-//           }
-//         })
-//         \`\`\`
-//       `),
-//   )
+  otherOptions.add(
+    ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
+             The default values for transactionOptions
+             maxWait ?= 2000
+             timeout ?= 5000
+          `),
+  )
 
-//   return clientOptions
-// }
+  otherOptions.add(
+    ts.property('omit', ts.namedType('GlobalOmitConfig')).optional().setDocComment(ts.docComment`
+        Global configuration for omitting model fields by default.
+
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          omit: {
+            user: {
+              password: true
+            }
+          }
+        })
+        \`\`\`
+      `),
+  )
+
+  // Intersect the mutually exclusive options with the other options
+  // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }
+  const prismaClientOptions = ts.intersectionType([mutuallyExclusiveOptions, otherOptions])
+
+  return ts.typeDeclaration('PrismaClientOptions', prismaClientOptions)
+}
