@@ -493,7 +493,7 @@ export class Init implements Command {
         }
 
         const { host, user, pass } = project.database.directConnection
-        prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}`
+        prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
 
         workspaceId = project.workspace.id
         projectId = project.id
