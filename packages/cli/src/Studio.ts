@@ -73,6 +73,8 @@ const POSTGRES_STUDIO_STUFF: StudioStuff = {
   reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
 }
 
+type Database = { new (path: string): import('better-sqlite3').Database }
+
 const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | null> = {
   // TODO: figure out PGLite support later.
   file: {
@@ -81,12 +83,12 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
 
       const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
 
-      let database: import('better-sqlite3').Database | undefined = undefined
+      let database: InstanceType<Database> | undefined = undefined
 
       try {
         // TODO: remove 'as' once Node.js v22 is the minimum supported version.
         const { DatabaseSync } = (await import('node:sqlite' as never)) as {
-          DatabaseSync: { new (path: string): import('better-sqlite3').Database }
+          DatabaseSync: Database
         }
 
         database = new DatabaseSync(resolvedPath)
@@ -101,14 +103,16 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
             }
             case 'deno': {
               const { Database } = (await import('jsr:@db/sqlite@0.13.0' as never)) as {
-                Database: { new (path: string): import('better-sqlite3').Database }
+                Database: Database
               }
 
               database = new Database(resolvedPath)
               break
             }
             case 'bun': {
-              const { Database } = await import('bun:sqlite')
+              const { Database } = (await import('bun:sqlite' as never)) as {
+                Database: Database
+              }
 
               database = new Database(resolvedPath) as never
               break
