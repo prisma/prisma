@@ -495,11 +495,9 @@ export class Init implements Command {
         const { host, user, pass } = project.database.directConnection
         prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
 
-        workspaceId = project.workspace.id
-        projectId = project.id
-
-        // TODO: there's currently no way to get the environment ID using the Management API
-        environmentId = undefined
+        workspaceId = project.workspace.id.replace(/^wksp_/, '')
+        projectId = project.id.replace(/^proj_/, '')
+        environmentId = project.database.id.replace(/^db_/, '')
 
         spinner.succeed(successMessage('Your Prisma Postgres database is ready ✅'))
       } catch (error) {
