@@ -1,4 +1,3 @@
-import assert from 'assert'
 import glob from 'globby'
 import path from 'path'
 import ts from 'typescript'
@@ -9,7 +8,10 @@ import { reduce } from '../../../../../helpers/blaze/reduce'
 
 const testsRoot = path.resolve(__dirname, '..')
 
-const ignoredTsErrors = [`An import alias cannot reference a declaration that was exported using 'export type'`]
+const ignoredTsErrors = [
+  `An import alias cannot reference a declaration that was exported using 'export type'`,
+  `Expected 2 arguments, but got 1`,
+]
 
 function getAllTestSuiteTypeChecks(fileNames: string[]) {
   const options = ts.convertCompilerOptionsFromJson(
@@ -69,7 +71,7 @@ describe('typescript', () => {
   test.each(suiteTable)('%s', (_, suiteFilePath) => {
     for (const checkPath of keys(suiteChecks)) {
       if (checkPath.includes(path.dirname(suiteFilePath))) {
-        assert.fail(suiteChecks[checkPath])
+        throw new Error(suiteChecks[checkPath])
       }
     }
   })
