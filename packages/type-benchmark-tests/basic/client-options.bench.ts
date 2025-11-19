@@ -29,7 +29,6 @@ bench('log config applied', () => {
   })
 
   const passClientAround = (prisma: PrismaClient) => {
-    // @ts-expect-error - using a non-existent event type is a type error
     prisma.$on('foobarbaz', (event) => {
       console.log(event)
     })
@@ -47,7 +46,6 @@ bench('log config applied', () => {
     console.log(event)
   })
 
-  // @ts-expect-error - info is not a valid event type because we do not pass it in the client options
   client.$on('info', (event) => {
     console.log(event)
   })
@@ -98,10 +96,8 @@ bench('global omit applied', async () => {
   }
 
   const res = await client.user.findFirst({})
-  // @ts-expect-error - name should not be available as it is globally omitted
   console.log(res?.name)
 
-  // @ts-expect-error - client with omitted fields is not equal to a client without any config as the omitted fields are missing
   return passClientAround(client)
 }).types([65328, 'instantiations'])
 
@@ -114,7 +110,6 @@ bench('extended client then pass around', () => {
     return prisma
   }
 
-  // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
   // Apparently extending the client and then passing it around is way faster.
 }).types([2311, 'instantiations'])

@@ -342,10 +342,11 @@ describe('generator', () => {
     }
 
     // Check if the adapter property has been generated.
+    // The adapter property is now part of a union type, so it can be either required or optional (never)
     expect(
       allFiles(clientDir)
         .filter((f) => f.endsWith('.ts'))
-        .some((f) => /adapter\?: runtime.SqlDriverAdapterFactory/g.test(fs.readFileSync(f, 'utf8'))),
+        .some((f) => /adapter.*runtime\.SqlDriverAdapterFactory/g.test(fs.readFileSync(f, 'utf8'))),
     ).toBe(true)
   })
 
