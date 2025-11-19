@@ -21,6 +21,11 @@ declare const PrismaClientConstructor: typeof PrismaClient
 
 bench('log config applied', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     log: [
       { level: 'query', emit: 'event' },
       { level: 'error', emit: 'stdout' },
@@ -56,6 +61,11 @@ bench('log config applied', () => {
 
 bench('errorFormat applied', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     errorFormat: 'pretty',
   })
 
@@ -84,6 +94,11 @@ bench('adapter applied', () => {
 
 bench('global omit applied', async () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     omit: {
       user: {
         name: true,
@@ -103,6 +118,11 @@ bench('global omit applied', async () => {
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     errorFormat: 'pretty',
   }).$extends({})
 
@@ -116,6 +136,11 @@ bench('extended client then pass around', () => {
 
 bench('passed around client then extend', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     errorFormat: 'pretty',
   })
 
@@ -129,6 +154,11 @@ bench('passed around client then extend', () => {
 
 bench('fully extended', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     errorFormat: 'pretty',
   })
 
@@ -170,7 +200,13 @@ bench('fully extended', () => {
 }).types([8355, 'instantiations'])
 
 bench('fully extended without client options', () => {
-  const client = new PrismaClientConstructor()
+  const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
+  })
 
   const passClientAround = (prisma: PrismaClient) => {
     return prisma.$extends({
@@ -215,6 +251,11 @@ bench('fully extended without client options', () => {
 
 bench('using typeof', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     log: [
       { level: 'query', emit: 'event' },
       { level: 'error', emit: 'stdout' },
@@ -246,6 +287,11 @@ type BasePrismaClient = PrismaClient<any, any, any>
 
 bench('Any PrismaClient', () => {
   const client = new PrismaClientConstructor({
+    adapter: {
+      provider: 'sqlite',
+      adapterName: 'mock-adapter',
+      connect: () => Promise.resolve({} as any),
+    },
     log: [
       { level: 'query', emit: 'event' },
       { level: 'error', emit: 'stdout' },
