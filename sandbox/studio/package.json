@@ -17,7 +17,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/config": "../../packages/config"
+    "@prisma/config": "../../packages/config",
+    "mysql2": "^3.15.3"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.29.3",
