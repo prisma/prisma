@@ -704,7 +704,7 @@ testMatrix.setupTestSuite(
       let _prisma: PrismaClient
 
       beforeEach(() => {
-        _prisma = newPrismaClient()
+        _prisma = newPrismaClient({})
       })
 
       afterEach(async () => {
@@ -750,7 +750,7 @@ testMatrix.setupTestSuite(
       let _prisma: PrismaClient
 
       beforeAll(async () => {
-        _prisma = newPrismaClient()
+        _prisma = newPrismaClient({})
         await _prisma.$connect()
       })
 

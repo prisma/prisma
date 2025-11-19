@@ -71,7 +71,7 @@ testMatrix.setupTestSuite(
     }
 
     testIf(driverAdapter === 'js_d1')('D1 does not support journal_mode = WAL', async () => {
-      const prisma = newPrismaClient()
+      const prisma = newPrismaClient({})
       expect.assertions(1)
 
       try {
