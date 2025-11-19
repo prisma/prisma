@@ -1,5 +1,4 @@
 import { defineConfig } from '@prisma/config'
-// @ts-ignore
 import { DatabaseSync } from 'node:sqlite'
 import { createConnection } from 'mysql2/promise'
  
