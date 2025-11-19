@@ -1,3 +1,4 @@
+import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import { enginesVersion } from '@prisma/engines-version'
@@ -5,11 +6,12 @@ import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-pla
 import del from 'del'
 import { default as fetch, type Response } from 'node-fetch'
 import timeoutSignal from 'timeout-signal'
-import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'
 import { download, getBinaryName, getVersion } from '../download'
+import * as downloadZipModule from '../downloadZip'
 import { getFiles } from './__utils__/getFiles'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
@@ -565,6 +567,97 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       const files = getFiles(baseDirChecksum).map((f) => f.name)
       expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(schemaEnginePath)])
       expect(await getVersion(schemaEnginePath, BinaryType.SchemaEngineBinary)).toContain(CURRENT_ENGINES_HASH)
+    })
+  })
+
+  describe('mirror fallback handling', () => {
+    const customMirror = 'https://custom.invalid'
+
+    beforeEach(async () => {
+      await del(path.posix.join(baseDirChecksum, '*engine*'))
+    })
+
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+
+    test('falls back to default CDN when custom mirror fails', async () => {
+      vi.stubEnv('PRISMA_ENGINES_MIRROR', customMirror)
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      const downloadZipSpy = vi.spyOn(downloadZipModule, 'downloadZip').mockImplementation(async (url, targetPath) => {
+        if (String(url).startsWith(customMirror)) {
+          throw new Error('403 Forbidden')
+        }
+
+        await fs.mkdir(path.dirname(targetPath), { recursive: true })
+        await fs.writeFile(targetPath, 'binary')
+
+        return {
+          lastModified: new Date().toUTCString(),
+          sha256: null,
+          zippedSha256: null,
+        }
+      })
+
+      const schemaEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
+
+      try {
+        await expect(
+          download({
+            binaries: {
+              [BinaryType.SchemaEngineBinary]: baseDirChecksum,
+            },
+            binaryTargets: [binaryTarget],
+            version: CURRENT_ENGINES_HASH,
+          }),
+        ).resolves.toStrictEqual({
+          'schema-engine': {
+            [binaryTarget]: schemaEnginePath,
+          },
+        })
+
+        expect(downloadZipSpy).toHaveBeenCalledTimes(2)
+        expect(downloadZipSpy.mock.calls[0]?.[0]).toContain(customMirror)
+        expect(downloadZipSpy.mock.calls[1]?.[0]).toContain('https://binaries.prisma.sh')
+        expect(warnSpy).toHaveBeenCalled()
+      } finally {
+        downloadZipSpy.mockRestore()
+        warnSpy.mockRestore()
+      }
+    })
+
+    test('strict mirror disables fallback', async () => {
+      vi.stubEnv('PRISMA_ENGINES_MIRROR', customMirror)
+      vi.stubEnv('PRISMA_ENGINES_STRICT_MIRROR', '1')
+
+      const downloadZipSpy = vi.spyOn(downloadZipModule, 'downloadZip').mockImplementation((url) => {
+        if (String(url).startsWith(customMirror)) {
+          return Promise.reject(new Error('custom mirror down'))
+        }
+
+        return Promise.resolve({
+          lastModified: new Date().toUTCString(),
+          sha256: null,
+          zippedSha256: null,
+        })
+      })
+
+      try {
+        await expect(
+          download({
+            binaries: {
+              [BinaryType.SchemaEngineBinary]: baseDirChecksum,
+            },
+            binaryTargets: [binaryTarget],
+            version: CURRENT_ENGINES_HASH,
+          }),
+        ).rejects.toThrow('custom mirror down')
+
+        expect(downloadZipSpy).toHaveBeenCalledTimes(1)
+      } finally {
+        downloadZipSpy.mockRestore()
+      }
     })
   })
 })

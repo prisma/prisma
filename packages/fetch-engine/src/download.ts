@@ -13,11 +13,12 @@ import tempDir from 'temp-dir'
 import { BinaryType } from './BinaryType'
 import { chmodPlusX } from './chmodPlusX'
 import { cleanupCache } from './cleanupCache'
+import type { DownloadResult } from './downloadZip'
 import { downloadZip } from './downloadZip'
 import { allEngineEnvVarsSet, getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
-import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
+import { EngineDownloadSource, getCacheDir, getDownloadUrls, isStrictMirrorEnabled, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
 
@@ -152,18 +153,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
 
     const promises = binariesToDownload.map((job) => {
-      const downloadUrl = getDownloadUrl({
+      const downloadSources = getDownloadUrls({
         channel: 'all_commits',
         version: opts.version,
         binaryTarget: job.binaryTarget,
         binaryName: job.binaryName,
       })
 
-      debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
-
       return downloadBinary({
         ...job,
-        downloadUrl,
+        downloadSources,
         version: opts.version,
         failSilent: opts.failSilent,
         progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
@@ -183,10 +182,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // this is necessary for pkg
   if (__dirname.match(vercelPkgPathRegex)) {
     for (const engineType in binaryPaths) {
-      const binaryTargets = binaryPaths[engineType]
+      const binaryTargets = binaryPaths[engineType as keyof BinaryPaths]
+      if (!binaryTargets) {
+        continue
+      }
       for (const binaryTarget in binaryTargets) {
-        const binaryPath = binaryTargets[binaryTarget]
-        binaryTargets[binaryTarget] = await maybeCopyToTmp(binaryPath)
+        const binaryPath = binaryTargets[binaryTarget as keyof typeof binaryTargets]
+        if (!binaryPath) {
+          continue
+        }
+        binaryTargets[binaryTarget as keyof typeof binaryTargets] = await maybeCopyToTmp(binaryPath)
       }
     }
   }
@@ -381,13 +386,13 @@ async function getCachedBinaryPath({
 
 type DownloadBinaryOptions = BinaryDownloadJob & {
   version: string
-  downloadUrl: string
+  downloadSources: EngineDownloadSource[]
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
-  const { version, progressCb, targetFilePath, downloadUrl } = options
+  const { version, progressCb, targetFilePath, downloadSources } = options
 
   const targetDir = path.dirname(targetFilePath)
 
@@ -402,16 +407,48 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     }
   }
 
-  debug(`Downloading ${downloadUrl} to ${targetFilePath} ...`)
+  const enforceStrictMirror = isStrictMirrorEnabled() && downloadSources.some((source) => source.isCustomMirror)
+  let downloadResult: DownloadResult | undefined
+  let lastError: unknown
 
-  if (progressCb) {
-    progressCb(0)
+  for (const [index, source] of downloadSources.entries()) {
+    debug(`${source.url} will be downloaded to ${targetFilePath}`)
+
+    if (progressCb) {
+      progressCb(0)
+    }
+
+    try {
+      downloadResult = await downloadZip(source.url, targetFilePath, progressCb)
+      break
+    } catch (error) {
+      lastError = error
+      const remainingSources = downloadSources.length - index - 1
+      const canFallback = !enforceStrictMirror && remainingSources > 0
+      if (source.isCustomMirror && canFallback) {
+        const hasOfficialFallback = downloadSources.slice(index + 1).some((candidate) => !candidate.isCustomMirror)
+        const hint = hasOfficialFallback
+          ? 'Falling back to the official Prisma CDN.'
+          : 'Falling back to the next available mirror.'
+        const message = error instanceof Error ? error.message : String(error)
+        console.warn(`${yellow('Warning')} Failed to download Prisma engine from ${source.baseUrl}: ${message}`)
+        console.warn(`${hint} Set PRISMA_ENGINES_STRICT_MIRROR=1 to disable this fallback.`)
+        continue
+      }
+
+      throw error
+    }
   }
 
-  const { sha256, zippedSha256 } = await downloadZip(downloadUrl, targetFilePath, progressCb)
+  if (!downloadResult) {
+    throw (lastError as Error) ?? new Error(`Failed to download Prisma engine for ${targetFilePath}`)
+  }
+
   if (progressCb) {
     progressCb(1)
   }
+
+  const { sha256, zippedSha256 } = downloadResult
 
   chmodPlusX(targetFilePath)
 
@@ -469,7 +506,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   return file
 }
 
-export function plusX(file): void {
+export function plusX(file: string): void {
   const s = fs.statSync(file)
   const newMode = s.mode | 64 | 8 | 1
   if (s.mode === newMode) {
