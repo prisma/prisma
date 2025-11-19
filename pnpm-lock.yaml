@@ -424,8 +424,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/studio-core-licensed':
-        specifier: 0.0.0-dev.202511162338
-        version: 0.0.0-dev.202511162338
+        specifier: 0.8.0
+        version: 0.8.0
       mysql2:
         specifier: 3.15.3
         version: 3.15.3
@@ -562,6 +562,9 @@ importers:
       npm-packlist:
         specifier: 5.1.3
         version: 5.1.3
+      ohash:
+        specifier: 2.0.11
+        version: 2.0.11
       open:
         specifier: 8.4.2
         version: 8.4.2
@@ -3521,8 +3524,8 @@ packages:
   '@prisma/schema-engine-wasm@6.20.0-16.next-0c19ccc313cf9911a90d99d2ac2eb0280c76c513':
     resolution: {integrity: sha512-2BhRjCnWXPHsYMxslnKrqN+3EarnECsqlx+j3K5eWcnArlW0ZpOC+ay9ahyuIm7umU+eOceTnDrpv8WPVdo0oQ==}
 
-  '@prisma/studio-core-licensed@0.0.0-dev.202511162338':
-    resolution: {integrity: sha512-n55i0gxsW0/05DHSDPLdW9yv/+4SyeQKt1kay2TpjLIEXvp7+edqxY3vx34VMLFakksLJ1wmM+6UwN6q96dYuA==}
+  '@prisma/studio-core-licensed@0.8.0':
+    resolution: {integrity: sha512-SXCcgFvo/SC6/11kEOaQghJgCWNEWZUvPYKn/gpvMB9HLSG/5M8If7dWZtEQHhchvl8bh9A89Hw6mEKpsXFimA==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -10040,7 +10043,7 @@ snapshots:
 
   '@prisma/schema-engine-wasm@6.20.0-16.next-0c19ccc313cf9911a90d99d2ac2eb0280c76c513': {}
 
-  '@prisma/studio-core-licensed@0.0.0-dev.202511162338': {}
+  '@prisma/studio-core-licensed@0.8.0': {}
 
   '@redocly/ajv@8.17.1':
     dependencies:

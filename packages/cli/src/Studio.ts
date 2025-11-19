@@ -3,17 +3,22 @@ import { readFile } from 'node:fs/promises'
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
-import type { Executor, Query } from '@prisma/studio-core-licensed/data'
-import { serializeError } from '@prisma/studio-core-licensed/data/bff'
+import type { Executor, SequenceExecutor } from '@prisma/studio-core-licensed/data'
+import { serializeError, type StudioBFFRequest } from '@prisma/studio-core-licensed/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
 import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
 import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
+import type { StudioProps } from '@prisma/studio-core-licensed/ui'
+import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { bold, dim, red } from 'kleur/colors'
+import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
+
+const packageJson = require('../package.json')
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -73,7 +78,7 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
-      const resolvedPath = path !== ':memory:' ? resolve(dirname(relativeTo), path) : path
+      const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
 
       let database: import('better-sqlite3').Database | undefined = undefined
 
@@ -89,7 +94,7 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
           const { default: Database } = await import('better-sqlite3')
 
           database = new Database(resolvedPath)
-        } catch {
+        } catch (error) {
           throw new Error(
             `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}\n\nPlease use Node.js >=22.5 or ensure you have \`better-sqlite3\` installed.`,
           )
@@ -112,8 +117,8 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
 
       const pool = createPool(connectionString)
 
-      process.once('SIGINT', () => pool.destroy())
-      process.once('SIGTERM', () => pool.destroy())
+      process.once('SIGINT', () => pool.end())
+      process.once('SIGTERM', () => pool.end())
 
       return createMySQL2Executor(pool)
     },
@@ -221,7 +226,7 @@ ${bold('Examples')}
 
     const executor = await studioStuff.createExecutor(
       connectionString,
-      args['--url'] ? process.cwd() : config.loadedFromFile || process.cwd(),
+      getUrlBasePath(args['--url'], config.loadedFromFile),
     )
 
     const app = new Hono()
@@ -253,21 +258,73 @@ ${bold('Examples')}
     })
 
     app.post('/bff', async (ctx) => {
-      const { query } = (await ctx.req.json()) as { query: Query }
+      const request = (await ctx.req.json()) as StudioBFFRequest
 
-      const [error, results] = await executor.execute(query)
+      const { procedure } = request
 
-      if (error) {
-        return ctx.json([serializeError(error)])
+      if (procedure === 'query') {
+        const [error, results] = await executor.execute(request.query)
+
+        if (error) {
+          return ctx.json([serializeError(error)])
+        }
+
+        return ctx.json([null, results])
       }
 
-      return ctx.json([null, results])
+      if (procedure === 'sequence') {
+        if (!('executeSequence' in executor)) {
+          return ctx.json([[serializeError(new Error('Executor does not support sequences'))]])
+        }
+
+        const [[error0, result0], maybeResult1] = await (executor as SequenceExecutor).executeSequence(request.sequence)
+
+        if (error0) {
+          return ctx.json([[serializeError(error0)]])
+        }
+
+        const [error1, result1] = maybeResult1 || []
+
+        if (error1) {
+          return ctx.json([[null, result0], [serializeError(error1)]])
+        }
+
+        return ctx.json([
+          [null, result0],
+          [null, result1],
+        ])
+      }
+
+      procedure satisfies undefined
+
+      return ctx.text('Unknown procedure', { status: 500 })
     })
 
-    app.post('/telemetry', async (ctx) => {
-      // TODO: ...
+    let projectHash: string | null = null
+    const version = packageJson.dependencies['@prisma/studio-core-licensed']
 
-      console.log(await ctx.req.json())
+    app.post('/telemetry', async (ctx) => {
+      const { eventId, name, payload, timestamp } =
+        await ctx.req.json<Parameters<NonNullable<StudioProps['onEvent']>>[0]>()
+
+      if (name !== 'studio_launched') {
+        return ctx.body(null, 200)
+      }
+
+      const input: Check.Input = {
+        check_if_update_available: false,
+        client_event_id: eventId,
+        command: name,
+        information: JSON.stringify({ eventPayload: payload, protocol }),
+        local_timestamp: timestamp,
+        product: 'prisma-studio-cli',
+        project_hash: (projectHash ??= digest(process.cwd())),
+        version,
+      }
+
+      await sendEvent(input).catch(() => {
+        // noop
+      })
 
       return ctx.body(null, 200)
     })
@@ -291,6 +348,10 @@ ${bold('Examples')}
 
     return ''
   }
+}
+
+function getUrlBasePath(url: string | undefined, configPath: string | null): string {
+  return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
 }
 
 // prettier-ignore

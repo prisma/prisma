@@ -24,25 +24,40 @@ export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion: MajorMi
   const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(nodeVersion)
 
   // Minimum Node.js versions supported by Prisma
-  const MIN_NODE_VERSION_MATRIX: Record<string, number> = {
-    '20': 19,
-    '22': 12,
-    '24': 0,
+  const MIN_NODE_VERSION_MATRIX: Record<number, number> = {
+    20: 19,
+    22: 12,
+    24: 0,
   }
 
-  if (!(nodeMajorVersion in MIN_NODE_VERSION_MATRIX) || nodeMinorVersion < MIN_NODE_VERSION_MATRIX[nodeMajorVersion]) {
-    const supportedVersions = Object.entries(MIN_NODE_VERSION_MATRIX)
-      .map(([major, minor]) => `${major}.${minor}`)
-      .join(', ')
+  const minimumSupportedMinor = MIN_NODE_VERSION_MATRIX[nodeMajorVersion]
+  const isNodeVersionSupported =
+    typeof minimumSupportedMinor !== 'undefined' && nodeMinorVersion >= minimumSupportedMinor
 
-    console.error(
-      drawBox({
-        str: `Prisma only supports Node.js versions ${supportedVersions}.\nPlease upgrade your Node.js version.`,
-        height: 2,
-        width: 48,
-        horizontalPadding: 4,
-      }),
-    )
-    process.exit(1)
+  if (!isNodeVersionSupported) {
+    const supportedVersions = Object.entries(MIN_NODE_VERSION_MATRIX)
+      .map(([major, minor]) => `${major}.${minor}+`)
+      .join(', ')
+    const highestSupportedMajor = Math.max(...Object.keys(MIN_NODE_VERSION_MATRIX).map((major) => Number(major)))
+    const isNodeVersionTooNew = nodeMajorVersion > highestSupportedMajor
+
+    const messageLines = [
+      `Prisma only supports Node.js versions ${supportedVersions}.`,
+      isNodeVersionTooNew ? 'Please use a supported Node.js version.' : 'Please upgrade your Node.js version.',
+    ]
+
+    const message = drawBox({
+      str: messageLines.join('\n'),
+      height: messageLines.length,
+      width: 48,
+      horizontalPadding: 4,
+    })
+
+    if (isNodeVersionTooNew) {
+      console.warn(message)
+    } else {
+      console.error(message)
+      process.exit(1)
+    }
   }
 }
