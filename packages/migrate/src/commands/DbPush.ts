@@ -47,7 +47,7 @@ ${bold('Options')}
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push
-            --sql      Generate typed sql module after push
+          --sql      Generate typed sql module after push
 
 ${bold('Examples')}
 
