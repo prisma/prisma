@@ -1,3 +1,3 @@
 # Readme
 
-Test that we don't accidentally break types for the latest Accelerate.
+This test suite validates the mutually exclusive constraint between `adapter` and `accelerateUrl` options, ensuring that at least one of them is required.
