@@ -102,7 +102,7 @@ function queryRawDefinition(context: GenerateContext) {
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -114,7 +114,7 @@ function queryRawDefinition(context: GenerateContext) {
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
 }
@@ -133,7 +133,7 @@ function executeRawDefinition(context: GenerateContext) {
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -145,7 +145,7 @@ function executeRawDefinition(context: GenerateContext) {
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
 }
@@ -206,7 +206,7 @@ function runCommandRawDefinition(context: GenerateContext) {
       })
       \`\`\`
 
-      Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries).
+      Read more in our [docs](https://pris.ly/d/raw-queries).
     `)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
