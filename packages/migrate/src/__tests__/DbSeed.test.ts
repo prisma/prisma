@@ -7,6 +7,18 @@ const ctx = createDefaultTestContext()
 
 describe('seed', () => {
   describe('from prisma.config.ts', () => {
+    it('prints helpful message when no seed is configured', async () => {
+      ctx.fixture('prisma-config')
+
+      const result = DbSeed.new().parse([], await ctx.config())
+
+      await expect(result).resolves.toContain('No seed command configured')
+      await expect(result).resolves.toContain('migrations')
+      await expect(result).resolves.toContain('seed')
+      await expect(result).resolves.toContain('prisma.config.ts')
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
     it('skips deprecated package.json config', async () => {
       ctx.fixture('seed-from-prisma-config/seed-sqlite-skips-deprecated-package-json')
 
