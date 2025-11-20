@@ -27,7 +27,7 @@ testMatrix.setupTestSuite(() => {
     'should not console warn when spawning too many instances of PrismaClient',
     async () => {
       for (let i = 0; i < 15; i++) {
-        const client = newPrismaClient()
+        const client = newPrismaClient({})
         await client.$connect()
       }
 

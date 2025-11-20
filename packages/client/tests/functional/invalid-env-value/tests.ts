@@ -43,7 +43,7 @@ testMatrix.setupTestSuite(
         jest.retryTimes(3)
       }
 
-      const prisma = newPrismaClient()
+      const prisma = newPrismaClient({})
       const promise = prisma.$connect()
 
       if (!clientMeta.dataProxy) {

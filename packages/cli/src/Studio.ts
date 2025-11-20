@@ -17,8 +17,9 @@ import { bold, dim, red } from 'kleur/colors'
 import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
+import { runtime } from 'std-env'
 
-const packageJson = require('../package.json')
+import packageJson from '../package.json' assert { type: 'json' }
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -72,6 +73,8 @@ const POSTGRES_STUDIO_STUFF: StudioStuff = {
   reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
 }
 
+type Database = { new (path: string): import('better-sqlite3').Database }
+
 const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | null> = {
   // TODO: figure out PGLite support later.
   file: {
@@ -80,23 +83,48 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
 
       const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
 
-      let database: import('better-sqlite3').Database | undefined = undefined
+      let database: InstanceType<Database> | undefined = undefined
 
       try {
         // TODO: remove 'as' once Node.js v22 is the minimum supported version.
         const { DatabaseSync } = (await import('node:sqlite' as never)) as {
-          DatabaseSync: { new (path: string): import('better-sqlite3').Database }
+          DatabaseSync: Database
         }
 
         database = new DatabaseSync(resolvedPath)
-      } catch (error) {
+      } catch (error: unknown) {
         try {
-          const { default: Database } = await import('better-sqlite3')
+          switch (runtime) {
+            case 'node': {
+              const { default: Database } = await import('better-sqlite3')
 
-          database = new Database(resolvedPath)
-        } catch (error) {
+              database = new Database(resolvedPath)
+              break
+            }
+            case 'deno': {
+              const { Database } = (await import('jsr:@db/sqlite@0.13.0' as never)) as {
+                Database: Database
+              }
+
+              database = new Database(resolvedPath)
+              break
+            }
+            case 'bun': {
+              const { Database } = (await import('bun:sqlite' as never)) as {
+                Database: Database
+              }
+
+              database = new Database(resolvedPath) as never
+              break
+            }
+            default:
+              throw new Error(`Unsupported runtime for SQLite: "${runtime}"`)
+          }
+        } catch (error: unknown) {
           throw new Error(
-            `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}\n\nPlease use Node.js >=22.5 or ensure you have \`better-sqlite3\` installed.`,
+            `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}
+
+Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`better-sqlite3\` package installed for Node.js <22.5 or the \`jsr:@db/sqlite\` package installed for Deno <2.2.`,
           )
         }
       }

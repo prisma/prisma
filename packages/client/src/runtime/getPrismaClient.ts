@@ -65,16 +65,27 @@ typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export type PrismaClientOptions = {
-  /**
-   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
-   */
-  adapter?: SqlDriverAdapterFactory
-  /**
-   * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
-   */
-  accelerateUrl?: string
+/**
+ * Since Prisma 7, a PrismaClient needs either an adapter or an accelerateUrl.
+ * The two options are mutually exclusive.
+ */
+type PrismaClientMutuallyExclusiveOptions =
+  | {
+      /**
+       * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.
+       */
+      adapter: SqlDriverAdapterFactory
+      accelerateUrl?: never
+    }
+  | {
+      /**
+       * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+       */
+      accelerateUrl: string
+      adapter?: never
+    }
 
+export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   /**
    * @default "colorless"
    */
@@ -194,7 +205,8 @@ const BatchTxIdCounter = {
   },
 }
 
-export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
+export type Client =
+  ReturnType<typeof getPrismaClient> extends new (optionsArg: PrismaClientOptions) => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
@@ -223,8 +235,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
 
-    constructor(optionsArg?: PrismaClientOptions) {
-      config = optionsArg?.__internal?.configOverride?.(config) ?? config
+    constructor(optionsArg: PrismaClientOptions) {
+      config = optionsArg.__internal?.configOverride?.(config) ?? config
 
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config)

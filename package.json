@@ -158,5 +158,12 @@
       "gzip": false,
       "brotli": false
     }
-  ]
+  ],
+  "pnpm": {
+    "overrides": {
+      "form-data": ">=4.0.4",
+      "hono": ">=4.10.3",
+      "tar-fs": ">=2.1.4"
+    }
+  }
 }

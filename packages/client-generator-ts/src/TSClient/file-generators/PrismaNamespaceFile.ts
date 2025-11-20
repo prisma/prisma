@@ -166,8 +166,35 @@ function clientExtensionsDefinitions() {
 }
 
 function buildClientOptions(context: GenerateContext) {
-  const clientOptions = ts
-    .interfaceDeclaration('PrismaClientOptions')
+  // Build the mutually exclusive options union type
+  // This matches PrismaClientMutuallyExclusiveOptions from runtime
+  const adapterOption = ts
+    .objectType()
+    .add(
+      ts
+        .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
+        .setDocComment(ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.')),
+    )
+    .add(ts.property('accelerateUrl', ts.neverType).optional())
+
+  const accelerateUrlOption = ts
+    .objectType()
+    .add(
+      ts
+        .property('accelerateUrl', ts.stringType)
+        .setDocComment(
+          ts.docComment(
+            'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
+          ),
+        ),
+    )
+    .add(ts.property('adapter', ts.neverType).optional())
+
+  const mutuallyExclusiveOptions = ts.unionType([adapterOption, accelerateUrlOption])
+
+  // Build the other optional properties
+  const otherOptions = ts
+    .objectType()
     .add(
       ts
         .property('errorFormat', ts.namedType('ErrorFormat'))
@@ -211,7 +238,7 @@ function buildClientOptions(context: GenerateContext) {
     transactionOptions.add(ts.property('isolationLevel', ts.namedType('TransactionIsolationLevel')).optional())
   }
 
-  clientOptions.add(
+  otherOptions.add(
     ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
              The default values for transactionOptions
              maxWait ?= 2000
@@ -219,27 +246,7 @@ function buildClientOptions(context: GenerateContext) {
           `),
   )
 
-  clientOptions.add(
-    ts
-      .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
-      .optional()
-      .setDocComment(
-        ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
-      ),
-  )
-
-  clientOptions.add(
-    ts
-      .property('accelerateUrl', ts.stringType)
-      .optional()
-      .setDocComment(
-        ts.docComment(
-          'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
-        ),
-      ),
-  )
-
-  clientOptions.add(
+  otherOptions.add(
     ts.property('omit', ts.namedType('GlobalOmitConfig')).optional().setDocComment(ts.docComment`
         Global configuration for omitting model fields by default.
 
@@ -256,5 +263,9 @@ function buildClientOptions(context: GenerateContext) {
       `),
   )
 
-  return clientOptions
+  // Intersect the mutually exclusive options with the other options
+  // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }
+  const prismaClientOptions = ts.intersectionType([mutuallyExclusiveOptions, otherOptions])
+
+  return ts.typeDeclaration('PrismaClientOptions', prismaClientOptions)
 }

@@ -15,7 +15,7 @@ testMatrix.setupTestSuite(
       // Ensure that the db is down
       await db.dropDb()
 
-      prisma = newPrismaClient()
+      prisma = newPrismaClient({})
 
       // Try sending a query without a spawned database
       await expect(prisma.user.findMany()).rejects.toThrow()

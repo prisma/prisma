@@ -93,6 +93,9 @@ jobs:
         run: pnpm run check-engines-override
         working-directory: ./
 
+      - name: Run pnpm audit (production dependencies only)
+        run: pnpm audit --prod
+
   #
   # CLIENT (legacy tests without types test)
   #

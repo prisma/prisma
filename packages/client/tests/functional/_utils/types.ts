@@ -21,7 +21,17 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   alterStatementCallback?: AlterStatementCallback
 }
 
-export type NewPrismaClient<T, C extends new (...args: any) => any> = (...args: ConstructorParameters<C>) => T
+// Helper type to make adapter and accelerateUrl optional since they're provided by the test setup
+// This allows callers to omit adapter/accelerateUrl since they're already provided by setupTestSuiteMatrix
+type MakeAdapterAndAccelerateUrlOptional<T> = T extends [infer Options, ...infer Rest]
+  ? Options extends object
+    ? [Partial<Options>, ...Rest]
+    : T
+  : T
+
+export type NewPrismaClient<T, C extends new (...args: any) => any> = (
+  ...args: MakeAdapterAndAccelerateUrlOptional<ConstructorParameters<C>>
+) => T
 
 export type Db = {
   setupDb: () => Promise<void>
