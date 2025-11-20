@@ -65,12 +65,13 @@ ${bold('Example')}
 
   ${dim('// prisma.config.ts')}
   export default defineConfig({
-    migrations: {
-      seed: ${dim('// e.g.')} ${bold('"bun ./prisma/seed.ts"')},
-    },
-    datasource: {
-      url: '<database-url>',
-    },
+    ${bold('migrations: {')}
+      ${bold(`seed: 'bun·./prisma/seed.ts'`)},
+    ${bold('}')},
+    ${dim('datasource: {')}
+      ${dim(`url: '[your database URL]'`)},
+    ${dim('}')},
+    ${bold('}')},
   })
 `)
     }
