@@ -407,7 +407,7 @@ export class PrismaClientClass implements Generable {
  * \`\`\`
  *
  *
- * Read more in our [docs](https://www.prisma.io/docs/orm/reference/prisma-client-reference).
+ * Read more in our [docs](https://pris.ly/d/client).
  */`
   }
   public toTSWithoutNamespace(): string {

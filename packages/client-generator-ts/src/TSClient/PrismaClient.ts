@@ -236,7 +236,7 @@ export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.Do
     const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
     \`\`\`
 
-    Read more in our [docs](https://www.prisma.io/docs/orm/reference/prisma-client-reference).
+    Read more in our [docs](https://pris.ly/d/client).
   `
 }
 
