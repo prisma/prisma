@@ -111,7 +111,7 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
    *  { emit: 'stdout', level: 'warn' }
    * ]
    * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/observability-and-logging/logging).
    */
   log?: Array<LogLevel | LogDefinition>
 
