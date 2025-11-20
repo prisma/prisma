@@ -7,6 +7,7 @@ import {
   InputTypeDescription,
   InvalidArgumentTypeError,
   InvalidArgumentValueError,
+  InvalidEnumValueError,
   OutputTypeDescription,
   RequiredArgumentMissingError,
   SomeFieldsMissingError,
@@ -83,6 +84,9 @@ export function applyValidationError(
       break
     case 'TooManyFieldsGiven':
       applyTooManyFieldsGivenError(error, args)
+      break
+    case 'InvalidEnumValue':
+      applyInvalidEnumValueError(error, args)
       break
     case 'Union':
       applyUnionError(error, args, globalOmit)
@@ -549,6 +553,24 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
     }
 
     return parts.join(' ')
+  })
+}
+
+function applyInvalidEnumValueError(error: InvalidEnumValueError, args: ArgumentsRenderingTree) {
+  const argName = error.argument.name
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (selection) {
+    selection.getDeepFieldValue(error.argumentPath)?.markAsError()
+  }
+
+  args.addErrorMessage((colors) => {
+    const parts = [`Invalid value \`${colors.red(error.providedValue)}\` for argument \`${colors.bold(argName)}\``]
+    parts.push(`of enum \`${colors.bold(error.enumName)}\`.`)
+    if (error.validValues.length > 0) {
+      const validValues = error.validValues.map((v) => colors.green(`\`${v}\``)).join(', ')
+      parts.push(` Valid values are: ${validValues}.`)
+    }
+    return parts.join('')
   })
 }
 
