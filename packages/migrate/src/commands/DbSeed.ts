@@ -71,7 +71,6 @@ ${bold('Example')}
     ${dim('datasource: {')}
       ${dim(`url: '[your database URL]'`)},
     ${dim('}')},
-    ${bold('}')},
   })
 `)
     }
