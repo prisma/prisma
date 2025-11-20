@@ -56,7 +56,24 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
 
     const seedCommand = config.migrations?.seed
 
-    if (!seedCommand) return ``
+    if (!seedCommand) {
+      return format(`⚠️ ${bold('No seed command configured')}
+
+To seed your database, add a ${bold('seed')} property to the ${bold('migrations')} section in your ${bold('Prisma config')} file.
+
+${bold('Example')}
+
+  ${dim('// prisma.config.ts')}
+  export default defineConfig({
+    migrations: {
+      seed: ${dim('// e.g.')} ${bold('"bun ./prisma/seed.ts"')},
+    },
+    datasource: {
+      url: '<database-url>',
+    },
+  })
+`)
+    }
 
     // We pass the extra params after a -- separator
     // Example: db seed -- --custom-param
