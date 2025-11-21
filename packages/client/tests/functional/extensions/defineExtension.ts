@@ -696,9 +696,9 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skip: (when, { driverAdapter, clientEngineExecutor }) => {
+    skip: (when, { clientEngineExecutor }) => {
       when(
-        driverAdapter !== undefined || clientEngineExecutor === 'remote',
+        clientEngineExecutor === 'remote',
         'It somehow fails with Driver Adapters, and with `--remote-executor`. This is a bug.',
       )
     },
