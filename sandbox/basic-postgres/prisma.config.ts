@@ -3,6 +3,6 @@ import 'dotenv/config';
 
 export default defineConfig({
   datasource: {
-    url: env('TEST_FUNCTIONAL_POSTGRES_16_URI'),
+    url: env('TEST_POSTGRES_URI'),
   }
 })
