@@ -17,6 +17,7 @@
   "dependencies": {
     "@prisma/client": "../../packages/client",
     "@prisma/adapter-pg": "../../packages/adapter-pg",
+    "@prisma/config": "workspace:*",
     "pg": "../../packages/adapter-pg/node_modules/pg"
   },
   "devDependencies": {
