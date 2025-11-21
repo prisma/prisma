@@ -114,7 +114,7 @@ describe('debug', () => {
       - HTTPS_PROXY:
 
       For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+      See https://pris.ly/d/env-vars
 
       For hiding messages
       - PRISMA_DISABLE_WARNINGS:
@@ -188,7 +188,7 @@ describe('debug', () => {
       - HTTPS_PROXY: \`\`
 
       For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+      See https://pris.ly/d/env-vars
 
       For hiding messages
       - PRISMA_DISABLE_WARNINGS: \`\`
@@ -259,7 +259,7 @@ describe('debug', () => {
       - HTTPS_PROXY: \`https://HTTPS_PROXY.localhost\`
 
       For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+      See https://pris.ly/d/env-vars
 
       For hiding messages
       - PRISMA_DISABLE_WARNINGS: \`true\`

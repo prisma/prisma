@@ -172,7 +172,7 @@ describe('common', () => {
 
       \`prisma migrate dev\` is an interactive command designed to create new migrations and evolve the database in development.
       To apply existing migrations in deployments, use prisma migrate deploy.
-      See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy"
+      See https://pris.ly/d/migrate-deploy"
     `)
   })
 })

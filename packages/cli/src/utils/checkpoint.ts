@@ -21,7 +21,7 @@ const debug = Debug('prisma:cli:checkpoint')
  * returns if the current CLI version is outdated.
  *
  * For more info about the data collected by the Checkpoint Server and how to disable it see:
- * https://www.prisma.io/docs/concepts/more/telemetry
+ * https://pris.ly/d/telemetry
  */
 export async function runCheckpointClientCheck({
   schemaPathFromConfig,
