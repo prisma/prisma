@@ -8,6 +8,8 @@
 
 !basic-sqlite
 !basic-sqlite/**
+!basic-postgres
+!basic-postgres/**
 !tracing
 !tracing/**
 !driver-adapters
