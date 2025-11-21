@@ -8,7 +8,7 @@ async function main() {
   const email = `user.${Date.now()}@prisma.io`
   await prisma.user.create({
     data: {
-      email: email,
+      email,
     },
   })
 
