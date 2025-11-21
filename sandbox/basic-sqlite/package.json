@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "../../packages/client",
-    "@prisma/adapter-libsql": "../../packages/adapter-libsql"
+    "@prisma/adapter-better-sqlite3": "../../packages/adapter-better-sqlite3"
   },
   "devDependencies": {
     "@types/node": "~20.19.0",

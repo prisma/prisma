@@ -1,8 +1,8 @@
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { PrismaClient } from './generated/prisma/client'
 
 async function main() {
-  const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:prisma/dev.db' }) })
+  const prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: 'file:prisma/dev.db' }) })
 
   const email = `user.${Date.now()}@prisma.io`
   await prisma.user.create({
