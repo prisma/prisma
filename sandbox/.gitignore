@@ -14,8 +14,6 @@
 !driver-adapters/**
 !d1
 !d1/**
-!query-compiler
-!query-compiler/**
 !studio
 !studio/**
 
