@@ -1,8 +1,9 @@
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from './generated/prisma/client'
+import 'dotenv/config'
 
 async function main() {
-  const prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: 'file:prisma/dev.db' }) })
+  const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.TEST_POSTGRES_URI }) })
 
   const email = `user.${Date.now()}@prisma.io`
   await prisma.user.create({
