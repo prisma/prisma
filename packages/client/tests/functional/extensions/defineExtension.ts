@@ -354,353 +354,343 @@ function allResultsGenericExtensionObjectViaDefault() {
 // At: tests/functional/extensions/.generated/extensions.defineExtension (provider=postgresql, qpe=remote)/defineExtension.ts:686:60
 // ```
 //
-testMatrix.setupTestSuite(
-  () => {
-    test('client - callback', () => {
-      const xprisma = prisma.$extends(clientExtensionCallback())
-      const xprismaViaDefault = prisma.$extends(clientExtensionCallbackViaDefault())
-      expectTypeOf(xprisma).toHaveProperty('$myMethod')
-      expectTypeOf(xprismaViaDefault).toHaveProperty('$myMethodViaDefault')
+testMatrix.setupTestSuite(() => {
+  test('client - callback', () => {
+    const xprisma = prisma.$extends(clientExtensionCallback())
+    const xprismaViaDefault = prisma.$extends(clientExtensionCallbackViaDefault())
+    expectTypeOf(xprisma).toHaveProperty('$myMethod')
+    expectTypeOf(xprismaViaDefault).toHaveProperty('$myMethodViaDefault')
+  })
+
+  test('client - object', () => {
+    const xprisma = prisma.$extends(clientExtensionObject())
+    const xprismaViaDefault = prisma.$extends(clientExtensionObjectViaDefault())
+    expectTypeOf(xprisma).toHaveProperty('$myMethod')
+    expectTypeOf(xprismaViaDefault).toHaveProperty('$myMethodViaDefault')
+  })
+
+  test('model - callback', () => {
+    const xprisma = prisma.$extends(modelExtensionCallback())
+    const xprismaViaDefault = prisma.$extends(modelExtensionCallbackViaDefault())
+    expectTypeOf(xprisma.user).toHaveProperty('myUserMethod')
+    expectTypeOf(xprismaViaDefault.user).toHaveProperty('myUserMethodViaDefault')
+  })
+
+  test('model - object', () => {
+    const xprisma = prisma.$extends(modelExtensionObject())
+    const xprismaViaDefault = prisma.$extends(modelExtensionObjectViaDefault())
+    expectTypeOf(xprisma.user).toHaveProperty('myUserMethod')
+    expectTypeOf(xprismaViaDefault.user).toHaveProperty('myUserMethodViaDefault')
+  })
+
+  test('result - callback', async () => {
+    const xprisma = prisma.$extends(resultExtensionCallback())
+    const xprismaViaDefault = prisma.$extends(resultExtensionCallbackViaDefault())
+    const user = await xprisma.user.findFirst({})
+    const userViaDefault = await xprismaViaDefault.user.findFirst({})
+    expectTypeOf(user!).toHaveProperty('computedField')
+    expectTypeOf(userViaDefault!).toHaveProperty('computedFieldViaDefault')
+  })
+
+  test('result - object', async () => {
+    const xprisma = prisma.$extends(resultExtensionObject())
+    const xprismaViaDefault = prisma.$extends(resultExtensionObjectViaDefault())
+    const user = await xprisma.user.findFirst({})
+    const userViaDefault = await xprismaViaDefault.user.findFirst({})
+    expectTypeOf(user!).toHaveProperty('computedField')
+    expectTypeOf(userViaDefault!).toHaveProperty('computedFieldViaDefault')
+  })
+
+  test('chained', async () => {
+    const xprisma = prisma
+      .$extends(modelExtensionObject())
+      .$extends(clientExtensionCallback())
+      .$extends(resultExtensionCallback())
+      .$extends(modelExtensionObjectViaDefault())
+      .$extends(clientExtensionCallbackViaDefault())
+      .$extends(resultExtensionCallbackViaDefault())
+
+    expectTypeOf(xprisma).toHaveProperty('$myMethod')
+    expectTypeOf(xprisma).toHaveProperty('$myMethodViaDefault')
+    expectTypeOf(xprisma.user).toHaveProperty('myUserMethod')
+    expectTypeOf(xprisma.user).toHaveProperty('myUserMethodViaDefault')
+    const user = await xprisma.user.findFirst({})
+    expectTypeOf(user!).toHaveProperty('computedField')
+    expectTypeOf(user!).toHaveProperty('computedFieldViaDefault')
+  })
+
+  test('invalid', () => {
+    Prisma.defineExtension({
+      // @ts-expect-error
+      notAComponent: {},
     })
 
-    test('client - object', () => {
-      const xprisma = prisma.$extends(clientExtensionObject())
-      const xprismaViaDefault = prisma.$extends(clientExtensionObjectViaDefault())
-      expectTypeOf(xprisma).toHaveProperty('$myMethod')
-      expectTypeOf(xprismaViaDefault).toHaveProperty('$myMethodViaDefault')
-    })
-
-    test('model - callback', () => {
-      const xprisma = prisma.$extends(modelExtensionCallback())
-      const xprismaViaDefault = prisma.$extends(modelExtensionCallbackViaDefault())
-      expectTypeOf(xprisma.user).toHaveProperty('myUserMethod')
-      expectTypeOf(xprismaViaDefault.user).toHaveProperty('myUserMethodViaDefault')
-    })
-
-    test('model - object', () => {
-      const xprisma = prisma.$extends(modelExtensionObject())
-      const xprismaViaDefault = prisma.$extends(modelExtensionObjectViaDefault())
-      expectTypeOf(xprisma.user).toHaveProperty('myUserMethod')
-      expectTypeOf(xprismaViaDefault.user).toHaveProperty('myUserMethodViaDefault')
-    })
-
-    test('result - callback', async () => {
-      const xprisma = prisma.$extends(resultExtensionCallback())
-      const xprismaViaDefault = prisma.$extends(resultExtensionCallbackViaDefault())
-      const user = await xprisma.user.findFirst({})
-      const userViaDefault = await xprismaViaDefault.user.findFirst({})
-      expectTypeOf(user!).toHaveProperty('computedField')
-      expectTypeOf(userViaDefault!).toHaveProperty('computedFieldViaDefault')
-    })
-
-    test('result - object', async () => {
-      const xprisma = prisma.$extends(resultExtensionObject())
-      const xprismaViaDefault = prisma.$extends(resultExtensionObjectViaDefault())
-      const user = await xprisma.user.findFirst({})
-      const userViaDefault = await xprismaViaDefault.user.findFirst({})
-      expectTypeOf(user!).toHaveProperty('computedField')
-      expectTypeOf(userViaDefault!).toHaveProperty('computedFieldViaDefault')
-    })
-
-    test('chained', async () => {
-      const xprisma = prisma
-        .$extends(modelExtensionObject())
-        .$extends(clientExtensionCallback())
-        .$extends(resultExtensionCallback())
-        .$extends(modelExtensionObjectViaDefault())
-        .$extends(clientExtensionCallbackViaDefault())
-        .$extends(resultExtensionCallbackViaDefault())
-
-      expectTypeOf(xprisma).toHaveProperty('$myMethod')
-      expectTypeOf(xprisma).toHaveProperty('$myMethodViaDefault')
-      expectTypeOf(xprisma.user).toHaveProperty('myUserMethod')
-      expectTypeOf(xprisma.user).toHaveProperty('myUserMethodViaDefault')
-      const user = await xprisma.user.findFirst({})
-      expectTypeOf(user!).toHaveProperty('computedField')
-      expectTypeOf(user!).toHaveProperty('computedFieldViaDefault')
-    })
-
-    test('invalid', () => {
-      Prisma.defineExtension({
+    Prisma.defineExtension({
+      model: {
         // @ts-expect-error
-        notAComponent: {},
-      })
+        notAModel: {
+          myMethod() {},
+        },
+      },
+    })
 
-      Prisma.defineExtension({
-        model: {
+    Prisma.defineExtension({
+      result: {
+        // -@ts-expect-error TODO: this should be an error but somehow isn't showing up like eg. `model`
+        notAModel: {
+          field: {
+            needs: { id: true },
+            compute: () => {},
+          },
+        },
+      },
+    })
+
+    Prisma.defineExtension({
+      result: {
+        user: {
+          field: {
+            needs: {
+              // @ts-expect-error
+              notUserField: true,
+            },
+            compute: () => {},
+          },
+        },
+      },
+    })
+
+    Prisma.defineExtension({
+      result: {
+        user: {
+          field: {
+            needs: {
+              id: true,
+            },
+            compute: (user) => {
+              // @ts-expect-error
+              return user.bad
+            },
+          },
+        },
+      },
+    })
+
+    Prisma.defineExtension({
+      query: {
+        // @ts-expect-error
+        notAModel: {
+          findFirst() {},
+        },
+      },
+    })
+
+    Prisma.defineExtension({
+      query: {
+        user: {
           // @ts-expect-error
-          notAModel: {
-            myMethod() {},
-          },
+          notAnOperation() {},
         },
-      })
+      },
+    })
+  })
 
-      Prisma.defineExtension({
-        result: {
-          // -@ts-expect-error TODO: this should be an error but somehow isn't showing up like eg. `model`
-          notAModel: {
-            field: {
-              needs: { id: true },
-              compute: () => {},
-            },
-          },
-        },
-      })
+  // here we want to check that type utils also work via default
+  test('generic model - callback via default', () => {
+    const xprisma = prisma.$extends(modelGenericExtensionCallbackViaDefault())
+    expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
 
-      Prisma.defineExtension({
-        result: {
-          user: {
-            field: {
-              needs: {
-                // @ts-expect-error
-                notUserField: true,
-              },
-              compute: () => {},
-            },
-          },
-        },
-      })
-
-      Prisma.defineExtension({
-        result: {
-          user: {
-            field: {
-              needs: {
-                id: true,
-              },
-              compute: (user) => {
-                // @ts-expect-error
-                return user.bad
-              },
-            },
-          },
-        },
-      })
-
-      Prisma.defineExtension({
-        query: {
-          // @ts-expect-error
-          notAModel: {
-            findFirst() {},
-          },
-        },
-      })
-
-      Prisma.defineExtension({
-        query: {
-          user: {
-            // @ts-expect-error
-            notAnOperation() {},
-          },
-        },
-      })
+    const data1 = xprisma.user.myGenericMethodViaDefault({
+      select: {
+        email: true,
+      },
     })
 
-    // here we want to check that type utils also work via default
-    test('generic model - callback via default', () => {
-      const xprisma = prisma.$extends(modelGenericExtensionCallbackViaDefault())
-      expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
-
-      const data1 = xprisma.user.myGenericMethodViaDefault({
-        select: {
-          email: true,
-        },
-      })
-
-      const data2 = xprisma.user.myGenericMethodViaDefault({
-        select: {
-          email: true as boolean,
-        },
-      })
-
-      expectTypeOf<(typeof data1)['args']>().toEqualTypeOf<{ select: { email: true } }>()
-      expectTypeOf<(typeof data1)['payload']>().toMatchTypeOf<object>()
-      expectTypeOf<(typeof data1)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-      expectTypeOf<(typeof data1)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
-
-      expectTypeOf<(typeof data2)['args']>().toEqualTypeOf<{ select: { email: boolean } }>()
-      expectTypeOf<(typeof data2)['payload']>().toMatchTypeOf<object>()
-      expectTypeOf<(typeof data2)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-      expectTypeOf<(typeof data2)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
+    const data2 = xprisma.user.myGenericMethodViaDefault({
+      select: {
+        email: true as boolean,
+      },
     })
 
-    // here we want to check that type utils also work via default
-    test('generic model - object via default', () => {
-      const xprisma = prisma.$extends(modelGenericExtensionObjectViaDefault())
-      expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
+    expectTypeOf<(typeof data1)['args']>().toEqualTypeOf<{ select: { email: true } }>()
+    expectTypeOf<(typeof data1)['payload']>().toMatchTypeOf<object>()
+    expectTypeOf<(typeof data1)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf<(typeof data1)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
 
-      const data1 = xprisma.user.myGenericMethodViaDefault({
-        select: {
-          email: true,
-        },
+    expectTypeOf<(typeof data2)['args']>().toEqualTypeOf<{ select: { email: boolean } }>()
+    expectTypeOf<(typeof data2)['payload']>().toMatchTypeOf<object>()
+    expectTypeOf<(typeof data2)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf<(typeof data2)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
+  })
+
+  // here we want to check that type utils also work via default
+  test('generic model - object via default', () => {
+    const xprisma = prisma.$extends(modelGenericExtensionObjectViaDefault())
+    expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
+
+    const data1 = xprisma.user.myGenericMethodViaDefault({
+      select: {
+        email: true,
+      },
+    })
+
+    const data2 = xprisma.user.myGenericMethodViaDefault({
+      select: {
+        email: true as boolean,
+      },
+    })
+
+    expectTypeOf<(typeof data1)['args']>().toEqualTypeOf<{ select: { email: true } }>()
+    expectTypeOf<(typeof data1)['payload']>().toMatchTypeOf<object>()
+    expectTypeOf<(typeof data1)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf<(typeof data1)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
+
+    expectTypeOf<(typeof data2)['args']>().toEqualTypeOf<{ select: { email: boolean } }>()
+    expectTypeOf<(typeof data2)['payload']>().toMatchTypeOf<object>()
+    expectTypeOf<(typeof data2)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf<(typeof data2)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
+  })
+
+  // here we want to check that type utils also work via default
+  test('generic client - object via default', () => {
+    const xprisma = prisma.$extends(clientGenericExtensionObjectViaDefault())
+    expectTypeOf(xprisma).toHaveProperty('myGenericMethodViaDefault')
+
+    const data = xprisma.myGenericMethodViaDefault`SELECT * FROM User WHERE id = ${1}`
+
+    expectTypeOf<(typeof data)['args']>().toEqualTypeOf<[TemplateStringsArray, number]>()
+    expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<any>()
+    expectTypeOf<(typeof data)['result']>().toEqualTypeOf<number>()
+  })
+
+  // here we want to check that type utils are equivalent to real results
+  test('generic client - generic type utilities', () => {
+    ;async () => {
+      const xprisma = prisma.$extends(allResultsGenericExtensionObjectViaDefault())
+
+      const _aggregate = xprisma.user._aggregate({ _min: { id: true } })
+      const aggregate = await xprisma.user.aggregate({ _min: { id: true } })
+      expectTypeOf<typeof _aggregate>().toEqualTypeOf<typeof aggregate>()
+
+      const _count = xprisma.user._count({})
+      const count = await xprisma.user.count({})
+      expectTypeOf<typeof _count>().toEqualTypeOf<typeof count>()
+
+      const _create = xprisma.user._create({ data: { email: '', firstName: '', lastName: '' } })
+      const create = await xprisma.user.create({ data: { email: '', firstName: '', lastName: '' } })
+      expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
+
+      const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
+      const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
+      expectTypeOf<typeof _createMany>().toEqualTypeOf<typeof createMany>()
+
+      const _createManyAndReturn = xprisma.user._createManyAndReturn({
+        data: [{ email: '', firstName: '', lastName: '' }],
       })
-
-      const data2 = xprisma.user.myGenericMethodViaDefault({
-        select: {
-          email: true as boolean,
-        },
+      const createManyAndReturn = await xprisma.user._createManyAndReturn({
+        data: [{ email: '', firstName: '', lastName: '' }],
       })
+      expectTypeOf<typeof _createManyAndReturn>().toEqualTypeOf<typeof createManyAndReturn>()
 
-      expectTypeOf<(typeof data1)['args']>().toEqualTypeOf<{ select: { email: true } }>()
-      expectTypeOf<(typeof data1)['payload']>().toMatchTypeOf<object>()
-      expectTypeOf<(typeof data1)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-      expectTypeOf<(typeof data1)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
+      const _delete = xprisma.user._delete({ where: { id: '1' } })
+      const deleted = await xprisma.user.delete({ where: { id: '1' } })
+      expectTypeOf<typeof _delete>().toEqualTypeOf<typeof deleted>()
 
-      expectTypeOf<(typeof data2)['args']>().toEqualTypeOf<{ select: { email: boolean } }>()
-      expectTypeOf<(typeof data2)['payload']>().toMatchTypeOf<object>()
-      expectTypeOf<(typeof data2)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-      expectTypeOf<(typeof data2)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
-    })
+      const _deleteMany = xprisma.user._deleteMany({ where: { id: '1' } })
+      const deleteMany = await xprisma.user.deleteMany({ where: { id: '1' } })
+      expectTypeOf<typeof _deleteMany>().toEqualTypeOf<typeof deleteMany>()
 
-    // here we want to check that type utils also work via default
-    test('generic client - object via default', () => {
-      const xprisma = prisma.$extends(clientGenericExtensionObjectViaDefault())
-      expectTypeOf(xprisma).toHaveProperty('myGenericMethodViaDefault')
+      const _findFirst = xprisma.user._findFirst({})
+      const findFirst = await xprisma.user.findFirst({})
+      expectTypeOf<typeof _findFirst>().toEqualTypeOf<typeof findFirst>()
 
-      const data = xprisma.myGenericMethodViaDefault`SELECT * FROM User WHERE id = ${1}`
+      const _findFirstOrThrow = xprisma.user._findFirstOrThrow({})
+      const findFirstOrThrow = await xprisma.user.findFirstOrThrow({})
+      expectTypeOf<typeof _findFirstOrThrow>().toEqualTypeOf<typeof findFirstOrThrow>()
 
-      expectTypeOf<(typeof data)['args']>().toEqualTypeOf<[TemplateStringsArray, number]>()
-      expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<any>()
-      expectTypeOf<(typeof data)['result']>().toEqualTypeOf<number>()
-    })
+      const _findMany = xprisma.user._findMany({ include: { posts: true } })
+      const findMany = await xprisma.user.findMany({ include: { posts: true } })
+      expectTypeOf<typeof _findMany>().toEqualTypeOf<typeof findMany>()
 
-    // here we want to check that type utils are equivalent to real results
-    test('generic client - generic type utilities', () => {
-      ;async () => {
-        const xprisma = prisma.$extends(allResultsGenericExtensionObjectViaDefault())
+      const _findUnique = xprisma.user._findUnique({ where: { id: '1' } })
+      const findUnique = await xprisma.user.findUnique({ where: { id: '1' } })
+      expectTypeOf<typeof _findUnique>().toEqualTypeOf<typeof findUnique>()
 
-        const _aggregate = xprisma.user._aggregate({ _min: { id: true } })
-        const aggregate = await xprisma.user.aggregate({ _min: { id: true } })
-        expectTypeOf<typeof _aggregate>().toEqualTypeOf<typeof aggregate>()
+      const _findUniqueOrThrow = xprisma.user._findUniqueOrThrow({ where: { id: '1' } })
+      const findUniqueOrThrow = await xprisma.user.findUniqueOrThrow({ where: { id: '1' } })
+      expectTypeOf<typeof _findUniqueOrThrow>().toEqualTypeOf<typeof findUniqueOrThrow>()
 
-        const _count = xprisma.user._count({})
-        const count = await xprisma.user.count({})
-        expectTypeOf<typeof _count>().toEqualTypeOf<typeof count>()
+      const _groupBy = xprisma.user._groupBy({ by: ['id'] })
+      const groupBy = await xprisma.user.groupBy({ by: ['id'] })
+      expectTypeOf<typeof _groupBy>().toEqualTypeOf<typeof groupBy>()
 
-        const _create = xprisma.user._create({ data: { email: '', firstName: '', lastName: '' } })
-        const create = await xprisma.user.create({ data: { email: '', firstName: '', lastName: '' } })
-        expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
+      const _update = xprisma.user._update({ where: { id: '1' }, data: { email: '' } })
+      const update = await prisma.user.update({ where: { id: '1' }, data: { email: '' } })
+      expectTypeOf<typeof _update>().toEqualTypeOf<typeof update>()
 
-        const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
-        const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
-        expectTypeOf<typeof _createMany>().toEqualTypeOf<typeof createMany>()
+      const _updateMany = xprisma.user._updateMany({ where: { id: '1' }, data: { email: '' } })
+      const updateMany = await prisma.user.updateMany({ where: { id: '1' }, data: { email: '' } })
+      expectTypeOf<typeof _updateMany>().toEqualTypeOf<typeof updateMany>()
 
-        const _createManyAndReturn = xprisma.user._createManyAndReturn({
-          data: [{ email: '', firstName: '', lastName: '' }],
-        })
-        const createManyAndReturn = await xprisma.user._createManyAndReturn({
-          data: [{ email: '', firstName: '', lastName: '' }],
-        })
-        expectTypeOf<typeof _createManyAndReturn>().toEqualTypeOf<typeof createManyAndReturn>()
+      const _updateManyAndReturn = xprisma.user._updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
+      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+      const updateManyAndReturn = await prisma.user.updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
+      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+      expectTypeOf<typeof _updateManyAndReturn>().toEqualTypeOf<typeof updateManyAndReturn>()
 
-        const _delete = xprisma.user._delete({ where: { id: '1' } })
-        const deleted = await xprisma.user.delete({ where: { id: '1' } })
-        expectTypeOf<typeof _delete>().toEqualTypeOf<typeof deleted>()
+      const _upsert = xprisma.user._upsert({
+        where: { id: '1' },
+        create: { email: '', firstName: '', lastName: '' },
+        update: { email: '' },
+      })
+      const upsert = await prisma.user.upsert({
+        where: { id: '1' },
+        create: { email: '', firstName: '', lastName: '' },
+        update: { email: '' },
+      })
+      expectTypeOf<typeof _upsert>().toEqualTypeOf<typeof upsert>()
 
-        const _deleteMany = xprisma.user._deleteMany({ where: { id: '1' } })
-        const deleteMany = await xprisma.user.deleteMany({ where: { id: '1' } })
-        expectTypeOf<typeof _deleteMany>().toEqualTypeOf<typeof deleteMany>()
+      const _findRaw = xprisma.user._findRaw({})
+      // @ts-test-if: provider === Providers.MONGODB
+      const findRaw = await prisma.user.findRaw({})
+      // @ts-test-if: provider === Providers.MONGODB
+      expectTypeOf<typeof _findRaw>().toEqualTypeOf<typeof findRaw>()
 
-        const _findFirst = xprisma.user._findFirst({})
-        const findFirst = await xprisma.user.findFirst({})
-        expectTypeOf<typeof _findFirst>().toEqualTypeOf<typeof findFirst>()
+      const _aggregateRaw = xprisma.user._aggregateRaw({})
+      // @ts-test-if: provider === Providers.MONGODB
+      const aggregateRaw = await prisma.user.aggregateRaw({})
+      // @ts-test-if: provider === Providers.MONGODB
+      expectTypeOf<typeof _aggregateRaw>().toEqualTypeOf<typeof aggregateRaw>()
 
-        const _findFirstOrThrow = xprisma.user._findFirstOrThrow({})
-        const findFirstOrThrow = await xprisma.user.findFirstOrThrow({})
-        expectTypeOf<typeof _findFirstOrThrow>().toEqualTypeOf<typeof findFirstOrThrow>()
+      const _runCommandRaw = xprisma._$runCommandRaw({})
+      // @ts-test-if: provider === Providers.MONGODB
+      const runCommandRaw = await prisma.$runCommandRaw({})
+      // @ts-test-if: provider === Providers.MONGODB
+      expectTypeOf<typeof _runCommandRaw>().toEqualTypeOf<typeof runCommandRaw>()
 
-        const _findMany = xprisma.user._findMany({ include: { posts: true } })
-        const findMany = await xprisma.user.findMany({ include: { posts: true } })
-        expectTypeOf<typeof _findMany>().toEqualTypeOf<typeof findMany>()
+      const _executeRaw = xprisma._$executeRaw([])
+      // @ts-test-if: provider !== Providers.MONGODB
+      const executeRaw = await prisma.$executeRaw([] as any as TemplateStringsArray)
+      // @ts-test-if: provider !== Providers.MONGODB
+      expectTypeOf<typeof _executeRaw>().toEqualTypeOf<typeof executeRaw>()
 
-        const _findUnique = xprisma.user._findUnique({ where: { id: '1' } })
-        const findUnique = await xprisma.user.findUnique({ where: { id: '1' } })
-        expectTypeOf<typeof _findUnique>().toEqualTypeOf<typeof findUnique>()
+      const _executeRawUnsafe = xprisma._$executeRawUnsafe('')
+      // @ts-test-if: provider !== Providers.MONGODB
+      const executeRawUnsafe = await prisma.$executeRawUnsafe('')
+      // @ts-test-if: provider !== Providers.MONGODB
+      expectTypeOf<typeof _executeRawUnsafe>().toEqualTypeOf<typeof executeRawUnsafe>()
 
-        const _findUniqueOrThrow = xprisma.user._findUniqueOrThrow({ where: { id: '1' } })
-        const findUniqueOrThrow = await xprisma.user.findUniqueOrThrow({ where: { id: '1' } })
-        expectTypeOf<typeof _findUniqueOrThrow>().toEqualTypeOf<typeof findUniqueOrThrow>()
+      const _queryRaw = xprisma._$queryRaw([])
+      // @ts-test-if: provider !== Providers.MONGODB
+      const queryRaw = await prisma.$queryRaw([] as any as TemplateStringsArray)
+      // @ts-test-if: provider !== Providers.MONGODB
+      expectTypeOf<typeof _queryRaw>().toEqualTypeOf<typeof queryRaw>()
 
-        const _groupBy = xprisma.user._groupBy({ by: ['id'] })
-        const groupBy = await xprisma.user.groupBy({ by: ['id'] })
-        expectTypeOf<typeof _groupBy>().toEqualTypeOf<typeof groupBy>()
-
-        const _update = xprisma.user._update({ where: { id: '1' }, data: { email: '' } })
-        const update = await prisma.user.update({ where: { id: '1' }, data: { email: '' } })
-        expectTypeOf<typeof _update>().toEqualTypeOf<typeof update>()
-
-        const _updateMany = xprisma.user._updateMany({ where: { id: '1' }, data: { email: '' } })
-        const updateMany = await prisma.user.updateMany({ where: { id: '1' }, data: { email: '' } })
-        expectTypeOf<typeof _updateMany>().toEqualTypeOf<typeof updateMany>()
-
-        const _updateManyAndReturn = xprisma.user._updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
-        // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
-        const updateManyAndReturn = await prisma.user.updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
-        // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
-        expectTypeOf<typeof _updateManyAndReturn>().toEqualTypeOf<typeof updateManyAndReturn>()
-
-        const _upsert = xprisma.user._upsert({
-          where: { id: '1' },
-          create: { email: '', firstName: '', lastName: '' },
-          update: { email: '' },
-        })
-        const upsert = await prisma.user.upsert({
-          where: { id: '1' },
-          create: { email: '', firstName: '', lastName: '' },
-          update: { email: '' },
-        })
-        expectTypeOf<typeof _upsert>().toEqualTypeOf<typeof upsert>()
-
-        const _findRaw = xprisma.user._findRaw({})
-        // @ts-test-if: provider === Providers.MONGODB
-        const findRaw = await prisma.user.findRaw({})
-        // @ts-test-if: provider === Providers.MONGODB
-        expectTypeOf<typeof _findRaw>().toEqualTypeOf<typeof findRaw>()
-
-        const _aggregateRaw = xprisma.user._aggregateRaw({})
-        // @ts-test-if: provider === Providers.MONGODB
-        const aggregateRaw = await prisma.user.aggregateRaw({})
-        // @ts-test-if: provider === Providers.MONGODB
-        expectTypeOf<typeof _aggregateRaw>().toEqualTypeOf<typeof aggregateRaw>()
-
-        const _runCommandRaw = xprisma._$runCommandRaw({})
-        // @ts-test-if: provider === Providers.MONGODB
-        const runCommandRaw = await prisma.$runCommandRaw({})
-        // @ts-test-if: provider === Providers.MONGODB
-        expectTypeOf<typeof _runCommandRaw>().toEqualTypeOf<typeof runCommandRaw>()
-
-        const _executeRaw = xprisma._$executeRaw([])
-        // @ts-test-if: provider !== Providers.MONGODB
-        const executeRaw = await prisma.$executeRaw([] as any as TemplateStringsArray)
-        // @ts-test-if: provider !== Providers.MONGODB
-        expectTypeOf<typeof _executeRaw>().toEqualTypeOf<typeof executeRaw>()
-
-        const _executeRawUnsafe = xprisma._$executeRawUnsafe('')
-        // @ts-test-if: provider !== Providers.MONGODB
-        const executeRawUnsafe = await prisma.$executeRawUnsafe('')
-        // @ts-test-if: provider !== Providers.MONGODB
-        expectTypeOf<typeof _executeRawUnsafe>().toEqualTypeOf<typeof executeRawUnsafe>()
-
-        const _queryRaw = xprisma._$queryRaw([])
-        // @ts-test-if: provider !== Providers.MONGODB
-        const queryRaw = await prisma.$queryRaw([] as any as TemplateStringsArray)
-        // @ts-test-if: provider !== Providers.MONGODB
-        expectTypeOf<typeof _queryRaw>().toEqualTypeOf<typeof queryRaw>()
-
-        const _queryRawUnsafe = xprisma._$queryRawUnsafe('')
-        // @ts-test-if: provider !== Providers.MONGODB
-        const queryRawUnsafe = await prisma.$queryRawUnsafe('')
-        // @ts-test-if: provider !== Providers.MONGODB
-        expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
-      }
-    })
-  },
-  {
-    skip: (when, { driverAdapter, clientEngineExecutor }) => {
-      when(
-        driverAdapter !== undefined || clientEngineExecutor === 'remote',
-        'It somehow fails with Driver Adapters, and with `--remote-executor`. This is a bug.',
-      )
-    },
-  },
-)
+      const _queryRawUnsafe = xprisma._$queryRawUnsafe('')
+      // @ts-test-if: provider !== Providers.MONGODB
+      const queryRawUnsafe = await prisma.$queryRawUnsafe('')
+      // @ts-test-if: provider !== Providers.MONGODB
+      expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
+    }
+  })
+})

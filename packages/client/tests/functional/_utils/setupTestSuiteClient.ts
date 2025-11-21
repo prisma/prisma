@@ -65,7 +65,7 @@ export async function setupTestSuiteClient({
     schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
   })
   const generator = schemaContext.generators.find((g) =>
-    ['prisma-client-js', 'prisma-client-ts'].includes(parseEnvValue(g.provider)),
+    ['prisma-client-js', 'prisma-client-ts', 'prisma-client'].includes(parseEnvValue(g.provider)),
   )!
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 

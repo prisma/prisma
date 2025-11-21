@@ -4,7 +4,7 @@ import testMatrix from '../_matrix'
 export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
   generator client {
-    provider = "prisma-client-js"
+    provider = "prisma-client"
   }
   
   datasource db {
