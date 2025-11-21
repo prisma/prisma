@@ -1,7 +1,6 @@
 generator client {
-  provider        = "prisma-client"
-  engineType      = "client"
-  output          = "../generated/client"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -9,5 +8,6 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
+  id    String @id @default(uuid())
+  email String
 }

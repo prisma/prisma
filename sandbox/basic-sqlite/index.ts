@@ -1,7 +1,8 @@
-import { PrismaClient } from './generated/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaClient } from './generated/prisma/client'
 
 async function main() {
-  const prisma = new PrismaClient()
+  const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:prisma/dev.db' }) })
 
   const email = `user.${Date.now()}@prisma.io`
   await prisma.user.create({
