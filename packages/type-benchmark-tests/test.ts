@@ -111,7 +111,7 @@ function getBenchmarkFiles(dir: string) {
 
 async function runGenerate(dir: string, cwd: string) {
   console.log(`Running generate command in ${dir}...`)
-  await execa('tsx', ['../../cli/src/bin.ts', 'generate'], { cwd, stdio: 'inherit' })
+  await execa('tsx', ['../../cli/src/bin.ts', 'generate', '--no-hints'], { cwd, stdio: 'inherit' })
 }
 
 async function runBenchmark({

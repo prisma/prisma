@@ -1,14 +1,13 @@
 {
   "private": true,
-  "name": "query-compiler",
+  "name": "basic-postgres",
   "description": "Prisma development playground",
   "main": "index.ts",
   "scripts": {
-    "dbpush": "prisma db push --skip-generate",
-    "generate": "prisma generate",
+    "dbpush": "prisma db push",
+    "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
     "start": "npm run generate && npm run test",
     "test": "ts-node index.ts",
-    "typecheck": "tsc",
     "debug": "node -r ts-node/register --enable-source-maps index.ts"
   },
   "keywords": [],
@@ -17,13 +16,14 @@
   "dependencies": {
     "@prisma/client": "../../packages/client",
     "@prisma/adapter-pg": "../../packages/adapter-pg",
-    "pg": "../../packages/adapter-pg/node_modules/pg"
+    "@prisma/extension-accelerate": "2.0.2"
   },
   "devDependencies": {
     "@types/node": "~20.19.0",
-    "@types/pg": "../../packages/adapter-pg/node_modules/@types/pg",
+    "@prisma/config": "../../packages/config",
     "prisma": "../../packages/cli",
-    "ts-node": "*",
-    "typescript": "*"
+    "ts-node": "10.9.1",
+    "dotenv": "16.4.7",
+    "typescript": "5.4.5"
   }
 }
