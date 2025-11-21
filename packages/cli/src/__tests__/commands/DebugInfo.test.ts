@@ -53,6 +53,7 @@ const envVars = {
   PRISMA_HIDE_UPDATE_MESSAGE: 'true',
   PRISMA_ENGINES_MIRROR: 'http://localhost',
   PRISMA_BINARIES_MIRROR: 'http://localhost',
+  PRISMA_ENGINES_STRICT_MIRROR: 'true',
   PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 'true',
   BINARY_DOWNLOAD_VERSION: 'true',
   PRISMA_SCHEMA_ENGINE_BINARY: 'some/path',
@@ -124,6 +125,7 @@ describe('debug', () => {
       For downloading engines
       - PRISMA_ENGINES_MIRROR:
       - PRISMA_BINARIES_MIRROR (deprecated):
+      - PRISMA_ENGINES_STRICT_MIRROR:
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING:
       - BINARY_DOWNLOAD_VERSION:
 
@@ -198,6 +200,7 @@ describe('debug', () => {
       For downloading engines
       - PRISMA_ENGINES_MIRROR: \`\`
       - PRISMA_BINARIES_MIRROR (deprecated): \`\`
+      - PRISMA_ENGINES_STRICT_MIRROR: \`\`
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`\`
       - BINARY_DOWNLOAD_VERSION: \`\`
 
@@ -269,6 +272,7 @@ describe('debug', () => {
       For downloading engines
       - PRISMA_ENGINES_MIRROR: \`http://localhost\`
       - PRISMA_BINARIES_MIRROR (deprecated): \`http://localhost\`
+      - PRISMA_ENGINES_STRICT_MIRROR: \`true\`
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`true\`
       - BINARY_DOWNLOAD_VERSION: \`true\`
 
