@@ -59,11 +59,35 @@ interface StudioStuff {
   reExportAdapterScript: string
 }
 
+/**
+ * A list of query parameters that are specific to Prisma ORM and should be removed
+ * from the connection string before passing it to the Postgres client to avoid errors.
+ *
+ * @See https://www.prisma.io/docs/orm/overview/databases/postgresql#arguments
+ * @See https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
+ */
+const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
+  'schema',
+  'connection_limit',
+  'pool_timeout',
+  'sslidentity',
+  'sslaccept',
+  'socket_timeout',
+  'pgbouncer',
+  'statement_cache_size',
+] as const
+
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
   async createExecutor(connectionString) {
     const postgresModule = await import('postgres')
 
-    const postgres = postgresModule.default(connectionString)
+    const connectionURL = new URL(connectionString)
+
+    for (const queryParameter of PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS) {
+      connectionURL.searchParams.delete(queryParameter)
+    }
+
+    const postgres = postgresModule.default(connectionURL.toString())
 
     process.once('SIGINT', () => postgres.end())
     process.once('SIGTERM', () => postgres.end())
