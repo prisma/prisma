@@ -37,7 +37,37 @@ export const wasmQueryCompilerLoader: QueryCompilerLoader = {
 
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
         const options = { './query_compiler_bg.js': runtime }
-        const instance = new WebAssembly.Instance(wasmModule, options)
+
+        let instance: WebAssembly.Instance
+
+        try {
+          instance = new WebAssembly.Instance(wasmModule, options)
+        } catch (e: unknown) {
+          const message = (e as any)?.message ?? ''
+
+          const isCompileError =
+            typeof WebAssembly !== 'undefined' &&
+            typeof WebAssembly.CompileError !== 'undefined' &&
+            e instanceof WebAssembly.CompileError
+
+          const embedderBlocked = isCompileError && message.includes('Wasm code generation disallowed by embedder')
+
+          if (embedderBlocked) {
+            throw new PrismaClientInitializationError(
+              [
+                'Prisma Client could not initialize the WASM-based query compiler because',
+                'this runtime blocks dynamic WebAssembly compilation (for example, Cloudflare Workers).',
+                'Prisma 7 currently requires compiling the query compiler WASM module at runtime.',
+                'Please refer to the Prisma documentation for supported edge runtimes and current workarounds.',
+              ].join(' '),
+              clientVersion,
+            )
+          }
+
+          // Re-throw anything else to avoid hiding other issues
+          throw e
+        }
+
         const wbindgen_start = instance.exports.__wbindgen_start as () => void
         runtime.__wbg_set_wasm(instance.exports)
         wbindgen_start()
