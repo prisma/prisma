@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { access, constants, readFile } from 'node:fs/promises'
 
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
@@ -13,7 +13,7 @@ import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { bold, dim, red } from 'kleur/colors'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
@@ -81,7 +81,19 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
-      const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
+      const isInMemory = path === ':memory:'
+
+      const resolvedPath = isInMemory ? path : resolve(relativeTo, path)
+
+      if (!isInMemory) {
+        await access(resolvedPath, constants.F_OK).catch(() => {
+          console.warn(
+            yellow(
+              `database file at "${resolvedPath}" was not found. a new file was created. if this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`,
+            ),
+          )
+        })
+      }
 
       let database: InstanceType<Database> | undefined = undefined
 
