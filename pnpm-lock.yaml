@@ -429,8 +429,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/studio-core-licensed':
-        specifier: 0.0.0-dev.202511231143
-        version: 0.0.0-dev.202511231143
+        specifier: 0.8.1
+        version: 0.8.1
       mysql2:
         specifier: 3.15.3
         version: 3.15.3
@@ -3532,8 +3532,8 @@ packages:
   '@prisma/schema-engine-wasm@6.20.0-16.next-0c19ccc313cf9911a90d99d2ac2eb0280c76c513':
     resolution: {integrity: sha512-2BhRjCnWXPHsYMxslnKrqN+3EarnECsqlx+j3K5eWcnArlW0ZpOC+ay9ahyuIm7umU+eOceTnDrpv8WPVdo0oQ==}
 
-  '@prisma/studio-core-licensed@0.0.0-dev.202511231143':
-    resolution: {integrity: sha512-9vxP/RfvIl4pOV0R7CD/woDxowa0uAljfFNVTJp7Bx8PzEFQMg+EQ3TIwzpExxxy1o1XA1mb8ZJhzgA0GgvvOA==}
+  '@prisma/studio-core-licensed@0.8.1':
+    resolution: {integrity: sha512-9aMnKEvZvE85whW9w3TYACRDasnAEz/DlCnR8Nbh+f9+z1k8W5JVGHfO/UVBNQbSjT/imXsC8zFPVPxPuF4WFw==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -10077,7 +10077,7 @@ snapshots:
 
   '@prisma/schema-engine-wasm@6.20.0-16.next-0c19ccc313cf9911a90d99d2ac2eb0280c76c513': {}
 
-  '@prisma/studio-core-licensed@0.0.0-dev.202511231143': {}
+  '@prisma/studio-core-licensed@0.8.1': {}
 
   '@redocly/ajv@8.17.1':
     dependencies:
