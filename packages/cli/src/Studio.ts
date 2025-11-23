@@ -86,7 +86,7 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
       const resolvedPath = isInMemory ? path : resolve(relativeTo, path)
 
       if (!isInMemory) {
-        void access(resolvedPath, constants.F_OK).catch(() => {
+        await access(resolvedPath, constants.F_OK).catch(() => {
           console.warn(yellow(`database file at "${resolvedPath}" was not found. a new file was created. if this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`))
         })
       }
