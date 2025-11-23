@@ -332,7 +332,26 @@ function normalize_timez(time: string): string {
 /******************/
 
 function normalize_money(money: string): string {
-  return money.slice(1)
+  if (money == null) return money;
+
+
+  let cleaned = money.replace(/[^0-9.,-]+/g, "");
+
+  const hasComma = cleaned.includes(",");
+  const hasDot = cleaned.includes(".");
+
+
+  if (hasComma && hasDot) {
+    if (cleaned.lastIndexOf(".") > cleaned.lastIndexOf(",")) {
+      cleaned = cleaned.replace(/,/g, "");
+    } else {
+      cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+    }
+  }
+  else if (hasComma && !hasDot) {
+    cleaned = cleaned.replace(",", ".");
+  }
+  return cleaned;
 }
 
 /******************/
