@@ -181,7 +181,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/dev": "0.13.0",
     "@prisma/engines": "workspace:*",
-    "@prisma/studio-core-licensed": "0.8.0",
+    "@prisma/studio-core-licensed": "0.0.0-dev.202511231143",
     "mysql2": "3.15.3",
     "postgres": "3.4.7"
   },
