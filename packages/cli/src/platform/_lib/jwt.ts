@@ -6,6 +6,7 @@ export interface JWT {
   jti?: string
   sub?: string
   iat?: number
+  exp?: number
 }
 
 export const decodeJwt = (jwt: string): JWT | Error => {
@@ -32,4 +33,19 @@ export const decodeJwt = (jwt: string): JWT | Error => {
   if (!isObject(result)) throw new Error('Invalid JWT Claims Set.')
 
   return result
+}
+
+export const isJwtExpiredOrInvalid = (token: string): boolean => {
+  const jwt = decodeJwt(token)
+  if (isError(jwt)) return true
+  if (!jwt.exp) return false
+  // Note: The platform api uses millisecond timestamps but this is non standard! JWTs usually use seconds.
+  // Hence this little workaround to detect automatically whether the timestamp is in milliseconds or seconds.
+  if (jwt.exp / 1_000_000_000 > 200) {
+    // Timestamp is in milliseconds
+    return jwt.exp < Date.now()
+  } else {
+    // Timestamp is in seconds
+    return jwt.exp < Date.now() / 1000
+  }
 }
