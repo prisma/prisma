@@ -89,7 +89,7 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
         await access(resolvedPath, constants.F_OK).catch(() => {
           console.warn(
             yellow(
-              `database file at "${resolvedPath}" was not found. a new file was created. if this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`,
+              `Database file at "${resolvedPath}" was not found. A new file was created. If this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`,
             ),
           )
         })
