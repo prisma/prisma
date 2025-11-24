@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { access, constants, readFile } from 'node:fs/promises'
 
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
@@ -13,7 +13,7 @@ import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { bold, dim, red } from 'kleur/colors'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
@@ -59,11 +59,35 @@ interface StudioStuff {
   reExportAdapterScript: string
 }
 
+/**
+ * A list of query parameters that are specific to Prisma ORM and should be removed
+ * from the connection string before passing it to the Postgres client to avoid errors.
+ *
+ * @See https://www.prisma.io/docs/orm/overview/databases/postgresql#arguments
+ * @See https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
+ */
+const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
+  'schema',
+  'connection_limit',
+  'pool_timeout',
+  'sslidentity',
+  'sslaccept',
+  'socket_timeout',
+  'pgbouncer',
+  'statement_cache_size',
+] as const
+
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
   async createExecutor(connectionString) {
     const postgresModule = await import('postgres')
 
-    const postgres = postgresModule.default(connectionString)
+    const connectionURL = new URL(connectionString)
+
+    for (const queryParameter of PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS) {
+      connectionURL.searchParams.delete(queryParameter)
+    }
+
+    const postgres = postgresModule.default(connectionURL.toString())
 
     process.once('SIGINT', () => postgres.end())
     process.once('SIGTERM', () => postgres.end())
@@ -81,7 +105,19 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
-      const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
+      const isInMemory = path === ':memory:'
+
+      const resolvedPath = isInMemory ? path : resolve(relativeTo, path)
+
+      if (!isInMemory) {
+        await access(resolvedPath, constants.F_OK).catch(() => {
+          console.warn(
+            yellow(
+              `Database file at "${resolvedPath}" was not found. A new file was created. If this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`,
+            ),
+          )
+        })
+      }
 
       let database: InstanceType<Database> | undefined = undefined
 
