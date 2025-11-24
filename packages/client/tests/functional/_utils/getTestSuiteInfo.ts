@@ -27,7 +27,7 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
 const allProvidersRegexUnion = Object.values(Providers).join('|')
 const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
-const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-(j|t)s"/
+const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client(-(j|t)s)?"/
 const schemaProviderRegex = new RegExp(`provider\\s*=\\s*"(?:${allProvidersRegexUnion})"`, 'g')
 const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
 
