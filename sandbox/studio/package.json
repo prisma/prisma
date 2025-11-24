@@ -8,7 +8,7 @@
     "studio:bun:sqlite": "PROVIDER=sqlite pnpm studio:bun",
     "studio:deno": "deno run -A --unstable-detect-cjs ../../packages/cli/build/index.js studio --config ./prisma.config.ts",
     "studio:deno:sqlite": "PROVIDER=sqlite pnpm studio:deno",
-    "studio:node": "dotenvx run -- tsx ../../packages/cli/build/index.js studio --config ./prisma.config.ts",
+    "studio:node": "node --experimental-sqlite ../../packages/cli/build/index.js studio --config ./prisma.config.ts",
     "studio:node:debug": "DEBUG=prisma:* pnpm studio:node",
     "studio:node:mysql": "PROVIDER=mysql pnpm studio:node",
     "studio:node:mysql:debug": "PROVIDER=mysql pnpm studio:node:debug",
@@ -22,11 +22,11 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/config": "../../packages/config",
+    "better-sqlite3": "^12.4.6",
+    "dotenv": "^17.2.3",
     "mysql2": "^3.15.3"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.29.3",
-    "tsx": "^4.20.6",
     "typescript": "5.9.3"
   }
 }
