@@ -378,4 +378,32 @@ describe('generator', () => {
     expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
     generator.stop()
   })
+
+  test('cockroachdb generates the expected WASM file', async () => {
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
+    // Make sure, that nothing is cached.
+    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+    await fsPromises.cp(path.join(__dirname, '../../client/runtime'), path.join(prismaClientTarget, 'runtime'), {
+      recursive: true,
+    })
+
+    // Make sure to remove any existing generated client
+    const dotPrismaDir = path.join(__dirname, './node_modules/.prisma/client')
+    await fsPromises.rm(dotPrismaDir, { recursive: true, force: true })
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'cockroachdb.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    const photonDir = path.join(__dirname, 'node_modules/.prisma/client')
+    expect(fs.existsSync(photonDir)).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'query_compiler_bg.wasm'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'query_compiler_bg.js'))).toBe(true)
+    generator.stop()
+  })
 })
