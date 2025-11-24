@@ -3,6 +3,7 @@ import { bold, green } from 'kleur/colors'
 
 import { getOptionalParameter } from './cli/parameters'
 import { credentialsFile } from './credentials'
+import { isJwtExpiredOrInvalid } from './jwt'
 
 export const platformParameters = {
   global: {
@@ -37,17 +38,26 @@ export const platformParameters = {
   },
 } as const
 
+export const ErrorPlatformTokenExpired = new Error(
+  `Credentials expired. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))}.`, // prettier-ignore
+)
+
 export const ErrorPlatformUnauthorized = new Error(
   `No platform credentials found. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))} first. Alternatively you can provide a token via the \`--token\` or \`-t\` parameters, or set the 'PRISMA_TOKEN' environment variable with a token.`, // prettier-ignore
 )
 
 export const getTokenOrThrow = async <$Args extends Record<string, unknown>>(args: $Args) => {
   const token = getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') as string
+  if (token && isJwtExpiredOrInvalid(token)) throw ErrorPlatformTokenExpired
   if (token) return token
 
   const credentials = await credentialsFile.load()
   if (isError(credentials)) throw credentials
   if (!credentials) throw ErrorPlatformUnauthorized
+  if (isJwtExpiredOrInvalid(credentials.token)) {
+    await credentialsFile.delete()
+    throw ErrorPlatformTokenExpired
+  }
 
   return credentials.token
 }
