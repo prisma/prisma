@@ -332,93 +332,86 @@ function normalize_timez(time: string): string {
 /******************/
 
 function normalize_money(money: string): string {
-  if (money === null || money === undefined) return money;
+  if (money === null || money === undefined) return money
 
-  const trimmed = money.trim();
+  const trimmed = money.trim()
   if (trimmed === '' || trimmed === '0' || trimmed === '-0') {
-    return '0';
+    return '0'
   }
 
-  const isNegativeParentheses = /^\(.*\)$/.test(trimmed);
-  let cleaned = trimmed.replace(/[^\d.,-]/g, '');
+  const isNegativeParentheses = /^\(.*\)$/.test(trimmed)
+  let cleaned = trimmed.replace(/[^\d.,-]/g, '')
 
   if (!/[.,]/.test(cleaned)) {
-    const isNegative = cleaned.startsWith('-');
-    cleaned = cleaned.replace(/-/g, '');
-    cleaned = cleaned.replace(/^0+/, '') || '0';
-    return (isNegative || isNegativeParentheses) ? `-${cleaned}` : cleaned;
+    const isNegative = cleaned.startsWith('-')
+    cleaned = cleaned.replace(/-/g, '')
+    cleaned = cleaned.replace(/^0+/, '') || '0'
+    return isNegative || isNegativeParentheses ? `-${cleaned}` : cleaned
   }
 
-  const hasComma = cleaned.includes(',');
-  const hasDot = cleaned.includes('.');
-  const hasMinus = cleaned.includes('-');
+  const hasComma = cleaned.includes(',')
+  const hasDot = cleaned.includes('.')
+  const hasMinus = cleaned.includes('-')
 
-  const minusSign = hasMinus || isNegativeParentheses ? '-' : '';
-  cleaned = cleaned.replace(/-/g, '');
+  const minusSign = hasMinus || isNegativeParentheses ? '-' : ''
+  cleaned = cleaned.replace(/-/g, '')
 
   if (/[.,]{2,}/.test(cleaned)) {
-    const lastSeparatorIndex = Math.max(cleaned.lastIndexOf('.'), cleaned.lastIndexOf(','));
-    const beforeSeparator = cleaned.substring(0, lastSeparatorIndex).replace(/[.,]/g, '');
-    const afterSeparator = cleaned.substring(lastSeparatorIndex + 1).replace(/[.,]/g, '');
-    cleaned = `${beforeSeparator}.${afterSeparator}`;
-  }
-  else if (hasComma && hasDot) {
-    const lastDotIndex = cleaned.lastIndexOf('.');
-    const lastCommaIndex = cleaned.lastIndexOf(',');
+    const lastSeparatorIndex = Math.max(cleaned.lastIndexOf('.'), cleaned.lastIndexOf(','))
+    const beforeSeparator = cleaned.substring(0, lastSeparatorIndex).replace(/[.,]/g, '')
+    const afterSeparator = cleaned.substring(lastSeparatorIndex + 1).replace(/[.,]/g, '')
+    cleaned = `${beforeSeparator}.${afterSeparator}`
+  } else if (hasComma && hasDot) {
+    const lastDotIndex = cleaned.lastIndexOf('.')
+    const lastCommaIndex = cleaned.lastIndexOf(',')
 
     if (lastDotIndex > lastCommaIndex) {
-      cleaned = cleaned.replace(/,/g, '');
+      cleaned = cleaned.replace(/,/g, '')
     } else {
-      cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      cleaned = cleaned.replace(/\./g, '').replace(',', '.')
     }
-  }
-  else if (hasComma && !hasDot) {
-    const parts = cleaned.split(',');
+  } else if (hasComma && !hasDot) {
+    const parts = cleaned.split(',')
 
     if (parts.length > 2) {
-      cleaned = cleaned.replace(/,/g, '');
-    }
-    else {
-      const lastPart = parts[parts.length - 1];
-      const firstPart = parts[0];
+      cleaned = cleaned.replace(/,/g, '')
+    } else {
+      const lastPart = parts[parts.length - 1]
+      const firstPart = parts[0]
 
       if (lastPart.length === 3 && firstPart.length <= 3 && firstPart.length >= 1) {
-        cleaned = cleaned.replace(/,/g, '');
-      }
-      else if (lastPart.length <= 2) {
-        cleaned = cleaned.replace(',', '.');
-      }
-      else {
-        cleaned = cleaned.replace(/,/g, '');
+        cleaned = cleaned.replace(/,/g, '')
+      } else if (lastPart.length <= 2) {
+        cleaned = cleaned.replace(',', '.')
+      } else {
+        cleaned = cleaned.replace(/,/g, '')
       }
     }
-  }
-  else if (hasDot && !hasComma) {
-    const parts = cleaned.split('.');
+  } else if (hasDot && !hasComma) {
+    const parts = cleaned.split('.')
 
     if (parts.length > 2) {
-      cleaned = cleaned.replace(/\./g, '');
-    }
-    else {
-      const lastPart = parts[parts.length - 1];
-      const firstPart = parts[0];
+      cleaned = cleaned.replace(/\./g, '')
+    } else {
+      const lastPart = parts[parts.length - 1]
+      const firstPart = parts[0]
 
       if (lastPart.length === 3 && firstPart.length >= 1 && firstPart.length <= 2 && firstPart !== '0') {
-        cleaned = cleaned.replace(/\./g, '');
+        cleaned = cleaned.replace(/\./g, '')
       }
     }
   }
 
   if (cleaned.includes('.')) {
-    cleaned = cleaned.replace(/^0+(?=\d)/, '');
+    cleaned = cleaned.replace(/^0+(?=\d)/, '')
     if (cleaned.startsWith('.')) {
-      cleaned = '0' + cleaned;
+      cleaned = '0' + cleaned
     }
   } else {
-    cleaned = cleaned.replace(/^0+/, '') || '0';
+    cleaned = cleaned.replace(/^0+/, '') || '0'
   }
 
-  return minusSign + cleaned;
+  return minusSign + cleaned
 }
 
 /******************/
