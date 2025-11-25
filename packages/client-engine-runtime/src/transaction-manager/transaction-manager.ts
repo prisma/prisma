@@ -1,3 +1,5 @@
+import events from 'node:events'
+
 import { Debug } from '@prisma/debug'
 import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
@@ -112,20 +114,21 @@ export class TransactionManager {
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    let hasTimedOut = false
-    const startTimer = createTimeoutIfDefined(() => (hasTimedOut = true), options.maxWait)
+    const abortController = new AbortController()
+    const startTimer = createTimeoutIfDefined(() => abortController.abort(), options.maxWait)
     startTimer?.unref?.()
 
-    transaction.transaction = await this.driverAdapter
-      .startTransaction(options.isolationLevel)
-      .catch(rethrowAsUserFacing)
+    transaction.transaction = await Promise.race([
+      this.driverAdapter.startTransaction(options.isolationLevel).catch(rethrowAsUserFacing),
+      events.once(abortController.signal, 'abort').then(() => undefined),
+    ])
 
     clearTimeout(startTimer)
 
     // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        if (hasTimedOut) {
+        if (abortController.signal.aborted) {
           await this.#closeTransaction(transaction, 'timed_out')
           throw new TransactionStartTimeoutError()
         }
