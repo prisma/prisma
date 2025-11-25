@@ -119,11 +119,13 @@ export class TransactionManager {
     startTimer?.unref?.()
 
     transaction.transaction = await Promise.race([
-      this.driverAdapter.startTransaction(options.isolationLevel).catch(rethrowAsUserFacing),
+      this.driverAdapter
+        .startTransaction(options.isolationLevel)
+        .catch(rethrowAsUserFacing)
+        .finally(() => clearTimeout(startTimer)),
       events.once(abortController.signal, 'abort').then(() => undefined),
     ])
 
-    clearTimeout(startTimer)
 
     // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
