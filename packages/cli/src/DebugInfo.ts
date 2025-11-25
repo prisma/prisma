@@ -96,7 +96,7 @@ ${formatEnvValue('https_proxy')}
 ${formatEnvValue('HTTPS_PROXY')}
 
 For more information about Prisma environment variables:
-See ${link('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
+See ${link('https://pris.ly/d/env-vars')}
 
 For hiding messages
 ${formatEnvValue('PRISMA_DISABLE_WARNINGS')}
