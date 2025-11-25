@@ -50,7 +50,7 @@ export function createMemoryTest<ModuleT extends PrismaModule, PrepareResult = v
   void (async () => {
     const resultFile = process.argv[2]
     const dir = path.dirname(require.main!.filename)
-    const prismaModule = require(path.join(dir, 'node_modules', '@prisma', 'client'))
+    const prismaModule = require(path.join(dir, 'node_modules', '.prisma', 'client'))
     const runParams = (await prepare?.(prismaModule)) as PrepareResult
     const totalIterations = iterations + WARMUP_ITERATIONS
 
