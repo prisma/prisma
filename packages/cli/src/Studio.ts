@@ -1,24 +1,25 @@
-import { readFile } from 'node:fs/promises'
+import { access, constants, readFile } from 'node:fs/promises'
 
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
-import type { Executor, SequenceExecutor } from '@prisma/studio-core-licensed/data'
-import { serializeError, type StudioBFFRequest } from '@prisma/studio-core-licensed/data/bff'
-import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
-import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
-import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
-import type { StudioProps } from '@prisma/studio-core-licensed/ui'
+import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
+import { serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
+import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
+import { createNodeSQLiteExecutor } from '@prisma/studio-core/data/node-sqlite'
+import { createPostgresJSExecutor } from '@prisma/studio-core/data/postgresjs'
+import type { StudioProps } from '@prisma/studio-core/ui'
 import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { bold, dim, red } from 'kleur/colors'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
+import { runtime } from 'std-env'
 
-const packageJson = require('../package.json')
+import packageJson from '../package.json' assert { type: 'json' }
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -27,7 +28,7 @@ const DEFAULT_PORT = 51_212
 
 const MIN_PORT = 49_152
 
-const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core-licensed/data'), '../..')
+const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core/data'), '../..')
 
 const FILE_EXTENSION_TO_CONTENT_TYPE: Record<string, string> = {
   '.css': 'text/css',
@@ -58,11 +59,35 @@ interface StudioStuff {
   reExportAdapterScript: string
 }
 
+/**
+ * A list of query parameters that are specific to Prisma ORM and should be removed
+ * from the connection string before passing it to the Postgres client to avoid errors.
+ *
+ * @See https://www.prisma.io/docs/orm/overview/databases/postgresql#arguments
+ * @See https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
+ */
+const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
+  'schema',
+  'connection_limit',
+  'pool_timeout',
+  'sslidentity',
+  'sslaccept',
+  'socket_timeout',
+  'pgbouncer',
+  'statement_cache_size',
+] as const
+
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
   async createExecutor(connectionString) {
     const postgresModule = await import('postgres')
 
-    const postgres = postgresModule.default(connectionString)
+    const connectionURL = new URL(connectionString)
+
+    for (const queryParameter of PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS) {
+      connectionURL.searchParams.delete(queryParameter)
+    }
+
+    const postgres = postgresModule.default(connectionURL.toString())
 
     process.once('SIGINT', () => postgres.end())
     process.once('SIGTERM', () => postgres.end())
@@ -72,31 +97,70 @@ const POSTGRES_STUDIO_STUFF: StudioStuff = {
   reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
 }
 
+type Database = { new (path: string): import('better-sqlite3').Database }
+
 const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | null> = {
   // TODO: figure out PGLite support later.
   file: {
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
-      const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
+      const isInMemory = path === ':memory:'
 
-      let database: import('better-sqlite3').Database | undefined = undefined
+      const resolvedPath = isInMemory ? path : resolve(relativeTo, path)
+
+      if (!isInMemory) {
+        await access(resolvedPath, constants.F_OK).catch(() => {
+          console.warn(
+            yellow(
+              `Database file at "${resolvedPath}" was not found. A new file was created. If this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`,
+            ),
+          )
+        })
+      }
+
+      let database: InstanceType<Database> | undefined = undefined
 
       try {
         // TODO: remove 'as' once Node.js v22 is the minimum supported version.
         const { DatabaseSync } = (await import('node:sqlite' as never)) as {
-          DatabaseSync: { new (path: string): import('better-sqlite3').Database }
+          DatabaseSync: Database
         }
 
         database = new DatabaseSync(resolvedPath)
-      } catch (error) {
+      } catch (error: unknown) {
         try {
-          const { default: Database } = await import('better-sqlite3')
+          switch (runtime) {
+            case 'node': {
+              const { default: Database } = await import('better-sqlite3')
 
-          database = new Database(resolvedPath)
-        } catch (error) {
+              database = new Database(resolvedPath)
+              break
+            }
+            case 'deno': {
+              const { Database } = (await import('jsr:@db/sqlite@0.13.0' as never)) as {
+                Database: Database
+              }
+
+              database = new Database(resolvedPath)
+              break
+            }
+            case 'bun': {
+              const { Database } = (await import('bun:sqlite' as never)) as {
+                Database: Database
+              }
+
+              database = new Database(resolvedPath) as never
+              break
+            }
+            default:
+              throw new Error(`Unsupported runtime for SQLite: "${runtime}"`)
+          }
+        } catch (error: unknown) {
           throw new Error(
-            `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}\n\nPlease use Node.js >=22.5 or ensure you have \`better-sqlite3\` installed.`,
+            `Failed to open SQLite database at "${resolvedPath}".\nCaused by: ${(error as Error).message}
+
+Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`better-sqlite3\` package installed for Node.js <22.5 or the \`jsr:@db/sqlite\` package installed for Deno <2.2.`,
           )
         }
       }
@@ -301,7 +365,7 @@ ${bold('Examples')}
     })
 
     let projectHash: string | null = null
-    const version = packageJson.dependencies['@prisma/studio-core-licensed']
+    const version = packageJson.dependencies['@prisma/studio-core']
 
     app.post('/telemetry', async (ctx) => {
       const { eventId, name, payload, timestamp } =
