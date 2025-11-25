@@ -220,21 +220,21 @@ ${buildNullClass('AnyNull')}
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull: NullTypes.DbNull
+export const DbNull: typeof runtime.DbNull
 
 /**
  * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull: NullTypes.JsonNull
+export const JsonNull: typeof runtime.JsonNull
 
 /**
  * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull: NullTypes.AnyNull
+export const AnyNull: typeof runtime.AnyNull
 
 type SelectAndInclude = {
   select: any
