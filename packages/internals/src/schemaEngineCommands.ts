@@ -71,9 +71,7 @@ export async function canConnectToDatabase(
   schemaEnginePath?: string,
 ): Promise<ConnectionResult> {
   if (!connectionString) {
-    throw new Error(
-      'Connection url is empty. See https://www.prisma.io/docs/reference/database-reference/connection-urls',
-    )
+    throw new Error('Connection url is empty. See https://www.prisma.io/docs/orm/reference/connection-urls')
   }
 
   try {

@@ -192,7 +192,7 @@ COMMIT;`,
           expect(e.message).toMatchInlineSnapshot(`
                       "P1013
 
-                      The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+                      The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
                       "
                   `)
         }
@@ -345,7 +345,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -364,7 +364,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -542,7 +542,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -561,7 +561,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -696,7 +696,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -714,7 +714,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -890,7 +890,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. Error parsing connection string: Conversion error: Invalid property key in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: Conversion error: Invalid property key in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }
@@ -909,7 +909,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
-          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/orm/reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
       }

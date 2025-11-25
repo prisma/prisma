@@ -159,7 +159,7 @@ describe('createDatabase', () => {
 
   test('empty connection string', async () => {
     await expect(createDatabase('')).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Connection url is empty. See https://www.prisma.io/docs/reference/database-reference/connection-urls"`,
+      `"Connection url is empty. See https://www.prisma.io/docs/orm/reference/connection-urls"`,
     )
   })
 })
