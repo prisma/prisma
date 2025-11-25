@@ -3,12 +3,12 @@ import { access, constants, readFile } from 'node:fs/promises'
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
-import type { Executor, SequenceExecutor } from '@prisma/studio-core-licensed/data'
-import { serializeError, type StudioBFFRequest } from '@prisma/studio-core-licensed/data/bff'
-import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
-import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
-import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
-import type { StudioProps } from '@prisma/studio-core-licensed/ui'
+import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
+import { serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
+import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
+import { createNodeSQLiteExecutor } from '@prisma/studio-core/data/node-sqlite'
+import { createPostgresJSExecutor } from '@prisma/studio-core/data/postgresjs'
+import type { StudioProps } from '@prisma/studio-core/ui'
 import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
@@ -28,7 +28,7 @@ const DEFAULT_PORT = 51_212
 
 const MIN_PORT = 49_152
 
-const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core-licensed/data'), '../..')
+const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core/data'), '../..')
 
 const FILE_EXTENSION_TO_CONTENT_TYPE: Record<string, string> = {
   '.css': 'text/css',
@@ -365,7 +365,7 @@ ${bold('Examples')}
     })
 
     let projectHash: string | null = null
-    const version = packageJson.dependencies['@prisma/studio-core-licensed']
+    const version = packageJson.dependencies['@prisma/studio-core']
 
     app.post('/telemetry', async (ctx) => {
       const { eventId, name, payload, timestamp } =
