@@ -178,6 +178,35 @@ testMatrix.setupTestSuite(
 
         expect(queries).toHaveLength(N)
       })
+
+      test('should set busy_timeout for litestream compatibility', async () => {
+        await db.dropDb()
+
+        const adapter = new PrismaBetterSqlite3({
+          url: './litestream-test.db?busy_timeout=5000',
+        })
+        const prisma = newPrismaClient({ adapter })
+
+        // Verify busy_timeout is set to 5 seconds (5000ms)
+        const result = await prisma.$queryRaw`PRAGMA busy_timeout`
+        expect(result).toEqual([{ busy_timeout: 5000 }])
+
+        const ddlQueries: any = []
+        sqlDef.split(';').forEach((sql) => {
+          ddlQueries.push(prisma.$executeRawUnsafe(sql))
+        })
+        await prisma.$transaction(ddlQueries)
+
+        // Test that operations work with busy_timeout set
+        const user = await prisma.user.create({
+          data: {
+            id: 'test-user',
+            email: 'test@example.com',
+          },
+        })
+
+        expect(user.id).toBe('test-user')
+      })
     })
   },
   {
