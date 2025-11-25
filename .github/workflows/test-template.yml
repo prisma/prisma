@@ -189,7 +189,6 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-js --client-runtime client --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -258,7 +257,6 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -326,7 +324,6 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -382,7 +379,6 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime client --remote-executor --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional-qpe'
