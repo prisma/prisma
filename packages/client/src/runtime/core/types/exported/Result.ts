@@ -10,39 +10,61 @@ export type Count<O> = { [K in keyof O]: Count<number> } & {}
 // prettier-ignore
 export type GetFindResult<P extends OperationPayload, A, GlobalOmitOptions> =
   Equals<A, any> extends 1 ? DefaultSelection<P, A, GlobalOmitOptions> :
-  A extends
-  | { select: infer S extends object } & Record<string, unknown>
-  | { include: infer I extends object } & Record<string, unknown>
-  ? {
-      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]:
-        (S & I)[K] extends object
-        ? P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions>[] : never
-          : P extends SelectablePayloadFields<K, infer O | null>
-            ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions> | SelectField<P, K> & null : never
-            : K extends '_count'
-              ? Count<GetFindResult<P, (S & I)[K], GlobalOmitOptions>>
-              : never
-        : P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions>[] : never
-          : P extends SelectablePayloadFields<K, infer O | null>
-            ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions> | SelectField<P, K> & null : never
-            : P extends { scalars: { [k in K]: infer O } }
-              ? O
-              : K extends '_count'
-                ? Count<P['objects']>
-                : never
-    } & (
-      A extends { include: any } & Record<string, unknown>
-        // The `A & { omit: ['omit'] }` hack is necessary because otherwise, when we have nested `select` or `include`,
-        // TypeScript at some point gives up remembering what keys `A` has exactly and discards the `omit` for whatever
-        // reason. Splitting the top-level conditional type above into two separate branches and handling `select` and
-        // `include` separately so we don't need to use `A extends { include: any } & Record<string, unknown>` above in
-        // this branch here makes zero difference. Re-adding the `omit` key here makes TypeScript remember it.
-        ? DefaultSelection<P, A & { omit: A['omit'] }, GlobalOmitOptions>
-        : unknown
-    )
-  : DefaultSelection<P, A, GlobalOmitOptions>
+  'include' extends keyof A
+    ? A['include'] extends infer I
+      ? I extends object
+        ? I extends null | undefined
+          ? DefaultSelection<P, A, GlobalOmitOptions>
+          : {
+              [K in keyof I as I[K] extends false | undefined | Skip | null ? never : K]:
+                I[K] extends object
+                ? P extends SelectablePayloadFields<K, (infer O)[]>
+                  ? O extends OperationPayload ? GetFindResult<O, I[K], GlobalOmitOptions>[] : never
+                  : P extends SelectablePayloadFields<K, infer O | null>
+                    ? O extends OperationPayload ? GetFindResult<O, I[K], GlobalOmitOptions> | SelectField<P, K> & null : never
+                    : K extends '_count'
+                      ? Count<GetFindResult<P, I[K], GlobalOmitOptions>>
+                      : never
+                : P extends SelectablePayloadFields<K, (infer O)[]>
+                  ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions>[] : never
+                  : P extends SelectablePayloadFields<K, infer O | null>
+                    ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions> | SelectField<P, K> & null : never
+                    : P extends { scalars: { [k in K]: infer O } }
+                      ? O
+                      : K extends '_count'
+                        ? Count<P['objects']>
+                        : never
+            } & DefaultSelection<P, A & ('omit' extends keyof A ? { omit: A['omit'] } : {}), GlobalOmitOptions>
+        : DefaultSelection<P, A, GlobalOmitOptions>
+      : DefaultSelection<P, A, GlobalOmitOptions>
+    : 'select' extends keyof A
+      ? A['select'] extends infer S
+        ? S extends object
+          ? S extends null | undefined
+            ? DefaultSelection<P, A, GlobalOmitOptions>
+            : {
+                [K in keyof S as S[K] extends false | undefined | Skip | null ? never : K]:
+                  S[K] extends object
+                  ? P extends SelectablePayloadFields<K, (infer O)[]>
+                    ? O extends OperationPayload ? GetFindResult<O, S[K], GlobalOmitOptions>[] : never
+                    : P extends SelectablePayloadFields<K, infer O | null>
+                      ? O extends OperationPayload ? GetFindResult<O, S[K], GlobalOmitOptions> | SelectField<P, K> & null : never
+                      : K extends '_count'
+                        ? Count<GetFindResult<P, S[K], GlobalOmitOptions>>
+                        : never
+                  : P extends SelectablePayloadFields<K, (infer O)[]>
+                    ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions>[] : never
+                    : P extends SelectablePayloadFields<K, infer O | null>
+                      ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions> | SelectField<P, K> & null : never
+                      : P extends { scalars: { [k in K]: infer O } }
+                        ? O
+                        : K extends '_count'
+                          ? Count<P['objects']>
+                          : never
+              }
+          : DefaultSelection<P, A, GlobalOmitOptions>
+        : DefaultSelection<P, A, GlobalOmitOptions>
+      : DefaultSelection<P, A, GlobalOmitOptions>
 
 // prettier-ignore
 export type SelectablePayloadFields<K extends PropertyKey, O> =
