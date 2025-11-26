@@ -50,15 +50,17 @@ export const wasmQueryCompilerLoader: QueryCompilerLoader = {
             typeof WebAssembly.CompileError !== 'undefined' &&
             e instanceof WebAssembly.CompileError
 
-          const embedderBlocked = isCompileError && message.includes('Wasm code generation disallowed by embedder')
+          const embedderBlocked =
+            isCompileError && message.includes('Wasm code generation disallowed by embedder')
 
           if (embedderBlocked) {
             throw new PrismaClientInitializationError(
               [
-                'Prisma Client could not initialize the WASM-based query compiler because',
-                'this runtime blocks dynamic WebAssembly compilation (for example, Cloudflare Workers).',
-                'Prisma 7 currently requires compiling the query compiler WASM module at runtime.',
-                'Please refer to the Prisma documentation for supported edge runtimes and current workarounds.',
+                'Prisma Client could not initialize the WASM-based query compiler in this environment.',
+                'This typically happens when a Node.js Prisma Client is generated or bundled for an edge runtime',
+                'that blocks dynamic WebAssembly compilation (for example, Cloudflare Workers).',
+                'Generate an edge-compatible Prisma Client and verify your bundler configuration',
+                'according to the Prisma edge deployment documentation.',
               ].join(' '),
               clientVersion,
             )

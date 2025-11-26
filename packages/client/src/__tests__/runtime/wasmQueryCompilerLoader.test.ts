@@ -13,7 +13,7 @@ describe('wasmQueryCompilerLoader with blocked WASM compilation', () => {
       }
     }
 
-    // Mock WebAssembly to throw the Cloudflare Workers error
+    // Mock WebAssembly to throw the Cloudflare Workers-style error
     ;(globalThis as any).WebAssembly = {
       ...originalWebAssembly,
       CompileError: CompileErrorCtor,
@@ -45,7 +45,9 @@ describe('wasmQueryCompilerLoader with blocked WASM compilation', () => {
       activeProvider: 'postgresql',
     }
 
-    await expect(wasmQueryCompilerLoader.loadQueryCompiler(config)).rejects.toThrow(PrismaClientInitializationError)
+    await expect(wasmQueryCompilerLoader.loadQueryCompiler(config)).rejects.toThrow(
+      PrismaClientInitializationError,
+    )
 
     await expect(wasmQueryCompilerLoader.loadQueryCompiler(config)).rejects.toThrow(
       /blocks dynamic WebAssembly compilation/i,
