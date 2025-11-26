@@ -1,5 +1,3 @@
-import events from 'node:events'
-
 import { Debug } from '@prisma/debug'
 import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
@@ -9,6 +7,7 @@ import type { SchemaProvider } from '../schema'
 import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { rethrowAsUserFacing } from '../user-facing-error'
 import { assertNever } from '../utils'
+import { once } from '../web-platform'
 import { Options, TransactionInfo } from './transaction'
 import {
   InvalidTransactionIsolationLevelError,
@@ -122,7 +121,7 @@ export class TransactionManager {
         .startTransaction(options.isolationLevel)
         .catch(rethrowAsUserFacing)
         .finally(() => clearTimeout(startTimer)),
-      events.once(abortController.signal, 'abort').then(() => undefined),
+      once(abortController.signal, 'abort').then(() => undefined),
     ])
 
     this.transactions.set(transaction.id, transaction)
