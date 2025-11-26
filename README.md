@@ -39,6 +39,14 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 
 **If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
 
+### Open Source Petition
+
+Recognition of Open Source Work as Voluntary Service in Germany
+
+[![Open Petition Badge](https://img.shields.io/badge/Support-Open%20Source%20Petition-blue)](https://www.openpetition.de/petition/online/anerkennung-von-open-source-arbeit-als-ehrenamt-in-deutschland)
+
+![QR link to Petition](./os-petition.png)
+
 ## Getting started
 
 ### Quickstart (5min)
