@@ -371,7 +371,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (isWasmEngineSupported(provider) && !testMode) {
+  if (isWasmEngineSupported(provider)) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
     const filename = 'query_compiler_bg'
 
