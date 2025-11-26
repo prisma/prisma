@@ -188,6 +188,54 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
     },
     reExportAdapterScript: `export { createMySQLAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/mysql-core/index.js';`,
   },
+  mongodb: {
+    async createExecutor(connectionString) {
+      // Try to import MongoDB executor from studio-core-licensed if available
+      try {
+        const { createMongoExecutor } = await import('@prisma/studio-core-licensed/data/mongodb')
+        const { MongoClient } = await import('mongodb')
+        
+        const client = new MongoClient(connectionString)
+        await client.connect()
+
+        process.once('SIGINT', () => client.close())
+        process.once('SIGTERM', () => client.close())
+
+        return createMongoExecutor(client)
+      } catch (error) {
+        // MongoDB executor not available in studio-core-licensed
+        // This is a regression - MongoDB support was removed in Prisma 7
+        throw new Error(
+          `MongoDB support in Prisma Studio is currently not available. The MongoDB executor is missing from @prisma/studio-core-licensed. Error: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+    },
+    reExportAdapterScript: `export { createMongoAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/mongo-core/index.js';`,
+  },
+  'mongodb+srv': {
+    async createExecutor(connectionString) {
+      // Try to import MongoDB executor from studio-core-licensed if available
+      try {
+        const { createMongoExecutor } = await import('@prisma/studio-core-licensed/data/mongodb')
+        const { MongoClient } = await import('mongodb')
+        
+        const client = new MongoClient(connectionString)
+        await client.connect()
+
+        process.once('SIGINT', () => client.close())
+        process.once('SIGTERM', () => client.close())
+
+        return createMongoExecutor(client)
+      } catch (error) {
+        // MongoDB executor not available in studio-core-licensed
+        // This is a regression - MongoDB support was removed in Prisma 7
+        throw new Error(
+          `MongoDB support in Prisma Studio is currently not available. The MongoDB executor is missing from @prisma/studio-core-licensed. Error: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+    },
+    reExportAdapterScript: `export { createMongoAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/mongo-core/index.js';`,
+  },
   sqlserver: null,
 }
 
