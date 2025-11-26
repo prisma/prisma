@@ -7,7 +7,7 @@ type getMigrationNameOutput = {
   userCancelled?: string
 }
 
-export async function getMigrationName(name?: string): Promise<getMigrationNameOutput> {
+export async function getMigrationName(name?: string, suggestion?: string): Promise<getMigrationNameOutput> {
   // Truncate if longer
   const maxMigrationNameLength = 200
 
@@ -20,7 +20,7 @@ export async function getMigrationName(name?: string): Promise<getMigrationNameO
   // If not TTY or CI, use default name
   else if ((!isInteractive || isCi()) && Boolean(prompt._injected?.length) === false) {
     return {
-      name: '',
+      name: suggestion || '',
     }
   }
 
@@ -35,6 +35,7 @@ export async function getMigrationName(name?: string): Promise<getMigrationNameO
     type: 'text',
     name: 'name',
     message: messageForPrompt,
+    initial: suggestion,
   })
 
   if (!('name' in response)) {

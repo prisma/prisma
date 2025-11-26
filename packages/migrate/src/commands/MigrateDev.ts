@@ -31,6 +31,10 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
+import { CaptureStdout } from '../utils/captureStdout'
+import { getMigrationNameSuggestion } from '../utils/getMigrationNameSuggestion'
+import { listMigrations } from '../utils/listMigrations'
+import { toSchemasContainer, toSchemasWithConfigDir } from '@prisma/internals'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -240,7 +244,42 @@ ${bold('Examples')}
 
     let migrationName: undefined | string = undefined
     if (evaluateDataLossResult.migrationSteps > 0 || args['--create-only']) {
-      const getMigrationNameResult = await getMigrationName(args['--name'])
+      let suggestion: string | undefined
+      try {
+        const from = {
+          tag: 'schemaDatasource',
+          ...toSchemasWithConfigDir(schemaContext, configDir),
+        } as const
+
+        const to = {
+          tag: 'schemaDatamodel',
+          ...toSchemasContainer(schemaContext.schemaFiles),
+        } as const
+
+        const captureStdout = new CaptureStdout()
+        captureStdout.startCapture()
+
+        try {
+          await migrate.engine.migrateDiff({
+            from,
+            to,
+            script: false,
+            shadowDatabaseUrl: null,
+            exitCode: null,
+            filters: schemaFilter,
+          })
+        } finally {
+          captureStdout.stopCapture()
+        }
+
+        const diffOutput = captureStdout.getCapturedText().join('\n')
+        suggestion = getMigrationNameSuggestion(diffOutput)
+      } catch (e) {
+        // Ignore error, we just don't have a suggestion
+        debug({ e })
+      }
+
+      const getMigrationNameResult = await getMigrationName(args['--name'], suggestion)
 
       if (getMigrationNameResult.userCancelled) {
         process.stdout.write(getMigrationNameResult.userCancelled + '\n')
