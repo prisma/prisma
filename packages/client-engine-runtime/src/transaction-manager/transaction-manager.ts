@@ -111,7 +111,6 @@ export class TransactionManager {
       startedAt: Date.now(),
       transaction: undefined,
     }
-    this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
     const abortController = new AbortController()
@@ -126,6 +125,7 @@ export class TransactionManager {
       events.once(abortController.signal, 'abort').then(() => undefined),
     ])
 
+    this.transactions.set(transaction.id, transaction)
 
     // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
