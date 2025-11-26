@@ -2,8 +2,8 @@ generator client {
     provider = "prisma-client-js"
 }
 
-datasource my_db {
-    provider = "sqlite"
+datasource db {
+    provider = "postgresql"
 }
 
 model User {

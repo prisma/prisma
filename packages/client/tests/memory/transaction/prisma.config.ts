@@ -1,8 +1,8 @@
-import { defineConfig } from '@prisma/config'
+import { defineConfig, env } from '@prisma/config'
 
 export default defineConfig({
   datasource: {
-    url: 'file:dev.db',
+    url: env('TEST_POSTGRES_URI'),
   },
   schema: 'prisma/schema.prisma',
 })
