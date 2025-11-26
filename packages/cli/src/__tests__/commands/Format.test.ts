@@ -1,5 +1,6 @@
 /* eslint-disable jest/no-identical-title */
 import fs from 'node:fs'
+import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
@@ -323,6 +324,14 @@ describe('format', () => {
     ctx.fixture('example-project/prisma-unformatted')
     await expect(
       Format.new().parse(['--schema=unformatted.prisma', '--check'], defaultTestConfig()),
+    ).resolves.toMatchInlineSnapshot(`"! There are unformatted files. Run prisma format to format them."`)
+  })
+
+  it('should load and check schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+    const configDir = path.join(process.cwd(), 'config')
+    await expect(
+      Format.new().parse(['--config=./config/prisma.config.ts', '--check'], defaultTestConfig(), configDir),
     ).resolves.toMatchInlineSnapshot(`"! There are unformatted files. Run prisma format to format them."`)
   })
 })
