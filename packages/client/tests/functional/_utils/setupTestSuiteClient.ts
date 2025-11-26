@@ -134,7 +134,10 @@ export async function setupTestSuiteClient({
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
     'wasm-compiler-edge': {
       client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/edge',
-      sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
+      sql:
+        generatorType === 'prisma-client-ts'
+          ? path.join(outputPath, 'sql.ts')
+          : path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
     },
     client: {
       client: 'generated/prisma/client',
