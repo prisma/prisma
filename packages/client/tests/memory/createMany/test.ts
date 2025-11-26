@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 import { createMemoryTest } from '../_utils/createMemoryTest'
 
@@ -9,7 +9,7 @@ type PrismaModule = typeof import('./.generated/node_modules/@prisma/client')
 void createMemoryTest({
   async prepare({ PrismaClient }: PrismaModule) {
     const client = new PrismaClient({
-      adapter: new PrismaLibSql({ url: `file:${__dirname}/../dev.db` }),
+      adapter: new PrismaPg({ connectionString: process.env.TEST_POSTGRES_URI }),
     })
     await client.$connect()
 
