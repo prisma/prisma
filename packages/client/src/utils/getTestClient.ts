@@ -21,7 +21,10 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
 
-  const { schemas: datamodel } = (await getSchemaWithPath(undefined, undefined, { cwd: absSchemaDir }))!
+  const { schemas: datamodel } = (await getSchemaWithPath({
+    schemaPath: { rootDir: absSchemaDir },
+    cwd: absSchemaDir,
+  }))!
 
   const config = await getConfig({ datamodel })
   if (printWarnings) {

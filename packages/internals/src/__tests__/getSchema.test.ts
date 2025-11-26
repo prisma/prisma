@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { getSchemaWithPath } from '../cli/getSchema'
+import { createSchemaPathInput, getSchemaWithPath } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
 
 if (process.env.CI) {
@@ -32,12 +32,8 @@ async function testSchemaPath({
   let asyncResult: string | null | Error
 
   try {
-    asyncResult =
-      (
-        await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig, {
-          cwd,
-        })
-      )?.schemaPath ?? null
+    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, rootDir: cwd })
+    asyncResult = (await getSchemaWithPath({ schemaPath, cwd }))?.schemaPath ?? null
   } catch (e) {
     asyncResult = e as Error
   }

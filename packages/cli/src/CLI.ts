@@ -27,7 +27,11 @@ export class CLI implements Command {
     private readonly download: (options: DownloadOptions) => Promise<BinaryPaths>,
   ) {}
 
-  async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    configDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -54,7 +58,7 @@ export class CLI implements Command {
       await ensureNeededBinariesExist({
         download: this.download,
       })
-      return Version.new().parse(argv, config)
+      return Version.new().parse(argv, config, configDir)
     }
 
     // check if we have that subcommand
@@ -67,9 +71,11 @@ export class CLI implements Command {
     const cmd = this.cmds[cmdName]
     if (cmd) {
       // Only track if the command actually exists
-      const checkResultPromise = runCheckpointClientCheck({ schemaPathFromConfig: config.schema }).catch(() => {
-        /* noop */
-      })
+      const checkResultPromise = runCheckpointClientCheck({ schemaPathFromConfig: config.schema, configDir }).catch(
+        () => {
+          /* noop */
+        },
+      )
 
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {

@@ -3,7 +3,9 @@ import Debug from '@prisma/debug'
 import {
   arg,
   Command,
+  createSchemaPathInput,
   format,
+  getSchemaWithPath,
   HelpError,
   isError,
   link,
@@ -16,7 +18,6 @@ import fs from 'fs-jetpack'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
-import { getSchemaWithPath } from '../../../internals/src/cli/getSchema'
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
 import { CaptureStdout } from '../utils/captureStdout'
@@ -195,7 +196,12 @@ ${bold('Examples')}
         tag: 'empty',
       }
     } else if (args['--from-schema']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema']), config.schema, {
+      const schema = await getSchemaWithPath({
+        schemaPath: createSchemaPathInput({
+          schemaPathFromArgs: path.resolve(args['--from-schema']),
+          schemaPathFromConfig: config.schema,
+          rootDir: configDir,
+        }),
         argumentName: '--from-schema',
       })
       from = {
@@ -209,8 +215,7 @@ ${bold('Examples')}
       }
     } else if (args['--from-config-datasource']) {
       const schemaContext = await loadSchemaContext({
-        schemaPathFromConfig: config.schema,
-
+        schemaPath: createSchemaPathInput({ schemaPathFromConfig: config.schema, rootDir: configDir }),
         printLoadMessage: false,
       })
       from = {
@@ -225,7 +230,12 @@ ${bold('Examples')}
         tag: 'empty',
       }
     } else if (args['--to-schema']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema']), config.schema, {
+      const schema = await getSchemaWithPath({
+        schemaPath: createSchemaPathInput({
+          schemaPathFromArgs: path.resolve(args['--to-schema']),
+          schemaPathFromConfig: config.schema,
+          rootDir: configDir,
+        }),
         argumentName: '--to-schema',
       })
       to = {
@@ -239,7 +249,7 @@ ${bold('Examples')}
       }
     } else if (args['--to-config-datasource']) {
       const schemaContext = await loadSchemaContext({
-        schemaPathFromConfig: config.schema,
+        schemaPath: createSchemaPathInput({ schemaPathFromConfig: config.schema, rootDir: configDir }),
         printLoadMessage: false,
       })
       to = {

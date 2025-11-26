@@ -4,6 +4,7 @@ import {
   arg,
   BinaryType,
   Command,
+  createSchemaPathInput,
   format,
   formatTable,
   getEnginesInfo,
@@ -51,7 +52,11 @@ export class Version implements Command {
     return Version.help
   }
 
-  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    configDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -103,7 +108,7 @@ export class Version implements Command {
       schemaEngineRetrievalErrors.forEach((e) => console.error(e))
     }
 
-    const featureFlags = await this.getFeatureFlags(config.schema)
+    const featureFlags = await this.getFeatureFlags(config.schema, configDir)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
@@ -112,9 +117,11 @@ export class Version implements Command {
     return formatTable(rows, { json: args['--json'] })
   }
 
-  private async getFeatureFlags(schemaPath: string | undefined): Promise<string[]> {
+  private async getFeatureFlags(schemaPath: string | undefined, configDir: string): Promise<string[]> {
     try {
-      const { generators } = await loadSchemaContext({ schemaPathFromConfig: schemaPath })
+      const { generators } = await loadSchemaContext({
+        schemaPath: createSchemaPathInput({ schemaPathFromConfig: schemaPath, rootDir: configDir }),
+      })
       const generator = generators.find((g) => g.previewFeatures.length > 0)
       if (generator) {
         return generator.previewFeatures

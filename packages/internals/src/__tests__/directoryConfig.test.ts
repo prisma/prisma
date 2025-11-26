@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { defineConfig, loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
-import { inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
+import { createSchemaPathInput, inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
 
 import { fixturesPath } from './__utils__/fixtures'
 
@@ -19,8 +19,7 @@ async function testDirectoryConfig({
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   const schemaContext = await loadSchemaContext({
-    schemaPathFromArg: schemaPath,
-
+    schemaPath: createSchemaPathInput({ schemaPathFromArgs: schemaPath, rootDir: cwd }),
     cwd,
     allowNull: true,
   })
@@ -35,7 +34,7 @@ describe('with .config/prisma.ts', () => {
     expect(config.error).toBeUndefined()
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: './prisma',
+      schemaPath: { cliProvidedPath: './prisma' },
 
       cwd,
       allowNull: true,

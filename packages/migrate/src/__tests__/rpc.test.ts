@@ -1,5 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import {
+  createSchemaPathInput,
   getSchemaWithPath,
   inferDirectoryConfig,
   loadSchemaContext,
@@ -480,7 +481,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 
   it('[SchemaPath] should succeed', async () => {
     ctx.fixture('schema-only')
-    const { schemas } = (await getSchemaWithPath())!
+    const { schemas } = (await getSchemaWithPath({ schemaPath: createSchemaPathInput({ rootDir: ctx.configDir() }) }))!
     const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
     const result = migrate.engine.getDatabaseVersion({
       datasource: {

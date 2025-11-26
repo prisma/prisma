@@ -218,7 +218,7 @@ describe('format', () => {
           Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"The schemas at prisma/schema are valid 🚀"`)
 
-        const { schemas } = (await getSchemaWithPath('prisma/schema'))!
+        const { schemas } = (await getSchemaWithPath({ schemaPath: { cliProvidedPath: 'prisma/schema' } }))!
 
         // notice how the `Link` backrelation was added in the first schema file:
         expect(extractSchemaContent(schemas)).toMatchInlineSnapshot(`

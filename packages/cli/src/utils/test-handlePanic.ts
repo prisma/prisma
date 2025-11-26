@@ -12,7 +12,9 @@ async function main() {
 
     process.chdir(dirPath)
 
-    const schemaContext = await loadSchemaContext({ schemaPathFromArg: path.join(dirPath, 'schema.prisma') })
+    const schemaContext = await loadSchemaContext({
+      schemaPath: { cliProvidedPath: path.join(dirPath, 'schema.prisma') },
+    })
     const { viewsDirPath } = inferDirectoryConfig(schemaContext)
 
     const config = require(path.join(dirPath, 'prisma.config.ts'))

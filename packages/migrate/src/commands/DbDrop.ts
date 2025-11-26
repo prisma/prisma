@@ -4,6 +4,7 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   dropDatabase,
   format,
   HelpError,
@@ -85,8 +86,11 @@ ${bold('Examples')}
     }
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        rootDir: configDir,
+      }),
     })
 
     const cmd = 'db drop'

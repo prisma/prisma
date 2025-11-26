@@ -4,6 +4,7 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
   formatms,
   getCommandWithExecutor,
@@ -83,8 +84,11 @@ ${bold('Examples')}
     }
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        rootDir: configDir,
+      }),
     })
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)

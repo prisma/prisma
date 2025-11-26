@@ -7,7 +7,7 @@ import config from './prisma.config'
 
 test('introspection basic', async () => {
   const schemaPath = path.join(__dirname, 'schema.prisma')
-  const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+  const schemaContext = await loadSchemaContext({ schemaPath: { cliProvidedPath: schemaPath } })
   const { viewsDirPath } = inferDirectoryConfig(schemaContext)
   const { engine } = await Migrate.setup({ schemaContext, schemaEngineConfig: config, configDir: __dirname })
 

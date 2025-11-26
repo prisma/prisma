@@ -1,11 +1,13 @@
 import { Debug } from '@prisma/debug'
 import {
   arg,
+  createSchemaPathInput,
   getCLIPathHash,
   getProjectHash,
   isCurrentBinInstalledGlobally,
   loadSchemaContext,
   parseEnvValue,
+  type SchemaPathInput,
 } from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
@@ -25,8 +27,10 @@ const debug = Debug('prisma:cli:checkpoint')
  */
 export async function runCheckpointClientCheck({
   schemaPathFromConfig,
+  configDir,
 }: {
   schemaPathFromConfig?: string
+  configDir: string
 }): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
   if (process.env['CHECKPOINT_DISABLE']) {
@@ -46,16 +50,17 @@ export async function runCheckpointClientCheck({
     true,
   )
 
-  const schemaPath = typeof args['--schema'] === 'string' ? args['--schema'] : undefined
+  const schemaPathFromArgs = typeof args['--schema'] === 'string' ? args['--schema'] : undefined
 
   try {
     const startGetInfo = performance.now()
+    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, rootDir: configDir })
     // Get some info about the project
     const [projectPathHash, { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders }] = await Promise.all([
       // SHA256 identifier for the project based on the Prisma schema path
-      getProjectHash(schemaPath, schemaPathFromConfig),
+      getProjectHash(schemaPath),
       // Read schema and extract some data
-      tryToReadDataFromSchema(schemaPath, schemaPathFromConfig),
+      tryToReadDataFromSchema(schemaPath),
     ])
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
@@ -111,17 +116,13 @@ export async function runCheckpointClientCheck({
  * Tries to read some data from the Prisma Schema
  * if an error occurs it will silently fail and return undefined values
  */
-export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFromConfig?: string) {
+export async function tryToReadDataFromSchema(schemaPath: SchemaPathInput) {
   let schemaProvider: string | undefined
   let schemaPreviewFeatures: string[] | undefined
   let schemaGeneratorsProviders: string[] | undefined
 
   try {
-    const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: schemaPath,
-      schemaPathFromConfig,
-      printLoadMessage: false,
-    })
+    const schemaContext = await loadSchemaContext({ schemaPath, printLoadMessage: false })
 
     if (schemaContext.datasources.length > 0) {
       schemaProvider = schemaContext.datasources[0].provider

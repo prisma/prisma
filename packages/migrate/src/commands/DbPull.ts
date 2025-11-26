@@ -4,6 +4,7 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
   formatms,
   getCommandWithExecutor,
@@ -82,7 +83,11 @@ Set composite types introspection depth to 2 levels
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    configDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -105,8 +110,11 @@ Set composite types introspection depth to 2 levels
     }
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        rootDir: configDir,
+      }),
       printLoadMessage: false,
       allowNull: true,
     })

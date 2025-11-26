@@ -5,11 +5,11 @@ import { SqlQueryOutput } from '@prisma/generator'
 import {
   arg,
   Command,
+  createSchemaPathInput,
   format,
   Generator,
   getGenerators,
   getGeneratorSuccessMessage,
-  GetSchemaResult,
   getSchemaWithPath,
   HelpError,
   isError,
@@ -105,7 +105,11 @@ ${bold('Examples')}
     this.logText += message.join('\n')
   })
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    configDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -132,7 +136,14 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
+    const schemaResult = await getSchemaWithPath({
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        rootDir: configDir,
+      }),
+      cwd,
+    })
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
@@ -275,7 +286,14 @@ ${breakingChangesStr}${versionsWarning}`
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
 
-        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
+        const schemaResult = await getSchemaWithPath({
+          schemaPath: createSchemaPathInput({
+            schemaPathFromArgs: args['--schema'],
+            schemaPathFromConfig: config.schema,
+            rootDir: configDir,
+          }),
+          cwd,
+        })
         if (!schemaResult) return ''
 
         const schemaContext = await processSchemaResult({ schemaResult })
@@ -349,12 +367,4 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
-}
-
-async function getSchemaForGenerate(
-  schemaFromArgs: string | undefined,
-  schemaFromConfig: string | undefined,
-  cwd: string,
-): Promise<GetSchemaResult | null> {
-  return getSchemaWithPath(schemaFromArgs, schemaFromConfig, { cwd })
 }
