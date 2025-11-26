@@ -188,7 +188,7 @@ describe('reset', () => {
       "Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
       Use --force to run this command without user interaction.
-      See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-reset"
+      See https://pris.ly/d/migrate-reset"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
