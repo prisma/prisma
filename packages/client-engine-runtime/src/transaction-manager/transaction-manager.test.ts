@@ -272,7 +272,14 @@ test('transaction times out during starting', async () => {
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
     TransactionStartTimeoutError,
   )
-  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
+
+  // If transaction timed out during startup, a `BEGIN` statement has most
+  // likely not been issued yet. (There is a possibility of a timeout while
+  // waiting for the database response to the `BEGIN` statement, but it's an
+  // edge case, and normally exceeding `maxWait` means we timed out wating for a
+  // new connection in the pool). Therefore, executing a `ROLLBACK` statement is
+  // incorrect and will lead to another error.
+  expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 })
 
 test('transaction times out during execution', async () => {

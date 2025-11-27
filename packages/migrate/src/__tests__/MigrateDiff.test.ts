@@ -1,6 +1,7 @@
 // describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
+import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
@@ -480,6 +481,42 @@ describe('migrate diff', () => {
                     [+] Added unique index on columns (email)
                   "
               `)
+      })
+
+      it('should diff --from-empty --to-config-datasource with nested config and schema', async () => {
+        ctx.fixture('prisma-config-nested-sqlite')
+        ctx.setConfigFile('config/prisma.config.ts')
+
+        await fs.writeFile(path.join(ctx.configDir(), 'dev.db'), '')
+
+        const result = MigrateDiff.new().parse(
+          ['--from-empty', '--to-config-datasource'],
+          await ctx.config(),
+          ctx.configDir(),
+        )
+        await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+          "No difference detected.
+          "
+        `)
+      })
+
+      it('should diff --from-config-datasource --to-empty with nested config and schema', async () => {
+        ctx.fixture('prisma-config-nested-sqlite')
+        ctx.setConfigFile('config/prisma.config.ts')
+
+        await fs.writeFile(path.join(ctx.configDir(), 'dev.db'), '')
+
+        const result = MigrateDiff.new().parse(
+          ['--from-config-datasource', '--to-empty'],
+          await ctx.config(),
+          ctx.configDir(),
+        )
+        await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+          "No difference detected.
+          "
+        `)
       })
 
       it('should diff --from-empty --to-config-datasource --script', async () => {
