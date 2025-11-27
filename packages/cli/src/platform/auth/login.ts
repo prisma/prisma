@@ -124,6 +124,9 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
   const stateEncoded = encodeState(state)
   const url = getBaseAuthUrl()
   url.searchParams.set('state', stateEncoded)
+  url.searchParams.set('utm_source', 'cli')
+  url.searchParams.set('utm_medium', 'command-platform-login')
+  // url.searchParams.set('utm_campaign', 'X.Y.Z') // TODO: pass prisma version
 
   return url
 }
