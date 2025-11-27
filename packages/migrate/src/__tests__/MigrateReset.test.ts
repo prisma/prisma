@@ -98,6 +98,22 @@ describe('reset', () => {
     `)
   })
 
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from config/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
+
+      Database reset successful
+
+      "
+    `)
+  })
+
   it('should work with folder (--force)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
 
@@ -188,7 +204,7 @@ describe('reset', () => {
       "Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
       Use --force to run this command without user interaction.
-      See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-reset"
+      See https://pris.ly/d/migrate-reset"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

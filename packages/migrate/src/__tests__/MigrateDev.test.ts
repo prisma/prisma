@@ -172,7 +172,7 @@ describe('common', () => {
 
       \`prisma migrate dev\` is an interactive command designed to create new migrations and evolve the database in development.
       To apply existing migrations in deployments, use prisma migrate deploy.
-      See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy"
+      See https://pris.ly/d/migrate-deploy"
     `)
   })
 })
@@ -189,6 +189,29 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
+      "
+    `)
+  })
+
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    const result = MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from config/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
+
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      config/migrations/
+        └─ 20201231000000/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
       "
     `)
   })

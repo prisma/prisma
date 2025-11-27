@@ -11,8 +11,8 @@ export const createNamespace = () => {
 
     private constructor(public readonly commands: Commands) {}
 
-    public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
-      return await dispatchToSubCommand(this.commands, argv, config, configDir)
+    public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
+      return await dispatchToSubCommand(this.commands, argv, config, baseDir)
     }
   }
 }

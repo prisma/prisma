@@ -111,7 +111,7 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
    *  { emit: 'stdout', level: 'warn' }
    * ]
    * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   * Read more in our [docs](https://pris.ly/d/logging).
    */
   log?: Array<LogLevel | LogDefinition>
 
@@ -236,11 +236,30 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg: PrismaClientOptions) {
-      config = optionsArg.__internal?.configOverride?.(config) ?? config
+      if (!optionsArg) {
+        throw new PrismaClientInitializationError(
+          `\
+\`PrismaClient\` needs to be constructed with a non-empty, valid \`PrismaClientOptions\`:
 
-      if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config)
+\`\`\`
+new PrismaClient({
+  ...
+})
+\`\`\`
+
+or
+
+\`\`\`
+constructor() {
+  super({ ... });
+}
+\`\`\`
+          `,
+          clientVersion,
+        )
       }
+      config = optionsArg.__internal?.configOverride?.(config) ?? config
+      validatePrismaClientOptions(optionsArg, config)
 
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
@@ -257,7 +276,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
        */
 
       let adapter: SqlDriverAdapterFactory | undefined
-      if (optionsArg?.adapter) {
+      if (optionsArg.adapter) {
         adapter = optionsArg.adapter
 
         // Note:

@@ -1,3 +1,5 @@
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+
 import { createMemoryTest } from '../_utils/createMemoryTest'
 
 //@ts-ignore
@@ -8,7 +10,9 @@ createMemoryTest({
   },
 
   async run(PrismaClient) {
-    const client = new PrismaClient()
+    const client = new PrismaClient({
+      adapter: new PrismaLibSql({ url: `file:${__dirname}/../dev.db` }),
+    })
     await client.$connect()
     await client.$disconnect()
   },
