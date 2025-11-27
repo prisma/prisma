@@ -45,7 +45,9 @@ type GetSchemaInternalOptions = Required<GetSchemaOptions>
 
 /**
  * Creates SchemaPathInput based on a combination of possible inputs
- * from CLI args, config file, or root directory.
+ * from CLI args, config file, or base directory.
+ * `baseDir` is either the directory containing the prisma config file or the working directory
+ * of the CLI invocation if no config file is found.
  */
 export function createSchemaPathInput({
   schemaPathFromArgs,
