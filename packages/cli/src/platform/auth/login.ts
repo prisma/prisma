@@ -13,6 +13,8 @@ import { consoleUrl } from '../_lib/pdp'
 import { unknownToError } from '../_lib/prelude'
 import { getUserAgent } from '../_lib/userAgent'
 
+const packageJson = require('../../../package.json')
+
 interface CallbackData {
   token: string
   user: {
@@ -126,7 +128,7 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
   url.searchParams.set('state', stateEncoded)
   url.searchParams.set('utm_source', 'cli')
   url.searchParams.set('utm_medium', 'command-platform-login')
-  // url.searchParams.set('utm_campaign', 'X.Y.Z') // TODO: pass prisma version
+  url.searchParams.set('utm_campaign', packageJson.version as string)
 
   return url
 }

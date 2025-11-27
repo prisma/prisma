@@ -6,6 +6,8 @@ import { AddressInfo } from 'node:net'
 import open from 'open'
 import z from 'zod'
 
+const packageJson = require('../../package.json')
+
 const CLIENT_ID = 'cmi4ttoor03pv2wco4526rnin'
 const LOGIN_URL = 'https://auth.prisma.io/authorize'
 const TOKEN_URL = 'https://auth.prisma.io/token'
@@ -94,7 +96,7 @@ export class LoginState {
     authUrl.searchParams.set('code_challenge_method', 'S256')
     authUrl.searchParams.set('utm_source', 'cli')
     authUrl.searchParams.set('utm_medium', this.utmMedium)
-    // authUrl.searchParams.set('utm_campaign', 'oauth') // TODO: pass prisma version
+    authUrl.searchParams.set('utm_campaign', packageJson.version as string)
 
     await open(authUrl.href)
   }
