@@ -35,7 +35,7 @@ export class $ implements Command {
     ],
   })
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const isHasEarlyAccessFeatureFlag = Boolean(argv.find((_) => _.match(/early-access/)))
     if (!isHasEarlyAccessFeatureFlag) throw new EarlyAccessFlagError()
 
@@ -53,7 +53,7 @@ export class $ implements Command {
       return this.help()
     }
 
-    const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess, config, configDir)
+    const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess, config, baseDir)
 
     return result
   }
