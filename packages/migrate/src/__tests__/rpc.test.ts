@@ -481,7 +481,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 
   it('[SchemaPath] should succeed', async () => {
     ctx.fixture('schema-only')
-    const { schemas } = (await getSchemaWithPath({ schemaPath: createSchemaPathInput({ rootDir: ctx.configDir() }) }))!
+    const { schemas } = (await getSchemaWithPath({ schemaPath: createSchemaPathInput({ baseDir: ctx.configDir() }) }))!
     const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
