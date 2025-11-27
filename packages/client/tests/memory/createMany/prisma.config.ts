@@ -4,4 +4,5 @@ export default defineConfig({
   datasource: {
     url: env('TEST_POSTGRES_URI'),
   },
+  schema: 'prisma/schema.prisma',
 })
