@@ -420,7 +420,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
 
       - name: Install & build
         uses: ./.github/actions/setup
