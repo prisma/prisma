@@ -60,7 +60,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -87,7 +87,7 @@ ${bold('Examples')}
       schemaPath: createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
         schemaPathFromConfig: config.schema,
-        rootDir: configDir,
+        baseDir,
       }),
     })
 
@@ -107,7 +107,7 @@ ${bold('Examples')}
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
-      configDir,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
@@ -117,7 +117,7 @@ ${bold('Examples')}
     try {
       // Automatically create the database if it doesn't exist
       const successMessage = await ensureDatabaseExists(
-        configDir,
+        baseDir,
         getSchemaDatasourceProvider(schemaContext),
         validatedConfig,
       )

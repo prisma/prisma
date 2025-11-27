@@ -108,7 +108,7 @@ ${bold('Examples')}
   public async parse(
     argv: string[],
     config: PrismaConfigInternal,
-    configDir: string = process.cwd(),
+    baseDir: string = process.cwd(),
   ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -140,7 +140,7 @@ ${bold('Examples')}
       schemaPath: createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
         schemaPathFromConfig: config.schema,
-        rootDir: configDir,
+        baseDir,
       }),
       cwd,
     })
@@ -158,7 +158,7 @@ ${bold('Examples')}
     let typedSqlData: { validatedConfig: PrismaConfigWithDatasource; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
       const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd: 'generate --sql' })
-      const typedSql = await introspectSql(validatedConfig, configDir, schemaContext)
+      const typedSql = await introspectSql(validatedConfig, baseDir, schemaContext)
       typedSqlData = {
         validatedConfig,
         typedSql,
@@ -290,7 +290,7 @@ ${breakingChangesStr}${versionsWarning}`
           schemaPath: createSchemaPathInput({
             schemaPathFromArgs: args['--schema'],
             schemaPathFromConfig: config.schema,
-            rootDir: configDir,
+            baseDir,
           }),
           cwd,
         })
@@ -301,7 +301,7 @@ ${breakingChangesStr}${versionsWarning}`
         let generatorsWatch: Generator[] | undefined
         try {
           if (typedSqlData !== undefined) {
-            typedSqlData.typedSql = await introspectSql(typedSqlData.validatedConfig, configDir, schemaContext)
+            typedSqlData.typedSql = await introspectSql(typedSqlData.validatedConfig, baseDir, schemaContext)
           }
 
           generatorsWatch = await getGenerators({

@@ -61,7 +61,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db drop --preview-feature --force
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -89,7 +89,7 @@ ${bold('Examples')}
       schemaPath: createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
         schemaPathFromConfig: config.schema,
-        rootDir: configDir,
+        baseDir,
       }),
     })
 
@@ -132,7 +132,7 @@ ${bold('Examples')}
       throw new Error('Datasource URL is undefined')
     }
 
-    if (await dropDatabase(datasourceInfo.url, configDir)) {
+    if (await dropDatabase(datasourceInfo.url, baseDir)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`

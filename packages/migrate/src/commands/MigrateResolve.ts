@@ -60,7 +60,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -87,7 +87,7 @@ ${bold('Examples')}
       schemaPath: createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
         schemaPathFromConfig: config.schema,
-        rootDir: configDir,
+        baseDir,
       }),
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
@@ -122,11 +122,11 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       }
 
       // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-      await ensureCanConnectToDatabase(configDir, validatedConfig)
+      await ensureCanConnectToDatabase(baseDir, validatedConfig)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,
-        configDir,
+        baseDir,
         migrationsDirPath,
         schemaContext,
         extensions: config['extensions'],
@@ -151,11 +151,11 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(configDir, validatedConfig)
+      await ensureCanConnectToDatabase(baseDir, validatedConfig)
 
       const migrate = await Migrate.setup({
         schemaEngineConfig: config,
-        configDir,
+        baseDir,
         migrationsDirPath,
         schemaContext,
         extensions: config['extensions'],

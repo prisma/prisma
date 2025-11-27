@@ -56,7 +56,7 @@ export async function loadSchemaContext(
 export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext(
   { schemaPath, printLoadMessage, allowNull, schemaPathArgumentName, cwd }: LoadSchemaContextOptions = {
-    schemaPath: { rootDir: process.cwd() },
+    schemaPath: { baseDir: process.cwd() },
     printLoadMessage: true,
     allowNull: false,
     schemaPathArgumentName: '--schema',

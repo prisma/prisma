@@ -25,7 +25,7 @@ describe('applyMigrations', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
@@ -52,7 +52,7 @@ describe('applyMigrations', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
@@ -76,7 +76,7 @@ describe('applyMigrations', () => {
 describe('createDatabase', () => {
   it('should succeed - ConnectionString - sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.createDatabase!({
       datasource: {
         tag: 'ConnectionString',
@@ -95,7 +95,7 @@ describe('createDatabase', () => {
   it('should succeed - Schema - postgresql', async () => {
     ctx.fixture('schema-only')
     const schemaContext = await loadSchemaContext()
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.createDatabase!({
       datasource: {
         tag: 'Schema',
@@ -122,7 +122,7 @@ describe('createMigration', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.createMigration({
       migrationName: 'my_migration',
@@ -146,7 +146,7 @@ describe('createMigration', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.createMigration({
       migrationName: 'draft_123',
@@ -166,7 +166,7 @@ describe('createMigration', () => {
 describe('dbExecute', () => {
   it('should succeed - sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.dbExecute({
       datasourceType: {
         tag: 'url',
@@ -191,7 +191,7 @@ describe('devDiagnostic', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
@@ -220,7 +220,7 @@ describe('devDiagnostic', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
@@ -264,7 +264,7 @@ describe('diagnoseMigrationHistory', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.diagnoseMigrationHistory({
@@ -295,7 +295,7 @@ describe('diagnoseMigrationHistory', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.diagnoseMigrationHistory({
@@ -323,7 +323,7 @@ describe('ensureConnectionValidity', () => {
   it('should succeed when database exists - SQLite', async () => {
     ctx.fixture('schema-only-sqlite')
     ctx.fs.write('dev.db', '')
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.ensureConnectionValidity({
       datasource: {
         tag: 'ConnectionString',
@@ -343,7 +343,7 @@ describe('ensureConnectionValidity', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.engine.ensureConnectionValidity({
       datasource: {
@@ -358,7 +358,7 @@ describe('ensureConnectionValidity', () => {
 
   it('should fail when database does not exist - SQLite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.ensureConnectionValidity({
       datasource: {
         tag: 'ConnectionString',
@@ -377,7 +377,7 @@ describe('ensureConnectionValidity', () => {
 
   it('should fail when server does not exist - PostgreSQL', async () => {
     ctx.fixture('schema-only-sqlite')
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.ensureConnectionValidity({
       datasource: {
         tag: 'ConnectionString',
@@ -409,7 +409,7 @@ describe('evaluateDataLoss', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.evaluateDataLoss({
@@ -440,7 +440,7 @@ describe('evaluateDataLoss', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.evaluateDataLoss({
@@ -472,7 +472,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.engine.getDatabaseVersion()
     await expect(result).resolves.toContain('PostgreSQL')
@@ -482,7 +482,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
   it('[SchemaPath] should succeed', async () => {
     ctx.fixture('schema-only')
     const { schemas } = (await getSchemaWithPath({ schemaPath: createSchemaPathInput({ rootDir: ctx.configDir() }) }))!
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
         tag: 'Schema',
@@ -495,7 +495,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 
   it('[ConnectionString] should succeed', async () => {
     ctx.fixture('schema-only')
-    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), configDir: ctx.configDir() })
+    const migrate = await Migrate.setup({ schemaEngineConfig: await ctx.config(), baseDir: ctx.configDir() })
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
         tag: 'ConnectionString',
@@ -518,7 +518,7 @@ describe('markMigrationRolledBack', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
 
     const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
@@ -543,7 +543,7 @@ describe('markMigrationRolledBack', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = await migrate.createMigration({
       migrationName: 'draft_123',
@@ -615,7 +615,7 @@ describe('markMigrationApplied', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = await migrate.createMigration({
       migrationName: 'draft_123',
@@ -652,7 +652,7 @@ describe('schemaPush', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.engine.schemaPush({
       force: false,
@@ -681,7 +681,7 @@ describe('schemaPush', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.engine.schemaPush({
       force: false,
@@ -710,7 +710,7 @@ describe('schemaPush', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.engine.schemaPush({
       force: false,
@@ -741,7 +741,7 @@ describe('schemaPush', () => {
       migrationsDirPath,
       schemaContext,
       schemaEngineConfig: await ctx.config(),
-      configDir: ctx.configDir(),
+      baseDir: ctx.configDir(),
     })
     const result = migrate.engine.schemaPush({
       force: true,

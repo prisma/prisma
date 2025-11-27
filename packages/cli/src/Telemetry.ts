@@ -22,7 +22,7 @@ export class Telemetry implements Command {
   public async parse(
     argv: string[],
     config: PrismaConfigInternal,
-    configDir: string = process.cwd(),
+    baseDir: string = process.cwd(),
   ): Promise<string | Error> {
     const args = arg(argv, {
       '--schema': String,
@@ -38,7 +38,7 @@ export class Telemetry implements Command {
       createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
         schemaPathFromConfig: config.schema,
-        rootDir: configDir,
+        baseDir,
       }),
     )
     // SHA256 of the cli path

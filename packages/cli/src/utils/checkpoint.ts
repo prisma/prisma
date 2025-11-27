@@ -27,7 +27,7 @@ const debug = Debug('prisma:cli:checkpoint')
  */
 export async function runCheckpointClientCheck({
   schemaPathFromConfig,
-  configDir,
+  configDir: baseDir,
 }: {
   schemaPathFromConfig?: string
   configDir: string
@@ -54,7 +54,7 @@ export async function runCheckpointClientCheck({
 
   try {
     const startGetInfo = performance.now()
-    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, rootDir: configDir })
+    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, baseDir })
     // Get some info about the project
     const [projectPathHash, { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders }] = await Promise.all([
       // SHA256 identifier for the project based on the Prisma schema path

@@ -9,7 +9,7 @@ test('introspection basic', async () => {
   const schemaPath = path.join(__dirname, 'schema.prisma')
   const schemaContext = await loadSchemaContext({ schemaPath: { cliProvidedPath: schemaPath } })
   const { viewsDirPath } = inferDirectoryConfig(schemaContext)
-  const { engine } = await Migrate.setup({ schemaContext, schemaEngineConfig: config, configDir: __dirname })
+  const { engine } = await Migrate.setup({ schemaContext, schemaEngineConfig: config, baseDir: __dirname })
 
   const schemaContent = await fs.promises.readFile(schemaPath, { encoding: 'utf-8' })
 

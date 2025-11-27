@@ -32,7 +32,7 @@ async function testSchemaPath({
   let asyncResult: string | null | Error
 
   try {
-    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, rootDir: cwd })
+    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, baseDir: cwd })
     asyncResult = (await getSchemaWithPath({ schemaPath, cwd }))?.schemaPath ?? null
   } catch (e) {
     asyncResult = e as Error

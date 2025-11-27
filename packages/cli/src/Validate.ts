@@ -55,7 +55,7 @@ ${bold('Examples')}
   public async parse(
     argv: string[],
     config: PrismaConfigInternal,
-    configDir: string = process.cwd(),
+    baseDir: string = process.cwd(),
   ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -77,7 +77,7 @@ ${bold('Examples')}
       schemaPath: createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
         schemaPathFromConfig: config.schema,
-        rootDir: configDir,
+        baseDir,
       }),
     })
     printSchemaLoadedMessage(schemaPath)

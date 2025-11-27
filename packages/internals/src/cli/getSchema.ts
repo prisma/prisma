@@ -50,17 +50,17 @@ type GetSchemaInternalOptions = Required<GetSchemaOptions>
 export function createSchemaPathInput({
   schemaPathFromArgs,
   schemaPathFromConfig,
-  rootDir,
+  baseDir,
 }: {
   schemaPathFromArgs?: string
   schemaPathFromConfig?: string
-  rootDir: string
+  baseDir: string
 }): SchemaPathInput {
   return schemaPathFromArgs
     ? { cliProvidedPath: schemaPathFromArgs }
     : schemaPathFromConfig
       ? { configProvidedPath: schemaPathFromConfig }
-      : { rootDir }
+      : { baseDir }
 }
 
 /**
@@ -79,10 +79,10 @@ export async function getSchemaWithPath({
 }
 
 /**
- * The schema path can be provided as a CLI argument, a configuration file, or a root directory
+ * The schema path can be provided as a CLI argument, a configuration file, or a base directory
  * that is expected to contain the schema in one of the default locations.
  */
-export type SchemaPathInput = { cliProvidedPath: string } | { configProvidedPath: string } | { rootDir: string }
+export type SchemaPathInput = { cliProvidedPath: string } | { configProvidedPath: string } | { baseDir: string }
 
 /**
  * Loads the schema, returns null if it is not found
@@ -189,7 +189,7 @@ async function getSchemaWithPathInternal({
   }
 
   // 3. Look into the default, "canonical" locations in the cwd (e.g., `./schema.prisma` or `./prisma/schema.prisma`)
-  const defaultResult = await getDefaultSchema(schemaPath.rootDir)
+  const defaultResult = await getDefaultSchema(schemaPath.baseDir)
   if (defaultResult.ok) {
     return defaultResult
   }

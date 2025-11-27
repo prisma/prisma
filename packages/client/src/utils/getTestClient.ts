@@ -22,7 +22,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
 
   const { schemas: datamodel } = (await getSchemaWithPath({
-    schemaPath: { rootDir: absSchemaDir },
+    schemaPath: { baseDir: absSchemaDir },
     cwd: absSchemaDir,
   }))!
 

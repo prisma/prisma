@@ -45,11 +45,7 @@ export class DebugInfo implements Command {
     return DebugInfo.help
   }
 
-  async parse(
-    argv: string[],
-    config: PrismaConfigInternal,
-    configDir: string = process.cwd(),
-  ): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal, baseDir: string = process.cwd()): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -82,7 +78,7 @@ export class DebugInfo implements Command {
         schemaPath: createSchemaPathInput({
           schemaPathFromArgs: args['--schema'],
           schemaPathFromConfig: config.schema,
-          rootDir: configDir,
+          baseDir,
         }),
       })
       schemaPath = link(schemaResult.schemaPath)

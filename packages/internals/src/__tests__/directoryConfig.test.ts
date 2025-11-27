@@ -19,7 +19,7 @@ async function testDirectoryConfig({
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   const schemaContext = await loadSchemaContext({
-    schemaPath: createSchemaPathInput({ schemaPathFromArgs: schemaPath, rootDir: cwd }),
+    schemaPath: createSchemaPathInput({ schemaPathFromArgs: schemaPath, baseDir: cwd }),
     cwd,
     allowNull: true,
   })

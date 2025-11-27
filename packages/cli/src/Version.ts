@@ -117,10 +117,10 @@ export class Version implements Command {
     return formatTable(rows, { json: args['--json'] })
   }
 
-  private async getFeatureFlags(schemaPath: string | undefined, configDir: string): Promise<string[]> {
+  private async getFeatureFlags(schemaPath: string | undefined, baseDir: string): Promise<string[]> {
     try {
       const { generators } = await loadSchemaContext({
-        schemaPath: createSchemaPathInput({ schemaPathFromConfig: schemaPath, rootDir: configDir }),
+        schemaPath: createSchemaPathInput({ schemaPathFromConfig: schemaPath, baseDir }),
       })
       const generator = generators.find((g) => g.previewFeatures.length > 0)
       if (generator) {

@@ -28,7 +28,7 @@ describe('handlePanic migrate', () => {
         migrationsDirPath,
         schemaContext,
         schemaEngineConfig: await ctx.config(),
-        configDir: ctx.configDir(),
+        baseDir: ctx.configDir(),
       })
       await migrate.createMigration({
         migrationName: 'setup',
