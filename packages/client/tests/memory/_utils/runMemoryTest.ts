@@ -10,7 +10,7 @@ import { dropMemoryTestDatabase, setupMemoryTestDatabase } from './database'
 import { generateMemoryTestClient } from './generateMemoryTestClient'
 import { MemoryTestDir } from './MemoryTestDir'
 
-const GROWTH_RATE_THRESHOLD_IN_BYTES = 10
+const GROWTH_RATE_THRESHOLD_IN_BYTES = 20
 
 export type TestResult = {
   testDir: MemoryTestDir

@@ -28,6 +28,7 @@ export {
 } from '@prisma/client-common'
 export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 export type { RawValue, Value } from '@prisma/client-runtime-utils'
+export type { AnyNullClass, DbNullClass, JsonNullClass } from '@prisma/client-runtime-utils'
 export {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
