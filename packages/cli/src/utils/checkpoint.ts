@@ -27,10 +27,10 @@ const debug = Debug('prisma:cli:checkpoint')
  */
 export async function runCheckpointClientCheck({
   schemaPathFromConfig,
-  configDir: baseDir,
+  baseDir,
 }: {
   schemaPathFromConfig?: string
-  configDir: string
+  baseDir: string
 }): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
   if (process.env['CHECKPOINT_DISABLE']) {

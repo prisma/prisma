@@ -52,11 +52,7 @@ export class Version implements Command {
     return Version.help
   }
 
-  async parse(
-    argv: string[],
-    config: PrismaConfigInternal,
-    configDir: string = process.cwd(),
-  ): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal, baseDir: string = process.cwd()): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -108,7 +104,7 @@ export class Version implements Command {
       schemaEngineRetrievalErrors.forEach((e) => console.error(e))
     }
 
-    const featureFlags = await this.getFeatureFlags(config.schema, configDir)
+    const featureFlags = await this.getFeatureFlags(config.schema, baseDir)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
