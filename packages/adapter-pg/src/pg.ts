@@ -189,7 +189,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     super(client)
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
