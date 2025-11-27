@@ -6,7 +6,6 @@ import { QueryEvent } from '../events'
 import type { SchemaProvider } from '../schema'
 import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { rethrowAsUserFacing } from '../user-facing-error'
-import { assertNever } from '../utils'
 import { once } from '../web-platform'
 import { Options, TransactionInfo } from './transaction'
 import {
@@ -27,12 +26,12 @@ type TransactionWrapper = {
   timer?: NodeJS.Timeout
   timeout: number | undefined
   startedAt: number
-  transaction?: Transaction
-} & TransactionState
-
-type TransactionState =
-  | { status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out' }
+  transaction: Transaction
+} & (
+  | { status: 'running' }
+  | { status: 'committed' | 'rolled_back' | 'timed_out' }
   | { status: 'closing'; closing: Promise<void>; reason: 'committed' | 'rolled_back' | 'timed_out' }
+)
 
 const debug = Debug('prisma:client:transactionManager')
 
@@ -56,6 +55,7 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
+  private startingTransactions: Set<AbortController> = new Set()
   private readonly driverAdapter: SqlDriverAdapter
   private readonly transactionOptions: Options
   private readonly tracingHelper: TracingHelper
@@ -102,51 +102,41 @@ export class TransactionManager {
   }
 
   async #startTransactionImpl(options: Options): Promise<TransactionInfo> {
-    const transaction: TransactionWrapper = {
-      id: await randomUUID(),
-      status: 'waiting',
-      timer: undefined,
-      timeout: options.timeout,
-      startedAt: Date.now(),
-      transaction: undefined,
-    }
+    const abortController = new AbortController()
+    this.startingTransactions.add(abortController)
+    const transactionId = await randomUUID()
 
     // Start timeout to wait for transaction to be started.
-    const abortController = new AbortController()
     const startTimer = createTimeoutIfDefined(() => abortController.abort(), options.maxWait)
     startTimer?.unref?.()
 
-    transaction.transaction = await Promise.race([
-      this.driverAdapter
-        .startTransaction(options.isolationLevel)
-        .catch(rethrowAsUserFacing)
-        .finally(() => clearTimeout(startTimer)),
-      once(abortController.signal, 'abort').then(() => undefined),
-    ])
+    try {
+      const transaction = await Promise.race([
+        this.driverAdapter
+          .startTransaction(options.isolationLevel, abortController.signal)
+          .catch((error) => (abortController.signal.aborted ? undefined : rethrowAsUserFacing(error))),
+        once(abortController.signal, 'abort').then(() => undefined),
+      ]).finally(() => clearTimeout(startTimer))
 
-    this.transactions.set(transaction.id, transaction)
+      if (!transaction || abortController.signal.aborted) {
+        throw new TransactionStartTimeoutError()
+      }
 
-    // Transaction status might have timed out while waiting for transaction to start. => Check for it!
-    switch (transaction.status) {
-      case 'waiting':
-        if (abortController.signal.aborted) {
-          await this.#closeTransaction(transaction, 'timed_out')
-          throw new TransactionStartTimeoutError()
-        }
+      const wrapper: TransactionWrapper = {
+        id: transactionId,
+        status: 'running',
+        timer: undefined,
+        timeout: options.timeout,
+        startedAt: Date.now(),
+        transaction,
+      }
 
-        transaction.status = 'running'
-        // Start timeout to wait for transaction to be finished.
-        transaction.timer = this.#startTransactionTimeout(transaction.id, options.timeout)
-        return { id: transaction.id }
-      case 'timed_out':
-      case 'running':
-      case 'committed':
-      case 'rolled_back':
-        throw new TransactionInternalConsistencyError(
-          `Transaction in invalid state ${transaction.status} although it just finished startup.`,
-        )
-      default:
-        assertNever(transaction['status'], 'Unknown transaction status.')
+      this.transactions.set(wrapper.id, wrapper)
+      // Start timeout to wait for transaction to be finished.
+      wrapper.timer = this.#startTransactionTimeout(wrapper.id, options.timeout)
+      return { id: wrapper.id }
+    } finally {
+      this.startingTransactions.delete(abortController)
     }
   }
 
@@ -171,7 +161,6 @@ export class TransactionManager {
       // Fetch again to ensure proper error propagation after it's been closed.
       tx = this.#getActiveOrClosingTransaction(txInfo.id, operation)
     }
-    if (!tx.transaction) throw new TransactionNotFoundError()
     return tx.transaction
   }
 
@@ -184,8 +173,6 @@ export class TransactionManager {
         debug('Transaction already closed.', { transactionId, status: closedTransaction.status })
         switch (closedTransaction.status) {
           case 'closing':
-          case 'waiting':
-          case 'running':
             throw new TransactionInternalConsistencyError('Active transaction found in closed transactions list.')
           case 'committed':
             throw new TransactionClosedError(operation)
@@ -211,9 +198,13 @@ export class TransactionManager {
   }
 
   async cancelAllTransactions(): Promise<void> {
-    // TODO: call `map` on the iterator directly without collecting it into an array first
-    // once we drop support for Node.js 18 and 20.
-    await Promise.allSettled([...this.transactions.values()].map((tx) => this.#closeTransaction(tx, 'rolled_back')))
+    const abortStarting = [...this.startingTransactions].map((controller) => controller.abort())
+    await Promise.allSettled([
+      ...abortStarting,
+      // TODO: call `map` on the iterator directly without collecting it into an array first
+      // once we drop support for Node.js 18 and 20.
+      ...[...this.transactions.values()].map((tx) => this.#closeTransaction(tx, 'rolled_back')),
+    ])
   }
 
   #startTransactionTimeout(transactionId: string, timeout: number | undefined): NodeJS.Timeout | undefined {
@@ -222,7 +213,7 @@ export class TransactionManager {
       debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
 
       const tx = this.transactions.get(transactionId)
-      if (tx && ['running', 'waiting'].includes(tx.status)) {
+      if (tx && tx.status === 'running') {
         await this.#closeTransaction(tx, 'timed_out')
       } else {
         // Transaction was already committed or rolled back when timeout happened.
