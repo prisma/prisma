@@ -92,9 +92,9 @@ export class LoginState {
     authUrl.searchParams.set('state', this.latestState)
     authUrl.searchParams.set('code_challenge', challenge)
     authUrl.searchParams.set('code_challenge_method', 'S256')
-    authUrl.searchParams.set('utm_source', 'orm')
+    authUrl.searchParams.set('utm_source', 'cli')
     authUrl.searchParams.set('utm_medium', this.utmMedium)
-    authUrl.searchParams.set('utm_campaign', 'oauth')
+    // authUrl.searchParams.set('utm_campaign', 'oauth') // TODO: pass prisma version
 
     await open(authUrl.href)
   }
