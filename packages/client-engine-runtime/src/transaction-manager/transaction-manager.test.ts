@@ -76,6 +76,11 @@ class MockDriverAdapter implements SqlDriverAdapter {
     }
 
     return new Promise((resolve, reject) => {
+      if (abortSignal?.aborted) {
+        this.startAborted = true
+        reject(new Error('start aborted'))
+        return
+      }
       const timer = setTimeout(() => resolve(mockTransaction), this.startDelay)
       abortSignal?.addEventListener('abort', () => {
         this.startAborted = true
@@ -223,8 +228,10 @@ test('cancelAllTransactions aborts transactions that are still starting', async 
   })
 
   const txPromise = transactionManager.startTransaction({ timeout: TRANSACTION_EXECUTION_TIMEOUT, maxWait: 10_000 })
+  void txPromise.catch(() => undefined)
 
   await transactionManager.cancelAllTransactions()
+  await jest.advanceTimersByTimeAsync(driverAdapter.startDelay + 1)
 
   await expect(txPromise).rejects.toBeInstanceOf(TransactionStartTimeoutError)
   expect(driverAdapter.startAborted).toBe(true)
