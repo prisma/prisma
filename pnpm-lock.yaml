@@ -423,8 +423,8 @@ importers:
         specifier: workspace:*
         version: link:../config
       '@prisma/dev':
-        specifier: 0.14.0
-        version: 0.14.0(typescript@5.4.5)
+        specifier: 0.15.0
+        version: 0.15.0(typescript@5.4.5)
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -3508,8 +3508,8 @@ packages:
   '@prisma/debug@6.8.2':
     resolution: {integrity: sha512-4muBSSUwJJ9BYth5N8tqts8JtiLT8QI/RSAzEogwEfpbYGFo9mYsInsVo8dqXdPO2+Rm5OG5q0qWDDE3nyUbVg==}
 
-  '@prisma/dev@0.14.0':
-    resolution: {integrity: sha512-pjzRGwreN8z0ln1BkubzAJpoAGeK4As1hGiCRJQTpFU3O003jtRWGdb9xZAaHrp4RlJBdBsJbfF4HOV7AEkjvQ==}
+  '@prisma/dev@0.15.0':
+    resolution: {integrity: sha512-KhWaipnFlS/fWEs6I6Oqjcy2S08vKGmxJ5LexqUl/3Ve0EgLUsZwdKF0MvqPM5F5ttw8GtfZarjM5y7VLwv9Ow==}
 
   '@prisma/engines-version@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4':
     resolution: {integrity: sha512-ybU0jGIOpg44e15vweKIUaRyB1e8oXdoqtAAZGuO0vBnQmzFGIkdQ8h939s+t7B0qgOlxsNzYZJq+fQ0F4QBCQ==}
@@ -8101,8 +8101,8 @@ packages:
     resolution: {integrity: sha512-74Y4LqY74kLE6IFyIjPtkSTWzUZmj8tdHT9Ii/26dvQ6K9Dl2NbEfj0XgU2sHCtKgt5VupqhlO/5aWuqS+IY1w==}
     engines: {node: '>=10.12.0'}
 
-  valibot@1.1.0:
-    resolution: {integrity: sha512-Nk8lX30Qhu+9txPYTwM0cFlWLdPFsFr6LblzqIySfbZph9+BFsAHsNvHOymEviUepeIW6KFHzpX8TKhbptBXXw==}
+  valibot@1.2.0:
+    resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
     peerDependencies:
       typescript: '>=5'
     peerDependenciesMeta:
@@ -10073,7 +10073,7 @@ snapshots:
 
   '@prisma/debug@6.8.2': {}
 
-  '@prisma/dev@0.14.0(typescript@5.4.5)':
+  '@prisma/dev@0.15.0(typescript@5.4.5)':
     dependencies:
       '@electric-sql/pglite': 0.3.2
       '@electric-sql/pglite-socket': 0.0.6(@electric-sql/pglite@0.3.2)
@@ -10090,7 +10090,7 @@ snapshots:
       proper-lockfile: 4.1.2
       remeda: 2.21.3
       std-env: 3.9.0
-      valibot: 1.1.0(typescript@5.4.5)
+      valibot: 1.2.0(typescript@5.4.5)
       zeptomatch: 2.0.2
     transitivePeerDependencies:
       - typescript
@@ -15230,7 +15230,7 @@ snapshots:
       '@types/istanbul-lib-coverage': 2.0.4
       convert-source-map: 1.9.0
 
-  valibot@1.1.0(typescript@5.4.5):
+  valibot@1.2.0(typescript@5.4.5):
     optionalDependencies:
       typescript: 5.4.5
 
