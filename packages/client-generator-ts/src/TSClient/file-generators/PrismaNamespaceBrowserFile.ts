@@ -28,7 +28,7 @@ ${ts.stringify(ts.moduleImport(`${context.runtimeBase}/index-browser`).asNamespa
 export type * from '${context.importFileName(`../models`)}'
 export type * from '${context.importFileName(`./prismaNamespace`)}'
 
-export const Decimal = runtime.Decimal
+export import Decimal = runtime.Decimal
 
 ${nullTypes}
 
