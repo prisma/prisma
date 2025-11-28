@@ -178,7 +178,7 @@ export class PrismaBetterSqlite3Adapter extends BetterSQLite3Queryable<StdClient
     return Promise.resolve()
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
       throw new DriverAdapterError({
         kind: 'InvalidIsolationLevel',

@@ -109,7 +109,7 @@ class PrismaPostgresConnection implements SqlDriverAdapter {
     return executeQueryRaw(this.#client, params)
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     const session = await this.#client.newSession()
     return new PrismaPostgresTransaction(session, isolationLevel)
   }
