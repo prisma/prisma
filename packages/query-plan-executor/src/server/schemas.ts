@@ -17,6 +17,7 @@ export const QueryRequestBody = z.object({
   operation: z.string().min(1),
   plan: z.record(z.string(), z.unknown()),
   params: z.record(z.string(), z.unknown()),
+  comments: z.record(z.string(), z.string()).optional(),
 })
 
 export type QueryRequestBody = z.infer<typeof QueryRequestBody>
