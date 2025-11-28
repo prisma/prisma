@@ -187,10 +187,14 @@
   },
   "peerDependencies": {
     "better-sqlite3": ">=9.0.0",
+    "mongodb": ">=6.0.0",
     "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
     "better-sqlite3": {
+      "optional": true
+    },
+    "mongodb": {
       "optional": true
     },
     "typescript": {
