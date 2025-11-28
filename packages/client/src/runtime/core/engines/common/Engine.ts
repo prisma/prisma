@@ -1,4 +1,5 @@
 import { CompilerWasmLoadingConfig } from '@prisma/client-common'
+import type { SqlCommenterPlugin } from '@prisma/client-engine-runtime'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
@@ -143,6 +144,12 @@ export interface EngineConfig {
    * Web Assembly module loading configuration
    */
   compilerWasm?: CompilerWasmLoadingConfig
+
+  /**
+   * SQL commenter plugins that add metadata to SQL queries as comments.
+   * Each plugin receives query context and returns key-value pairs.
+   */
+  sqlCommenters?: SqlCommenterPlugin[]
 }
 
 /**

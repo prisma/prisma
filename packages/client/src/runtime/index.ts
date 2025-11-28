@@ -26,6 +26,12 @@ export {
   type Operation,
   type RuntimeDataModel,
 } from '@prisma/client-common'
+export type {
+  SqlCommenterContext,
+  SqlCommenterPlugin,
+  SqlCommenterQueryInfo,
+  SqlCommenterSingleQueryInfo,
+} from '@prisma/client-engine-runtime'
 export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 export type { RawValue, Value } from '@prisma/client-runtime-utils'
 export type { AnyNullClass, DbNullClass, JsonNullClass } from '@prisma/client-runtime-utils'

@@ -1,5 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import type { SqlCommenterPlugin } from '@prisma/client-engine-runtime'
 import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
@@ -116,6 +117,23 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   log?: Array<LogLevel | LogDefinition>
 
   omit?: GlobalOmitOptions
+
+  /**
+   * SQL commenter plugins that add metadata to SQL queries as comments.
+   * Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+   *
+   * @example
+   * ```ts
+   * new PrismaClient({
+   *   adapter: new PrismaPg({ connectionString }),
+   *   comments: [
+   *     traceContext(),
+   *     queryInsights(),
+   *   ],
+   * })
+   * ```
+   */
+  comments?: SqlCommenterPlugin[]
 
   /**
    * @internal
@@ -347,6 +365,7 @@ constructor() {
           logEmitter,
           adapter,
           accelerateUrl: options.accelerateUrl,
+          sqlCommenters: options.comments,
         }
 
         // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>

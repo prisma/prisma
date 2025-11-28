@@ -2,6 +2,7 @@ import {
   type QueryEvent,
   QueryInterpreter,
   type SchemaProvider,
+  type SqlCommenterPlugin,
   type TracingHelper,
   TransactionManager,
   type TransactionOptions,
@@ -17,6 +18,7 @@ export interface LocalExecutorOptions {
   tracingHelper: TracingHelper
   onQuery?: (event: QueryEvent) => void
   provider?: SchemaProvider
+  sqlCommenters?: SqlCommenterPlugin[]
 }
 
 export class LocalExecutor implements Executor {
@@ -58,7 +60,7 @@ export class LocalExecutor implements Executor {
     return Promise.resolve({ provider: this.#driverAdapter.provider, connectionInfo })
   }
 
-  async execute({ plan, placeholderValues, transaction, batchIndex }: ExecutePlanParams): Promise<unknown> {
+  async execute({ plan, placeholderValues, transaction, batchIndex, queryInfo }: ExecutePlanParams): Promise<unknown> {
     const queryable = transaction
       ? await this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
       : this.#driverAdapter
@@ -70,6 +72,10 @@ export class LocalExecutor implements Executor {
       tracingHelper: this.#options.tracingHelper,
       provider: this.#options.provider,
       connectionInfo: this.#connectionInfo,
+      sqlCommenter: this.#options.sqlCommenters && {
+        plugins: this.#options.sqlCommenters,
+        queryInfo,
+      },
     })
 
     return await interpreter.run(plan, queryable)

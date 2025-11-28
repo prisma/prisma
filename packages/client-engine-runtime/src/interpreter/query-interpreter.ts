@@ -1,8 +1,10 @@
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
+import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 
 import { QueryEvent } from '../events'
 import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../query-plan'
 import { type SchemaProvider } from '../schema'
+import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
@@ -26,6 +28,12 @@ export type QueryInterpreterOptions = {
   rawSerializer?: (results: SqlResultSet) => Value
   provider?: SchemaProvider
   connectionInfo?: ConnectionInfo
+  sqlCommenter?: QueryInterpreterSqlCommenter
+}
+
+export type QueryInterpreterSqlCommenter = {
+  plugins: SqlCommenterPlugin[]
+  queryInfo: SqlCommenterQueryInfo
 }
 
 export class QueryInterpreter {
@@ -38,6 +46,7 @@ export class QueryInterpreter {
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
   readonly #connectioInfo?: ConnectionInfo
+  readonly #sqlCommenter?: QueryInterpreterSqlCommenter
 
   constructor({
     transactionManager,
@@ -48,6 +57,7 @@ export class QueryInterpreter {
     rawSerializer,
     provider,
     connectionInfo,
+    sqlCommenter,
   }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
@@ -57,6 +67,7 @@ export class QueryInterpreter {
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
     this.#connectioInfo = connectionInfo
+    this.#sqlCommenter = sqlCommenter
   }
 
   static forSql(options: {
@@ -66,6 +77,7 @@ export class QueryInterpreter {
     tracingHelper: TracingHelper
     provider?: SchemaProvider
     connectionInfo?: ConnectionInfo
+    sqlCommenter?: QueryInterpreterSqlCommenter
   }): QueryInterpreter {
     return new QueryInterpreter({
       transactionManager: options.transactionManager,
@@ -76,6 +88,7 @@ export class QueryInterpreter {
       rawSerializer: serializeRawSql,
       provider: options.provider,
       connectionInfo: options.connectionInfo,
+      sqlCommenter: options.sqlCommenter,
     })
   }
 
@@ -155,9 +168,10 @@ export class QueryInterpreter {
 
         let sum = 0
         for (const query of queries) {
-          sum += await this.#withQuerySpanAndEvent(query, queryable, () =>
+          const commentedQuery = this.#applyComments(query)
+          sum += await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
             queryable
-              .executeRaw(query)
+              .executeRaw(commentedQuery)
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -172,9 +186,10 @@ export class QueryInterpreter {
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const result = await this.#withQuerySpanAndEvent(query, queryable, () =>
+          const commentedQuery = this.#applyComments(query)
+          const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
             queryable
-              .queryRaw(query)
+              .queryRaw(commentedQuery)
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -360,6 +375,22 @@ export class QueryInterpreter {
       tracingHelper: this.#tracingHelper,
       onQuery: this.#onQuery,
     })
+  }
+
+  #applyComments(query: SqlQuery): SqlQuery {
+    if (!this.#sqlCommenter || this.#sqlCommenter.plugins.length === 0) {
+      return query
+    }
+
+    const comment = buildSqlComment(this.#sqlCommenter.plugins, { query: this.#sqlCommenter.queryInfo })
+    if (!comment) {
+      return query
+    }
+
+    return {
+      ...query,
+      sql: appendSqlComment(query.sql, comment),
+    }
   }
 }
 

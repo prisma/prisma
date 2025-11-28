@@ -30,6 +30,7 @@
     "@prisma/client-runtime-utils": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
+    "@prisma/sqlcommenter": "workspace:*",
     "nanoid": "5.1.5",
     "ulid": "3.0.0",
     "uuid": "11.1.0"

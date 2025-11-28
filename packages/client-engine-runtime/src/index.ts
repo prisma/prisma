@@ -4,12 +4,23 @@ export { DataMapperError } from './interpreter/data-mapper'
 export {
   QueryInterpreter,
   type QueryInterpreterOptions,
+  type QueryInterpreterSqlCommenter,
   type QueryInterpreterTransactionManager,
 } from './interpreter/query-interpreter'
 export * from './json-protocol'
 export * from './query-plan'
 export * from './raw-json-protocol'
 export type { SchemaProvider } from './schema'
+export {
+  appendSqlComment,
+  applySqlCommenters,
+  buildSqlComment,
+  formatSqlComment,
+  type SqlCommenterContext,
+  type SqlCommenterPlugin,
+  type SqlCommenterQueryInfo,
+  type SqlCommenterSingleQueryInfo,
+} from './sql-commenter'
 export { noopTracingHelper, type TracingHelper } from './tracing'
 export type { TransactionInfo, Options as TransactionOptions } from './transaction-manager/transaction'
 export { TransactionManager } from './transaction-manager/transaction-manager'

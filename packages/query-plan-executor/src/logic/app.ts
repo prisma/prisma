@@ -4,6 +4,7 @@ import {
   normalizeJsonProtocolValues,
   QueryEvent,
   QueryInterpreter,
+  QueryInterpreterSqlCommenter,
   QueryPlanNode,
   safeJsonStringify,
   TransactionInfo,
@@ -69,10 +70,17 @@ export class App {
 
   /**
    * Executes a query plan and returns the result.
+   *
+   * @param queryPlan - The query plan to execute
+   * @param placeholderValues - Placeholder values for the query
+   * @param comments - Pre-computed SQL commenter tags from the client
+   * @param resourceLimits - Resource limits for the query
+   * @param transactionId - Transaction ID if running within a transaction
    */
   async query(
     queryPlan: QueryPlanNode,
     placeholderValues: Record<string, unknown>,
+    comments: Record<string, string> | undefined,
     resourceLimits: ResourceLimits,
     transactionId: string | null,
   ): Promise<unknown> {
@@ -82,12 +90,24 @@ export class App {
           ? await this.#transactionManager.getTransaction({ id: transactionId }, 'query')
           : this.#db
 
+      // Create constant commenter plugin if comments were provided
+      const sqlCommenter: QueryInterpreterSqlCommenter | undefined =
+        comments && Object.keys(comments).length > 0
+          ? {
+              plugins: [() => comments],
+              // For pre-computed comments, we use a placeholder queryInfo since the actual
+              // query info was already used on the client side to compute the comments
+              queryInfo: { type: 'single', action: 'unknown', query: {} },
+            }
+          : undefined
+
       const queryInterpreter = QueryInterpreter.forSql({
         placeholderValues,
         tracingHelper: this.#tracingHandler,
         transactionManager:
           transactionId === null ? { enabled: true, manager: this.#transactionManager } : { enabled: false },
         onQuery: logQuery,
+        sqlCommenter,
       })
 
       const result = await Promise.race([

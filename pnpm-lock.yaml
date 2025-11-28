@@ -937,6 +937,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@prisma/sqlcommenter':
+        specifier: workspace:*
+        version: link:../sqlcommenter
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -1829,6 +1832,8 @@ importers:
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
+
+  packages/sqlcommenter: {}
 
   packages/ts-builders:
     dependencies:

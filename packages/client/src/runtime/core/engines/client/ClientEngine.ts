@@ -213,6 +213,7 @@ export class ClientEngine implements Engine {
         logLevel: this.logLevel,
         logQueries: this.logQueries,
         tracingHelper: this.tracingHelper,
+        sqlCommenters: this.config.sqlCommenters,
       })
     } else {
       return await LocalExecutor.connect({
@@ -224,6 +225,7 @@ export class ClientEngine implements Engine {
         },
         onQuery: this.#emitQueryEvent,
         provider: this.config.activeProvider as ActiveConnectorType | undefined,
+        sqlCommenters: this.config.sqlCommenters,
       })
     }
   }
@@ -474,6 +476,12 @@ export class ClientEngine implements Engine {
         transaction: interactiveTransaction,
         batchIndex: undefined,
         customFetch: customDataProxyFetch?.(globalThis.fetch),
+        queryInfo: {
+          type: 'single',
+          modelName: query.modelName,
+          action: query.action,
+          query: query.query,
+        },
       })
 
       debug(`query plan executed`)
@@ -542,6 +550,10 @@ export class ClientEngine implements Engine {
                 batchIndex,
                 transaction: txInfo,
                 customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+                queryInfo: {
+                  type: 'single',
+                  ...queries[batchIndex],
+                },
               })
               results.push({ data: { [queries[batchIndex].action]: rows } })
             } catch (err) {
@@ -573,6 +585,10 @@ export class ClientEngine implements Engine {
             batchIndex: undefined,
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+            queryInfo: {
+              type: 'compacted',
+              queries,
+            },
           })
 
           const results = convertCompactedRows(rows as {}[], batchResponse)

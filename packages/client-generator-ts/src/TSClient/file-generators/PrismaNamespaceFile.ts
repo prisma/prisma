@@ -263,6 +263,25 @@ function buildClientOptions(context: GenerateContext) {
       `),
   )
 
+  otherOptions.add(
+    ts.property('comments', ts.array(ts.namedType('runtime.SqlCommenterPlugin'))).optional()
+      .setDocComment(ts.docComment`
+        SQL commenter plugins that add metadata to SQL queries as comments.
+        Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          adapter,
+          comments: [
+            traceContext(),
+            queryInsights(),
+          ],
+        })
+        \`\`\`
+      `),
+  )
+
   // Intersect the mutually exclusive options with the other options
   // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }
   const prismaClientOptions = ts.intersectionType([mutuallyExclusiveOptions, otherOptions])
