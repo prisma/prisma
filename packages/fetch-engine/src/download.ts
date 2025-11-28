@@ -64,6 +64,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   if (!options.binaries || Object.values(options.binaries).length === 0) {
     return {} // we don't download anything if nothing is provided
   }
+  // Skip native engine binaries when running with the Rust-free WASM engine
+const useRustFreeEngine =
+process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'wasm' ||
+process.env.PRISMA_USE_WASM === 'true';
+
+if (useRustFreeEngine) {
+debug('Rust-free/WASM engine enabled — skipping native engine downloads.');
+return {};
+}
+
 
   if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
     // if this is true the engines have been fetched before and already cached
