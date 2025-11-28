@@ -1,0 +1,11 @@
+{
+  "name": "studio-value-column-bug",
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "latest",
+    "prisma": "latest"
+  }
+}

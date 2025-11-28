@@ -1,0 +1,20 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model PaymentGateway {
+  id     Int     @id @default(autoincrement())
+  name   String
+  value  String  // This column name causes Studio query ambiguity
+  active Boolean @default(true)
+}
+
+model TestTable {
+  id    Int     @id @default(autoincrement())
+  value String  // Another table with problematic column name
+  data  String?
+}
