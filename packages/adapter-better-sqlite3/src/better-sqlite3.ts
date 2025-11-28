@@ -245,8 +245,53 @@ export class PrismaBetterSqlite3AdapterFactory implements SqlMigrationAwareDrive
 
 function createBetterSQLite3Client(input: BetterSQLite3InputParams): StdClient {
   const { url, ...config } = input
-  const dbPath = url.replace(/^file:/, '')
-  const db = new Database(dbPath, config)
+  
+  // Parse URL to extract path and query parameters
+  let dbPath: string
+  let urlParams: URLSearchParams
+  
+  try {
+    const urlObj = new URL(url)
+    dbPath = urlObj.pathname
+    urlParams = urlObj.searchParams
+  } catch {
+    // Fallback for simple file paths
+    dbPath = url.replace(/^file:/, '')
+    urlParams = new URLSearchParams()
+  }
+  
+  // Extract SQLite-specific parameters from URL
+  const sqliteOptions: BetterSQLite3Options = { ...config }
+  
+  // Handle busy_timeout parameter
+  const busyTimeout = urlParams.get('busy_timeout')
+  if (busyTimeout) {
+    const timeoutMs = parseInt(busyTimeout, 10)
+    if (!isNaN(timeoutMs)) {
+      sqliteOptions.timeout = timeoutMs
+    }
+  }
+  
+  // Handle connection_limit parameter (for better-sqlite3 this maps to readonly option)
+  const connectionLimit = urlParams.get('connection_limit')
+  if (connectionLimit) {
+    const limit = parseInt(connectionLimit, 10)
+    if (!isNaN(limit) && limit === 1) {
+      // For connection_limit=1, we don't need special handling in better-sqlite3
+      // as it's single-threaded by nature
+    }
+  }
+  
+  const db = new Database(dbPath, sqliteOptions)
   db.defaultSafeIntegers(true)
+  
+  // Set busy timeout using PRAGMA if specified
+  if (busyTimeout) {
+    const timeoutMs = parseInt(busyTimeout, 10)
+    if (!isNaN(timeoutMs)) {
+      db.pragma(`busy_timeout = ${timeoutMs}`)
+    }
+  }
+  
   return db
 }
