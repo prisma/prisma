@@ -16,16 +16,15 @@ model User {
   email          String   @unique
   createdAt      DateTime @default(now())
   
-  // Generated/Computed columns (will be added via migration)
-  // These are marked as optional to avoid TypeScript errors
-  /// @generated ALWAYS AS (firstName || ' ' || lastName) STORED
-  fullName       String?
+  // Generated/Computed columns - automatically created as GENERATED ALWAYS AS
+  /// @generatedColumn firstName || ' ' || lastName
+  fullName       String   @default(dbgenerated())
   
-  /// @generated ALWAYS AS (countryCode || ' ' || phone) STORED
-  formattedPhone String?
+  /// @generatedColumn countryCode || ' ' || phone
+  formattedPhone String   @default(dbgenerated())
   
-  /// @generated ALWAYS AS (SUBSTRING(email FROM POSITION('@' IN email) + 1)) STORED
-  emailDomain    String?
+  /// @generatedColumn substr(email, instr(email, '@') + 1)
+  emailDomain    String   @default(dbgenerated())
   
   posts          Post[]
 }
@@ -47,6 +46,6 @@ model Product {
   basePrice   Decimal
   taxRate     Decimal  @default(0.0825) // 8.25% default tax
   
-  /// @generated ALWAYS AS (basePrice * (1 + taxRate)) STORED
-  totalPrice  Decimal?
+  /// @generatedColumn basePrice * (1 + taxRate)
+  totalPrice  Decimal  @default(dbgenerated())
 }
