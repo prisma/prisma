@@ -55,6 +55,8 @@ const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 const ADAPTER_FILE_NAME = 'adapter.js'
 const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
 
+const ACCELERATE_API_KEY_QUERY_PARAMETER = 'api_key'
+
 interface StudioStuff {
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
   reExportAdapterScript: string
@@ -176,7 +178,59 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
   },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
-  'prisma+postgres': POSTGRES_STUDIO_STUFF,
+  'prisma+postgres': {
+    async createExecutor(connectionString, relativeTo) {
+      if (connectionString.includes('localhost')) {
+        // TODO: support `prisma dev` accelerate URLs.
+
+        throw new Error('The "prisma+postgres" protocol with localhost is not supported in Prisma Studio yet.')
+      }
+
+      const connectionURL = new URL(connectionString)
+
+      const apiKey = connectionURL.searchParams.get(ACCELERATE_API_KEY_QUERY_PARAMETER)
+
+      if (!apiKey) {
+        throw new Error(
+          `\`${ACCELERATE_API_KEY_QUERY_PARAMETER}\` query parameter is missing in the provided "prisma+postgres" connection string.`,
+        )
+      }
+
+      const [, payload] = apiKey.split('.')
+
+      try {
+        const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'))
+
+        if (
+          typeof decodedPayload !== 'object' ||
+          decodedPayload === null ||
+          Array.isArray(decodedPayload) ||
+          !('secure_key' in decodedPayload) ||
+          typeof decodedPayload.secure_key !== 'string' ||
+          !('tenant_id' in decodedPayload) ||
+          typeof decodedPayload.tenant_id !== 'string'
+        ) {
+          throw 'strucutare mismatch'
+        }
+
+        connectionURL.password = decodedPayload.secure_key
+        connectionURL.username = decodedPayload.tenant_id
+      } catch {
+        throw new Error(
+          `Invalid/outdated \`${ACCELERATE_API_KEY_QUERY_PARAMETER}\` query parameter in the provided "prisma+postgres" connection string. Please create a new API key and use the new connection string OR use a direct TCP connection string instead.`,
+        )
+      }
+
+      connectionURL.host = 'db.prisma.io:5432'
+      connectionURL.pathname = '/postgres'
+      connectionURL.protocol = 'postgres:'
+      connectionURL.searchParams.delete(ACCELERATE_API_KEY_QUERY_PARAMETER)
+      connectionURL.searchParams.set('sslmode', 'require')
+
+      return await POSTGRES_STUDIO_STUFF.createExecutor(connectionURL.toString(), relativeTo)
+    },
+    reExportAdapterScript: POSTGRES_STUDIO_STUFF.reExportAdapterScript,
+  },
   mysql: {
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
