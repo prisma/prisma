@@ -1,5 +1,6 @@
 import { defineConfig } from '@prisma/config'
 import { createConnection } from 'mysql2/promise'
+import 'dotenv/config'
  
 const SQLITE_PATH = 'file:dev.db'
 
@@ -28,9 +29,16 @@ if (process.env.PROVIDER === 'sqlite') {
   
     database = new DatabaseSync(path)
   } catch {
-    const { Database } = await import('bun:sqlite' as never)
-  
-    database = new Database(path)
+    try {
+      const { Database } = await import('bun:sqlite' as never)
+    
+      database = new Database(path)
+
+    } catch {
+      const { default: Database } = await import('better-sqlite3')
+      
+      database = new Database(path)
+    }
   }
 
   database.exec(

@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
@@ -111,6 +114,23 @@ describe('drop', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    await fs.writeFile(path.join(ctx.configDir(), 'dev.db'), '')
+
+    const result = DbDrop.new().parse(['--preview-feature', '-f'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from config/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
       "
     `)

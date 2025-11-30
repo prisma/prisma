@@ -4,7 +4,7 @@ import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSeria
 import path from 'path'
 
 import { isRustPanic, validate } from '../..'
-import { getSchemaWithPath } from '../../cli/getSchema'
+import { getCliProvidedSchemaFile } from '../../cli/getSchema'
 import type { MultipleSchemas, SchemaFileInput } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
 
@@ -461,12 +461,12 @@ describe('validate', () => {
     })
 
     test('chinook introspected schema', async () => {
-      const { schemas } = await getSchemaWithPath(path.join(fixturesPath, 'chinook.prisma'))
+      const { schemas } = await getCliProvidedSchemaFile(path.join(fixturesPath, 'chinook.prisma'))
       validate({ schemas })
     })
 
     test('odoo introspected schema', async () => {
-      const { schemas } = await getSchemaWithPath(path.join(fixturesPath, 'odoo.prisma'))
+      const { schemas } = await getCliProvidedSchemaFile(path.join(fixturesPath, 'odoo.prisma'))
       validate({ schemas })
     })
   })
