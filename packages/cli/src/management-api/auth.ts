@@ -6,6 +6,8 @@ import { AddressInfo } from 'node:net'
 import open from 'open'
 import z from 'zod'
 
+const packageJson = require('../../package.json')
+
 const CLIENT_ID = 'cmi4ttoor03pv2wco4526rnin'
 const LOGIN_URL = 'https://auth.prisma.io/authorize'
 const TOKEN_URL = 'https://auth.prisma.io/token'
@@ -22,12 +24,16 @@ export class AuthError extends Error {
   }
 }
 
-export async function login(): Promise<AuthResult> {
+export type LoginOptions = {
+  utmMedium: string
+}
+
+export async function login(options: LoginOptions): Promise<AuthResult> {
   const server = http.createServer()
   server.listen({ host: 'localhost', port: 0 })
 
   const addressInfo = await events.once(server, 'listening').then(() => server.address() as AddressInfo)
-  const state = new LoginState('localhost', addressInfo.port)
+  const state = new LoginState('localhost', addressInfo.port, options.utmMedium)
 
   const authResult = new Promise<AuthResult>((resolve) => {
     server.on('request', async (req, res) => {
@@ -72,6 +78,7 @@ export class LoginState {
   constructor(
     private hostname: string,
     private port: number,
+    private utmMedium: string,
   ) {}
 
   async login() {
@@ -87,9 +94,9 @@ export class LoginState {
     authUrl.searchParams.set('state', this.latestState)
     authUrl.searchParams.set('code_challenge', challenge)
     authUrl.searchParams.set('code_challenge_method', 'S256')
-    authUrl.searchParams.set('utm_source', 'orm')
-    authUrl.searchParams.set('utm_medium', 'cli')
-    authUrl.searchParams.set('utm_campaign', 'oauth')
+    authUrl.searchParams.set('utm_source', 'cli')
+    authUrl.searchParams.set('utm_medium', this.utmMedium)
+    authUrl.searchParams.set('utm_campaign', packageJson.version as string)
 
     await open(authUrl.href)
   }

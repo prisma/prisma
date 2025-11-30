@@ -63,7 +63,7 @@ ${bold('Examples')}
 
   private constructor(private readonly cmds: Commands) {}
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -95,7 +95,7 @@ ${bold('Examples')}
         argsForCmd = filteredArgs.slice(1)
       }
 
-      return cmd.parse(argsForCmd, config, configDir)
+      return cmd.parse(argsForCmd, config, baseDir)
     }
 
     return unknownCommand(MigrateCommand.help, commandName)

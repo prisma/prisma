@@ -72,7 +72,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
-          configDir: ctx.configDir(),
+          baseDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -97,7 +97,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
-          configDir: ctx.configDir(),
+          baseDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -133,7 +133,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
-          configDir: ctx.configDir(),
+          baseDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
@@ -169,7 +169,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const { engine } = await Migrate.setup({
           schemaContext,
           schemaEngineConfig: await ctx.config(),
-          configDir: ctx.configDir(),
+          baseDir: ctx.configDir(),
         })
 
         const introspectionResult = await engine.introspect({
