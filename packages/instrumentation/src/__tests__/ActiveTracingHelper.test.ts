@@ -13,6 +13,7 @@ describe('ActiveTracingHelper', () => {
         traceFlags: 0,
       }),
       addEvent: vi.fn(),
+      addLinks: vi.fn(),
       end: vi.fn(),
     }
 
