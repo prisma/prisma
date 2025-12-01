@@ -2,10 +2,12 @@ export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
+  createSchemaPathInput,
   type GetSchemaOptions,
   getSchemaWithPath,
   getSchemaWithPathOptional,
   printSchemaLoadedMessage,
+  type SchemaPathInput,
 } from './cli/getSchema'
 export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'

@@ -65,7 +65,7 @@ export async function setupTestSuiteClient({
     schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
   })
   const generator = schemaContext.generators.find((g) =>
-    ['prisma-client-js', 'prisma-client-ts'].includes(parseEnvValue(g.provider)),
+    ['prisma-client-js', 'prisma-client-ts', 'prisma-client'].includes(parseEnvValue(g.provider)),
   )!
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
@@ -134,7 +134,10 @@ export async function setupTestSuiteClient({
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
     'wasm-compiler-edge': {
       client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/edge',
-      sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
+      sql:
+        generatorType === 'prisma-client-ts'
+          ? path.join(outputPath, 'sql.ts')
+          : path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
     },
     client: {
       client: 'generated/prisma/client',
