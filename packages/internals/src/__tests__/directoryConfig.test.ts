@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { defineConfig, loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
-import { inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
+import { createSchemaPathInput, inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
 
 import { fixturesPath } from './__utils__/fixtures'
 
@@ -19,8 +19,7 @@ async function testDirectoryConfig({
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   const schemaContext = await loadSchemaContext({
-    schemaPathFromArg: schemaPath,
-    schemaEngineConfig: config,
+    schemaPath: createSchemaPathInput({ schemaPathFromArgs: schemaPath, baseDir: cwd }),
     cwd,
     allowNull: true,
   })
@@ -28,15 +27,15 @@ async function testDirectoryConfig({
 }
 
 describe('with .config/prisma.ts', () => {
-  it('places folders next to schema file with the datasource block - datasource schema file is in subfolder', async () => {
+  it('places default folders in the schema root - datasource schema file is in subfolder', async () => {
     const cwd = path.resolve(FIXTURE_CWD, 'with-config-dir/nested-datasource-schema-file')
 
     const config = await loadConfigFromFile({ configRoot: cwd })
     expect(config.error).toBeUndefined()
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: './prisma',
-      schemaEngineConfig: config.config,
+      schemaPath: { cliProvidedPath: './prisma' },
+
       cwd,
       allowNull: true,
     })
@@ -48,25 +47,10 @@ describe('with .config/prisma.ts', () => {
         'with-config-dir',
         'nested-datasource-schema-file',
         'prisma',
-        'datasource',
         'migrations',
       ),
-      typedSqlDirPath: path.resolve(
-        FIXTURE_CWD,
-        'with-config-dir',
-        'nested-datasource-schema-file',
-        'prisma',
-        'datasource',
-        'sql',
-      ),
-      viewsDirPath: path.resolve(
-        FIXTURE_CWD,
-        'with-config-dir',
-        'nested-datasource-schema-file',
-        'prisma',
-        'datasource',
-        'views',
-      ),
+      typedSqlDirPath: path.resolve(FIXTURE_CWD, 'with-config-dir', 'nested-datasource-schema-file', 'prisma', 'sql'),
+      viewsDirPath: path.resolve(FIXTURE_CWD, 'with-config-dir', 'nested-datasource-schema-file', 'prisma', 'views'),
     })
   })
 })
@@ -124,13 +108,13 @@ it('places folders next to schema file with the datasource block - multiple sche
   })
 })
 
-it('places folders next to schema file with the datasource block - datasource schema file is in subfolder', async () => {
+it('places default folders in the schema root - datasource schema file is in subfolder', async () => {
   const res = await testDirectoryConfig({ fixtureName: 'nested-datasource-schema-file', schemaPath: './prisma' })
 
   expect(res).toEqual({
-    migrationsDirPath: path.resolve(FIXTURE_CWD, 'nested-datasource-schema-file', 'prisma', 'datasource', 'migrations'),
-    typedSqlDirPath: path.resolve(FIXTURE_CWD, 'nested-datasource-schema-file', 'prisma', 'datasource', 'sql'),
-    viewsDirPath: path.resolve(FIXTURE_CWD, 'nested-datasource-schema-file', 'prisma', 'datasource', 'views'),
+    migrationsDirPath: path.resolve(FIXTURE_CWD, 'nested-datasource-schema-file', 'prisma', 'migrations'),
+    typedSqlDirPath: path.resolve(FIXTURE_CWD, 'nested-datasource-schema-file', 'prisma', 'sql'),
+    viewsDirPath: path.resolve(FIXTURE_CWD, 'nested-datasource-schema-file', 'prisma', 'views'),
   })
 })
 

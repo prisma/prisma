@@ -7,6 +7,7 @@ import type { SchemaProvider } from '../schema'
 import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { rethrowAsUserFacing } from '../user-facing-error'
 import { assertNever } from '../utils'
+import { once } from '../web-platform'
 import { Options, TransactionInfo } from './transaction'
 import {
   InvalidTransactionIsolationLevelError,
@@ -109,23 +110,26 @@ export class TransactionManager {
       startedAt: Date.now(),
       transaction: undefined,
     }
-    this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    let hasTimedOut = false
-    const startTimer = createTimeoutIfDefined(() => (hasTimedOut = true), options.maxWait)
+    const abortController = new AbortController()
+    const startTimer = createTimeoutIfDefined(() => abortController.abort(), options.maxWait)
     startTimer?.unref?.()
 
-    transaction.transaction = await this.driverAdapter
-      .startTransaction(options.isolationLevel)
-      .catch(rethrowAsUserFacing)
+    transaction.transaction = await Promise.race([
+      this.driverAdapter
+        .startTransaction(options.isolationLevel)
+        .catch(rethrowAsUserFacing)
+        .finally(() => clearTimeout(startTimer)),
+      once(abortController.signal, 'abort').then(() => undefined),
+    ])
 
-    clearTimeout(startTimer)
+    this.transactions.set(transaction.id, transaction)
 
     // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        if (hasTimedOut) {
+        if (abortController.signal.aborted) {
           await this.#closeTransaction(transaction, 'timed_out')
           throw new TransactionStartTimeoutError()
         }
@@ -241,8 +245,13 @@ export class TransactionManager {
             await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
           } else {
             const query = COMMIT_QUERY()
-            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-            await tx.transaction.commit()
+            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query)).then(
+              () => tx.transaction!.commit(),
+              (err) => {
+                const fail = () => Promise.reject(err)
+                return tx.transaction!.rollback().then(fail, fail)
+              },
+            )
           }
         } else if (tx.transaction) {
           if (tx.transaction.options.usePhantomQuery) {
@@ -251,8 +260,11 @@ export class TransactionManager {
             )
           } else {
             const query = ROLLBACK_QUERY()
-            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-            await tx.transaction.rollback()
+            try {
+              await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+            } finally {
+              await tx.transaction.rollback()
+            }
           }
         }
       } finally {

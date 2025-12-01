@@ -14,9 +14,8 @@ import {
   getModelArgName,
   getPayloadName,
 } from '../utils'
-import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
+import { runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
-import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { globalOmitConfig } from './globalOmit'
@@ -263,7 +262,7 @@ function queryRawDefinition(context: GenerateContext) {
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -275,7 +274,7 @@ function queryRawDefinition(context: GenerateContext) {
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
 }
@@ -294,7 +293,7 @@ function executeRawDefinition(context: GenerateContext) {
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -306,7 +305,7 @@ function executeRawDefinition(context: GenerateContext) {
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
 }
@@ -347,30 +346,6 @@ function queryRawTypedDefinition(context: GenerateContext) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function metricDefinition(context: GenerateContext) {
-  if (!context.isPreviewFeatureOn('metrics')) {
-    return ''
-  }
-
-  const property = ts
-    .property('$metrics', ts.namedType(`runtime.${runtimeImport('MetricsClient')}`))
-    .setDocComment(
-      ts.docComment`
-        Gives access to the client metrics in json or prometheus format.
-
-        @example
-        \`\`\`
-        const metrics = await prisma.$metrics.json()
-        // or
-        const metrics = await prisma.$metrics.prometheus()
-        \`\`\`
-    `,
-    )
-    .readonly()
-
-  return ts.stringify(property, { indentLevel: 1, newLine: 'leading' })
-}
-
 function runCommandRawDefinition(context: GenerateContext) {
   // we do not generate `$runCommandRaw` definitions if not supported
   if (!context.dmmf.mappings.otherOperations.write.includes('runCommandRaw')) {
@@ -391,33 +366,10 @@ function runCommandRawDefinition(context: GenerateContext) {
       })
       \`\`\`
 
-      Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+      Read more in our [docs](https://pris.ly/d/raw-queries).
     `)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
-}
-
-function applyPendingMigrationsDefinition(this: PrismaClientClass) {
-  if (this.runtimeNameTs !== 'react-native') {
-    return null
-  }
-
-  const method = ts
-    .method('$applyPendingMigrations')
-    .setReturnType(tsx.promise(ts.voidType))
-    .setDocComment(
-      ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
-    )
-
-  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
-}
-
-function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
-  if (runtimeNameTs === 'binary.js') {
-    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
-  } else {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
-  }
 }
 
 export class PrismaClientClass implements Generable {
@@ -425,7 +377,7 @@ export class PrismaClientClass implements Generable {
     protected readonly context: GenerateContext,
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
-    protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
+    protected readonly runtimeName: TSClientOptions['runtimeName'],
     protected readonly browser?: boolean,
   ) {}
   private get jsDoc(): string {
@@ -455,7 +407,7 @@ export class PrismaClientClass implements Generable {
  * \`\`\`
  *
  *
- * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+ * Read more in our [docs](https://pris.ly/d/client).
  */`
   }
   public toTSWithoutNamespace(): string {
@@ -472,7 +424,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
 
   /**
    * Connect with the database
@@ -491,8 +443,6 @@ ${[
   batchingTransactionDefinition(this.context),
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),
-  metricDefinition(this.context),
-  applyPendingMigrationsDefinition.bind(this)(),
   extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)
@@ -527,8 +477,7 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
   public toTS(): string {
     const clientOptions = this.buildClientOptions()
 
-    return `${new Datasources(this.internalDatasources).toTS()}
-${clientExtensionsDefinitions(this.context)}
+    return `${clientExtensionsDefinitions(this.context)}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${ts.stringify(ts.moduleExport(clientOptions))}
@@ -605,18 +554,6 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
       .interfaceDeclaration('PrismaClientOptions')
       .add(
         ts
-          .property('datasources', ts.namedType('Datasources'))
-          .optional()
-          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
-      )
-      .add(
-        ts
-          .property('datasourceUrl', ts.stringType)
-          .optional()
-          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
-      )
-      .add(
-        ts
           .property('errorFormat', ts.namedType('ErrorFormat'))
           .optional()
           .setDocComment(ts.docComment('@default "colorless"')),
@@ -645,7 +582,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
               { emit: 'stdout', level: 'error' }
             ]
              \`\`\`
-             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+             Read more in our [docs](https://pris.ly/d/logging).
           `),
       )
 
@@ -667,19 +604,29 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     )
 
     if (
-      ['library.js', 'client.js'].includes(this.runtimeNameTs) &&
       // We don't support a custom adapter with MongoDB for now.
       this.internalDatasources.some((d) => d.provider !== 'mongodb')
     ) {
       clientOptions.add(
         ts
-          .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
+          .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
           .optional()
           .setDocComment(
             ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
           ),
       )
     }
+
+    clientOptions.add(
+      ts
+        .property('accelerateUrl', ts.stringType)
+        .optional()
+        .setDocComment(
+          ts.docComment(
+            'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
+          ),
+        ),
+    )
 
     clientOptions.add(
       ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`

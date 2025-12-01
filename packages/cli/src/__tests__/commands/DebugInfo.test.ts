@@ -55,22 +55,10 @@ const envVars = {
   PRISMA_BINARIES_MIRROR: 'http://localhost',
   PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 'true',
   BINARY_DOWNLOAD_VERSION: 'true',
-  PRISMA_CLI_QUERY_ENGINE_TYPE: 'library',
-  PRISMA_CLIENT_ENGINE_TYPE: 'library',
-  PRISMA_QUERY_ENGINE_BINARY: 'some/path',
-  PRISMA_QUERY_ENGINE_LIBRARY: 'some/path',
   PRISMA_SCHEMA_ENGINE_BINARY: 'some/path',
   PRISMA_MIGRATION_ENGINE_BINARY: 'true',
-  PRISMA_GENERATE_SKIP_AUTOINSTALL: 'true',
-  PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
-  PRISMA_GENERATE_IN_POSTINSTALL: 'true',
-  PRISMA_GENERATE_DATAPROXY: 'true',
-  PRISMA_GENERATE_NO_ENGINE: 'true',
   PRISMA_SHOW_ALL_TRACES: 'true',
-  PRISMA_CLIENT_NO_RETRY: 'true',
   PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: 'true',
-  PRISMA_MIGRATE_SKIP_GENERATE: 'true',
-  PRISMA_MIGRATE_SKIP_SEED: 'true',
   BROWSER: 'something',
 }
 
@@ -126,7 +114,7 @@ describe('debug', () => {
       - HTTPS_PROXY:
 
       For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+      See https://pris.ly/d/env-vars
 
       For hiding messages
       - PRISMA_DISABLE_WARNINGS:
@@ -139,33 +127,15 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING:
       - BINARY_DOWNLOAD_VERSION:
 
-      For configuring the Query Engine Type
-      - PRISMA_CLI_QUERY_ENGINE_TYPE:
-      - PRISMA_CLIENT_ENGINE_TYPE:
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_BINARY:
-      - PRISMA_QUERY_ENGINE_LIBRARY:
       - PRISMA_SCHEMA_ENGINE_BINARY:
       - PRISMA_MIGRATION_ENGINE_BINARY:
 
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL:
-      - PRISMA_SKIP_POSTINSTALL_GENERATE:
-      - PRISMA_GENERATE_IN_POSTINSTALL:
-
-      For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY:
-      - PRISMA_GENERATE_NO_ENGINE:
-
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES:
-      - PRISMA_CLIENT_NO_RETRY (Binary engine only):
 
       For Prisma Migrate
       - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK:
-      - PRISMA_MIGRATE_SKIP_GENERATE:
-      - PRISMA_MIGRATE_SKIP_SEED:
 
       For Prisma Studio
       - BROWSER:
@@ -218,7 +188,7 @@ describe('debug', () => {
       - HTTPS_PROXY: \`\`
 
       For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+      See https://pris.ly/d/env-vars
 
       For hiding messages
       - PRISMA_DISABLE_WARNINGS: \`\`
@@ -231,33 +201,15 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`\`
       - BINARY_DOWNLOAD_VERSION: \`\`
 
-      For configuring the Query Engine Type
-      - PRISMA_CLI_QUERY_ENGINE_TYPE: \`\`
-      - PRISMA_CLIENT_ENGINE_TYPE: \`\`
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_BINARY: \`\`
-      - PRISMA_QUERY_ENGINE_LIBRARY: \`\`
       - PRISMA_SCHEMA_ENGINE_BINARY: \`\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`\`
 
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`\`
-      - PRISMA_SKIP_POSTINSTALL_GENERATE: \`\`
-      - PRISMA_GENERATE_IN_POSTINSTALL: \`\`
-
-      For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY: \`\`
-      - PRISMA_GENERATE_NO_ENGINE: \`\`
-
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`\`
-      - PRISMA_CLIENT_NO_RETRY (Binary engine only): \`\`
 
       For Prisma Migrate
       - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`\`
-      - PRISMA_MIGRATE_SKIP_GENERATE: \`\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`\`
 
       For Prisma Studio
       - BROWSER: \`\`
@@ -307,7 +259,7 @@ describe('debug', () => {
       - HTTPS_PROXY: \`https://HTTPS_PROXY.localhost\`
 
       For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+      See https://pris.ly/d/env-vars
 
       For hiding messages
       - PRISMA_DISABLE_WARNINGS: \`true\`
@@ -320,128 +272,18 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`true\`
       - BINARY_DOWNLOAD_VERSION: \`true\`
 
-      For configuring the Query Engine Type
-      - PRISMA_CLI_QUERY_ENGINE_TYPE: \`library\`
-      - PRISMA_CLIENT_ENGINE_TYPE: \`library\`
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_BINARY: \`some/path\`
-      - PRISMA_QUERY_ENGINE_LIBRARY: \`some/path\`
       - PRISMA_SCHEMA_ENGINE_BINARY: \`some/path\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`true\`
 
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`true\`
-      - PRISMA_SKIP_POSTINSTALL_GENERATE: \`true\`
-      - PRISMA_GENERATE_IN_POSTINSTALL: \`true\`
-
-      For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY: \`true\`
-      - PRISMA_GENERATE_NO_ENGINE: \`true\`
-
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`true\`
-      - PRISMA_CLIENT_NO_RETRY (Binary engine only): \`true\`
 
       For Prisma Migrate
       - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`true\`
-      - PRISMA_MIGRATE_SKIP_GENERATE: \`true\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`true\`
 
       For Prisma Studio
       - BROWSER: \`something\`
-
-      -- Terminal is interactive? --
-      false
-
-      -- CI detected? --
-      true
-      "
-    `)
-  })
-
-  it('should read the .env file if it exists', async () => {
-    ctx.fixture('dotenv-debug-cmd')
-
-    // To make sure the terminal is always detected
-    // as non interactive, locally and in CI
-    process.env.TERM = 'dumb'
-
-    const result = await DebugInfo.new().parse([], defaultTestConfig())
-
-    expect(result).not.toContain('this_is_private')
-    expect(result).toContain('from_env_file')
-
-    expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      "-- Prisma schema --
-      Path: REDACTED_PATH
-
-      -- Local cache directory for engines files --
-      Path: REDACTED_PATH
-
-      -- Environment variables --
-      When not set, the line is dimmed and no value is displayed.
-      When set, the line is bold and the value is inside the \`\` backticks.
-
-      For general debugging
-      - CI: \`from_env_file\`
-      - DEBUG: \`from_env_file\`
-      - NODE_ENV: \`from_env_file\`
-      - RUST_LOG: \`from_env_file\`
-      - RUST_BACKTRACE: \`from_env_file\`
-      - NO_COLOR: \`from_env_file\`
-      - TERM: \`dumb\`
-      - NODE_TLS_REJECT_UNAUTHORIZED: \`from_env_file\`
-      - NO_PROXY: \`from_env_file\`
-      - http_proxy: \`from_env_file\`
-      - HTTP_PROXY: \`from_env_file\`
-      - https_proxy: \`from_env_file\`
-      - HTTPS_PROXY: \`from_env_file\`
-
-      For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
-
-      For hiding messages
-      - PRISMA_DISABLE_WARNINGS: \`from_env_file\`
-      - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`from_env_file\`
-      - PRISMA_HIDE_UPDATE_MESSAGE: \`from_env_file\`
-
-      For downloading engines
-      - PRISMA_ENGINES_MIRROR: \`from_env_file\`
-      - PRISMA_BINARIES_MIRROR (deprecated): \`from_env_file\`
-      - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`from_env_file\`
-      - BINARY_DOWNLOAD_VERSION: \`from_env_file\`
-
-      For configuring the Query Engine Type
-      - PRISMA_CLI_QUERY_ENGINE_TYPE: \`from_env_file\`
-      - PRISMA_CLIENT_ENGINE_TYPE: \`from_env_file\`
-
-      For custom engines
-      - PRISMA_QUERY_ENGINE_BINARY: \`from_env_file\`
-      - PRISMA_QUERY_ENGINE_LIBRARY: \`from_env_file\`
-      - PRISMA_SCHEMA_ENGINE_BINARY: \`from_env_file\`
-      - PRISMA_MIGRATION_ENGINE_BINARY: \`from_env_file\`
-
-      For the "postinstall" npm hook
-      - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`from_env_file\`
-      - PRISMA_SKIP_POSTINSTALL_GENERATE: \`from_env_file\`
-      - PRISMA_GENERATE_IN_POSTINSTALL: \`from_env_file\`
-
-      For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY: \`from_env_file\`
-      - PRISMA_GENERATE_NO_ENGINE: \`from_env_file\`
-
-      For Prisma Client
-      - PRISMA_SHOW_ALL_TRACES: \`from_env_file\`
-      - PRISMA_CLIENT_NO_RETRY (Binary engine only): \`from_env_file\`
-
-      For Prisma Migrate
-      - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`from_env_file\`
-      - PRISMA_MIGRATE_SKIP_GENERATE: \`from_env_file\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`from_env_file\`
-
-      For Prisma Studio
-      - BROWSER: \`from_env_file\`
 
       -- Terminal is interactive? --
       false
@@ -459,6 +301,16 @@ describe('debug', () => {
     )
 
     expect(result).toContain(`Path: ${path.join(process.cwd(), 'schema.prisma')}`)
+  })
+
+  it('should load schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+    const configDir = path.join(process.cwd(), 'config')
+    const result = stripVTControlCharacters(
+      (await DebugInfo.new().parse(['--config=./config/prisma.config.ts'], defaultTestConfig(), configDir)) as string,
+    )
+
+    expect(result).toContain(`Path: ${path.join(configDir, 'schema.prisma')}`)
   })
 
   it('should succeed with incorrect --schema path', async () => {

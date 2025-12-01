@@ -73,7 +73,7 @@ describe('createDatabase', () => {
         await createDatabase('file:./doesnotexist.db', tempy.file())
       } catch (e) {
         expect(serialize(e)).toMatchInlineSnapshot(`
-          ""Schema engine exited. Error: Command failed with ENOENT: /engines/schema-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
+          ""Schema engine exited. Error: Command failed with ENOENT: /engines/schema-engine-TEST_PLATFORM --datasource {"url":"<REDACTED>"} cli can-connect-to-database
           spawn /engines/schema-engine-TEST_PLATFORM ENOENT""
         `)
       }
@@ -153,13 +153,13 @@ describe('createDatabase', () => {
 
   test('invalid database type', async () => {
     await expect(createDatabase('invalid:somedburl')).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"P1013: The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."`,
+      `"P1013: The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://pris.ly/d/config-url for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."`,
     )
   })
 
   test('empty connection string', async () => {
     await expect(createDatabase('')).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Connection url is empty. See https://www.prisma.io/docs/reference/database-reference/connection-urls"`,
+      `"Connection url is empty. See https://pris.ly/d/config-url"`,
     )
   })
 })

@@ -31,8 +31,8 @@
 
 Prisma ORM is a **next-generation ORM** that consists of these tools:
 
-- [**Prisma Client**](https://www.prisma.io/docs/concepts/components/prisma-client): Auto-generated and type-safe query builder for Node.js & TypeScript
-- [**Prisma Migrate**](https://www.prisma.io/docs/concepts/components/prisma-migrate): Declarative data modeling & migration system
+- [**Prisma Client**](https://www.prisma.io/docs/orm/prisma-client): Auto-generated and type-safe query builder for Node.js & TypeScript
+- [**Prisma Migrate**](https://www.prisma.io/docs/orm/prisma-migrate): Declarative data modeling & migration system
 - [**Prisma Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
@@ -61,18 +61,18 @@ This section provides a high-level overview of how Prisma ORM works and its most
 
 ### The Prisma schema
 
-Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/concepts/components/prisma-schema). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language. It also contains the connection to a database and defines a _generator_:
+Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/orm/prisma-schema). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language and configure _generators_.
 
 ```prisma
 // Data source
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Generator
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated"
 }
 
 // Data model
@@ -95,9 +95,62 @@ model User {
 
 In this schema, you configure three things:
 
-- **Data source**: Specifies your database connection (via an environment variable)
+- **Data source**: Specifies your database type and thus defines the features and data types you can use in the schema
 - **Generator**: Indicates that you want to generate Prisma Client
 - **Data model**: Defines your application models
+
+### `prisma.config.ts`
+
+Database connection details are defined via [`prisma.config.ts`](https://www.prisma.io/docs/orm/prisma-schema/prisma-config-reference).
+
+```ts
+import { defineConfig } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: 'postgres://...',
+  },
+})
+```
+
+If you store the database connection string in `process.env`, an `env` function can help you access it in a type safe way and throw an error if it is missing at run time:
+
+```ts
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+Prisma ORM does not load the `.env` files for you automatically. If you want to populate the environment variables from a `.env` file, consider using a package such as [`dotenv`](https://www.npmjs.com/package/dotenv) or [`@dotenvx/dotenvx`](https://www.npmjs.com/package/@dotenvx/dotenvx).
+
+The configuration file may look like this in that case:
+
+```ts
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+To start a local PostgreSQL development server without using Docker and without any configuration, run `prisma dev`:
+
+```sh
+npx prisma dev
+```
+
+Alternatively, spin up an instant Prisma Postgres® database in the cloud:
+
+```sh
+npx create-db --interactive
+```
 
 ---
 
@@ -107,7 +160,7 @@ On this page, the focus is on the data model. You can learn more about [Data sou
 
 #### Functions of Prisma models
 
-The data model is a collection of [models](https://www.prisma.io/docs/concepts/components/prisma-schema/data-model#defining-models). A model has two major functions:
+The data model is a collection of [models](https://www.prisma.io/docs/orm/prisma-schema/data-model/models). A model has two major functions:
 
 - Represent a table in the underlying database
 - Provide the foundation for the queries in the Prisma Client API
@@ -116,58 +169,112 @@ The data model is a collection of [models](https://www.prisma.io/docs/concepts/c
 
 There are two major workflows for "getting" a data model into your Prisma schema:
 
-- Generate the data model from [introspecting](https://www.prisma.io/docs/concepts/components/introspection) a database
-- Manually writing the data model and mapping it to the database with [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
+- Generate the data model from [introspecting](https://www.prisma.io/docs/orm/prisma-schema/introspection) a database
+- Manually writing the data model and mapping it to the database with [Prisma Migrate](https://www.prisma.io/docs/orm/prisma-migrate)
 
-Once the data model is defined, you can [generate Prisma Client](https://www.prisma.io/docs/concepts/components/prisma-client/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields).
+Once the data model is defined, you can [generate Prisma Client](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields).
 
 ---
 
 ### Accessing your database with Prisma Client
 
-#### Generating Prisma Client
+#### Step 1: Install Prisma
 
-The first step when using Prisma Client is installing its npm package:
+First, install Prisma CLI as a development dependency and Prisma Client:
 
 ```
+npm install prisma --save-dev
 npm install @prisma/client
 ```
 
-Note that the installation of this package invokes the `prisma generate` command which reads your Prisma schema and _generates_ the Prisma Client code. The code will be located in `node_modules/.prisma/client`, which is exported by `node_modules/@prisma/client/index.d.ts`.
+#### Step 2: Set up your Prisma schema
 
-After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/.prisma/client` gets updated:
+Ensure your Prisma schema includes a `generator` block with an `output` path specified:
+
+```prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"  // mysql, sqlite, sqlserver, mongodb or cockroachdb
+}
+```
+
+#### Step 3: Configure Prisma Config
+
+Configure the Prisma CLI using a `prisma.config.ts` file. This file configures Prisma CLI subcommands like `migrate` and `studio`. Create a `prisma.config.ts` file in your project root:
+
+```ts
+import { defineConfig, env } from 'prisma/config'
+
+type Env = {
+  DATABASE_URL: string
+}
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  migrations: {
+    path: 'prisma/migrations',
+  },
+  datasource: {
+    url: env<Env>('DATABASE_URL'),
+  },
+})
+```
+
+**Note**: Environment variables from `.env` files are not automatically loaded when using `prisma.config.ts`. You can use `dotenv` by importing `dotenv/config` at the top of your config file. For Bun, `.env` files are automatically loaded.
+
+Learn more about [Prisma Config](https://www.prisma.io/docs/orm/reference/prisma-config-reference) and all available configuration options.
+
+#### Step 4: Generate Prisma Client
+
+Generate Prisma Client with the following command:
 
 ```
 npx prisma generate
 ```
 
-Refer to the documentation for more information about ["generating the Prisma client"](https://www.prisma.io/docs/concepts/components/prisma-client/generating-prisma-client).
+This command reads your Prisma schema and _generates_ the Prisma Client code in the location specified by the `output` path in your generator configuration.
 
-#### Using Prisma Client to send queries to your database
+After you change your data model, you'll need to manually re-generate Prisma Client to ensure the generated code gets updated:
 
-Once the Prisma Client is generated, you can import it in your code and send queries to your database. This is what the setup code looks like.
+```
+npx prisma generate
+```
+
+Refer to the documentation for more information about ["generating the Prisma client"](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/generating-prisma-client).
+
+#### Step 5: Use Prisma Client to send queries to your database
+
+Once the Prisma Client is generated, you can import it in your code and send queries to your database.
 
 ##### Import and instantiate Prisma Client
 
-You can import and instantiate Prisma Client as follows:
+You can import and instantiate Prisma Client from the output path specified in your generator configuration:
 
 ```ts
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from './generated/client'
 
 const prisma = new PrismaClient()
 ```
 
-or
+**Note**: As of [Prisma 7](https://www.prisma.io/docs/orm/more/upgrade-guides/upgrading-versions/upgrading-to-prisma-7#driver-adapters-and-client-instantiation), you will need to use a [driver adapter](https://www.prisma.io/docs/orm/overview/databases/database-drivers#driver-adapters). For example, when using PostgreSQL with a driver adapter:
 
-```js
-const { PrismaClient } = require('@prisma/client')
+```ts
+import { PrismaClient } from './generated/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+const prisma = new PrismaClient({ adapter })
 ```
+
+To load environment variables, you can use `dotenv` by importing `dotenv/config`, use `tsx --env-file=.env`, `node --env-file=.env`, or Bun (which loads `.env` automatically).
 
 Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
 
-Learn more about the available operations in the [Prisma Client docs](https://www.prisma.io/docs/concepts/components/prisma-client) or watch this [demo video](https://www.youtube.com/watch?v=LggrE5kJ75I&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=4) (2 min).
+Learn more about the available operations in the [Prisma Client docs](https://www.prisma.io/docs/orm/prisma-client) or watch this [demo video](https://www.youtube.com/watch?v=LggrE5kJ75I&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=4) (2 min).
 
 ##### Retrieve all `User` records from the database
 
@@ -218,7 +325,7 @@ const post = await prisma.post.update({
 
 #### Usage with TypeScript
 
-Note that when using TypeScript, the result of this query will be _statically typed_ so that you can't accidentally access a property that doesn't exist (and any typos are caught at compile-time). Learn more about leveraging Prisma Client's generated types on the [Advanced usage of generated types](https://www.prisma.io/docs/concepts/components/prisma-client/advanced-usage-of-generated-types) page in the docs.
+Note that when using TypeScript, the result of this query will be _statically typed_ so that you can't accidentally access a property that doesn't exist (and any typos are caught at compile-time). Learn more about leveraging Prisma Client's generated types on the [Advanced usage of generated types](https://www.prisma.io/docs/orm/prisma-client/type-safety/operating-against-partial-structures-of-model-types) page in the docs.
 
 ## Community
 

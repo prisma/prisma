@@ -1,7 +1,12 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { Commands, HelpError, link } from '@prisma/internals'
 
-export const dispatchToSubCommand = async (commands: Commands, argv: string[], config: PrismaConfigInternal) => {
+export const dispatchToSubCommand = async (
+  commands: Commands,
+  argv: string[],
+  config: PrismaConfigInternal,
+  baseDir: string,
+) => {
   const commandName = argv[0]
   if (!commandName) return new HelpError(`Unknown command.`)
   const command = commands[commandName]
@@ -11,6 +16,6 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[], c
   const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
   if (hasHelpFlag) return `Help output for this command will be available soon. In the meantime, visit ${link("https://pris.ly/cli/platform-docs")} for more information.`; // prettier-ignore
 
-  const result = await command.parse(argv.slice(1), config)
+  const result = await command.parse(argv.slice(1), config, baseDir)
   return result
 }

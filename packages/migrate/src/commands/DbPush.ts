@@ -4,17 +4,19 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
   formatms,
   getCommandWithExecutor,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red, yellow } from 'kleur/colors'
+import { bold, dim, green, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -36,6 +38,8 @@ ${bold('Usage')}
 
   ${dim('$')} prisma db push [options]
 
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+
 ${bold('Options')}
 
            -h, --help   Display this help message
@@ -43,7 +47,6 @@ ${bold('Options')}
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push
-      --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${bold('Examples')}
 
@@ -57,7 +60,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -65,7 +68,6 @@ ${bold('Examples')}
         '-h': '--help',
         '--accept-data-loss': Boolean,
         '--force-reset': Boolean,
-        '--skip-generate': Boolean,
         '--schema': String,
         '--config': String,
         '--telemetry-information': String,
@@ -81,21 +83,23 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })
+    const cmd = 'db push'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo, adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
+    printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
@@ -103,24 +107,26 @@ ${bold('Examples')}
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
       extensions: config['extensions'],
     })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
-      try {
-        // Automatically create the database if it doesn't exist
-        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-        if (wasDbCreated) {
-          process.stdout.write('\n' + wasDbCreated + '\n')
-        }
-      } catch (e) {
-        process.stdout.write('\n') // empty line
-        throw e
+    try {
+      // Automatically create the database if it doesn't exist
+      const successMessage = await ensureDatabaseExists(
+        baseDir,
+        getSchemaDatasourceProvider(schemaContext),
+        validatedConfig,
+      )
+      if (successMessage) {
+        process.stdout.write('\n' + successMessage + '\n')
       }
+    } catch (e) {
+      process.stdout.write('\n') // empty line
+      throw e
     }
 
     let wasDatabaseReset = false
@@ -238,19 +244,13 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      // Favor the adapter if any, fallback to the provider defined in the schema
-      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
+      const provider = schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${
           provider === 'mongodb' ? migrationSuccessMongoMessage : migrationSuccessStdMessage
         } ${migrationTimeMessage}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate(datasourceInfo)
     }
 
     return ``

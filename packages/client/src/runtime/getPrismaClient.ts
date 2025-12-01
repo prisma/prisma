@@ -1,41 +1,25 @@
 import type { Context } from '@opentelemetry/api'
 import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
-import { version as enginesVersion } from '@prisma/engines-version/package.json'
-import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
+import { ExtendedSpanOptions, logger, TracingHelper } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
-import fs from 'fs'
-import path from 'path'
-import { RawValue, Sql } from 'sql-template-tag'
 
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-  PrismaClientValidationError,
-} from '.'
+import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
-import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
+import { AccelerateEngineConfig, AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
-import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
-import { prismaGraphQLToJSError } from './core/errors/utils/prismaGraphQLToJSError'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { checkPlatformCaching } from './core/init/checkPlatformCaching'
-import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
-import { getPreviewFeatures } from './core/init/getPreviewFeatures'
-import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
-import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
@@ -73,14 +57,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE:
-    | 'binary'
-    | 'library'
-    | 'edge'
-    | 'wasm-engine-edge'
-    | 'wasm-compiler-edge'
-    | 'react-native'
-    | 'client'
+  const TARGET_BUILD_TYPE: 'wasm-compiler-edge' | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -88,24 +65,27 @@ typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export type Datasource = { url?: string }
-export type Datasources = { [name in string]: Datasource }
+/**
+ * Since Prisma 7, a PrismaClient needs either an adapter or an accelerateUrl.
+ * The two options are mutually exclusive.
+ */
+type PrismaClientMutuallyExclusiveOptions =
+  | {
+      /**
+       * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.
+       */
+      adapter: SqlDriverAdapterFactory
+      accelerateUrl?: never
+    }
+  | {
+      /**
+       * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+       */
+      accelerateUrl: string
+      adapter?: never
+    }
 
-export type PrismaClientOptions = {
-  /**
-   * Overwrites the primary datasource url from your schema.prisma file
-   */
-  datasourceUrl?: string
-  /**
-   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
-   */
-  adapter?: SqlDriverAdapterFactory | null
-
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasources?: Datasources
-
+export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   /**
    * @default "colorless"
    */
@@ -131,7 +111,7 @@ export type PrismaClientOptions = {
    *  { emit: 'stdout', level: 'warn' }
    * ]
    * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   * Read more in our [docs](https://pris.ly/d/logging).
    */
   log?: Array<LogLevel | LogDefinition>
 
@@ -143,12 +123,6 @@ export type PrismaClientOptions = {
    */
   __internal?: {
     debug?: boolean
-    engine?: {
-      cwd?: string
-      binaryPath?: string
-      endpoint?: string
-      allowTriggerPanic?: boolean
-    }
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
@@ -231,7 +205,8 @@ const BatchTxIdCounter = {
   },
 }
 
-export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
+export type Client =
+  ReturnType<typeof getPrismaClient> extends new (optionsArg: PrismaClientOptions) => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
@@ -260,37 +235,48 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
 
-    constructor(optionsArg?: PrismaClientOptions) {
-      config = optionsArg?.__internal?.configOverride?.(config) ?? config
+    constructor(optionsArg: PrismaClientOptions) {
+      if (!optionsArg) {
+        throw new PrismaClientInitializationError(
+          `\
+\`PrismaClient\` needs to be constructed with a non-empty, valid \`PrismaClientOptions\`:
 
-      checkPlatformCaching(config)
+\`\`\`
+new PrismaClient({
+  ...
+})
+\`\`\`
 
-      if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config)
+or
+
+\`\`\`
+constructor() {
+  super({ ... });
+}
+\`\`\`
+          `,
+          clientVersion,
+        )
       }
+      config = optionsArg.__internal?.configOverride?.(config) ?? config
+      validatePrismaClientOptions(optionsArg, config)
 
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
-      this._previewFeatures = getPreviewFeatures(config)
+      this._previewFeatures = config.previewFeatures
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper()
-      const envPaths = config.relativeEnvPaths && {
-        rootEnvPath:
-          config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
-        schemaEnvPath:
-          config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
-      }
 
       /**
        * Initialise and validate the Driver Adapter, if provided.
        */
 
       let adapter: SqlDriverAdapterFactory | undefined
-      if (optionsArg?.adapter) {
+      if (optionsArg.adapter) {
         adapter = optionsArg.adapter
 
         // Note:
@@ -314,18 +300,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             this._clientVersion,
           )
         }
-
-        if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
-          throw new PrismaClientInitializationError(
-            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
-            this._clientVersion,
-          )
-        }
       }
-
-      const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && !adapter && envPaths && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) ||
-        config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -335,19 +310,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (useDebug) {
           Debug.enable('prisma:client')
         }
-
-        let cwd = path.resolve(config.dirname, config.relativePath)
-
-        // TODO this logic should not be needed anymore #findSync
-        if (!fs.existsSync(cwd)) {
-          cwd = config.dirname
-        }
-
-        debug('dirname', config.dirname)
-        debug('relativePath', config.relativePath)
-        debug('cwd', cwd)
-
-        const engineConfig = internal.engine || {}
 
         if (options.errorFormat) {
           this._errorFormat = options.errorFormat
@@ -362,14 +324,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._runtimeDataModel = config.runtimeDataModel
 
         this._engineConfig = {
-          cwd,
-          dirname: config.dirname,
           enableDebugLogs: useDebug,
-          allowTriggerPanic: engineConfig.allowTriggerPanic,
-          prismaPath: engineConfig.binaryPath ?? undefined,
-          engineEndpoint: engineConfig.endpoint,
-          generator: config.generator,
-          showColors: this._errorFormat === 'pretty',
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:
             options.log &&
@@ -378,18 +333,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          env: loadedEnv?.parsed ?? {},
-          flags: [],
-          engineWasm: config.engineWasm,
           compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
-          engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
-          inlineDatasources: config.inlineDatasources,
-          inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           transactionOptions: {
             maxWait: options.transactionOptions?.maxWait ?? 2000,
@@ -397,29 +345,33 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             isolationLevel: options.transactionOptions?.isolationLevel,
           },
           logEmitter,
-          isBundled: config.isBundled,
           adapter,
+          accelerateUrl: options.accelerateUrl,
         }
 
-        this._accelerateEngineConfig = {
-          ...this._engineConfig,
-          // share runtime utils to accelerate
-          accelerateUtils: {
-            resolveDatasourceUrl,
-            getBatchRequestPayload,
-            prismaGraphQLToJSError,
-            PrismaClientUnknownRequestError,
-            PrismaClientInitializationError,
-            PrismaClientKnownRequestError,
-            debug: Debug('prisma:client:accelerateEngine'),
-            engineVersion: enginesVersion,
-            clientVersion: config.clientVersion,
+        // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>
+        this._accelerateEngineConfig = Object.create(this._engineConfig)
+        this._accelerateEngineConfig.accelerateUtils = {
+          resolveDatasourceUrl: () => {
+            if (options.accelerateUrl) {
+              return options.accelerateUrl
+            }
+            throw new PrismaClientInitializationError(
+              `\
+\`accelerateUrl\` is required when using \`@prisma/extension-accelerate\`:
+
+new PrismaClient({
+  accelerateUrl: "prisma://...",
+}).$extends(withAccelerate())
+`,
+              config.clientVersion,
+            )
           },
         }
 
         debug('clientVersion', config.clientVersion)
 
-        this._engine = getEngineInstance(config, this._engineConfig)
+        this._engine = getEngineInstance(this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {
@@ -928,8 +880,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    $metrics = new MetricsClient(this)
-
     /**
      * Shortcut for checking a preview flag
      * @param feature preview flag
@@ -937,10 +887,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     _hasPreviewFlag(feature: string) {
       return !!this._engineConfig.previewFeatures?.includes(feature)
-    }
-
-    $applyPendingMigrations(): Promise<void> {
-      return this._engine.applyPendingMigrations()
     }
 
     $extends = $extends

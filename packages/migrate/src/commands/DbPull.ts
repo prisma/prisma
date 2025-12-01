@@ -3,8 +3,8 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  checkUnsupportedSchemaEngineWasm,
   Command,
+  createSchemaPathInput,
   format,
   formatms,
   getCommandWithExecutor,
@@ -12,20 +12,15 @@ import {
   HelpError,
   inferDirectoryConfig,
   link,
-  loadEnvFile,
   loadSchemaContext,
-  locateLocalCloudflareD1,
-  type MultipleSchemas,
+  MigrateTypes,
   printSchemaLoadedMessage,
-  protocolToConnectorType,
   relativizePathInPSLError,
-  SchemaContext,
   toSchemasContainer,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { MigrateTypes } from '@prisma/internals'
-import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
+import { bold, dim, green, italic, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
-import { match } from 'ts-pattern'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
@@ -34,11 +29,8 @@ import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { isSchemaEmpty } from '../utils/isSchemaEmpty'
 import { printDatasource } from '../utils/printDatasource'
-import type { ConnectorType } from '../utils/printDatasources'
-import { printDatasources } from '../utils/printDatasources'
 import { printIntrospectedSchema } from '../utils/printIntrospectedSchema'
 import { removeSchemaFiles } from '../utils/removeSchemaFiles'
-import { replaceOrAddDatasource } from '../utils/replaceOrAddDatasource'
 import { saveSchemaFiles } from '../utils/saveSchemaFiles'
 import { createSpinner } from '../utils/spinner'
 
@@ -55,6 +47,8 @@ Pull the state from the database to the Prisma schema using introspection
 ${bold('Usage')}
 
   ${dim('$')} prisma db pull [flags/options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Flags')}
 
@@ -89,30 +83,20 @@ Set composite types introspection depth to 2 levels
 
 `)
 
-  private urlToDatasource(url: string, defaultProvider?: ConnectorType): string {
-    const provider = defaultProvider || protocolToConnectorType(`${url.split(':')[0]}:`)
-    return printDatasources([
-      {
-        config: {},
-        provider: provider,
-        name: 'db',
-        url,
-      },
-    ])
-  }
-
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    baseDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--url': String,
       '--print': Boolean,
       '--schema': String,
       '--config': String,
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
-      '--local-d1': Boolean, // optional, only on cloudflare D1
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -125,194 +109,64 @@ Set composite types introspection depth to 2 levels
       return this.help()
     }
 
-    const url: string | undefined = args['--url']
-
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: !args['--print'], config })
-
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
       printLoadMessage: false,
       allowNull: true,
     })
 
     const cmd = 'db pull'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    checkUnsupportedDataProxy({
-      cmd,
-      schemaContext: schemaContext && !url ? schemaContext : undefined,
-      urls: [url],
-    })
-
-    checkUnsupportedSchemaEngineWasm({
-      cmd,
-      config,
-      args,
-      flags: ['--url', '--local-d1'],
-    })
-
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
-      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource, validatedConfig) })
     }
 
-    const fromD1 = Boolean(args['--local-d1'])
-
-    if (!url && !schemaContext && !fromD1) {
+    if (!schemaContext) {
       throw new NoSchemaFoundError()
     }
 
-    /**
-     * When a schema already exists:
-     * - read the schema files from disk
-     * - in case `url` is also set, embed the URL to the schema's datasource without overriding the provider.
-     *   This is especially useful to distinguish CockroachDB from Postgres datasources.
-     *
-     * When `url` is set, and no schema exists:
-     * - create a minimal schema with a datasource block from the given URL.
-     *   CockroachDB URLs are however mapped to the `postgresql` provider, as those URLs are indistinguishable from Postgres URLs.
-     * Note: this schema is persisted to `./schema.prisma`, rather than the canonical `./prisma/schema.prisma`.
-     *
-     * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
-     */
-    const { firstDatasource, schema, validationWarning } = await match({ url, schemaContext, fromD1 })
-      .when(
-        (input): input is { url: string | undefined; schemaContext: SchemaContext; fromD1: boolean } =>
-          input.schemaContext !== null,
-        async (input) => {
-          const firstDatasource = input.schemaContext.primaryDatasource
-            ? input.schemaContext.primaryDatasource
-            : undefined
+    const firstDatasource = schemaContext.primaryDatasource
+    const schema = schemaContext.schemaFiles
 
-          if (input.url) {
-            let providerFromSchema = firstDatasource?.provider
-            // Both postgres and postgresql are valid provider
-            // We need to remove the alias for the error logic below
-            if (providerFromSchema === 'postgres') {
-              providerFromSchema = 'postgresql'
-            }
+    await getConfig({
+      datamodel: schema,
+    })
 
-            // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
-            // TODO: better error handling with better error message
-            // Related https://github.com/prisma/prisma/issues/14732
-            const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = replaceOrAddDatasource(
-              this.urlToDatasource(input.url, providerFromSchema),
-              input.schemaContext.schemaFiles,
-            )
+    // Re-Introspection is not supported on MongoDB
+    const modelRegex = /\s*model\s*(\w+)\s*{/
+    const isReintrospection = schema.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
-            // if providers are different the engine would return a misleading error
-            // So we check here and return a better error
-            // if a combination of non compatible providers is used
-            // since cockroachdb is compatible with postgresql
-            // we only error if it's a different combination
-            if (
-              providerFromSchema &&
-              providerFromUrl &&
-              providerFromSchema !== providerFromUrl &&
-              Boolean(providerFromSchema === 'cockroachdb' && providerFromUrl === 'postgresql') === false
-            ) {
-              throw new Error(
-                `The database provider found in --url (${providerFromUrl}) is different from the provider found in the Prisma schema (${providerFromSchema}).`,
-              )
-            }
-
-            return { firstDatasource, schema, validationWarning: undefined }
-          } else if (input.fromD1) {
-            const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-            const pathToSQLiteFile = path.relative(input.schemaContext.schemaRootDir, d1Database)
-
-            const schema: MultipleSchemas = [
-              ['schema.prisma', this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')],
-            ]
-            const config = await getConfig({
-              datamodel: schema,
-              ignoreEnvVarErrors: true,
-            })
-
-            return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-          } else {
-            // Use getConfig with ignoreEnvVarErrors
-            // It will  throw an error if the env var is not set or if it is invalid
-            await getConfig({
-              datamodel: input.schemaContext.schemaFiles,
-              ignoreEnvVarErrors: false,
-            })
-          }
-
-          return { firstDatasource, schema: input.schemaContext.schemaFiles, validationWarning: undefined } as const
-        },
-      )
-      .when(
-        (input): input is { url: undefined; schemaContext: null; fromD1: true } => input.fromD1 === true,
-        async (_) => {
-          const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-          const pathToSQLiteFile = path.relative(process.cwd(), d1Database)
-
-          // TODO: `urlToDatasource(..)` doesn't generate a `generator client` block. Should it?
-          // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
-          const schemaContent = `generator client {
-  provider        = "prisma-client-js"
-}
-${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
-          const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
-          const config = await getConfig({
-            datamodel: schema,
-            ignoreEnvVarErrors: true,
-          })
-
-          return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-        },
-      )
-      .when(
-        (input): input is { url: string; schemaContext: null; fromD1: false } => input.url !== undefined,
-        async (input) => {
-          // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
-          // TODO: better error handling with better error message
-          // Related https://github.com/prisma/prisma/issues/14732
-          protocolToConnectorType(`${input.url.split(':')[0]}:`)
-          const schema: MultipleSchemas = [['schema.prisma', this.urlToDatasource(input.url)]]
-          const config = await getConfig({
-            datamodel: schema,
-            ignoreEnvVarErrors: true,
-          })
-          return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-        },
-      )
-      .run()
-
-    if (schemaContext) {
-      // Re-Introspection is not supported on MongoDB
-      const modelRegex = /\s*model\s*(\w+)\s*{/
-      const isReintrospection = schemaContext.schemaFiles.some(([_, schema]) => !!modelRegex.exec(schema as string))
-
-      if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
-        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
+    if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
+      throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitly ignore and override your current local schema file with ${green(
-          getCommandWithExecutor('prisma db pull --force'),
-        )}
+        getCommandWithExecutor('prisma db pull --force'),
+      )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
-          'https://github.com/prisma/prisma/issues/9585',
-        )} for more info.`)
-      }
+        'https://github.com/prisma/prisma/issues/9585',
+      )} for more info.`)
     }
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
-      schemaContext: schemaContext ?? undefined,
+      baseDir,
+      schemaContext,
       extensions: config['extensions'],
     })
 
     const engine = migrate.engine
-    const basedOn =
-      !args['--url'] && schemaContext?.primaryDatasource
-        ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`
-        : ''
+    const basedOn = firstDatasource
+      ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`
+      : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
     const before = Math.round(performance.now())
@@ -357,7 +211,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
@@ -376,7 +230,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to an existing database.
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
@@ -384,9 +238,6 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 
         const message = relativizePathInPSLError(e.message)
 
-        // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
-        // '--url' argument is different than the one written in the schema.prisma file.
-        // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
         throw new Error(`${red(message)}
 Introspection failed as your current Prisma schema file is invalid
 
@@ -432,14 +283,12 @@ Or run this command with the ${green(
           ? `${modelsAndTypesMessage} and wrote them`
           : `${modelsAndTypesMessage} and wrote it`
 
-      const renderValidationWarning = validationWarning ? `\n${yellow(validationWarning)}` : ''
-
       const introspectedSchemaPath = schemaContext?.loadedFromPathForLogMessages || introspectionSchema.files[0].path
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
-${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}${renderValidationWarning}`)
+${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
 
     return ''

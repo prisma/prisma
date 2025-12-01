@@ -4,7 +4,7 @@
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=18.18",
+    "node": "^20.19 || ^22.12 || >=24.0",
     "pnpm": ">=10.15 <11"
   },
   "packageManager": "pnpm@10.15.1",
@@ -47,7 +47,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.14",
-    "@types/node": "18.19.76",
+    "@types/node": "~20.19.24",
     "@types/resolve": "1.20.6",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
@@ -98,7 +98,7 @@
     "turbo": "2.5.6",
     "typescript": "5.4.5",
     "vitest": "3.2.4",
-    "wrangler": "3.114.14",
+    "wrangler": "3.114.15",
     "zx": "8.4.1"
   },
   "lint-staged": {
@@ -108,41 +108,6 @@
     ]
   },
   "size-limit": [
-    {
-      "path": "packages/client/runtime/library.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/library.d.ts",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/binary.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/binary.d.ts",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/edge.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/edge-esm.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/wasm-engine-edge.js",
-      "gzip": false,
-      "brotli": false
-    },
     {
       "path": "packages/client/runtime/index-browser.js",
       "gzip": false,
@@ -193,5 +158,12 @@
       "gzip": false,
       "brotli": false
     }
-  ]
+  ],
+  "pnpm": {
+    "overrides": {
+      "form-data": ">=4.0.4",
+      "hono": ">=4.10.3",
+      "tar-fs": ">=2.1.4"
+    }
+  }
 }

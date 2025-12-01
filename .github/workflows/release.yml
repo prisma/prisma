@@ -52,7 +52,8 @@ env:
   SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
   ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
   DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
-  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || 'false' }}
+  FORCE_INTEGRATION_RELEASE: ${{ github.event.inputs.forceIntegrationRelease || 'false' }}
+
   FAILURE_TITLE_TEMPLATE: >-
     ${{
       github.event.inputs.targetVersion &&
@@ -88,7 +89,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 20
+          node-version: '20.19.0'
           skip-tsc: false
 
       - name: Update npm to support Trusted Publishers

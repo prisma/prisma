@@ -3,35 +3,19 @@ import path from 'node:path'
 
 import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
-import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { type GetSchemaResult, getSchemaWithPath, mergeSchemas } from '@prisma/internals'
-import {
-  ClientEngineType,
-  extractPreviewFeatures,
-  getClientEngineType,
-  getConfig,
-  getDMMF,
-  getPackedPackage,
-} from '@prisma/internals'
+import { extractPreviewFeatures, getConfig, getDMMF, getPackedPackage } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import { performance } from 'perf_hooks'
-
-import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 
 const debug = Debug('prisma:generateInFolder')
 
 export interface GenerateInFolderOptions {
   projectDir: string
   packageSource?: string
-  overrideEngineType?: ClientEngineType
 }
 
-export async function generateInFolder({
-  projectDir,
-  packageSource,
-  overrideEngineType,
-}: GenerateInFolderOptions): Promise<number> {
+export async function generateInFolder({ projectDir, packageSource }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
     throw new Error(`Project dir missing. Usage: ts-node examples/generate.ts examples/accounts`)
@@ -44,7 +28,7 @@ export async function generateInFolder({
   const schemaNotFoundError = new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
 
   try {
-    schemaPathResult = await getSchemaWithPath(undefined, undefined, { cwd: projectDir })
+    schemaPathResult = await getSchemaWithPath({ schemaPath: { baseDir: projectDir }, cwd: projectDir })
   } catch (e) {
     debug('Error in getSchemaPath', e)
   }
@@ -55,13 +39,8 @@ export async function generateInFolder({
 
   const { schemas, schemaPath } = schemaPathResult
 
-  if (overrideEngineType) {
-    process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
-  }
-
-  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+  const config = await getConfig({ datamodel: schemas })
   const previewFeatures = extractPreviewFeatures(config.generators)
-  const clientEngineType = getClientEngineType(config.generators[0])
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
@@ -79,30 +58,6 @@ export async function generateInFolder({
     await getPackedPackage('@prisma/client', outputDir)
   }
 
-  const binaryTarget = await getBinaryTargetForCurrentPlatform()
-
-  const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath =
-    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
-  const queryEngineBinaryPath =
-    process.env.PRISMA_QUERY_ENGINE_BINARY ??
-    path.join(enginesPath, `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`)
-
-  await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
-
-  const binaryPaths =
-    clientEngineType === ClientEngineType.Library
-      ? {
-          libqueryEngine: {
-            [binaryTarget]: queryEngineLibraryPath,
-          },
-        }
-      : {
-          queryEngine: {
-            [binaryTarget]: queryEngineBinaryPath,
-          },
-        }
-
   // TODO: use engine.getDmmf()
   const dmmf = await getDMMF({
     datamodel: schemas,
@@ -112,7 +67,7 @@ export async function generateInFolder({
   const schema = mergeSchemas({ schemas })
 
   await generateClient({
-    binaryPaths,
+    binaryPaths: {},
     datamodel: schema,
     dmmf,
     ...config,

@@ -1,28 +1,16 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
-import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
-import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
-import ciInfo from 'ci-info'
-import crypto from 'crypto'
 import indent from 'indent-string'
-import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
-import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
-import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
-import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
-import { buildInlineDatasources } from '../utils/buildInlineDatasources'
-import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
-import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
@@ -33,23 +21,11 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName =
-  | 'binary'
-  | 'library'
-  | 'wasm-engine-edge'
-  | 'wasm-compiler-edge'
-  | 'edge'
-  | 'edge-esm'
-  | 'index-browser'
-  | 'react-native'
-  | 'client'
-  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+type RuntimeName = 'wasm-compiler-edge' | 'index-browser' | 'client' | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
-  runtimeNameJs: RuntimeName
-  /** More granular way to define TS runtime name */
-  runtimeNameTs: RuntimeName
+  runtimeName: RuntimeName
   /** When generating the browser client */
   browser: boolean
   /** When we are generating an /edge client */
@@ -60,9 +36,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   reusedTs?: string // the entrypoint to reuse
   /** When js doesn't need to be regenerated */
   reusedJs?: string // the entrypoint to reuse
-
-  /** result of getEnvPaths call */
-  envPaths: EnvPaths
 }
 
 export class TSClient implements Generable {
@@ -75,64 +48,19 @@ export class TSClient implements Generable {
   }
 
   public toJS(): string {
-    const {
-      edge,
-      wasm,
-      binaryPaths,
-      generator,
-      outputDir,
-      datamodel: inlineSchema,
-      runtimeBase,
-      runtimeNameJs,
-      datasources,
-      copyEngine = true,
-      reusedJs,
-      envPaths,
-    } = this.options
+    const { edge, wasm, generator, datamodel: inlineSchema, runtimeName, reusedJs } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
     }
 
-    const relativeEnvPaths = {
-      rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
-      schemaEnvPath: envPaths.schemaEnvPath && pathToPosix(path.relative(outputDir, envPaths.schemaEnvPath)),
-    }
-
-    // This ensures that any engine override is propagated to the generated clients config
-    const clientEngineType = getClientEngineType(generator)
-    generator.config.engineType = clientEngineType
-
-    const binaryTargets =
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
-
-    const inlineSchemaHash = crypto
-      .createHash('sha256')
-      .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
-      .digest('hex')
-
-    const datasourceFilePath = datasources[0].sourceFilePath
-    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
-      generator,
-      relativeEnvPaths,
-      relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel'> = {
+      previewFeatures: generator.previewFeatures,
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
-      datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      postinstall: this.options.postinstall,
-      ciName: ciInfo.name ?? undefined,
-      inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
-      inlineSchemaHash,
-      copyEngine,
     }
-
-    // get relative output dir for it to be preserved even after bundling, or
-    // being moved around as long as we keep the same project dir structure.
-    const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
@@ -140,7 +68,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toJS()).join('\n\n')}
 ${this.dmmf.datamodel.enums
   .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
   .join('\n\n')}
@@ -148,7 +76,10 @@ ${this.dmmf.datamodel.enums
 ${new Enum(
   {
     name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: this.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toJS()}
@@ -156,17 +87,12 @@ ${new Enum(
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge, relativeOutdir)}
-${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
-${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
-${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
-${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
+${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
+${buildQueryCompilerWasmModule(wasm, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code
   }
@@ -191,7 +117,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       context,
       this.options.datasources,
       this.options.outputDir,
-      this.options.runtimeNameTs,
+      this.options.runtimeName,
       this.options.browser,
     )
 
@@ -205,7 +131,9 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) =>
+      new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toTS(),
+    )
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
@@ -257,7 +185,10 @@ ${indent(
 ${new Enum(
   {
     name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: this.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toTS()}
@@ -343,20 +274,23 @@ export const dmmf: runtime.BaseDMMF
   public toBrowserJS(): string {
     const code = `${commonCodeJS({
       ...this.options,
-      runtimeNameJs: 'index-browser',
+      runtimeName: 'index-browser',
       browser: true,
     })}
 /**
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
     name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: this.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toJS()}

@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { capitalize } from '@prisma/client-common'
 import { Debug } from '@prisma/debug'
 import { ActiveConnectorType } from '@prisma/generator'
 import { match } from 'ts-pattern'
@@ -12,7 +11,6 @@ import type { RuntimeTargetInternal } from '../runtime-targets'
 import type { RuntimeName } from '../TSClient/TSClient'
 
 export type BuildWasmModuleOptions = {
-  component: 'engine' | 'compiler'
   runtimeName: RuntimeName
   runtimeBase: string
   target: RuntimeTargetInternal
@@ -22,33 +20,18 @@ export type BuildWasmModuleOptions = {
 
 const debug = Debug('prisma:client-generator-ts:wasm')
 
-function usesEdgeWasmRuntime(component: 'engine' | 'compiler', runtimeName: RuntimeName) {
-  return (
-    (runtimeName === 'wasm-engine-edge' && component === 'engine') ||
-    (runtimeName === 'wasm-compiler-edge' && component === 'compiler')
-  )
+function usesEdgeWasmRuntime(runtimeName: RuntimeName) {
+  return runtimeName === 'wasm-compiler-edge'
 }
 
-export function buildGetWasmModule({
-  component,
-  runtimeName,
-  runtimeBase,
-  activeProvider,
-  moduleFormat,
-}: BuildWasmModuleOptions) {
-  const capitalizedComponent = capitalize(component)
-
+export function buildGetWasmModule({ runtimeName, runtimeBase, activeProvider, moduleFormat }: BuildWasmModuleOptions) {
   const extension = match(moduleFormat)
     .with('esm', () => 'mjs')
     .with('cjs', () => 'js')
     .exhaustive()
 
-  const buildNonEdgeLoader = match(runtimeName)
-    .with('library', () => component === 'engine' && !!process.env.PRISMA_CLIENT_FORCE_WASM)
-    .with('client', () => component === 'compiler')
-    .otherwise(() => false)
-
-  const buildEdgeLoader = usesEdgeWasmRuntime(component, runtimeName)
+  const buildNonEdgeLoader = runtimeName === 'client'
+  const buildEdgeLoader = !buildNonEdgeLoader
 
   let wasmPathBase: string
   let wasmBindingsPath: string
@@ -65,17 +48,17 @@ export function buildGetWasmModule({
   // different directory!) would break loading the modules if we copied
   // them to the generated client directory because they would not be where we
   // expect them to be anymore. Therefore, we don't copy anything when
-  // generating code for `library` or `client` runtimes, and we always load from
+  // generating code for the `client` runtime, and we always load from
   // `@prisma/client/runtime` when doing it manually with `fs.readFile`. The
   // issues that can arise when importing Wasm from node_modules with bundlers
   // don't apply in this case because we are not *importing* them, we're just
   // reading a file on disk.
   if (buildEdgeLoader) {
-    wasmPathBase = `./query_${component}_bg`
+    wasmPathBase = `./query_compiler_bg`
     wasmBindingsPath = `${wasmPathBase}.js`
     wasmModulePath = `${wasmPathBase}.wasm`
   } else {
-    wasmPathBase = `${runtimeBase}/query_${component}_bg.${activeProvider}`
+    wasmPathBase = `${runtimeBase}/query_compiler_bg.${activeProvider}`
     wasmBindingsPath = `${wasmPathBase}.mjs`
     wasmModulePath = `${wasmPathBase}.wasm`
   }
@@ -90,10 +73,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
   return new WebAssembly.Module(wasmArray)
 }
 
-config.${component}Wasm = {
+config.compilerWasm = {
   getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
 
-  getQuery${capitalizedComponent}WasmModule: async () => {
+  getQueryCompilerWasmModule: async () => {
     const { wasm } = await import(${JSON.stringify(wasmModulePath)})
     return await decodeBase64AsWasm(wasm)
   }
@@ -101,17 +84,17 @@ config.${component}Wasm = {
   }
 
   if (buildEdgeLoader) {
-    return `config.${component}Wasm = {
+    return `config.compilerWasm = {
   getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
 
-  getQuery${capitalizedComponent}WasmModule: async () => {
+  getQueryCompilerWasmModule: async () => {
     const { default: module } = await import(${JSON.stringify(`${wasmModulePath}?module`)})
     return module
   }
 }`
   }
 
-  return `config.${component}Wasm = undefined`
+  return `config.compilerWasm = undefined`
 }
 
 export type BuildWasmFileMapOptions = {
@@ -140,22 +123,20 @@ export function buildWasmFileMap({ activeProvider, runtimeName }: BuildWasmFileM
   const fileMap: FileMap = {}
   debug('buildWasmFileMap with', { runtimeName })
 
-  for (const component of ['engine', 'compiler'] as const) {
-    if (!usesEdgeWasmRuntime(component, runtimeName)) {
-      debug('Skipping component', component, 'for runtime', runtimeName)
-      continue
-    }
+  if (!usesEdgeWasmRuntime(runtimeName)) {
+    debug('Skipping component compiler for runtime', runtimeName)
+    return fileMap
+  }
 
-    const fileNameBase = `query_${component}_bg.${activeProvider}` as const
+  const fileNameBase = `query_compiler_bg.${activeProvider}` as const
 
-    const files = {
-      [`query_${component}_bg.wasm`]: `${fileNameBase}.wasm`,
-      [`query_${component}_bg.js`]: `${fileNameBase}.mjs`,
-    }
+  const files = {
+    [`query_compiler_bg.wasm`]: `${fileNameBase}.wasm`,
+    [`query_compiler_bg.js`]: `${fileNameBase}.mjs`,
+  }
 
-    for (const [targetFile, sourceFile] of Object.entries(files)) {
-      fileMap[targetFile] = readSourceFile(sourceFile)
-    }
+  for (const [targetFile, sourceFile] of Object.entries(files)) {
+    fileMap[targetFile] = readSourceFile(sourceFile)
   }
 
   return fileMap

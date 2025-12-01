@@ -1,46 +1,33 @@
 import { green } from 'kleur/colors'
 
-import { getEffectiveUrl, link, SchemaContext } from '..'
-import { resolveUrl } from '../engine-commands/getConfig'
+import { link } from '..'
+import type { PrismaConfigWithDatasource } from '../utils/validatePrismaConfigWithDatasource'
 
 /**
  * Get the message to display when a command is forbidden with a data proxy flag
- * @param command the cli command (eg. db push)
+ * @param cmd the cli command (eg. db push)
  * @returns
  */
-export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${command}`)} yet.
-Please use a direct connection to your database via the datasource \`directUrl\` setting.
+export const forbiddenCmdWithDataProxyFlagMessage = (cmd: string) => `
+Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${cmd}`)} yet.
+Please use a direct connection to your database in \`prisma.config.ts\`.
 
 More information about this limitation: ${link('https://pris.ly/d/accelerate-limitations')}
 `
 
 /**
  * Check that the data proxy cannot be used through the given urls and schema contexts
- * @param command the cli command (eg. db push)
- * @param urls list of urls to check
- * @param schemaContexts list of schema contexts to check
+ * @param cmd the cli command (eg. db push)
+ * @param validatedConfig the validated Prisma Config value
  */
 export function checkUnsupportedDataProxy({
   cmd,
-  schemaContext = undefined,
-  urls = [],
+  validatedConfig,
 }: {
   cmd: string
-  schemaContext?: SchemaContext
-  urls?: (string | undefined)[]
+  validatedConfig: PrismaConfigWithDatasource
 }) {
-  for (const url of urls) {
-    if (url && url.includes('prisma://')) {
-      throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
-    }
-  }
-
-  if (!schemaContext?.primaryDatasource) return
-
-  const url = resolveUrl(getEffectiveUrl(schemaContext.primaryDatasource))
-
-  if (url?.startsWith('prisma://')) {
+  if (validatedConfig.datasource.url.startsWith('prisma://')) {
     throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
   }
 }

@@ -7,7 +7,6 @@ describe('dmmf', () => {
     const datamodel = `
       datasource db {
         provider = "mysql"
-        url      = env("MY_MYSQL_DB")
       }
       
       model User {
@@ -180,7 +179,6 @@ describe('dmmf', () => {
     const datamodel = `
       datasource db {
         provider = "postgresql"
-        url      = env("MY_POSTGRES_DB")
       }
       
       model User {
@@ -377,7 +375,6 @@ describe('dmmf', () => {
     const datamodel = `
       datasource db {
         provider = "sqlite"
-        url      = "file:./dev.db"
       }
 
       model User {

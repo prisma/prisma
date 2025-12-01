@@ -1,16 +1,12 @@
 import path from 'node:path'
 
-import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
-import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
-import { match } from 'ts-pattern'
+import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
+import { parseEnvValue } from '@prisma/internals'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
-import { resolveOrInstallPrismaClient, resolvePrismaClient } from './resolvePrismaClient'
-
-const debug = Debug('prisma:client:generator')
+import { resolvePrismaClient } from './resolvePrismaClient'
 
 type PrismaClientJsGeneratorOptions = {
   shouldResolvePrismaClient?: boolean
@@ -27,29 +23,15 @@ export class PrismaClientJsGenerator implements Generator {
   readonly name = 'prisma-client-js'
 
   #shouldResolvePrismaClient: boolean
-  #shouldInstallMissingPackages: boolean
   #runtimePath?: string
   #cachedPrismaClientPath: string | undefined
 
-  constructor({
-    shouldResolvePrismaClient = true,
-    shouldInstallMissingPackages = true,
-    runtimePath,
-  }: PrismaClientJsGeneratorOptions = {}) {
+  constructor({ shouldResolvePrismaClient = true, runtimePath }: PrismaClientJsGeneratorOptions = {}) {
     this.#shouldResolvePrismaClient = shouldResolvePrismaClient
-    this.#shouldInstallMissingPackages = shouldInstallMissingPackages
     this.#runtimePath = runtimePath
   }
 
   async getManifest(config: GeneratorConfig): Promise<GeneratorManifest> {
-    const requiresEngines = match<ClientEngineType, EngineType[]>(getClientEngineType(config))
-      .with(ClientEngineType.Library, () => ['libqueryEngine'])
-      .with(ClientEngineType.Binary, () => ['queryEngine'])
-      .with(ClientEngineType.Client, () => [])
-      .exhaustive()
-
-    debug('requiresEngines', requiresEngines)
-
     // TODO: warning disabled for now until we fixed issues around custom output paths - see ORM-976
     // if (!config.output) {
     //   console.warn(MISSING_CUSTOM_OUTPUT_PATH_WARNING)
@@ -80,7 +62,7 @@ export class PrismaClientJsGenerator implements Generator {
       defaultOutput,
       prettyName: 'Prisma Client',
       version: clientVersion,
-      requiresEngines,
+      requiresEngines: [],
       requiresEngineVersion: enginesVersion,
     }
   }
@@ -93,7 +75,6 @@ export class PrismaClientJsGenerator implements Generator {
       schemaPath: options.schemaPath,
       binaryPaths: options.binaryPaths!,
       datasources: options.datasources,
-      envPaths: options.envPaths,
       outputDir,
       copyRuntime: Boolean(options.generator.config.copyRuntime),
       copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),
@@ -103,8 +84,6 @@ export class PrismaClientJsGenerator implements Generator {
       engineVersion: options.version,
       clientVersion,
       activeProvider: options.datasources[0]?.activeProvider,
-      postinstall: options.postinstall,
-      copyEngine: !options.noEngine,
       typedSql: options.typedSql,
     })
   }
@@ -114,7 +93,7 @@ export class PrismaClientJsGenerator implements Generator {
       return this.#cachedPrismaClientPath
     }
 
-    this.#cachedPrismaClientPath = await this.#resolveOrInstallPrismaClient(path.dirname(config.sourceFilePath))
+    this.#cachedPrismaClientPath = await resolvePrismaClient(path.dirname(config.sourceFilePath))
     return this.#cachedPrismaClientPath
   }
 
@@ -125,13 +104,5 @@ export class PrismaClientJsGenerator implements Generator {
 
     this.#runtimePath = path.join(await this.#getPrismaClientPath(config), 'runtime')
     return this.#runtimePath
-  }
-
-  async #resolveOrInstallPrismaClient(baseDir: string): Promise<string> {
-    if (this.#shouldInstallMissingPackages && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-      return await resolveOrInstallPrismaClient(baseDir, clientVersion)
-    } else {
-      return await resolvePrismaClient(baseDir)
-    }
   }
 }

@@ -5,7 +5,7 @@ import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
   runtimeBase,
-  runtimeNameJs,
+  runtimeName,
   browser,
   clientVersion,
   engineVersion,
@@ -17,12 +17,15 @@ ${
     ? `
 const {
   Decimal,
-  objectEnumValues,
+  DbNull,
+  JsonNull,
+  AnyNull,
+  NullTypes,
   makeStrictEnum,
   Public,
   getRuntime,
   skip
-} = require('${runtimeBase}/${runtimeNameJs}.js')
+} = require('${runtimeBase}/${runtimeName}.js')
 `
     : `
 const {
@@ -39,7 +42,10 @@ const {
   skip,
   Decimal,
   Debug,
-  objectEnumValues,
+  DbNull,
+  JsonNull,
+  AnyNull,
+  NullTypes,
   makeStrictEnum,
   Extensions,
   warnOnce,
@@ -47,7 +53,7 @@ const {
   Public,
   getRuntime,
   createParam,
-} = require('${runtimeBase}/${runtimeNameJs}.js')
+} = require('${runtimeBase}/${runtimeName}.js')
 `
 }
 
@@ -90,15 +96,11 @@ Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', bro
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = objectEnumValues.instances.DbNull
-Prisma.JsonNull = objectEnumValues.instances.JsonNull
-Prisma.AnyNull = objectEnumValues.instances.AnyNull
+Prisma.DbNull = DbNull
+Prisma.JsonNull = JsonNull
+Prisma.AnyNull = AnyNull
 
-Prisma.NullTypes = {
-  DbNull: objectEnumValues.classes.DbNull,
-  JsonNull: objectEnumValues.classes.JsonNull,
-  AnyNull: objectEnumValues.classes.AnyNull
-}
+Prisma.NullTypes = NullTypes
 
 ${buildPrismaSkipJs(generator.previewFeatures)}
 `
@@ -116,12 +118,12 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
 
 export const commonCodeTS = ({
   runtimeBase,
-  runtimeNameTs,
+  runtimeName,
   clientVersion,
   engineVersion,
   generator,
 }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeName}.js';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -167,14 +169,6 @@ export import Decimal = runtime.Decimal
 export type DecimalJsLike = runtime.DecimalJsLike
 
 /**
- * Metrics
- */
-export type Metrics = runtime.Metrics
-export type Metric<T> = runtime.Metric<T>
-export type MetricHistogram = runtime.MetricHistogram
-export type MetricHistogramBucket = runtime.MetricHistogramBucket
-
-/**
 * Extensions
 */
 export import Extension = $Extensions.UserArgs
@@ -190,6 +184,7 @@ export import Exact = $Public.Exact
  */
 export type PrismaVersion = {
   client: string
+  engine: string
 }
 
 export const prismaVersion: PrismaVersion

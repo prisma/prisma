@@ -8,7 +8,7 @@ import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
 import * as QueryPlanExecutor from '@prisma/query-plan-executor'
 import path from 'path'
 
-import type { Client } from '../../../src/runtime/getPrismaClient'
+import type { Client, PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import { checkMissingProviders } from './checkMissingProviders'
 import {
   getTestSuiteClientMeta,
@@ -16,6 +16,7 @@ import {
   getTestSuiteConfigs,
   getTestSuiteFolderPath,
   getTestSuiteMeta,
+  TestSuiteMeta,
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import {
@@ -24,10 +25,8 @@ import {
   setupTestSuiteClientDriverAdapter,
 } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
-import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
-export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
 
 /**
@@ -114,7 +113,7 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
-      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
+      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions })
       let server: { qpe: QueryPlanExecutor.Server; net: ServerType } | undefined
 
       // we inject modified env vars, and make the client available as globals
@@ -204,7 +203,13 @@ function setupTestSuiteMatrix(
         globalThis['newPrismaClient'] = (args: any) => {
           const { PrismaClient, Prisma } = clientModule
 
-          const options = { ...internalArgs(), ...newDriverAdapter(), ...args }
+          const options: PrismaClientOptions = {
+            ...internalArgs(),
+            ...newDriverAdapter(),
+            accelerateUrl: datasourceInfo.accelerateUrl,
+            ...args,
+          }
+
           const client = new PrismaClient(options)
 
           globalThis['Prisma'] = Prisma
@@ -228,8 +233,12 @@ function setupTestSuiteMatrix(
               suiteConfig,
               alterStatementCallback: options?.alterStatementCallback,
               cfWorkerBindings,
+              datasourceInfo,
             }),
-          dropDb: () => dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings }).catch(() => {}),
+          dropDb: () =>
+            dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings, datasourceInfo }).catch(
+              () => {},
+            ),
         }
       })
 
@@ -243,13 +252,6 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
-
-          if (clientMeta.dataProxy) {
-            await stopMiniProxyQueryEngine({
-              client: client as Client,
-              datasourceInfo: globalThis['datasourceInfo'] as DatasourceInfo,
-            })
-          }
         }
         clients.length = 0
 
@@ -265,7 +267,7 @@ function setupTestSuiteMatrix(
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
-          await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings })
+          await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings, datasourceInfo })
         }
         restoreEnv()
         delete globalThis['datasourceInfo']

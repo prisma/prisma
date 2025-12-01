@@ -6,14 +6,15 @@ import { TSClientOptions } from '../TSClient/TSClient'
  */
 export function buildQueryCompilerWasmModule(
   forceEdgeWasmLoader: boolean,
-  runtimeNameJs: TSClientOptions['runtimeNameJs'],
+  runtimeName: TSClientOptions['runtimeName'],
 ) {
-  if (runtimeNameJs === 'client' && !forceEdgeWasmLoader) {
+  if (runtimeName === 'client' && !forceEdgeWasmLoader) {
     return `config.compilerWasm = {
       getRuntime: async () => require('./query_compiler_bg.js'),
       getQueryCompilerWasmModule: async () => {
-        const queryCompilerWasmFilePath = require('path').join(config.dirname, 'query_compiler_bg.wasm')
-        const queryCompilerWasmFileBytes = require('fs').readFileSync(queryCompilerWasmFilePath)
+        const { Buffer } = require('node:buffer')
+        const { wasm } = require('./query_compiler_bg.wasm-base64.js')
+        const queryCompilerWasmFileBytes = Buffer.from(wasm, 'base64')
 
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
       }
@@ -28,7 +29,7 @@ export function buildQueryCompilerWasmModule(
   // isn't able to handle dynamic imports with `import(#MODULE_NAME)`, which used
   // to lead to a runtime "No such module .prisma/client/#wasm-compiler-loader" error.
   // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
-  if ((runtimeNameJs === 'client' && forceEdgeWasmLoader) || runtimeNameJs === 'wasm-compiler-edge') {
+  if ((runtimeName === 'client' && forceEdgeWasmLoader) || runtimeName === 'wasm-compiler-edge') {
     return `config.compilerWasm = {
   getRuntime: async () => require('./query_compiler_bg.js'),
   getQueryCompilerWasmModule: async () => {
