@@ -1,5 +1,12 @@
 import type { Context } from '@opentelemetry/api'
-import { EngineSpan, ExtendedSpanOptions, SpanCallback, TracingHelper, version } from '@prisma/internals'
+import {
+  EngineSpan,
+  EngineTraceEvent,
+  ExtendedSpanOptions,
+  SpanCallback,
+  TracingHelper,
+  version,
+} from '@prisma/internals'
 
 const majorVersion = version.split('.')[0]
 
@@ -38,8 +45,8 @@ class DynamicTracingHelper implements TracingHelper {
     return this.getGlobalTracingHelper().getTraceParent(context)
   }
 
-  dispatchEngineSpans(spans: EngineSpan[]) {
-    return this.getGlobalTracingHelper().dispatchEngineSpans(spans)
+  dispatchEngineSpans(spans: EngineSpan[], logs?: EngineTraceEvent[]) {
+    return this.getGlobalTracingHelper().dispatchEngineSpans(spans, logs)
   }
 
   getActiveContext() {

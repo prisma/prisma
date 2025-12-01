@@ -53,7 +53,7 @@ export type EngineTrace = {
 export interface TracingHelper {
   isEnabled(): boolean
   getTraceParent(context?: Context): string
-  dispatchEngineSpans(spans: EngineSpan[]): void
+  dispatchEngineSpans(spans: EngineSpan[], logs?: EngineTraceEvent[]): void
 
   getActiveContext(): Context | undefined
 
