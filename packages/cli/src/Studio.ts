@@ -428,8 +428,17 @@ const INDEX_HTML =
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.17"></script>
     <link rel="stylesheet" href="/ui/index.css">
     <style>
+      :root {
+        --bg-color: #fff;
+        --text-color: #000;
+      }
+      :root.dark {
+        --bg-color: #0f172a;
+        --text-color: #fff;
+      }
       body {
-        color: black;
+        background-color: var(--bg-color);
+        color: var(--text-color);
         height: 100%;
         margin: 0;
         padding: 0;
@@ -438,7 +447,35 @@ const INDEX_HTML =
       #root {
         height: 100%;
       }
+
+      #theme-toggle {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.5rem;
+        border-radius: 9999px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        border: 1px solid var(--text-color);
+        cursor: pointer;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+      #theme-toggle:hover {
+        opacity: 1;
+      }
     </style>
+    <script>
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    </script>
     <script type="importmap">
       {
         "imports": {
@@ -452,6 +489,42 @@ const INDEX_HTML =
   </head>
   <body>
     <div id="root"></div>
+    <button id="theme-toggle" aria-label="Toggle Dark Mode">
+      <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.5rem; height: 1.5rem; display: none;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+      </svg>
+      <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.5rem; height: 1.5rem; display: none;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+      </svg>
+    </button>
+    <script>
+      const toggleBtn = document.getElementById('theme-toggle');
+      const moonIcon = document.getElementById('moon-icon');
+      const sunIcon = document.getElementById('sun-icon');
+
+      function updateIcon() {
+        if (document.documentElement.classList.contains('dark')) {
+          moonIcon.style.display = 'none';
+          sunIcon.style.display = 'block';
+        } else {
+          moonIcon.style.display = 'block';
+          sunIcon.style.display = 'none';
+        }
+      }
+      
+      updateIcon();
+
+      toggleBtn.addEventListener('click', () => {
+        if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          localStorage.theme = 'light';
+        } else {
+          document.documentElement.classList.add('dark');
+          localStorage.theme = 'dark';
+        }
+        updateIcon();
+      });
+    </script>
     <script type="module">
       'use strict';
       import React from 'react';
