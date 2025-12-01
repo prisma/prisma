@@ -1,5 +1,5 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
-import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
+import type { EngineSpan, EngineTraceEvent } from '@prisma/instrumentation-contract'
 import type { JsonBatchQuery } from '@prisma/json-protocol'
 
 import { RequestError } from './RequestError'

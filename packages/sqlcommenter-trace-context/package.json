@@ -1,7 +1,7 @@
 {
-  "name": "@prisma/sqlcommenter-query-tags",
+  "name": "@prisma/sqlcommenter-trace-context",
   "version": "0.0.0",
-  "description": "AsyncLocalStorage-based query tagging plugin for Prisma SQL commenter",
+  "description": "W3C Trace Context (traceparent) plugin for Prisma SQL commenter",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/sqlcommenter-query-tags"
+    "directory": "packages/sqlcommenter-trace-context"
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
@@ -36,6 +36,7 @@
   ],
   "sideEffects": false,
   "devDependencies": {
+    "@prisma/instrumentation-contract": "workspace:*",
     "@prisma/sqlcommenter": "workspace:*"
   }
 }

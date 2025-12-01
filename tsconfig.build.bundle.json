@@ -25,6 +25,7 @@
       "@prisma/fetch-engine": ["./packages/fetch-engine/src"],
       "@prisma/engines": ["./packages/engines/src"],
       "@prisma/instrumentation": ["./packages/instrumentation/src"],
+      "@prisma/instrumentation-contract": ["./packages/instrumentation-contract/src"],
       "@prisma/driver-adapter-utils": ["./packages/driver-adapter-utils/src"],
       "@prisma/adapter-d1": ["./packages/adapter-d1/src/index-node.ts"],
       "@prisma/adapter-libsql": ["./packages/adapter-libsql/src"],
@@ -34,6 +35,7 @@
       "@prisma/query-plan-executor": ["./packages/query-plan-executor/src"],
       "@prisma/sqlcommenter": ["./packages/sqlcommenter/src"],
       "@prisma/sqlcommenter-query-tags": ["./packages/sqlcommenter-query-tags/src"],
+      "@prisma/sqlcommenter-trace-context": ["./packages/sqlcommenter-trace-context/src"],
       "@prisma/ts-builders": ["./packages/ts-builders/src"]
     }
   }
