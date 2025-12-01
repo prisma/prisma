@@ -1,6 +1,16 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
-import { arg, format, getSchemaWithPath, HelpError, isCi, isError, isInteractive, link } from '@prisma/internals'
+import {
+  arg,
+  createSchemaPathInput,
+  format,
+  getSchemaWithPath,
+  HelpError,
+  isCi,
+  isError,
+  isInteractive,
+  link,
+} from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'
@@ -35,7 +45,7 @@ export class DebugInfo implements Command {
     return DebugInfo.help
   }
 
-  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal, baseDir: string = process.cwd()): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -64,7 +74,14 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = link((await getSchemaWithPath(args['--schema'], config.schema))?.schemaPath)
+      const schemaResult = await getSchemaWithPath({
+        schemaPath: createSchemaPathInput({
+          schemaPathFromArgs: args['--schema'],
+          schemaPathFromConfig: config.schema,
+          baseDir,
+        }),
+      })
+      schemaPath = link(schemaResult.schemaPath)
     } catch (e) {
       schemaPath = e.message
     }
@@ -96,7 +113,7 @@ ${formatEnvValue('https_proxy')}
 ${formatEnvValue('HTTPS_PROXY')}
 
 For more information about Prisma environment variables:
-See ${link('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
+See ${link('https://pris.ly/d/env-vars')}
 
 For hiding messages
 ${formatEnvValue('PRISMA_DISABLE_WARNINGS')}

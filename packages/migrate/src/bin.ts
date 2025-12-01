@@ -71,7 +71,7 @@ async function main(): Promise<number> {
   })
 
   const configFile = args['--config']
-  const configDir = configFile ? path.resolve(configFile, '..') : process.cwd()
+  const baseDir = configFile ? path.resolve(configFile, '..') : process.cwd()
 
   const { config, error } = await loadConfigFromFile({ configFile })
   if (error) {
@@ -86,7 +86,7 @@ async function main(): Promise<number> {
 
   try {
     // Execute the command
-    const result = await cli.parse(commandArray, config, configDir)
+    const result = await cli.parse(commandArray, config, baseDir)
     // Did it error?
     if (result instanceof HelpError) {
       console.error(result)
@@ -109,7 +109,7 @@ async function main(): Promise<number> {
         cliVersion: packageVersion,
         enginesVersion,
         command: commandArray.join(' '),
-        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config, configDir),
+        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config, baseDir),
       })
     }
     throw error
