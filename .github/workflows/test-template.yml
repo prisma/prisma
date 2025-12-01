@@ -952,6 +952,10 @@ jobs:
         name: 'credentials-store'
         working-directory: packages/credentials-store
 
+      - run: pnpm run test
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
   #
   # Driver Adapter Unit Tests
   #
@@ -1315,6 +1319,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
         name: 'query-plan-executor'
         working-directory: packages/query-plan-executor
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
