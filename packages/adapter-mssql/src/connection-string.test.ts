@@ -386,6 +386,22 @@ describe('parseConnectionString', () => {
         parseConnectionString(connectionString)
       }).toThrow('Server host is required in connection string')
     })
+
+    describe('should not allow negative integers', () => {
+      it.each([
+        'connectionLimit',
+        'connectionTimeout',
+        'loginTimeout',
+        'socketTimeout',
+        'poolTimeout',
+        'poolIdleTimeout',
+        'poolMinConnections',
+      ])('should throw for negative value for %s', (parameter) => {
+        expect(() => {
+          parseConnectionString(`sqlserver://localhost:1433;database=testdb;${parameter}=-1`)
+        }).toThrow(/Invalid .*: -1/)
+      })
+    })
   })
 
   describe('edge cases', () => {
