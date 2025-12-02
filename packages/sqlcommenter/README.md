@@ -135,11 +135,10 @@ interface SqlCommenterContext {
 }
 ```
 
-- **`query`**: Information about the Prisma query being executed. See [`SqlCommenterQueryInfo`](#sqlcommenterqueryinfo).
-- **`sql`**: The SQL query being executed. It is only available when using driver adapters but not when using Accelerate.
-
 Context provided to plugins containing information about the query.
 
+- **`query`**: Information about the Prisma query being executed. See [`SqlCommenterQueryInfo`](#sqlcommenterqueryinfo).
+- **`sql`**: The SQL query being executed. It is only available when using driver adapters but not when using Accelerate.
 ### `SqlCommenterQueryInfo`
 
 ```typescript
