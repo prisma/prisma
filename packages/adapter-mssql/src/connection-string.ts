@@ -124,7 +124,7 @@ export function parseConnectionString(connectionString: string): sql.config {
     config.options.multiSubnetFailover = multiSubnetFailover.toLowerCase() === 'true'
   }
 
-  const connectionLimit = firstKey(parameters, 'connectionLimit')
+  const connectionLimit = firstKey(parameters, 'connectionLimit', 'poolMaxConnections')
   if (connectionLimit !== null) {
     config.pool = config.pool || {}
     const limit = parseInt(connectionLimit, 10)
@@ -169,6 +169,26 @@ export function parseConnectionString(connectionString: string): sql.config {
     }
     config.pool = config.pool || {}
     config.pool.acquireTimeoutMillis = timeout * 1000
+  }
+
+  const poolIdleTimeout = firstKey(parameters, 'poolIdleTimeout')
+  if (poolIdleTimeout !== null) {
+    const timeout = parseInt(poolIdleTimeout, 10)
+    if (isNaN(timeout)) {
+      throw new Error(`Invalid pool idle timeout: ${poolIdleTimeout}`)
+    }
+    config.pool = config.pool || {}
+    config.pool.idleTimeoutMillis = timeout * 1000
+  }
+
+  const poolMinConnections = firstKey(parameters, 'poolMinConnections')
+  if (poolMinConnections !== null) {
+    const min = parseInt(poolMinConnections, 10)
+    if (isNaN(min)) {
+      throw new Error(`Invalid pool min connections: ${poolMinConnections}`)
+    }
+    config.pool = config.pool || {}
+    config.pool.min = min
   }
 
   const appName = firstKey(parameters, 'applicationName', 'application name')
