@@ -1,5 +1,6 @@
+import type { JsonQuery } from '@prisma/json-protocol'
+
 import { TransactionOptions } from '../Engine'
-import { JsonQuery } from '../types/JsonProtocol'
 import { QueryEngineBatchRequest } from '../types/QueryEngine'
 
 export function getBatchRequestPayload(

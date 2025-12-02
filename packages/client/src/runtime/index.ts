@@ -52,3 +52,10 @@ export { Debug } from '@prisma/debug'
 export * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 export { warnOnce } from '@prisma/internals'
+export type {
+  SqlCommenterContext,
+  SqlCommenterPlugin,
+  SqlCommenterQueryInfo,
+  SqlCommenterSingleQueryInfo,
+  SqlCommenterTags,
+} from '@prisma/sqlcommenter'

@@ -18,12 +18,12 @@ import { Debug } from '@prisma/debug'
 import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import { assertNever, TracingHelper } from '@prisma/internals'
+import type { JsonQuery } from '@prisma/json-protocol'
 
 import { version as clientVersion } from '../../../../../package.json'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
 import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
@@ -213,6 +213,7 @@ export class ClientEngine implements Engine {
         logLevel: this.logLevel,
         logQueries: this.logQueries,
         tracingHelper: this.tracingHelper,
+        sqlCommenters: this.config.sqlCommenters,
       })
     } else {
       return await LocalExecutor.connect({
@@ -224,6 +225,7 @@ export class ClientEngine implements Engine {
         },
         onQuery: this.#emitQueryEvent,
         provider: this.config.activeProvider as ActiveConnectorType | undefined,
+        sqlCommenters: this.config.sqlCommenters,
       })
     }
   }
@@ -474,6 +476,12 @@ export class ClientEngine implements Engine {
         transaction: interactiveTransaction,
         batchIndex: undefined,
         customFetch: customDataProxyFetch?.(globalThis.fetch),
+        queryInfo: {
+          type: 'single',
+          modelName: query.modelName,
+          action: query.action,
+          query: query.query,
+        },
       })
 
       debug(`query plan executed`)
@@ -491,7 +499,9 @@ export class ClientEngine implements Engine {
     if (queries.length === 0) {
       return []
     }
+
     const firstAction = queries[0].action
+    const firstModelName = queries[0].modelName
 
     const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
 
@@ -542,6 +552,10 @@ export class ClientEngine implements Engine {
                 batchIndex,
                 transaction: txInfo,
                 customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+                queryInfo: {
+                  type: 'single',
+                  ...queries[batchIndex],
+                },
               })
               results.push({ data: { [queries[batchIndex].action]: rows } })
             } catch (err) {
@@ -561,18 +575,36 @@ export class ClientEngine implements Engine {
           return results as BatchQueryEngineResult<T>[]
         }
         case 'compacted': {
-          if (!queries.every((q) => q.action === firstAction)) {
-            throw new Error('All queries in a batch must have the same action')
+          if (!queries.every((q) => q.action === firstAction && q.modelName === firstModelName)) {
+            const actions = queries.map((q) => q.action).join(', ')
+            const modelNames = queries.map((q) => q.modelName).join(', ')
+            throw new Error(
+              `Internal error: All queries in a compacted batch must have the same action and model name, but received actions: [${actions}] and model names: [${modelNames}]. ` +
+                'This indicates a bug in the client. Please report this issue to the Prisma team with your query details.',
+            )
+          }
+
+          if (firstModelName === undefined) {
+            throw new Error(
+              'Internal error: A compacted batch cannot contain raw queries. ' +
+                'This indicates a bug in the client. Please report this issue to the Prisma team with your query details.',
+            )
           }
 
           const rows = await executor.execute({
             plan: batchResponse.plan as QueryPlanNode,
             placeholderValues,
-            model: queries[0].modelName,
+            model: firstModelName,
             operation: firstAction,
             batchIndex: undefined,
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+            queryInfo: {
+              type: 'compacted',
+              action: firstAction,
+              modelName: firstModelName,
+              queries,
+            },
           })
 
           const results = convertCompactedRows(rows as {}[], batchResponse)
