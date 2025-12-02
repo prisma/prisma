@@ -37,7 +37,7 @@ export class QueryInterpreter {
   readonly #serializer: (results: SqlResultSet) => Value
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
-  readonly #connectioInfo?: ConnectionInfo
+  readonly #connectionInfo?: ConnectionInfo
 
   constructor({
     transactionManager,
@@ -56,7 +56,7 @@ export class QueryInterpreter {
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
-    this.#connectioInfo = connectionInfo
+    this.#connectionInfo = connectionInfo
   }
 
   static forSql(options: {
@@ -323,8 +323,8 @@ export class QueryInterpreter {
   }
 
   #maxChunkSize(): number | undefined {
-    if (this.#connectioInfo?.maxBindValues !== undefined) {
-      return this.#connectioInfo.maxBindValues
+    if (this.#connectionInfo?.maxBindValues !== undefined) {
+      return this.#connectionInfo.maxBindValues
     }
     return this.#providerMaxChunkSize()
   }

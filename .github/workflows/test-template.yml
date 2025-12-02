@@ -707,39 +707,38 @@ jobs:
 
   #
   # INTEGRATION-TESTS
-  # TODO: re-enable once they're ported to the Query Compiler architecture.
   #
-  # integration-tests:
-  #   name: Integration tests
-  #   timeout-minutes: 20
-  #   runs-on: ubuntu-latest
-  #   if: |
-  #     contains(inputs.jobsToRun, '-all-') ||
-  #     contains(inputs.jobsToRun, '-integration-tests-')
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       node: ['20.19.0']
-  #   steps:
-  #     - uses: actions/checkout@v4
+  integration-tests:
+    name: Integration tests
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-integration-tests-')
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19.0']
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Start Docker Compose Services
-  #       uses: nick-fields/retry@v3
-  #       with:
-  #         timeout_minutes: 10
-  #         max_attempts: 5
-  #         retry_wait_seconds: 120
-  #         command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
 
-  #     - name: Install & build
-  #       uses: ./.github/actions/setup
-  #       with:
-  #         node-version: ${{ matrix.node }}
-  #         engine-hash: ${{ inputs.engineHash }}
-  #         skip-tsc: true
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
 
-  #     - run: pnpm run test
-  #       working-directory: packages/integration-tests
+      - run: pnpm run test
+        working-directory: packages/integration-tests
 
   #
   # `@prisma/internals`
