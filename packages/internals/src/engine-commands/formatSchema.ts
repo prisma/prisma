@@ -52,7 +52,7 @@ export async function formatSchema(
   })
 
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
-  if (lintWarnings && logger.should.warn()) {
+  if (lintWarnings.length > 0 && logger.should.warn()) {
     // Output warnings to stderr
     console.warn(lintWarnings)
   }
