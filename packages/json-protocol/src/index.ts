@@ -1,5 +1,3 @@
-import type { IsolationLevel } from './Transaction'
-
 export type JsonQuery = {
   modelName?: string
   action: JsonQueryAction
@@ -10,6 +8,8 @@ export type JsonBatchQuery = {
   batch: JsonQuery[]
   transaction?: { isolationLevel?: IsolationLevel }
 }
+
+export type IsolationLevel = 'ReadUncommitted' | 'ReadCommitted' | 'RepeatableRead' | 'Snapshot' | 'Serializable'
 
 export type JsonQueryAction =
   | 'findUnique'

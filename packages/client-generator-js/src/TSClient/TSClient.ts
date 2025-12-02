@@ -111,6 +111,7 @@ Object.assign(exports, Prisma)
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
+      provider: this.options.activeProvider,
     })
 
     const prismaClientClass = new PrismaClientClass(

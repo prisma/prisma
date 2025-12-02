@@ -81,7 +81,13 @@ function createHonoServer(app: App, options: Options) {
     })
     .post('/query', zValidator('json', QueryRequestBody), async (c) => {
       const request = c.req.valid('json')
-      const data = await app.query(request.plan as QueryPlanNode, request.params, c.get('resourceLimits'), null)
+      const data = await app.query(
+        request.plan as QueryPlanNode,
+        request.params,
+        request.comments,
+        c.get('resourceLimits'),
+        null,
+      )
       return c.json({ data } satisfies QueryResponseBody)
     })
     .post('/transaction/start', zValidator('json', TransactionStartRequestBody), async (c) => {
@@ -94,6 +100,7 @@ function createHonoServer(app: App, options: Options) {
       const data = await app.query(
         request.plan as QueryPlanNode,
         request.params,
+        request.comments,
         c.get('resourceLimits'),
         c.req.param('txId'),
       )

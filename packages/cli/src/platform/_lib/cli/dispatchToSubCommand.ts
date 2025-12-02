@@ -5,7 +5,7 @@ export const dispatchToSubCommand = async (
   commands: Commands,
   argv: string[],
   config: PrismaConfigInternal,
-  configDir: string,
+  baseDir: string,
 ) => {
   const commandName = argv[0]
   if (!commandName) return new HelpError(`Unknown command.`)
@@ -16,6 +16,6 @@ export const dispatchToSubCommand = async (
   const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
   if (hasHelpFlag) return `Help output for this command will be available soon. In the meantime, visit ${link("https://pris.ly/cli/platform-docs")} for more information.`; // prettier-ignore
 
-  const result = await command.parse(argv.slice(1), config, configDir)
+  const result = await command.parse(argv.slice(1), config, baseDir)
   return result
 }

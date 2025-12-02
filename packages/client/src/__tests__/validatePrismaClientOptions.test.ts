@@ -125,3 +125,98 @@ describe('invalid options', () => {
     `)
   })
 })
+
+describe('comments option', () => {
+  test('accepts valid array of functions', () => {
+    expect.assertions(0)
+    validatePrismaClientOptions(
+      {
+        adapter: {} as any,
+        comments: [() => ({}), () => ({ key: 'value' })],
+      },
+      config,
+    )
+  })
+
+  test('accepts empty array', () => {
+    expect.assertions(0)
+    validatePrismaClientOptions(
+      {
+        adapter: {} as any,
+        comments: [],
+      },
+      config,
+    )
+  })
+
+  test('accepts undefined', () => {
+    expect.assertions(0)
+    validatePrismaClientOptions(
+      {
+        adapter: {} as any,
+        comments: undefined,
+      },
+      config,
+    )
+  })
+
+  test('rejects non-array value', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          comments: 'not-an-array' as any,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value "not-an-array" for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+
+  test('rejects object value', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          comments: { plugin: () => ({}) } as any,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value {} for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+
+  test('rejects non-function elements', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          comments: [() => ({}), 'not-a-function'] as any,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value at index 1 for "comments" provided to PrismaClient constructor. Each plugin must be a function.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+
+  test('rejects null elements', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          comments: [null] as any,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value at index 0 for "comments" provided to PrismaClient constructor. Each plugin must be a function.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+})

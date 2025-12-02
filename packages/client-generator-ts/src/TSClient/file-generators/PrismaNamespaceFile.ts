@@ -225,7 +225,7 @@ function buildClientOptions(context: GenerateContext) {
               { emit: 'stdout', level: 'error' }
             ]
              \`\`\`
-             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+             Read more in our [docs](https://pris.ly/d/logging).
           `),
     )
 
@@ -262,6 +262,27 @@ function buildClientOptions(context: GenerateContext) {
         \`\`\`
       `),
   )
+
+  if (context.isSqlProvider()) {
+    otherOptions.add(
+      ts.property('comments', ts.array(ts.namedType('runtime.SqlCommenterPlugin'))).optional()
+        .setDocComment(ts.docComment`
+        SQL commenter plugins that add metadata to SQL queries as comments.
+        Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          adapter,
+          comments: [
+            traceContext(),
+            queryInsights(),
+          ],
+        })
+        \`\`\`
+      `),
+    )
+  }
 
   // Intersect the mutually exclusive options with the other options
   // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }

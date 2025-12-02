@@ -262,7 +262,7 @@ function queryRawDefinition(context: GenerateContext) {
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -274,7 +274,7 @@ function queryRawDefinition(context: GenerateContext) {
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
 }
@@ -293,7 +293,7 @@ function executeRawDefinition(context: GenerateContext) {
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -305,7 +305,7 @@ function executeRawDefinition(context: GenerateContext) {
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
 }
@@ -366,7 +366,7 @@ function runCommandRawDefinition(context: GenerateContext) {
       })
       \`\`\`
 
-      Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+      Read more in our [docs](https://pris.ly/d/raw-queries).
     `)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
@@ -407,7 +407,7 @@ export class PrismaClientClass implements Generable {
  * \`\`\`
  *
  *
- * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+ * Read more in our [docs](https://pris.ly/d/client).
  */`
   }
   public toTSWithoutNamespace(): string {
@@ -582,7 +582,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
               { emit: 'stdout', level: 'error' }
             ]
              \`\`\`
-             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+             Read more in our [docs](https://pris.ly/d/logging).
           `),
       )
 
@@ -644,6 +644,27 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
         \`\`\`
       `),
     )
+
+    if (this.context.isSqlProvider()) {
+      clientOptions.add(
+        ts.property('comments', ts.array(ts.namedType('runtime.SqlCommenterPlugin'))).optional()
+          .setDocComment(ts.docComment`
+            SQL commenter plugins that add metadata to SQL queries as comments.
+            Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+
+            @example
+            \`\`\`
+            const prisma = new PrismaClient({
+              adapter,
+              comments: [
+                traceContext(),
+                queryInsights(),
+              ],
+            })
+            \`\`\`
+          `),
+      )
+    }
 
     return clientOptions
   }

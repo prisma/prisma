@@ -221,8 +221,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       better-sqlite3:
-        specifier: ^11.10.0
-        version: 11.10.0
+        specifier: ^12.4.5
+        version: 12.4.5
     devDependencies:
       '@types/better-sqlite3':
         specifier: 7.6.12
@@ -423,14 +423,14 @@ importers:
         specifier: workspace:*
         version: link:../config
       '@prisma/dev':
-        specifier: 0.13.0
-        version: 0.13.0(typescript@5.4.5)
+        specifier: 0.15.0
+        version: 0.15.0(typescript@5.4.5)
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
-      '@prisma/studio-core-licensed':
-        specifier: 0.8.1
-        version: 0.8.1
+      '@prisma/studio-core':
+        specifier: 0.8.2
+        version: 0.8.2
       mysql2:
         specifier: 3.15.3
         version: 3.15.3
@@ -722,8 +722,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -742,15 +742,21 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
+      '@prisma/json-protocol':
+        specifier: workspace:*
+        version: link:../json-protocol
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
       '@prisma/query-compiler-wasm':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/query-plan-executor':
         specifier: workspace:*
         version: link:../query-plan-executor
+      '@prisma/sqlcommenter':
+        specifier: workspace:*
+        version: link:../sqlcommenter
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -937,6 +943,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@prisma/sqlcommenter':
+        specifier: workspace:*
+        version: link:../sqlcommenter
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -955,7 +964,7 @@ importers:
         version: 20.19.25
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))
+        version: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -975,8 +984,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1052,8 +1061,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1187,8 +1196,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1224,8 +1233,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1507,11 +1516,11 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/schema-engine-wasm':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1655,6 +1664,8 @@ importers:
         specifier: 1.22.22
         version: 1.22.22
 
+  packages/json-protocol: {}
+
   packages/migrate:
     dependencies:
       '@prisma/client-generator-registry':
@@ -1670,8 +1681,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@prisma/engines-version':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -1824,11 +1835,17 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
-        version: 7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6
+        specifier: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
+        version: 7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
+
+  packages/sqlcommenter:
+    devDependencies:
+      '@prisma/json-protocol':
+        specifier: workspace:*
+        version: link:../json-protocol
 
   packages/ts-builders:
     dependencies:
@@ -1840,7 +1857,7 @@ importers:
     dependencies:
       '@ark/attest':
         specifier: 0.48.2
-        version: 0.48.2(typescript@5.4.5)
+        version: 0.48.2(typescript@5.8.2)
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -2792,14 +2809,14 @@ packages:
   '@gar/promisify@1.1.3':
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
 
-  '@hono/node-server@1.14.2':
-    resolution: {integrity: sha512-GHjpOeHYbr9d1vkID2sNUYkl5IxumyhDrUJB7wBp7jvqYwPFt+oNKsAPBRcdSbV7kIrXhouLE199ks1QcK4r7A==}
+  '@hono/node-server@1.19.0':
+    resolution: {integrity: sha512-1k8/8OHf5VIymJEcJyVksFpT+AQ5euY0VA5hUkCnlKpD4mr8FSbvXaHblxeTTEr90OaqWzAkQaqD80qHZQKxBA==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '>=4.10.3'
 
-  '@hono/node-server@1.19.0':
-    resolution: {integrity: sha512-1k8/8OHf5VIymJEcJyVksFpT+AQ5euY0VA5hUkCnlKpD4mr8FSbvXaHblxeTTEr90OaqWzAkQaqD80qHZQKxBA==}
+  '@hono/node-server@1.19.6':
+    resolution: {integrity: sha512-Shz/KjlIeAhfiuE93NDKVdZ7HdBVLQAfdbaXEaoAVO3ic9ibRSLGIQGkcBbFyuLr+7/1D5ZCINM8B+6IvXeMtw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '>=4.10.3'
@@ -3508,11 +3525,11 @@ packages:
   '@prisma/debug@6.8.2':
     resolution: {integrity: sha512-4muBSSUwJJ9BYth5N8tqts8JtiLT8QI/RSAzEogwEfpbYGFo9mYsInsVo8dqXdPO2+Rm5OG5q0qWDDE3nyUbVg==}
 
-  '@prisma/dev@0.13.0':
-    resolution: {integrity: sha512-QMmF6zFeUF78yv1HYbHvod83AQnl7u6NtKyDhTRZOJup3h1icWs8R7RUVxBJZvM2tBXNAMpLQYYM/8kPlOPegA==}
+  '@prisma/dev@0.15.0':
+    resolution: {integrity: sha512-KhWaipnFlS/fWEs6I6Oqjcy2S08vKGmxJ5LexqUl/3Ve0EgLUsZwdKF0MvqPM5F5ttw8GtfZarjM5y7VLwv9Ow==}
 
-  '@prisma/engines-version@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6':
-    resolution: {integrity: sha512-RA7pShKvijHib4USRB3YuLTQamHKJPkTRDc45AwxfahUQngiGVMlIj4ix4emUxkrum4o/jwn82WIwlG57EtgiQ==}
+  '@prisma/engines-version@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4':
+    resolution: {integrity: sha512-ybU0jGIOpg44e15vweKIUaRyB1e8oXdoqtAAZGuO0vBnQmzFGIkdQ8h939s+t7B0qgOlxsNzYZJq+fQ0F4QBCQ==}
 
   '@prisma/get-platform@6.8.2':
     resolution: {integrity: sha512-vXSxyUgX3vm1Q70QwzwkjeYfRryIvKno1SXbIqwSptKwqKzskINnDUcx85oX+ys6ooN2ATGSD0xN2UTfg6Zcow==}
@@ -3520,20 +3537,20 @@ packages:
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
 
-  '@prisma/prisma-schema-wasm@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6':
-    resolution: {integrity: sha512-SkkxJYd8eHAqZ2nYmTiQNQ6mIVg/30bvbsT0vmARbWSOdkWwq529KZrmfr4Iubr+61WS/WpU/d0eUIx6IkoiSQ==}
+  '@prisma/prisma-schema-wasm@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4':
+    resolution: {integrity: sha512-5YpjCLrDX6Y4ierH5YduAeL28ZoIo2J7A37eBjB4OhjQNVHH+ozoaPNLzsC4fEpt1RwqFNnc4QjZNKcyIlCSAw==}
 
-  '@prisma/query-compiler-wasm@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6':
-    resolution: {integrity: sha512-liPYR3BozRgnmp996sQeUZZhRzlAGM5hLHo/Tc1OQBBfhQvtbG/q8nX4qMoFMHe6P1TxrYxd+WfNbBOwWVFkMw==}
+  '@prisma/query-compiler-wasm@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4':
+    resolution: {integrity: sha512-9We4ztR4p0QR9nPgBklG9qJ1+C3vtmwsfNnMXSKYQU2VGQwsCPEm374b9gBKrB14pDmVj7geFzIoTY7398uL+w==}
 
   '@prisma/query-plan-executor@6.18.0':
     resolution: {integrity: sha512-jZ8cfzFgL0jReE1R10gT8JLHtQxjWYLiQ//wHmVYZ2rVkFHoh0DT8IXsxcKcFlfKN7ak7k6j0XMNn2xVNyr5cA==}
 
-  '@prisma/schema-engine-wasm@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6':
-    resolution: {integrity: sha512-/x7KUSVHIaZR13vFpuveChWY9jf/hLG0qB89QtduzeIrttAvnJ89mVvVlhPj1XA/3YRbmHk/quRg5fyjYdlqaw==}
+  '@prisma/schema-engine-wasm@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4':
+    resolution: {integrity: sha512-n+b/cJ0NbOdAb1O85ioAfa+FnrLlQ0YDa2EH3Em4lV3YR96XQVLnuAMG4+ekJX1ULQsxLnSiJEFd38+dpZ4D4g==}
 
-  '@prisma/studio-core-licensed@0.8.1':
-    resolution: {integrity: sha512-9aMnKEvZvE85whW9w3TYACRDasnAEz/DlCnR8Nbh+f9+z1k8W5JVGHfO/UVBNQbSjT/imXsC8zFPVPxPuF4WFw==}
+  '@prisma/studio-core@0.8.2':
+    resolution: {integrity: sha512-/iAEWEUpTja+7gVMu1LtR2pPlvDmveAwMHdTWbDeGlT7yiv0ZTCPpmeAGdq/Y9aJ9Zj1cEGBXGRbmmNPj022PQ==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -4460,6 +4477,10 @@ packages:
 
   better-sqlite3@11.10.0:
     resolution: {integrity: sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ==}
+
+  better-sqlite3@12.4.5:
+    resolution: {integrity: sha512-4NejwX2llfdKYK7Tzwwre/qKzTXiqcbycIagtqMH9oE7Es3LCUGGGXvhw8rWbZ2alx1C/Nh0MeJyYEZKUFs4sw==}
+    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
 
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
@@ -8097,8 +8118,8 @@ packages:
     resolution: {integrity: sha512-74Y4LqY74kLE6IFyIjPtkSTWzUZmj8tdHT9Ii/26dvQ6K9Dl2NbEfj0XgU2sHCtKgt5VupqhlO/5aWuqS+IY1w==}
     engines: {node: '>=10.12.0'}
 
-  valibot@1.1.0:
-    resolution: {integrity: sha512-Nk8lX30Qhu+9txPYTwM0cFlWLdPFsFr6LblzqIySfbZph9+BFsAHsNvHOymEviUepeIW6KFHzpX8TKhbptBXXw==}
+  valibot@1.2.0:
+    resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
     peerDependencies:
       typescript: '>=5'
     peerDependenciesMeta:
@@ -8445,16 +8466,16 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.48.2(typescript@5.4.5)':
+  '@ark/attest@0.48.2(typescript@5.8.2)':
     dependencies:
       '@ark/fs': 0.46.0
       '@ark/util': 0.46.0
       '@prettier/sync': 0.5.5(prettier@3.5.3)
       '@typescript/analyze-trace': 0.10.1
-      '@typescript/vfs': 1.6.1(typescript@5.4.5)
+      '@typescript/vfs': 1.6.1(typescript@5.8.2)
       arktype: 2.1.20
       prettier: 3.5.3
-      typescript: 5.4.5
+      typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
@@ -9227,11 +9248,11 @@ snapshots:
   '@gar/promisify@1.1.3':
     optional: true
 
-  '@hono/node-server@1.14.2(hono@4.10.6)':
+  '@hono/node-server@1.19.0(hono@4.10.6)':
     dependencies:
       hono: 4.10.6
 
-  '@hono/node-server@1.19.0(hono@4.10.6)':
+  '@hono/node-server@1.19.6(hono@4.10.6)':
     dependencies:
       hono: 4.10.6
 
@@ -9493,6 +9514,41 @@ snapshots:
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
       jest-config: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))
+      jest-haste-map: 29.7.0
+      jest-message-util: 29.7.0
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-resolve-dependencies: 29.7.0
+      jest-runner: 29.7.0
+      jest-runtime: 29.7.0
+      jest-snapshot: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      jest-watcher: 29.7.0
+      micromatch: 4.0.8
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-ansi: 6.0.1
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
+  '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))':
+    dependencies:
+      '@jest/console': 29.7.0
+      '@jest/reporters': 29.7.0
+      '@jest/test-result': 29.7.0
+      '@jest/transform': 29.7.0
+      '@jest/types': 29.6.3
+      '@types/node': 20.19.25
+      ansi-escapes: 4.3.2
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-changed-files: 29.7.0
+      jest-config: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -10034,12 +10090,12 @@ snapshots:
 
   '@prisma/debug@6.8.2': {}
 
-  '@prisma/dev@0.13.0(typescript@5.4.5)':
+  '@prisma/dev@0.15.0(typescript@5.4.5)':
     dependencies:
       '@electric-sql/pglite': 0.3.2
       '@electric-sql/pglite-socket': 0.0.6(@electric-sql/pglite@0.3.2)
       '@electric-sql/pglite-tools': 0.2.7(@electric-sql/pglite@0.3.2)
-      '@hono/node-server': 1.14.2(hono@4.10.6)
+      '@hono/node-server': 1.19.6(hono@4.10.6)
       '@mrleebo/prisma-ast': 0.12.1
       '@prisma/get-platform': 6.8.2
       '@prisma/query-plan-executor': 6.18.0
@@ -10051,12 +10107,12 @@ snapshots:
       proper-lockfile: 4.1.2
       remeda: 2.21.3
       std-env: 3.9.0
-      valibot: 1.1.0(typescript@5.4.5)
+      valibot: 1.2.0(typescript@5.4.5)
       zeptomatch: 2.0.2
     transitivePeerDependencies:
       - typescript
 
-  '@prisma/engines-version@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6': {}
+  '@prisma/engines-version@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4': {}
 
   '@prisma/get-platform@6.8.2':
     dependencies:
@@ -10069,15 +10125,15 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@prisma/prisma-schema-wasm@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6': {}
+  '@prisma/prisma-schema-wasm@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4': {}
 
-  '@prisma/query-compiler-wasm@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6': {}
+  '@prisma/query-compiler-wasm@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4': {}
 
   '@prisma/query-plan-executor@6.18.0': {}
 
-  '@prisma/schema-engine-wasm@7.1.0-2.f09f2815f091dbba658cdcd2264306d88bb5bda6': {}
+  '@prisma/schema-engine-wasm@7.1.0-5.ab17e348034e9823a063101c707b39f4ba1e6dd4': {}
 
-  '@prisma/studio-core-licensed@0.8.1': {}
+  '@prisma/studio-core@0.8.2': {}
 
   '@redocly/ajv@8.17.1':
     dependencies:
@@ -10662,10 +10718,10 @@ snapshots:
       treeify: 1.1.0
       yargs: 16.2.0
 
-  '@typescript/vfs@1.6.1(typescript@5.4.5)':
+  '@typescript/vfs@1.6.1(typescript@5.8.2)':
     dependencies:
       debug: 4.4.0(supports-color@10.2.2)
-      typescript: 5.4.5
+      typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
@@ -11142,6 +11198,14 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
 
+  better-sqlite3@12.4.5:
+    dependencies:
+      bindings: 1.5.0
+      prebuild-install: 7.1.3
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+
   bindings@1.5.0:
     dependencies:
       file-uri-to-path: 1.0.0
@@ -11479,6 +11543,21 @@ snapshots:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-config: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))
+      jest-util: 29.7.0
+      prompts: 2.4.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
+  create-jest@29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2)):
+    dependencies:
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-config: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -12726,6 +12805,25 @@ snapshots:
       - supports-color
       - ts-node
 
+  jest-cli@29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2)):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
+      '@jest/test-result': 29.7.0
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      create-jest: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
+      exit: 0.1.2
+      import-local: 3.1.0
+      jest-config: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      yargs: 17.6.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
   jest-config@29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5)):
     dependencies:
       '@babel/core': 7.21.8
@@ -12753,6 +12851,37 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.19.25
       ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5)
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+
+  jest-config@29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2)):
+    dependencies:
+      '@babel/core': 7.21.8
+      '@jest/test-sequencer': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.21.8)
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      deepmerge: 4.2.2
+      glob: 7.2.3
+      graceful-fs: 4.2.11
+      jest-circus: 29.7.0
+      jest-environment-node: 29.7.0
+      jest-get-type: 29.6.3
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-runner: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      micromatch: 4.0.8
+      parse-json: 5.2.0
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 20.19.25
+      ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -13002,6 +13131,18 @@ snapshots:
       '@jest/types': 29.6.3
       import-local: 3.1.0
       jest-cli: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
+  jest@29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2)):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
+      '@jest/types': 29.6.3
+      import-local: 3.1.0
+      jest-cli: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -14907,6 +15048,27 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.11.5
 
+  ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.8.2):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.3
+      '@types/node': 20.19.25
+      acorn: 8.14.1
+      acorn-walk: 8.3.2
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.8.2
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.11.5
+    optional: true
+
   ts-pattern@5.6.2: {}
 
   ts-toolbelt@9.6.0: {}
@@ -15085,7 +15247,7 @@ snapshots:
       '@types/istanbul-lib-coverage': 2.0.4
       convert-source-map: 1.9.0
 
-  valibot@1.1.0(typescript@5.4.5):
+  valibot@1.2.0(typescript@5.4.5):
     optionalDependencies:
       typescript: 5.4.5
 

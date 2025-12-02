@@ -2,9 +2,10 @@ import { CompilerWasmLoadingConfig } from '@prisma/client-common'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
+import type { JsonQuery } from '@prisma/json-protocol'
+import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 
 import type { LogEmitter } from './types/Events'
-import { JsonQuery } from './types/JsonProtocol'
 import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 
@@ -143,6 +144,12 @@ export interface EngineConfig {
    * Web Assembly module loading configuration
    */
   compilerWasm?: CompilerWasmLoadingConfig
+
+  /**
+   * SQL commenter plugins that add metadata to SQL queries as comments.
+   * Each plugin receives query context and returns key-value pairs.
+   */
+  sqlCommenters?: SqlCommenterPlugin[]
 }
 
 /**
