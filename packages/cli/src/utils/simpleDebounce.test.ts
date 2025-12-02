@@ -28,12 +28,12 @@ describe('simpleDebounce', () => {
 
     // First call starts execution
     const p1 = debounced('first')
-    
+
     // Second call should be queued
-    const p2 = debounced('second')
-    
+    void debounced('second')
+
     // Third call should replace second in queue
-    const p3 = debounced('third')
+    void debounced('third')
 
     // Finish first call
     resolveFirst!()
@@ -56,7 +56,7 @@ describe('simpleDebounce', () => {
 
     expect(fn).toHaveBeenCalledTimes(1)
     expect(consoleSpy).toHaveBeenCalled()
-    
+
     consoleSpy.mockRestore()
   })
 })
