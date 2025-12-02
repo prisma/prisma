@@ -121,6 +121,40 @@ describe('getPpgInfo', () => {
       expect(result).toEqual({ ppg: { type: 'local' } })
       expect(mockScan).toHaveBeenCalledTimes(1)
     })
+
+    it('postgres & ::1 & local ppg server databasePort => local', async () => {
+      mockScan.mockResolvedValue([
+        {
+          databasePort: 5432,
+          shadowDatabasePort: 5433,
+          name: 'test-server',
+          port: 51213,
+          version: '1' as const,
+          status: 'running' as const,
+        },
+      ])
+
+      const result = await getPpgInfo('postgres://[::1]:5432/db')
+      expect(result).toEqual({ ppg: { type: 'local' } })
+      expect(mockScan).toHaveBeenCalledTimes(1)
+    })
+
+    it('postgres & 0:0:0:0:0:0:0:1 & local ppg server databasePort => local', async () => {
+      mockScan.mockResolvedValue([
+        {
+          databasePort: 5432,
+          shadowDatabasePort: 5433,
+          name: 'test-server',
+          port: 51213,
+          version: '1' as const,
+          status: 'running' as const,
+        },
+      ])
+
+      const result = await getPpgInfo('postgres://[0:0:0:0:0:0:0:1]:5432/db')
+      expect(result).toEqual({ ppg: { type: 'local' } })
+      expect(mockScan).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('unmatched connections', () => {

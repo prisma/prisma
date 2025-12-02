@@ -6,7 +6,11 @@ import { ServerState } from '@prisma/dev/internal/state'
  */
 export async function getPpgInfo(connectionString: string) {
   const url = new URL(connectionString)
-  const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1'
+  const isLocalhost =
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.hostname === '[::1]' ||
+    url.hostname === '[0:0:0:0:0:0:0:1]'
 
   let type: 'remote' | 'local' | undefined
   if (url.protocol === 'prisma+postgres:' && url.hostname === 'accelerate.prisma-data.net') {
