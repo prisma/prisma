@@ -645,6 +645,27 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
       `),
     )
 
+    if (this.context.isSqlProvider()) {
+      clientOptions.add(
+        ts.property('comments', ts.array(ts.namedType('runtime.SqlCommenterPlugin'))).optional()
+          .setDocComment(ts.docComment`
+            SQL commenter plugins that add metadata to SQL queries as comments.
+            Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+
+            @example
+            \`\`\`
+            const prisma = new PrismaClient({
+              adapter,
+              comments: [
+                traceContext(),
+                queryInsights(),
+              ],
+            })
+            \`\`\`
+          `),
+      )
+    }
+
     return clientOptions
   }
 }

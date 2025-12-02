@@ -742,6 +742,9 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
+      '@prisma/json-protocol':
+        specifier: workspace:*
+        version: link:../json-protocol
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
@@ -751,6 +754,9 @@ importers:
       '@prisma/query-plan-executor':
         specifier: workspace:*
         version: link:../query-plan-executor
+      '@prisma/sqlcommenter':
+        specifier: workspace:*
+        version: link:../sqlcommenter
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -937,6 +943,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@prisma/sqlcommenter':
+        specifier: workspace:*
+        version: link:../sqlcommenter
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -1655,6 +1664,8 @@ importers:
         specifier: 1.22.22
         version: 1.22.22
 
+  packages/json-protocol: {}
+
   packages/migrate:
     dependencies:
       '@prisma/client-generator-registry':
@@ -1829,6 +1840,12 @@ importers:
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
+
+  packages/sqlcommenter:
+    devDependencies:
+      '@prisma/json-protocol':
+        specifier: workspace:*
+        version: link:../json-protocol
 
   packages/ts-builders:
     dependencies:
