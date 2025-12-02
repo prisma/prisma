@@ -20,6 +20,7 @@ import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
 
 import packageJson from '../package.json' assert { type: 'json' }
+import { getPpgInfo } from './utils/ppgInfo'
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -367,6 +368,8 @@ ${bold('Examples')}
     let projectHash: string | null = null
     const version = packageJson.dependencies['@prisma/studio-core']
 
+    const ppgDbInfo = await getPpgInfo(connectionString)
+
     app.post('/telemetry', async (ctx) => {
       const { eventId, name, payload, timestamp } =
         await ctx.req.json<Parameters<NonNullable<StudioProps['onEvent']>>[0]>()
@@ -379,7 +382,11 @@ ${bold('Examples')}
         check_if_update_available: false,
         client_event_id: eventId,
         command: name,
-        information: JSON.stringify({ eventPayload: payload, protocol }),
+        information: JSON.stringify({
+          eventPayload: payload,
+          protocol,
+          ...ppgDbInfo,
+        }),
         local_timestamp: timestamp,
         product: 'prisma-studio-cli',
         project_hash: (projectHash ??= digest(process.cwd())),
