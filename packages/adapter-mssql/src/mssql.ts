@@ -92,20 +92,30 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    await this.transaction.commit()
+    const release = await this.#mutex.acquire()
+    try {
+      await this.transaction.commit()
+    } finally {
+      release()
+    }
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    await this.transaction.rollback().catch((e) => {
-      if (e.code === 'EABORT') {
-        debug(`[js::rollback] Transaction already aborted`)
-        return
-      }
+    const release = await this.#mutex.acquire()
+    try {
+      await this.transaction.rollback().catch((e) => {
+        if (e.code === 'EABORT') {
+          debug(`[js::rollback] Transaction already aborted`)
+          return
+        }
 
-      throw e
-    })
+        throw e
+      })
+    } finally {
+      release()
+    }
   }
 }
 
@@ -115,7 +125,7 @@ export type PrismaMssqlOptions = {
   onConnectionError?: (err: unknown) => void
 }
 
-class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
+export class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   constructor(
     private pool: sql.ConnectionPool,
     private readonly options?: PrismaMssqlOptions,
