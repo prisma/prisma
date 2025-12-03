@@ -72,19 +72,23 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
  */
 type PrismaClientMutuallyExclusiveOptions =
   | {
-      /**
-       * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.
-       */
-      adapter: SqlDriverAdapterFactory
-      accelerateUrl?: never
-    }
+    /**
+     * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.
+     */
+    adapter: SqlDriverAdapterFactory
+    accelerateUrl?: never
+  }
   | {
-      /**
-       * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
-       */
-      accelerateUrl: string
-      adapter?: never
-    }
+    /**
+     * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+     */
+    accelerateUrl: string
+    adapter?: never
+  }
+  | {
+    adapter?: never
+    accelerateUrl?: never
+  }
 
 export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   /**
@@ -211,8 +215,8 @@ type ExtendedEventType = LogLevel | 'beforeExit'
 type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
   ? () => Promise<void>
   : [E] extends [LogLevel]
-    ? (event: EngineEvent<E>) => void
-    : never
+  ? (event: EngineEvent<E>) => void
+  : never
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
@@ -280,7 +284,7 @@ constructor() {
       validatePrismaClientOptions(optionsArg, config)
 
       // prevents unhandled error events when users do not explicitly listen to them
-      const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
+      const logEmitter = new EventEmitter().on('error', () => { }) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = config.previewFeatures
@@ -308,7 +312,7 @@ constructor() {
           config.activeProvider === 'postgresql'
             ? 'postgres'
             : // CockroachDB is only accessible through Postgres driver adapters
-              config.activeProvider === 'cockroachdb'
+            config.activeProvider === 'cockroachdb'
               ? 'postgres'
               : config.activeProvider
 
@@ -696,7 +700,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => { })
 
         throw e // silent rollback, throw original error
       }
