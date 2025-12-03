@@ -26,8 +26,8 @@ vi.mock('mssql', () => {
   }
 })
 
-describe('PrismaMssqlAdapter transaction regression', () => {
-  it('should reproduce EREQINPROG when rollback is called during active query', async () => {
+describe('PrismaMssqlAdapter: rollback during active query (EREQINPROG prevention)', () => {
+  it('does not throw EREQINPROG when rollback is called during an active query', async () => {
     // Setup mock behavior
     let requestActive = false
     let queryStartedResolve: () => void
@@ -59,6 +59,7 @@ describe('PrismaMssqlAdapter transaction regression', () => {
       password: 'Password123',
       database: 'test',
     })
+
     pool.transaction = () =>
       ({
         on: () => {},
@@ -70,7 +71,7 @@ describe('PrismaMssqlAdapter transaction regression', () => {
           query: queryMock,
           arrayRowMode: false,
         }),
-      }) as any
+      }) as unknown as sql.Transaction
 
     const adapter = new PrismaMssqlAdapter(pool)
     const tx = await adapter.startTransaction()
@@ -87,5 +88,9 @@ describe('PrismaMssqlAdapter transaction regression', () => {
     await expect(rollbackPromise).resolves.toBeUndefined()
 
     await queryPromise
+
+    expect(queryMock).toHaveBeenCalledTimes(1)
+    expect(rollbackMock).toHaveBeenCalledTimes(1)
+    expect(requestActive).toBe(false)
   })
 })
