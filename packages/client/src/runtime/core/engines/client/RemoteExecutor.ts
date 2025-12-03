@@ -1,8 +1,9 @@
+import { SpanKind } from '@opentelemetry/api'
 import type { QueryEngineLogLevel } from '@prisma/client-common'
 import { applySqlCommenters, type TransactionOptions } from '@prisma/client-engine-runtime'
 import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
-import type { EngineTraceEvent, TracingHelper } from '@prisma/internals'
+import type { EngineSpan, EngineTraceEvent, TracingHelper } from '@prisma/internals'
 import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 
@@ -214,20 +215,87 @@ export class RemoteExecutor implements Executor {
   }
 
   #processExtensions(extensions: QueryEngineResultExtensions): void {
-    if (extensions.logs) {
+    if (extensions.traces) {
+      this.#dispatchEngineSpans(extensions.traces, extensions.logs)
+    } else if (extensions.logs) {
       for (const log of extensions.logs) {
         this.#emitLogEvent(log)
       }
     }
-    if (extensions.traces) {
-      // FIXME: log events should be emitted in the context of the corresponding
-      // spans to be consistent with the normal `ClientEngine` behavior. Our
-      // current `TracingHelper` interface makes it challenging to do so.
-      // We need to either change `dispatchEngineSpans` to be log-aware, or
-      // not use `dispatchEngineSpans` here at all and emit the spans directly.
-      // The second option is probably better long term so we can get rid of
-      // `dispatchEngineSpans` entirely when QC is in GA and the QE is gone.
-      this.#tracingHelper.dispatchEngineSpans(extensions.traces)
+  }
+
+  #dispatchEngineSpans(spans: EngineSpan[], logs?: EngineTraceEvent[]): void {
+    const spanMap = new Map<string, EngineSpan>()
+    const childrenMap = new Map<string, EngineSpan[]>()
+    const logsMap = new Map<string, EngineTraceEvent[]>()
+
+    for (const span of spans) {
+      spanMap.set(span.id, span)
+      if (span.parentId) {
+        const children = childrenMap.get(span.parentId) || []
+        children.push(span)
+        childrenMap.set(span.parentId, children)
+      }
+    }
+
+    if (logs) {
+      for (const log of logs) {
+        const spanId = log.spanId
+        if (spanId) {
+          const spanLogs = logsMap.get(spanId) || []
+          spanLogs.push(log)
+          logsMap.set(spanId, spanLogs)
+        } else {
+          this.#emitLogEvent(log)
+        }
+      }
+    }
+
+    const rootSpans = spans.filter((span) => !span.parentId)
+
+    for (const rootSpan of rootSpans) {
+      this.#dispatchSpan(rootSpan, childrenMap, logsMap)
+    }
+  }
+
+  #dispatchSpan(
+    span: EngineSpan,
+    childrenMap: Map<string, EngineSpan[]>,
+    logsMap: Map<string, EngineTraceEvent[]>,
+  ): void {
+    const spanLogs = logsMap.get(span.id) || []
+
+    this.#tracingHelper.runInChildSpan(
+      {
+        name: span.name,
+        kind: this.#engineSpanKindToSpanKind(span.kind),
+        startTime: span.startTime,
+        attributes: span.attributes as Record<string, string | number | boolean>,
+      },
+      (otelSpan) => {
+        for (const log of spanLogs) {
+          this.#emitLogEvent(log)
+        }
+
+        const children = childrenMap.get(span.id) || []
+        for (const child of children) {
+          this.#dispatchSpan(child, childrenMap, logsMap)
+        }
+
+        // End the span with the recorded endTime from the engine
+        otelSpan?.end(span.endTime)
+      },
+    )
+  }
+
+  #engineSpanKindToSpanKind(engineSpanKind: string): SpanKind {
+    // Convert engine span kind to OpenTelemetry SpanKind enum
+    switch (engineSpanKind) {
+      case 'client':
+        return SpanKind.CLIENT
+      case 'internal':
+      default:
+        return SpanKind.INTERNAL
     }
   }
 
