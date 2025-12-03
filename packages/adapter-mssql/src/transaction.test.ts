@@ -36,7 +36,9 @@ describe('PrismaMssqlAdapter transaction regression', () => {
     const rollbackMock = vi.fn().mockImplementation(async () => {
       await Promise.resolve()
       if (requestActive) {
-        const err: any = new Error("Can't rollback transaction. There is a request in progress.")
+        const err = new Error("Can't rollback transaction. There is a request in progress.") as Error & {
+          code: string
+        }
         err.code = 'EREQINPROG'
         throw err
       }
