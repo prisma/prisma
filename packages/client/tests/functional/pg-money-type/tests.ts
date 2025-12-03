@@ -1,5 +1,5 @@
 import testMatrix from './_matrix'
-import { describe, expect, it, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 // @ts-expect-error this is generated
 import type { PrismaClient } from './node_modules/@prisma/client'
 
