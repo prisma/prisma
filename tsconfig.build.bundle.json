@@ -15,6 +15,7 @@
       "@prisma/config": ["./packages/config/src"],
       "@prisma/dmmf": ["./packages/dmmf/src"],
       "@prisma/internals": ["./packages/internals/src"],
+      "@prisma/json-protocol": ["./packages/json-protocol/src"],
       "@prisma/migrate": ["./packages/migrate/src"],
       "@prisma/generator": ["./packages/generator/src"],
       "@prisma/generator-helper": ["./packages/generator-helper/src"],
@@ -31,6 +32,7 @@
       "@prisma/adapter-pg": ["./packages/adapter-pg/src"],
       "@prisma/adapter-planetscale": ["./packages/adapter-planetscale/src"],
       "@prisma/query-plan-executor": ["./packages/query-plan-executor/src"],
+      "@prisma/sqlcommenter": ["./packages/sqlcommenter/src"],
       "@prisma/ts-builders": ["./packages/ts-builders/src"]
     }
   }

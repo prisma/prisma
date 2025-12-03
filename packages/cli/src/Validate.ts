@@ -4,6 +4,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
+  createSchemaPathInput,
   format,
   getConfig,
   getLintWarningsAsText,
@@ -51,7 +52,11 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    baseDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -68,7 +73,13 @@ ${bold('Examples')}
       return this.help()
     }
 
-    const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaWithPath({
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
+    })
     printSchemaLoadedMessage(schemaPath)
 
     const { lintDiagnostics } = handleLintPanic(() => {

@@ -315,25 +315,6 @@ model posts {
 
 exports[`introspection: findMany orderBy desc: warnings 1`] = `null`;
 
-exports[`introspection: findMany where - case insensitive field: datamodel 1`] = `
-"generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource postgresql {
-  provider = "postgresql"
-}
-
-model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @postgresql.Citext
-}
-"
-`;
-
-exports[`introspection: findMany where - case insensitive field: warnings 1`] = `null`;
-
 exports[`introspection: findMany where OR[contains, contains] : datamodel 1`] = `
 "generator client {
   provider = "prisma-client-js"

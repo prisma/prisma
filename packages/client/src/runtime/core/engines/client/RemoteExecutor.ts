@@ -1,8 +1,9 @@
 import type { QueryEngineLogLevel } from '@prisma/client-common'
-import type { TransactionOptions } from '@prisma/client-engine-runtime'
+import { applySqlCommenters, type TransactionOptions } from '@prisma/client-engine-runtime'
 import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { EngineTraceEvent, TracingHelper } from '@prisma/internals'
+import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 
 import { getUrlAndApiKey } from '../accelerate/getUrlAndApiKey'
@@ -23,6 +24,7 @@ export interface RemoteExecutorOptions {
   logQueries: boolean
   tracingHelper: TracingHelper
   accelerateUrl: string
+  sqlCommenters?: SqlCommenterPlugin[]
 }
 
 export class RemoteExecutor implements Executor {
@@ -31,11 +33,13 @@ export class RemoteExecutor implements Executor {
   readonly #httpClient: HttpClient
   readonly #logEmitter: LogEmitter
   readonly #tracingHelper: TracingHelper
+  readonly #sqlCommenters?: SqlCommenterPlugin[]
 
   constructor(options: RemoteExecutorOptions) {
     this.#clientVersion = options.clientVersion
     this.#logEmitter = options.logEmitter
     this.#tracingHelper = options.tracingHelper
+    this.#sqlCommenters = options.sqlCommenters
 
     const { url, apiKey } = getUrlAndApiKey({
       clientVersion: options.clientVersion,
@@ -69,7 +73,14 @@ export class RemoteExecutor implements Executor {
     operation,
     transaction,
     customFetch,
+    queryInfo,
   }: ExecutePlanParams): Promise<unknown> {
+    // Pre-compute comments from plugins
+    const comments =
+      queryInfo && this.#sqlCommenters?.length
+        ? applySqlCommenters(this.#sqlCommenters, { query: queryInfo })
+        : undefined
+
     const response = await this.#request({
       path: transaction ? `/transaction/${transaction.id}/query` : '/query',
       method: 'POST',
@@ -78,6 +89,8 @@ export class RemoteExecutor implements Executor {
         operation,
         plan,
         params: placeholderValues,
+        // Send pre-computed comments to Query Plan Executor
+        comments: comments && Object.keys(comments).length > 0 ? comments : undefined,
       },
       batchRequestIdx: batchIndex,
       fetch: customFetch,

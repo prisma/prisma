@@ -5,7 +5,16 @@ import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRender
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['errorFormat', 'adapter', 'accelerateUrl', 'log', 'transactionOptions', 'omit', '__internal']
+const knownProperties = [
+  'errorFormat',
+  'adapter',
+  'accelerateUrl',
+  'log',
+  'transactionOptions',
+  'omit',
+  'comments',
+  '__internal',
+]
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -164,6 +173,23 @@ const validators: {
       throw new PrismaClientConstructorValidationError(
         renderOmitValidationErrors(options as Record<string, unknown>, validationErrors),
       )
+    }
+  },
+  comments: (options) => {
+    if (options === undefined) {
+      return
+    }
+    if (!Array.isArray(options)) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(options)} for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.`,
+      )
+    }
+    for (let i = 0; i < options.length; i++) {
+      if (typeof options[i] !== 'function') {
+        throw new PrismaClientConstructorValidationError(
+          `Invalid value at index ${i} for "comments" provided to PrismaClient constructor. Each plugin must be a function.`,
+        )
+      }
     }
   },
   __internal: (value) => {

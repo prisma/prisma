@@ -413,7 +413,7 @@ export class Init implements Command {
         if (!authAnswer) {
           return 'Project creation aborted. You need to authenticate to use Prisma Postgres'
         }
-        await saveCredentials(await login())
+        await saveCredentials(await login({ utmMedium: 'command-init-db' }))
       }
 
       if (args['--prompt'] || args['--vibe']) {
@@ -449,7 +449,7 @@ export class Init implements Command {
 
       console.log("Let's set up your Prisma Postgres database!")
 
-      const client = await createAuthenticatedManagementApiClient()
+      const client = await createAuthenticatedManagementApiClient({ utmMedium: 'command-init-db' })
       const api = new ManagementApi(client)
 
       const regions = await api.getRegions()
