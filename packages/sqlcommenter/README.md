@@ -135,10 +135,14 @@ A function that receives query context and returns key-value pairs. Return an em
 ```typescript
 interface SqlCommenterContext {
   query: SqlCommenterQueryInfo
+  sql?: string
 }
 ```
 
 Context provided to plugins containing information about the query.
+
+- **`query`**: Information about the Prisma query being executed. See [`SqlCommenterQueryInfo`](#sqlcommenterqueryinfo).
+- **`sql`**: The SQL query being executed. It is only available when using driver adapters but not when using Accelerate.
 
 ### `SqlCommenterQueryInfo`
 
