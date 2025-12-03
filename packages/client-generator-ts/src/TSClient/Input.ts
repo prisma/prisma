@@ -14,15 +14,21 @@ export class InputField {
     protected readonly field: DMMF.SchemaArg,
     protected readonly context: GenerateContext,
     protected readonly source?: string,
-  ) {}
+    protected readonly currentModelName?: string,
+  ) { }
   public toTS(): string {
-    const property = buildInputField(this.field, this.context, this.source)
+    const property = buildInputField(this.field, this.context, this.source, this.currentModelName)
     return ts.stringify(property)
   }
 }
 
-export function buildInputField(field: DMMF.SchemaArg, context: GenerateContext, source?: string): ts.Property {
-  const tsType = buildAllFieldTypes(field.inputTypes, context, source)
+export function buildInputField(
+  field: DMMF.SchemaArg,
+  context: GenerateContext,
+  source?: string,
+  currentModelName?: string,
+): ts.Property {
+  const tsType = buildAllFieldTypes(field.inputTypes, context, source, currentModelName)
 
   const tsProperty = ts.property(field.name, field.isRequired ? tsType : appendSkipType(context, tsType))
   if (!field.isRequired) {
@@ -43,7 +49,13 @@ export function buildInputField(field: DMMF.SchemaArg, context: GenerateContext,
   return tsProperty
 }
 
-function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInfo, source?: string): ts.TypeBuilder {
+function buildSingleFieldType(
+  t: DMMF.InputTypeRef,
+  context: GenerateContext,
+  source?: string,
+  currentModelName?: string,
+): ts.TypeBuilder {
+  const genericsInfo = context.genericArgsInfo
   let type: ts.NamedType
 
   const scalarType = GraphQLScalarToJSTypeTable[t.type]
@@ -58,7 +70,14 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
     }
     return union
   } else if (t.namespace === 'prisma') {
-    type = namedInputType(`Prisma.${t.type}`)
+    const inputType = context.dmmf.inputObjectTypes.prisma?.find((i) => i.name === t.type)
+    const typeGrouping = inputType?.meta?.grouping
+
+    if (typeGrouping === currentModelName) {
+      type = namedInputType(t.type)
+    } else {
+      type = namedInputType(`Prisma.${t.type}`)
+    }
   } else {
     type = namedInputType(scalarType ?? t.type)
   }
@@ -101,14 +120,17 @@ function buildAllFieldTypes(
   inputTypes: readonly DMMF.InputTypeRef[],
   context: GenerateContext,
   source?: string,
+  currentModelName?: string,
 ): ts.TypeBuilder {
   const inputObjectTypes = inputTypes.filter((t) => t.location === 'inputObjectTypes' && !t.isList)
 
   const otherTypes = inputTypes.filter((t) => t.location !== 'inputObjectTypes' || t.isList)
 
-  const tsInputObjectTypes = inputObjectTypes.map((type) => buildSingleFieldType(type, context.genericArgsInfo, source))
+  const tsInputObjectTypes = inputObjectTypes.map((type) =>
+    buildSingleFieldType(type, context, source, currentModelName),
+  )
 
-  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, context.genericArgsInfo, source))
+  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, context, source, currentModelName))
 
   if (tsOtherTypes.length === 0) {
     return xorTypes(tsInputObjectTypes)
@@ -130,6 +152,7 @@ export class InputType {
   constructor(
     protected readonly type: DMMF.InputType,
     protected readonly context: GenerateContext,
+    protected readonly currentModelName?: string,
   ) {
     this.generatedName = type.name
   }
@@ -142,13 +165,13 @@ export class InputType {
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
 ${indent(
-  fields
-    .map((arg) => {
-      return new InputField(arg, this.context, source).toTS()
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
+      fields
+        .map((arg) => {
+          return new InputField(arg, this.context, source, this.currentModelName).toTS()
+        })
+        .join('\n'),
+      TAB_SIZE,
+    )}
 }`
 
     const needsGeneric = this.context.genericArgsInfo.typeNeedsGenericModelArg(this.type)

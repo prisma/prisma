@@ -13,6 +13,7 @@ export class ArgsTypeBuilder {
     private readonly type: DMMF.OutputType,
     private readonly context: GenerateContext,
     private readonly action?: DMMF.ModelAction,
+    private readonly currentModelName?: string,
   ) {
     this.moduleExport = ts
       .moduleExport(
@@ -27,7 +28,7 @@ export class ArgsTypeBuilder {
 
   addSchemaArgs(args: readonly DMMF.SchemaArg[]): this {
     for (const arg of args) {
-      const inputField = buildInputField(arg, this.context)
+      const inputField = buildInputField(arg, this.context, undefined, this.currentModelName)
 
       const docComment = getArgFieldJSDoc(this.type, this.action, arg)
       if (docComment) {
