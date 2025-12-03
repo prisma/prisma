@@ -2,7 +2,7 @@ import type { Context, Span, SpanOptions } from '@opentelemetry/api'
 
 export type SpanCallback<R> = (span?: Span, context?: Context) => R
 
-export type ExtendedSpanOptions = SpanOptions & {
+export interface ExtendedSpanOptions extends SpanOptions {
   /** The name of the span */
   name: string
   /* Internal spans are not shown unless PRISMA_SHOW_ALL_TRACES=true env var is set */
@@ -32,7 +32,7 @@ export type EngineSpan = {
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'query'
 
-export type EngineTraceEvent = {
+export interface EngineTraceEvent {
   spanId: EngineSpanId
   target?: string
   level: LogLevel
@@ -45,7 +45,7 @@ export type EngineTraceEvent = {
   }
 }
 
-export type EngineTrace = {
+export interface EngineTrace {
   spans: EngineSpan[]
   events: EngineTraceEvent[]
 }
@@ -60,11 +60,6 @@ export interface TracingHelper {
   runInChildSpan<R>(nameOrOptions: string | ExtendedSpanOptions, callback: SpanCallback<R>): R
 }
 
-export type PrismaInstrumentationGlobalValue = {
+export interface PrismaInstrumentationGlobalValue {
   helper?: TracingHelper
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var PRISMA_INSTRUMENTATION: PrismaInstrumentationGlobalValue | undefined
 }
