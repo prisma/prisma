@@ -1,7 +1,7 @@
 {
-  "name": "@prisma/sqlcommenter-query-tags",
+  "name": "@prisma/instrumentation-contract",
   "version": "0.0.0",
-  "description": "AsyncLocalStorage-based query tagging plugin for Prisma SQL commenter",
+  "description": "Shared types and utilities for Prisma instrumentation",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/sqlcommenter-query-tags"
+    "directory": "packages/instrumentation-contract"
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
@@ -36,6 +36,9 @@
   ],
   "sideEffects": false,
   "devDependencies": {
-    "@prisma/sqlcommenter": "workspace:*"
+    "@opentelemetry/api": "1.9.0"
+  },
+  "peerDependencies": {
+    "@opentelemetry/api": "^1.8"
   }
 }
