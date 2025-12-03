@@ -10,6 +10,7 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
+import { traceContext } from '@prisma/sqlcommenter-trace-context'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -60,7 +61,10 @@ testMatrix.setupTestSuite(
     }
 
     beforeAll(() => {
-      prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
+      prisma = newPrismaClient({
+        log: [{ emit: 'event', level: 'query' }],
+        comments: [traceContext()],
+      })
 
       // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', (e) => queries.push(e.query))

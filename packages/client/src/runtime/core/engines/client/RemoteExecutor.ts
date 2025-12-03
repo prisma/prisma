@@ -2,7 +2,7 @@ import type { QueryEngineLogLevel } from '@prisma/client-common'
 import { applySqlCommenters, type TransactionOptions } from '@prisma/client-engine-runtime'
 import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
-import type { EngineTraceEvent, TracingHelper } from '@prisma/internals'
+import type { EngineTraceEvent, TracingHelper } from '@prisma/instrumentation-contract'
 import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 

@@ -51,6 +51,11 @@ const prisma = new PrismaClient({
 })
 ```
 
+### First-Party Plugins
+
+- [`@prisma/sqlcommenter-query-tags`](https://www.npmjs.com/package/@prisma/sqlcommenter-query-tags): appends arbitrary tags to all queries within an async context.
+- [`@prisma/sqlcommenter-trace-context`](https://www.npmjs.com/package/@prisma/sqlcommenter-trace-context): appends `traceparent` comments to SQL queries for distributed tracing.
+
 ### Query Context
 
 Plugins receive a `SqlCommenterContext` object with information about the query being executed.
@@ -131,10 +136,14 @@ A function that receives query context and returns key-value pairs. Return an em
 ```typescript
 interface SqlCommenterContext {
   query: SqlCommenterQueryInfo
+  sql?: string
 }
 ```
 
 Context provided to plugins containing information about the query.
+
+- **`query`**: Information about the Prisma query being executed. See [`SqlCommenterQueryInfo`](#sqlcommenterqueryinfo).
+- **`sql`**: The SQL query being executed. It is only available when using driver adapters but not when using Accelerate.
 
 ### `SqlCommenterQueryInfo`
 
