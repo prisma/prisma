@@ -254,7 +254,7 @@ export interface SqlDriverAdapter extends SqlQueryable {
   /**
    * Start new transaction.
    */
-  startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction>
+  startTransaction(isolationLevel?: IsolationLevel, abortSignal?: AbortSignal): Promise<Transaction>
 
   /**
    * Optional method that returns extra connection info

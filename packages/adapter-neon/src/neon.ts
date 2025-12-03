@@ -180,7 +180,7 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
     throw new Error('Not implemented yet')
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -271,7 +271,7 @@ export class PrismaNeonHttpAdapter extends NeonQueryable implements SqlDriverAda
     throw new Error('Not implemented yet')
   }
 
-  async startTransaction(): Promise<Transaction> {
+  async startTransaction(_isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
 

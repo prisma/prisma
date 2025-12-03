@@ -35,6 +35,8 @@ class MockDriverAdapter implements SqlDriverAdapter {
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
+  startDelay = START_TRANSACTION_TIME
+  startAborted = false
 
   constructor({ provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
@@ -57,7 +59,7 @@ class MockDriverAdapter implements SqlDriverAdapter {
     throw new Error('Method not implemented.')
   }
 
-  startTransaction(): Promise<Transaction> {
+  startTransaction(_isolationLevel?: Options['isolationLevel'], abortSignal?: AbortSignal): Promise<Transaction> {
     const executeRawMock = this.executeRawMock
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
@@ -73,11 +75,19 @@ class MockDriverAdapter implements SqlDriverAdapter {
       rollback: rollbackMock,
     }
 
-    return new Promise((resolve) =>
-      setTimeout(() => {
-        resolve(mockTransaction)
-      }, START_TRANSACTION_TIME),
-    )
+    return new Promise((resolve, reject) => {
+      if (abortSignal?.aborted) {
+        this.startAborted = true
+        reject(new Error('start aborted'))
+        return
+      }
+      const timer = setTimeout(() => resolve(mockTransaction), this.startDelay)
+      abortSignal?.addEventListener('abort', () => {
+        this.startAborted = true
+        clearTimeout(timer)
+        reject(new Error('start aborted'))
+      })
+    })
   }
 }
 
@@ -175,7 +185,7 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
   await expect(Promise.all([jest.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
     new TransactionExecutionTimeoutError('commit', {
       timeout,
-      timeTaken: START_TRANSACTION_TIME + timeout + rollbackDelay,
+      timeTaken: timeout + rollbackDelay,
     }),
   )
 
@@ -206,6 +216,25 @@ test('transactions are rolled back when shutting down', async () => {
   await expect(transactionManager.rollbackTransaction(id1)).rejects.toBeInstanceOf(TransactionRolledBackError)
   await expect(transactionManager.commitTransaction(id2)).rejects.toBeInstanceOf(TransactionRolledBackError)
   await expect(transactionManager.rollbackTransaction(id2)).rejects.toBeInstanceOf(TransactionRolledBackError)
+})
+
+test('cancelAllTransactions aborts transactions that are still starting', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  driverAdapter.startDelay = START_TRANSACTION_TIME * 10
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const txPromise = transactionManager.startTransaction({ timeout: TRANSACTION_EXECUTION_TIMEOUT, maxWait: 10_000 })
+  void txPromise.catch(() => undefined)
+
+  await transactionManager.cancelAllTransactions()
+  await jest.advanceTimersByTimeAsync(driverAdapter.startDelay + 1)
+
+  await expect(txPromise).rejects.toBeInstanceOf(TransactionStartTimeoutError)
+  expect(driverAdapter.startAborted).toBe(true)
 })
 
 test('when driver adapter requires phantom queries does not execute transaction statements', async () => {

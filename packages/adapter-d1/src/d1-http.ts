@@ -270,7 +270,7 @@ export class PrismaD1HttpAdapter extends D1HttpQueryable implements SqlDriverAda
     }
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
       throw new DriverAdapterError({
         kind: 'InvalidIsolationLevel',

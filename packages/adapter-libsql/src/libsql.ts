@@ -147,7 +147,7 @@ export class PrismaLibSqlAdapter extends LibSqlQueryable<StdClient> implements S
     }
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
       throw new DriverAdapterError({
         kind: 'InvalidIsolationLevel',

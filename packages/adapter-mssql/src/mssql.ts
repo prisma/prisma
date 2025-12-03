@@ -127,7 +127,7 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
     throw new Error('Method not implemented.')
   }
 
-  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel, _abortSignal?: AbortSignal): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
