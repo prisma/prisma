@@ -1,7 +1,7 @@
 import { CompilerWasmLoadingConfig } from '@prisma/client-common'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
-import { TracingHelper } from '@prisma/internals'
+import type { TracingHelper } from '@prisma/instrumentation-contract'
 import type { JsonQuery } from '@prisma/json-protocol'
 import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 
