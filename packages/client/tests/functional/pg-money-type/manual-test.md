@@ -79,4 +79,4 @@ All operations should complete successfully without throwing `DecimalError`. The
 
 ## Verification
 
-The core fix is in `/packages/adapter-pg/src/conversion.ts` (lines 334-423) and is thoroughly tested in `/packages/adapter-pg/src/__tests__/normalize-money.test.ts` (54 unit tests, all passing).
+The core fix is in `/packages/adapter-pg/src/conversion.ts` (lines 334-415) and is thoroughly tested in `/packages/adapter-pg/src/__tests__/normalize-money.test.ts` (54 unit tests, all passing).
