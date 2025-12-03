@@ -49,9 +49,11 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
     'Loaded Prisma config from "sanitized prisma.config.ts path"',
   )
 
-  // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
-  // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
-  str = str.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
+  // Replace the version with 'CLI_VERSION.ENGINE_VERSION'
+  str = str.replace(
+    new RegExp(`([0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+\\.)${enginesVersion}`, 'g'),
+    'CLI_VERSION.ENGINE_VERSION',
+  )
 
   // Replace locally built prisma-schema-wasm and schema-engine-wasm versions linked via package.json
   str = str.replace(/link:([A-Z]:)?(\/[\w-]+)+/g, 'CLI_VERSION.ENGINE_VERSION')

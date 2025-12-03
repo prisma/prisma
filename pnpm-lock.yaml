@@ -428,6 +428,9 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
+      '@prisma/migrate':
+        specifier: workspace:*
+        version: link:../migrate
       '@prisma/studio-core':
         specifier: 0.8.2
         version: 0.8.2
@@ -489,9 +492,6 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
-      '@prisma/migrate':
-        specifier: workspace:*
-        version: link:../migrate
       '@swc/core':
         specifier: 1.11.5
         version: 1.11.5
