@@ -461,6 +461,11 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
     return Buffer.from(arg)
   }
 
+  // Ensure consistent Uint8Array handling for upsert operations
+  if (arg instanceof Uint8Array) {
+    return Buffer.from(arg)
+  }
+
   // https://github.com/brianc/node-postgres/pull/2930
   if (ArrayBuffer.isView(arg)) {
     return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
