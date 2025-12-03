@@ -73,7 +73,7 @@ function buildSingleFieldType(
     const inputType = context.dmmf.inputObjectTypes.prisma?.find((i) => i.name === t.type)
     const typeGrouping = inputType?.meta?.grouping
 
-    if (typeGrouping === currentModelName) {
+    if (typeGrouping && typeGrouping === currentModelName) {
       type = namedInputType(t.type)
     } else {
       type = namedInputType(`Prisma.${t.type}`)
