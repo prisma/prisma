@@ -51,6 +51,10 @@ const prisma = new PrismaClient({
 })
 ```
 
+### First-Party Plugins
+
+- [`@prisma/sqlcommenter-query-tags`](https://www.npmjs.com/package/@prisma/sqlcommenter-query-tags): appends arbitrary tags to all queries within an async context.
+
 ### Query Context
 
 Plugins receive a `SqlCommenterContext` object with information about the query being executed.
