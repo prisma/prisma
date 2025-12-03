@@ -26,7 +26,7 @@ vi.mock('mssql', () => {
   }
 })
 
-describe('PrismaMssqlAdapter reproduction', () => {
+describe('PrismaMssqlAdapter transaction regression', () => {
   it('should reproduce EREQINPROG when rollback is called during active query', async () => {
     // Setup mock behavior
     let requestActive = false
