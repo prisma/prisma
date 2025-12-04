@@ -22,7 +22,7 @@ testMatrix.setupTestSuite(
         })
 
         test('handles formatted thousands separator 1,234.56', async () => {
-          const order = await prisma.order.create({ data: { price: '1234.56' } })
+          const order = await prisma.order.create({ data: { price: '1,234.56' } })
           const found = await prisma.order.findUnique({ where: { id: order.id } })
           expect(found?.price.toString()).toBe('1234.56')
         })
