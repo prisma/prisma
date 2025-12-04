@@ -4,6 +4,7 @@ import { Debug } from '@prisma/debug'
 import { MiddlewareArgsMapper } from '../../getPrismaClient'
 import { mssqlPreparedStatement } from '../../utils/mssqlPreparedStatement'
 import { serializeRawParameters } from '../../utils/serializeRawParameters'
+import { processCustomTypeCastParameters } from '../../utils/preserveCustomTypeCasting'
 import { isTypedSql } from '../types/exported'
 import { RawQueryArgs } from '../types/exported/RawQueryArgs'
 
@@ -49,9 +50,17 @@ export const rawQueryArgsMapper =
     } else if (Array.isArray(args)) {
       // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
       const [query, ...values] = args
-      queryString = query
+      
+      // Process custom type casting for PostgreSQL extensions
+      const { query: processedQuery, parameters: processedParams } = processCustomTypeCastParameters(
+        query,
+        values || [],
+        activeProvider
+      )
+      
+      queryString = processedQuery
       parameters = {
-        values: serializeRawParameters(values || []),
+        values: serializeRawParameters(processedParams),
         __prismaRawParameters__: true,
       }
     } else {

@@ -19,6 +19,7 @@ export { getPrismaClient } from './getPrismaClient'
 export { makeStrictEnum } from './strictEnum'
 export { deserializeRawResult } from './utils/deserializeRawResults'
 export { getRuntime } from './utils/getRuntime'
+export { createCustomTypeCast, type CustomTypeCastParameter } from './utils/preserveCustomTypeCasting'
 export {
   type BaseDMMF,
   dmmfToRuntimeDataModel,
