@@ -368,7 +368,7 @@ function normalize_money(money: string): string {
     if (lastDotIndex > lastCommaIndex) {
       cleaned = cleaned.replace(/,/g, '')
     } else {
-      cleaned = cleaned.replace(/\./g, '').replace(',', '.')
+      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.')
     }
   } else if (hasComma && !hasDot) {
     const parts = cleaned.split(',')
