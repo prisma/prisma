@@ -36,12 +36,12 @@ testMatrix.setupTestSuite(
 
       describe('EU format (period as thousands, comma as decimal)', () => {
         test('handles EU format 1.234,56', async () => {
-          const result = await prisma.$queryRaw<QueryResult>`SELECT '1234.56'::money as price`
+          const result = await prisma.$queryRaw<QueryResult>`SELECT '1.234,56'::money as price`
           expect(result[0].price).toBe('1234.56')
         })
 
         test('handles EU format with multiple separators 1.234.567,89', async () => {
-          const result = await prisma.$queryRaw<QueryResult>`SELECT '1234567.89'::money as price`
+          const result = await prisma.$queryRaw<QueryResult>`SELECT '1.234.567,89'::money as price`
           expect(result[0].price).toBe('1234567.89')
         })
       })
