@@ -24,7 +24,7 @@ const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
 // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
 // If traceparent ends with -00 this trace will not be sampled
 // the query engine needs the `10` for the span and trace id otherwise it does not parse this
-const nonSampledTraceParent = `00 - 10 - 10-00`
+const nonSampledTraceParent = `00-10-10-00`
 
 type Options = {
   tracerProvider: TracerProvider
@@ -57,7 +57,7 @@ export class ActiveTracingHelper implements TracingHelper {
   getTraceParent(context?: Context | undefined): string {
     const span = trace.getSpanContext(context ?? _context.active())
     if (span) {
-      return `00 - ${span.traceId} -${span.spanId} -0${span.traceFlags} `
+      return `00-${span.traceId}-${span.spanId}-0${span.traceFlags}`
     }
     return nonSampledTraceParent
   }
@@ -87,7 +87,7 @@ export class ActiveTracingHelper implements TracingHelper {
 
     const tracer = this.tracerProvider.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
-    const name = `prisma: client:${options.name} `
+    const name = `prisma:client:${options.name}`
 
     if (shouldIgnoreSpan(name, this.ignoreSpanTypes)) {
       return callback()

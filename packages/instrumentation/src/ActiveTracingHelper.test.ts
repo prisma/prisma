@@ -65,4 +65,32 @@ describe('ActiveTracingHelper', () => {
 
     expect(mockSpan.addEvent).toHaveBeenCalledWith('test log message', { foo: 'bar' }, [0, 500])
   })
+
+  test('dispatchEngineSpans handles log with no message', () => {
+    const spanId = 'span-1'
+    const spans: EngineSpan[] = [
+      {
+        id: spanId,
+        parentId: null,
+        name: 'test-span',
+        kind: 'client',
+        startTime: [0, 0],
+        endTime: [1, 0],
+        attributes: {},
+      },
+    ]
+
+    const logs: EngineTraceEvent[] = [
+      {
+        spanId,
+        level: 'info',
+        timestamp: [0, 500],
+        attributes: { foo: 'bar' },
+      },
+    ]
+
+    helper.dispatchEngineSpans(spans, logs)
+
+    expect(mockSpan.addEvent).toHaveBeenCalledWith('', { foo: 'bar' }, [0, 500])
+  })
 })
