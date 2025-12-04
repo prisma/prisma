@@ -67,8 +67,17 @@ export class ActiveTracingHelper implements TracingHelper {
     const linkIds = new Map<string, string>()
     const roots = spans.filter((span) => span.parentId === null)
 
+    const logsBySpanId = new Map<string, EngineTraceEvent[]>()
+    if (logs) {
+      for (const log of logs) {
+        const existing = logsBySpanId.get(log.spanId) ?? []
+        existing.push(log)
+        logsBySpanId.set(log.spanId, existing)
+      }
+    }
+
     for (const root of roots) {
-      dispatchEngineSpan(tracer, root, spans, logs, linkIds, this.ignoreSpanTypes)
+      dispatchEngineSpan(tracer, root, spans, logsBySpanId, linkIds, this.ignoreSpanTypes)
     }
   }
 
@@ -110,7 +119,7 @@ function dispatchEngineSpan(
   tracer: Tracer,
   engineSpan: EngineSpan,
   allSpans: EngineSpan[],
-  logs: EngineTraceEvent[] | undefined,
+  logsBySpanId: Map<string, EngineTraceEvent[]>,
   linkIds: Map<string, string>,
   ignoreSpanTypes: (string | RegExp)[],
 ) {
@@ -143,18 +152,17 @@ function dispatchEngineSpan(
       )
     }
 
-    if (logs) {
-      for (const log of logs) {
-        if (log.spanId === engineSpan.id) {
-          const { message, ...attributes } = log.attributes
-          span.addEvent(message ?? '', attributes as Attributes, log.timestamp)
-        }
+    const spanLogs = logsBySpanId.get(engineSpan.id)
+    if (spanLogs) {
+      for (const log of spanLogs) {
+        const { message, ...attributes } = log.attributes
+        span.addEvent(message ?? '', attributes as Attributes, log.timestamp)
       }
     }
 
     const children = allSpans.filter((s) => s.parentId === engineSpan.id)
     for (const child of children) {
-      dispatchEngineSpan(tracer, child, allSpans, logs, linkIds, ignoreSpanTypes)
+      dispatchEngineSpan(tracer, child, allSpans, logsBySpanId, linkIds, ignoreSpanTypes)
     }
 
     span.end(engineSpan.endTime)
