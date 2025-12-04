@@ -9,7 +9,7 @@ export class DataMapperError extends UserFacingError {
   name = 'DataMapperError'
 
   constructor(message: string, options?: { cause?: unknown }) {
-    super(message, 'P2006', options)
+    super(message, 'P2023', options)
   }
 }
 
