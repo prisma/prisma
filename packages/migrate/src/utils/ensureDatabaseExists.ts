@@ -146,7 +146,10 @@ export async function ensureDatabaseExists(
     throw new Error(`${code}: ${message}`)
   }
 
-  if (await createDatabase(url, pathResolutionRoot)) {
+  // For SQLite, we want to make sure we don't create a file with the query string in the name
+  const urlToCreate = provider === 'sqlite' ? url.split('?')[0] : url
+
+  if (await createDatabase(urlToCreate, pathResolutionRoot)) {
     // URI parsing is not implemented for SQL server yet
     if (provider === 'sqlserver') {
       return `SQL Server database created.\n`
@@ -171,7 +174,7 @@ export async function ensureDatabaseExists(
 // returns the "host" like localhost / 127.0.0.1 + default port
 export function getDbLocation(credentials: DatabaseCredentials): string | undefined {
   if (credentials.type === 'sqlite') {
-    return credentials.uri!
+    return credentials.uri!.split('?')[0]
   }
 
   const socket = getSocketFromDatabaseCredentials(credentials)
@@ -210,4 +213,6 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider {
     case 'mongodb':
       return `MongoDB`
   }
+  // Fallback for any other provider type to satisfy TypeScript
+  return provider as PrettyProvider
 }
