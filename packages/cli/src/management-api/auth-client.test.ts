@@ -12,12 +12,13 @@ describe('createAuthenticatedManagementApiClient', () => {
   const mockRefreshToken = refreshToken as jest.Mock
   const mockCreateClient = createManagementApiClient as jest.Mock
 
-  const mockStorage: CredentialStorage = {
-    load: jest.fn(),
-    save: jest.fn(),
-  }
+  let mockStorage: CredentialStorage
 
   beforeEach(() => {
+    mockStorage = {
+      load: jest.fn(),
+      save: jest.fn(),
+    }
     jest.clearAllMocks()
   })
 
