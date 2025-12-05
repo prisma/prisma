@@ -246,6 +246,37 @@ describe('push', () => {
             "
     `)
   })
+
+  it('--url overrides config datasource URL when datasource exists in config', async () => {
+    ctx.fixture('reset')
+    ctx.setDatasource({
+      url: 'file:./other.db',
+    })
+
+    const result = DbPush.new().parse(['--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
+
+  it('--url works when no datasource exists in config', async () => {
+    ctx.fixture('reset')
+
+    const result = DbPush.new().parse(['--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
 })
 
 describeMatrix(postgresOnly, 'postgres', () => {
