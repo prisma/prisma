@@ -56,6 +56,7 @@ ${bold('Options')}
        -h, --help   Display this help message
          --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
+         --url      Override the datasource URL from the Prisma config file
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
@@ -83,6 +84,7 @@ ${bold('Examples')}
       '--create-only': Boolean,
       '--schema': String,
       '--config': String,
+      '--url': String,
       '--telemetry-information': String,
     })
 
@@ -103,8 +105,19 @@ ${bold('Examples')}
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
+    let cmdSpecificConfig = config
+    if (args['--url']) {
+      cmdSpecificConfig = {
+        ...cmdSpecificConfig,
+        datasource: {
+          ...cmdSpecificConfig.datasource,
+          url: args['--url'],
+        },
+      }
+    }
+
     const cmd = 'migrate dev'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 
@@ -128,18 +141,18 @@ ${bold('Examples')}
     }
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
-      externalTables: config.tables?.external ?? [],
-      externalEnums: config.enums?.external ?? [],
+      externalTables: cmdSpecificConfig.tables?.external ?? [],
+      externalEnums: cmdSpecificConfig.enums?.external ?? [],
     }
 
     const migrate = await Migrate.setup({
-      schemaEngineConfig: config,
+      schemaEngineConfig: cmdSpecificConfig,
       baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
-      shadowDbInitScript: config.migrations?.initShadowDb,
-      extensions: config['extensions'],
+      shadowDbInitScript: cmdSpecificConfig.migrations?.initShadowDb,
+      extensions: cmdSpecificConfig['extensions'],
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
