@@ -95,30 +95,22 @@ function getChildContext(key: string, parentContext: Context): Context {
  * Recursively parameterize a value based on its context.
  */
 function parameterize(value: unknown, context: Context, key?: string): unknown {
-  // null and undefined always pass through
   if (value === null || value === undefined) {
     return value
   }
 
-  // Handle tagged values
   if (isTaggedValue(value)) {
-    // FieldRef is structural - references a field, not user data
     return value.$type === 'FieldRef' ? value : PARAM_PLACEHOLDER
   }
 
-  // Handle arrays - recurse into each element
   if (Array.isArray(value)) {
     return value.map((item) => parameterize(item, context, key))
   }
 
-  // Handle objects
   if (typeof value === 'object') {
     return parameterizeObject(value as Record<string, unknown>, context)
   }
 
-  // Handle primitives
-
-  // Structural value keys have preserved values
   if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
     return value
   }
@@ -128,12 +120,10 @@ function parameterize(value: unknown, context: Context, key?: string): unknown {
     return value
   }
 
-  // In orderBy context, sort directions are preserved
   if (context === 'orderBy' && typeof value === 'string' && isSortDirection(value)) {
     return value
   }
 
-  // Everything else is parameterized
   return PARAM_PLACEHOLDER
 }
 
@@ -144,7 +134,6 @@ function parameterizeObject(obj: Record<string, unknown>, context: Context): Rec
   const result: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(obj)) {
-    // Selection markers pass through unchanged
     if (isSelectionMarker(key)) {
       result[key] = value
       continue
