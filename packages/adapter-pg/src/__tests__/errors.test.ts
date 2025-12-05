@@ -23,6 +23,16 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle InvalidInputValue (22P02)', () => {
+    const error = { code: '22P02', message: 'invalid input value for enum "Status": "INVALID"', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'InvalidInputValue',
+      message: 'invalid input value for enum "Status": "INVALID"',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle UniqueConstraintViolation (23505)', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)' }
     expect(convertDriverError(error)).toEqual({
