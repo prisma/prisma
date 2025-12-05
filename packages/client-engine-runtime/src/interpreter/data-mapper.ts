@@ -1,11 +1,16 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 
 import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
+import { UserFacingError } from '../user-facing-error'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
-export class DataMapperError extends Error {
+export class DataMapperError extends UserFacingError {
   name = 'DataMapperError'
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, 'P2023', options)
+  }
 }
 
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
