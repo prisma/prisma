@@ -1,6 +1,22 @@
 import type { SqlCommenterContext, SqlCommenterPlugin } from '@prisma/sqlcommenter'
 
 /**
+ * Recursively freezes an object and all its nested properties.
+ * This prevents plugins from mutating the context in a way that affects other plugins.
+ */
+function deepFreeze<T extends object>(obj: T): Readonly<T> {
+  Object.freeze(obj)
+
+  for (const value of Object.values(obj)) {
+    if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value)
+    }
+  }
+
+  return obj
+}
+
+/**
  * Formats key-value pairs into a sqlcommenter-compatible comment string.
  *
  * Algorithm per https://google.github.io/sqlcommenter/spec/:
@@ -11,7 +27,7 @@ import type { SqlCommenterContext, SqlCommenterPlugin } from '@prisma/sqlcomment
  * 5. Replace ' with \' in values (after URL encoding)
  * 6. Wrap values in single quotes
  * 7. Join key='value' pairs with commas
- * 8. Wrap in /* *\/
+ * 8. Wrap in a SQL comment
  */
 export function formatSqlComment(tags: Record<string, string>): string {
   const entries = Object.entries(tags)
@@ -34,15 +50,20 @@ export function formatSqlComment(tags: Record<string, string>): string {
 /**
  * Applies SQL commenter plugins and returns the merged key-value pairs.
  * Keys with undefined values are filtered out.
+ *
+ * The context is deeply frozen before being passed to plugins to prevent
+ * mutations that could affect other plugins.
  */
 export function applySqlCommenters(
   plugins: SqlCommenterPlugin[],
   context: SqlCommenterContext,
 ): Record<string, string> {
+  const frozenContext = deepFreeze(context)
+
   const merged: Record<string, string> = {}
 
   for (const plugin of plugins) {
-    const tags = plugin(context)
+    const tags = plugin(frozenContext)
     for (const [key, value] of Object.entries(tags)) {
       if (value !== undefined) {
         merged[key] = value

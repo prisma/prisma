@@ -155,6 +155,92 @@ describe('applySqlCommenters', () => {
     expect(applySqlCommenters([plugin], mockSingleContext)).toEqual({ type: 'single' })
     expect(applySqlCommenters([plugin], mockCompactedContext)).toEqual({ type: 'compacted' })
   })
+
+  test('context is frozen and cannot be mutated by plugins', () => {
+    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
+      expect(() => {
+        Object.assign(ctx, { mutated: true })
+      }).toThrow(TypeError)
+      return { attempted: 'mutation' }
+    }
+    applySqlCommenters([mutatingPlugin], mockSingleContext)
+  })
+
+  test('nested context properties are frozen and cannot be mutated', () => {
+    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
+      expect(() => {
+        Object.assign(ctx.query, { modelName: 'Hacked' })
+      }).toThrow(TypeError)
+      return { attempted: 'nested-mutation' }
+    }
+    applySqlCommenters([mutatingPlugin], mockSingleContext)
+  })
+
+  test('mutations from one plugin do not affect subsequent plugins', () => {
+    let secondPluginSawModelName: string | undefined
+
+    const firstPlugin: SqlCommenterPlugin = (ctx) => {
+      try {
+        Object.assign(ctx.query, { modelName: 'Hacked' })
+      } catch {
+        // Expected to throw
+      }
+      return { first: 'plugin' }
+    }
+
+    const secondPlugin: SqlCommenterPlugin = (ctx) => {
+      secondPluginSawModelName = ctx.query.modelName
+      return { second: 'plugin' }
+    }
+
+    applySqlCommenters([firstPlugin, secondPlugin], mockSingleContext)
+
+    // Second plugin should see the original value
+    expect(secondPluginSawModelName).toBe('User')
+  })
+
+  test('deeply nested objects in query are also frozen', () => {
+    type NestedQuery = { selection: { name: boolean; nested: { deep: string } } }
+
+    const contextWithNestedQuery: SqlCommenterContext = {
+      query: {
+        type: 'single',
+        modelName: 'User',
+        action: 'findMany',
+        query: { selection: { name: true, nested: { deep: 'value' } } } satisfies NestedQuery,
+      },
+    }
+
+    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
+      if (ctx.query.type === 'single') {
+        const query = ctx.query.query as NestedQuery
+        expect(() => {
+          query.selection.nested.deep = 'mutated'
+        }).toThrow(TypeError)
+      }
+      return {}
+    }
+
+    applySqlCommenters([mutatingPlugin], contextWithNestedQuery)
+  })
+
+  test('arrays in context are frozen', () => {
+    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
+      const query = ctx.query
+      if (query.type === 'compacted') {
+        const mutableQueries = query.queries as unknown[]
+        expect(() => {
+          mutableQueries.push({ extra: 'query' })
+        }).toThrow(TypeError)
+        expect(() => {
+          mutableQueries[0] = { replaced: true }
+        }).toThrow(TypeError)
+      }
+      return {}
+    }
+
+    applySqlCommenters([mutatingPlugin], mockCompactedContext)
+  })
 })
 
 describe('buildSqlComment', () => {
