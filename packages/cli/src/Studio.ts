@@ -175,7 +175,51 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
   },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
-  'prisma+postgres': POSTGRES_STUDIO_STUFF,
+  'prisma+postgres': {
+    async createExecutor(connectionString, relativeTo) {
+      if (connectionString.includes('localhost')) {
+        // TODO: support `prisma dev` accelerate URLs.
+
+        throw new Error('The "prisma+postgres" protocol with localhost is not supported in Prisma Studio yet.')
+      }
+
+      const connectionURL = new URL(connectionString)
+
+      const apiKey = connectionURL.searchParams.get('api_key')
+
+      if (!apiKey) {
+        throw new Error('`apiKey` query parameter is missing in the provided "prisma+postgres" connection string.')
+      }
+
+      const [, payload] = apiKey.split('.')
+      const decodedPayload: unknown = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'))
+
+      if (
+        typeof decodedPayload !== 'object' ||
+        decodedPayload === null ||
+        Array.isArray(decodedPayload) ||
+        !('secure_key' in decodedPayload) ||
+        typeof decodedPayload.secure_key !== 'string' ||
+        !('tenant_id' in decodedPayload) ||
+        typeof decodedPayload.tenant_id !== 'string'
+      ) {
+        throw new Error(
+          'Invalid/outdated `api_key` query parameter in the provided "prisma+postgres" connection string. Please create a new API key and use the new connection string OR use a direct TCP connection string instead.',
+        )
+      }
+
+      connectionURL.host = 'db.prisma.io:5432'
+      connectionURL.password = decodedPayload.secure_key
+      connectionURL.pathname = '/postgres'
+      connectionURL.protocol = 'postgres:'
+      connectionURL.searchParams.delete('api_key')
+      connectionURL.searchParams.set('sslmode', 'require')
+      connectionURL.username = decodedPayload.tenant_id
+
+      return await POSTGRES_STUDIO_STUFF.createExecutor(connectionURL.toString(), relativeTo)
+    },
+    reExportAdapterScript: POSTGRES_STUDIO_STUFF.reExportAdapterScript,
+  },
   mysql: {
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
