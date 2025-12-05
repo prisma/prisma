@@ -69,6 +69,11 @@ function mapDriverError(error: DatabaseError): MappedError {
         kind: 'ValueOutOfRange',
         cause: error.message,
       }
+    case '22P02':
+      return {
+        kind: 'InvalidInputValue',
+        message: error.message,
+      }
     case '23505': {
       const fields = error.detail
         ?.match(/Key \(([^)]+)\)/)
