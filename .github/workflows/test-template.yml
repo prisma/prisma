@@ -964,6 +964,10 @@ jobs:
         name: 'sqlcommenter-trace-context'
         working-directory: packages/sqlcommenter-trace-context
 
+      - run: pnpm run test
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
+
   #
   # Driver Adapter Unit Tests
   #
@@ -1342,6 +1346,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-')
         name: 'sqlcommenter-trace-context'
         working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
