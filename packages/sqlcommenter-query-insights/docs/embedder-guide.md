@@ -24,11 +24,11 @@ The `prismaQuery` value has the following format:
 
 ### Components
 
-| Component                 | Required        | Description                                                                              |
-| ------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
-| `ModelName`               | No<sup>\*</sup> | The Prisma model name (e.g., `User`, `Post`). Absent for raw queries.                    |
-| `Action`                  | Yes             | The Prisma operation type (see [Actions](#actions) below).                               |
-| `Base64UrlEncodedPayload` | No<sup>\*</sup> | Base64url-encoded JSON containing the parameterized query shape. Absent for raw queries. |
+| Component                 | Required        | Description                                                      |
+| ------------------------- | --------------- | ---------------------------------------------------------------- |
+| `ModelName`               | No<sup>\*</sup> | The Prisma model name (e.g., `User`, `Post`).                    |
+| `Action`                  | Yes             | The Prisma operation type (see [Actions](#actions) below).       |
+| `Base64UrlEncodedPayload` | No<sup>\*</sup> | Base64url-encoded JSON containing the parameterized query shape. |
 
 <sup>\*</sup> Raw queries (`queryRaw`, `executeRaw`) have no model name or payload.
 
