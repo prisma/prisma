@@ -29,9 +29,6 @@ importers:
       '@prisma/client':
         specifier: /tmp/prisma-client-0.0.0.tgz
         version: file:../../tmp/prisma-client-0.0.0.tgz(prisma@file:../../tmp/prisma-0.0.0.tgz(@types/react@19.2.7)(better-sqlite3@12.5.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))
-      '@prisma/client-runtime-utils':
-        specifier: /tmp/prisma-client-runtime-utils-0.0.0.tgz
-        version: file:../../tmp/prisma-client-runtime-utils-0.0.0.tgz
       '@prisma/instrumentation':
         specifier: /tmp/prisma-instrumentation-0.0.0.tgz
         version: file:../../tmp/prisma-instrumentation-0.0.0.tgz(@opentelemetry/api@1.9.0)
@@ -138,7 +135,7 @@ packages:
     version: 0.0.0
 
   '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-tMO68mUuX9AMWs2UpUTKALW9RoaSEoHvZViZ4NxWP3HrEVe4B12Y7AiA0mfofh2ksUZV8gDqE8BMIYLYCBLGxw==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-TjyZ/c9R57AaH0jjZwRxsjpbMn36Z9IAcGWM1xbOlabFya4vsOuTwSBUcSyx6yTOJmD13yF6nhTd8hSw7VgSwA==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     peerDependencies:
@@ -168,15 +165,15 @@ packages:
     resolution: {integrity: sha512-d7qYqZGFogvxfB0RJadqONOX04Dg0MHoIIJT2GNyGIZa0udigBUwcek1tq3eqc/JCBbbuVGGeDz3xm1jdHwjgg==, tarball: file:../../tmp/prisma-driver-adapter-utils-0.0.0.tgz}
     version: 0.0.0
 
-  '@prisma/engines-version@7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba':
-    resolution: {integrity: sha512-qZUevUh+yPhGT28rDQnV8V2kLnFjirzhVD67elRPIJHRsUV/mkII10HSrJrhK/U2GYgAxXR2VEREtq7AsfS8qw==}
+  '@prisma/engines-version@7.2.0-1.3f298657b368429158ee75de33d3dc7ca4b307a5':
+    resolution: {integrity: sha512-8hl0zGwU+0sYKJlbT5Waq5Ti5yIEJhWVrA29vjkbEpf4ZdnbuDaemTDl+99rb5kWrmE0+mbLycB7pOMBFanWXA==}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
-    resolution: {integrity: sha512-6pI5a8M4Bi4+m/QfpZNYjogpkwA3sTIlVfe7i1g6RiDr16WeXexgiVKqGhFQCe22z9w7EklAeL/3PTEeW+bDAA==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
+    resolution: {integrity: sha512-1hlthReof1W/Mbb9qU0ID+lHl0Ae9+QsrNFsdKGMXvq1X41xuoWcYWAT6FKhGndSmQnzgO9qV38xa2WtZ63hDw==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
-    resolution: {integrity: sha512-/TNwA9h/zt7Q19WSLanOa/Hle+MfXfC6twWIsC7hdonWY8HT7AgNB3JfZ2VHLJ056TkWiQevLOooxdZNrS3teg==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    resolution: {integrity: sha512-SilD4nK5eXV62pkcVsSfVbQMSKofBSdQTZn8gCjjr75HaVdAr4vd6axrimnmV9kicmEOwpYKI3NPr0rcfAVjug==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/get-platform@6.8.2':
@@ -494,7 +491,7 @@ packages:
     hasBin: true
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-moomFa99vTu6Ymb6wmjvdPUrSiKSn/eTcCWlh3uP9oQtDiZ1DNn7BJIROYD74NdFK66tCXZwMjZNp7UqYvm8fQ==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-AORCO9DIz38tWAnWXMAu+hqgCb6qj9eblk/CuqXcVTuU6tJibViTmyjx0cDFAtghEs+d8sm0kH8yl2+pcDdjVQ==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     hasBin: true
@@ -776,19 +773,19 @@ snapshots:
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
 
-  '@prisma/engines-version@7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba': {}
+  '@prisma/engines-version@7.2.0-1.3f298657b368429158ee75de33d3dc7ca4b307a5': {}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba
+      '@prisma/engines-version': 7.2.0-1.3f298657b368429158ee75de33d3dc7ca4b307a5
       '@prisma/fetch-engine': file:../../tmp/prisma-fetch-engine-0.0.0.tgz
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba
+      '@prisma/engines-version': 7.2.0-1.3f298657b368429158ee75de33d3dc7ca4b307a5
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/get-platform@6.8.2':
