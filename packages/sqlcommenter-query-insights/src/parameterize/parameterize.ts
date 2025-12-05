@@ -78,7 +78,7 @@ function getChildContext(key: string, parentContext: Context): Context {
   if (key === 'arguments') return 'default'
   if (key === 'selection') return 'selection'
   if (key === 'orderBy') return 'orderBy'
-  if (key === 'data' || key === 'create' || key === 'update') return 'data'
+  if (key === 'data') return 'data'
 
   // In data context, certain keys escape back to default
   if (parentContext === 'data') {
