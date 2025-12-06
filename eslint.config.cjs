@@ -36,7 +36,6 @@ module.exports = [
       '**/fixtures/**',
       '**/__fixtures__/**',
       '**/generated/**',
-      '**/byline.ts',
       '**/prism.ts',
       '**/charm.ts',
       '**/pnpm-lock.yaml',
