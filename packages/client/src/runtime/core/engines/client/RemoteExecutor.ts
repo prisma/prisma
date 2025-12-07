@@ -4,6 +4,7 @@ import { applySqlCommenters, type TransactionOptions } from '@prisma/client-engi
 import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { EngineSpan, EngineTraceEvent, TracingHelper } from '@prisma/internals'
+import type { EngineTraceEvent, TracingHelper } from '@prisma/instrumentation-contract'
 import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 

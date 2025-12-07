@@ -933,6 +933,10 @@ jobs:
         working-directory: packages/instrumentation
 
       - run: pnpm run test
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
 
@@ -951,6 +955,18 @@ jobs:
       - run: pnpm run test
         name: 'credentials-store'
         working-directory: packages/credentials-store
+
+      - run: pnpm run test
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
   #
   # Driver Adapter Unit Tests
@@ -1315,6 +1331,26 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
         name: 'query-plan-executor'
         working-directory: packages/query-plan-executor
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

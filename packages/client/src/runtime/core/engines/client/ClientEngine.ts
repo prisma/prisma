@@ -17,7 +17,8 @@ import {
 import { Debug } from '@prisma/debug'
 import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
-import { assertNever, TracingHelper } from '@prisma/internals'
+import type { TracingHelper } from '@prisma/instrumentation-contract'
+import { assertNever } from '@prisma/internals'
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { version as clientVersion } from '../../../../../package.json'
