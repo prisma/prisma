@@ -142,6 +142,10 @@ export type MappedError =
       cause: string
     }
   | {
+      kind: 'InvalidInputValue'
+      message: string
+    }
+  | {
       kind: 'MissingFullTextSearchIndex'
     }
   | {

@@ -4,6 +4,7 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -52,7 +53,7 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -74,8 +75,11 @@ Check the status of your database migrations
     }
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
@@ -93,14 +97,14 @@ Check the status of your database migrations
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
-      configDir,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
       extensions: config['extensions'],
     })
 
-    await ensureCanConnectToDatabase(configDir, validatedConfig)
+    await ensureCanConnectToDatabase(baseDir, validatedConfig)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

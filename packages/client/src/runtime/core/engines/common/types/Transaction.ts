@@ -1,3 +1,7 @@
+import { type IsolationLevel } from '@prisma/json-protocol'
+
+export { type IsolationLevel }
+
 export type Options = {
   /** Timeout for starting the transaction */
   maxWait?: number
@@ -8,8 +12,6 @@ export type Options = {
   /** Transaction isolation level */
   isolationLevel?: IsolationLevel
 }
-
-export type IsolationLevel = 'ReadUncommitted' | 'ReadCommitted' | 'RepeatableRead' | 'Snapshot' | 'Serializable'
 
 export type InteractiveTransactionInfo<Payload = unknown> = {
   /**

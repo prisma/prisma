@@ -193,6 +193,29 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
   })
 
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    const result = MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from config/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
+
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      config/migrations/
+        └─ 20201231000000/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+      "
+    `)
+  })
+
   it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first'], await ctx.config(), ctx.configDir())

@@ -73,6 +73,21 @@ describe('push', () => {
     `)
   })
 
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from config/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
+
   inDockerIt('should load extensions from the config', async () => {
     ctx.fixture('prisma-config-extensions')
     const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())

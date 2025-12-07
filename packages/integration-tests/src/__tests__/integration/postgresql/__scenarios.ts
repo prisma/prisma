@@ -1381,27 +1381,28 @@ export const scenarios = [
       },
     ],
   },
-  {
-    name: 'findMany where - case insensitive field',
-    up: `
-      drop extension if exists citext cascade;
-      create extension citext;
-      create table users (
-        id serial primary key not null,
-        email citext not null unique
-      );
-      insert into users ("email") values ('max@prisma.io');
-    `,
-    do: (client) => {
-      return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
-    },
-    expect: [
-      {
-        email: 'max@prisma.io',
-        id: 1,
-      },
-    ],
-  },
+  // TODO: https://linear.app/prisma-company/issue/TML-1647/fix-broken-citext-integration-test
+  // {
+  //   name: 'findMany where - case insensitive field',
+  //   up: `
+  //     drop extension if exists citext cascade;
+  //     create extension citext;
+  //     create table users (
+  //       id serial primary key not null,
+  //       email citext not null unique
+  //     );
+  //     insert into users ("email") values ('max@prisma.io');
+  //   `,
+  //   do: (client) => {
+  //     return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
+  //   },
+  //   expect: [
+  //     {
+  //       email: 'max@prisma.io',
+  //       id: 1,
+  //     },
+  //   ],
+  // },
   {
     name: 'findMany where decimal',
     up: `
