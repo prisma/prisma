@@ -225,12 +225,10 @@ export class RemoteExecutor implements Executor {
   }
 
   #dispatchEngineSpans(spans: EngineSpan[], logs?: EngineTraceEvent[]): void {
-    const spanMap = new Map<string, EngineSpan>()
     const childrenMap = new Map<string, EngineSpan[]>()
     const logsMap = new Map<string, EngineTraceEvent[]>()
 
     for (const span of spans) {
-      spanMap.set(span.id, span)
       if (span.parentId) {
         const children = childrenMap.get(span.parentId) || []
         children.push(span)
