@@ -273,82 +273,13 @@ test('transaction times out during starting', async () => {
     TransactionStartTimeoutError,
   )
 
-  // The transaction start is still in progress when we time out.
-  // Once it completes, it will be rolled back to avoid connection leaks.
-  // At this point, it hasn't completed yet, so rollback hasn't been called.
+  // If transaction timed out during startup, a `BEGIN` statement has most
+  // likely not been issued yet. (There is a possibility of a timeout while
+  // waiting for the database response to the `BEGIN` statement, but it's an
+  // edge case, and normally exceeding `maxWait` means we timed out wating for a
+  // new connection in the pool). Therefore, executing a `ROLLBACK` statement is
+  // incorrect and will lead to another error.
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
-
-  // Now let the startTransaction promise resolve
-  await jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME)
-
-  // The transaction that was started in the background should now be rolled back
-  // to release the connection back to the pool.
-  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
-})
-
-test('transaction start timeout cleans up connection if transaction eventually starts', async () => {
-  // This test verifies that when maxWait timeout fires but startTransaction
-  // eventually completes, we properly rollback to avoid leaking connections.
-
-  const SLOW_START_TRANSACTION_TIME = 500
-  const MAX_WAIT = 100
-  const TIME_PAST_MAX_WAIT = MAX_WAIT + 50
-  const REMAINING_TIME_FOR_START = SLOW_START_TRANSACTION_TIME - TIME_PAST_MAX_WAIT
-
-  const rollbackMock = jest.fn().mockResolvedValue(undefined)
-
-  const driverAdapter = {
-    adapterName: 'slow-adapter',
-    provider: 'postgres' as const,
-    executeRaw: jest.fn().mockResolvedValue(1),
-    queryRaw: jest.fn(),
-    executeScript: jest.fn(),
-    dispose: jest.fn(),
-    startTransaction: jest.fn().mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(
-            () =>
-              resolve({
-                adapterName: 'slow-adapter',
-                provider: 'postgres',
-                options: { usePhantomQuery: false },
-                queryRaw: jest.fn(),
-                executeRaw: jest.fn(),
-                commit: jest.fn(),
-                rollback: rollbackMock,
-              }),
-            SLOW_START_TRANSACTION_TIME,
-          ),
-        ),
-    ),
-  }
-
-  const transactionManager = new TransactionManager({
-    driverAdapter,
-    transactionOptions: { timeout: TRANSACTION_EXECUTION_TIMEOUT, maxWait: MAX_WAIT },
-    tracingHelper: noopTracingHelper,
-  })
-
-  // Start a transaction with a maxWait shorter than the actual connection time
-  // Use Promise.all to advance timers and wait for the rejection simultaneously
-  const [, txResult] = await Promise.all([
-    jest.advanceTimersByTimeAsync(TIME_PAST_MAX_WAIT),
-    transactionManager.startTransaction().catch((e) => e),
-  ])
-
-  // The transaction should have timed out
-  expect(txResult).toBeInstanceOf(TransactionStartTimeoutError)
-
-  // Rollback should not have been called yet because startTransaction hasn't completed
-  expect(rollbackMock).not.toHaveBeenCalled()
-
-  // Now advance time to let the startTransaction promise resolve
-  await jest.advanceTimersByTimeAsync(REMAINING_TIME_FOR_START)
-
-  // After the background startTransaction completes, rollback should be called
-  // to release the connection and avoid pool exhaustion
-  expect(rollbackMock).toHaveBeenCalled()
 })
 
 test('transaction times out during execution', async () => {
