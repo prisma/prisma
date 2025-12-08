@@ -124,6 +124,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@prisma/management-api-sdk": "file:/Users/flo/dev/pdp-control-plane/packages/management-api-sdk",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
     "@types/better-sqlite3": "7.6.12",
@@ -179,6 +180,7 @@
   },
   "dependencies": {
     "@prisma/config": "workspace:*",
+    "@prisma/credentials-store": "workspace:*",
     "@prisma/dev": "0.15.0",
     "@prisma/engines": "workspace:*",
     "@prisma/studio-core": "0.8.2",

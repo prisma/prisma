@@ -423,6 +423,9 @@ importers:
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
+      '@prisma/credentials-store':
+        specifier: workspace:*
+        version: link:../credentials-store
       '@prisma/dev':
         specifier: 0.15.0
         version: 0.15.0(typescript@5.4.5)
@@ -490,6 +493,9 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
+      '@prisma/management-api-sdk':
+        specifier: file:/Users/flo/dev/pdp-control-plane/packages/management-api-sdk
+        version: file:../pdp-control-plane/packages/management-api-sdk
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
@@ -3570,6 +3576,9 @@ packages:
 
   '@prisma/get-platform@6.8.2':
     resolution: {integrity: sha512-vXSxyUgX3vm1Q70QwzwkjeYfRryIvKno1SXbIqwSptKwqKzskINnDUcx85oX+ys6ooN2ATGSD0xN2UTfg6Zcow==}
+
+  '@prisma/management-api-sdk@file:../pdp-control-plane/packages/management-api-sdk':
+    resolution: {directory: ../pdp-control-plane/packages/management-api-sdk, type: directory}
 
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
@@ -6817,6 +6826,9 @@ packages:
   open@8.4.2:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
+
+  openapi-fetch@0.14.0:
+    resolution: {integrity: sha512-PshIdm1NgdLvb05zp8LqRQMNSKzIlPkyMxYFxwyHR+UlKD4t2nUjkDhNxeRbhRSEd3x5EUNh2w5sJYwkhOH4fg==}
 
   openapi-fetch@0.15.0:
     resolution: {integrity: sha512-OjQUdi61WO4HYhr9+byCPMj0+bgste/LtSBEcV6FzDdONTs7x0fWn8/ndoYwzqCsKWIxEZwo4FN/TG1c1rI8IQ==}
@@ -10155,6 +10167,10 @@ snapshots:
   '@prisma/get-platform@6.8.2':
     dependencies:
       '@prisma/debug': 6.8.2
+
+  '@prisma/management-api-sdk@file:../pdp-control-plane/packages/management-api-sdk':
+    dependencies:
+      openapi-fetch: 0.14.0
 
   '@prisma/ppg@1.0.1':
     dependencies:
@@ -13892,6 +13908,10 @@ snapshots:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
       is-wsl: 2.2.0
+
+  openapi-fetch@0.14.0:
+    dependencies:
+      openapi-typescript-helpers: 0.0.15
 
   openapi-fetch@0.15.0:
     dependencies:
