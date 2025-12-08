@@ -229,6 +229,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
+
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
@@ -250,6 +251,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
 
       The following migration(s) have been created and applied from new schema changes:
 
