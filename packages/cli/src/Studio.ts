@@ -73,6 +73,7 @@ const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
   'pool_timeout',
   'sslidentity',
   'sslaccept',
+  'pool', // Using connection pooling with `postgres` package is unable to connect to PPG. Disabling it for now by removing the param. See https://linear.app/prisma-company/issue/TML-1670.
   'socket_timeout',
   'pgbouncer',
   'statement_cache_size',
