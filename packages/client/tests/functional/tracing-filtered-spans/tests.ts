@@ -36,10 +36,10 @@ beforeAll(() => {
     instrumentations: [
       new PrismaInstrumentation({
         ignoreSpanTypes: [
-          'prisma:engine:connection',
           /prisma:client:operat.*/,
           'prisma:client:compile',
           'prisma:client:db_query',
+          'prisma:accelerate:db_query',
         ],
       }),
     ],

@@ -69,7 +69,7 @@ export type QueryEngineBatchResult<T> = WithErrorsAndResultExtensions<{
 
 export type QueryEngineResultExtensions = {
   logs?: EngineTraceEvent[]
-  traces?: EngineSpan[]
+  spans?: EngineSpan[]
 }
 
 export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatchQuery
