@@ -22,7 +22,7 @@ export class Enum {
     const { type } = this
 
     const enumVariants = `{
-${indent(type.data.map((v) => `${v.key}: ${this.getValue(v.value)}`).join(',\n'), TAB_SIZE)}
+${indent(type.data.map((v) => `${v.key}: ${this.getValue(v.key)}`).join(',\n'), TAB_SIZE)}
 } as const`
     const enumBody = this.isStrictEnum() ? `runtime.makeStrictEnum(${enumVariants})` : enumVariants
 
