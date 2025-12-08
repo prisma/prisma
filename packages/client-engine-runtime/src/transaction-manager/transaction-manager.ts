@@ -116,32 +116,34 @@ export class TransactionManager {
     const startTimer = createTimeoutIfDefined(() => abortController.abort(), options.maxWait)
     startTimer?.unref?.()
 
-    // Keep a reference to the startTransaction promise so we can clean up
-    // if the timeout fires before it completes.
-    const startTransactionPromise = this.driverAdapter
-      .startTransaction(options.isolationLevel)
-      .catch(rethrowAsUserFacing)
+    transaction.transaction = await new Promise<Transaction | undefined>((resolve, reject) => {
+      // Signal handler to rollback the transaction if the start times out.
+      void once(abortController.signal, 'abort')
 
-    transaction.transaction = await Promise.race([
-      startTransactionPromise.finally(() => clearTimeout(startTimer)),
-      once(abortController.signal, 'abort').then(() => undefined),
-    ])
+      // Start the transaction.
+      void this.driverAdapter
+        .startTransaction(options.isolationLevel)
+        .catch(rethrowAsUserFacing)
+        .then((tx) => {
+          // It's possible that `startTransaction` resolves after the abort signal has been fired.
+          // It's also technically possible for both the abort and start to resolve successfully
+          // and we handle that here as well. We roll back the transaction in either case.
+          if (abortController.signal.aborted) {
+            tx.rollback().catch((e) => debug('error in discarded transaction:', e))
+            resolve(undefined)
+          } else {
+            resolve(tx)
+          }
+        }, reject)
+        .finally(() => clearTimeout(startTimer))
+    })
 
     this.transactions.set(transaction.id, transaction)
 
     // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        if (abortController.signal.aborted) {
-          // The startTransaction promise may still be running in the background.
-          // If it eventually succeeds, we need to release the connection to avoid
-          // leaking it and exhausting the connection pool. We ignore any errors
-          // that happen during startup or rollback here because we will have
-          // already returned our own `TransactionStartTimeoutError` error to the user.
-          void startTransactionPromise
-            .then((tx) => tx.rollback())
-            .catch((e) => debug('error in discarded transaction:', e))
-
+        if (transaction.transaction === undefined) {
           // Call `#closeTransaction` to update internal state. It won't actually attempt
           // to rollback the tx itself because `transaction.transaction` is undefined.
           await this.#closeTransaction(transaction, 'timed_out')
