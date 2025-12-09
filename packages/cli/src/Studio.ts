@@ -19,7 +19,7 @@ import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
 
-import packageJson from '../package.json' assert { type: 'json' }
+import packageJson from '../package.json' with { type: 'json' }
 import { getPpgInfo } from './utils/ppgInfo'
 
 /**
@@ -124,10 +124,8 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
       let database: InstanceType<Database> | undefined = undefined
 
       try {
-        // TODO: remove 'as' once Node.js v22 is the minimum supported version.
-        const { DatabaseSync } = (await import('node:sqlite' as never)) as {
-          DatabaseSync: Database
-        }
+        // @ts-expect-error - node:sqlite is only available in Node.js 22.5+, types are in @types/node 22+
+        const { DatabaseSync } = await import('node:sqlite')
 
         database = new DatabaseSync(resolvedPath)
       } catch (error: unknown) {
