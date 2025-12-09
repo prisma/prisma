@@ -156,50 +156,31 @@ describe('applySqlCommenters', () => {
     expect(applySqlCommenters([plugin], mockCompactedContext)).toEqual({ type: 'compacted' })
   })
 
-  test('context is frozen and cannot be mutated by plugins', () => {
-    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
-      expect(() => {
-        Object.assign(ctx, { mutated: true })
-      }).toThrow(TypeError)
-      return { attempted: 'mutation' }
-    }
-    applySqlCommenters([mutatingPlugin], mockSingleContext)
-  })
-
-  test('nested context properties are frozen and cannot be mutated', () => {
-    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
-      expect(() => {
-        Object.assign(ctx.query, { modelName: 'Hacked' })
-      }).toThrow(TypeError)
-      return { attempted: 'nested-mutation' }
-    }
-    applySqlCommenters([mutatingPlugin], mockSingleContext)
-  })
-
-  test('mutations from one plugin do not affect subsequent plugins', () => {
-    let secondPluginSawModelName: string | undefined
+  test('each plugin receives an isolated copy of context', () => {
+    let firstPluginContext: SqlCommenterContext | undefined
+    let secondPluginContext: SqlCommenterContext | undefined
 
     const firstPlugin: SqlCommenterPlugin = (ctx) => {
-      try {
-        Object.assign(ctx.query, { modelName: 'Hacked' })
-      } catch {
-        // Expected to throw
-      }
+      firstPluginContext = ctx
+      Object.assign(ctx, { mutated: true })
+      Object.assign(ctx.query, { modelName: 'Hacked' })
       return { first: 'plugin' }
     }
 
     const secondPlugin: SqlCommenterPlugin = (ctx) => {
-      secondPluginSawModelName = ctx.query.modelName
+      secondPluginContext = ctx
       return { second: 'plugin' }
     }
 
     applySqlCommenters([firstPlugin, secondPlugin], mockSingleContext)
 
-    // Second plugin should see the original value
-    expect(secondPluginSawModelName).toBe('User')
+    expect(firstPluginContext).not.toBe(secondPluginContext)
+    expect(secondPluginContext!.query.modelName).toBe('User')
+    expect(mockSingleContext.query.modelName).toBe('User')
+    expect((mockSingleContext as unknown as Record<string, unknown>).mutated).toBeUndefined()
   })
 
-  test('deeply nested objects in query are also frozen', () => {
+  test('deeply nested mutations do not affect other plugins', () => {
     type NestedQuery = { selection: { name: boolean; nested: { deep: string } } }
 
     const contextWithNestedQuery: SqlCommenterContext = {
@@ -211,35 +192,59 @@ describe('applySqlCommenters', () => {
       },
     }
 
-    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
+    let secondPluginDeepValue: string | undefined
+
+    const firstPlugin: SqlCommenterPlugin = (ctx) => {
       if (ctx.query.type === 'single') {
         const query = ctx.query.query as NestedQuery
-        expect(() => {
-          query.selection.nested.deep = 'mutated'
-        }).toThrow(TypeError)
+        query.selection.nested.deep = 'mutated'
       }
-      return {}
+      return { first: 'plugin' }
     }
 
-    applySqlCommenters([mutatingPlugin], contextWithNestedQuery)
+    const secondPlugin: SqlCommenterPlugin = (ctx) => {
+      if (ctx.query.type === 'single') {
+        const query = ctx.query.query as NestedQuery
+        secondPluginDeepValue = query.selection.nested.deep
+      }
+      return { second: 'plugin' }
+    }
+
+    applySqlCommenters([firstPlugin, secondPlugin], contextWithNestedQuery)
+
+    expect(secondPluginDeepValue).toBe('value')
+
+    const originalQuery = contextWithNestedQuery.query
+    if (originalQuery.type === 'single') {
+      expect((originalQuery.query as NestedQuery).selection.nested.deep).toBe('value')
+    }
   })
 
-  test('arrays in context are frozen', () => {
-    const mutatingPlugin: SqlCommenterPlugin = (ctx) => {
-      const query = ctx.query
-      if (query.type === 'compacted') {
-        const mutableQueries = query.queries as unknown[]
-        expect(() => {
-          mutableQueries.push({ extra: 'query' })
-        }).toThrow(TypeError)
-        expect(() => {
-          mutableQueries[0] = { replaced: true }
-        }).toThrow(TypeError)
+  test('array mutations do not affect other plugins', () => {
+    let secondPluginQueriesLength: number | undefined
+
+    const firstPlugin: SqlCommenterPlugin = (ctx) => {
+      if (ctx.query.type === 'compacted') {
+        const mutableQueries = ctx.query.queries as unknown[]
+        mutableQueries.push({ extra: 'query' })
       }
-      return {}
+      return { first: 'plugin' }
     }
 
-    applySqlCommenters([mutatingPlugin], mockCompactedContext)
+    const secondPlugin: SqlCommenterPlugin = (ctx) => {
+      if (ctx.query.type === 'compacted') {
+        secondPluginQueriesLength = ctx.query.queries.length
+      }
+      return { second: 'plugin' }
+    }
+
+    applySqlCommenters([firstPlugin, secondPlugin], mockCompactedContext)
+
+    expect(secondPluginQueriesLength).toBe(2)
+
+    if (mockCompactedContext.query.type === 'compacted') {
+      expect(mockCompactedContext.query.queries.length).toBe(2)
+    }
   })
 })
 
