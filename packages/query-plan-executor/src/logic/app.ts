@@ -110,11 +110,20 @@ export class App {
         sqlCommenter,
       })
 
+      let timeoutCleared = false
+      const timeoutPromise = timers
+        .setTimeout(resourceLimits.queryTimeout.total('milliseconds'), undefined, { ref: false })
+        .then(() => {
+          if (!timeoutCleared) {
+            throw new ResourceLimitError('Query timeout exceeded')
+          }
+        })
+
       const result = await Promise.race([
-        queryInterpreter.run(queryPlan, queryable),
-        timers.setTimeout(resourceLimits.queryTimeout.total('milliseconds'), undefined, { ref: false }).then(() => {
-          throw new ResourceLimitError('Query timeout exceeded')
+        queryInterpreter.run(queryPlan, queryable).finally(() => {
+          timeoutCleared = true
         }),
+        timeoutPromise,
       ])
 
       return normalizeJsonProtocolValues(result)
