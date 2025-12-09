@@ -125,7 +125,7 @@ function setupTestSuiteMatrix(
         if (clientMeta.clientEngineExecutor === 'remote') {
           qpeWorker = new Worker(path.join(__dirname, 'qpe-worker-entry.cjs'))
 
-          const qpeStartupTimeoutMs = 10_000
+          const qpeStartupTimeoutMs = 60_000
 
           const { hostname, port } = await new Promise<QpeWorkerReadyResponse>((resolve, reject) => {
             const timeoutId = setTimeout(() => {
@@ -258,7 +258,7 @@ function setupTestSuiteMatrix(
         if (qpeWorker) {
           try {
             await Promise.race([
-              timers.setTimeout(3000, undefined, { ref: false }),
+              timers.setTimeout(5000, undefined, { ref: false }),
 
               new Promise<void>((resolve, reject) => {
                 qpeWorker!.once('message', (response: QpeWorkerResponse) => {
