@@ -1,4 +1,5 @@
 import path from 'node:path'
+import timers from 'node:timers/promises'
 import { Worker } from 'node:worker_threads'
 
 import { afterAll, beforeAll, test } from '@jest/globals'
@@ -133,8 +134,6 @@ function setupTestSuiteMatrix(
               }
             })
 
-            qpeWorker!.on('error', reject)
-
             qpeWorker!.postMessage({
               type: 'start',
               databaseUrl: datasourceInfo.databaseUrl,
@@ -241,22 +240,26 @@ function setupTestSuiteMatrix(
         clients.length = 0
 
         if (qpeWorker) {
-          await new Promise<void>((resolve, reject) => {
-            qpeWorker!.once('message', (response: QpeWorkerResponse) => {
-              if (response.type === 'shutdown-complete') {
-                resolve()
-              } else if (response.type === 'error') {
-                reject(new Error(response.message))
-              }
-            })
+          try {
+            await Promise.race([
+              timers.setTimeout(3000, undefined, { ref: false }),
 
-            qpeWorker!.on('error', reject)
+              new Promise<void>((resolve, reject) => {
+                qpeWorker!.once('message', (response: QpeWorkerResponse) => {
+                  if (response.type === 'shutdown-complete') {
+                    resolve()
+                  } else if (response.type === 'error') {
+                    reject(new Error(response.message))
+                  }
+                })
 
-            qpeWorker!.postMessage({ type: 'shutdown' } satisfies QpeWorkerShutdownMessage)
-          })
-
-          await qpeWorker.terminate()
-          qpeWorker = undefined
+                qpeWorker!.postMessage({ type: 'shutdown' } satisfies QpeWorkerShutdownMessage)
+              }),
+            ])
+          } finally {
+            await qpeWorker.terminate()
+            qpeWorker = undefined
+          }
         }
 
         // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
