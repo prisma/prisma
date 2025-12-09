@@ -132,15 +132,15 @@ export class App {
   /**
    * Commits a transaction.
    */
-  async commitTransaction(transactionId: string): Promise<void> {
-    return await this.#transactionManager.commitTransaction(transactionId)
+  commitTransaction(transactionId: string): Promise<void> {
+    return this.#transactionManager.commitTransaction(transactionId)
   }
 
   /**
    * Rolls back a transaction.
    */
-  async rollbackTransaction(transactionId: string): Promise<void> {
-    return await this.#transactionManager.rollbackTransaction(transactionId)
+  rollbackTransaction(transactionId: string): Promise<void> {
+    return this.#transactionManager.rollbackTransaction(transactionId)
   }
 
   /**
