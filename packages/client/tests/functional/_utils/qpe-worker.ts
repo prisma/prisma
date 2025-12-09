@@ -1,4 +1,5 @@
 import events from 'node:events'
+import { promisify } from 'node:util'
 import { type MessagePort, parentPort } from 'node:worker_threads'
 
 import { serve, type ServerType } from '@hono/node-server'
@@ -118,8 +119,8 @@ async function handleStart(message: QpeWorkerStartMessage): Promise<QpeWorkerRea
 
 async function handleShutdown(): Promise<QpeWorkerShutdownResponse> {
   if (server) {
-    server.net.close()
-    await server.qpe.shutdown()
+    const closeNetServer = promisify(server.net.close.bind(server.net))
+    await Promise.all([closeNetServer(), server.qpe.shutdown()])
     server = undefined
   }
 
