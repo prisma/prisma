@@ -125,8 +125,17 @@ function setupTestSuiteMatrix(
         if (clientMeta.clientEngineExecutor === 'remote') {
           qpeWorker = new Worker(path.join(__dirname, 'qpe-worker-entry.cjs'))
 
+          const qpeStartupTimeoutMs = 10_000
+
           const { hostname, port } = await new Promise<QpeWorkerReadyResponse>((resolve, reject) => {
+            const timeoutId = setTimeout(async () => {
+              await qpeWorker!.terminate()
+              qpeWorker = undefined
+              reject(new Error(`QPE worker startup timed out after ${qpeStartupTimeoutMs}ms`))
+            }, qpeStartupTimeoutMs).unref()
+
             qpeWorker!.once('message', (response: QpeWorkerResponse) => {
+              clearTimeout(timeoutId)
               if (response.type === 'ready') {
                 resolve(response)
               } else if (response.type === 'error') {
