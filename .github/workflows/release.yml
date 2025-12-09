@@ -42,6 +42,9 @@ on:
       forceIntegrationRelease:
         description: 'Check to force an integration release for any given branch name'
         type: boolean
+      skipNpmTag:
+        description: 'If set, the NPM release will be published without a tag'
+        type: boolean
 
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
@@ -53,6 +56,7 @@ env:
   ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
   DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
   FORCE_INTEGRATION_RELEASE: ${{ github.event.inputs.forceIntegrationRelease || 'false' }}
+  SKIP_NPM_TAG: ${{ github.event.inputs.skipNpmTag || 'false' }}
 
   FAILURE_TITLE_TEMPLATE: >-
     ${{
