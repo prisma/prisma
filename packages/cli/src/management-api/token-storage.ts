@@ -4,7 +4,7 @@ import type { Tokens, TokenStorage } from '@prisma/management-api-sdk'
 
 const debug = Debug('prisma:cli:management-api:token-storage')
 
-function tokensToCredentials(tokens: Tokens): { workspaceId: string; token: string; refreshToken: string } {
+function tokensToCredentials(tokens: Tokens): { workspaceId: string; token: string; refreshToken?: string } {
   return {
     workspaceId: tokens.workspaceId,
     token: tokens.accessToken,
@@ -12,7 +12,7 @@ function tokensToCredentials(tokens: Tokens): { workspaceId: string; token: stri
   }
 }
 
-function credentialsToTokens(credentials: { workspaceId: string; token: string; refreshToken: string }): Tokens {
+function credentialsToTokens(credentials: { workspaceId: string; token: string; refreshToken?: string }): Tokens {
   return {
     workspaceId: credentials.workspaceId,
     accessToken: credentials.token,
