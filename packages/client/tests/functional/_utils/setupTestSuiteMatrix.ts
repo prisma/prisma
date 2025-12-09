@@ -136,10 +136,15 @@ function setupTestSuiteMatrix(
 
             qpeWorker!.once('message', (response: QpeWorkerResponse) => {
               clearTimeout(timeoutId)
-              if (response.type === 'ready') {
-                resolve(response)
-              } else if (response.type === 'error') {
-                reject(new Error(response.message))
+              switch (response.type) {
+                case 'ready':
+                  resolve(response)
+                  break
+                case 'error':
+                  reject(new Error(response.message))
+                  break
+                default:
+                  reject(new Error(`Unexpected response type: ${response.type}`))
               }
             })
 
@@ -255,10 +260,15 @@ function setupTestSuiteMatrix(
 
               new Promise<void>((resolve, reject) => {
                 qpeWorker!.once('message', (response: QpeWorkerResponse) => {
-                  if (response.type === 'shutdown-complete') {
-                    resolve()
-                  } else if (response.type === 'error') {
-                    reject(new Error(response.message))
+                  switch (response.type) {
+                    case 'shutdown-complete':
+                      resolve()
+                      break
+                    case 'error':
+                      reject(new Error(response.message))
+                      break
+                    default:
+                      reject(new Error(`Unexpected response type: ${response.type}`))
                   }
                 })
 
