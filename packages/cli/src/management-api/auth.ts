@@ -104,7 +104,9 @@ export class LoginState {
   }
 
   async handleCallback(url: URL): Promise<void> {
-    if (url.pathname !== '/auth/callback') return
+    if (url.pathname !== '/auth/callback') {
+      throw new AuthError('Not a callback')
+    }
 
     const params = url.searchParams
 
