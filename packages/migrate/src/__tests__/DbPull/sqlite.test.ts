@@ -234,6 +234,99 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         "
       `)
     })
+
+    test('--url overrides config datasource URL when datasource exists in config', async () => {
+      ctx.fixture('introspection/sqlite')
+      ctx.setDatasource({
+        url: 'file:./other.db',
+      })
+
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+      await expect(result).resolves.toBe('')
+
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "sqlite"
+        }
+
+        model Post {
+          authorId  Int
+          content   String?
+          createdAt DateTime @default(now())
+          id        Int      @id @default(autoincrement())
+          published Boolean  @default(false)
+          title     String
+          author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+        }
+
+        model Profile {
+          bio    String?
+          id     Int     @id @default(autoincrement())
+          userId Int     @unique(map: "Profile.userId")
+          user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+        }
+
+        model User {
+          email   String   @unique(map: "User.email")
+          id      Int      @id @default(autoincrement())
+          name    String?
+          posts   Post[]
+          profile Profile?
+        }
+
+        "
+      `)
+    })
+
+    test('--url works when no datasource exists in config', async () => {
+      ctx.fixture('introspection/sqlite')
+
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+      await expect(result).resolves.toBe('')
+
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "sqlite"
+        }
+
+        model Post {
+          authorId  Int
+          content   String?
+          createdAt DateTime @default(now())
+          id        Int      @id @default(autoincrement())
+          published Boolean  @default(false)
+          title     String
+          author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+        }
+
+        model Profile {
+          bio    String?
+          id     Int     @id @default(autoincrement())
+          userId Int     @unique(map: "Profile.userId")
+          user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+        }
+
+        model User {
+          email   String   @unique(map: "User.email")
+          id      Int      @id @default(autoincrement())
+          name    String?
+          posts   Post[]
+          profile Profile?
+        }
+
+        "
+      `)
+    })
   })
 
   it('should succeed when schema and db do match', async () => {
