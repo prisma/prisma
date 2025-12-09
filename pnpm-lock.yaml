@@ -423,9 +423,6 @@ importers:
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
-      '@prisma/credentials-store':
-        specifier: workspace:*
-        version: link:../credentials-store
       '@prisma/dev':
         specifier: 0.15.0
         version: 0.15.0(typescript@5.4.5)
@@ -472,6 +469,9 @@ importers:
       '@prisma/client-generator-registry':
         specifier: workspace:*
         version: link:../client-generator-registry
+      '@prisma/credentials-store':
+        specifier: workspace:*
+        version: link:../credentials-store
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug

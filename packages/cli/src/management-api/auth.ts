@@ -37,7 +37,8 @@ export async function login(options: LoginOptions): Promise<void> {
         await state.handleCallback(url)
       } catch (error) {
         res.statusCode = 400
-        res.end(error.message)
+        const message = error instanceof Error ? error.message : String(error)
+        res.end(message)
         reject(error)
         return
       }
