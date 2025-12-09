@@ -1,11 +1,12 @@
 import type { Context } from '@opentelemetry/api'
-import {
+import type {
   EngineSpan,
+  EngineTraceEvent,
   ExtendedSpanOptions,
-  getGlobalTracingHelper,
   SpanCallback,
   TracingHelper,
 } from '@prisma/instrumentation-contract'
+import { getGlobalTracingHelper } from '@prisma/instrumentation-contract'
 
 export const disabledTracingHelper: TracingHelper = {
   isEnabled() {
@@ -15,7 +16,7 @@ export const disabledTracingHelper: TracingHelper = {
     // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
     // If traceparent ends with -00 this trace will not be sampled
     // the query engine needs the `10` for the span and trace id otherwise it does not parse this
-    return `00-10-10-00`
+    return `00 - 10 - 10-00`
   },
 
   dispatchEngineSpans() {},
@@ -42,8 +43,8 @@ class DynamicTracingHelper implements TracingHelper {
     return this.getTracingHelper().getTraceParent(context)
   }
 
-  dispatchEngineSpans(spans: EngineSpan[]) {
-    return this.getTracingHelper().dispatchEngineSpans(spans)
+  dispatchEngineSpans(spans: EngineSpan[], logs?: EngineTraceEvent[]) {
+    return this.getTracingHelper().dispatchEngineSpans(spans, logs)
   }
 
   getActiveContext() {

@@ -12,6 +12,7 @@ import {
 import type {
   EngineSpan,
   EngineSpanKind,
+  EngineTraceEvent,
   ExtendedSpanOptions,
   SpanCallback,
   TracingHelper,
@@ -23,7 +24,7 @@ const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
 // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
 // If traceparent ends with -00 this trace will not be sampled
 // the query engine needs the `10` for the span and trace id otherwise it does not parse this
-const nonSampledTraceParent = `00-10-10-00`
+const nonSampledTraceParent = `00 - 10 - 10-00`
 
 type Options = {
   tracerProvider: TracerProvider
@@ -56,18 +57,18 @@ export class ActiveTracingHelper implements TracingHelper {
   getTraceParent(context?: Context | undefined): string {
     const span = trace.getSpanContext(context ?? _context.active())
     if (span) {
-      return `00-${span.traceId}-${span.spanId}-0${span.traceFlags}`
+      return `00 - ${span.traceId} -${span.spanId} -0${span.traceFlags} `
     }
     return nonSampledTraceParent
   }
 
-  dispatchEngineSpans(spans: EngineSpan[]): void {
+  dispatchEngineSpans(spans: EngineSpan[], logs?: EngineTraceEvent[]): void {
     const tracer = this.tracerProvider.getTracer('prisma')
     const linkIds = new Map<string, string>()
     const roots = spans.filter((span) => span.parentId === null)
 
     for (const root of roots) {
-      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreSpanTypes)
+      dispatchEngineSpan(tracer, root, spans, logs, linkIds, this.ignoreSpanTypes)
     }
   }
 
@@ -86,7 +87,7 @@ export class ActiveTracingHelper implements TracingHelper {
 
     const tracer = this.tracerProvider.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
-    const name = `prisma:client:${options.name}`
+    const name = `prisma: client:${options.name} `
 
     if (shouldIgnoreSpan(name, this.ignoreSpanTypes)) {
       return callback()
@@ -109,6 +110,7 @@ function dispatchEngineSpan(
   tracer: Tracer,
   engineSpan: EngineSpan,
   allSpans: EngineSpan[],
+  logs: EngineTraceEvent[] | undefined,
   linkIds: Map<string, string>,
   ignoreSpanTypes: (string | RegExp)[],
 ) {
@@ -141,9 +143,18 @@ function dispatchEngineSpan(
       )
     }
 
+    if (logs) {
+      for (const log of logs) {
+        if (log.spanId === engineSpan.id) {
+          const { message, ...attributes } = log.attributes
+          span.addEvent(message ?? '', attributes as Attributes, log.timestamp)
+        }
+      }
+    }
+
     const children = allSpans.filter((s) => s.parentId === engineSpan.id)
     for (const child of children) {
-      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreSpanTypes)
+      dispatchEngineSpan(tracer, child, allSpans, logs, linkIds, ignoreSpanTypes)
     }
 
     span.end(engineSpan.endTime)

@@ -1,15 +1,16 @@
 import { login, LoginOptions, refreshToken } from './auth'
 import { createManagementApiClient } from './client'
-import { loadCredentials, saveCredentials } from './credentials'
+import { CredentialStorage, defaultCredentialsStorage } from './credentials'
 
-// TODO: it should take a credential storage as an argument
-// and not hardcode `loadCredentials`/`saveCredentials` functions.
-export async function createAuthenticatedManagementApiClient(options: LoginOptions) {
-  let authResult = (await loadCredentials()) ?? (await login(options))
+export async function createAuthenticatedManagementApiClient(
+  options: LoginOptions,
+  storage: CredentialStorage = defaultCredentialsStorage,
+) {
+  let authResult = (await storage.load()) ?? (await login(options))
 
   const tokenRefreshHandler = async () => {
     authResult = await refreshToken(authResult.refreshToken)
-    await saveCredentials(authResult)
+    await storage.save(authResult)
     return { token: authResult.token }
   }
 

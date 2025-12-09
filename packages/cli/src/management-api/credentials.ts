@@ -31,3 +31,13 @@ export async function saveCredentials(credentials: Credentials): Promise<void> {
   await fs.mkdir(credentialsFileDirectoryPath, { recursive: true })
   await fs.writeFile(credentialsFilePath, JSON.stringify(credentials, null, 2))
 }
+
+export interface CredentialStorage {
+  load(): Promise<Credentials | undefined>
+  save(credentials: Credentials): Promise<void>
+}
+
+export const defaultCredentialsStorage: CredentialStorage = {
+  load: loadCredentials,
+  save: saveCredentials,
+}
