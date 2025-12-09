@@ -494,8 +494,8 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@prisma/management-api-sdk':
-        specifier: file:/Users/flo/dev/pdp-control-plane/packages/management-api-sdk
-        version: file:../pdp-control-plane/packages/management-api-sdk
+        specifier: 0.2.0
+        version: 0.2.0
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
@@ -3577,8 +3577,8 @@ packages:
   '@prisma/get-platform@6.8.2':
     resolution: {integrity: sha512-vXSxyUgX3vm1Q70QwzwkjeYfRryIvKno1SXbIqwSptKwqKzskINnDUcx85oX+ys6ooN2ATGSD0xN2UTfg6Zcow==}
 
-  '@prisma/management-api-sdk@file:../pdp-control-plane/packages/management-api-sdk':
-    resolution: {directory: ../pdp-control-plane/packages/management-api-sdk, type: directory}
+  '@prisma/management-api-sdk@0.2.0':
+    resolution: {integrity: sha512-ZFY5v3r2l4cx05zMNO4Wpu5ihW811xa9TytTS76Tal8oYHAPAUkSgNJZcRIPu5iYfs9LqOFegoonX1vIG0YVfw==}
 
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
@@ -10168,7 +10168,7 @@ snapshots:
     dependencies:
       '@prisma/debug': 6.8.2
 
-  '@prisma/management-api-sdk@file:../pdp-control-plane/packages/management-api-sdk':
+  '@prisma/management-api-sdk@0.2.0':
     dependencies:
       openapi-fetch: 0.14.0
 

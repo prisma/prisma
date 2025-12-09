@@ -124,7 +124,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/management-api-sdk": "file:/Users/flo/dev/pdp-control-plane/packages/management-api-sdk",
+    "@prisma/management-api-sdk": "0.2.0",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
     "@types/better-sqlite3": "7.6.12",
