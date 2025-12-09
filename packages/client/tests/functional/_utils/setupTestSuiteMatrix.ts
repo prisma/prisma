@@ -128,8 +128,10 @@ function setupTestSuiteMatrix(
           const qpeStartupTimeoutMs = 10_000
 
           const { hostname, port } = await new Promise<QpeWorkerReadyResponse>((resolve, reject) => {
-            const timeoutId = setTimeout(async () => {
-              await qpeWorker!.terminate()
+            const timeoutId = setTimeout(() => {
+              void qpeWorker!
+                .terminate()
+                .catch((err) => console.error('Error terminating QPE worker due to startup timeout:', err))
               qpeWorker = undefined
               reject(new Error(`QPE worker startup timed out after ${qpeStartupTimeoutMs}ms`))
             }, qpeStartupTimeoutMs).unref()
