@@ -109,7 +109,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Validate.new().parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -120,7 +120,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -131,7 +131,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -145,7 +145,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbExecute.new().parse(['--file=./script.sql'], config, ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -156,7 +156,7 @@ describe('[wasm] incomplete-schemas', () => {
         await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -167,7 +167,7 @@ describe('[wasm] incomplete-schemas', () => {
         await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -178,7 +178,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Validate.new().parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -190,7 +190,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Format.new().parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Missing required environment variable: SOME_UNDEFINED_DB"`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
         )
       }
     })
@@ -221,7 +221,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"The datasource property is required in your Prisma config file when using prisma db push."`,
+          `"The datasource.url property is required in your Prisma config file when using prisma db push."`,
         )
       }
     })
@@ -232,7 +232,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"The datasource property is required in your Prisma config file when using prisma db pull."`,
+          `"The datasource.url property is required in your Prisma config file when using prisma db pull."`,
         )
       }
     })
@@ -245,7 +245,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbExecute.new().parse(['--file=./script.sql'], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"The datasource property is required in your Prisma config file when using prisma db execute."`,
+          `"The datasource.url property is required in your Prisma config file when using prisma db execute."`,
         )
       }
     })
@@ -256,7 +256,7 @@ describe('[wasm] incomplete-schemas', () => {
         await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"The datasource property is required in your Prisma config file when using prisma migrate reset."`,
+          `"The datasource.url property is required in your Prisma config file when using prisma migrate reset."`,
         )
       }
     })
@@ -267,7 +267,7 @@ describe('[wasm] incomplete-schemas', () => {
         await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"The datasource property is required in your Prisma config file when using prisma migrate dev."`,
+          `"The datasource.url property is required in your Prisma config file when using prisma migrate dev."`,
         )
       }
     })

@@ -726,7 +726,7 @@ describe('loadConfigFromFile', () => {
         _tag: 'ConfigLoadError',
         error: {
           name: 'PrismaConfigEnvError',
-          message: 'Missing required environment variable: UNDEFINED_VARIABLE',
+          message: 'Cannot resolve environment variable: UNDEFINED_VARIABLE.',
         },
       })
     })
