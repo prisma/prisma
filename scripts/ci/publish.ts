@@ -462,7 +462,7 @@ async function publish() {
     '--dry-run': Boolean,
     '--release': String, // TODO What does that do? Can we remove this? probably
     '--test': Boolean,
-    '--skip-npm-tag': Boolean,
+    '--custom-dist-tag': String,
   })
 
   if (!process.env.GITHUB_REF_NAME) {
@@ -487,8 +487,8 @@ async function publish() {
     // and then replace the args['--release'] with it
   }
 
-  if (process.env.SKIP_NPM_TAG === 'true') {
-    args['--skip-npm-tag'] = true
+  if (process.env.CUSTOM_DIST_TAG) {
+    args['--custom-dist-tag'] = process.env.CUSTOM_DIST_TAG
   }
 
   if (!args['--test'] && !args['--publish'] && !dryRun) {
@@ -558,8 +558,9 @@ async function publish() {
     tag = 'dev'
   }
 
-  if (args['--skip-npm-tag']) {
-    tag = undefined
+  if (args['--custom-dist-tag']) {
+    console.log(`Using custom dist tag: ${args['--custom-dist-tag']}`)
+    tag = args['--custom-dist-tag']
   }
 
   console.log({
@@ -592,8 +593,8 @@ async function publish() {
       }
       const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
       if (!passing && process.env.SKIP_ECOSYSTEMTESTS_CHECK !== 'true') {
-        throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag ?? 'N/A'} npm tag!
-Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest`)
+        throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag} npm tag!
+Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
       }
     }
 
@@ -704,7 +705,7 @@ async function publishPackages(
   publishOrder: string[][],
   dryRun: boolean,
   prismaVersion: string,
-  tag?: string,
+  tag: string,
   releaseVersion?: string,
 ): Promise<void> {
   // we need to release a new `prisma` CLI in all cases.
@@ -769,7 +770,7 @@ async function publishPackages(
 
       const newVersion = prismaVersion
 
-      console.log(`\nPublishing ${magenta(`${pkgName}@${newVersion}`)}${tag ? dim(` on ${tag}`) : ''}`)
+      console.log(`\nPublishing ${magenta(`${pkgName}@${newVersion}`)} ${dim(`on ${tag}`)}`)
 
       // Why is this needed?
       // Was introduced in the first version of this script on Apr 14, 2020
@@ -812,7 +813,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --access public${tag ? ` --tag ${tag}` : ''}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }
