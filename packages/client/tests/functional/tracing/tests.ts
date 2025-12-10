@@ -27,53 +27,6 @@ type Tree = {
   children?: Tree[]
 }
 
-function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
-  const childrenSpans = spans
-    .sort((a, b) => {
-      const normalizeNameForComparison = (name: string) => {
-        // Replace client engine specific spans with their classic names as sort keys
-        // to ensure stable order regardless of the engine type.
-        for (const prefix of ['prisma:client', 'prisma:accelerate']) {
-          if (
-            [
-              `${prefix}:db_query`,
-              `${prefix}:start_transaction`,
-              `${prefix}:commit_transaction`,
-              `${prefix}:rollback_transaction`,
-            ].includes(name)
-          ) {
-            return 'prisma:engine:' + name.slice(`${prefix}:`.length)
-          }
-        }
-        return name
-      }
-      // Ensures fixed order of children spans regardless of the
-      // actual timings. Why use name instead of start time? Sometimes
-      // things happen in parallel/different order and startTime does not
-      // provide stable ordering guarantee.
-      return normalizeNameForComparison(a.name).localeCompare(normalizeNameForComparison(b.name))
-    })
-    .filter((span) => span.parentSpanContext?.spanId === rootSpan.spanContext().spanId)
-
-  const tree: Tree = {
-    name: rootSpan.name,
-  }
-
-  if (childrenSpans.length > 0) {
-    tree.children = childrenSpans.map((span) => buildTree(span, spans))
-  }
-
-  if (Object.keys(rootSpan.attributes).length > 0) {
-    tree.attributes = rootSpan.attributes
-  }
-
-  if (rootSpan.kind !== SpanKind.INTERNAL) {
-    tree.kind = SpanKind[rootSpan.kind]
-  }
-
-  return tree
-}
-
 declare let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
@@ -108,6 +61,54 @@ afterAll(() => {
 
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter, relationMode, clientEngineExecutor }, _suiteMeta, clientMeta) => {
+    const executorSpanInfix = clientEngineExecutor === 'remote' ? 'accelerate' : 'client'
+
+    function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
+      const childrenSpans = spans
+        .sort((a, b) => {
+          const normalizeNameForComparison = (name: string) => {
+            // Replace client engine specific spans with their classic names as sort keys
+            // to ensure stable order regardless of the engine type.
+            const prefix = `prisma:${executorSpanInfix}`
+            if (
+              [
+                `${prefix}:db_query`,
+                `${prefix}:start_transaction`,
+                `${prefix}:commit_transaction`,
+                `${prefix}:rollback_transaction`,
+              ].includes(name)
+            ) {
+              return 'prisma:engine:' + name.slice(`${prefix}:`.length)
+            }
+            return name
+          }
+          // Ensures fixed order of children spans regardless of the
+          // actual timings. Why use name instead of start time? Sometimes
+          // things happen in parallel/different order and startTime does not
+          // provide stable ordering guarantee.
+          return normalizeNameForComparison(a.name).localeCompare(normalizeNameForComparison(b.name))
+        })
+        .filter((span) => span.parentSpanContext?.spanId === rootSpan.spanContext().spanId)
+
+      const tree: Tree = {
+        name: rootSpan.name,
+      }
+
+      if (childrenSpans.length > 0) {
+        tree.children = childrenSpans.map((span) => buildTree(span, spans))
+      }
+
+      if (Object.keys(rootSpan.attributes).length > 0) {
+        tree.attributes = rootSpan.attributes
+      }
+
+      if (rootSpan.kind !== SpanKind.INTERNAL) {
+        tree.kind = SpanKind[rootSpan.kind]
+      }
+
+      return tree
+    }
+
     const isMongoDb = provider === Providers.MONGODB
     const isMySql = provider === Providers.MYSQL
     const isSqlServer = provider === Providers.SQLSERVER
@@ -137,17 +138,9 @@ testMatrix.setupTestSuite(
       })
     }
 
-    function maybeRemoteSpan(name: string): string {
-      if (clientEngineExecutor === 'remote') {
-        return `prisma:accelerate:${name}`
-      } else {
-        return `prisma:client:${name}`
-      }
-    }
-
     function dbQuery(statement: string): Tree {
       const span = {
-        name: maybeRemoteSpan('db_query'),
+        name: `prisma:${executorSpanInfix}:db_query`,
         kind: 'CLIENT',
         attributes: {
           'db.query.text': statement,
@@ -285,7 +278,7 @@ testMatrix.setupTestSuite(
     }
 
     function itxOperation(operation: 'start' | 'commit' | 'rollback'): Tree {
-      const name = maybeRemoteSpan(`${operation}_transaction`)
+      const name = `prisma:${executorSpanInfix}:${operation}_transaction`
 
       let children: Tree[] | undefined
 
