@@ -7,7 +7,7 @@ on:
       - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for `pull_request` (see below) and all files
-      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
       - 'LICENSE'
@@ -23,7 +23,7 @@ on:
   pull_request:
     paths-ignore:
       # Any update here needs to be done for `branches` (see above) and all files
-      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
       - 'LICENSE'
