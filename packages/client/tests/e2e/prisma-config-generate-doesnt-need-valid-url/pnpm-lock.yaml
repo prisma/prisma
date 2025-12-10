@@ -11,9 +11,6 @@ importers:
       '@prisma/client':
         specifier: /tmp/prisma-client-0.0.0.tgz
         version: file:../../tmp/prisma-client-0.0.0.tgz(prisma@file:../../tmp/prisma-0.0.0.tgz(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.7.3))(typescript@5.7.3)
-      '@prisma/client-runtime-utils':
-        specifier: /tmp/prisma-client-runtime-utils-0.0.0.tgz
-        version: file:../../tmp/prisma-client-runtime-utils-0.0.0.tgz
     devDependencies:
       '@prisma/config':
         specifier: /tmp/prisma-config-0.0.0.tgz
@@ -94,7 +91,7 @@ packages:
     version: 0.0.0
 
   '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-JusJz+m8IHFX1tt5SeKcWwaOk/6SnI8+wJm9uljgIhwOGI7fs2hX8NmsUXk9fw9XuT3EdKICvcZfKDB+t2zk8A==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-WoOyxgm3JiAsN0cNkZuWjttmHS3cb2+XQsfLTo6u5vdHKzHfn0CwVxBu2htHBUvRXx6/An7iQZ89a2zIUU3h3g==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     peerDependencies:
@@ -107,7 +104,7 @@ packages:
         optional: true
 
   '@prisma/config@file:../../tmp/prisma-config-0.0.0.tgz':
-    resolution: {integrity: sha512-x8H46vS3sOeFFUWFF/jleprCGRJq3B0cjXdC+MT88OJWKj+9npfw5/02FTBOyRLusk8Q4hqXWzfWHzHO/k/3mA==, tarball: file:../../tmp/prisma-config-0.0.0.tgz}
+    resolution: {integrity: sha512-9KTA4pCvIfpRDFDWSV3dDq6F7reTr+l6JlCsSP5EN8wpmvPli4iZKhwwKBI9Szd+h9I/lPiPfROGyrCmGp5cqg==, tarball: file:../../tmp/prisma-config-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/debug@6.8.2':
@@ -430,7 +427,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-e+svZLQpbg8yyXncdy5oZB5+eF8L5DxkcoXkhvEsthBK2NnXs5iYFDWp0E8sf4sfbTNLV7xFCXViDJWMxyWtHA==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-+eIdpy2Hdn1fY/PGuqdzNa0pOH8oj66Y+c3tF/lmV2E9hFLZyV0uDHcaeaNdRSif7L/WLVPub06muq/vS3yvXw==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     hasBin: true
