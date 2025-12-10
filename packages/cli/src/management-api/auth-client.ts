@@ -1,17 +1,16 @@
-import { login, LoginOptions, refreshToken } from './auth'
-import { createManagementApiClient } from './client'
-import { loadCredentials, saveCredentials } from './credentials'
+import type { ManagementAPI } from '@prisma/management-api-sdk'
+import { createManagementAPI } from '@prisma/management-api-sdk'
 
-// TODO: it should take a credential storage as an argument
-// and not hardcode `loadCredentials`/`saveCredentials` functions.
-export async function createAuthenticatedManagementApiClient(options: LoginOptions) {
-  let authResult = (await loadCredentials()) ?? (await login(options))
+import { FileTokenStorage } from './token-storage'
 
-  const tokenRefreshHandler = async () => {
-    authResult = await refreshToken(authResult.refreshToken)
-    await saveCredentials(authResult)
-    return { token: authResult.token }
-  }
+const CLIENT_ID = 'cmi4ttoor03pv2wco4526rnin'
 
-  return createManagementApiClient(authResult.token, tokenRefreshHandler)
+export function createAuthenticatedManagementAPI(): ManagementAPI {
+  const tokenStorage = new FileTokenStorage()
+
+  return createManagementAPI({
+    clientId: CLIENT_ID,
+    redirectUri: 'http://localhost:0/auth/callback', // Not used when tokens already exist
+    tokenStorage,
+  })
 }

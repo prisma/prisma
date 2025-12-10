@@ -216,6 +216,54 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
   })
 
+  it('--url overrides config datasource URL when datasource exists in config', async () => {
+    ctx.fixture('schema-only-sqlite')
+    ctx.setDatasource({
+      url: 'file:./other.db',
+    })
+
+    const result = MigrateDev.new().parse(['--name=first', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      prisma/migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+      "
+    `)
+  })
+
+  it('--url works when no datasource exists in config', async () => {
+    ctx.fixture('schema-only-sqlite')
+    // Don't set datasource - test that --url creates it
+
+    const result = MigrateDev.new().parse(['--name=first', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      prisma/migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+      "
+    `)
+  })
+
   it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first'], await ctx.config(), ctx.configDir())
