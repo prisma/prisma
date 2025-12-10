@@ -28,7 +28,7 @@ export async function loadConfig(
           diagnostics.push({
             _tag: 'warn',
             value: (formatters) => () => {
-              formatters.log(formatters.dim(`Missing required environment variable: ${error.error.message}`))
+              formatters.log(formatters.dim(`${error.error.message}`))
             },
           })
         }

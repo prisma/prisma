@@ -16,7 +16,7 @@ describe('drop', () => {
 
       const result = DbDrop.new().parse(['--preview-feature'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"The datasource property is required in your Prisma config file when using prisma db drop."`,
+        `"The datasource.url property is required in your Prisma config file when using prisma db drop."`,
       )
     })
   })

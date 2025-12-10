@@ -19,7 +19,7 @@ describe('push', () => {
 
       const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"The datasource property is required in your Prisma config file when using prisma db push."`,
+        `"The datasource.url property is required in your Prisma config file when using prisma db push."`,
       )
     })
   })
