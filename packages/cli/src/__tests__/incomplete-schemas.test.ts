@@ -109,7 +109,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Validate.new().parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -120,7 +120,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbPush.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -131,7 +131,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -145,7 +145,7 @@ describe('[wasm] incomplete-schemas', () => {
         await DbExecute.new().parse(['--file=./script.sql'], config, ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -156,7 +156,7 @@ describe('[wasm] incomplete-schemas', () => {
         await MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -167,7 +167,7 @@ describe('[wasm] incomplete-schemas', () => {
         await MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -178,7 +178,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Validate.new().parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
@@ -190,7 +190,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Format.new().parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
-          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB.`,
+          `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
         )
       }
     })
