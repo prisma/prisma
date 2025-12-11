@@ -219,7 +219,7 @@ export class RemoteExecutor implements Executor {
         this.#emitLogEvent(log)
       }
     }
-    if (extensions.traces) {
+    if (extensions.spans) {
       // FIXME: log events should be emitted in the context of the corresponding
       // spans to be consistent with the normal `ClientEngine` behavior. Our
       // current `TracingHelper` interface makes it challenging to do so.
@@ -227,7 +227,7 @@ export class RemoteExecutor implements Executor {
       // not use `dispatchEngineSpans` here at all and emit the spans directly.
       // The second option is probably better long term so we can get rid of
       // `dispatchEngineSpans` entirely when QC is in GA and the QE is gone.
-      this.#tracingHelper.dispatchEngineSpans(extensions.traces)
+      this.#tracingHelper.dispatchEngineSpans(extensions.spans)
     }
   }
 
