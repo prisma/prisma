@@ -19,6 +19,10 @@ export NODE_PATH=$(npm root --quiet -g) # make global packages available
 export NEXT_TELEMETRY_DISABLED=1
 export NO_COLOR=1
 
+# Ensure Bun is in PATH (in case it's not inherited from Dockerfile ENV)
+export BUN_INSTALL="${BUN_INSTALL:-/root/.bun}"
+export PATH="${BUN_INSTALL}/bin:${PATH}"
+
 # Script variables
 BASE_DIR=$(echo "$NAME" | awk -F "/" '{print $1}')
 PNPM_EXDEV_WARN_REGEX="WARN.*?EXDEV" # pnpm warns when it can't symlink
