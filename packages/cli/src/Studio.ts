@@ -210,7 +210,7 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
           !('tenant_id' in decodedPayload) ||
           typeof decodedPayload.tenant_id !== 'string'
         ) {
-          throw 'strucutare mismatch'
+          throw new Error('structure mismatch')
         }
 
         connectionURL.password = decodedPayload.secure_key
