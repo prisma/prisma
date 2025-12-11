@@ -180,13 +180,13 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
   postgresql: POSTGRES_STUDIO_STUFF,
   'prisma+postgres': {
     async createExecutor(connectionString, relativeTo) {
-      if (connectionString.includes('localhost')) {
+      const connectionURL = new URL(connectionString)
+
+      if (connectionURL.hostname === 'localhost' || connectionURL.hostname === '127.0.0.1') {
         // TODO: support `prisma dev` accelerate URLs.
 
         throw new Error('The "prisma+postgres" protocol with localhost is not supported in Prisma Studio yet.')
       }
-
-      const connectionURL = new URL(connectionString)
 
       const apiKey = connectionURL.searchParams.get(ACCELERATE_API_KEY_QUERY_PARAMETER)
 
