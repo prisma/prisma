@@ -227,7 +227,7 @@ export class RemoteExecutor implements Executor {
       // not use `dispatchEngineSpans` here at all and emit the spans directly.
       // The second option is probably better long term so we can get rid of
       // `dispatchEngineSpans` entirely when QC is in GA and the QE is gone.
-      this.#tracingHelper.dispatchEngineSpans(extensions.traces)
+      this.#tracingHelper.dispatchEngineSpans(extensions.traces, extensions.logs)
     }
   }
 
