@@ -139,7 +139,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
     // implemented for other adapters.
     if (value instanceof ArrayBuffer) {
-      result[i] = Array.from(new Uint8Array(value))
+      result[i] = Buffer.from(value)
       continue
     }
 
@@ -206,10 +206,6 @@ export function mapArg(arg: unknown, argType: ArgType, options?: PrismaLibSqlOpt
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
     return Buffer.from(arg, 'base64')
-  }
-
-  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
-    return new Uint8Array(arg)
   }
 
   return arg as InValue

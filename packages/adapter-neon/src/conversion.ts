@@ -346,17 +346,6 @@ function toJson(json: string): string {
 /* Binary data handling */
 /************************/
 
-/**
- * TODO:
- * 1. Check if using base64 would be more efficient than this encoding.
- * 2. Consider the possibility of eliminating re-encoding altogether
- *    and passing bytea hex format to the engine if that can be aligned
- *    with other adapters of the same database provider.
- */
-function encodeBuffer(buffer: Buffer) {
-  return Array.from(new Uint8Array(buffer))
-}
-
 /*
  * BYTEA - arbitrary raw binary strings
  */
@@ -370,8 +359,7 @@ const parsePgBytes = getTypeParser(ScalarColumnType.BYTEA) as (_: string) => Buf
 const parseBytesArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
 
 function normalizeByteaArray(serializedBytesArray) {
-  const buffers = parseBytesArray(serializedBytesArray)
-  return buffers.map((buf) => (buf ? encodeBuffer(buf) : null))
+  return parseBytesArray(serializedBytesArray)
 }
 
 /**
@@ -379,9 +367,8 @@ function normalizeByteaArray(serializedBytesArray) {
  * currently send a parsed Buffer or ArrayBuffer across JS to Rust
  * boundary.
  */
-function convertBytes(serializedBytes: string): number[] {
-  const buffer = parsePgBytes(serializedBytes)
-  return encodeBuffer(buffer)
+function convertBytes(serializedBytes: string): Buffer {
+  return parsePgBytes(serializedBytes)
 }
 
 /* BIT_ARRAY, VARBIT_ARRAY */
@@ -442,10 +429,6 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
     return Buffer.from(arg, 'base64')
-  }
-
-  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
-    return Buffer.from(arg)
   }
 
   // https://github.com/brianc/node-postgres/pull/2930
