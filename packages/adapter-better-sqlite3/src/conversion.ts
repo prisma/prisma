@@ -151,7 +151,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
     const value = row[i]
 
     if (value instanceof ArrayBuffer) {
-      result[i] = Buffer.from(value)
+      result[i] = new Uint8Array(value)
       continue
     }
 

@@ -134,7 +134,7 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
   }
 
   if (ArrayBuffer.isView(arg)) {
-    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
+    return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
   }
 
   return arg

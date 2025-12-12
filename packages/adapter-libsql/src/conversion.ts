@@ -139,7 +139,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
     // implemented for other adapters.
     if (value instanceof ArrayBuffer) {
-      result[i] = Buffer.from(value)
+      result[i] = new Uint8Array(value)
       continue
     }
 

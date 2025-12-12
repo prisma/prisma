@@ -428,7 +428,7 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 
   // https://github.com/brianc/node-postgres/pull/2930
   if (ArrayBuffer.isView(arg)) {
-    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
+    return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
   }
 
   return arg
