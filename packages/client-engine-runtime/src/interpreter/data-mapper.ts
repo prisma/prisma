@@ -263,6 +263,9 @@ function mapValue(
           return { $type: 'Bytes', value: Buffer.from(value.slice(2), 'hex').toString('base64') }
 
         case 'array':
+          if (Array.isArray(value)) {
+            return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
+          }
           if (value instanceof Uint8Array) {
             return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
           }
