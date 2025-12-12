@@ -136,6 +136,7 @@ export function mapDriverError(error: DriverError): MappedError {
         code: error.errno,
         message: error.sqlMessage ?? 'N/A',
         state: error.sqlState ?? 'N/A',
+        cause: error.cause && 'toString' in error.cause ? error.cause.toString() : undefined,
       }
   }
 }
@@ -144,6 +145,7 @@ type DriverError = {
   errno: number
   sqlMessage: string | null
   sqlState: string | null
+  cause?: any
 }
 
 function isDriverError(error: any): error is DriverError {
