@@ -350,8 +350,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
