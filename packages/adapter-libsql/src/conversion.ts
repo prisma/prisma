@@ -134,10 +134,6 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   for (let i = 0; i < row.length; i++) {
     const value = row[i]
 
-    // Convert array buffers to arrays of bytes.
-    // Base64 would've been more efficient but would collide with the existing
-    // logic that treats string values of type Bytes as raw UTF-8 bytes that was
-    // implemented for other adapters.
     if (value instanceof ArrayBuffer) {
       result[i] = new Uint8Array(value)
       continue
