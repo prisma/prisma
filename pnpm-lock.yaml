@@ -959,6 +959,9 @@ importers:
       '@prisma/sqlcommenter':
         specifier: workspace:*
         version: link:../sqlcommenter
+      klona:
+        specifier: 2.0.6
+        version: 2.0.6
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
