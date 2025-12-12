@@ -1,4 +1,5 @@
 import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
+import type { SqlError } from 'mariadb/types/share'
 
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   if (isDriverError(error)) {
@@ -136,6 +137,7 @@ export function mapDriverError(error: DriverError): MappedError {
         code: error.errno,
         message: error.sqlMessage ?? 'N/A',
         state: error.sqlState ?? 'N/A',
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         cause: error.cause && 'toString' in error.cause ? error.cause.toString() : undefined,
       }
   }
@@ -145,7 +147,7 @@ type DriverError = {
   errno: number
   sqlMessage: string | null
   sqlState: string | null
-  cause?: any
+  cause?: SqlError
 }
 
 function isDriverError(error: any): error is DriverError {

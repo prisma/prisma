@@ -173,7 +173,7 @@ export type MappedError =
       code: number
       message: string
       state: string
-      cause: string | undefined
+      cause?: string
     }
   | {
       kind: 'sqlite'
