@@ -137,8 +137,7 @@ export function mapDriverError(error: DriverError): MappedError {
         code: error.errno,
         message: error.sqlMessage ?? 'N/A',
         state: error.sqlState ?? 'N/A',
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-        cause: error.cause && 'toString' in error.cause ? error.cause.toString() : undefined,
+        cause: error.cause?.message ?? undefined,
       }
   }
 }
