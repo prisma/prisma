@@ -21,8 +21,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/no-model.prisma
-      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/no-model.prisma
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
@@ -49,8 +48,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
@@ -230,8 +228,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
@@ -318,8 +315,7 @@ describeMatrix(mongodbOnly, 'MongoDB', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms

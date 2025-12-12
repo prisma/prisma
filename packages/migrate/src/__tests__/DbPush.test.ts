@@ -93,6 +93,8 @@ describe('push', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Datasource "db": PostgreSQL database "tests-migrate-prisma-config-extensions" <location placeholder>
 
+      PostgreSQL database tests-migrate-prisma-config-extensions created at localhost:5432
+
       The PostgreSQL database "tests-migrate-prisma-config-extensions" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
@@ -413,8 +415,7 @@ describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
     const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
 
       The MongoDB database "tests-migrate-existing-db" at "localhost:27017" was successfully reset.
       Applying the following changes:
@@ -432,8 +433,7 @@ describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
       Applying the following changes:
 
       [+] Collection \`Post\`
