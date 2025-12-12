@@ -18,6 +18,7 @@ import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
+import { z } from 'zod'
 
 import packageJson from '../package.json' assert { type: 'json' }
 import { getPpgInfo } from './utils/ppgInfo'
@@ -56,6 +57,11 @@ const ADAPTER_FILE_NAME = 'adapter.js'
 const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
 
 const ACCELERATE_API_KEY_QUERY_PARAMETER = 'api_key'
+
+const AccelerateAPIKeyPayloadSchema = z.object({
+  secure_key: z.string(),
+  tenant_id: z.string(),
+})
 
 interface StudioStuff {
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
@@ -199,19 +205,9 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
       const [, payload] = apiKey.split('.')
 
       try {
-        const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'))
-
-        if (
-          typeof decodedPayload !== 'object' ||
-          decodedPayload === null ||
-          Array.isArray(decodedPayload) ||
-          !('secure_key' in decodedPayload) ||
-          typeof decodedPayload.secure_key !== 'string' ||
-          !('tenant_id' in decodedPayload) ||
-          typeof decodedPayload.tenant_id !== 'string'
-        ) {
-          throw new Error('structure mismatch')
-        }
+        const decodedPayload = AccelerateAPIKeyPayloadSchema.parse(
+          JSON.parse(Buffer.from(payload, 'base64').toString('utf-8')),
+        )
 
         connectionURL.password = decodedPayload.secure_key
         connectionURL.username = decodedPayload.tenant_id
