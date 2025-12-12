@@ -1,5 +1,5 @@
 import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
-import type { SqlError } from 'mariadb/types/share'
+import type { SqlError } from 'mariadb'
 
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   if (isDriverError(error)) {
