@@ -103,7 +103,7 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
   }
 }
 
-export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Uint8Array | A {
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Buffer | A {
   if (arg === null) {
     return null
   }
@@ -133,10 +133,6 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
     return Buffer.from(arg, 'base64')
   }
 
-  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
-    return Buffer.from(arg)
-  }
-
   if (ArrayBuffer.isView(arg)) {
     return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
   }
@@ -158,10 +154,6 @@ export function mapRow<A>(row: A[], fields?: mariadb.FieldInfo[]): (A | ResultVa
       case MariaDbColumnType.DATETIME:
       case MariaDbColumnType.DATETIME2:
         return new Date(`${value}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
-    }
-
-    if (Buffer.isBuffer(value)) {
-      return Array.from(value)
     }
 
     if (typeof value === 'bigint') {
