@@ -49,7 +49,15 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
   const additionalContent_ = additionalContent && format(`
 ${additionalContent.map(entry => `${entry}`).join('\n')}
   `)
+     const removedSchemaFlagNote = format(`
+${bold('Note')}
 
-  const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')
+  The --schema flag was removed in Prisma 7 for the "prisma db execute" command.
+  Use the new "--config" option to specify a custom schema path instead.
+  See issue #28915 for details.
+  `)
+
+
+  const help = [usage, commands, options_, examples_, additionalContent_ ,removedSchemaFlagNote].filter(Boolean).join('')
   return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
 }
