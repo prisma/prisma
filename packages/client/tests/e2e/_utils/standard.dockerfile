@@ -16,6 +16,6 @@ RUN npm i -g \
   @swc/jest@0.2.32
 
 RUN apt update && \
-  apt install iproute2 -y
+  apt install iproute2 jq -y
 
 CMD chmod +x ./e2e/_utils/standard.cmd.sh && ./e2e/_utils/standard.cmd.sh
