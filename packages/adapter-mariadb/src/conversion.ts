@@ -103,7 +103,7 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
   }
 }
 
-export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Uint8Array | A {
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Buffer | A {
   if (arg === null) {
     return null
   }
@@ -134,7 +134,7 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
   }
 
   if (ArrayBuffer.isView(arg)) {
-    return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
+    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
   }
 
   return arg
