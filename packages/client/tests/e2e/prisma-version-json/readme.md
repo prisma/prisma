@@ -6,7 +6,7 @@ This test verifies that `prisma version --json` outputs valid JSON that can be p
 
 - `prisma version --json` outputs valid JSON
 - The JSON output can be successfully parsed by `jq` (exit code 0)
-- The JSON contains expected fields (prisma, platform, engines)
+- The JSON contains some expected fields
 
 ## Running the test
 
