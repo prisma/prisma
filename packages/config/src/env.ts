@@ -1,6 +1,6 @@
 export class PrismaConfigEnvError extends Error {
   constructor(name: string) {
-    super(`Missing required environment variable: ${name}`)
+    super(`Cannot resolve environment variable: ${name}.`)
     this.name = 'PrismaConfigEnvError'
   }
 }

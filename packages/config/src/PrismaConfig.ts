@@ -19,12 +19,12 @@ export type ExperimentalConfig = {
 }
 
 const DatasourceShape = Shape.Struct({
-  url: Shape.String,
+  url: Shape.optional(Shape.String),
   shadowDatabaseUrl: Shape.optional(Shape.String),
 })
 
 export type Datasource = {
-  url: string
+  url?: string
   shadowDatabaseUrl?: string
 }
 

@@ -14,7 +14,7 @@ describe('prisma.config.ts', () => {
 
     const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma migrate deploy."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma migrate deploy."`,
     )
   })
 })
