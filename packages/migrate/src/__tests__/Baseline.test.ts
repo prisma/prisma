@@ -34,10 +34,12 @@ describe('Baselining', () => {
       // db pull
       const dbPull = DbPull.new().parse([], await ctx.config(), ctx.configDir())
       await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma.
+        "
+      `)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
+        "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
         - Introspecting based on datasource defined in prisma/schema.prisma
         ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
@@ -51,10 +53,12 @@ describe('Baselining', () => {
       // migrate reset --force
       const migrateReset = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
       await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma.
+        "
+      `)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
+        "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
         Database reset successful
 
@@ -70,10 +74,12 @@ describe('Baselining', () => {
 
         You can now edit it and apply it by running prisma migrate dev."
       `)
-      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma.
+        "
+      `)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
+        "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
         "
       `)
@@ -83,10 +89,12 @@ describe('Baselining', () => {
       // migrate dev
       const migrateDev = MigrateDev.new().parse([], await ctx.config(), ctx.configDir())
       await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma.
+        "
+      `)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
+        "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
         The following migration(s) have been applied:
@@ -115,10 +123,12 @@ describe('Baselining', () => {
       )
       await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
-      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma.
+        "
+      `)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "prod.db" <location placeholder>
+        "Datasource "my_db": SQLite database "prod.db" <location placeholder>
 
         Migration 20201231000000 marked as applied.
         "
@@ -129,10 +139,12 @@ describe('Baselining', () => {
       // migrate deploy
       const migrateDeployProd = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
       await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
-      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma.
+        "
+      `)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "prod.db" <location placeholder>
+        "Datasource "my_db": SQLite database "prod.db" <location placeholder>
 
         1 migration found in prisma/migrations
 

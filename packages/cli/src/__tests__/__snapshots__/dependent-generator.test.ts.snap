@@ -3,6 +3,7 @@
 exports[`should error when dependent generator is missing 1`] = `
 "Loaded Prisma config from prisma.config.ts.
 
+Prisma schema loaded from schema.prisma.
 Error: Generator "I depend on the client" requires generator "prisma-client-js", but it is missing in your schema.prisma.
 Please add it to your schema.prisma:
 
