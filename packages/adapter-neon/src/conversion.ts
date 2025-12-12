@@ -356,11 +356,7 @@ const parsePgBytes = getTypeParser(ScalarColumnType.BYTEA) as (_: string) => Buf
  * BYTEA_ARRAY - arrays of arbitrary raw binary strings
  */
 
-const parseBytesArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
-
-function normalizeByteaArray(serializedBytesArray) {
-  return parseBytesArray(serializedBytesArray)
-}
+const normalizeByteaArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
 
 function convertBytes(serializedBytes: string): Buffer {
   return parsePgBytes(serializedBytes)
