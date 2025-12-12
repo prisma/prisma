@@ -182,7 +182,7 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
     async createExecutor(connectionString, relativeTo) {
       const connectionURL = new URL(connectionString)
 
-      if (['localhost', '127.0.0.1', '::1'].includes(connectionURL.hostname)) {
+      if (['localhost', '127.0.0.1', '[::1]'].includes(connectionURL.hostname)) {
         // TODO: support `prisma dev` accelerate URLs.
 
         throw new Error('The "prisma+postgres" protocol with localhost is not supported in Prisma Studio yet.')
