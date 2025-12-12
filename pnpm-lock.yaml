@@ -473,8 +473,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/dev':
-        specifier: 0.0.0-dev.202512111908
-        version: 0.0.0-dev.202512111908(typescript@5.4.5)
+        specifier: 0.0.0-dev.202512121242
+        version: 0.0.0-dev.202512121242(typescript@5.4.5)
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
@@ -3565,17 +3565,11 @@ packages:
     peerDependencies:
       prettier: '*'
 
-  '@prisma/debug@6.8.2':
-    resolution: {integrity: sha512-4muBSSUwJJ9BYth5N8tqts8JtiLT8QI/RSAzEogwEfpbYGFo9mYsInsVo8dqXdPO2+Rm5OG5q0qWDDE3nyUbVg==}
-
-  '@prisma/dev@0.0.0-dev.202512111908':
-    resolution: {integrity: sha512-5kHENC5QU/LiHdOTzKfYAzs1SWKD5M7oDEt0HjLNpC/sUPhTgZldfuDeGnHv4EjX2rY3kJv+E/tRLAoXakCIBg==}
+  '@prisma/dev@0.0.0-dev.202512121242':
+    resolution: {integrity: sha512-6AGB0Z6q8tiCbGFfAq/nc3gjBLA1kzPCJcPeISDmWV+HxyyFt4ctMkk+zYJPodJkWjfrbJ0i3W1MjR5VMKFhig==}
 
   '@prisma/engines-version@7.2.0-2.e042035cb3c6e24bbedc3e886c89675fbd6145e1':
     resolution: {integrity: sha512-PTUVEXqszKaaj9CeV63SP3uYOfKl8KF6PGbQp13QcqYcZ7nR2jqZW5gCGrqmYw9VIGiwrCNw3DRhaelCcVCRAw==}
-
-  '@prisma/get-platform@6.8.2':
-    resolution: {integrity: sha512-vXSxyUgX3vm1Q70QwzwkjeYfRryIvKno1SXbIqwSptKwqKzskINnDUcx85oX+ys6ooN2ATGSD0xN2UTfg6Zcow==}
 
   '@prisma/management-api-sdk@0.2.0':
     resolution: {integrity: sha512-ZFY5v3r2l4cx05zMNO4Wpu5ihW811xa9TytTS76Tal8oYHAPAUkSgNJZcRIPu5iYfs9LqOFegoonX1vIG0YVfw==}
@@ -10103,16 +10097,13 @@ snapshots:
       make-synchronized: 0.4.2
       prettier: 3.5.3
 
-  '@prisma/debug@6.8.2': {}
-
-  '@prisma/dev@0.0.0-dev.202512111908(typescript@5.4.5)':
+  '@prisma/dev@0.0.0-dev.202512121242(typescript@5.4.5)':
     dependencies:
       '@electric-sql/pglite': 0.3.2
       '@electric-sql/pglite-socket': 0.0.6(@electric-sql/pglite@0.3.2)
       '@electric-sql/pglite-tools': 0.2.7(@electric-sql/pglite@0.3.2)
       '@hono/node-server': 1.19.6(hono@4.10.6)
       '@mrleebo/prisma-ast': 0.12.1
-      '@prisma/get-platform': 6.8.2
       '@prisma/query-plan-executor': 6.18.0
       foreground-child: 3.3.1
       get-port-please: 3.1.2
@@ -10128,10 +10119,6 @@ snapshots:
       - typescript
 
   '@prisma/engines-version@7.2.0-2.e042035cb3c6e24bbedc3e886c89675fbd6145e1': {}
-
-  '@prisma/get-platform@6.8.2':
-    dependencies:
-      '@prisma/debug': 6.8.2
 
   '@prisma/management-api-sdk@0.2.0':
     dependencies:
