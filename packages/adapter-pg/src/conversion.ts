@@ -375,11 +375,6 @@ function normalizeByteaArray(serializedBytesArray) {
   return parseBytesArray(serializedBytesArray)
 }
 
-/**
- * Convert bytes to a JSON-encodable representation since we can't
- * currently send a parsed Buffer or ArrayBuffer across JS to Rust
- * boundary.
- */
 function convertBytes(serializedBytes: string): Buffer {
   return parsePgBytes(serializedBytes)
 }
