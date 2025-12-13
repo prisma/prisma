@@ -3,8 +3,6 @@ import path from 'node:path'
 
 import { confirm, input, select } from '@inquirer/prompts'
 import { PrismaConfigInternal } from '@prisma/config'
-import { unstable_startServer } from '@prisma/dev'
-import { ServerState } from '@prisma/dev/internal/state'
 import type { ConnectorType } from '@prisma/generator'
 import {
   arg,
@@ -119,6 +117,9 @@ model User {
 
 export const defaultEnv = async (url: string | undefined, debug = false, comments = true) => {
   if (url === undefined) {
+    const { unstable_startServer } = await import('@prisma/dev')
+    const { ServerState } = await import('@prisma/dev/internal/state')
+
     let created = false
     const state =
       (await ServerState.fromServerDump({ debug })) ||
