@@ -49,16 +49,8 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
   const additionalContent_ = additionalContent && format(`
 ${additionalContent.map(entry => `${entry}`).join('\n')}
   `)
-     const removedSchemaFlagNote = format(`
-${bold('Note')}
-
- In Prisma 7, the CLI configuration system was updated.
-While the --schema flag is still supported, users are encouraged to migrate
-to the new Prisma config (--config) for more advanced or custom setups.
-See issue #28915 for details.
-  `)
 
 
-  const help = [usage, commands, options_, examples_, additionalContent_ ,removedSchemaFlagNote].filter(Boolean).join('')
+  const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')
   return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
 }
