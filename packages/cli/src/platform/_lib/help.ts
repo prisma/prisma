@@ -52,9 +52,10 @@ ${additionalContent.map(entry => `${entry}`).join('\n')}
      const removedSchemaFlagNote = format(`
 ${bold('Note')}
 
-  The --schema flag was removed in Prisma 7 for the "prisma db execute" command.
-  Use the new "--config" option to specify a custom schema path instead.
-  See issue #28915 for details.
+ In Prisma 7, the CLI configuration system was updated.
+While the --schema flag is still supported, users are encouraged to migrate
+to the new Prisma config (--config) for more advanced or custom setups.
+See issue #28915 for details.
   `)
 
 
