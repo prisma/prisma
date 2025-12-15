@@ -4,7 +4,7 @@ import { PrismaBetterSqlite3Options } from './better-sqlite3'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
-type Value = null | string | number | bigint | ArrayBuffer | Buffer
+type Value = null | string | number | bigint | Buffer
 export type Row = {
   /** Number of columns in this row.
    *
