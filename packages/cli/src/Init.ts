@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import { confirm, input, select } from '@inquirer/prompts'
 import { PrismaConfigInternal } from '@prisma/config'
-import { unstable_startServer } from '@prisma/dev'
+import { startPrismaDevServer } from '@prisma/dev'
 import { ServerState } from '@prisma/dev/internal/state'
 import type { ConnectorType } from '@prisma/generator'
 import {
@@ -20,6 +20,7 @@ import {
   PRISMA_POSTGRES_PROVIDER,
   protocolToConnectorType,
 } from '@prisma/internals'
+import type { operations } from '@prisma/management-api-sdk'
 import dotenv from 'dotenv'
 import { Schema as Shape } from 'effect'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
@@ -27,14 +28,15 @@ import ora from 'ora'
 import { match, P } from 'ts-pattern'
 
 import { FileWriter } from './init/file-writer'
-import { ManagementApi, Region } from './management-api/api'
 import { login } from './management-api/auth'
-import { createAuthenticatedManagementApiClient } from './management-api/auth-client'
-import { loadCredentials, saveCredentials } from './management-api/credentials'
+import { createAuthenticatedManagementAPI } from './management-api/auth-client'
+import { FileTokenStorage } from './management-api/token-storage'
 import { printPpgInitOutput } from './platform/_'
 import { successMessage } from './platform/_lib/messages'
 import { determineClientOutputPath } from './utils/client-output-path'
 import { printError } from './utils/prompt/utils/print'
+
+type Region = NonNullable<operations['postV1Projects']['requestBody']>['content']['application/json']['region']
 
 /**
  * Indicates if running in Bun runtime.
@@ -126,7 +128,7 @@ export const defaultEnv = async (url: string | undefined, debug = false, comment
       await state.close()
     }
 
-    const server = await unstable_startServer({
+    const server = await startPrismaDevServer({
       databasePort: state.databasePort,
       dryRun: true,
       port: state.port,
@@ -400,9 +402,10 @@ export class Init implements Command {
     let generatedName: string | undefined
 
     if (isPpgCommand) {
-      const credentials = await loadCredentials()
+      const tokenStorage = new FileTokenStorage()
+      const tokens = await tokenStorage.getTokens()
 
-      if (!credentials) {
+      if (!tokens) {
         if (args['--non-interactive']) {
           return 'Please authenticate before creating a Prisma Postgres project.'
         }
@@ -413,7 +416,7 @@ export class Init implements Command {
         if (!authAnswer) {
           return 'Project creation aborted. You need to authenticate to use Prisma Postgres'
         }
-        await saveCredentials(await login({ utmMedium: 'command-init-db' }))
+        await login({ utmMedium: 'command-init-db' })
       }
 
       if (args['--prompt'] || args['--vibe']) {
@@ -449,10 +452,18 @@ export class Init implements Command {
 
       console.log("Let's set up your Prisma Postgres database!")
 
-      const client = await createAuthenticatedManagementApiClient({ utmMedium: 'command-init-db' })
-      const api = new ManagementApi(client)
+      const managementAPI = createAuthenticatedManagementAPI()
+      const client = managementAPI.client
 
-      const regions = await api.getRegions()
+      const { data: regionsData, error: regionsError } = await client.GET('/v1/regions/postgres')
+      if (regionsError) {
+        const errorMessage = regionsError.error?.message
+        throw new Error(typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch regions')
+      }
+      if (!regionsData) {
+        throw new Error('No regions data returned')
+      }
+      const regions = regionsData.data
 
       const ppgRegionSelection =
         (args['--region'] as Region) ||
@@ -477,7 +488,23 @@ export class Init implements Command {
       const spinner = ora(`Creating project ${bold(projectDisplayNameAnswer)} (this may take a few seconds)...`).start()
 
       try {
-        const project = await api.createProjectWithDatabase(projectDisplayNameAnswer, ppgRegionSelection)
+        const { data: projectData, error: projectError } = await client.POST('/v1/projects', {
+          body: {
+            createDatabase: true,
+            name: projectDisplayNameAnswer,
+            region: ppgRegionSelection,
+          },
+        })
+
+        if (projectError) {
+          const errorMessage = projectError.error?.message
+          throw new Error(typeof errorMessage === 'string' ? errorMessage : 'Failed to create project')
+        }
+        if (!projectData) {
+          throw new Error('No project data returned')
+        }
+
+        const project = projectData.data
 
         if (!project.database) {
           // This should never happen: `database` should only be `null` when

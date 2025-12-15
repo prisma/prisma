@@ -42,6 +42,9 @@ on:
       forceIntegrationRelease:
         description: 'Check to force an integration release for any given branch name'
         type: boolean
+      customDistTag:
+        description: 'Custom dist tag to publish to (e.g. `prev`)'
+        type: string
 
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
@@ -53,6 +56,7 @@ env:
   ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
   DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
   FORCE_INTEGRATION_RELEASE: ${{ github.event.inputs.forceIntegrationRelease || 'false' }}
+  CUSTOM_DIST_TAG: ${{ github.event.inputs.customDistTag || '' }}
 
   FAILURE_TITLE_TEMPLATE: >-
     ${{

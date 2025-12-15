@@ -1,3 +1,5 @@
+import readline from 'node:readline'
+
 import type { Datasource } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
@@ -19,7 +21,6 @@ import { bold, red } from 'kleur/colors'
 import { Extension, SchemaExtensionConfig } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
-import byline from './utils/byline'
 import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:schemaEngine:rpc')
@@ -470,12 +471,16 @@ export class SchemaEngineCLI implements SchemaEngine {
 
         // logs (info, error)
         // error can be a panic
-        byline(this.child.stderr).on('data', (msg) => {
-          const data = String(msg)
-          debugStderr(data)
+        const stderrInterface = readline.createInterface({
+          input: this.child.stderr!,
+          crlfDelay: Infinity,
+        })
+
+        stderrInterface.on('line', (line: string) => {
+          debugStderr(line)
 
           try {
-            const json: SchemaEngineLogLine = JSON.parse(data)
+            const json: SchemaEngineLogLine = JSON.parse(line)
 
             this.messages.push(json.fields.message)
 
@@ -487,8 +492,13 @@ export class SchemaEngineCLI implements SchemaEngine {
           }
         })
 
-        byline(this.child.stdout).on('data', (line) => {
-          this.handleResponse(String(line))
+        const stdoutInterface = readline.createInterface({
+          input: this.child.stdout!,
+          crlfDelay: Infinity,
+        })
+
+        stdoutInterface.on('line', (line: string) => {
+          this.handleResponse(line)
         })
 
         setImmediate(() => {
