@@ -150,11 +150,6 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   for (let i = 0; i < row.length; i++) {
     const value = row[i]
 
-    if (value instanceof ArrayBuffer) {
-      result[i] = new Uint8Array(value)
-      continue
-    }
-
     // If an integer is required and the current number isn't one,
     // discard the fractional part.
     if (
