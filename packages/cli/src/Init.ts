@@ -225,7 +225,7 @@ type DefaultConfigInput = {
    * The runtime to use.
    * Currently, this is only used to customize the Bun experience.
    */
-  runtime: 'bun' | (string & {})
+  runtime: 'bun' | 'other'
 }
 
 export const defaultConfig = ({ prismaFolder, runtime }: DefaultConfigInput) => {
@@ -640,7 +640,7 @@ export class Init implements Command {
       path.join(outputDir, 'prisma.config.ts'),
       defaultConfig({
         prismaFolder,
-        runtime: isBun ? 'bun' : 'node',
+        runtime: isBun ? 'bun' : 'other',
       }),
     )
 

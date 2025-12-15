@@ -19,7 +19,7 @@ export NODE_PATH=$(npm root --quiet -g) # make global packages available
 export NEXT_TELEMETRY_DISABLED=1
 export NO_COLOR=1
 
-# Ensure Bun is in PATH (in case it's not inherited from Dockerfile ENV)
+# Ensure Bun is in PATH (as it's not inherited from Dockerfile ENV)
 export BUN_INSTALL="${BUN_INSTALL:-/root/.bun}"
 export PATH="${BUN_INSTALL}/bin:${PATH}"
 
