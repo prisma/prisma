@@ -6,7 +6,7 @@ export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 /**
  * Represents a value that can be returned for a column from `queryRaw`.
  */
-export type ResultValue = number | string | boolean | null | ResultValue[]
+export type ResultValue = number | string | boolean | null | ResultValue[] | Uint8Array
 
 export interface SqlResultSet {
   /**
