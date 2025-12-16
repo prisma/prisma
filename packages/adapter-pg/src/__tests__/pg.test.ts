@@ -4,10 +4,24 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { PrismaPgAdapterFactory } from '../pg'
 
+// Helper to get test database config from environment
+function getTestConfig(): pg.PoolConfig {
+  const uri = process.env.TEST_POSTGRES_URI as string
+  const url = new URL(uri)
+  return {
+    host: url.hostname,
+    port: parseInt(url.port || '5432'),
+    user: url.username,
+    password: url.password,
+    database: url.pathname.slice(1), // Remove leading '/'
+  }
+}
+
+const testConfig = getTestConfig()
+
 describe('PrismaPgAdapterFactory', () => {
   it('should subscribe to pool error events', async () => {
-    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const factory = new PrismaPgAdapterFactory(config)
+    const factory = new PrismaPgAdapterFactory(testConfig)
     const adapter = await factory.connect()
 
     const shutdownError = new DatabaseError('terminating connection due to administrator command', 116, 'error')
@@ -24,9 +38,8 @@ describe('PrismaPgAdapterFactory', () => {
   })
 
   it('should call onPoolError when supplied', async () => {
-    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
     const onPoolError = vi.fn()
-    const factory = new PrismaPgAdapterFactory(config, { onPoolError })
+    const factory = new PrismaPgAdapterFactory(testConfig, { onPoolError })
     const adapter = await factory.connect()
     const error = new Error('Pool error')
     adapter['client'].emit('error', error)
@@ -35,7 +48,7 @@ describe('PrismaPgAdapterFactory', () => {
   })
 
   it('should add and remove error event listener when using an external Pool', async () => {
-    const pool = new pg.Pool({ user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' })
+    const pool = new pg.Pool(testConfig)
     pool.on('error', () => {})
     const factory = new PrismaPgAdapterFactory(pool)
     const adapter = await factory.connect()
@@ -48,8 +61,7 @@ describe('PrismaPgAdapterFactory', () => {
   })
 
   it('should remove connection error listener after transaction commit', async () => {
-    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const factory = new PrismaPgAdapterFactory(config)
+    const factory = new PrismaPgAdapterFactory(testConfig)
     const adapter = await factory.connect()
 
     const mockConnection = {
@@ -74,8 +86,7 @@ describe('PrismaPgAdapterFactory', () => {
   })
 
   it('should remove connection error listener after transaction rollback', async () => {
-    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const factory = new PrismaPgAdapterFactory(config)
+    const factory = new PrismaPgAdapterFactory(testConfig)
     const adapter = await factory.connect()
 
     const mockConnection = {
@@ -97,5 +108,41 @@ describe('PrismaPgAdapterFactory', () => {
     expect(mockConnection.listenerCount('error')).toEqual(0)
 
     await adapter.dispose()
+  })
+
+  it('should throw an error when database is unreachable during connect', async () => {
+    // Use an unreachable host and port to simulate offline database
+    const config: pg.PoolConfig = {
+      user: 'test',
+      password: 'test',
+      database: 'test',
+      host: '192.0.2.1', // TEST-NET-1 - reserved for documentation, guaranteed to be unreachable
+      port: 54321, // Non-standard port unlikely to have a service
+      connectionTimeoutMillis: 100, // Short timeout to make test faster
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+
+    // connect() should throw an error when the database is unreachable
+    await expect(factory.connect()).rejects.toThrow()
+  })
+
+  it('should throw an error when database connection fails with external pool', async () => {
+    const mockPool = new pg.Pool({
+      user: 'test',
+      password: 'test',
+      database: 'test',
+      host: 'localhost',
+      port: 5432,
+    })
+
+    // Mock the query method to simulate connection failure
+    mockPool.query = vi.fn().mockRejectedValue(new Error('Connection refused'))
+
+    const factory = new PrismaPgAdapterFactory(mockPool)
+
+    // connect() should throw an error when the initial connection test fails
+    await expect(factory.connect()).rejects.toThrow('Connection refused')
+
+    await mockPool.end()
   })
 })
