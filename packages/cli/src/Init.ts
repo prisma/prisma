@@ -122,7 +122,7 @@ export const defaultEnv = async (url: string | undefined, debug = false, comment
     let created = false
     const state =
       (await ServerState.fromServerDump({ debug })) ||
-      ((created = true), await ServerState.createExclusively({ persistenceMode: 'stateful', debug }))
+      ((created = true), await ServerState.createExclusively({ debug, persistenceMode: 'stateful' }))
 
     if (created) {
       await state.close()
@@ -131,6 +131,8 @@ export const defaultEnv = async (url: string | undefined, debug = false, comment
     const server = await startPrismaDevServer({
       databasePort: state.databasePort,
       dryRun: true,
+      name: state.name,
+      persistenceMode: 'stateful',
       port: state.port,
       shadowDatabasePort: state.shadowDatabasePort,
       debug,
