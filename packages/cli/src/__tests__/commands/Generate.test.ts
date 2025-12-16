@@ -21,7 +21,7 @@ describe('prisma.config.ts', () => {
 
     const result = Generate.new().parse(['--sql'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma generate --sql."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
     )
   })
 })
