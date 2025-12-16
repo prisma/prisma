@@ -6,7 +6,10 @@ import { PrismaPgAdapterFactory } from '../pg'
 
 // Helper to get test database config from environment
 function getTestConfig(): pg.PoolConfig {
-  const uri = process.env.TEST_POSTGRES_URI as string
+  const uri = process.env.TEST_POSTGRES_URI
+  if (!uri) {
+    throw new Error('TEST_POSTGRES_URI environment variable is required to run these tests')
+  }
   const url = new URL(uri)
   return {
     host: url.hostname,
@@ -134,15 +137,16 @@ describe('PrismaPgAdapterFactory', () => {
       host: 'localhost',
       port: 5432,
     })
+    try {
+      // Mock the query method to simulate connection failure
+      mockPool.query = vi.fn().mockRejectedValue(new Error('Connection refused'))
 
-    // Mock the query method to simulate connection failure
-    mockPool.query = vi.fn().mockRejectedValue(new Error('Connection refused'))
+      const factory = new PrismaPgAdapterFactory(mockPool)
 
-    const factory = new PrismaPgAdapterFactory(mockPool)
-
-    // connect() should throw an error when the initial connection test fails
-    await expect(factory.connect()).rejects.toThrow('Connection refused')
-
-    await mockPool.end()
+      // connect() should throw an error when the initial connection test fails
+      await expect(factory.connect()).rejects.toThrow('Connection refused')
+    } finally {
+      await mockPool.end()
+    }
   })
 })

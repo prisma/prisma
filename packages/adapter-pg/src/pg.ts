@@ -323,7 +323,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       debug(`${tag} Connection validated successfully`)
     } catch (e) {
       debug(`${tag} Connection failed: %O`, e)
-      throw e
+      throw new DriverAdapterError(convertDriverError(e))
     }
   }
 }
