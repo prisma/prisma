@@ -73,7 +73,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (isUsing.driverAdapters && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
-  else if (isUsing.accelerate && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new AccelerateEngine(engineConfig)
+  else if (isUsing.accelerate && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new DataProxyEngine(engineConfig)
   // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
   else if (TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
