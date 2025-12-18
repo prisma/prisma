@@ -134,7 +134,7 @@ export class ClientGenerator {
    */
   generateModelFields(model: ModelAST) {
     return model.fields.map((field) => {
-      const isPrimaryKey = field.attributes.some((attr) => attr.name === 'id')
+      const isPrimaryKey = this.isPrimaryKey(field)
       const isUnique = field.attributes.some((attr) => attr.name === 'unique') || isPrimaryKey
       const hasDefault =
         field.attributes.some((attr) => attr.name === 'default') ||
@@ -149,6 +149,16 @@ export class ClientGenerator {
         isUnique,
         hasDefault,
       }
+    })
+  }
+
+  private isPrimaryKey(field: FieldAST): boolean {
+    return field.attributes.some((attr) => attr.name === 'id')
+  }
+
+  private isAutoTimestamp(field: FieldAST): boolean {
+    return field.attributes.some((attr) => {
+      return attr.name === 'updatedAt' || (field.fieldType === 'DateTime' && attr.name === 'default')
     })
   }
 
@@ -476,14 +486,14 @@ export class ClientGenerator {
       return true
     }
 
-    // Exclude fields with @default(now()) - typically timestamps
-    const hasDefaultNow = field.attributes?.some(
-      (attr) =>
-        attr.name === 'default' && attr.args?.some((arg) => arg.value === 'now' || String(arg.value).includes('now')),
-    )
-    if (hasDefaultNow) {
-      return true
-    }
+    // // Exclude fields with @default(now()) - typically timestamps
+    // const hasDefaultNow = field.attributes?.some(
+    //   (attr) =>
+    //     attr.name === 'default' && attr.args?.some((arg) => arg.value === 'now' || String(arg.value).includes('now')),
+    // )
+    // if (hasDefaultNow) {
+    //   return true
+    // }
 
     return false
   }
@@ -964,7 +974,7 @@ ${includeFields}
           ${this.generateFieldTransformationMethods(model, 'where')}
         }
 
-        private prepareCreateData(data: Record<string, unknown>): Record<string, unknown> {
+        private prepareCreateData(data: ${model.name}CreateInput): Record<string, unknown> {
           const prepared: Record<string, unknown> = {}
           
           ${this.generateFieldTransformationMethods(model, 'create')}
@@ -972,7 +982,7 @@ ${includeFields}
           return prepared
         }
 
-        private prepareUpdateData(data: Partial<${model.name}>): Record<string, unknown> {
+        private prepareUpdateData(data: ${model.name}UpdateInput): Record<string, unknown> {
           const prepared: Record<string, unknown> = {}
           
           ${this.generateFieldTransformationMethods(model, 'update')}
@@ -1042,8 +1052,11 @@ ${includeFields}
           return null
         }
 
-        // Skip certain fields in updates
-        if (operation === 'update' && (field.name === 'id' || field.name === 'createdAt')) {
+        // Skip certain fields in creates and updates
+        const isCreateOrUpdate = operation === 'update' || operation === 'create'
+        const isPrimaryKey = this.isPrimaryKey(field)
+        const isAutoTimestamp = this.isAutoTimestamp(field)
+        if (isCreateOrUpdate && (isPrimaryKey || isAutoTimestamp)) {
           return null
         }
 
@@ -1082,13 +1095,11 @@ ${includeFields}
       let logic = ''
 
       if (operation === 'create' && hasCreatedAt) {
-        logic += dedent`// Auto-generated createdAt timestamp
-      prepared.createdAt = new Date().toISOString()\n`
+        logic += 'prepared.createdAt = data.createdAt ? new Date(data.createdAt) : new Date().toISOString()\n'
       }
 
       if (hasUpdatedAt) {
-        logic += dedent`// Auto-generated updatedAt timestamp
-      prepared.updatedAt = new Date().toISOString()`
+        logic += 'prepared.updatedAt = new Date().toISOString()'
       }
 
       transformations.push(logic)
