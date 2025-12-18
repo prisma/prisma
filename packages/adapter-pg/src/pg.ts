@@ -67,15 +67,15 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     const { fields, rows } = await this.performIO(query)
 
     // Collect unknown extension OIDs that need metadata lookup
-    const unknownOids: number[] = []
+    const unknownOids = new Set<number>()
     for (const field of fields) {
       if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID && !this.oidMetadataCache.has(field.dataTypeID)) {
-        unknownOids.push(field.dataTypeID)
+        unknownOids.add(field.dataTypeID)
       }
     }
 
     // Fetch metadata for unknown OIDs from pg_type catalog
-    await this.ensureOidMetadata(unknownOids)
+    await this.ensureOidMetadata([...unknownOids])
 
     // Find extension array columns that need post-processing (arrays returned as unparsed strings)
     const extensionArrayColumnIndices: number[] = []
