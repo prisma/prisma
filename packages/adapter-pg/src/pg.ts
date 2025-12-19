@@ -280,7 +280,15 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
 
   async connect(): Promise<PrismaPgAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
-    await this.validateConnection(client)
+
+    try {
+      await this.validateConnection(client)
+    } catch (e) {
+      if (!this.externalPool) {
+        await client.end()
+      }
+      throw e
+    }
 
     const onIdleClientError = (err: Error) => {
       debug(`Error from idle pool client: ${err.message} %O`, err)
