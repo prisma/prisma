@@ -129,6 +129,9 @@ function mapField(
   }
 
   if (fieldType.arity === 'list') {
+    if (!Array.isArray(value)) {
+      throw new DataMapperError(`Expected an array in column '${columnName}', got ${typeof value}: ${value}`)
+    }
     const values = value as unknown[]
     return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, fieldType, enums))
   }
