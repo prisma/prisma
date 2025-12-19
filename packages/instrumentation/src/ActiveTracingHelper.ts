@@ -11,7 +11,9 @@ import {
 } from '@opentelemetry/api'
 import type {
   EngineSpan,
+  EngineSpanId,
   EngineSpanKind,
+  EngineTraceEvent,
   ExtendedSpanOptions,
   SpanCallback,
   TracingHelper,
@@ -61,13 +63,26 @@ export class ActiveTracingHelper implements TracingHelper {
     return nonSampledTraceParent
   }
 
-  dispatchEngineSpans(spans: EngineSpan[]): void {
+  dispatchEngineSpans(
+    spans: EngineSpan[],
+    events: EngineTraceEvent[],
+    emitLogEvent: (event: EngineTraceEvent) => void,
+  ): void {
     const tracer = this.tracerProvider.getTracer('prisma')
-    const linkIds = new Map<string, string>()
+    const linkIds = new Map<EngineSpanId, EngineSpanId>()
     const roots = spans.filter((span) => span.parentId === null)
+    const eventsMap = createEventsMap(events)
 
     for (const root of roots) {
-      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreSpanTypes)
+      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreSpanTypes, eventsMap, emitLogEvent)
+    }
+
+    // Emit any remaining events that weren't consumed by `dispatchEngineSpan`
+    // (for example, the parent span might've been ignored)
+    for (const events of eventsMap.values()) {
+      for (const event of events) {
+        emitLogEvent(event)
+      }
     }
   }
 
@@ -105,12 +120,30 @@ export class ActiveTracingHelper implements TracingHelper {
   }
 }
 
+function createEventsMap(events: EngineTraceEvent[]): Map<EngineSpanId, EngineTraceEvent[]> {
+  const eventsMap = new Map<EngineSpanId, EngineTraceEvent[]>()
+
+  for (const event of events) {
+    let spanEvents = eventsMap.get(event.spanId)
+    if (!spanEvents) {
+      spanEvents = []
+      eventsMap.set(event.spanId, spanEvents)
+    }
+
+    spanEvents.push(event)
+  }
+
+  return eventsMap
+}
+
 function dispatchEngineSpan(
   tracer: Tracer,
   engineSpan: EngineSpan,
   allSpans: EngineSpan[],
   linkIds: Map<string, string>,
   ignoreSpanTypes: (string | RegExp)[],
+  events: Map<EngineSpanId, EngineTraceEvent[]>,
+  emitLogEvent: (event: EngineTraceEvent) => void,
 ) {
   if (shouldIgnoreSpan(engineSpan.name, ignoreSpanTypes)) return
 
@@ -141,9 +174,24 @@ function dispatchEngineSpan(
       )
     }
 
+    const spanEvents = events.get(engineSpan.id)
+
+    if (spanEvents !== undefined) {
+      events.delete(engineSpan.id)
+
+      for (const event of spanEvents) {
+        emitLogEvent(event)
+        span.addEvent(event.level, event.attributes as Attributes, event.timestamp)
+
+        if (event.level === 'error') {
+          span.recordException({ message: event.attributes.message ?? '' }, event.timestamp)
+        }
+      }
+    }
+
     const children = allSpans.filter((s) => s.parentId === engineSpan.id)
     for (const child of children) {
-      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreSpanTypes)
+      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreSpanTypes, events, emitLogEvent)
     }
 
     span.end(engineSpan.endTime)
