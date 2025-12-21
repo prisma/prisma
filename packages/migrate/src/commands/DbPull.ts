@@ -60,6 +60,7 @@ ${bold('Options')}
 
                 --config   Custom path to your Prisma config file
                 --schema   Custom path to your Prisma schema
+                 --url     Override the datasource URL from the Prisma config file
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
                --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
@@ -97,6 +98,7 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
+      '--url': String,
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -119,8 +121,19 @@ Set composite types introspection depth to 2 levels
       allowNull: true,
     })
 
+    let cmdSpecificConfig = config
+    if (args['--url']) {
+      cmdSpecificConfig = {
+        ...cmdSpecificConfig,
+        datasource: {
+          ...cmdSpecificConfig.datasource,
+          url: args['--url'],
+        },
+      }
+    }
+
     const cmd = 'db pull'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 
@@ -157,10 +170,10 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     }
 
     const migrate = await Migrate.setup({
-      schemaEngineConfig: config,
+      schemaEngineConfig: cmdSpecificConfig,
       baseDir,
       schemaContext,
-      extensions: config['extensions'],
+      extensions: cmdSpecificConfig['extensions'],
     })
 
     const engine = migrate.engine
@@ -173,7 +186,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionSchema: MigrateTypes.SchemasContainer | undefined = undefined
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
-      const directoryConfig = inferDirectoryConfig(schemaContext, config)
+      const directoryConfig = inferDirectoryConfig(schemaContext, cmdSpecificConfig)
       const introspectionResult = await engine.introspect({
         schema: toSchemasContainer(schema),
         baseDirectoryPath: schemaContext?.schemaRootDir ?? process.cwd(),

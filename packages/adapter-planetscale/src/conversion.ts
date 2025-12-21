@@ -104,13 +104,7 @@ export const cast: typeof defaultCast = (field, value) => {
     return typeof value === 'string' && value.length ? decodeUtf8(value) : value
   }
 
-  const defaultValue = defaultCast(field, value)
-
-  if (defaultValue instanceof Uint8Array) {
-    return Array.from(defaultValue)
-  }
-
-  return defaultValue
+  return defaultCast(field, value)
 }
 
 export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Uint8Array | A {
@@ -141,10 +135,6 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
     return Buffer.from(arg, 'base64')
-  }
-
-  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
-    return Buffer.from(arg)
   }
 
   return arg

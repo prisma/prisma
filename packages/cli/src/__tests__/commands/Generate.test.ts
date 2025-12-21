@@ -21,7 +21,7 @@ describe('prisma.config.ts', () => {
 
     const result = Generate.new().parse(['--sql'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma generate --sql."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
     )
   })
 })
@@ -48,13 +48,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   }, 60_000) // timeout
 
@@ -64,14 +68,14 @@ describe('using cli', () => {
     const stdout = sanitiseStdout(data.stdout)
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
     `)
+    expect(data.stderr).toMatchInlineSnapshot(`"Prisma schema loaded from prisma/schema."`)
   })
 
   it('should display the right yarn command for custom outputs', async () => {
@@ -84,13 +88,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -104,13 +112,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -124,13 +136,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -148,13 +164,17 @@ describe('using cli', () => {
     stdout = stdout.replace(outputLocation!, '<output>')
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 })
@@ -237,11 +257,15 @@ it('should hide hints with --no-hints', async () => {
   }
 
   expect(data.stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
+    "
+    ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+    "
+  `)
+  expect(data.stderr).toMatchInlineSnapshot(`
+    "Loaded Prisma config from prisma.config.ts.
 
-      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-      "
-    `)
+    Prisma schema loaded from prisma/schema.prisma."
+  `)
 })
 
 it('should call the survey handler when hints are not disabled', async () => {

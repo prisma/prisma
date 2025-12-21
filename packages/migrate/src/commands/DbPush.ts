@@ -45,6 +45,7 @@ ${bold('Options')}
            -h, --help   Display this help message
              --config   Custom path to your Prisma config file
              --schema   Custom path to your Prisma schema
+                 --url   Override the datasource URL from the Prisma config file
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push
 
@@ -70,6 +71,7 @@ ${bold('Examples')}
         '--force-reset': Boolean,
         '--schema': String,
         '--config': String,
+        '--url': String,
         '--telemetry-information': String,
       },
       false,
@@ -93,25 +95,36 @@ ${bold('Examples')}
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
+    let cmdSpecificConfig = config
+    if (args['--url']) {
+      cmdSpecificConfig = {
+        ...cmdSpecificConfig,
+        datasource: {
+          ...cmdSpecificConfig.datasource,
+          url: args['--url'],
+        },
+      }
+    }
+
     const cmd = 'db push'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
-      externalTables: config.tables?.external ?? [],
-      externalEnums: config.enums?.external ?? [],
+      externalTables: cmdSpecificConfig.tables?.external ?? [],
+      externalEnums: cmdSpecificConfig.enums?.external ?? [],
     }
 
     const migrate = await Migrate.setup({
-      schemaEngineConfig: config,
+      schemaEngineConfig: cmdSpecificConfig,
       baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
-      extensions: config['extensions'],
+      extensions: cmdSpecificConfig['extensions'],
     })
 
     try {

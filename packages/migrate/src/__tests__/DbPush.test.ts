@@ -19,7 +19,7 @@ describe('push', () => {
 
       const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"The datasource property is required in your Prisma config file when using prisma db push."`,
+        `"The datasource.url property is required in your Prisma config file when using prisma db push."`,
       )
     })
   })
@@ -65,8 +65,7 @@ describe('push', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
@@ -80,8 +79,7 @@ describe('push', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from config/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
@@ -93,8 +91,7 @@ describe('push', () => {
     const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-prisma-config-extensions" <location placeholder>
+      "Datasource "db": PostgreSQL database "tests-migrate-prisma-config-extensions" <location placeholder>
 
       PostgreSQL database tests-migrate-prisma-config-extensions created at localhost:5432
 
@@ -123,8 +120,7 @@ describe('push', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       ⚠️  There might be data loss when applying the changes:
 
@@ -146,8 +142,7 @@ describe('push', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       ⚠️  There might be data loss when applying the changes:
 
@@ -167,8 +162,7 @@ describe('push', () => {
     const result = DbPush.new().parse(['--accept-data-loss'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       ⚠️  There might be data loss when applying the changes:
 
@@ -196,8 +190,7 @@ describe('push', () => {
     expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       The SQLite database "dev.db" at "file:dev.db" was successfully reset.
 
@@ -214,8 +207,7 @@ describe('push', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       ⚠️  There might be data loss when applying the changes:
 
@@ -244,6 +236,35 @@ describe('push', () => {
       You may use the --force-reset flag to drop the database before push like prisma db push --force-reset
       All data will be lost.
             "
+    `)
+  })
+
+  it('--url overrides config datasource URL when datasource exists in config', async () => {
+    ctx.fixture('reset')
+    ctx.setDatasource({
+      url: 'file:./other.db',
+    })
+
+    const result = DbPush.new().parse(['--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
+
+  it('--url works when no datasource exists in config', async () => {
+    ctx.fixture('reset')
+
+    const result = DbPush.new().parse(['--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
     `)
   })
 })
@@ -284,10 +305,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma.
+      "
+    `)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
+      "Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       The PostgreSQL database "tests-migrate-db-push" schema "public" at "localhost:5432" was successfully reset.
 
@@ -303,8 +326,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     // Note the missing warnings about the User table as it is marked as external and won't be modified
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
+      "Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
@@ -352,8 +374,7 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
     const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-db-push-multischema", schemas "base, transactional" <location placeholder>
+      "Datasource "db": PostgreSQL database "tests-migrate-db-push-multischema", schemas "base, transactional" <location placeholder>
 
       The PostgreSQL database "tests-migrate-db-push-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
@@ -394,8 +415,7 @@ describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
     const result = DbPush.new().parse(['--force-reset'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
 
       The MongoDB database "tests-migrate-existing-db" at "localhost:27017" was successfully reset.
       Applying the following changes:
@@ -413,8 +433,7 @@ describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
+      "Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
       Applying the following changes:
 
       [+] Collection \`Post\`

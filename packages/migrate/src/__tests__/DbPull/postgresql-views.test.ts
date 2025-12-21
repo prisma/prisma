@@ -241,14 +241,12 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+        "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
         Run prisma generate to generate Prisma Client.
-        Prisma schema loaded from schema.prisma
         Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
@@ -289,8 +287,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+        "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
@@ -376,8 +373,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         `)
 
         expect(ctx.normalizedCapturedStdout().replaceAll(schemaPath, '<schema-location>')).toMatchInlineSnapshot(`
-          "Prisma schema loaded from <schema-location>
-          Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+          "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
           - Introspecting based on datasource defined in <schema-location>
           ✔ Introspected 2 models and wrote them into <schema-location> in XXXms
@@ -460,8 +456,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       expect(tree).toMatchInlineSnapshot(`[]`)
 
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+        "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
