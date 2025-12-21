@@ -46,7 +46,7 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 The fastest way to get started with Prisma is by following the quickstart guides. You can choose either of two databases:
 
 - [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres)
-- [SQLite](https://www.prisma.io/docs/getting-started/quickstart-sqlite)
+- [SQLite](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite)
 
 ### Bring your own database
 
