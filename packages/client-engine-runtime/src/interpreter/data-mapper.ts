@@ -13,6 +13,18 @@ export class DataMapperError extends UserFacingError {
   }
 }
 
+// Optimization 1: Cache field entries to avoid repeated Object.entries() allocations per row
+const fieldEntriesCache = new WeakMap<Record<string, ResultNode>, [string, ResultNode][]>()
+
+function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
+  let entries = fieldEntriesCache.get(fields)
+  if (!entries) {
+    entries = Object.entries(fields)
+    fieldEntriesCache.set(fields, entries)
+  }
+  return entries
+}
+
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
   switch (structure.type) {
     case 'affectedRows':
@@ -41,11 +53,24 @@ function mapArrayOrObject(
   if (data === null) return null
 
   if (Array.isArray(data)) {
-    let rows = data as PrismaObject[]
+    // Optimization 2: Pre-allocate result arrays instead of using .map()
+    const rows = data as PrismaObject[]
     if (skipNulls) {
-      rows = rows.filter((row) => row !== null)
+      // Filter and map in single pass
+      const result: PrismaObject[] = []
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i] !== null) {
+          result.push(mapObject(rows[i], fields, enums))
+        }
+      }
+      return result
+    } else {
+      const result = new Array(rows.length)
+      for (let i = 0; i < rows.length; i++) {
+        result[i] = mapObject(rows[i], fields, enums)
+      }
+      return result
     }
-    return rows.map((row) => mapObject(row, fields, enums))
   }
 
   if (typeof data === 'object') {
@@ -79,21 +104,24 @@ function mapObject(
   }
 
   const result = {}
-  for (const [name, node] of Object.entries(fields)) {
+  // Optimization 1: Use cached field entries instead of Object.entries()
+  for (const [name, node] of getFieldEntries(fields)) {
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
       }
 
       case 'object': {
-        if (node.serializedName !== null && !Object.hasOwn(data, node.serializedName)) {
+        // Optimization 4: Cache frequently accessed properties
+        const { serializedName, fields: nodeFields, skipNulls } = node
+        if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
           throw new DataMapperError(
             `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
           )
         }
 
-        const target = node.serializedName !== null ? data[node.serializedName] : data
-        result[name] = mapArrayOrObject(target, node.fields, enums, node.skipNulls)
+        const target = serializedName !== null ? data[serializedName] : data
+        result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls)
         break
       }
 
@@ -142,6 +170,21 @@ function mapValue(
   scalarType: FieldScalarType,
   enums: Record<string, Record<string, string>>,
 ): unknown {
+  // Optimization 3: Fast paths for common types
+  const type = scalarType.type
+  if (type === 'string') {
+    if (typeof value === 'string') return value
+    throw new DataMapperError(`Expected a string in column '${columnName}', got ${typeof value}: ${value}`)
+  }
+  if (type === 'int') {
+    if (typeof value === 'number') return Math.trunc(value)
+    // Fall through to existing logic for string parsing
+  }
+  if (type === 'boolean') {
+    if (typeof value === 'boolean') return value
+    // Fall through to existing logic
+  }
+
   switch (scalarType.type) {
     case 'unsupported':
       return value

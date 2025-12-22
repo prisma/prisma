@@ -111,7 +111,7 @@ export class QueryInterpreter {
   ): Promise<IntermediateValue> {
     switch (node.type) {
       case 'value': {
-        return { value: evaluateArg(node.args, scope, generators) }
+        return wrapValue(evaluateArg(node.args, scope, generators))
       }
 
       case 'seq': {
@@ -119,11 +119,11 @@ export class QueryInterpreter {
         for (const arg of node.args) {
           result = await this.interpretNode(arg, queryable, scope, generators)
         }
-        return result ?? { value: undefined }
+        return result ?? wrapValue(undefined)
       }
 
       case 'get': {
-        return { value: scope[node.args.name] }
+        return wrapValue(scope[node.args.name])
       }
 
       case 'let': {
@@ -139,28 +139,35 @@ export class QueryInterpreter {
         for (const name of node.args.names) {
           const value = scope[name]
           if (!isEmpty(value)) {
-            return { value }
+            return wrapValue(value)
           }
         }
-        return { value: [] }
+        return wrapValue([])
       }
 
       case 'concat': {
         const parts = await Promise.all(
           node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
         )
-        return {
-          value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
+        if (parts.length === 0) {
+          return wrapValue([])
         }
+        const result: Value[] = []
+        for (const part of parts) {
+          if (Array.isArray(part)) {
+            result.push(...part)
+          } else {
+            result.push(part)
+          }
+        }
+        return wrapValue(result)
       }
 
       case 'sum': {
         const parts = await Promise.all(
           node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
         )
-        return {
-          value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
-        }
+        return wrapValue(parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0)
       }
 
       case 'execute': {
@@ -178,7 +185,7 @@ export class QueryInterpreter {
           )
         }
 
-        return { value: sum }
+        return wrapValue(sum)
       }
 
       case 'query': {
@@ -294,7 +301,7 @@ export class QueryInterpreter {
       }
 
       case 'unit': {
-        return { value: undefined }
+        return wrapValue(undefined)
       }
 
       case 'diff': {
@@ -304,7 +311,7 @@ export class QueryInterpreter {
         const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node.args.fields) : null)
 
         const toSet = new Set(asList(to).map(keyGetter))
-        return { value: asList(from).filter((item) => !toSet.has(keyGetter(item))) }
+        return wrapValue(asList(from).filter((item) => !toSet.has(keyGetter(item))))
       }
 
       case 'process': {
@@ -400,6 +407,10 @@ export class QueryInterpreter {
 
 type IntermediateValue = { value: Value; lastInsertId?: string }
 
+function wrapValue(value: Value): IntermediateValue {
+  return { value }
+}
+
 function isEmpty(value: Value): boolean {
   if (Array.isArray(value)) {
     return value.length === 0
@@ -448,12 +459,14 @@ type JoinExpressionWithRecords = {
 }
 
 function attachChildrenToParents(parentRecords: unknown, children: JoinExpressionWithRecords[]) {
+  const parentRecordsArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
+
   for (const { joinExpr, childRecords } of children) {
     const parentKeys = joinExpr.on.map(([k]) => k)
     const childKeys = joinExpr.on.map(([, k]) => k)
     const parentMap = {}
 
-    for (const parent of Array.isArray(parentRecords) ? parentRecords : [parentRecords]) {
+    for (const parent of parentRecordsArray) {
       const parentRecord = asRecord(parent)
       const key = getRecordKey(parentRecord, parentKeys)
       if (!parentMap[key]) {
@@ -468,17 +481,23 @@ function attachChildrenToParents(parentRecords: unknown, children: JoinExpressio
       }
     }
 
-    for (const childRecord of Array.isArray(childRecords) ? childRecords : [childRecords]) {
+    const childRecordsArray = Array.isArray(childRecords) ? childRecords : [childRecords]
+    for (const childRecord of childRecordsArray) {
       if (childRecord === null) {
         continue
       }
 
       const key = getRecordKey(asRecord(childRecord), childKeys)
-      for (const parentRecord of parentMap[key] ?? []) {
+      const parents = parentMap[key]
+      if (parents !== undefined) {
         if (joinExpr.isRelationUnique) {
-          parentRecord[joinExpr.parentField] = childRecord
+          for (const parentRecord of parents) {
+            parentRecord[joinExpr.parentField] = childRecord
+          }
         } else {
-          parentRecord[joinExpr.parentField].push(childRecord)
+          for (const parentRecord of parents) {
+            parentRecord[joinExpr.parentField].push(childRecord)
+          }
         }
       }
     }

@@ -21,9 +21,18 @@ export class GeneratorRegistry {
    * the same value on repeated calls as long as the same snapshot is used.
    */
   snapshot(): Readonly<GeneratorRegistrySnapshot> {
+    const now = new Date()
+    let nowGenerator: NowGenerator | undefined
     return Object.create(this.#generators, {
       now: {
-        value: new NowGenerator(),
+        get() {
+          if (nowGenerator === undefined) {
+            nowGenerator = new NowGenerator(now)
+          }
+          return nowGenerator
+        },
+        enumerable: false,
+        configurable: true,
       },
     })
   }
@@ -45,7 +54,11 @@ export interface ValueGenerator {
 }
 
 class NowGenerator implements ValueGenerator {
-  #now: Date = new Date()
+  #now: Date
+
+  constructor(now: Date = new Date()) {
+    this.#now = now
+  }
 
   generate(): string {
     return this.#now.toISOString()
