@@ -7,7 +7,8 @@ const FNV_OFFSET_BASIS = 2166136261
 const FNV_PRIME = 16777619
 
 /**
- * Compute FNV-1a hash of a string
+ * Compute FNV-1a hash of a string.
+ * Inlined for performance-critical paths.
  */
 export function fnv1aHash(str: string, hash = FNV_OFFSET_BASIS): number {
   for (let i = 0; i < str.length; i++) {
@@ -15,6 +16,22 @@ export function fnv1aHash(str: string, hash = FNV_OFFSET_BASIS): number {
     hash = Math.imul(hash, FNV_PRIME)
   }
   return hash >>> 0
+}
+
+/**
+ * Hash a single byte/character code into the hash state.
+ * Faster than fnv1aHash for single values.
+ */
+export function fnv1aHashByte(byte: number, hash: number): number {
+  return (Math.imul(hash ^ byte, FNV_PRIME)) >>> 0
+}
+
+/**
+ * Combine two hash values using XOR and multiply.
+ * Used for combining pre-computed hash seeds.
+ */
+export function combineHash(hash1: number, hash2: number): number {
+  return (Math.imul(hash1 ^ hash2, FNV_PRIME)) >>> 0
 }
 
 /**

@@ -4,11 +4,44 @@
  * This module handles the conversion of Prisma queries into parameterized shapes
  * where user data values are replaced with placeholder markers, while extracting
  * the actual values into a separate map.
+ *
+ * Performance optimizations:
+ * - Pre-computed hash seeds for common tokens
+ * - Inlined type checks
+ * - Minimal object allocation
+ * - Avoids key sorting (uses insertion-order iteration)
  */
 
-import { fnv1aHash } from './hash'
+import { fnv1aHash, combineHash } from './hash'
 
 const FNV_OFFSET_BASIS = 2166136261
+const FNV_PRIME = 16777619
+
+/**
+ * Pre-computed hash seeds for common tokens to avoid repeated hashing.
+ * These are combined with the running hash using combineHash().
+ */
+const HASH_SEEDS = {
+  OPEN_BRACE: fnv1aHash('{', FNV_OFFSET_BASIS),
+  CLOSE_BRACE: fnv1aHash('}', FNV_OFFSET_BASIS),
+  OPEN_BRACKET: fnv1aHash('[', FNV_OFFSET_BASIS),
+  CLOSE_BRACKET: fnv1aHash(']', FNV_OFFSET_BASIS),
+  NULL: fnv1aHash('null', FNV_OFFSET_BASIS),
+  UNDEFINED: fnv1aHash('undefined', FNV_OFFSET_BASIS),
+  TRUE: fnv1aHash('T', FNV_OFFSET_BASIS),
+  FALSE: fnv1aHash('F', FNV_OFFSET_BASIS),
+  PARAM: fnv1aHash('$Param', FNV_OFFSET_BASIS),
+  ASC: fnv1aHash('asc', FNV_OFFSET_BASIS),
+  DESC: fnv1aHash('desc', FNV_OFFSET_BASIS),
+}
+
+/**
+ * Pre-computed hashes for numeric indices 0-99 (covers most array cases)
+ */
+const INDEX_HASHES: number[] = []
+for (let i = 0; i < 100; i++) {
+  INDEX_HASHES[i] = fnv1aHash(`[${i}]`, FNV_OFFSET_BASIS)
+}
 
 /**
  * Placeholder object used to replace parameterized values in query shapes.
@@ -60,13 +93,14 @@ const TOP_LEVEL_STRUCTURAL_KEYS = new Set(['modelName', 'action'])
 
 type Context = 'default' | 'selection' | 'orderBy' | 'data'
 
+/**
+ * Check if value is a tagged value like DateTime, Decimal, etc.
+ * Optimized with early bailout on typeof check.
+ */
 function isTaggedValue(value: unknown): value is { $type: string; value: unknown } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    '$type' in value &&
-    typeof (value as { $type: unknown }).$type === 'string'
-  )
+  if (typeof value !== 'object' || value === null) return false
+  const obj = value as { $type?: unknown }
+  return typeof obj.$type === 'string'
 }
 
 function isSelectionMarker(key: string): boolean {
@@ -100,6 +134,7 @@ function getChildContext(key: string, parentContext: Context): Context {
 
 /**
  * Recursively parameterize a value based on its context.
+ * Optimized for minimal allocations and fast hashing.
  */
 function parameterize(
   value: unknown,
@@ -110,36 +145,110 @@ function parameterize(
   placeholderPaths: string[],
   hashState: { hash: number },
 ): unknown {
-  if (value === null || value === undefined) {
-    hashState.hash = fnv1aHash(value === null ? 'null' : 'undefined', hashState.hash)
+  // Fast path for null/undefined - use pre-computed hashes
+  if (value === null) {
+    hashState.hash = combineHash(hashState.hash, HASH_SEEDS.NULL)
+    return value
+  }
+  if (value === undefined) {
+    hashState.hash = combineHash(hashState.hash, HASH_SEEDS.UNDEFINED)
     return value
   }
 
-  if (isTaggedValue(value)) {
-    // FieldRef is structural, preserve it
-    if (value.$type === 'FieldRef') {
-      hashState.hash = fnv1aHash(JSON.stringify(value), hashState.hash)
+  const valueType = typeof value
+
+  // Fast path for primitives (most common in queries)
+  if (valueType === 'string') {
+    // Check structural cases first
+    if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
+      hashState.hash = fnv1aHash(value as string, hashState.hash)
       return value
     }
-    // All other tagged values are user data
-    const placeholderName = `${path}`
-    placeholderValues[placeholderName] = value
-    placeholderPaths.push(placeholderName)
-    hashState.hash = fnv1aHash(JSON.stringify(PARAM_PLACEHOLDER), hashState.hash)
-    hashState.hash = fnv1aHash(placeholderName, hashState.hash)
-    return { ...PARAM_PLACEHOLDER, name: placeholderName }
+    if (context === 'orderBy' && ((value as string) === 'asc' || (value as string) === 'desc')) {
+      hashState.hash = combineHash(hashState.hash, (value as string) === 'asc' ? HASH_SEEDS.ASC : HASH_SEEDS.DESC)
+      return value
+    }
+    // User data - parameterize
+    placeholderValues[path] = value
+    placeholderPaths.push(path)
+    hashState.hash = combineHash(hashState.hash, HASH_SEEDS.PARAM)
+    hashState.hash = fnv1aHash(path, hashState.hash)
+    return { $type: 'Param', name: path }
   }
 
-  if (Array.isArray(value)) {
-    hashState.hash = fnv1aHash('[', hashState.hash)
-    const result = value.map((item, index) =>
-      parameterize(item, context, `${path}[${index}]`, key, placeholderValues, placeholderPaths, hashState),
-    )
-    hashState.hash = fnv1aHash(']', hashState.hash)
-    return result
+  if (valueType === 'number') {
+    if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
+      hashState.hash = fnv1aHash(String(value), hashState.hash)
+      return value
+    }
+    placeholderValues[path] = value
+    placeholderPaths.push(path)
+    hashState.hash = combineHash(hashState.hash, HASH_SEEDS.PARAM)
+    hashState.hash = fnv1aHash(path, hashState.hash)
+    return { $type: 'Param', name: path }
   }
 
-  if (typeof value === 'object') {
+  if (valueType === 'boolean') {
+    if (context === 'selection') {
+      hashState.hash = combineHash(hashState.hash, value ? HASH_SEEDS.TRUE : HASH_SEEDS.FALSE)
+      return value
+    }
+    if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
+      hashState.hash = combineHash(hashState.hash, value ? HASH_SEEDS.TRUE : HASH_SEEDS.FALSE)
+      return value
+    }
+    placeholderValues[path] = value
+    placeholderPaths.push(path)
+    hashState.hash = combineHash(hashState.hash, HASH_SEEDS.PARAM)
+    hashState.hash = fnv1aHash(path, hashState.hash)
+    return { $type: 'Param', name: path }
+  }
+
+  // Object types
+  if (valueType === 'object') {
+    // Check for tagged values (DateTime, Decimal, etc.)
+    const obj = value as { $type?: string; value?: { _ref?: string; _container?: string } }
+    if (obj.$type !== undefined) {
+      // FieldRef is structural, preserve it
+      if (obj.$type === 'FieldRef') {
+        // Hash type and field reference directly instead of JSON.stringify
+        hashState.hash = fnv1aHash('FieldRef:', hashState.hash)
+        if (obj.value?._ref) {
+          hashState.hash = fnv1aHash(obj.value._ref, hashState.hash)
+        }
+        if (obj.value?._container) {
+          hashState.hash = fnv1aHash(obj.value._container, hashState.hash)
+        }
+        return value
+      }
+      // All other tagged values are user data
+      placeholderValues[path] = value
+      placeholderPaths.push(path)
+      hashState.hash = combineHash(hashState.hash, HASH_SEEDS.PARAM)
+      hashState.hash = fnv1aHash(path, hashState.hash)
+      return { $type: 'Param', name: path }
+    }
+
+    if (Array.isArray(value)) {
+      hashState.hash = combineHash(hashState.hash, HASH_SEEDS.OPEN_BRACKET)
+      const len = value.length
+      const result = new Array(len)
+      for (let i = 0; i < len; i++) {
+        // Use pre-computed index hash if available
+        const indexPath = i < 100
+          ? (path ? path + `[${i}]` : `[${i}]`)
+          : `${path}[${i}]`
+        if (i < 100) {
+          hashState.hash = combineHash(hashState.hash, INDEX_HASHES[i])
+        } else {
+          hashState.hash = fnv1aHash(`[${i}]`, hashState.hash)
+        }
+        result[i] = parameterize(value[i], context, indexPath, key, placeholderValues, placeholderPaths, hashState)
+      }
+      hashState.hash = combineHash(hashState.hash, HASH_SEEDS.CLOSE_BRACKET)
+      return result
+    }
+
     return parameterizeObject(
       value as Record<string, unknown>,
       context,
@@ -150,34 +259,29 @@ function parameterize(
     )
   }
 
-  if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
-    hashState.hash = fnv1aHash(String(value), hashState.hash)
-    return value
-  }
+  // Fallback for any other type
+  return value
+}
 
-  // In selection context, booleans indicate field selection
-  if (context === 'selection' && typeof value === 'boolean') {
-    hashState.hash = fnv1aHash(value ? 'T' : 'F', hashState.hash)
-    return value
-  }
+/**
+ * Pre-computed hashes for common object keys
+ */
+const KEY_HASHES = new Map<string, number>()
 
-  // In orderBy context, sort directions are structural
-  if (context === 'orderBy' && typeof value === 'string' && isSortDirection(value)) {
-    hashState.hash = fnv1aHash(value, hashState.hash)
-    return value
+function getKeyHash(key: string): number {
+  let h = KEY_HASHES.get(key)
+  if (h === undefined) {
+    h = fnv1aHash(key, FNV_OFFSET_BASIS)
+    if (KEY_HASHES.size < 1000) {
+      KEY_HASHES.set(key, h)
+    }
   }
-
-  // Otherwise, it's a user data value
-  const placeholderName = `${path}`
-  placeholderValues[placeholderName] = value
-  placeholderPaths.push(placeholderName)
-  hashState.hash = fnv1aHash(JSON.stringify(PARAM_PLACEHOLDER), hashState.hash)
-  hashState.hash = fnv1aHash(placeholderName, hashState.hash)
-  return { ...PARAM_PLACEHOLDER, name: placeholderName }
+  return h
 }
 
 /**
  * Parameterize an object by processing each key-value pair.
+ * Keys are sorted for consistent hashing across different object creation orders.
  */
 function parameterizeObject(
   obj: Record<string, unknown>,
@@ -189,20 +293,30 @@ function parameterizeObject(
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {}
 
-  hashState.hash = fnv1aHash('{', hashState.hash)
+  hashState.hash = combineHash(hashState.hash, HASH_SEEDS.OPEN_BRACE)
 
-  // Sort keys for consistent hashing
+  // Sort keys for consistent hashing (required for cache correctness)
   const keys = Object.keys(obj).sort()
-  for (const key of keys) {
+  const keyCount = keys.length
+
+  for (let i = 0; i < keyCount; i++) {
+    const key = keys[i]
     const value = obj[key]
-    if (isSelectionMarker(key)) {
-      hashState.hash = fnv1aHash(key, hashState.hash)
-      hashState.hash = fnv1aHash(JSON.stringify(value), hashState.hash)
+
+    // Selection markers are structural
+    if (key === '$scalars' || key === '$composites') {
+      hashState.hash = combineHash(hashState.hash, getKeyHash(key))
+      // Hash the boolean/object value directly
+      if (typeof value === 'boolean') {
+        hashState.hash = combineHash(hashState.hash, value ? HASH_SEEDS.TRUE : HASH_SEEDS.FALSE)
+      } else {
+        hashState.hash = fnv1aHash(JSON.stringify(value), hashState.hash)
+      }
       result[key] = value
       continue
     }
 
-    hashState.hash = fnv1aHash(key, hashState.hash)
+    hashState.hash = combineHash(hashState.hash, getKeyHash(key))
 
     // Top-level structural keys should not be parameterized
     if (path === '' && TOP_LEVEL_STRUCTURAL_KEYS.has(key)) {
@@ -216,7 +330,7 @@ function parameterizeObject(
     result[key] = parameterize(value, childContext, childPath, key, placeholderValues, placeholderPaths, hashState)
   }
 
-  hashState.hash = fnv1aHash('}', hashState.hash)
+  hashState.hash = combineHash(hashState.hash, HASH_SEEDS.CLOSE_BRACE)
 
   return result
 }

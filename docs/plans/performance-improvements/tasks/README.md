@@ -23,6 +23,7 @@ Two parallel tracks:
 | [T2.2](./T2.2-cache-key-optimization.md) | Optimize Cache Key Generation | P1 | 2 | Medium | ✅ Done |
 | [T3.1](./T3.1-dmmf-parameterization-metadata.md) | Extend DMMF with Parameterization Metadata | P1 | 2 | Large | ✅ Done |
 | [T4.4](./T4.4-lazy-full-key-generation.md) | Lazy Full Key Generation | P2 | 2 | Small | ✅ Done |
+| [T4.5](./T4.5-optimize-parameterization.md) | Optimize Parameterization Hot Paths | P1 | 2 | Medium | ✅ Done |
 
 ## Phase Overview
 
