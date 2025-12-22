@@ -26,16 +26,17 @@
 | cache.get (hit) | 0.02 | 54,000,000 | 0.4% |
 | **Full Pipeline (lazy key)** | **1.11** | **902,000** | **26.6%** |
 
-### Interpreter Components (After Tracing Optimization)
+### Interpreter Components (After All Optimizations)
 
 | Component | Ops/sec | Notes |
 |-----------|---------|-------|
 | Interpreter (simple select) | 223,000 | +11.7% from tracing optimization |
-| Interpreter (findUnique) | 158,000 | +10.9% from tracing optimization |
-| Interpreter (join 1:N) | 84,000 | +11.9% from tracing optimization |
-| Data Mapper (10 rows) | 284,000 | |
-| Serializer (10x3) | 2,054,000 | Very fast |
-| withQuerySpanAndEvent (no onQuery) | 1,421,000 | Optimized fast path |
+| Interpreter (findUnique) | 159,000 | +10.9% from tracing optimization |
+| Interpreter (join 1:N) | 87,000 | +15.3% from tracing optimization |
+| Interpreter (sequence) | 98,000 | +10.0% from tracing optimization |
+| Data Mapper (10 rows) | 285,000 | Stable |
+| Serializer (10x3) | 2,045,000 | Very fast |
+| withQuerySpanAndEvent (disabled) | Direct call | Ultra-fast path when tracing disabled |
 
 ## Completed Tasks
 
@@ -76,6 +77,11 @@
 - Pre-computed index hashes [0]-[99]
 - Inlined type checks for primitives
 - Optimized FieldRef handling
+
+### 5. Tracing Fast Path Optimization
+- Skip timing overhead when no onQuery callback is provided
+- Ultra-fast path bypasses span options creation when tracing is disabled
+- Results in 10-15% interpreter performance improvement
 
 ## Architecture
 
