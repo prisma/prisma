@@ -11,7 +11,7 @@ import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import { QueryCompiler, QueryCompilerConstructor } from '@prisma/client-common'
 import Benchmark from 'benchmark'
 
-import { wasmQueryCompilerLoader } from '../../../runtime/core/engines/client/WasmQueryCompilerLoader'
+import { loadQueryCompiler } from './qc-loader'
 
 let QueryCompilerClass: QueryCompilerConstructor
 let queryCompiler: QueryCompiler
@@ -523,37 +523,9 @@ const QUERIES = {
 }
 
 async function setup(): Promise<void> {
-  const runtimeBase = path.join(__dirname, '..', '..', '..', '..', 'runtime')
   const provider = 'sqlite'
 
-  QueryCompilerClass = await wasmQueryCompilerLoader.loadQueryCompiler({
-    activeProvider: provider,
-    clientVersion: '0.0.0',
-    compilerWasm: {
-      getRuntime: () => {
-        let runtimePath: string
-        if (process.env.LOCAL_QC_BUILD_DIRECTORY) {
-          runtimePath = path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_fast_bg.js')
-        } else {
-          runtimePath = path.join(runtimeBase, `query_compiler_fast_bg.${provider}.js`)
-        }
-        return Promise.resolve(require(runtimePath))
-      },
-      getQueryCompilerWasmModule: async () => {
-        let moduleBytes: BufferSource
-        if (process.env.LOCAL_QC_BUILD_DIRECTORY) {
-          const wasmPath = path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_fast_bg.wasm')
-          moduleBytes = await fs.promises.readFile(wasmPath)
-        } else {
-          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_fast_bg.${provider}.wasm-base64.js`)
-          const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
-          moduleBytes = Buffer.from(wasmBase64, 'base64')
-        }
-        return new WebAssembly.Module(moduleBytes)
-      },
-      importName: `./query_compiler_fast_bg.js`,
-    },
-  })
+  QueryCompilerClass = await loadQueryCompiler(provider)
 
   queryCompiler = new QueryCompilerClass({
     provider,
