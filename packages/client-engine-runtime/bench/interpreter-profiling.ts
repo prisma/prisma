@@ -214,6 +214,27 @@ async function runProfiling() {
   })
   console.log(`║ REUSE: findUnique                  │ ${findUniqueReuse.avgUs.toFixed(2).padStart(8)} │ ${Math.round(findUniqueReuse.opsPerSec).toLocaleString().padStart(11)} │ no construct     ║`)
 
+  // Recursive async overhead simulation
+  async function recursiveAsync(depth: number): Promise<number> {
+    if (depth === 0) return 42
+    return await recursiveAsync(depth - 1)
+  }
+  const recursive3 = await measureAsync('recursive async (3 deep)', async () => {
+    return recursiveAsync(3)
+  })
+  console.log(`║ Recursive async (3 deep)           │ ${recursive3.avgUs.toFixed(2).padStart(8)} │ ${Math.round(recursive3.opsPerSec).toLocaleString().padStart(11)} │                  ║`)
+
+  const recursive5 = await measureAsync('recursive async (5 deep)', async () => {
+    return recursiveAsync(5)
+  })
+  console.log(`║ Recursive async (5 deep)           │ ${recursive5.avgUs.toFixed(2).padStart(8)} │ ${Math.round(recursive5.opsPerSec).toLocaleString().padStart(11)} │                  ║`)
+
+  // Measure catch overhead
+  const withCatch = await measureAsync('Promise with .catch()', async () => {
+    return Promise.resolve(42).catch((e) => { throw e })
+  })
+  console.log(`║ Promise with .catch()              │ ${withCatch.avgUs.toFixed(2).padStart(8)} │ ${Math.round(withCatch.opsPerSec).toLocaleString().padStart(11)} │                  ║`)
+
   console.log('╚════════════════════════════════════════════════════════════════════════════════╝')
 
   // Analysis
