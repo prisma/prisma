@@ -130,7 +130,13 @@ async function runProfiling() {
   })
   console.log(`║ performance.now()                  │ ${perfNow.avgUs.toFixed(2).padStart(8)} │ ${Math.round(perfNow.opsPerSec).toLocaleString().padStart(11)} │                  ║`)
 
-  // 11. withQuerySpanAndEvent overhead (noop tracing, no onQuery)
+  // 11. Direct execute baseline (no wrapper)
+  const directExecute = await measureAsync('direct execute (baseline)', async () => {
+    return Promise.resolve(42)
+  })
+  console.log(`║ Direct execute (baseline)          │ ${directExecute.avgUs.toFixed(2).padStart(8)} │ ${Math.round(directExecute.opsPerSec).toLocaleString().padStart(11)} │                  ║`)
+
+  // 11b. withQuerySpanAndEvent overhead (noop tracing, no onQuery) - ultra fast path
   const mockQuery = { sql: 'SELECT 1', args: [] }
   const spanNoOnQuery = await measureAsync('withQuerySpanAndEvent (no onQuery)', async () => {
     return withQuerySpanAndEvent({
@@ -140,7 +146,7 @@ async function runProfiling() {
       execute: () => Promise.resolve(42),
     })
   })
-  console.log(`║ withQuerySpanAndEvent (no onQuery) │ ${spanNoOnQuery.avgUs.toFixed(2).padStart(8)} │ ${Math.round(spanNoOnQuery.opsPerSec).toLocaleString().padStart(11)} │ fast path        ║`)
+  console.log(`║ withQuerySpanAndEvent (no onQuery) │ ${spanNoOnQuery.avgUs.toFixed(2).padStart(8)} │ ${Math.round(spanNoOnQuery.opsPerSec).toLocaleString().padStart(11)} │ ultra fast       ║`)
 
   // 11b. withQuerySpanAndEvent with onQuery callback
   const spanWithOnQuery = await measureAsync('withQuerySpanAndEvent (with onQuery)', async () => {

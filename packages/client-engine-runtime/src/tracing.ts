@@ -11,12 +11,16 @@ export type ExtendedSpanOptions = SpanOptions & {
   name: string
 }
 
-// A smaller version of the equivalent interface from `@prisma/internals`
+// A smaller version of the equivalent interface from `@prisma/instrumentation-contract`
 export interface TracingHelper {
+  isEnabled(): boolean
   runInChildSpan<R>(nameOrOptions: string | ExtendedSpanOptions, callback: SpanCallback<R>): R
 }
 
 export const noopTracingHelper: TracingHelper = {
+  isEnabled() {
+    return false
+  },
   runInChildSpan(_, callback) {
     return callback()
   },
@@ -53,7 +57,12 @@ export async function withQuerySpanAndEvent<T>({
   onQuery?: (event: QueryEvent) => void
   execute: () => Promise<T>
 }): Promise<T> {
-  // Fast path: if no onQuery callback, skip all timing overhead
+  // Ultra-fast path: no tracing and no onQuery callback - just execute directly
+  if (!tracingHelper.isEnabled() && onQuery === undefined) {
+    return execute()
+  }
+
+  // Fast path: with tracing but no onQuery callback - skip timing overhead
   if (onQuery === undefined) {
     return tracingHelper.runInChildSpan(
       {
