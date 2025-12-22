@@ -138,8 +138,11 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
-    this.#queryPlanCache = new QueryPlanCache()
-    this.#queryPlanCacheEnabled = true
+
+    // Initialize query plan cache based on configuration
+    const cacheConfig = config.queryPlanCache
+    this.#queryPlanCacheEnabled = cacheConfig?.enabled !== false
+    this.#queryPlanCache = new QueryPlanCache(cacheConfig?.maxSize)
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'

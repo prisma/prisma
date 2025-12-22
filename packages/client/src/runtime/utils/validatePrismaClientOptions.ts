@@ -13,6 +13,7 @@ const knownProperties = [
   'transactionOptions',
   'omit',
   'comments',
+  'queryPlanCache',
   '__internal',
 ]
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
@@ -188,6 +189,35 @@ const validators: {
       if (typeof options[i] !== 'function') {
         throw new PrismaClientConstructorValidationError(
           `Invalid value at index ${i} for "comments" provided to PrismaClient constructor. Each plugin must be a function.`,
+        )
+      }
+    }
+  },
+  queryPlanCache: (options) => {
+    if (options === undefined) {
+      return
+    }
+    if (typeof options !== 'object' || options === null) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(options)} for "queryPlanCache" provided to PrismaClient constructor. Expected an object.`,
+      )
+    }
+    const { enabled, maxSize, ...rest } = options
+    const unknownKeys = Object.keys(rest)
+    if (unknownKeys.length > 0) {
+      throw new PrismaClientConstructorValidationError(
+        `Unknown property "${unknownKeys[0]}" for "queryPlanCache" provided to PrismaClient constructor. Valid properties are: enabled, maxSize.`,
+      )
+    }
+    if (enabled !== undefined && typeof enabled !== 'boolean') {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(enabled)} for "queryPlanCache.enabled" provided to PrismaClient constructor. Expected a boolean.`,
+      )
+    }
+    if (maxSize !== undefined) {
+      if (typeof maxSize !== 'number' || !Number.isInteger(maxSize) || maxSize <= 0) {
+        throw new PrismaClientConstructorValidationError(
+          `Invalid value ${JSON.stringify(maxSize)} for "queryPlanCache.maxSize" provided to PrismaClient constructor. Expected a positive integer.`,
         )
       }
     }

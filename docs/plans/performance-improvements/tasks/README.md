@@ -13,15 +13,16 @@ Two parallel tracks:
 
 ## Task Summary
 
-| ID                                               | Task                                       | Priority | Track | Effort | Status      |
-| ------------------------------------------------ | ------------------------------------------ | -------- | ----- | ------ | ----------- |
-| [T1.1](./T1.1-strawman-query-plan-cache.md)      | Implement Strawman Query Plan Cache        | P0       | 2     | Medium | Not Started |
-| [T1.2](./T1.2-caching-benchmarks.md)             | Add Query Plan Caching Benchmarks          | P0       | 2     | Small  | Not Started |
-| [T1.3](./T1.3-optimize-data-mapper.md)           | Optimize Data Mapper for Hot Paths         | P1       | 1     | Medium | Not Started |
-| [T1.4](./T1.4-reduce-interpreter-allocations.md) | Reduce Object Allocations in Interpreter   | P1       | 1     | Medium | Not Started |
-| [T2.1](./T2.1-proper-parameterization.md)        | Implement Proper Parameterization          | P0       | 2     | Large  | Not Started |
-| [T2.2](./T2.2-cache-key-optimization.md)         | Optimize Cache Key Generation              | P1       | 2     | Medium | Not Started |
-| [T3.1](./T3.1-dmmf-parameterization-metadata.md) | Extend DMMF with Parameterization Metadata | P1       | 2     | Large  | Not Started |
+| ID | Task | Priority | Track | Effort | Status |
+|----|------|----------|-------|--------|--------|
+| [T1.1](./T1.1-strawman-query-plan-cache.md) | Implement Strawman Query Plan Cache | P0 | 2 | Medium | ✅ Done |
+| [T1.2](./T1.2-caching-benchmarks.md) | Add Query Plan Caching Benchmarks | P0 | 2 | Small | ✅ Done |
+| [T1.3](./T1.3-optimize-data-mapper.md) | Optimize Data Mapper for Hot Paths | P1 | 1 | Medium | ✅ Done |
+| [T1.4](./T1.4-reduce-interpreter-allocations.md) | Reduce Object Allocations in Interpreter | P1 | 1 | Medium | ✅ Done |
+| [T2.1](./T2.1-proper-parameterization.md) | Implement Proper Parameterization | P0 | 2 | Large | ✅ Done |
+| [T2.2](./T2.2-cache-key-optimization.md) | Optimize Cache Key Generation | P1 | 2 | Medium | ✅ Done |
+| [T3.1](./T3.1-dmmf-parameterization-metadata.md) | Extend DMMF with Parameterization Metadata | P1 | 2 | Large | ✅ Done |
+| [T4.4](./T4.4-lazy-full-key-generation.md) | Lazy Full Key Generation | P2 | 2 | Small | ✅ Done |
 
 ## Phase Overview
 

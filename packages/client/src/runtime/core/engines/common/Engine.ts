@@ -150,6 +150,14 @@ export interface EngineConfig {
    * Each plugin receives query context and returns key-value pairs.
    */
   sqlCommenters?: SqlCommenterPlugin[]
+
+  /**
+   * Configuration for the query plan cache.
+   */
+  queryPlanCache?: {
+    enabled?: boolean
+    maxSize?: number
+  }
 }
 
 /**

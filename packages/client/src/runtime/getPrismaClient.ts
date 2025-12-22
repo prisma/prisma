@@ -137,6 +137,22 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   comments?: SqlCommenterPlugin[]
 
   /**
+   * Configuration for the query plan cache that avoids recompiling identical queries.
+   *
+   * @example
+   * ```ts
+   * new PrismaClient({
+   *   adapter: new PrismaPg({ connectionString }),
+   *   queryPlanCache: {
+   *     enabled: true,  // default: true
+   *     maxSize: 1000,  // default: 1000
+   *   },
+   * })
+   * ```
+   */
+  queryPlanCache?: QueryPlanCacheOptions
+
+  /**
    * @internal
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
    */
@@ -145,6 +161,22 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
+}
+
+/**
+ * Options for configuring the query plan cache.
+ */
+export type QueryPlanCacheOptions = {
+  /**
+   * Whether the query plan cache is enabled.
+   * @default true
+   */
+  enabled?: boolean
+  /**
+   * Maximum number of query plans to cache.
+   * @default 1000
+   */
+  maxSize?: number
 }
 
 export type Unpacker = (data: any) => any
@@ -367,6 +399,7 @@ constructor() {
           adapter,
           accelerateUrl: options.accelerateUrl,
           sqlCommenters: options.comments,
+          queryPlanCache: options.queryPlanCache,
         }
 
         // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>
