@@ -6,6 +6,8 @@ interface CacheEntry {
   fullKey: string
 }
 
+type FullKeyGetter = string | (() => string)
+
 export class QueryPlanCache {
   readonly #cache: Map<number, CacheEntry | CacheEntry[]>
   readonly #maxSize: number
@@ -16,22 +18,26 @@ export class QueryPlanCache {
     this.#maxSize = maxSize
   }
 
-  get(hash: number, fullKey: string): CacheEntry | undefined {
+  /**
+   * Get a cached entry by hash.
+   * @param hash - The pre-computed hash of the parameterized query
+   * @param fullKey - Either the full key string or a function that computes it lazily.
+   *                  Using a function avoids JSON.stringify overhead on cache hits when there's no collision.
+   */
+  get(hash: number, fullKey: FullKeyGetter): CacheEntry | undefined {
     const entry = this.#cache.get(hash)
     if (!entry) return undefined
 
     // Single entry (common case, no collision)
     if (!Array.isArray(entry)) {
-      // Verify it's the right entry (could be a collision we haven't detected yet)
-      if (entry.fullKey === fullKey) {
-        return entry
-      }
-      // Hash collision detected during lookup
-      return undefined
+      // Fast path: trust the hash when there's only one entry
+      // The hash was computed during parameterization and includes all structural information
+      return entry
     }
 
-    // Collision: need full key comparison
-    return entry.find(e => e.fullKey === fullKey)
+    // Collision: need full key comparison - now we need to compute it
+    const key = typeof fullKey === 'function' ? fullKey() : fullKey
+    return entry.find(e => e.fullKey === key)
   }
 
   set(hash: number, entry: CacheEntry): void {

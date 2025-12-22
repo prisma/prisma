@@ -465,15 +465,18 @@ export class ClientEngine implements Engine {
     if (this.#queryPlanCacheEnabled && !isRawQuery) {
       try {
         const { parameterizedQuery, placeholderValues: extractedValues, placeholderPaths, queryHash } = parameterizeQuery(query)
-        const cacheKey = JSON.stringify(parameterizedQuery)
         placeholderValues = extractedValues
 
-        const cached = this.#queryPlanCache.get(queryHash, cacheKey)
+        // Lazy key generation: only compute full key string when needed (collision handling or cache miss)
+        const getFullKey = () => JSON.stringify(parameterizedQuery)
+
+        const cached = this.#queryPlanCache.get(queryHash, getFullKey)
         if (cached) {
           debug(`query plan cache hit`)
           queryPlan = cached.plan
         } else {
           debug(`query plan cache miss`)
+          const cacheKey = getFullKey()
           try {
             queryPlan = this.#withLocalPanicHandler(() =>
               this.#withCompileSpan({
@@ -567,15 +570,18 @@ export class ClientEngine implements Engine {
     if (this.#queryPlanCacheEnabled && !hasRawQueries && queries.length === 1) {
       try {
         const { parameterizedQuery, placeholderValues: extractedValues, placeholderPaths, queryHash } = parameterizeQuery(queries[0])
-        const cacheKeyStr = JSON.stringify(parameterizedQuery)
         placeholderValuesArray = [extractedValues]
 
-        const cached = this.#queryPlanCache.get(queryHash, cacheKeyStr)
+        // Lazy key generation for batch path
+        const getFullKey = () => JSON.stringify(parameterizedQuery)
+
+        const cached = this.#queryPlanCache.get(queryHash, getFullKey)
         if (cached) {
           debug(`batch query plan cache hit (single query)`)
           batchResponse = { type: 'multi', plans: [cached.plan] }
         } else {
           debug(`batch query plan cache miss (single query)`)
+          const cacheKeyStr = getFullKey()
           try {
             const parameterizedBatchPayload = {
               ...batchPayload,
