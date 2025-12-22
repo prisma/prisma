@@ -53,6 +53,11 @@ const STRUCTURAL_KEYS_IN_DATA = new Set([
  */
 const STRUCTURAL_VALUE_KEYS = new Set(['take', 'skip', 'sort', 'nulls', 'mode', 'relationLoadStrategy', 'distinct'])
 
+/**
+ * Top-level query keys that are structural and should not be parameterized.
+ */
+const TOP_LEVEL_STRUCTURAL_KEYS = new Set(['modelName', 'action'])
+
 type Context = 'default' | 'selection' | 'orderBy' | 'data'
 
 function isTaggedValue(value: unknown): value is { $type: string; value: unknown } {
@@ -198,6 +203,14 @@ function parameterizeObject(
     }
 
     hashState.hash = fnv1aHash(key, hashState.hash)
+
+    // Top-level structural keys should not be parameterized
+    if (path === '' && TOP_LEVEL_STRUCTURAL_KEYS.has(key)) {
+      hashState.hash = fnv1aHash(String(value), hashState.hash)
+      result[key] = value
+      continue
+    }
+
     const childContext = getChildContext(key, context)
     const childPath = path ? `${path}.${key}` : key
     result[key] = parameterize(value, childContext, childPath, key, placeholderValues, placeholderPaths, hashState)
