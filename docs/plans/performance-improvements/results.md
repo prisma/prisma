@@ -4,7 +4,7 @@
 
 **Goal**: Achieve 100x performance improvement in end-to-end query execution through query plan caching.
 
-**Result**: **110.3x speedup achieved** on cached query compilation path.
+**Result**: **116.4x speedup achieved** on cached query compilation path.
 
 ## Final Performance Numbers
 
@@ -12,28 +12,30 @@
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| Uncached compilation | 7,215 ops/sec | 7,215 ops/sec | baseline |
-| Cached (eager key) | - | 471,188 ops/sec | 65.3x |
-| Cached (lazy key) | - | 795,714 ops/sec | **110.3x** |
+| Uncached compilation | 7,748 ops/sec | 7,748 ops/sec | baseline |
+| Cached (eager key) | - | 503,000 ops/sec | 64.9x |
+| Cached (lazy key) | - | 902,000 ops/sec | **116.4x** |
 
 ### Pipeline Component Breakdown
 
 | Component | Time (μs) | Ops/sec | % of Cached E2E |
 |-----------|-----------|---------|-----------------|
-| JSON.stringify (simple) | 0.64 | 1,554,228 | 14.8% |
-| parameterizeQuery (simple) | 1.33 | 752,472 | 30.5% |
-| generateCacheKey | 0.39 | 2,548,582 | 9.0% |
-| cache.get (hit) | 0.02 | 43,176,513 | 0.5% |
-| **Full Pipeline (lazy key)** | **1.26** | **795,714** | **28.9%** |
+| JSON.stringify (simple) | 0.59 | 1,706,000 | 14.1% |
+| parameterizeQuery (simple) | 1.15 | 869,000 | 27.6% |
+| generateCacheKey | 0.35 | 2,858,000 | 8.4% |
+| cache.get (hit) | 0.02 | 54,000,000 | 0.4% |
+| **Full Pipeline (lazy key)** | **1.11** | **902,000** | **26.6%** |
 
-### Other Pipeline Components
+### Interpreter Components (After Tracing Optimization)
 
 | Component | Ops/sec | Notes |
 |-----------|---------|-------|
-| Interpreter (simple select) | 188,010 | Now the bottleneck |
-| Interpreter (findUnique) | 136,643 | |
-| Data Mapper (10 rows) | 271,736 | |
-| Serializer (10x3) | 1,907,826 | Very fast |
+| Interpreter (simple select) | 223,000 | +11.7% from tracing optimization |
+| Interpreter (findUnique) | 158,000 | +10.9% from tracing optimization |
+| Interpreter (join 1:N) | 84,000 | +11.9% from tracing optimization |
+| Data Mapper (10 rows) | 284,000 | |
+| Serializer (10x3) | 2,054,000 | Very fast |
+| withQuerySpanAndEvent (no onQuery) | 1,421,000 | Optimized fast path |
 
 ## Completed Tasks
 
@@ -49,6 +51,7 @@
 | T3.1 | DMMF Parameterization | Schema-driven rules (Rust) |
 | T4.4 | Lazy Key Generation | Defer JSON.stringify on hits |
 | T4.5 | Parameterization Optimization | Pre-computed hashes, inlined checks |
+| - | Tracing Fast Path | Skip timing overhead when onQuery undefined (+11% interpreter) |
 
 ## Key Optimizations
 
@@ -129,9 +132,10 @@ The interpreter (136-188k ops/sec) is now the primary bottleneck for simple quer
    - Pre-compile common query patterns
    - Estimated impact: 1.5-2x improvement
 
-2. **T4.7: Connection Pool Optimization** (P2)
-   - Reduce connection acquisition overhead
-   - Pre-warm connections
+2. **T4.7: Interpreter Reuse** (P2)
+   - Reuse QueryInterpreter instances across queries
+   - Profiling shows 23-40% improvement with reuse
+   - Options: interpreter pool, per-request reuse, or stateless design
 
 3. **T4.8: Build-time Query Templates** (P3)
    - Generate query code at build time
@@ -158,7 +162,8 @@ const prisma = new PrismaClient({
 6. `perf(client): implement lazy full key generation for cache lookups` - T4.4
 7. `feat(client): add queryPlanCache configuration options` - T2.3
 8. `perf(client): optimize parameterization hot paths` - T4.5
+9. `perf(client-engine-runtime): optimize withQuerySpanAndEvent fast path` - Tracing optimization
 
 ## Conclusion
 
-The 110.3x speedup on the cached compilation path exceeds the original 100x target. The query plan cache is now fast enough that the interpreter has become the next optimization target. Real-world E2E performance with interpreter overhead is estimated at ~230k ops/sec, which represents approximately a 32x improvement over the uncached baseline when including all pipeline components.
+The 116.4x speedup on the cached compilation path exceeds the original 100x target. The query plan cache is now fast enough that the interpreter has become the next optimization target. Real-world E2E performance with interpreter overhead is estimated at ~240k ops/sec, which represents approximately a 31x improvement over the uncached baseline when including all pipeline components.
