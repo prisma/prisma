@@ -53,6 +53,22 @@ export async function withQuerySpanAndEvent<T>({
   onQuery?: (event: QueryEvent) => void
   execute: () => Promise<T>
 }): Promise<T> {
+  // Fast path: if no onQuery callback, skip all timing overhead
+  if (onQuery === undefined) {
+    return tracingHelper.runInChildSpan(
+      {
+        name: 'db_query',
+        kind: SpanKind.CLIENT,
+        attributes: {
+          'db.query.text': query.sql,
+          'db.system.name': providerToOtelSystem(provider),
+        },
+      },
+      execute,
+    )
+  }
+
+  // Full path: with timing for onQuery callback
   return await tracingHelper.runInChildSpan(
     {
       name: 'db_query',
@@ -68,7 +84,7 @@ export async function withQuerySpanAndEvent<T>({
       const result = await execute()
       const endInstant = performance.now()
 
-      onQuery?.({
+      onQuery({
         timestamp,
         duration: endInstant - startInstant,
         query: query.sql,
