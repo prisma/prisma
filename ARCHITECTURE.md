@@ -6,57 +6,23 @@ This document describes the repository's high-level architecture and provides pr
 
 ## High-Level Overview
 
-Prisma ORM is organized as a **pnpm/Turborepo monorepo** with multiple interconnected packages that work together to provide the Prisma developer experience:
+Prisma is organized as a pnpm/Turborepo monorepo. The repository is grouped into logical layers that separate concerns and make it easier for contributors to find and modify code.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Prisma Repository                           │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  User-Facing Tools                                        │  │
-│  │  • packages/cli - CLI entry point & commands              │  │
-│  │  • packages/client - Prisma Client runtime                │  │
-│  │  • packages/migrate - Schema migrations & introspection   │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Code Generation                                          │  │
-│  │  • packages/client-generator-js - Legacy generator        │  │
-│  │  • packages/client-generator-ts - New TS generator        │  │
-│  │  • packages/ts-builders - Type generation helpers         │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Runtime & Execution                                      │  │
-│  │  • packages/client-engine-runtime - Query execution       │  │
-│  │  • packages/engines - Rust engine binaries wrapper        │  │
-│  │  • packages/driver-adapter-utils - Adapter interfaces     │  │
-│  │  • packages/adapter-* - Database driver adapters          │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Configuration & Utilities                                │  │
-│  │  • packages/config - Config loader & types                │  │
-│  │  • packages/internals - Shared utilities                  │  │
-│  │  • packages/schema-files-loader - Schema loading          │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Extensions & Plugins                                     │  │
-│  │  • packages/sqlcommenter* - SQL comment plugins           │  │
-│  │  • packages/query-plan-executor - Accelerate service      │  │
-│  │  • packages/instrumentation - Telemetry & tracing         │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Testing & Quality                                        │  │
-│  │  • packages/integration-tests - E2E test suites           │  │
-│  │  • docker/ - Database test environments                   │  │
-│  │  • helpers/ - Build & test utilities                      │  │
-│  │  • scripts/ - CI/release automation                       │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Layer                         | Key Packages                                                                                                                     | Purpose                                                                                                   |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **User-facing**               | `packages/cli`, `packages/client`, `packages/migrate`                                                                            | CLI, runtime client, and schema migration tooling — what end users interact with directly                 |
+| **Code generation**           | `packages/client-generator-js`, `packages/client-generator-ts`, `packages/ts-builders`                                           | Generators and helpers that emit the Prisma Client and TypeScript types                                   |
+| **Execution & Engines**       | `packages/client-engine-runtime`, `packages/engines`, `packages/fetch-engine`, `packages/get-platform`, `packages/json-protocol` | Query execution, engine binary management, platform detection, and engine protocol glue                   |
+| **Database connectivity**     | `packages/driver-adapter-utils`, `packages/adapter-*`, `packages/bundled-js-drivers`                                             | Driver abstractions and adapter implementations for PostgreSQL, MySQL, SQLite, serverless providers, etc. |
+| **Configuration & Utilities** | `packages/config`, `packages/internals`, `packages/schema-files-loader`, `helpers/`                                              | Config loaders, shared helpers, and schema/file utilities used throughout the repo                        |
+| **Extensions & integrations** | `packages/sqlcommenter*`, `packages/query-plan-executor`, `packages/instrumentation`                                             | Plugins, monitoring, telemetry, and optional runtime integrations                                         |
+| **Testing & CI**              | `packages/integration-tests`, `docker/`, `scripts/`, `test/`                                                                     | End-to-end suites, Docker test environments, and CI automation                                            |
+
+Short notes:
+
+- The repository favors single-purpose packages (many `packages/*`) so changes are localized and discoverable.
+- Most development flows start in `packages/` and use `pnpm` scripts defined at the repo root; CI and test orchestration live under `scripts/` and `docker/`.
+- Visual diagrams (in `graphs/`) provide a quick entry-point for new contributors — see the "Architecture Diagrams" section for generation steps.
 
 ## Repository layout (high level)
 
