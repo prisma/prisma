@@ -37,8 +37,11 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
+    "@codspeed/benchmark.js-plugin": "4.0.0",
+    "@types/benchmark": "2.1.5",
     "@types/jest": "29.5.14",
     "@types/node": "~20.19.24",
+    "benchmark": "2.1.4",
     "jest": "29.7.0",
     "jest-junit": "16.0.0"
   },
