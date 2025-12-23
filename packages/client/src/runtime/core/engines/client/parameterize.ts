@@ -6,7 +6,7 @@
  * the actual values into a separate map.
  */
 
-import { JsonQuery } from '@prisma/json-protocol'
+import { JsonBatchQuery, JsonQuery } from '@prisma/json-protocol'
 
 /**
  * Placeholder object used to replace parameterized values in query shapes.
@@ -120,6 +120,7 @@ function parameterize(
   key: string | undefined,
   placeholderValues: Record<string, unknown>,
   placeholderPaths: string[],
+  isAtQueryRoot: boolean,
 ): unknown {
   if (value === null || value === undefined) {
     return value
@@ -139,12 +140,19 @@ function parameterize(
 
   if (Array.isArray(value)) {
     return value.map((item, index) =>
-      parameterize(item, context, `${path}[${index}]`, key, placeholderValues, placeholderPaths),
+      parameterize(item, context, `${path}[${index}]`, key, placeholderValues, placeholderPaths, false),
     )
   }
 
   if (typeof value === 'object') {
-    return parameterizeObject(value as Record<string, unknown>, context, path, placeholderValues, placeholderPaths)
+    return parameterizeObject(
+      value as Record<string, unknown>,
+      context,
+      path,
+      placeholderValues,
+      placeholderPaths,
+      isAtQueryRoot,
+    )
   }
 
   if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
@@ -186,6 +194,7 @@ function parameterizeObject(
   path: string,
   placeholderValues: Record<string, unknown>,
   placeholderPaths: string[],
+  isAtQueryRoot: boolean,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {}
 
@@ -199,14 +208,14 @@ function parameterizeObject(
     }
 
     // Top-level structural keys should not be parameterized
-    if (path === '' && TOP_LEVEL_STRUCTURAL_KEYS.has(key)) {
+    if (isAtQueryRoot && TOP_LEVEL_STRUCTURAL_KEYS.has(key)) {
       result[key] = value
       continue
     }
 
     const childContext = getChildContext(key, context)
     const childPath = path ? `${path}.${key}` : key
-    result[key] = parameterize(value, childContext, childPath, key, placeholderValues, placeholderPaths)
+    result[key] = parameterize(value, childContext, childPath, key, placeholderValues, placeholderPaths, false)
   }
 
   return result
@@ -235,10 +244,63 @@ export function parameterizeQuery(query: JsonQuery): ParameterizeResult {
     undefined,
     placeholderValues,
     placeholderPaths,
+    true,
   ) as JsonQuery
 
   return {
     parameterizedQuery,
+    placeholderValues,
+    placeholderPaths,
+  }
+}
+
+export interface ParameterizeBatchResult {
+  parameterizedBatch: JsonBatchQuery
+  placeholderValues: Record<string, unknown>
+  placeholderPaths: string[]
+}
+
+/**
+ * Parameterizes a batch request, replacing all user data values with placeholders
+ * and extracting the actual values into a single combined map.
+ *
+ * Placeholder names are prefixed with the query index to ensure uniqueness across
+ * all queries in the batch (e.g., `batch[0].query.arguments.where.id`).
+ *
+ * @param batch - The batch request to parameterize
+ * @returns An object containing the parameterized batch and combined placeholder values/paths
+ */
+export function parameterizeBatch(batch: JsonBatchQuery): ParameterizeBatchResult {
+  const placeholderValues: Record<string, unknown> = {}
+  const placeholderPaths: string[] = []
+  const parameterizedQueries: JsonQuery[] = []
+
+  for (let i = 0; i < batch.batch.length; i++) {
+    const query = batch.batch[i]
+    const queryPlaceholderValues: Record<string, unknown> = {}
+    const queryPlaceholderPaths: string[] = []
+
+    const parameterizedQuery = parameterize(
+      query,
+      'default',
+      `batch[${i}]`,
+      undefined,
+      queryPlaceholderValues,
+      queryPlaceholderPaths,
+      true,
+    ) as JsonQuery
+
+    parameterizedQueries.push(parameterizedQuery)
+
+    Object.assign(placeholderValues, queryPlaceholderValues)
+    placeholderPaths.push(...queryPlaceholderPaths)
+  }
+
+  return {
+    parameterizedBatch: {
+      ...batch,
+      batch: parameterizedQueries,
+    },
     placeholderValues,
     placeholderPaths,
   }
