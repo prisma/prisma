@@ -1,5 +1,6 @@
-import { JsonQuery } from '@prisma/json-protocol'
-import { parameterizeQuery } from './parameterize'
+import { JsonBatchQuery, JsonQuery } from '@prisma/json-protocol'
+
+import { parameterizeBatch, parameterizeQuery } from './parameterize'
 
 describe('parameterizeQuery', () => {
   describe('top-level structural keys', () => {
@@ -547,5 +548,158 @@ describe('parameterizeQuery', () => {
 
       expect(cacheKey1).not.toBe(cacheKey2)
     })
+  })
+})
+
+describe('parameterizeBatch', () => {
+  it('parameterizes all queries in a batch with unique placeholder names', () => {
+    const batch: JsonBatchQuery = {
+      batch: [
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 1 } },
+            selection: { $scalars: true },
+          },
+        },
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 2 } },
+            selection: { $scalars: true },
+          },
+        },
+      ],
+    }
+
+    const result = parameterizeBatch(batch)
+
+    expect(result.parameterizedBatch.batch).toHaveLength(2)
+
+    // Placeholder paths should include query index for uniqueness
+    expect(result.placeholderPaths).toHaveLength(2)
+    expect(result.placeholderPaths[0]).toContain('batch[0]')
+    expect(result.placeholderPaths[1]).toContain('batch[1]')
+
+    // Single combined values map contains all values with unique keys
+    expect(Object.values(result.placeholderValues)).toContain(1)
+    expect(Object.values(result.placeholderValues)).toContain(2)
+    expect(Object.keys(result.placeholderValues)).toHaveLength(2)
+  })
+
+  it('preserves transaction info', () => {
+    const batch: JsonBatchQuery = {
+      batch: [
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 1 } },
+            selection: { $scalars: true },
+          },
+        },
+      ],
+      transaction: { isolationLevel: 'Serializable' },
+    }
+
+    const result = parameterizeBatch(batch)
+
+    expect(result.parameterizedBatch.transaction).toEqual({ isolationLevel: 'Serializable' })
+  })
+
+  it('generates consistent cache keys for batches with same structure', () => {
+    const batch1: JsonBatchQuery = {
+      batch: [
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 1 } },
+            selection: { $scalars: true },
+          },
+        },
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 2 } },
+            selection: { $scalars: true },
+          },
+        },
+      ],
+    }
+
+    const batch2: JsonBatchQuery = {
+      batch: [
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 100 } },
+            selection: { $scalars: true },
+          },
+        },
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 200 } },
+            selection: { $scalars: true },
+          },
+        },
+      ],
+    }
+
+    const result1 = parameterizeBatch(batch1)
+    const result2 = parameterizeBatch(batch2)
+
+    expect(JSON.stringify(result1.parameterizedBatch)).toBe(JSON.stringify(result2.parameterizedBatch))
+  })
+
+  it('generates different cache keys for batches with different structures', () => {
+    const batch1: JsonBatchQuery = {
+      batch: [
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { id: 1 } },
+            selection: { $scalars: true },
+          },
+        },
+      ],
+    }
+
+    const batch2: JsonBatchQuery = {
+      batch: [
+        {
+          modelName: 'User',
+          action: 'findUnique',
+          query: {
+            arguments: { where: { email: 'test@example.com' } },
+            selection: { $scalars: true },
+          },
+        },
+      ],
+    }
+
+    const result1 = parameterizeBatch(batch1)
+    const result2 = parameterizeBatch(batch2)
+
+    expect(JSON.stringify(result1.parameterizedBatch)).not.toBe(JSON.stringify(result2.parameterizedBatch))
+  })
+
+  it('handles empty batch', () => {
+    const batch: JsonBatchQuery = {
+      batch: [],
+    }
+
+    const result = parameterizeBatch(batch)
+
+    expect(result.parameterizedBatch.batch).toHaveLength(0)
+    expect(Object.keys(result.placeholderValues)).toHaveLength(0)
+    expect(result.placeholderPaths).toHaveLength(0)
   })
 })
