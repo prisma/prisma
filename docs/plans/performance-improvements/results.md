@@ -30,12 +30,11 @@
 
 | Component | Ops/sec | Notes |
 |-----------|---------|-------|
-| Interpreter (simple select) | 234,000 | +4.8% from T4.6 fast path |
-| Interpreter (findUnique) | 166,000 | +4.6% from T4.6 fast path |
-| Interpreter (join 1:N) | 82,000 | Complex queries use recursive path |
-| Interpreter (sequence) | 97,000 | Complex queries use recursive path |
-| Interpreter (reuse, simple) | 281,000 | +20% with interpreter reuse (T4.7 preview) |
-| Interpreter (reuse, findUnique) | 190,000 | +14% with interpreter reuse (T4.7 preview) |
+| Interpreter (new each time) | 216,000 | Baseline for simple select |
+| Interpreter (runWithOptions, simple) | 264,000 | **+22%** with T4.7 interpreter reuse |
+| Interpreter (runWithOptions, findUnique) | 181,000 | **+14%** with T4.7 interpreter reuse |
+| Interpreter (join 1:N) | 79,000 | Complex queries use recursive path |
+| Interpreter (sequence) | 92,000 | Complex queries use recursive path |
 | Data Mapper (10 rows) | 285,000 | Stable |
 | Serializer (10x3) | 2,045,000 | Very fast |
 | withQuerySpanAndEvent (disabled) | Direct call | Ultra-fast path when tracing disabled |
@@ -56,6 +55,7 @@
 | T4.5 | Parameterization Optimization | Pre-computed hashes, inlined checks |
 | - | Tracing Fast Path | Skip timing overhead when onQuery undefined (+11% interpreter) |
 | T4.6 | Interpreter Fast Path | Sync execution for simple queries (+5% interpreter) |
+| T4.7 | Interpreter Reuse | runWithOptions() for per-query params (+14-22% interpreter) |
 
 ## Key Optimizations
 
@@ -91,6 +91,12 @@
 - Executes with single async boundary (database call)
 - Applies transformations synchronously after query execution
 - Results in 4-5% interpreter performance improvement
+
+### 7. Interpreter Reuse (T4.7)
+- Single interpreter instance per LocalExecutor
+- `runWithOptions()` method for per-query parameters
+- Eliminates constructor overhead on every query
+- Results in 14-22% interpreter performance improvement
 
 ## Architecture
 
@@ -147,10 +153,10 @@ The interpreter (136-188k ops/sec) is now the primary bottleneck for simple quer
    - Actual impact: +5% for simple select, findUnique
    - Detects `dataMap → [unique|reverse|required]* → query` patterns
 
-2. **T4.7: Interpreter Reuse** (P2) - NEXT
-   - Reuse QueryInterpreter instances across queries
-   - Profiling shows 14-20% improvement with reuse
-   - Options: interpreter pool, per-request reuse, or stateless design
+2. **T4.7: Interpreter Reuse** ✅ COMPLETED
+   - Single interpreter per LocalExecutor with `runWithOptions()` API
+   - Actual impact: +14-22% for interpreter performance
+   - LocalExecutor now reuses interpreter across all queries
 
 3. **T4.8: Build-time Query Templates** (P3)
    - Generate query code at build time
@@ -179,7 +185,8 @@ const prisma = new PrismaClient({
 8. `perf(client): optimize parameterization hot paths` - T4.5
 9. `perf(client-engine-runtime): optimize withQuerySpanAndEvent fast path` - Tracing optimization
 10. `perf(client-engine-runtime): implement T4.6 interpreter fast path for simple queries` - T4.6
+11. `perf(client): implement T4.7 interpreter reuse via runWithOptions` - T4.7
 
 ## Conclusion
 
-The 116.4x speedup on the cached compilation path exceeds the original 100x target. The query plan cache is now fast enough that the interpreter has become the next optimization target. Real-world E2E performance with interpreter overhead is estimated at ~240k ops/sec, which represents approximately a 31x improvement over the uncached baseline when including all pipeline components.
+The 116.4x speedup on the cached compilation path exceeds the original 100x target. With T4.6 and T4.7 interpreter optimizations, the interpreter now achieves ~264k ops/sec for simple select queries, representing an additional ~27% improvement over the baseline interpreter. Real-world E2E performance with all optimizations is estimated at ~264k ops/sec, representing approximately a 34x improvement over the uncached baseline when including all pipeline components.
