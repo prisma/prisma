@@ -30,10 +30,12 @@
 
 | Component | Ops/sec | Notes |
 |-----------|---------|-------|
-| Interpreter (simple select) | 223,000 | +11.7% from tracing optimization |
-| Interpreter (findUnique) | 159,000 | +10.9% from tracing optimization |
-| Interpreter (join 1:N) | 87,000 | +15.3% from tracing optimization |
-| Interpreter (sequence) | 98,000 | +10.0% from tracing optimization |
+| Interpreter (simple select) | 234,000 | +4.8% from T4.6 fast path |
+| Interpreter (findUnique) | 166,000 | +4.6% from T4.6 fast path |
+| Interpreter (join 1:N) | 82,000 | Complex queries use recursive path |
+| Interpreter (sequence) | 97,000 | Complex queries use recursive path |
+| Interpreter (reuse, simple) | 281,000 | +20% with interpreter reuse (T4.7 preview) |
+| Interpreter (reuse, findUnique) | 190,000 | +14% with interpreter reuse (T4.7 preview) |
 | Data Mapper (10 rows) | 285,000 | Stable |
 | Serializer (10x3) | 2,045,000 | Very fast |
 | withQuerySpanAndEvent (disabled) | Direct call | Ultra-fast path when tracing disabled |
@@ -53,6 +55,7 @@
 | T4.4 | Lazy Key Generation | Defer JSON.stringify on hits |
 | T4.5 | Parameterization Optimization | Pre-computed hashes, inlined checks |
 | - | Tracing Fast Path | Skip timing overhead when onQuery undefined (+11% interpreter) |
+| T4.6 | Interpreter Fast Path | Sync execution for simple queries (+5% interpreter) |
 
 ## Key Optimizations
 
@@ -82,6 +85,12 @@
 - Skip timing overhead when no onQuery callback is provided
 - Ultra-fast path bypasses span options creation when tracing is disabled
 - Results in 10-15% interpreter performance improvement
+
+### 6. Interpreter Fast Path (T4.6)
+- Detects simple read patterns: `dataMap → [unique|reverse|required]* → query`
+- Executes with single async boundary (database call)
+- Applies transformations synchronously after query execution
+- Results in 4-5% interpreter performance improvement
 
 ## Architecture
 
@@ -133,14 +142,14 @@ The interpreter (136-188k ops/sec) is now the primary bottleneck for simple quer
 
 ### Phase 4: Advanced Optimizations
 
-1. **T4.6: Interpreter Fast Path** (P2)
+1. **T4.6: Interpreter Fast Path** ✅ COMPLETED
    - Synchronous execution for simple queries without joins
-   - Pre-compile common query patterns
-   - Estimated impact: 1.5-2x improvement
+   - Actual impact: +5% for simple select, findUnique
+   - Detects `dataMap → [unique|reverse|required]* → query` patterns
 
-2. **T4.7: Interpreter Reuse** (P2)
+2. **T4.7: Interpreter Reuse** (P2) - NEXT
    - Reuse QueryInterpreter instances across queries
-   - Profiling shows 23-40% improvement with reuse
+   - Profiling shows 14-20% improvement with reuse
    - Options: interpreter pool, per-request reuse, or stateless design
 
 3. **T4.8: Build-time Query Templates** (P3)
@@ -169,6 +178,7 @@ const prisma = new PrismaClient({
 7. `feat(client): add queryPlanCache configuration options` - T2.3
 8. `perf(client): optimize parameterization hot paths` - T4.5
 9. `perf(client-engine-runtime): optimize withQuerySpanAndEvent fast path` - Tracing optimization
+10. `perf(client-engine-runtime): implement T4.6 interpreter fast path for simple queries` - T4.6
 
 ## Conclusion
 
