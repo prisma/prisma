@@ -385,7 +385,8 @@ describe('parameterizeQuery', () => {
 
       const result = parameterizeQuery(query)
 
-      expect(Object.values(result.placeholderValues)).toContainEqual(dateValue)
+      // DateTime values are unwrapped when stored in placeholderValues
+      expect(Object.values(result.placeholderValues)).toContainEqual(dateValue.value)
     })
 
     it('preserves FieldRef tagged values', () => {
@@ -490,8 +491,8 @@ describe('parameterizeQuery', () => {
     })
   })
 
-  describe('hash consistency', () => {
-    it('generates same hash for same query structure', () => {
+  describe('cache key consistency', () => {
+    it('generates same cache key for same query structure', () => {
       const query1: JsonQuery = {
         modelName: 'User',
         action: 'findUnique',
@@ -513,10 +514,13 @@ describe('parameterizeQuery', () => {
       const result1 = parameterizeQuery(query1)
       const result2 = parameterizeQuery(query2)
 
-      expect(result1.queryHash).toBe(result2.queryHash)
+      const cacheKey1 = JSON.stringify(result1.parameterizedQuery)
+      const cacheKey2 = JSON.stringify(result2.parameterizedQuery)
+
+      expect(cacheKey1).toBe(cacheKey2)
     })
 
-    it('generates different hash for different query structure', () => {
+    it('generates different cache key for different query structure', () => {
       const query1: JsonQuery = {
         modelName: 'User',
         action: 'findUnique',
@@ -538,7 +542,10 @@ describe('parameterizeQuery', () => {
       const result1 = parameterizeQuery(query1)
       const result2 = parameterizeQuery(query2)
 
-      expect(result1.queryHash).not.toBe(result2.queryHash)
+      const cacheKey1 = JSON.stringify(result1.parameterizedQuery)
+      const cacheKey2 = JSON.stringify(result2.parameterizedQuery)
+
+      expect(cacheKey1).not.toBe(cacheKey2)
     })
   })
 })

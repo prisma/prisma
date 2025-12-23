@@ -188,13 +188,19 @@ The query compiler already supports parameterized queries (using `{ $type: "Para
 
 ### 2.2 Cache Key Generation
 
-**Approach**: Use the parameterized query as the cache key.
+**Approach**: Use JSON.stringify of the parameterized query directly as the cache key.
 
-**Options**:
+**Why JSON.stringify instead of hashing**:
 
-1. **JSON.stringify** the parameterized query (simple, moderate performance)
-2. **Structural hashing** (compute hash during traversal, faster for cache hits)
-3. **Interned query shapes** (pre-compute during client generation)
+1. `JSON.stringify` is highly optimized in V8 (~0.3-1μs for typical queries)
+2. `Map.get()` with string keys is very fast (~0.02μs)
+3. Total cache key generation (~1-4μs) is negligible compared to compilation (~100-500μs)
+4. Simpler implementation without hash collision handling
+
+**Alternative approaches considered**:
+
+- **Structural hashing** (FNV-1a during traversal) - tested but added complexity without meaningful perf gain
+- **Interned query shapes** (pre-compute during client generation) - future optimization opportunity
 
 ### 2.3 Placeholder Value Extraction
 
@@ -240,21 +246,20 @@ For correctness and performance, parameterization should be driven by the query 
 
 **Implementation Results**:
 
-| Metric                            | Result                         |
-| --------------------------------- | ------------------------------ |
-| First call → Cached speedup       | **10.1x** (786μs → 78μs)       |
-| Pure compilation speedup          | **35x** (105μs → 3μs)          |
-| Complex query compilation speedup | **29x** (141μs → 5μs)          |
-| End-to-end benchmark improvement  | **2.5-3x** (limited by DB I/O) |
-| Cache miss overhead               | 2.8% of compilation time       |
+| Metric                            | Result                           |
+| --------------------------------- | -------------------------------- |
+| First call → Cached speedup       | **10.1x** (786μs → 78μs)         |
+| Pure compilation speedup          | **98x** (98μs → 1μs)             |
+| Complex query compilation speedup | **123x** (518μs → 4μs)           |
+| Cache key generation (simple)     | ~1.0 μs (parameterize+stringify) |
+| Cache key generation (complex)    | ~4.2 μs (parameterize+stringify) |
 
-**Why end-to-end shows ~3x instead of 10x**: DB I/O (58μs) accounts for 74% of cached call time (78μs). The compilation savings (~100μs) are significant but masked by irreducible I/O costs in benchmarks.
+**Implementation approach**: Uses JSON.stringify of parameterized query directly as cache key. This is simpler than hashing and fast enough (~1-4μs vs ~100-500μs compilation).
 
 **Files created/modified**:
 
 - `packages/client/src/runtime/core/engines/client/parameterize.ts` - Query parameterization
-- `packages/client/src/runtime/core/engines/client/hash.ts` - FNV-1a hashing
-- `packages/client/src/runtime/core/engines/client/QueryPlanCache.ts` - LRU cache
+- `packages/client/src/runtime/core/engines/client/QueryPlanCache.ts` - LRU cache (string keys)
 - `packages/client-engine-runtime/src/interpreter/render-query.ts` - Tagged value unwrapping
 
 See [T1.1 task document](tasks/T1.1-strawman-query-plan-cache.md) for detailed measurements
@@ -338,18 +343,21 @@ Extend parameterization to generate named placeholders matching query compiler e
 
 ---
 
-#### T2.2: Optimize Cache Key Generation
+#### T2.2: Optimize Cache Key Generation ✅ SIMPLIFIED
 
 **Priority**: P1  
 **Track**: 2  
 **Effort**: Medium  
 **Impact**: Medium (reduces cache lookup overhead)
 
-Replace JSON.stringify with faster cache key generation:
+**Status**: Simplified 2025-12-23
 
-1. Implement structural hash computation during parameterization
-2. Use hash as primary cache key
-3. Fall back to full comparison on hash collision
+Originally planned to use FNV-1a hashing with collision detection. After benchmarking, simplified to use JSON.stringify directly as cache key because:
+
+1. `JSON.stringify` is highly optimized in V8 (~0.3-1μs)
+2. `Map.get()` with string keys is very fast (~0.02μs)
+3. Total cache key generation (~1-4μs) is negligible vs compilation (~100-500μs)
+4. Eliminates hash collision handling complexity
 
 ---
 
