@@ -2,7 +2,7 @@ import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/dr
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../query-plan'
+import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanDbQuery, QueryPlanNode, ResultNode } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
@@ -16,6 +16,74 @@ import { evaluateArg, renderQuery } from './render-query'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serialize-sql'
 import { doesSatisfyRule, performValidation } from './validation'
+
+/**
+ * Represents a simple read query pattern that can be executed with minimal async overhead.
+ * These patterns have a single SQL query at the leaf, followed by pure transformation nodes.
+ */
+type SimpleReadPattern = {
+  queryNode: { type: 'query'; args: QueryPlanDbQuery }
+  transformations: Array<
+    | { type: 'unique' }
+    | { type: 'reverse' }
+    | { type: 'required' }
+    | { type: 'dataMap'; structure: ResultNode; enums: Record<string, Record<string, string>> }
+  >
+}
+
+/**
+ * Detects if a query plan matches a simple read pattern that can be optimized.
+ * Simple patterns: dataMap → [unique|reverse|required]* → query
+ */
+function detectSimpleReadPattern(node: QueryPlanNode): SimpleReadPattern | null {
+  const transformations: SimpleReadPattern['transformations'] = []
+
+  let current: QueryPlanNode = node
+
+  // Walk down the tree, collecting transformations
+  while (true) {
+    switch (current.type) {
+      case 'dataMap':
+        transformations.push({
+          type: 'dataMap',
+          structure: current.args.structure,
+          enums: current.args.enums,
+        })
+        current = current.args.expr
+        break
+
+      case 'unique':
+        transformations.push({ type: 'unique' })
+        current = current.args
+        break
+
+      case 'reverse':
+        transformations.push({ type: 'reverse' })
+        current = current.args
+        break
+
+      case 'required':
+        transformations.push({ type: 'required' })
+        current = current.args
+        break
+
+      case 'query':
+        // Found the query node at the leaf - this is a simple pattern
+        if (current.args.type === 'rawSql') {
+          // Raw SQL queries go through the normal path for proper error handling
+          return null
+        }
+        return {
+          queryNode: current as { type: 'query'; args: QueryPlanDbQuery },
+          transformations,
+        }
+
+      default:
+        // Any other node type breaks the simple pattern
+        return null
+    }
+  }
+}
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -93,12 +161,79 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
+    // Try fast path for simple read queries (single SQL query + pure transformations)
+    const simplePattern = detectSimpleReadPattern(queryPlan)
+    if (simplePattern !== null) {
+      return this.#runSimple(simplePattern, queryable).catch((e) => rethrowAsUserFacing(e))
+    }
+
+    // Standard recursive path for complex query plans
     const { value } = await this.interpretNode(
       queryPlan,
       queryable,
       this.#placeholderValues,
       this.#generators.snapshot(),
     ).catch((e) => rethrowAsUserFacing(e))
+
+    return value
+  }
+
+  /**
+   * Fast path for simple read queries with minimal async overhead.
+   * Executes a single SQL query and applies transformations synchronously.
+   */
+  async #runSimple(pattern: SimpleReadPattern, queryable: SqlQueryable): Promise<unknown> {
+    const generators = this.#generators.snapshot()
+    const queries = renderQuery(pattern.queryNode.args, this.#placeholderValues, generators, this.#maxChunkSize())
+
+    // Execute the SQL query (single async boundary)
+    let results: SqlResultSet | undefined
+    for (const query of queries) {
+      const commentedQuery = this.#applyComments(query)
+      const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
+        queryable.queryRaw(commentedQuery),
+      )
+      if (results === undefined) {
+        results = result
+      } else {
+        results.rows.push(...result.rows)
+        results.lastInsertId = result.lastInsertId
+      }
+    }
+
+    // Serialize the results
+    let value: Value = this.#serializer(results!)
+
+    // Apply transformations in reverse order (since we collected from outer to inner)
+    for (let i = pattern.transformations.length - 1; i >= 0; i--) {
+      const transform = pattern.transformations[i]
+      switch (transform.type) {
+        case 'unique':
+          if (Array.isArray(value)) {
+            if (value.length > 1) {
+              throw new Error(`Expected zero or one element, got ${value.length}`)
+            }
+            value = value[0] ?? null
+          }
+          break
+
+        case 'reverse':
+          if (Array.isArray(value)) {
+            value = value.reverse()
+          }
+          break
+
+        case 'required':
+          if (isEmpty(value)) {
+            throw new Error('Required value is empty')
+          }
+          break
+
+        case 'dataMap':
+          value = applyDataMap(value, transform.structure, transform.enums)
+          break
+      }
+    }
 
     return value
   }

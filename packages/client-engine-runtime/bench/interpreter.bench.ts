@@ -57,6 +57,23 @@ async function runBenchmarks(): Promise<void> {
     }),
   )
 
+  // Reused interpreter benchmarks (demonstrates T4.7 potential)
+  const reuseInterpreter = QueryInterpreter.forSql(interpreterOptions)
+
+  suite.add(
+    'interpreter (reuse): simple select',
+    deferredBench(async () => {
+      await reuseInterpreter.run(SIMPLE_SELECT_PLAN, mockAdapter)
+    }),
+  )
+
+  suite.add(
+    'interpreter (reuse): findUnique',
+    deferredBench(async () => {
+      await reuseInterpreter.run(FIND_UNIQUE_PLAN, mockAdapter)
+    }),
+  )
+
   await runSuite(suite)
 }
 
