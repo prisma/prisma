@@ -119,14 +119,12 @@ This repo is a pnpm/Turborepo monorepo. Most of the product code lives in `packa
 #### Tooling
 
 | Package                                          | Purpose                               |
-| ------------------------------------------------ | ------------------------------------- | ---------------- |
+| ------------------------------------------------ | ------------------------------------- |
 | **`packages/generator`**                         | Base generator types                  |
 | **`packages/generator-helper`**                  | Generator development utilities       |
 | **`packages/debug`**                             | Debug utilities for Prisma            |
 | **`packages/credentials-store`**                 | Secure credential storage             |
-| **`packages/nextjs-monorepo-workaround-plugin`** | Next.js monorepo compatibility plugin | text, insights). |
-
-- `packages/ts-builders`: TS code generation helpers used by generators.
+| **`packages/nextjs-monorepo-workaround-plugin`** | Next.js monorepo compatibility plugin |
 
 ## Architecture Diagrams
 
