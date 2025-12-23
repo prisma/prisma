@@ -4,7 +4,9 @@ export { DataMapperError } from './interpreter/data-mapper'
 export {
   QueryInterpreter,
   type QueryInterpreterOptions,
+  type QueryInterpreterRunOptions,
   type QueryInterpreterSqlCommenter,
+  type QueryInterpreterStaticOptions,
   type QueryInterpreterTransactionManager,
 } from './interpreter/query-interpreter'
 export * from './json-protocol'

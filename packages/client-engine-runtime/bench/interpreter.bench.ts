@@ -57,7 +57,7 @@ async function runBenchmarks(): Promise<void> {
     }),
   )
 
-  // Reused interpreter benchmarks (demonstrates T4.7 potential)
+  // Reused interpreter benchmarks using run() - same instance reused (T4.7 pattern)
   const reuseInterpreter = QueryInterpreter.forSql(interpreterOptions)
 
   suite.add(
@@ -71,6 +71,34 @@ async function runBenchmarks(): Promise<void> {
     'interpreter (reuse): findUnique',
     deferredBench(async () => {
       await reuseInterpreter.run(FIND_UNIQUE_PLAN, mockAdapter)
+    }),
+  )
+
+  // Reusable interpreter with runWithOptions - per-query options (T4.7 production pattern)
+  const reusableInterpreter = QueryInterpreter.forSqlReusable({
+    onQuery: interpreterOptions.onQuery,
+    tracingHelper: interpreterOptions.tracingHelper,
+    provider: interpreterOptions.provider,
+    connectionInfo: interpreterOptions.connectionInfo,
+  })
+
+  const runOptions = {
+    placeholderValues: interpreterOptions.placeholderValues,
+    transactionManager: interpreterOptions.transactionManager,
+    sqlCommenter: undefined,
+  }
+
+  suite.add(
+    'interpreter (runWithOptions): simple select',
+    deferredBench(async () => {
+      await reusableInterpreter.runWithOptions(SIMPLE_SELECT_PLAN, mockAdapter, runOptions)
+    }),
+  )
+
+  suite.add(
+    'interpreter (runWithOptions): findUnique',
+    deferredBench(async () => {
+      await reusableInterpreter.runWithOptions(FIND_UNIQUE_PLAN, mockAdapter, runOptions)
     }),
   )
 

@@ -26,12 +26,20 @@ export class LocalExecutor implements Executor {
   readonly #driverAdapter: SqlDriverAdapter
   readonly #transactionManager: TransactionManager
   readonly #connectionInfo?: ConnectionInfo
+  readonly #interpreter: QueryInterpreter
 
   constructor(options: LocalExecutorOptions, driverAdapter: SqlDriverAdapter, transactionManager: TransactionManager) {
     this.#options = options
     this.#driverAdapter = driverAdapter
     this.#transactionManager = transactionManager
     this.#connectionInfo = driverAdapter.getConnectionInfo?.()
+    // Reusable interpreter instance - per-query options are passed via runWithOptions()
+    this.#interpreter = QueryInterpreter.forSqlReusable({
+      onQuery: options.onQuery,
+      tracingHelper: options.tracingHelper,
+      provider: options.provider,
+      connectionInfo: this.#connectionInfo,
+    })
   }
 
   static async connect(options: LocalExecutorOptions): Promise<LocalExecutor> {
@@ -65,20 +73,14 @@ export class LocalExecutor implements Executor {
       ? await this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
       : this.#driverAdapter
 
-    const interpreter = QueryInterpreter.forSql({
-      transactionManager: transaction ? { enabled: false } : { enabled: true, manager: this.#transactionManager },
+    return await this.#interpreter.runWithOptions(plan, queryable, {
       placeholderValues,
-      onQuery: this.#options.onQuery,
-      tracingHelper: this.#options.tracingHelper,
-      provider: this.#options.provider,
-      connectionInfo: this.#connectionInfo,
+      transactionManager: transaction ? { enabled: false } : { enabled: true, manager: this.#transactionManager },
       sqlCommenter: this.#options.sqlCommenters && {
         plugins: this.#options.sqlCommenters,
         queryInfo,
       },
     })
-
-    return await interpreter.run(plan, queryable)
   }
 
   async startTransaction(options: TransactionOptions): Promise<InteractiveTransactionInfo> {

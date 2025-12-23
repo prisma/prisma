@@ -87,6 +87,15 @@ function detectSimpleReadPattern(node: QueryPlanNode): SimpleReadPattern | null 
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
+export type QueryInterpreterSqlCommenter = {
+  plugins: SqlCommenterPlugin[]
+  queryInfo: SqlCommenterQueryInfo
+}
+
+/**
+ * Full options for creating a QueryInterpreter instance.
+ * Includes both static options and per-query defaults.
+ */
 export type QueryInterpreterOptions = {
   transactionManager: QueryInterpreterTransactionManager
   placeholderValues: Record<string, unknown>
@@ -99,9 +108,26 @@ export type QueryInterpreterOptions = {
   sqlCommenter?: QueryInterpreterSqlCommenter
 }
 
-export type QueryInterpreterSqlCommenter = {
-  plugins: SqlCommenterPlugin[]
-  queryInfo: SqlCommenterQueryInfo
+/**
+ * Static options for creating a reusable QueryInterpreter instance.
+ * Per-query options are passed to runWithOptions() instead.
+ */
+export type QueryInterpreterStaticOptions = {
+  onQuery?: (event: QueryEvent) => void
+  tracingHelper: TracingHelper
+  serializer: (results: SqlResultSet) => Value
+  rawSerializer?: (results: SqlResultSet) => Value
+  provider?: SchemaProvider
+  connectionInfo?: ConnectionInfo
+}
+
+/**
+ * Per-query options passed to runWithOptions().
+ */
+export type QueryInterpreterRunOptions = {
+  placeholderValues: Record<string, unknown>
+  transactionManager: QueryInterpreterTransactionManager
+  sqlCommenter?: QueryInterpreterSqlCommenter
 }
 
 export class QueryInterpreter {
@@ -160,19 +186,70 @@ export class QueryInterpreter {
     })
   }
 
+  /**
+   * Creates a reusable interpreter instance with only static configuration.
+   * Per-query options are passed to runWithOptions() for each query.
+   * This enables interpreter reuse across multiple queries for better performance.
+   */
+  static forSqlReusable(options: {
+    onQuery?: (event: QueryEvent) => void
+    tracingHelper: TracingHelper
+    provider?: SchemaProvider
+    connectionInfo?: ConnectionInfo
+  }): QueryInterpreter {
+    return new QueryInterpreter({
+      // Defaults that will be overridden by runWithOptions()
+      transactionManager: { enabled: false },
+      placeholderValues: {},
+      onQuery: options.onQuery,
+      tracingHelper: options.tracingHelper,
+      serializer: serializeSql,
+      rawSerializer: serializeRawSql,
+      provider: options.provider,
+      connectionInfo: options.connectionInfo,
+      sqlCommenter: undefined,
+    })
+  }
+
   async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
+    return this.#executeQuery(queryPlan, queryable, {
+      placeholderValues: this.#placeholderValues,
+      transactionManager: this.#transactionManager,
+      sqlCommenter: this.#sqlCommenter,
+    })
+  }
+
+  /**
+   * Executes a query plan with per-query options.
+   * Use this method when reusing a single interpreter instance across multiple queries.
+   * The options override the constructor defaults for this specific query execution.
+   */
+  async runWithOptions(
+    queryPlan: QueryPlanNode,
+    queryable: SqlQueryable,
+    options: QueryInterpreterRunOptions,
+  ): Promise<unknown> {
+    return this.#executeQuery(queryPlan, queryable, options)
+  }
+
+  async #executeQuery(
+    queryPlan: QueryPlanNode,
+    queryable: SqlQueryable,
+    options: QueryInterpreterRunOptions,
+  ): Promise<unknown> {
     // Try fast path for simple read queries (single SQL query + pure transformations)
     const simplePattern = detectSimpleReadPattern(queryPlan)
     if (simplePattern !== null) {
-      return this.#runSimple(simplePattern, queryable).catch((e) => rethrowAsUserFacing(e))
+      return this.#runSimple(simplePattern, queryable, options).catch((e) => rethrowAsUserFacing(e))
     }
 
     // Standard recursive path for complex query plans
-    const { value } = await this.interpretNode(
+    const { value } = await this.#interpretNode(
       queryPlan,
       queryable,
-      this.#placeholderValues,
+      options.placeholderValues,
       this.#generators.snapshot(),
+      options,
     ).catch((e) => rethrowAsUserFacing(e))
 
     return value
@@ -182,14 +259,18 @@ export class QueryInterpreter {
    * Fast path for simple read queries with minimal async overhead.
    * Executes a single SQL query and applies transformations synchronously.
    */
-  async #runSimple(pattern: SimpleReadPattern, queryable: SqlQueryable): Promise<unknown> {
+  async #runSimple(
+    pattern: SimpleReadPattern,
+    queryable: SqlQueryable,
+    options: QueryInterpreterRunOptions,
+  ): Promise<unknown> {
     const generators = this.#generators.snapshot()
-    const queries = renderQuery(pattern.queryNode.args, this.#placeholderValues, generators, this.#maxChunkSize())
+    const queries = renderQuery(pattern.queryNode.args, options.placeholderValues, generators, this.#maxChunkSize())
 
     // Execute the SQL query (single async boundary)
     let results: SqlResultSet | undefined
     for (const query of queries) {
-      const commentedQuery = this.#applyComments(query)
+      const commentedQuery = this.#applyComments(query, options.sqlCommenter)
       const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
         queryable.queryRaw(commentedQuery),
       )
@@ -238,11 +319,12 @@ export class QueryInterpreter {
     return value
   }
 
-  private async interpretNode(
+  async #interpretNode(
     node: QueryPlanNode,
     queryable: SqlQueryable,
     scope: ScopeBindings,
     generators: GeneratorRegistrySnapshot,
+    options: QueryInterpreterRunOptions,
   ): Promise<IntermediateValue> {
     switch (node.type) {
       case 'value': {
@@ -252,7 +334,7 @@ export class QueryInterpreter {
       case 'seq': {
         let result: IntermediateValue | undefined
         for (const arg of node.args) {
-          result = await this.interpretNode(arg, queryable, scope, generators)
+          result = await this.#interpretNode(arg, queryable, scope, generators, options)
         }
         return result ?? wrapValue(undefined)
       }
@@ -264,10 +346,10 @@ export class QueryInterpreter {
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(scope)
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(binding.expr, queryable, nestedScope, generators)
+          const { value } = await this.#interpretNode(binding.expr, queryable, nestedScope, generators, options)
           nestedScope[binding.name] = value
         }
-        return this.interpretNode(node.args.expr, queryable, nestedScope, generators)
+        return this.#interpretNode(node.args.expr, queryable, nestedScope, generators, options)
       }
 
       case 'getFirstNonEmpty': {
@@ -282,7 +364,7 @@ export class QueryInterpreter {
 
       case 'concat': {
         const parts = await Promise.all(
-          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+          node.args.map((arg) => this.#interpretNode(arg, queryable, scope, generators, options).then((res) => res.value)),
         )
         if (parts.length === 0) {
           return wrapValue([])
@@ -300,7 +382,7 @@ export class QueryInterpreter {
 
       case 'sum': {
         const parts = await Promise.all(
-          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+          node.args.map((arg) => this.#interpretNode(arg, queryable, scope, generators, options).then((res) => res.value)),
         )
         return wrapValue(parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0)
       }
@@ -310,7 +392,7 @@ export class QueryInterpreter {
 
         let sum = 0
         for (const query of queries) {
-          const commentedQuery = this.#applyComments(query)
+          const commentedQuery = this.#applyComments(query, options.sqlCommenter)
           sum += await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
             queryable
               .executeRaw(commentedQuery)
@@ -328,7 +410,7 @@ export class QueryInterpreter {
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const commentedQuery = this.#applyComments(query)
+          const commentedQuery = this.#applyComments(query, options.sqlCommenter)
           const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
             queryable
               .queryRaw(commentedQuery)
@@ -351,12 +433,12 @@ export class QueryInterpreter {
       }
 
       case 'reverse': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args, queryable, scope, generators, options)
         return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
       }
 
       case 'unique': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args, queryable, scope, generators, options)
         if (!Array.isArray(value)) {
           return { value, lastInsertId }
         }
@@ -367,7 +449,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args, queryable, scope, generators, options)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -375,12 +457,12 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.records, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args.records, queryable, scope, generators, options)
         return { value: mapField(value, node.args.field), lastInsertId }
       }
 
       case 'join': {
-        const { value: parent, lastInsertId } = await this.interpretNode(node.args.parent, queryable, scope, generators)
+        const { value: parent, lastInsertId } = await this.#interpretNode(node.args.parent, queryable, scope, generators, options)
 
         if (parent === null) {
           return { value: null, lastInsertId }
@@ -389,7 +471,7 @@ export class QueryInterpreter {
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, queryable, scope, generators)).value,
+            childRecords: (await this.#interpretNode(joinExpr.child, queryable, scope, generators, options)).value,
           })),
         )) satisfies JoinExpressionWithRecords[]
 
@@ -397,15 +479,15 @@ export class QueryInterpreter {
       }
 
       case 'transaction': {
-        if (!this.#transactionManager.enabled) {
-          return this.interpretNode(node.args, queryable, scope, generators)
+        if (!options.transactionManager.enabled) {
+          return this.#interpretNode(node.args, queryable, scope, generators, options)
         }
 
-        const transactionManager = this.#transactionManager.manager
+        const transactionManager = options.transactionManager.manager
         const transactionInfo = await transactionManager.startInternalTransaction()
         const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
         try {
-          const value = await this.interpretNode(node.args, transaction, scope, generators)
+          const value = await this.#interpretNode(node.args, transaction, scope, generators, options)
           await transactionManager.commitTransaction(transactionInfo.id)
           return value
         } catch (e) {
@@ -415,23 +497,23 @@ export class QueryInterpreter {
       }
 
       case 'dataMap': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args.expr, queryable, scope, generators, options)
         return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
       }
 
       case 'validate': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args.expr, queryable, scope, generators, options)
         performValidation(value, node.args.rules, node.args)
 
         return { value, lastInsertId }
       }
 
       case 'if': {
-        const { value } = await this.interpretNode(node.args.value, queryable, scope, generators)
+        const { value } = await this.#interpretNode(node.args.value, queryable, scope, generators, options)
         if (doesSatisfyRule(value, node.args.rule)) {
-          return await this.interpretNode(node.args.then, queryable, scope, generators)
+          return await this.#interpretNode(node.args.then, queryable, scope, generators, options)
         } else {
-          return await this.interpretNode(node.args.else, queryable, scope, generators)
+          return await this.#interpretNode(node.args.else, queryable, scope, generators, options)
         }
       }
 
@@ -440,8 +522,8 @@ export class QueryInterpreter {
       }
 
       case 'diff': {
-        const { value: from } = await this.interpretNode(node.args.from, queryable, scope, generators)
-        const { value: to } = await this.interpretNode(node.args.to, queryable, scope, generators)
+        const { value: from } = await this.#interpretNode(node.args.from, queryable, scope, generators, options)
+        const { value: to } = await this.#interpretNode(node.args.to, queryable, scope, generators, options)
 
         const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node.args.fields) : null)
 
@@ -450,12 +532,12 @@ export class QueryInterpreter {
       }
 
       case 'process': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args.expr, queryable, scope, generators, options)
         return { value: processRecords(value, node.args.operations), lastInsertId }
       }
 
       case 'initializeRecord': {
-        const { lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { lastInsertId } = await this.#interpretNode(node.args.expr, queryable, scope, generators, options)
 
         const record = {}
         for (const [key, initializer] of Object.entries(node.args.fields)) {
@@ -465,7 +547,7 @@ export class QueryInterpreter {
       }
 
       case 'mapRecord': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.#interpretNode(node.args.expr, queryable, scope, generators, options)
 
         const record = value === null ? {} : asRecord(value)
         for (const [key, entry] of Object.entries(node.args.fields)) {
@@ -519,13 +601,13 @@ export class QueryInterpreter {
     })
   }
 
-  #applyComments(query: SqlQuery): SqlQuery {
-    if (!this.#sqlCommenter || this.#sqlCommenter.plugins.length === 0) {
+  #applyComments(query: SqlQuery, sqlCommenter: QueryInterpreterSqlCommenter | undefined): SqlQuery {
+    if (!sqlCommenter || sqlCommenter.plugins.length === 0) {
       return query
     }
 
-    const comment = buildSqlComment(this.#sqlCommenter.plugins, {
-      query: this.#sqlCommenter.queryInfo,
+    const comment = buildSqlComment(sqlCommenter.plugins, {
+      query: sqlCommenter.queryInfo,
       sql: query.sql,
     })
 
