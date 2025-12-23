@@ -464,23 +464,18 @@ export class ClientEngine implements Engine {
 
     if (this.#queryPlanCacheEnabled && !isRawQuery) {
       try {
-        const {
-          parameterizedQuery,
-          placeholderValues: extractedValues,
-          placeholderPaths,
-          queryHash,
-        } = parameterizeQuery(query)
+        const { parameterizedQuery, placeholderValues: extractedValues, placeholderPaths } = parameterizeQuery(query)
         const cacheKey = JSON.stringify(parameterizedQuery)
         placeholderValues = extractedValues
 
-        const cached = this.#queryPlanCache.get(queryHash, cacheKey)
+        const cached = this.#queryPlanCache.get(cacheKey)
         if (cached) {
           debug('query plan cache hit')
           queryPlan = cached.plan
         } else {
           debug('query plan cache miss')
           queryPlan = this.#compileSingle(queryCompiler, parameterizedQuery, cacheKey)
-          this.#queryPlanCache.set(queryHash, { plan: queryPlan, placeholderPaths, fullKey: cacheKey })
+          this.#queryPlanCache.set(cacheKey, { plan: queryPlan, placeholderPaths })
         }
       } catch (error) {
         throw new PrismaClientUnknownRequestError(String(error), {
@@ -560,12 +555,11 @@ export class ClientEngine implements Engine {
           parameterizedQuery,
           placeholderValues: extractedValues,
           placeholderPaths,
-          queryHash,
         } = parameterizeQuery(queries[0])
         const cacheKeyStr = JSON.stringify(parameterizedQuery)
         placeholderValuesArray = [extractedValues]
 
-        const cached = this.#queryPlanCache.get(queryHash, cacheKeyStr)
+        const cached = this.#queryPlanCache.get(cacheKeyStr)
         if (cached) {
           debug('batch query plan cache hit (single query)')
           batchResponse = { type: 'multi', plans: [cached.plan] }
@@ -582,10 +576,9 @@ export class ClientEngine implements Engine {
               JSON.stringify(parameterizedBatchPayload),
             )
             if (batchResponse.type === 'multi' && batchResponse.plans.length === 1) {
-              this.#queryPlanCache.set(queryHash, {
+              this.#queryPlanCache.set(cacheKeyStr, {
                 plan: batchResponse.plans[0] as QueryPlanNode,
                 placeholderPaths,
-                fullKey: cacheKeyStr,
               })
             }
           } catch (error) {
