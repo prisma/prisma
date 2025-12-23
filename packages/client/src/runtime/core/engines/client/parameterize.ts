@@ -8,10 +8,6 @@
 
 import { JsonQuery } from '@prisma/json-protocol'
 
-import { fnv1aHash } from './hash'
-
-const FNV_OFFSET_BASIS = 2166136261
-
 /**
  * Placeholder object used to replace parameterized values in query shapes.
  */
@@ -53,7 +49,16 @@ const STRUCTURAL_KEYS_IN_DATA = new Set([
 /**
  * Keys whose primitive values are structural (not user data).
  */
-const STRUCTURAL_VALUE_KEYS = new Set(['take', 'skip', 'sort', 'nulls', 'mode', 'relationLoadStrategy', 'distinct'])
+const STRUCTURAL_VALUE_KEYS = new Set([
+  'take',
+  'skip',
+  'sort',
+  'nulls',
+  'mode',
+  'relationLoadStrategy',
+  'distinct',
+  'by',
+])
 
 /**
  * Top-level query keys that are structural and should not be parameterized.
@@ -115,62 +120,44 @@ function parameterize(
   key: string | undefined,
   placeholderValues: Record<string, unknown>,
   placeholderPaths: string[],
-  hashState: { hash: number },
 ): unknown {
   if (value === null || value === undefined) {
-    hashState.hash = fnv1aHash(value === null ? 'null' : 'undefined', hashState.hash)
     return value
   }
 
   if (isTaggedValue(value)) {
     // FieldRef is structural, preserve it
     if (value.$type === 'FieldRef') {
-      hashState.hash = fnv1aHash(JSON.stringify(value), hashState.hash)
       return value
     }
     // All other tagged values are user data
     const placeholderName = path
     placeholderValues[placeholderName] = decodeTaggedValue(value)
     placeholderPaths.push(placeholderName)
-    hashState.hash = fnv1aHash(JSON.stringify(PARAM_PLACEHOLDER), hashState.hash)
-    hashState.hash = fnv1aHash(placeholderName, hashState.hash)
     return { ...PARAM_PLACEHOLDER, value: placeholderName }
   }
 
   if (Array.isArray(value)) {
-    hashState.hash = fnv1aHash('[', hashState.hash)
-    const result = value.map((item, index) =>
-      parameterize(item, context, `${path}[${index}]`, key, placeholderValues, placeholderPaths, hashState),
+    return value.map((item, index) =>
+      parameterize(item, context, `${path}[${index}]`, key, placeholderValues, placeholderPaths),
     )
-    hashState.hash = fnv1aHash(']', hashState.hash)
-    return result
   }
 
   if (typeof value === 'object') {
-    return parameterizeObject(
-      value as Record<string, unknown>,
-      context,
-      path,
-      placeholderValues,
-      placeholderPaths,
-      hashState,
-    )
+    return parameterizeObject(value as Record<string, unknown>, context, path, placeholderValues, placeholderPaths)
   }
 
   if (key && STRUCTURAL_VALUE_KEYS.has(key)) {
-    hashState.hash = fnv1aHash(String(value), hashState.hash)
     return value
   }
 
   // In selection context, booleans indicate field selection
   if (context === 'selection' && typeof value === 'boolean') {
-    hashState.hash = fnv1aHash(value ? 'T' : 'F', hashState.hash)
     return value
   }
 
   // In orderBy context, sort directions are structural
   if (context === 'orderBy' && typeof value === 'string' && isSortDirection(value)) {
-    hashState.hash = fnv1aHash(value, hashState.hash)
     return value
   }
 
@@ -178,8 +165,6 @@ function parameterize(
   const placeholderName = path
   placeholderValues[placeholderName] = value
   placeholderPaths.push(placeholderName)
-  hashState.hash = fnv1aHash(JSON.stringify(PARAM_PLACEHOLDER), hashState.hash)
-  hashState.hash = fnv1aHash(placeholderName, hashState.hash)
   return { ...PARAM_PLACEHOLDER, value: placeholderName }
 }
 
@@ -191,6 +176,7 @@ function decodeTaggedValue({ $type, value }: TaggedValue): unknown {
       return value
   }
 }
+
 /**
  * Parameterize an object by processing each key-value pair.
  */
@@ -200,38 +186,28 @@ function parameterizeObject(
   path: string,
   placeholderValues: Record<string, unknown>,
   placeholderPaths: string[],
-  hashState: { hash: number },
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {}
 
-  hashState.hash = fnv1aHash('{', hashState.hash)
-
-  // Sort keys for consistent hashing
+  // Sort keys for consistent cache keys
   const keys = Object.keys(obj).sort()
   for (const key of keys) {
     const value = obj[key]
     if (isSelectionMarker(key)) {
-      hashState.hash = fnv1aHash(key, hashState.hash)
-      hashState.hash = fnv1aHash(JSON.stringify(value), hashState.hash)
       result[key] = value
       continue
     }
 
-    hashState.hash = fnv1aHash(key, hashState.hash)
-
     // Top-level structural keys should not be parameterized
     if (path === '' && TOP_LEVEL_STRUCTURAL_KEYS.has(key)) {
-      hashState.hash = fnv1aHash(String(value), hashState.hash)
       result[key] = value
       continue
     }
 
     const childContext = getChildContext(key, context)
     const childPath = path ? `${path}.${key}` : key
-    result[key] = parameterize(value, childContext, childPath, key, placeholderValues, placeholderPaths, hashState)
+    result[key] = parameterize(value, childContext, childPath, key, placeholderValues, placeholderPaths)
   }
-
-  hashState.hash = fnv1aHash('}', hashState.hash)
 
   return result
 }
@@ -240,7 +216,6 @@ export interface ParameterizeResult {
   parameterizedQuery: JsonQuery
   placeholderValues: Record<string, unknown>
   placeholderPaths: string[]
-  queryHash: number
 }
 
 /**
@@ -248,12 +223,11 @@ export interface ParameterizeResult {
  * and extracting the actual values into a separate map.
  *
  * @param query - The query object to parameterize
- * @returns An object containing the parameterized query, placeholder values map, paths array, and pre-computed hash
+ * @returns An object containing the parameterized query, placeholder values map, and paths array
  */
 export function parameterizeQuery(query: JsonQuery): ParameterizeResult {
   const placeholderValues: Record<string, unknown> = {}
   const placeholderPaths: string[] = []
-  const hashState = { hash: FNV_OFFSET_BASIS }
   const parameterizedQuery = parameterize(
     query,
     'default',
@@ -261,13 +235,11 @@ export function parameterizeQuery(query: JsonQuery): ParameterizeResult {
     undefined,
     placeholderValues,
     placeholderPaths,
-    hashState,
   ) as JsonQuery
 
   return {
     parameterizedQuery,
     placeholderValues,
     placeholderPaths,
-    queryHash: hashState.hash,
   }
 }
