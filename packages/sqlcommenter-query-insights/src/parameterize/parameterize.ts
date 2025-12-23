@@ -100,7 +100,8 @@ function parameterize(value: unknown, context: Context, key?: string): unknown {
   }
 
   if (isTaggedValue(value)) {
-    return value.$type === 'FieldRef' ? value : PARAM_PLACEHOLDER
+    // Preserve structural tagged values: FieldRef (field comparisons) and Param (already parameterized)
+    return value.$type === 'FieldRef' || value.$type === 'Param' ? value : PARAM_PLACEHOLDER
   }
 
   if (Array.isArray(value)) {
