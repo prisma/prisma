@@ -19,7 +19,7 @@ import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } fro
 import type { ActiveConnectorType } from '@prisma/generator'
 import type { TracingHelper } from '@prisma/instrumentation-contract'
 import { assertNever } from '@prisma/internals'
-import type { JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
+import type { JsonBatchQuery, JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
 
 import { version as clientVersion } from '../../../../../package.json'
 import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
@@ -33,7 +33,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { parameterizeQuery } from './parameterize'
+import { parameterizeBatch, parameterizeQuery } from './parameterize'
 import { QueryPlanCache } from './QueryPlanCache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -469,14 +469,14 @@ export class ClientEngine implements Engine {
         const cacheKey = JSON.stringify(parameterizedQuery)
         placeholderValues = extractedValues
 
-        const cached = this.#queryPlanCache.get(cacheKey)
+        const cached = this.#queryPlanCache.getSingle(cacheKey)
         if (cached) {
           debug('query plan cache hit')
           plan = cached.plan
         } else {
           debug('query plan cache miss')
           plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
-          this.#queryPlanCache.set(cacheKey, { plan, placeholderPaths })
+          this.#queryPlanCache.setSingle(cacheKey, { plan, placeholderPaths })
         }
       } catch (error) {
         throw new PrismaClientUnknownRequestError(String(error), {
@@ -534,41 +534,30 @@ export class ClientEngine implements Engine {
 
     const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
-    let placeholderValuesArray: Array<Record<string, unknown>> = []
+    let placeholderValues: Record<string, unknown> = {}
 
-    // TODO: handle and cache real batch queries with len>1
-    if (this.#queryPlanCacheEnabled && !hasRawQueries && queries.length === 1) {
+    if (this.#queryPlanCacheEnabled && !hasRawQueries) {
       try {
         const {
-          parameterizedQuery,
+          parameterizedBatch,
           placeholderValues: extractedValues,
           placeholderPaths,
-        } = parameterizeQuery(queries[0])
-        const cacheKeyStr = JSON.stringify(parameterizedQuery)
-        placeholderValuesArray = [extractedValues]
+        } = parameterizeBatch(batchPayload as JsonBatchQuery)
+        const cacheKeyStr = JSON.stringify(parameterizedBatch)
+        placeholderValues = extractedValues
 
-        const cached = this.#queryPlanCache.get(cacheKeyStr)
+        const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
         if (cached) {
-          debug('batch query plan cache hit (single query)')
-          batchResponse = { type: 'multi', plans: [cached.plan] }
+          debug('batch query plan cache hit')
+          batchResponse = cached.response
         } else {
-          debug('batch query plan cache miss (single query)')
+          debug('batch query plan cache miss')
           try {
-            const parameterizedBatchPayload = {
-              ...batchPayload,
-              batch: [parameterizedQuery],
-            }
-            batchResponse = this.#compileBatch(
-              parameterizedBatchPayload.batch,
-              JSON.stringify(parameterizedBatchPayload),
-              queryCompiler,
-            )
-            if (batchResponse.type === 'multi' && batchResponse.plans.length === 1) {
-              this.#queryPlanCache.set(cacheKeyStr, {
-                plan: batchResponse.plans[0] as QueryPlanNode,
-                placeholderPaths,
-              })
-            }
+            batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
+            this.#queryPlanCache.setBatch(cacheKeyStr, {
+              response: batchResponse,
+              placeholderPaths,
+            })
           } catch (error) {
             throw this.#transformCompileError(error)
           }
@@ -602,7 +591,6 @@ export class ClientEngine implements Engine {
           let rollback = false
           for (const [batchIndex, plan] of batchResponse.plans.entries()) {
             try {
-              const placeholderValues = placeholderValuesArray[batchIndex] ?? {}
               const rows = await executor.execute({
                 plan: plan as QueryPlanNode,
                 placeholderValues,
@@ -650,7 +638,6 @@ export class ClientEngine implements Engine {
             )
           }
 
-          const placeholderValues = placeholderValuesArray[0] ?? {}
           const rows = await executor.execute({
             plan: batchResponse.plan as QueryPlanNode,
             placeholderValues,
