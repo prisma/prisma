@@ -9,10 +9,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -27,10 +27,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -45,10 +45,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -63,10 +63,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -81,10 +81,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -99,10 +99,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -117,10 +117,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -135,10 +135,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("./query_compiler_fast_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -146,10 +146,10 @@ config.compilerWasm = {
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-vercel-edge-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.wasm?module")
+    const { default: module } = await import("./query_compiler_fast_bg.wasm?module")
     return module
   }
 }"
@@ -157,10 +157,10 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compile
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-vercel-edge-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.wasm?module")
+    const { default: module } = await import("./query_compiler_fast_bg.wasm?module")
     return module
   }
 }"
@@ -168,10 +168,10 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compile
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-workerd-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.wasm?module")
+    const { default: module } = await import("./query_compiler_fast_bg.wasm?module")
     return module
   }
 }"
@@ -179,10 +179,10 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compile
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-workerd-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.js"),
+  getRuntime: async () => await import("./query_compiler_fast_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.wasm?module")
+    const { default: module } = await import("./query_compiler_fast_bg.wasm?module")
     return module
   }
 }"

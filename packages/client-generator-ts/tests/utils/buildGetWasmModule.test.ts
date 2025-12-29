@@ -27,11 +27,11 @@ function makeTypeScriptFiles({ output }: MakeTypeScriptFilesInput) {
 
   return {
     './buildGetWasmModule.ts': `${CONFIG_BANNER}${output}`,
-    [`./query_compiler_bg.postgresql.mjs`]: 'export const runtime = ``',
-    [`./query_compiler_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
-    [`./query_compiler_bg.js`]: 'export const runtime = ``',
-    [`./query_compiler_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
-    [`./query_compiler_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
+    [`./query_compiler_fast_bg.postgresql.mjs`]: 'export const runtime = ``',
+    [`./query_compiler_fast_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
+    [`./query_compiler_fast_bg.js`]: 'export const runtime = ``',
+    [`./query_compiler_fast_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
+    [`./query_compiler_fast_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
   } as const
 }
 
