@@ -139,6 +139,7 @@ export function buildClient({
       ...buildWasmFileMap({
         runtimeName,
         activeProvider,
+        compilerBuild,
       }),
     },
   }

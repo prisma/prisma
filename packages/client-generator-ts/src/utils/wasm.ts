@@ -16,7 +16,7 @@ export type BuildWasmModuleOptions = {
   target: RuntimeTargetInternal
   activeProvider: ActiveConnectorType
   moduleFormat: ModuleFormat
-  compilerBuild?: 'fast' | 'small'
+  compilerBuild: 'fast' | 'small'
 }
 
 const debug = Debug('prisma:client-generator-ts:wasm')
@@ -108,7 +108,7 @@ config.compilerWasm = {
 export type BuildWasmFileMapOptions = {
   activeProvider: ActiveConnectorType
   runtimeName: RuntimeName
-  compilerBuild?: 'fast' | 'small'
+  compilerBuild: 'fast' | 'small'
 }
 
 function readSourceFile(sourceFile: string): Buffer {
