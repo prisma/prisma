@@ -317,6 +317,7 @@ export function getPrismaClientInternalArgs({
           const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
           return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
         },
+        importName: './query_compiler_fast_bg.js',
       }
       return config
     }

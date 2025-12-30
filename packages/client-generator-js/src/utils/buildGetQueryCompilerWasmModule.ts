@@ -19,7 +19,8 @@ export function buildQueryCompilerWasmModule(
         const queryCompilerWasmFileBytes = Buffer.from(wasm, 'base64')
 
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
-      }
+      },
+      importName: './${artifactName}.js',
     }`
   }
 
@@ -38,7 +39,8 @@ export function buildQueryCompilerWasmModule(
     const loader = (await import('#wasm-compiler-loader')).default
     const compiler = (await loader).default
     return compiler
-  }
+  },
+  importName: './${artifactName}.js',
 }`
   }
 

@@ -87,7 +87,9 @@ config.compilerWasm = {
   getQueryCompilerWasmModule: async () => {
     const { wasm } = await import(${JSON.stringify(wasmModulePath)})
     return await decodeBase64AsWasm(wasm)
-  }
+  },
+
+  importName: ${JSON.stringify(`./${artifactName}`)}
 }`
   }
 
@@ -98,7 +100,9 @@ config.compilerWasm = {
   getQueryCompilerWasmModule: async () => {
     const { default: module } = await import(${JSON.stringify(`${wasmModulePath}?module`)})
     return module
-  }
+  },
+
+  importName: ${JSON.stringify(`./${artifactName}`)}
 }`
   }
 

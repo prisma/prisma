@@ -167,8 +167,8 @@ function wasmEdgeRuntimeBuildConfig(format: ModuleFormat, name: string): BuildOp
         setup(build) {
           build.onEnd(() => {
             for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
-              for (const build of QUERY_COMPILER_BUILD_TYPES) {
-                const wasmFilePath = path.join(wasmQueryCompilerDir, provider, `query_compiler_${build}_bg.wasm`)
+              for (const buildType of QUERY_COMPILER_BUILD_TYPES) {
+                const wasmFilePath = path.join(wasmQueryCompilerDir, provider, `query_compiler_${buildType}_bg.wasm`)
 
                 const extToModuleFormatMap = {
                   esm: 'mjs',
@@ -178,7 +178,7 @@ function wasmEdgeRuntimeBuildConfig(format: ModuleFormat, name: string): BuildOp
                 for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
                   const base64FilePath = path.join(
                     runtimeDir,
-                    `query_compiler_${build}_bg.${provider}.wasm-base64.${extension}`,
+                    `query_compiler_${buildType}_bg.${provider}.wasm-base64.${extension}`,
                   )
 
                   try {

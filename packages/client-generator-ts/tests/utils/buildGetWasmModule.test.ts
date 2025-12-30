@@ -22,6 +22,7 @@ function makeTypeScriptFiles({ output, compilerBuild }: MakeTypeScriptFilesInput
       compilerWasm?: {
         getRuntime: () => Promise<unknown>
         getQueryCompilerWasmModule: () => Promise<WebAssembly.Module>
+        importName: string
       }
     }
     `
