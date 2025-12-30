@@ -89,7 +89,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: ${JSON.stringify(`./${artifactName}`)}
+  importName: ${JSON.stringify(`./${artifactName}.js`)}
 }`
   }
 
@@ -102,7 +102,7 @@ config.compilerWasm = {
     return module
   },
 
-  importName: ${JSON.stringify(`./${artifactName}`)}
+  importName: ${JSON.stringify(`./${artifactName}.js`)}
 }`
   }
 

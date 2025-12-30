@@ -16,7 +16,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -36,7 +36,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -56,7 +56,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -76,7 +76,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -96,7 +96,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -116,7 +116,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -136,7 +136,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -156,7 +156,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -169,7 +169,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-fast-wasm-co
     return module
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -182,7 +182,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-fast-wasm-co
     return module
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -195,7 +195,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-fast-wasm-co
     return module
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -208,7 +208,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-fast-wasm-co
     return module
   },
 
-  importName: "./query_compiler_fast_bg"
+  importName: "./query_compiler_fast_bg.js"
 }"
 `;
 
@@ -228,7 +228,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -248,7 +248,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -268,7 +268,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -288,7 +288,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -308,7 +308,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -328,7 +328,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -348,7 +348,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -368,7 +368,7 @@ config.compilerWasm = {
     return await decodeBase64AsWasm(wasm)
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -381,7 +381,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-small-wasm-c
     return module
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -394,7 +394,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-small-wasm-c
     return module
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -407,7 +407,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-small-wasm-c
     return module
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
 
@@ -420,6 +420,6 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-small-wasm-c
     return module
   },
 
-  importName: "./query_compiler_small_bg"
+  importName: "./query_compiler_small_bg.js"
 }"
 `;
