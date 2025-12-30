@@ -166,14 +166,14 @@ function wasmEdgeRuntimeBuildConfig(format: ModuleFormat, name: string): BuildOp
         name: 'wasm-base64-encoder',
         setup(build) {
           build.onEnd(() => {
+            const extToModuleFormatMap = {
+              esm: 'mjs',
+              cjs: 'js',
+            } satisfies Record<ModuleFormat, string>
+
             for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
               for (const buildType of QUERY_COMPILER_BUILD_TYPES) {
                 const wasmFilePath = path.join(wasmQueryCompilerDir, provider, `query_compiler_${buildType}_bg.wasm`)
-
-                const extToModuleFormatMap = {
-                  esm: 'mjs',
-                  cjs: 'js',
-                } satisfies Record<ModuleFormat, string>
 
                 for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
                   const base64FilePath = path.join(
