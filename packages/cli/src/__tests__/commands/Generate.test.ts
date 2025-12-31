@@ -300,6 +300,32 @@ it('should work with a custom generator', async () => {
   expect(data.stdout).toContain(`I am a minimal generator`)
 }, 75_000) // timeout
 
+describe('prisma-client-ts validation', () => {
+  it('should throw errors for an unknown compilerBuild', async () => {
+    ctx.fixture('invalid-compiler-build')
+    const output = Generate.new().parse([], await ctx.config())
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid compiler build: "invalid", expected one of: "fast", "small"
+
+      "
+    `)
+  })
+})
+
+describe('prisma-client-js validation', () => {
+  it('should throw errors for an unknown compilerBuild', async () => {
+    ctx.fixture('invalid-compiler-build-client-js')
+    const output = Generate.new().parse([], await ctx.config())
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid compiler build: "invalid", expected one of: "fast", "small"
+
+      "
+    `)
+  })
+})
+
 describe('--schema from project directory', () => {
   beforeEach(() => {
     jest.spyOn(Math, 'random').mockReturnValue(0.1)
