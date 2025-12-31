@@ -189,7 +189,6 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-js --client-runtime client --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -221,7 +220,6 @@ jobs:
       fail-fast: false
       # Note: the maximum number of matrix configurations on Github Actions is 256
       matrix:
-        # TODO: add `wasm-compiler-edge` to `clientRuntime` once Prisma 7 is ready
         clientRuntime: ['client']
         flavor:
           [
@@ -259,7 +257,73 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
+  # CLIENT (functional tests with wasm-compiler-edge runtime and driver adapters)
+  #
+  client-wasm-compiler-edge:
+    name: Wasm Edge ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        clientRuntime: ['wasm-compiler-edge']
+        flavor:
+          [
+            'js_pg',
+            'js_neon',
+            'js_libsql',
+            'js_planetscale',
+            'js_d1',
+            'js_better_sqlite3',
+            'js_mssql',
+            'js_mariadb',
+            'js_pg_cockroachdb',
+          ]
+        shard: ['1/4', '2/4', '3/4', '4/4']
+        node: ['20.19.0']
+        previewFeatures: ['', 'relationJoins']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy mssql mysql cockroachdb
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
+        working-directory: packages/client
+        env:
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -315,7 +379,6 @@ jobs:
       - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime client --remote-executor --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional-qpe'
@@ -332,6 +395,97 @@ jobs:
           path: packages/*/junit*.xml
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
+  # CLIENT (memory tests)
+  #
+  client-memory:
+    name: Client (memory tests) [v${{ matrix.node }}]
+    timeout-minutes: ${{ inputs.jobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        queryEngine: [client]
+        node: ['20.19.0', '22.12.0', '24']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test:memory
+        working-directory: packages/client
+
+      - uses: actions/github-script@v7
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        id: upload-report
+        env:
+          NODE_VERSION: ${{ matrix.node }}
+        with:
+          github-token: ${{ secrets.BOT_TOKEN }}
+          script: |
+            const fs = require('fs')
+            const nodeVersion = process.env.NODE_VERSION
+            const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
+            const url = `https://prisma.github.io/ci-reports/${reportPath}`
+            const localReport = './packages/client/tests/memory/memory-report.html'
+            if (fs.existsSync(localReport)) {
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: 'prisma',
+                repo: 'ci-reports',
+                branch: 'gh-pages',
+                path: reportPath,
+                message: `Add memory results for PR ${context.issue.number}`,
+                content: fs.readFileSync(localReport, 'base64'),
+              });
+              core.setOutput('url', url);
+            }
+      - name: Find report comment
+        uses: peter-evans/find-comment@v3
+        id: fc
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
+
+      - name: Create or update remote comment (failure)
+        uses: peter-evans/create-or-update-comment@v4
+        if: ${{ failure() && steps.upload-report.outputs.url }}
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
+            ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
+          edit-mode: replace
+
+      - name: Create or update remote comment (success)
+        uses: peter-evans/create-or-update-comment@v4
+        if: ${{ success() && steps.fc.outputs.comment-id != '' }}
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
+            ✅ Success
+          edit-mode: replace
 
   #
   # CLIENT test:e2e
@@ -553,39 +707,38 @@ jobs:
 
   #
   # INTEGRATION-TESTS
-  # TODO: re-enable once they're ported to the Query Compiler architecture.
   #
-  # integration-tests:
-  #   name: Integration tests
-  #   timeout-minutes: 20
-  #   runs-on: ubuntu-latest
-  #   if: |
-  #     contains(inputs.jobsToRun, '-all-') ||
-  #     contains(inputs.jobsToRun, '-integration-tests-')
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       node: ['20.19.0']
-  #   steps:
-  #     - uses: actions/checkout@v4
+  integration-tests:
+    name: Integration tests
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-integration-tests-')
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19.0']
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Start Docker Compose Services
-  #       uses: nick-fields/retry@v3
-  #       with:
-  #         timeout_minutes: 10
-  #         max_attempts: 5
-  #         retry_wait_seconds: 120
-  #         command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
 
-  #     - name: Install & build
-  #       uses: ./.github/actions/setup
-  #       with:
-  #         node-version: ${{ matrix.node }}
-  #         engine-hash: ${{ inputs.engineHash }}
-  #         skip-tsc: true
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
 
-  #     - run: pnpm run test
-  #       working-directory: packages/integration-tests
+      - run: pnpm run test
+        working-directory: packages/integration-tests
 
   #
   # `@prisma/internals`
@@ -780,6 +933,10 @@ jobs:
         working-directory: packages/instrumentation
 
       - run: pnpm run test
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
 
@@ -798,6 +955,18 @@ jobs:
       - run: pnpm run test
         name: 'credentials-store'
         working-directory: packages/credentials-store
+
+      - run: pnpm run test
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
   #
   # Driver Adapter Unit Tests
@@ -1162,6 +1331,26 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
         name: 'query-plan-executor'
         working-directory: packages/query-plan-executor
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

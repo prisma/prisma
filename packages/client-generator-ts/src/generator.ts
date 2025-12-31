@@ -8,7 +8,7 @@ import { version as clientVersion } from '../package.json'
 import { inferImportFileExtension, parseGeneratedFileExtension, parseImportFileExtension } from './file-extensions'
 import { generateClient } from './generateClient'
 import { inferModuleFormat, parseModuleFormatFromUnknown } from './module-format'
-import { parseRuntimeTargetFromUnknown } from './runtime-targets'
+import { parseRuntimeTargetFromUnknown, RuntimeTargetInternal } from './runtime-targets'
 
 const missingOutputErrorMessage = `An output path is required for the \`prisma-client\` generator. Please provide an output path in your schema file:
 
@@ -86,6 +86,18 @@ export class PrismaClientTsGenerator implements Generator {
       importFileExtension,
       moduleFormat,
       tsNoCheckPreamble: true, // Set to false only during internal tests
+      compilerBuild: parseCompilerBuildFromUnknown(options.generator.config.compilerBuild, target),
     })
   }
+}
+
+function parseCompilerBuildFromUnknown(value: unknown, target: RuntimeTargetInternal): 'fast' | 'small' {
+  if (value === undefined) {
+    // using the 'small' build for 'vercel-edge' target to fit within their free tier limits
+    return target === 'vercel-edge' ? 'small' : 'fast'
+  }
+  if (value === 'small' || value === 'fast') {
+    return value
+  }
+  throw new Error(`Invalid compiler build: ${JSON.stringify(value)}, expected one of: "fast", "small"`)
 }

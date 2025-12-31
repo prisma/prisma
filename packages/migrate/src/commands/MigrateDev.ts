@@ -7,6 +7,7 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
   getCommandWithExecutor,
   getSchemaDatasourceProvider,
@@ -55,6 +56,7 @@ ${bold('Options')}
        -h, --help   Display this help message
          --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
+         --url      Override the datasource URL from the Prisma config file
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
@@ -71,7 +73,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -82,6 +84,7 @@ ${bold('Examples')}
       '--create-only': Boolean,
       '--schema': String,
       '--config': String,
+      '--url': String,
       '--telemetry-information': String,
     })
 
@@ -94,13 +97,27 @@ ${bold('Examples')}
     }
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
+    let cmdSpecificConfig = config
+    if (args['--url']) {
+      cmdSpecificConfig = {
+        ...cmdSpecificConfig,
+        datasource: {
+          ...cmdSpecificConfig.datasource,
+          url: args['--url'],
+        },
+      }
+    }
+
     const cmd = 'migrate dev'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 
@@ -115,7 +132,7 @@ ${bold('Examples')}
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
     // Automatically create the database if it doesn't exist
     const successMessage = await ensureDatabaseExists(
-      configDir,
+      baseDir,
       getSchemaDatasourceProvider(schemaContext),
       validatedConfig,
     )
@@ -124,18 +141,18 @@ ${bold('Examples')}
     }
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
-      externalTables: config.tables?.external ?? [],
-      externalEnums: config.enums?.external ?? [],
+      externalTables: cmdSpecificConfig.tables?.external ?? [],
+      externalEnums: cmdSpecificConfig.enums?.external ?? [],
     }
 
     const migrate = await Migrate.setup({
-      schemaEngineConfig: config,
-      configDir,
+      schemaEngineConfig: cmdSpecificConfig,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
-      shadowDbInitScript: config.migrations?.initShadowDb,
-      extensions: config['extensions'],
+      shadowDbInitScript: cmdSpecificConfig.migrations?.initShadowDb,
+      extensions: cmdSpecificConfig['extensions'],
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput

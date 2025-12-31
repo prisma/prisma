@@ -55,7 +55,7 @@ describe('getGenerators', () => {
 
   test('basic', async () => {
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -130,7 +130,7 @@ describe('getGenerators', () => {
 
   it('basic - binaryTargets - native string', async () => {
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -213,7 +213,7 @@ describe('getGenerators', () => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '"native"'
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -296,7 +296,7 @@ describe('getGenerators', () => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -380,7 +380,7 @@ describe('getGenerators', () => {
       '["darwin", "darwin-arm64", "windows", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]'
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -478,7 +478,7 @@ describe('getGenerators', () => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '["linux-musl"]'
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -575,7 +575,7 @@ describe('getGenerators', () => {
     } satisfies GeneratorRegistry
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'multiple-generators-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'multiple-generators-schema.prisma') },
     })
     const generators = await getGenerators({
       schemaContext,
@@ -594,7 +594,7 @@ describe('getGenerators', () => {
 
   test('fail on invalid binaryTarget', async () => {
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'invalid-binary-target-schema.prisma') },
     })
 
     await expect(
@@ -613,7 +613,7 @@ describe('getGenerators', () => {
   test('fail if datasource is missing', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'missing-datasource-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-datasource-schema.prisma') },
     })
 
     try {
@@ -646,7 +646,7 @@ describe('getGenerators', () => {
   test('fail if no model(s) found and allow-no-models flag is false - sqlite', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma') },
     })
 
     try {
@@ -682,7 +682,7 @@ describe('getGenerators', () => {
   test('fail if no model(s) found and allow-no-models flag is false - mongodb', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma') },
     })
 
     try {
@@ -734,7 +734,7 @@ describe('getGenerators', () => {
     } satisfies GeneratorRegistry
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'multiple-generators-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'multiple-generators-schema.prisma') },
     })
 
     try {
@@ -754,7 +754,7 @@ describe('getGenerators', () => {
     expect.assertions(1)
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma') },
     })
 
     const generators = await getGenerators({
@@ -779,7 +779,7 @@ describe('getGenerators', () => {
     } satisfies GeneratorRegistry
 
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma') },
     })
 
     const generators = await getGenerators({

@@ -11,7 +11,7 @@ describe('prisma.config.ts', () => {
 
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma migrate reset."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma migrate reset."`,
     )
   })
 })
@@ -61,8 +61,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
 
@@ -83,8 +82,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -98,6 +96,21 @@ describe('reset', () => {
     `)
   })
 
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
+
+      Database reset successful
+
+      "
+    `)
+  })
+
   it('should work with folder (--force)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
 
@@ -106,8 +119,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -128,8 +140,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -152,8 +163,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -170,8 +180,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Reset cancelled.
@@ -188,7 +197,7 @@ describe('reset', () => {
       "Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
       Use --force to run this command without user interaction.
-      See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-reset"
+      See https://pris.ly/d/migrate-reset"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -201,8 +210,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful

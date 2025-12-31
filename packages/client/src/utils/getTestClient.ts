@@ -13,6 +13,8 @@ import { parse } from 'stacktrace-parser'
 import { getPrismaClient } from '../runtime/getPrismaClient'
 import { generateInFolder } from './generateInFolder'
 
+const runtimeBase = path.join(__dirname, '..', '..', 'runtime')
+
 //TODO Rename to generateTestClientInMemory
 /**
  * Returns an in-memory client for testing
@@ -21,7 +23,10 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
 
-  const { schemas: datamodel } = (await getSchemaWithPath(undefined, undefined, { cwd: absSchemaDir }))!
+  const { schemas: datamodel } = (await getSchemaWithPath({
+    schemaPath: { baseDir: absSchemaDir },
+    cwd: absSchemaDir,
+  }))!
 
   const config = await getConfig({ datamodel })
   if (printWarnings) {
@@ -44,6 +49,18 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     engineVersion: '0000000000000000000000000000000000000000',
     activeProvider,
     inlineSchema: datamodel[0][1], // TODO: merge schemas
+    compilerWasm: {
+      getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_fast_bg.${activeProvider}.js`))),
+      getQueryCompilerWasmModule: () => {
+        const queryCompilerWasmFilePath = path.join(
+          runtimeBase,
+          `query_compiler_fast_bg.${activeProvider}.wasm-base64.js`,
+        )
+        const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
+        return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
+      },
+      importName: './query_compiler_fast_bg.js',
+    },
   }
 
   return getPrismaClient(options)

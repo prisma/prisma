@@ -1,25 +1,27 @@
-import { readFile } from 'node:fs/promises'
+import { access, constants, readFile } from 'node:fs/promises'
 
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
-import type { Executor, SequenceExecutor } from '@prisma/studio-core-licensed/data'
-import { serializeError, type StudioBFFRequest } from '@prisma/studio-core-licensed/data/bff'
-import { createMySQL2Executor } from '@prisma/studio-core-licensed/data/mysql2'
-import { createNodeSQLiteExecutor } from '@prisma/studio-core-licensed/data/node-sqlite'
-import { createPostgresJSExecutor } from '@prisma/studio-core-licensed/data/postgresjs'
-import type { StudioProps } from '@prisma/studio-core-licensed/ui'
+import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
+import { serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
+import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
+import { createNodeSQLiteExecutor } from '@prisma/studio-core/data/node-sqlite'
+import { createPostgresJSExecutor } from '@prisma/studio-core/data/postgresjs'
+import type { StudioProps } from '@prisma/studio-core/ui'
 import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { bold, dim, red } from 'kleur/colors'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
+import { z } from 'zod'
 
 import packageJson from '../package.json' assert { type: 'json' }
+import { getPpgInfo } from './utils/ppgInfo'
 
 /**
  * `prisma dev`'s `51_213 - 1`
@@ -28,7 +30,7 @@ const DEFAULT_PORT = 51_212
 
 const MIN_PORT = 49_152
 
-const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core-licensed/data'), '../..')
+const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core/data'), '../..')
 
 const FILE_EXTENSION_TO_CONTENT_TYPE: Record<string, string> = {
   '.css': 'text/css',
@@ -54,16 +56,48 @@ const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 const ADAPTER_FILE_NAME = 'adapter.js'
 const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
 
+const ACCELERATE_API_KEY_QUERY_PARAMETER = 'api_key'
+
+const AccelerateAPIKeyPayloadSchema = z.object({
+  secure_key: z.string(),
+  tenant_id: z.string(),
+})
+
 interface StudioStuff {
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
   reExportAdapterScript: string
 }
 
+/**
+ * A list of query parameters that are specific to Prisma ORM and should be removed
+ * from the connection string before passing it to the Postgres client to avoid errors.
+ *
+ * @See https://www.prisma.io/docs/orm/overview/databases/postgresql#arguments
+ * @See https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
+ */
+const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
+  'schema',
+  'connection_limit',
+  'pool_timeout',
+  'sslidentity',
+  'sslaccept',
+  'pool', // Using connection pooling with `postgres` package is unable to connect to PPG. Disabling it for now by removing the param. See https://linear.app/prisma-company/issue/TML-1670.
+  'socket_timeout',
+  'pgbouncer',
+  'statement_cache_size',
+] as const
+
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
   async createExecutor(connectionString) {
     const postgresModule = await import('postgres')
 
-    const postgres = postgresModule.default(connectionString)
+    const connectionURL = new URL(connectionString)
+
+    for (const queryParameter of PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS) {
+      connectionURL.searchParams.delete(queryParameter)
+    }
+
+    const postgres = postgresModule.default(connectionURL.toString())
 
     process.once('SIGINT', () => postgres.end())
     process.once('SIGTERM', () => postgres.end())
@@ -81,7 +115,19 @@ const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | n
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
-      const resolvedPath = path !== ':memory:' ? resolve(relativeTo, path) : path
+      const isInMemory = path === ':memory:'
+
+      const resolvedPath = isInMemory ? path : resolve(relativeTo, path)
+
+      if (!isInMemory) {
+        await access(resolvedPath, constants.F_OK).catch(() => {
+          console.warn(
+            yellow(
+              `Database file at "${resolvedPath}" was not found. A new file was created. If this is an unwanted side effect, it might mean that the URL you have provided is incorrect.`,
+            ),
+          )
+        })
+      }
 
       let database: InstanceType<Database> | undefined = undefined
 
@@ -138,7 +184,49 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
   },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
-  'prisma+postgres': POSTGRES_STUDIO_STUFF,
+  'prisma+postgres': {
+    async createExecutor(connectionString, relativeTo) {
+      const connectionURL = new URL(connectionString)
+
+      if (['localhost', '127.0.0.1', '[::1]'].includes(connectionURL.hostname)) {
+        // TODO: support `prisma dev` accelerate URLs.
+
+        throw new Error('The "prisma+postgres" protocol with localhost is not supported in Prisma Studio yet.')
+      }
+
+      const apiKey = connectionURL.searchParams.get(ACCELERATE_API_KEY_QUERY_PARAMETER)
+
+      if (!apiKey) {
+        throw new Error(
+          `\`${ACCELERATE_API_KEY_QUERY_PARAMETER}\` query parameter is missing in the provided "prisma+postgres" connection string.`,
+        )
+      }
+
+      const [, payload] = apiKey.split('.')
+
+      try {
+        const decodedPayload = AccelerateAPIKeyPayloadSchema.parse(
+          JSON.parse(Buffer.from(payload, 'base64').toString('utf-8')),
+        )
+
+        connectionURL.password = decodedPayload.secure_key
+        connectionURL.username = decodedPayload.tenant_id
+      } catch {
+        throw new Error(
+          `Invalid/outdated \`${ACCELERATE_API_KEY_QUERY_PARAMETER}\` query parameter in the provided "prisma+postgres" connection string. Please create a new API key and use the new connection string OR use a direct TCP connection string instead.`,
+        )
+      }
+
+      connectionURL.host = 'db.prisma.io:5432'
+      connectionURL.pathname = '/postgres'
+      connectionURL.protocol = 'postgres:'
+      connectionURL.searchParams.delete(ACCELERATE_API_KEY_QUERY_PARAMETER)
+      connectionURL.searchParams.set('sslmode', 'require')
+
+      return await POSTGRES_STUDIO_STUFF.createExecutor(connectionURL.toString(), relativeTo)
+    },
+    reExportAdapterScript: POSTGRES_STUDIO_STUFF.reExportAdapterScript,
+  },
   mysql: {
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
@@ -329,7 +417,9 @@ ${bold('Examples')}
     })
 
     let projectHash: string | null = null
-    const version = packageJson.dependencies['@prisma/studio-core-licensed']
+    const version = packageJson.dependencies['@prisma/studio-core']
+
+    const ppgDbInfo = await getPpgInfo(connectionString)
 
     app.post('/telemetry', async (ctx) => {
       const { eventId, name, payload, timestamp } =
@@ -343,7 +433,11 @@ ${bold('Examples')}
         check_if_update_available: false,
         client_event_id: eventId,
         command: name,
-        information: JSON.stringify({ eventPayload: payload, protocol }),
+        information: JSON.stringify({
+          eventPayload: payload,
+          protocol,
+          ...ppgDbInfo,
+        }),
         local_timestamp: timestamp,
         product: 'prisma-studio-cli',
         project_hash: (projectHash ??= digest(process.cwd())),

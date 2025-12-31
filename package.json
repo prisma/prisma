@@ -4,7 +4,7 @@
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
   "engines": {
-    "node": "^20.19 || ^22.12 || ^24.0",
+    "node": "^20.19 || ^22.12 || >=24.0",
     "pnpm": ">=10.15 <11"
   },
   "packageManager": "pnpm@10.15.1",
@@ -163,6 +163,7 @@
     "overrides": {
       "form-data": ">=4.0.4",
       "hono": ">=4.10.3",
+      "jws": ">=4.0.1",
       "tar-fs": ">=2.1.4"
     }
   }

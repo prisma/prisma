@@ -35,5 +35,6 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     browser: false,
     edge: false,
     wasm: false,
+    compilerBuild: 'fast',
   }).toTS()
 }

@@ -2,10 +2,12 @@ export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
+  createSchemaPathInput,
   type GetSchemaOptions,
   getSchemaWithPath,
   getSchemaWithPathOptional,
   printSchemaLoadedMessage,
+  type SchemaPathInput,
 } from './cli/getSchema'
 export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
@@ -53,12 +55,10 @@ export type { SchemaEngineLogLine } from './schemaEngineCommands'
 export { canConnectToDatabase, createDatabase, dropDatabase } from './schemaEngineCommands'
 export { SchemaEngineExitCode } from './schemaEngineCommands'
 export { sendPanic } from './sendPanic'
-export * from './tracing/types'
 export type { DatabaseCredentials, RequireKey } from './types'
 export { assertAlways } from './utils/assertAlways'
 export { assertNever } from './utils/assertNever'
 export { binaryTargetRegex } from './utils/binaryTargetRegex'
-export { default as byline } from './utils/byline'
 export { callOnceOnSuccess } from './utils/callOnce'
 export { canPrompt } from './utils/canPrompt'
 export { chmodPlusX } from './utils/chmodPlusX'

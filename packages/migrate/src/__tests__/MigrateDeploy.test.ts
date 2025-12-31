@@ -14,7 +14,7 @@ describe('prisma.config.ts', () => {
 
     const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma migrate deploy."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma migrate deploy."`,
     )
   })
 })
@@ -48,8 +48,26 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      No migration found in prisma/migrations
+
+
+      "
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
+  })
+
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       No migration found in prisma/migrations
 
@@ -80,13 +98,11 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
 
 
-      Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
@@ -120,13 +136,11 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
 
 
-      Prisma schema loaded from prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
@@ -150,8 +164,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
 
@@ -208,10 +221,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = MigrateDeploy.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma.
+      "
+    `)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" <location placeholder>
+      "Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" <location placeholder>
 
       No migration found in prisma/migrations
 

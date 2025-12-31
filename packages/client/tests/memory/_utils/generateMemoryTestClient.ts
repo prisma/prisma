@@ -30,5 +30,6 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
     activeProvider: config.datasources[0].activeProvider,
     runtimeBase: runtimePath,
     runtimeSourcePath: runtimePath,
+    compilerBuild: 'fast',
   })
 }

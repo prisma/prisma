@@ -3,7 +3,9 @@ import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
 import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
-import { ExtendedSpanOptions, logger, TracingHelper } from '@prisma/internals'
+import type { ExtendedSpanOptions, TracingHelper } from '@prisma/instrumentation-contract'
+import { logger } from '@prisma/internals'
+import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 
@@ -111,11 +113,28 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
    *  { emit: 'stdout', level: 'warn' }
    * ]
    * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   * Read more in our [docs](https://pris.ly/d/logging).
    */
   log?: Array<LogLevel | LogDefinition>
 
   omit?: GlobalOmitOptions
+
+  /**
+   * SQL commenter plugins that add metadata to SQL queries as comments.
+   * Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+   *
+   * @example
+   * ```ts
+   * new PrismaClient({
+   *   adapter: new PrismaPg({ connectionString }),
+   *   comments: [
+   *     traceContext(),
+   *     queryInsights(),
+   *   ],
+   * })
+   * ```
+   */
+  comments?: SqlCommenterPlugin[]
 
   /**
    * @internal
@@ -236,11 +255,30 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg: PrismaClientOptions) {
-      config = optionsArg.__internal?.configOverride?.(config) ?? config
+      if (!optionsArg) {
+        throw new PrismaClientInitializationError(
+          `\
+\`PrismaClient\` needs to be constructed with a non-empty, valid \`PrismaClientOptions\`:
 
-      if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config)
+\`\`\`
+new PrismaClient({
+  ...
+})
+\`\`\`
+
+or
+
+\`\`\`
+constructor() {
+  super({ ... });
+}
+\`\`\`
+          `,
+          clientVersion,
+        )
       }
+      config = optionsArg.__internal?.configOverride?.(config) ?? config
+      validatePrismaClientOptions(optionsArg, config)
 
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
@@ -257,7 +295,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
        */
 
       let adapter: SqlDriverAdapterFactory | undefined
-      if (optionsArg?.adapter) {
+      if (optionsArg.adapter) {
         adapter = optionsArg.adapter
 
         // Note:
@@ -328,6 +366,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter,
           adapter,
           accelerateUrl: options.accelerateUrl,
+          sqlCommenters: options.comments,
         }
 
         // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>

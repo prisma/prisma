@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
@@ -13,7 +16,7 @@ describe('drop', () => {
 
       const result = DbDrop.new().parse(['--preview-feature'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"The datasource property is required in your Prisma config file when using prisma db drop."`,
+        `"The datasource.url property is required in your Prisma config file when using prisma db drop."`,
       )
     })
   })
@@ -81,8 +84,7 @@ describe('drop', () => {
     const result = DbDrop.new().parse(['--preview-feature'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       "
@@ -96,8 +98,7 @@ describe('drop', () => {
     const result = DbDrop.new().parse(['--preview-feature', '--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -109,8 +110,23 @@ describe('drop', () => {
     const result = DbDrop.new().parse(['--preview-feature', '-f'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  it('should work with nested config and schema', async () => {
+    ctx.fixture('prisma-config-nested-sqlite')
+    ctx.setConfigFile('config/prisma.config.ts')
+
+    await fs.writeFile(path.join(ctx.configDir(), 'dev.db'), '')
+
+    const result = DbDrop.new().parse(['--preview-feature', '-f'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -128,8 +144,7 @@ describe('drop', () => {
     const result = DbDrop.new().parse(['--preview-feature'], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Drop cancelled.

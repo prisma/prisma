@@ -21,7 +21,7 @@ describe('prisma.config.ts', () => {
 
     const result = Generate.new().parse(['--sql'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma generate --sql."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
     )
   })
 })
@@ -48,13 +48,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   }, 60_000) // timeout
 
@@ -64,14 +68,14 @@ describe('using cli', () => {
     const stdout = sanitiseStdout(data.stdout)
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
     `)
+    expect(data.stderr).toMatchInlineSnapshot(`"Prisma schema loaded from prisma/schema."`)
   })
 
   it('should display the right yarn command for custom outputs', async () => {
@@ -84,13 +88,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -104,13 +112,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -124,13 +136,17 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -148,13 +164,17 @@ describe('using cli', () => {
     stdout = stdout.replace(outputLocation!, '<output>')
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 })
@@ -237,11 +257,15 @@ it('should hide hints with --no-hints', async () => {
   }
 
   expect(data.stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
+    "
+    ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+    "
+  `)
+  expect(data.stderr).toMatchInlineSnapshot(`
+    "Loaded Prisma config from prisma.config.ts.
 
-      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-      "
-    `)
+    Prisma schema loaded from prisma/schema.prisma."
+  `)
 })
 
 it('should call the survey handler when hints are not disabled', async () => {
@@ -275,6 +299,32 @@ it('should work with a custom generator', async () => {
 
   expect(data.stdout).toContain(`I am a minimal generator`)
 }, 75_000) // timeout
+
+describe('prisma-client-ts validation', () => {
+  it('should throw errors for an unknown compilerBuild', async () => {
+    ctx.fixture('invalid-compiler-build')
+    const output = Generate.new().parse([], await ctx.config())
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid compiler build: "invalid", expected one of: "fast", "small"
+
+      "
+    `)
+  })
+})
+
+describe('prisma-client-js validation', () => {
+  it('should throw errors for an unknown compilerBuild', async () => {
+    ctx.fixture('invalid-compiler-build-client-js')
+    const output = Generate.new().parse([], await ctx.config())
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid compiler build: "invalid", expected one of: "fast", "small"
+
+      "
+    `)
+  })
+})
 
 describe('--schema from project directory', () => {
   beforeEach(() => {
@@ -361,6 +411,7 @@ describe('--schema from parent directory', () => {
   afterEach(() => {
     jest.spyOn(Math, 'random').mockRestore()
   })
+
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-parent-dir')
@@ -411,6 +462,26 @@ describe('--schema from parent directory', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
+  })
+
+  it('should load schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+
+    const result = await Generate.new().parse(
+      ['--config=./config/prisma.config.ts'],
+      await ctx.config(),
+      path.join(process.cwd(), 'config'),
+    )
+
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+      "
+    `)
   })
 
   it('--generator: should work - valid generator names', async () => {
