@@ -533,24 +533,25 @@ async function setup(): Promise<void> {
       getRuntime: () => {
         let runtimePath: string
         if (process.env.LOCAL_QC_BUILD_DIRECTORY) {
-          runtimePath = path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_bg.js')
+          runtimePath = path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_fast_bg.js')
         } else {
-          runtimePath = path.join(runtimeBase, `query_compiler_bg.${provider}.js`)
+          runtimePath = path.join(runtimeBase, `query_compiler_fast_bg.${provider}.js`)
         }
         return Promise.resolve(require(runtimePath))
       },
       getQueryCompilerWasmModule: async () => {
         let moduleBytes: BufferSource
         if (process.env.LOCAL_QC_BUILD_DIRECTORY) {
-          const wasmPath = path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_bg.wasm')
+          const wasmPath = path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_fast_bg.wasm')
           moduleBytes = await fs.promises.readFile(wasmPath)
         } else {
-          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm-base64.js`)
+          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_fast_bg.${provider}.wasm-base64.js`)
           const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
           moduleBytes = Buffer.from(wasmBase64, 'base64')
         }
         return new WebAssembly.Module(moduleBytes)
       },
+      importName: `./query_compiler_fast_bg.js`,
     },
   })
 
