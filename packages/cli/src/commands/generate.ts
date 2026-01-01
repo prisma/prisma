@@ -93,7 +93,7 @@ export class GenerateCommand extends BaseCommand {
     const clientPath = path.join(outputDir, 'index.ts')
 
     try {
-      console.log('🔧 Generating client module with embedded operations')
+      logger.debug('Generating client module with embedded operations')
 
       // Extract datasource provider from schema AST for dialect detection
       const datasource = schemaAST.datasources?.[0]
@@ -115,14 +115,14 @@ export class GenerateCommand extends BaseCommand {
       })
 
       const clientContent = clientGenerator.generateClientModule()
-      console.log('✓ Client module generated, length:', clientContent.length)
+      logger.debug(`Client module generated, length: ${clientContent.length}`)
 
       await fs.writeFile(clientPath, clientContent, 'utf-8')
-      console.log('✓ Client module written to:', clientPath)
+      logger.debug(`Client module written to: ${clientPath}`)
 
       return clientPath
     } catch (error) {
-      console.error('❌ Client generation failed:', error)
+      logger.error(`Client generation failed: ${error}`)
       throw error
     }
   }

@@ -1,7 +1,7 @@
 lockfileVersion: '9.0'
 
 settings:
-  autoInstallPeers: false
+  autoInstallPeers: true
   excludeLinksFromLockfile: false
 
 importers:
@@ -307,19 +307,6 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.24.2
-    optionalDependencies:
-      better-sqlite3:
-        specifier: ^11.6.0
-        version: 11.10.0
-      kysely:
-        specifier: ^0.27.4
-        version: 0.27.6
-      mysql2:
-        specifier: ^3.11.4
-        version: 3.14.2
-      pg:
-        specifier: ^8.12.0
-        version: 8.14.1
     devDependencies:
       '@swc/core':
         specifier: 1.11.5
@@ -351,6 +338,19 @@ importers:
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/node@20.12.7)(@vitest/ui@3.2.4)(jiti@2.5.1)(terser@5.43.1)(tsx@4.19.3)(yaml@2.7.0)
+    optionalDependencies:
+      better-sqlite3:
+        specifier: ^11.6.0
+        version: 11.10.0
+      kysely:
+        specifier: ^0.27.4
+        version: 0.27.6
+      mysql2:
+        specifier: ^3.11.4
+        version: 3.14.2
+      pg:
+        specifier: ^8.12.0
+        version: 8.14.1
 
   packages/client-refract:
     dependencies:
@@ -2234,9 +2234,19 @@ packages:
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
+    peerDependencies:
+      ajv: ^8.0.0
+    peerDependenciesMeta:
+      ajv:
+        optional: true
 
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
+    peerDependencies:
+      ajv: ^8.0.0
+    peerDependenciesMeta:
+      ajv:
+        optional: true
 
   ajv-keywords@5.1.0:
     resolution: {integrity: sha512-YCS/JNFAUyr5vAuhk1DWm1CBxRHW9LbJ2ozWeemrIqpbsqKjHVxYPyi5GC0rjZIT5JxJ3virVTS8wk4i/Z+krw==}
@@ -6221,7 +6231,7 @@ snapshots:
     dependencies:
       ajv: 8.13.0
       ajv-draft-04: 1.0.0(ajv@8.13.0)
-      ajv-formats: 3.0.1
+      ajv-formats: 3.0.1(ajv@8.13.0)
       fs-extra: 11.3.0
       import-lazy: 4.0.0
       jju: 1.4.0
@@ -6863,12 +6873,12 @@ snapshots:
     optionalDependencies:
       ajv: 8.13.0
 
-  ajv-formats@2.1.1:
-    dependencies:
+  ajv-formats@2.1.1(ajv@8.13.0):
+    optionalDependencies:
       ajv: 8.13.0
 
-  ajv-formats@3.0.1:
-    dependencies:
+  ajv-formats@3.0.1(ajv@8.13.0):
+    optionalDependencies:
       ajv: 8.13.0
 
   ajv-keywords@5.1.0(ajv@8.13.0):
@@ -9352,7 +9362,7 @@ snapshots:
     dependencies:
       '@types/json-schema': 7.0.15
       ajv: 8.13.0
-      ajv-formats: 2.1.1
+      ajv-formats: 2.1.1(ajv@8.13.0)
       ajv-keywords: 5.1.0(ajv@8.13.0)
 
   semver@6.3.1: {}

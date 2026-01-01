@@ -126,10 +126,17 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
     }
 
     // For create/update/where operations
+    // Cast to valid Date constructor argument types to satisfy TypeScript
     const transformations = {
-      create: isOptional ? `${variableName} ? new Date(${variableName}) : null` : `new Date(${variableName})`,
-      update: isOptional ? `${variableName} ? new Date(${variableName}) : null` : `new Date(${variableName})`,
-      where: isOptional ? `${variableName} ? new Date(${variableName}) : null` : `new Date(${variableName})`,
+      create: isOptional
+        ? `${variableName} ? new Date(${variableName} as string | number | Date) : null`
+        : `new Date(${variableName} as string | number | Date)`,
+      update: isOptional
+        ? `${variableName} ? new Date(${variableName} as string | number | Date) : null`
+        : `new Date(${variableName} as string | number | Date)`,
+      where: isOptional
+        ? `${variableName} ? new Date(${variableName} as string | number | Date) : null`
+        : `new Date(${variableName} as string | number | Date)`,
     }
 
     return {

@@ -85,30 +85,171 @@ export class ClientGenerator {
     const importStyle = esModules ? 'import' : 'const'
     const fromStyle = esModules ? 'from' : '= require'
 
+    // Dialect-specific JSON helper imports
+    const jsonHelperImport = this.generateJsonHelperImport(importStyle, fromStyle)
+
     return dedent`
       ${importStyle} { RefractClientBase } ${fromStyle} '@refract/client'
       ${importStyle} { createKyselyDialect, loadRefractConfig } ${fromStyle} '@refract/config'
       ${importStyle} { Kysely } ${fromStyle} 'kysely'
       ${importStyle} type { Dialect, ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder, Expression, SqlBool, ReferenceExpression } ${fromStyle} 'kysely'
+
+      ${jsonHelperImport}
     `
   }
 
+  private generateJsonHelperImport(importStyle: string, fromStyle: string): string {
+    // JSON aggregation helpers are dialect-specific in Kysely
+    switch (this.dialect) {
+      case 'postgresql':
+        return `${importStyle} { jsonArrayFrom, jsonObjectFrom } ${fromStyle} 'kysely/helpers/postgres'`
+      case 'mysql':
+        return `${importStyle} { jsonArrayFrom, jsonObjectFrom } ${fromStyle} 'kysely/helpers/mysql'`
+      case 'sqlite':
+        return `${importStyle} { jsonArrayFrom, jsonObjectFrom } ${fromStyle} 'kysely/helpers/sqlite'`
+      default:
+        return `${importStyle} { jsonArrayFrom, jsonObjectFrom } ${fromStyle} 'kysely/helpers/postgres'`
+    }
+  }
+
   private generateTypeDefinitions(): string {
-    const modelInterfaces = this.generateModelInterfaces()
+    const prettifyHelper = this.generatePrettifyHelper()
+    const modelTypes = this.generateModelTypes()
     const databaseSchema = this.generateDatabaseSchemaInterface()
     const baseFilterTypes = this.generateBaseFilterTypes()
     const modelInputTypes = this.generateModelInputTypes()
 
     return dedent.withOptions({ alignValues: true })`
-      ${modelInterfaces}
+      ${prettifyHelper}
+
+      ${modelTypes}
       ${databaseSchema}
-      
+
       ${baseFilterTypes}
 
       ${modelInputTypes}
-      
+
       ${this.generateCRUDInterfaces()}
     `
+  }
+
+  /**
+   * Generate the Prettify<T> type helper
+   * This forces TypeScript to flatten intersection types in IDE hover tooltips
+   */
+  private generatePrettifyHelper(): string {
+    return dedent`
+      /**
+       * Prettify<T> - Flattens intersection types for cleaner IDE tooltips
+       * @see https://www.totaltypescript.com/concepts/the-prettify-helper
+       */
+      export type Prettify<T> = { [K in keyof T]: T[K] } & {}
+    `
+  }
+
+  /**
+   * Generate all model-related types:
+   * - {Model}Scalars: scalar fields only
+   * - {Model}Relations: relation field payloads
+   * - {Model}GetPayload<T>: conditional utility type for precise return types
+   * - {Model}: full interface with optional relations (backwards compat)
+   */
+  private generateModelTypes(): string {
+    const types: string[] = []
+
+    for (const model of this.schemaAST.models) {
+      const modelName = model.name
+      const relations = this.getModelRelations(model)
+      const modelNames = new Set(this.schemaAST.models.map((m) => m.name))
+
+      // Generate scalar fields (non-relation fields)
+      const scalarFields = model.fields
+        .filter((field) => !modelNames.has(field.fieldType))
+        .map((field) => {
+          const optionalMarker = field.isOptional ? '?' : ''
+          const tsType = this.mapFieldType(field)
+          return `${field.name}${optionalMarker}: ${tsType}`
+        })
+        .join('\n')
+
+      // 1. {Model}Scalars - scalar fields only
+      types.push(dedent`
+        /**
+         * ${modelName} scalar fields (no relations)
+         */
+        export type ${modelName}Scalars = {
+          ${scalarFields}
+        }
+      `)
+
+      // 2. {Model}Relations - relation payload types
+      if (relations.length > 0) {
+        const relationFields = relations
+          .map((rel) => {
+            if (rel.isArray) {
+              // One-to-many: always returns an array
+              return `${rel.fieldName}: ${rel.relatedModel}[]`
+            } else {
+              // One-to-one: could be null if optional or not found
+              return `${rel.fieldName}: ${rel.relatedModel} | null`
+            }
+          })
+          .join('\n')
+
+        types.push(dedent`
+          /**
+           * ${modelName} relation payloads when included
+           */
+          export type ${modelName}Relations = {
+            ${relationFields}
+          }
+        `)
+
+        // 3. {Model}GetPayload<T> - conditional utility type
+        types.push(dedent`
+          /**
+           * Get the return type for ${modelName} based on include options
+           * @example
+           * type WithPosts = ${modelName}GetPayload<{ include: { posts: true } }>
+           */
+          export type ${modelName}GetPayload<T extends { include?: ${modelName}Include } | undefined | null = undefined> = Prettify<
+            ${modelName}Scalars & (
+              T extends { include: infer I extends ${modelName}Include }
+                ? { [K in keyof I as I[K] extends true ? K : never]: K extends keyof ${modelName}Relations ? ${modelName}Relations[K] : never }
+                : {}
+            )
+          >
+        `)
+      } else {
+        // No relations - GetPayload just returns Scalars
+        types.push(dedent`
+          /**
+           * Get the return type for ${modelName} (no relations available)
+           */
+          export type ${modelName}GetPayload<T extends { include?: Record<string, never> } | undefined | null = undefined> = ${modelName}Scalars
+        `)
+      }
+
+      // 4. {Model} - full interface with optional relations (backwards compat)
+      const relationFields = relations.length > 0
+        ? relations.map((rel) => {
+            const listMarker = rel.isArray ? '[]' : ''
+            return `${rel.fieldName}?: ${rel.relatedModel}${listMarker}`
+          }).join('\n')
+        : '// No relations'
+
+      types.push(dedent`
+        /**
+         * Full ${modelName} type with optional relations
+         * For precise typing based on include, use ${modelName}GetPayload<T>
+         */
+        export interface ${modelName} extends ${modelName}Scalars {
+          ${relationFields}
+        }
+      `)
+    }
+
+    return types.join('\n\n')
   }
 
   generateModelInterfaces(): string {
@@ -661,7 +802,7 @@ ${includeFields}
       relationIncludeTypes ? relationIncludeTypes + '\n\n' : ''
     }export interface ModelCRUDOperations<T, TInclude = any> {
   findMany(args?: { where?: Partial<T>; orderBy?: any; take?: number; skip?: number; include?: TInclude }): Promise<T[]>
-  findUnique(args: { where: Partial<T>; include?: TInclude }): Promise<T | undefined>
+  findUnique(args: { where: Partial<T>; include?: TInclude }): Promise<T | null>
   findFirst(args?: { where?: Partial<T>; orderBy?: any; include?: TInclude }): Promise<T | null>
   create(args: { data: any }): Promise<T>
   createMany(args: { data: any[] }): Promise<{ count: number }>
@@ -689,7 +830,13 @@ ${includeFields}
   private generateModelOperations(model: ModelAST): string {
     const className = `${model.name}Operations`
     const tableName = this.getTableName(model)
-    const includeType = `${model.name}Include`
+    const relations = this.getModelRelations(model)
+
+    // Generate private relation helper methods
+    const relationHelpers = this.generateRelationHelperMethods(model, relations)
+
+    // Generate $if conditions for includes
+    const ifConditions = this.generateIfConditions(model, relations)
 
     return dedent.withOptions({ alignValues: true })`
       /**
@@ -698,16 +845,13 @@ ${includeFields}
       class ${className} {
         constructor(private kysely: Kysely<DatabaseSchema>) {}
 
-        async findMany(args?: ${model.name}FindManyArgs): Promise<${model.name}[]> {
-          let query = this.kysely.selectFrom('${tableName}')
+        ${relationHelpers}
 
-          // Apply includes (joins) if specified
-          const includesApplied = args?.include ? this.applyIncludes(query, args.include) : null
-          if (includesApplied) {
-            query = includesApplied.query
-          } else {
-            query = query.selectAll()
-          }
+        async findMany<T extends ${model.name}FindManyArgs = {}>(args?: T): Promise<${model.name}GetPayload<T>[]> {
+          let query = this.kysely
+            .selectFrom('${tableName}')
+            .selectAll()
+            ${ifConditions}
 
           query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
 
@@ -730,48 +874,28 @@ ${includeFields}
 
           const results = await query.execute()
 
-          // Fetch one-to-many relations if needed
-          if (includesApplied) {
-            const relatedData = await this.fetchManyRelations(results, includesApplied.relations)
-            return results.map(row => this.transformSelectResultWithIncludes(row, includesApplied.relations, relatedData))
-          }
-
           return results.map(row => this.transformSelectResult(row))
         }
 
-        async findUnique(args: ${model.name}FindUniqueArgs): Promise<${model.name} | undefined> {
-          let query = this.kysely.selectFrom('${tableName}')
-
-          const includesApplied = args.include ? this.applyIncludes(query, args.include) : null
-          if (includesApplied) {
-            query = includesApplied.query
-          } else {
-            query = query.selectAll()
-          }
+        async findUnique<T extends ${model.name}FindUniqueArgs>(args: T): Promise<${model.name}GetPayload<T> | null> {
+          let query = this.kysely
+            .selectFrom('${tableName}')
+            .selectAll()
+            ${ifConditions}
 
           query = query.where(eb => this.buildWhereExpression(eb, args.where))
           const results = await query.execute()
 
-          if (results.length === 0) return undefined
+          if (results.length === 0) return null
 
-          // Fetch one-to-many relations if needed
-          if (includesApplied) {
-            const relatedData = await this.fetchManyRelations([results[0]], includesApplied.relations)
-            return this.transformSelectResultWithIncludes(results[0], includesApplied.relations, relatedData)
-          }
-
-          return this.transformSelectResult(results[0])
+          return results[0]
         }
 
-        async findFirst(args?: ${model.name}FindFirstArgs): Promise<${model.name} | null> {
-          let query = this.kysely.selectFrom('${tableName}')
-
-          const includesApplied = args?.include ? this.applyIncludes(query, args.include) : null
-          if (includesApplied) {
-            query = includesApplied.query
-          } else {
-            query = query.selectAll()
-          }
+        async findFirst<T extends ${model.name}FindFirstArgs = {}>(args?: T): Promise<${model.name}GetPayload<T> | null> {
+          let query = this.kysely
+            .selectFrom('${tableName}')
+            .selectAll()
+            ${ifConditions}
 
           query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
 
@@ -789,13 +913,7 @@ ${includeFields}
 
           if (results.length === 0) return null
 
-          // Fetch one-to-many relations if needed
-          if (includesApplied) {
-            const relatedData = await this.fetchManyRelations([results[0]], includesApplied.relations)
-            return this.transformSelectResultWithIncludes(results[0], includesApplied.relations, relatedData)
-          }
-
-          return this.transformSelectResult(results[0])
+          return results[0]
         }
 
         async create(args: ${model.name}CreateArgs): Promise<${model.name}> {
@@ -998,17 +1116,6 @@ ${includeFields}
           return result
         }
 
-        private applyIncludes(query: any, include: ${includeType}): { query: any; relations: Array<{ field: string; relatedModel: string; prefix: string; type?: string }> } | null {
-          if (!include || Object.keys(include).length === 0) return null
-
-          const relations: Array<{ field: string; relatedModel: string; prefix: string; type?: string }> = []
-          let currentQuery = query
-
-          ${this.generateIncludeApplicationLogic(model)}
-
-          return { query: currentQuery, relations }
-        }
-
         private async fetchManyRelations(results: any[], relations: Array<{ field: string; relatedModel: string; prefix: string; type?: string }>): Promise<Record<string, any[]>> {
           const relatedData: Record<string, any[]> = {}
 
@@ -1148,7 +1255,7 @@ ${includeFields}
         return variableName
 
       case 'DateTime':
-        return `new Date(${variableName})`
+        return `new Date(${variableName} as string | number | Date)`
 
       case 'Int':
       case 'Float':
@@ -1212,27 +1319,6 @@ export async function createClient(): Promise<RefractClient> {
 }`
   }
 
-  private mapFieldTypeToTS(field: FieldAST): string {
-    switch (field.fieldType) {
-      case 'String':
-        return 'string'
-      case 'Int':
-        return 'number'
-      case 'Float':
-        return 'number'
-      case 'Boolean':
-        return 'boolean'
-      case 'DateTime':
-        return 'Date'
-      case 'Json':
-        return 'any'
-      case 'BigInt':
-        return 'bigint'
-      default:
-        return 'any'
-    }
-  }
-
   private getTableName(model: ModelAST): string {
     // Check for @@map attribute
     const mapAttribute = model.attributes.find((attr) => attr.name === 'map')
@@ -1250,6 +1336,141 @@ export async function createClient(): Promise<RefractClient> {
 
   private toCamelCase(str: string): string {
     return str.charAt(0).toLowerCase() + str.slice(1)
+  }
+
+  /**
+   * Get the TypeScript type for a field by name
+   * Uses mapFieldType to ensure consistency with generated model interfaces
+   */
+  private getFieldTsType(model: ModelAST, fieldName: string): string {
+    const field = model.fields.find((f) => f.name === fieldName)
+    if (!field) return 'unknown'
+    return this.mapFieldType(field)
+  }
+
+  /**
+   * Generate private helper methods for relation loading using jsonArrayFrom/jsonObjectFrom
+   * These create subquery builders for each relation
+   */
+  private generateRelationHelperMethods(
+    model: ModelAST,
+    relations: Array<{
+      fieldName: string
+      relatedModel: string
+      isArray: boolean
+      foreignKeyField?: string
+      referencedField?: string
+    }>,
+  ): string {
+    if (relations.length === 0) return ''
+
+    const pkField = this.getPrimaryKeyField(model)
+    const pkType = this.getFieldTsType(model, pkField)
+
+    const helpers = relations
+      .map((rel) => {
+        const relatedModel = this.findModelByName(rel.relatedModel)
+        if (!relatedModel) return ''
+
+        const relatedTableName = this.getTableName(relatedModel)
+
+        if (rel.isArray) {
+          // One-to-many: use jsonArrayFrom
+          // Find the FK field on the related model that points to this model
+          const foreignKeyField = this.getForeignKeyForRelation(relatedModel, model.name)
+
+          return dedent`
+            private _${rel.fieldName}(${pkField}: Expression<${pkType}>) {
+              return jsonArrayFrom(
+                this.kysely.selectFrom('${relatedTableName}')
+                  .selectAll()
+                  .whereRef('${relatedTableName}.${foreignKeyField}', '=', ${pkField})
+                  .orderBy('${relatedTableName}.${this.getPrimaryKeyField(relatedModel)}'))
+            }
+          `
+        } else if (rel.foreignKeyField) {
+          // Forward relation (this model has FK): use jsonObjectFrom
+          const fkType = this.getFieldTsType(model, rel.foreignKeyField)
+
+          return dedent`
+            private _${rel.fieldName}(${rel.foreignKeyField}: Expression<${fkType}>) {
+              return jsonObjectFrom(
+                this.kysely.selectFrom('${relatedTableName}')
+                  .selectAll()
+                  .whereRef('${relatedTableName}.${rel.referencedField || 'id'}', '=', ${rel.foreignKeyField})
+              )
+            }
+          `
+        } else {
+          // Reverse relation (related model has FK pointing to us): use jsonObjectFrom
+          const reverseRelation = this.getModelRelations(relatedModel).find(
+            (r) => r.relatedModel === model.name && r.foreignKeyField,
+          )
+
+          if (reverseRelation) {
+            return dedent`
+              private _${rel.fieldName}(${pkField}: Expression<${pkType}>) {
+                return jsonObjectFrom(
+                  this.kysely.selectFrom('${relatedTableName}')
+                    .selectAll()
+                    .whereRef('${relatedTableName}.${reverseRelation.foreignKeyField}', '=', ${pkField})
+                )
+              }
+            `
+          }
+        }
+
+        return ''
+      })
+      .filter(Boolean)
+      .join('\n\n')
+
+    return helpers
+  }
+
+  /**
+   * Generate $if conditions for conditionally including relations in queries
+   * Uses the private helper methods to build subqueries
+   */
+  private generateIfConditions(
+    model: ModelAST,
+    relations: Array<{
+      fieldName: string
+      relatedModel: string
+      isArray: boolean
+      foreignKeyField?: string
+      referencedField?: string
+    }>,
+  ): string {
+    if (relations.length === 0) return ''
+
+    const tableName = this.getTableName(model)
+    const pkField = this.getPrimaryKeyField(model)
+
+    const conditions = relations
+      .map((rel) => {
+        const relatedModel = this.findModelByName(rel.relatedModel)
+        if (!relatedModel) return ''
+
+        // Determine the reference field to pass to the helper
+        let refField: string
+        if (rel.foreignKeyField) {
+          // Forward relation: use the FK field
+          refField = `'${tableName}.${rel.foreignKeyField}'`
+        } else {
+          // Reverse relation or one-to-many: use the PK field
+          refField = `'${tableName}.${pkField}'`
+        }
+
+        return dedent`
+        .$if(!!args?.include?.${rel.fieldName}, (qb) => qb.select(
+          (eb) => this._${rel.fieldName}(eb.ref(${refField})).as('${rel.fieldName}')
+        ))`
+      })
+      .filter(Boolean)
+      .join('\n')
+
+    return conditions
   }
 
   /**
@@ -1297,87 +1518,6 @@ export async function createClient(): Promise<RefractClient> {
           referencedField,
         }
       })
-  }
-
-  /**
-   * Generate logic to apply includes (joins) to a query
-   */
-  private generateIncludeApplicationLogic(model: ModelAST): string {
-    const relations = this.getModelRelations(model)
-    if (relations.length === 0) return '// No relations for this model'
-
-    const logic = relations
-      .map((rel) => {
-        const relatedModel = this.findModelByName(rel.relatedModel)
-        if (!relatedModel) return ''
-
-        const relatedTableName = this.getTableName(relatedModel)
-        const prefix = `${rel.fieldName}_`
-
-        // Forward relation: this model has the FK
-        if (rel.foreignKeyField && rel.referencedField && !rel.isArray) {
-          const relatedFields = relatedModel.fields
-            .filter((f) => !this.getModelRelations(relatedModel).some((r) => r.fieldName === f.name))
-            .map((f) => `'${relatedTableName}.${f.name} as ${prefix}${f.name}'`)
-            .join(', ')
-
-          return dedent`if (include.${rel.fieldName}) {
-      currentQuery = currentQuery
-        .leftJoin('${relatedTableName}', '${this.getTableName(model)}.${rel.foreignKeyField}', '${relatedTableName}.${
-            rel.referencedField
-          }')
-        .selectAll('${this.getTableName(model)}')
-        .select([
-          ${relatedFields}
-        ])
-      relations.push({ field: '${rel.fieldName}', relatedModel: '${
-            rel.relatedModel
-          }', prefix: '${prefix}', type: 'one' })
-    }`
-        }
-
-        // Reverse relation: related model has the FK pointing to us
-        if (!rel.foreignKeyField && !rel.isArray) {
-          // Find the reverse relation on the related model
-          const reverseRelation = this.getModelRelations(relatedModel).find(
-            (r) => r.relatedModel === model.name && r.foreignKeyField,
-          )
-
-          if (reverseRelation) {
-            const relatedFields = relatedModel.fields
-              .filter((f) => !this.getModelRelations(relatedModel).some((r) => r.fieldName === f.name))
-              .map((f) => `'${relatedTableName}.${f.name} as ${prefix}${f.name}'`)
-              .join(', ')
-
-            return dedent`if (include.${rel.fieldName}) {
-      currentQuery = currentQuery
-        .leftJoin('${relatedTableName}', '${this.getTableName(model)}.${
-              reverseRelation.referencedField
-            }', '${relatedTableName}.${reverseRelation.foreignKeyField}')
-        .selectAll('${this.getTableName(model)}')
-        .select([
-          ${relatedFields}
-        ])
-      relations.push({ field: '${rel.fieldName}', relatedModel: '${
-              rel.relatedModel
-            }', prefix: '${prefix}', type: 'one' })
-    }`
-          }
-        }
-
-        // One-to-many relation: fetch related records separately to avoid N+1
-        if (rel.isArray) {
-          return dedent`if (include.${rel.fieldName}) {
-      relations.push({ field: '${rel.fieldName}', relatedModel: '${rel.relatedModel}', prefix: '${prefix}', type: 'many' })
-    }`
-        }
-
-        return ''
-      })
-      .filter(Boolean)
-      .join('\n\n')
-
-    return logic || '// No supported relations for includes'
   }
 
   /**

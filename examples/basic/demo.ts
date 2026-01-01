@@ -69,15 +69,6 @@ async function main() {
     // Step 5: Use the high-level Prisma-like API
     console.log('📊 Creating sample data with high-level API...\n')
 
-    await client.user.update({
-      where: {
-        id: 1,
-      },
-      data: {
-        name: 'Bob Smith',
-      },
-    })
-
     // Create a user using the generated client
     const user = await client.user.create({
       data: {
@@ -128,6 +119,20 @@ async function main() {
       console.log('User with profile:', JSON.stringify(userWithProfile, null, 2))
     } catch (error) {
       console.error('❌ Error querying user with profile:', error)
+      throw error
+    }
+    console.log()
+
+    // Step 6b: Query with one-to-many relation (posts array)
+    console.log('🔍 Querying user with posts relation (one-to-many)...')
+    try {
+      const userWithPosts = await client.user.findUnique({
+        where: { id: user.id },
+        include: { posts: true },
+      })
+      console.log('User with posts:', JSON.stringify(userWithPosts, null, 2))
+    } catch (error) {
+      console.error('❌ Error querying user with posts:', error)
       throw error
     }
     console.log()

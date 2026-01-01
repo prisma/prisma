@@ -1,9 +1,9 @@
 /**
  * SQLite Field Transformation Code Generator
- * 
+ *
  * Generates build-time transformation code for SQLite-specific type mappings
  * including Boolean to 0/1 conversion, DateTime serialization, and JSON handling.
- * 
+ *
  * All transformations produce inline code with zero runtime overhead.
  */
 
@@ -13,7 +13,7 @@ import type {
   FieldTransformContext,
   GeneratedTransformation,
   TransformationPerformance,
-  TransformationOperation
+  TransformationOperation,
 } from '../types.js'
 import { UnsupportedFieldTypeError } from '../types.js'
 
@@ -30,24 +30,24 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
     switch (field.fieldType) {
       case 'Boolean':
         return this.generateBooleanTransformation(operation, variableName)
-      
+
       case 'DateTime':
         return this.generateDateTimeTransformation(operation, variableName, field)
-      
+
       case 'Json':
         return this.generateJsonTransformation(operation, variableName)
-      
+
       case 'Int':
       case 'BigInt':
         return this.generateIntegerTransformation(operation, variableName, field)
-      
+
       case 'Float':
       case 'Decimal':
         return this.generateNumericTransformation(operation, variableName, field)
-      
+
       case 'String':
         return this.generateStringTransformation(operation, variableName, field)
-      
+
       default:
         throw new UnsupportedFieldTypeError(field, this.dialect)
     }
@@ -81,14 +81,14 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
   }
 
   private generateBooleanTransformation(
-    operation: TransformationOperation, 
-    variableName: string
+    operation: TransformationOperation,
+    variableName: string,
   ): GeneratedTransformation {
     const transformations = {
       create: `${variableName} ? 1 : 0`,
       update: `${variableName} ? 1 : 0`,
       where: `${variableName} ? 1 : 0`,
-      select: `${variableName} === 1`
+      select: `${variableName} === 1`,
     }
 
     return {
@@ -98,34 +98,34 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateDateTimeTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
-    
+
     const transformations = {
-      create: isOptional 
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName}).toISOString()) : null`
-        : `${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName}).toISOString()`,
-      
+      create: isOptional
+        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName} as string | number).toISOString()) : null`
+        : `${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName} as string | number).toISOString()`,
+
       update: isOptional
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName}).toISOString()) : null`
-        : `${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName}).toISOString()`,
-      
+        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName} as string | number).toISOString()) : null`
+        : `${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName} as string | number).toISOString()`,
+
       where: isOptional
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName}).toISOString()) : null`
-        : `${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName}).toISOString()`,
-      
+        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName} as string | number).toISOString()) : null`
+        : `${variableName} instanceof Date ? ${variableName}.toISOString() : new Date(${variableName} as string | number).toISOString()`,
+
       select: isOptional
-        ? `${variableName} ? new Date(${variableName}) : null`
-        : `new Date(${variableName})`
+        ? `${variableName} ? new Date(${variableName} as string | number) : null`
+        : `new Date(${variableName} as string | number)`,
     }
 
     return {
@@ -135,20 +135,20 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
       performance: {
         complexity: 'moderate',
         inlinable: true,
-        impact: 'low'
-      }
+        impact: 'low',
+      },
     }
   }
 
   private generateJsonTransformation(
     operation: TransformationOperation,
-    variableName: string
+    variableName: string,
   ): GeneratedTransformation {
     const transformations = {
       create: `typeof ${variableName} === 'string' ? ${variableName} : JSON.stringify(${variableName})`,
       update: `typeof ${variableName} === 'string' ? ${variableName} : JSON.stringify(${variableName})`,
       where: `typeof ${variableName} === 'string' ? ${variableName} : JSON.stringify(${variableName})`,
-      select: `JSON.parse(${variableName})`
+      select: `JSON.parse(${variableName})`,
     }
 
     return {
@@ -158,15 +158,15 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
       performance: {
         complexity: 'moderate',
         inlinable: true,
-        impact: 'low'
-      }
+        impact: 'low',
+      },
     }
   }
 
   private generateIntegerTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isBigInt = field.fieldType === 'BigInt'
     const isOptional = field.isOptional
@@ -181,8 +181,8 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
           performance: {
             complexity: 'simple',
             inlinable: true,
-            impact: 'negligible'
-          }
+            impact: 'negligible',
+          },
         }
       } else {
         return {
@@ -192,8 +192,8 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
           performance: {
             complexity: 'simple',
             inlinable: true,
-            impact: 'negligible'
-          }
+            impact: 'negligible',
+          },
         }
       }
     }
@@ -203,7 +203,7 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
       const transformation = isOptional
         ? `${variableName} !== null ? Number(${variableName}) : null`
         : `Number(${variableName})`
-      
+
       return {
         code: transformation,
         imports: [],
@@ -211,14 +211,14 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     } else {
       const transformation = isOptional
         ? `${variableName} !== null ? Number(${variableName}) : null`
         : `Number(${variableName})`
-      
+
       return {
         code: transformation,
         imports: [],
@@ -226,8 +226,8 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
   }
@@ -235,10 +235,10 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
   private generateNumericTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
-    
+
     if (operation === 'select') {
       // SQLite returns numbers as JS numbers, no transformation needed
       return {
@@ -248,8 +248,8 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -265,15 +265,15 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateStringTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
 
@@ -286,8 +286,8 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -303,8 +303,8 @@ export class SQLiteTransformationGenerator implements FieldTransformationGenerat
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 }

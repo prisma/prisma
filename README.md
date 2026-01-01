@@ -46,8 +46,9 @@ For architectural details, see `ARCHITECTURE.md`. For the delivery timeline, see
 
 ## Key Packages
 
-- `packages/client-refract`: Kysely-backed client runtime and generators.
+- `packages/client-refract` (`@refract/client`): Kysely-backed client runtime and code generator.
 - `packages/schema-parser`: TypeScript-native parser for `.prisma` schemas.
+- `packages/field-translator`: Database-specific field transformation code generators.
 - `packages/migrate`: Programmatic migration engine powered by Kysely.
 - `packages/config`: Configuration discovery and dialect wiring.
 - `packages/unplugin-refract`: Build-tool integration (Vite, Webpack, Rollup, esbuild) that emits virtual `.refract/types` modules.
@@ -64,7 +65,7 @@ pnpm install
 pnpm build
 
 # Explore the client demo
-pnpm --filter @refract/client-refract demo
+pnpm --filter @refract/client demo
 ```
 
 > Note: Refract is under active development. APIs may change during Phase 0 as we converge on the end-to-end example. Track progress in `DELIVERY_ROADMAP.md` and `NEXT_STEPS.md`.
@@ -73,8 +74,8 @@ pnpm --filter @refract/client-refract demo
 
 1. Edit or create your `schema.prisma`.
 2. Use `pnpm --filter @refract/schema-parser test` to exercise parsing changes.
-3. Run `pnpm --filter @refract/client-refract build` (or `pnpm watch`) to regenerate the client runtime.
-4. Use the CLI (`pnpm refract ...`) for init/generate/migrate flows once Phase 0 tasks are complete.
+3. Run `pnpm --filter @refract/client build` (or `pnpm watch`) to regenerate the client runtime.
+4. Use the CLI for init/generate/migrate flows (e.g., `cd examples/basic && pnpm generate`).
 5. Launch the demo project (Vite + unplugin) to validate type generation and CRUD operations.
 
 ## Contributing

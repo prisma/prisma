@@ -133,18 +133,19 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
     }
 
     // For create/update/where operations, ensure proper Date format
+    // Cast to valid Date constructor argument types to satisfy TypeScript
     const transformations = {
-      create: isOptional 
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName})) : null`
-        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName})`,
-      
+      create: isOptional
+        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName} as string | number)) : null`
+        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName} as string | number)`,
+
       update: isOptional
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName})) : null`
-        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName})`,
-      
+        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName} as string | number)) : null`
+        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName} as string | number)`,
+
       where: isOptional
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName})) : null`
-        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName})`
+        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName} as string | number)) : null`
+        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName} as string | number)`,
     }
 
     return {

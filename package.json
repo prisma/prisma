@@ -1,16 +1,15 @@
 {
   "private": true,
-  "name": "dev-env",
-  "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
+  "name": "refract",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0",
-    "pnpm": ">=9.14.4 <10"
+    "pnpm": ">=10"
   },
-  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
   "scripts": {
     "build": "pnpm -r build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
+    "demo:postgres": "pnpm --filter @refract/example-basic demo",
     "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
     "publish-all": "tsx scripts/ci/publish.ts --publish",
     "test": "dotenv -e ../../.db.env -- tsx scripts/ci/publish.ts --test",
