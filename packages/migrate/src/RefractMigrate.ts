@@ -24,29 +24,9 @@ import type {
   MigrationPromptConfig,
   MigrationResult,
   MigrationRollback,
-  MigrationState,
   MigrationSummary,
   MigrationValidation,
 } from './types'
-
-// Query result interfaces for type safety
-interface PrimaryKeyRow {
-  column_name: string
-}
-
-interface ForeignKeyRow {
-  column_name: string
-  constraint_name: string
-  referenced_table_name: string
-  referenced_column_name: string
-  delete_rule: string
-  update_rule: string
-}
-
-interface UniqueConstraintRow {
-  column_name: string
-  constraint_name: string
-}
 
 interface MigrationHistoryRow {
   id: string
@@ -61,6 +41,9 @@ interface MigrationHistoryRow {
  * Main migration engine class that works directly with Kysely dialect instances
  */
 export class RefractMigrate {
+  // TODO: Split this class into focused modules (diffing, execution, history/locks, preview/logging).
+  // TODO: Replace `any`/`as never` with typed Kysely table interfaces for migration tables.
+  // TODO: Route all warnings through the logging helper or injected logger instead of console.warn.
   private readonly options: Required<MigrationOptions>
 
   constructor(options: MigrationOptions = {}) {
@@ -148,7 +131,7 @@ export class RefractMigrate {
       await this.ensureMigrationTableExists(kyselyInstance)
 
       const result = await kyselyInstance
-        .selectFrom(this.options.migrationTableName as never)
+        .selectFrom(this.options.migrationTableName)
         .selectAll()
         .orderBy('appliedAt', 'desc')
         .execute()
@@ -336,7 +319,7 @@ export class RefractMigrate {
       const warnings: string[] = []
 
       // Generate reverse operations for each statement
-      for (const statement of migration.statements.reverse()) {
+      for (const statement of [...migration.statements].reverse()) {
         const rollbackStatement = this.generateReverseStatement(kyselyInstance, statement)
         if (rollbackStatement) {
           rollbackStatements.push(rollbackStatement)
@@ -836,8 +819,8 @@ export class RefractMigrate {
     try {
       // Use only Kysely's introspection API for database-agnostic constraint detection
       const tables = await kyselyInstance.introspection.getTables()
-      const table = tables.find(t => t.name === tableName)
-      
+      const table = tables.find((t) => t.name === tableName)
+
       if (!table) {
         return {
           primaryKey: [],
@@ -849,8 +832,8 @@ export class RefractMigrate {
 
       // Extract primary key columns from Kysely's table metadata
       const primaryKey = table.columns
-        .filter(col => col.isAutoIncrementing || col.name === 'id') // Simple heuristic for primary keys
-        .map(col => col.name)
+        .filter((col) => col.isAutoIncrementing || col.name === 'id') // Simple heuristic for primary keys
+        .map((col) => col.name)
 
       // Note: Kysely's introspection doesn't provide detailed constraint info for all databases
       // For now, return empty arrays for foreign keys and unique constraints
@@ -872,14 +855,6 @@ export class RefractMigrate {
         uniqueConstraints: [],
         indexes: [],
       }
-    }
-  }
-
-  private getIndexes(_kyselyInstance: AnyKyselyDatabase, _tableNames: string[]): any[] {
-    try {
-      return []
-    } catch (error) {
-      return []
     }
   }
 
@@ -997,7 +972,7 @@ export class RefractMigrate {
             if (!tablesAffected.includes(tableName)) {
               tablesAffected.push(tableName)
             }
-            
+
             // Foreign key drops are potentially destructive
             if (foreignKeyDiff.foreignKeysDropped.length > 0) {
               hasDestructiveChanges = true
@@ -1028,7 +1003,7 @@ export class RefractMigrate {
         summary.enumsCreated.push(...enumDiff.enumsCreated)
         summary.enumsModified.push(...enumDiff.enumsModified)
         summary.enumsDropped.push(...enumDiff.enumsDropped)
-        
+
         // Enum drops are potentially destructive
         if (enumDiff.enumsDropped.length > 0) {
           hasDestructiveChanges = true
@@ -1065,13 +1040,17 @@ export class RefractMigrate {
     }
   }
 
-  private generateCreateTableStatement(kyselyInstance: AnyKyselyDatabase, model: ModelAST, dialect: DatabaseDialect): string {
+  private generateCreateTableStatement(
+    kyselyInstance: AnyKyselyDatabase,
+    model: ModelAST,
+    dialect: DatabaseDialect,
+  ): string {
     try {
       const tableName = this.getTableName(model)
       let createTableBuilder = kyselyInstance.schema.createTable(tableName)
 
       // Only create columns for fields that should be in the database
-      const databaseFields = model.fields.filter(field => this.shouldCreateDatabaseColumn(field))
+      const databaseFields = model.fields.filter((field) => this.shouldCreateDatabaseColumn(field))
 
       for (const field of databaseFields) {
         const sqlType = this.mapFieldTypeToSQL(field, dialect)
@@ -1084,9 +1063,8 @@ export class RefractMigrate {
           }
 
           const isId = field.attributes?.some((attr: any) => attr.name === 'id')
-          const hasAutoIncrement = field.attributes?.some((attr: any) =>
-            attr.name === 'default' &&
-            attr.args?.[0]?.value === 'autoincrement()'
+          const hasAutoIncrement = field.attributes?.some(
+            (attr: any) => attr.name === 'default' && attr.args?.[0]?.value === 'autoincrement()',
           )
 
           if (isId) {
@@ -1234,7 +1212,9 @@ export class RefractMigrate {
 
     try {
       const currentColumns = new Map(currentTable.columns.map((c) => [c.name, c]))
-      const targetFields = new Map(targetModel.fields.filter(f => this.shouldCreateDatabaseColumn(f)).map((f) => [f.name, f]))
+      const targetFields = new Map(
+        targetModel.fields.filter((f) => this.shouldCreateDatabaseColumn(f)).map((f) => [f.name, f]),
+      )
 
       for (const [fieldName, field] of targetFields) {
         if (!currentColumns.has(fieldName)) {
@@ -1340,7 +1320,9 @@ export class RefractMigrate {
             } else {
               // Set new default
               const defaultSQL = this.formatDefaultValueForSQL(targetDefault)
-              result.statements.push(`ALTER TABLE "${currentTable.name}" ALTER COLUMN "${columnName}" SET DEFAULT ${defaultSQL}`)
+              result.statements.push(
+                `ALTER TABLE "${currentTable.name}" ALTER COLUMN "${columnName}" SET DEFAULT ${defaultSQL}`,
+              )
             }
           }
         }
@@ -1428,7 +1410,7 @@ export class RefractMigrate {
       // Handle hex color values and regular strings
       return value
     }
-    
+
     if (typeof value === 'number' || typeof value === 'boolean') {
       return value
     }
@@ -1487,7 +1469,7 @@ export class RefractMigrate {
       Decimal: 'decimal',
       Json: 'json',
       Bytes: 'blob',
-      BigInt: 'bigint'
+      BigInt: 'bigint',
     }
 
     return typeMap[field.fieldType] || 'text'
@@ -1568,17 +1550,17 @@ export class RefractMigrate {
 
   private isRelationField(field: FieldAST): boolean {
     const primitiveTypes = ['String', 'Int', 'Boolean', 'DateTime', 'Float', 'Decimal', 'Json', 'Bytes', 'BigInt']
-    
+
     // If it's a primitive type, it's not a relation
     if (primitiveTypes.includes(field.fieldType)) {
       return false
     }
-    
+
     // If it's a list type or has @relation, it's a relation
     if (field.isList || field.attributes?.some((attr: any) => attr.name === 'relation')) {
       return true
     }
-    
+
     // If it references a model type, it's likely a relation
     return !primitiveTypes.includes(field.fieldType)
   }
@@ -1639,7 +1621,7 @@ export class RefractMigrate {
     const currentColumns = new Map(currentTable.columns.map((c) => [c.name, c]))
 
     // Only check fields that should be database columns
-    for (const field of targetModel.fields.filter(f => this.shouldCreateDatabaseColumn(f))) {
+    for (const field of targetModel.fields.filter((f) => this.shouldCreateDatabaseColumn(f))) {
       const currentColumn = currentColumns.get(field.name)
       if (currentColumn) {
         const targetSqlType = this.mapFieldTypeToSQL(field, dialect)
@@ -1672,11 +1654,9 @@ export class RefractMigrate {
     if (mapAttribute?.args?.[0]) {
       const mappedName = (mapAttribute.args[0] as AttributeArgumentAST).value
       // Remove quotes if present
-      return typeof mappedName === 'string'
-        ? mappedName.replace(/^["']|["']$/g, '')
-        : String(mappedName)
+      return typeof mappedName === 'string' ? mappedName.replace(/^["']|["']$/g, '') : String(mappedName)
     }
-    
+
     // Default: use model name as-is
     return model.name
   }
@@ -2070,7 +2050,7 @@ export class RefractMigrate {
     const warnings: string[] = []
 
     // Generate reverse operations for each statement
-    for (const statement of statements.reverse()) {
+    for (const statement of [...statements].reverse()) {
       const rollbackStatement = this.generateReverseStatement(kyselyInstance, statement)
       if (rollbackStatement) {
         rollbackStatements.push(rollbackStatement)
@@ -2647,7 +2627,7 @@ export class RefractMigrate {
       // Find foreign keys to create (exist in target but not in current)
       for (const [fkName, targetFk] of targetForeignKeysMap) {
         const currentFk = currentForeignKeys.get(fkName)
-        
+
         if (!currentFk) {
           // New foreign key to create
           result.hasChanges = true
@@ -2665,7 +2645,11 @@ export class RefractMigrate {
 
       return result
     } catch (error) {
-      console.warn(`Failed to compare foreign keys for table ${currentTable.name}: ${error instanceof Error ? error.message : String(error)}`)
+      console.warn(
+        `Failed to compare foreign keys for table ${currentTable.name}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
       return result
     }
   }
@@ -2680,38 +2664,46 @@ export class RefractMigrate {
       // Look for relation fields with explicit relation attributes
       for (const field of model.fields) {
         const relationAttr = field.attributes?.find((attr: AttributeAST) => attr.name === 'relation')
-        
+
         if (relationAttr && !field.isList) {
           // This is a relation field that should have a foreign key
           const referencedModel = field.fieldType
-          
+
           // Look for fields attribute in @relation to find the foreign key columns
-          const fieldsArg = relationAttr.args?.find((arg: AttributeArgumentAST) => 
-            typeof arg === 'object' && 'name' in arg && arg.name === 'fields'
+          const fieldsArg = relationAttr.args?.find(
+            (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'fields',
           )
-          const referencesArg = relationAttr.args?.find((arg: AttributeArgumentAST) => 
-            typeof arg === 'object' && 'name' in arg && arg.name === 'references'
+          const referencesArg = relationAttr.args?.find(
+            (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'references',
           )
 
           if (fieldsArg && referencesArg && 'value' in fieldsArg && 'value' in referencesArg) {
-            const localColumns = Array.isArray(fieldsArg.value) ? fieldsArg.value.map(String) : [String(fieldsArg.value)]
-            const referencedColumns = Array.isArray(referencesArg.value) ? referencesArg.value.map(String) : [String(referencesArg.value)]
+            const localColumns = Array.isArray(fieldsArg.value)
+              ? fieldsArg.value.map(String)
+              : [String(fieldsArg.value)]
+            const referencedColumns = Array.isArray(referencesArg.value)
+              ? referencesArg.value.map(String)
+              : [String(referencesArg.value)]
 
             // Generate constraint name
             const constraintName = this.generateForeignKeyName(model.name, localColumns, referencedModel)
 
             // Extract onDelete and onUpdate actions
-            const onDeleteArg = relationAttr.args?.find((arg: AttributeArgumentAST) => 
-              typeof arg === 'object' && 'name' in arg && arg.name === 'onDelete'
+            const onDeleteArg = relationAttr.args?.find(
+              (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'onDelete',
             )
-            const onUpdateArg = relationAttr.args?.find((arg: AttributeArgumentAST) => 
-              typeof arg === 'object' && 'name' in arg && arg.name === 'onUpdate'
+            const onUpdateArg = relationAttr.args?.find(
+              (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'onUpdate',
             )
 
-            const onDelete = onDeleteArg && 'value' in onDeleteArg ? 
-              (onDeleteArg.value as 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION') : 'RESTRICT'
-            const onUpdate = onUpdateArg && 'value' in onUpdateArg ? 
-              (onUpdateArg.value as 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION') : 'RESTRICT'
+            const onDelete =
+              onDeleteArg && 'value' in onDeleteArg
+                ? (onDeleteArg.value as 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION')
+                : 'RESTRICT'
+            const onUpdate =
+              onUpdateArg && 'value' in onUpdateArg
+                ? (onUpdateArg.value as 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION')
+                : 'RESTRICT'
 
             foreignKeys.push({
               name: constraintName,
@@ -2727,7 +2719,11 @@ export class RefractMigrate {
 
       return foreignKeys
     } catch (error) {
-      console.warn(`Failed to extract foreign keys from model ${model.name}: ${error instanceof Error ? error.message : String(error)}`)
+      console.warn(
+        `Failed to extract foreign keys from model ${model.name}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
       return []
     }
   }
@@ -2764,11 +2760,12 @@ export class RefractMigrate {
     foreignKey: DatabaseForeignKey,
   ): string {
     try {
-      const localCols = foreignKey.columns.map(c => `"${c}"`).join(', ')
-      const refCols = foreignKey.referencedColumns.map(c => `"${c}"`).join(', ')
-      
-      let sql = `ALTER TABLE "${tableName}" ADD CONSTRAINT "${foreignKey.name}" ` +
-                `FOREIGN KEY (${localCols}) REFERENCES "${foreignKey.referencedTable}" (${refCols})`
+      const localCols = foreignKey.columns.map((c) => `"${c}"`).join(', ')
+      const refCols = foreignKey.referencedColumns.map((c) => `"${c}"`).join(', ')
+
+      let sql =
+        `ALTER TABLE "${tableName}" ADD CONSTRAINT "${foreignKey.name}" ` +
+        `FOREIGN KEY (${localCols}) REFERENCES "${foreignKey.referencedTable}" (${refCols})`
 
       if (foreignKey.onDelete && foreignKey.onDelete !== 'RESTRICT') {
         sql += ` ON DELETE ${foreignKey.onDelete}`
@@ -2779,7 +2776,9 @@ export class RefractMigrate {
 
       return sql
     } catch (error) {
-      throw new Error(`Failed to generate ADD CONSTRAINT statement: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to generate ADD CONSTRAINT statement: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -2794,7 +2793,9 @@ export class RefractMigrate {
     try {
       return `ALTER TABLE "${tableName}" DROP CONSTRAINT "${constraintName}"`
     } catch (error) {
-      throw new Error(`Failed to generate DROP CONSTRAINT statement: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to generate DROP CONSTRAINT statement: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -2819,7 +2820,7 @@ export class RefractMigrate {
     }
 
     try {
-      // Extract current indexes (note: the introspection currently returns empty array, 
+      // Extract current indexes (note: the introspection currently returns empty array,
       // but this is structured for future enhancement when proper index introspection is added)
       const currentIndexes = new Map(currentTable.indexes?.map((idx) => [idx.name, idx]) || [])
 
@@ -2839,37 +2840,45 @@ export class RefractMigrate {
       // Find indexes to create (exist in target but not in current)
       for (const [idxName, targetIdx] of targetIndexesMap) {
         const currentIdx = currentIndexes.get(String(idxName))
-        
+
         if (!currentIdx) {
           // New index to create
           result.hasChanges = true
           result.indexesCreated.push(String(idxName))
-          result.statements.push(this.generateCreateIndexSQL(
-            String(idxName), 
-            currentTable.name, 
-            targetIdx.columns, 
-            targetIdx.unique, 
-            true // ifNotExists
-          ))
+          result.statements.push(
+            this.generateCreateIndexSQL(
+              String(idxName),
+              currentTable.name,
+              targetIdx.columns,
+              targetIdx.unique,
+              true, // ifNotExists
+            ),
+          )
         } else if (!this.areIndexesEqual(currentIdx as any, targetIdx)) {
           // Index exists but is different - drop and recreate
           result.hasChanges = true
           result.indexesDropped.push(String(idxName))
           result.indexesCreated.push(String(idxName))
           result.statements.push(this.generateDropIndexStatement(kyselyInstance, String(idxName)))
-          result.statements.push(this.generateCreateIndexSQL(
-            String(idxName), 
-            currentTable.name, 
-            targetIdx.columns, 
-            targetIdx.unique, 
-            true // ifNotExists
-          ))
+          result.statements.push(
+            this.generateCreateIndexSQL(
+              String(idxName),
+              currentTable.name,
+              targetIdx.columns,
+              targetIdx.unique,
+              true, // ifNotExists
+            ),
+          )
         }
       }
 
       return result
     } catch (error) {
-      console.warn(`Failed to compare indexes for table ${currentTable.name}: ${error instanceof Error ? error.message : String(error)}`)
+      console.warn(
+        `Failed to compare indexes for table ${currentTable.name}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
       return result
     }
   }
@@ -2911,14 +2920,15 @@ export class RefractMigrate {
       const indexAttrs = model.attributes?.filter((attr: AttributeAST) => attr.name === 'index') || []
       for (const indexAttr of indexAttrs) {
         // Parse @@index([field1, field2], name: "custom_idx", unique: true)
-        const fieldsArg = indexAttr.args?.find((arg: AttributeArgumentAST) => 
-          Array.isArray(arg) || (typeof arg === 'object' && 'value' in arg && Array.isArray(arg.value))
+        const fieldsArg = indexAttr.args?.find(
+          (arg: AttributeArgumentAST) =>
+            Array.isArray(arg) || (typeof arg === 'object' && 'value' in arg && Array.isArray(arg.value)),
         )
-        const nameArg = indexAttr.args?.find((arg: AttributeArgumentAST) => 
-          typeof arg === 'object' && 'name' in arg && arg.name === 'name'
+        const nameArg = indexAttr.args?.find(
+          (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'name',
         )
-        const uniqueArg = indexAttr.args?.find((arg: AttributeArgumentAST) => 
-          typeof arg === 'object' && 'name' in arg && arg.name === 'unique'
+        const uniqueArg = indexAttr.args?.find(
+          (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'unique',
         )
 
         if (fieldsArg) {
@@ -2933,9 +2943,9 @@ export class RefractMigrate {
 
           const customName = nameArg && 'value' in nameArg ? String(nameArg.value) : null
           const isUnique = uniqueArg && 'value' in uniqueArg ? Boolean(uniqueArg.value) : false
-          
+
           const indexName = customName || this.generateIndexName(tableName, columns, isUnique)
-          
+
           indexes.push({
             name: indexName,
             columns,
@@ -2948,11 +2958,12 @@ export class RefractMigrate {
       // Extract @@unique model-level unique constraints (treated as unique indexes)
       const uniqueAttrs = model.attributes?.filter((attr: AttributeAST) => attr.name === 'unique') || []
       for (const uniqueAttr of uniqueAttrs) {
-        const fieldsArg = uniqueAttr.args?.find((arg: AttributeArgumentAST) => 
-          Array.isArray(arg) || (typeof arg === 'object' && 'value' in arg && Array.isArray(arg.value))
+        const fieldsArg = uniqueAttr.args?.find(
+          (arg: AttributeArgumentAST) =>
+            Array.isArray(arg) || (typeof arg === 'object' && 'value' in arg && Array.isArray(arg.value)),
         )
-        const nameArg = uniqueAttr.args?.find((arg: AttributeArgumentAST) => 
-          typeof arg === 'object' && 'name' in arg && arg.name === 'name'
+        const nameArg = uniqueAttr.args?.find(
+          (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'name',
         )
 
         if (fieldsArg) {
@@ -2967,7 +2978,7 @@ export class RefractMigrate {
 
           const customName = nameArg && 'value' in nameArg ? String(nameArg.value) : null
           const indexName = customName || this.generateIndexName(tableName, columns, true)
-          
+
           indexes.push({
             name: indexName,
             columns,
@@ -2979,7 +2990,9 @@ export class RefractMigrate {
 
       return indexes
     } catch (error) {
-      console.warn(`Failed to extract indexes from model ${model.name}: ${error instanceof Error ? error.message : String(error)}`)
+      console.warn(
+        `Failed to extract indexes from model ${model.name}: ${error instanceof Error ? error.message : String(error)}`,
+      )
       return []
     }
   }
@@ -2988,8 +3001,8 @@ export class RefractMigrate {
    * Check if two indexes are equivalent
    */
   private areIndexesEqual(
-    idx1: { name: string; columns: string[]; unique: boolean }, 
-    idx2: { name: string; columns: string[]; unique: boolean }
+    idx1: { name: string; columns: string[]; unique: boolean },
+    idx2: { name: string; columns: string[]; unique: boolean },
   ): boolean {
     return (
       idx1.name === idx2.name &&
@@ -3028,13 +3041,12 @@ export class RefractMigrate {
       if (value === 'uuid()') return 'UUID'
       if (value === 'true') return 'true'
       if (value === 'false') return 'false'
-      
+
       // Remove quotes from string literals for comparison
-      if ((value.startsWith('"') && value.endsWith('"')) || 
-          (value.startsWith("'") && value.endsWith("'"))) {
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
         return value.slice(1, -1)
       }
-      
+
       return value
     }
 
@@ -3079,13 +3091,12 @@ export class RefractMigrate {
       if (value === 'uuid()') return 'uuid()'
       if (value === 'true') return 'true'
       if (value === 'false') return 'false'
-      
+
       // Handle quoted string literals
-      if ((value.startsWith('"') && value.endsWith('"')) || 
-          (value.startsWith("'") && value.endsWith("'"))) {
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
         return value // Already quoted
       }
-      
+
       // Quote unquoted strings
       return `'${value.replace(/'/g, "''")}'` // Escape single quotes
     }
@@ -3142,7 +3153,7 @@ export class RefractMigrate {
       // Find enums to create or modify
       for (const [enumName, targetEnum] of targetEnums) {
         const currentEnum = currentEnums.get(enumName)
-        
+
         if (!currentEnum) {
           // New enum to create
           result.hasChanges = true
@@ -3152,12 +3163,12 @@ export class RefractMigrate {
           // Enum exists but values are different
           result.hasChanges = true
           result.enumsModified.push(enumName)
-          
+
           // For enum modifications, we need to handle carefully to avoid data loss
           const modificationStatements = this.generateEnumModificationStatements(
-            kyselyInstance, 
-            currentEnum, 
-            targetEnum
+            kyselyInstance,
+            currentEnum,
+            targetEnum,
           )
           result.statements.push(...modificationStatements)
         }
@@ -3174,10 +3185,9 @@ export class RefractMigrate {
    * Check if two enums are equivalent
    */
   private areEnumsEqual(enum1: DatabaseEnum, enum2: EnumAST): boolean {
-    const enum2Values = enum2.values.map(v => v.name)
+    const enum2Values = enum2.values.map((v) => v.name)
     return (
-      enum1.values.length === enum2Values.length &&
-      enum1.values.every((value, index) => value === enum2Values[index])
+      enum1.values.length === enum2Values.length && enum1.values.every((value, index) => value === enum2Values[index])
     )
   }
 
@@ -3186,10 +3196,12 @@ export class RefractMigrate {
    */
   private generateCreateEnumStatement(kyselyInstance: AnyKyselyDatabase, enumType: EnumAST): string {
     try {
-      const values = enumType.values.map(v => `'${v.name}'`).join(', ')
+      const values = enumType.values.map((v) => `'${v.name}'`).join(', ')
       return `CREATE TYPE "${enumType.name}" AS ENUM (${values})`
     } catch (error) {
-      throw new Error(`Failed to generate CREATE TYPE statement: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to generate CREATE TYPE statement: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -3200,7 +3212,9 @@ export class RefractMigrate {
     try {
       return `DROP TYPE IF EXISTS "${enumName}"`
     } catch (error) {
-      throw new Error(`Failed to generate DROP TYPE statement: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to generate DROP TYPE statement: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -3213,10 +3227,10 @@ export class RefractMigrate {
     targetEnum: EnumAST,
   ): string[] {
     const statements: string[] = []
-    
+
     try {
       const currentValues = new Set(currentEnum.values)
-      const targetValues = targetEnum.values.map(v => v.name)
+      const targetValues = targetEnum.values.map((v) => v.name)
       const targetValuesSet = new Set(targetValues)
 
       // Add new enum values
@@ -3230,44 +3244,19 @@ export class RefractMigrate {
       // For PostgreSQL, you cannot remove enum values without recreating the enum
       // This would require checking all columns that use this enum and potentially
       // creating a new enum, updating all columns, then dropping the old enum
-      const valuesToRemove = currentEnum.values.filter(value => !targetValuesSet.has(value))
+      const valuesToRemove = currentEnum.values.filter((value) => !targetValuesSet.has(value))
       if (valuesToRemove.length > 0) {
-        console.warn(`Cannot safely remove enum values [${valuesToRemove.join(', ')}] from enum '${currentEnum.name}'. ` +
-                     `This would require recreating the enum which may cause data loss.`)
+        console.warn(
+          `Cannot safely remove enum values [${valuesToRemove.join(', ')}] from enum '${currentEnum.name}'. ` +
+            `This would require recreating the enum which may cause data loss.`,
+        )
       }
 
       return statements
     } catch (error) {
-      throw new Error(`Failed to generate enum modification statements: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to generate enum modification statements: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
-  }
-
-  /**
-   * Update shouldCreateDatabaseColumn to handle enum fields
-   */
-  private shouldCreateDatabaseColumnWithEnums(field: FieldAST, availableEnums: Set<string>): boolean {
-    // Check if it's a scalar/primitive type
-    const primitiveTypes = ['String', 'Int', 'Boolean', 'DateTime', 'Float', 'Decimal', 'Json', 'Bytes', 'BigInt']
-    if (primitiveTypes.includes(field.fieldType)) {
-      return true
-    }
-
-    // Check if it's an enum type
-    if (availableEnums.has(field.fieldType)) {
-      return true
-    }
-
-    // If it has @relation attribute, it's a relation field - don't create column
-    if (field.attributes?.some((attr: any) => attr.name === 'relation')) {
-      return false
-    }
-
-    // If it's a list type (Post[]), it's a relation field - don't create column
-    if (field.isList) {
-      return false
-    }
-
-    // Default to not creating column for unknown types
-    return false
   }
 }
