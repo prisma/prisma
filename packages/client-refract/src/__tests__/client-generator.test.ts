@@ -17,36 +17,36 @@ describe('ClientGenerator', () => {
             fieldType: 'Int',
             isOptional: false,
             isList: false,
-            attributes: [{ name: 'id', args: [] }]
+            attributes: [{ name: 'id', args: [] }],
           },
           {
             name: 'email',
             fieldType: 'String',
             isOptional: false,
             isList: false,
-            attributes: []
+            attributes: [],
           },
           {
             name: 'isActive',
             fieldType: 'Boolean',
             isOptional: false,
             isList: false,
-            attributes: []
+            attributes: [],
           },
           {
             name: 'createdAt',
             fieldType: 'DateTime',
             isOptional: false,
             isList: false,
-            attributes: []
-          }
+            attributes: [],
+          },
         ],
-        attributes: []
-      }
+        attributes: [],
+      },
     ],
     enums: [],
     generators: [],
-    datasources: []
+    datasources: [],
   }
 
   it('should generate client with SQLite transformations by default', () => {
@@ -64,24 +64,24 @@ describe('ClientGenerator', () => {
 
   it('should generate client with PostgreSQL transformations when specified', () => {
     const generator = new ClientGenerator(mockSchema, {
-      dialect: 'postgresql'
+      dialect: 'postgresql',
     })
     const output = generator.generateClientModule()
-    
+
     expect(output).toContain('Database dialect: postgresql')
-    
+
     // PostgreSQL doesn't need boolean transformation
     expect(output).not.toContain('? 1 : 0')
   })
 
   it('should generate client with MySQL transformations when specified', () => {
     const generator = new ClientGenerator(mockSchema, {
-      dialect: 'mysql'
+      dialect: 'mysql',
     })
     const output = generator.generateClientModule()
-    
+
     expect(output).toContain('Database dialect: mysql')
-    
+
     // MySQL uses TINYINT for booleans, so should have transformations
     expect(output).toContain('? 1 : 0')
   })
@@ -91,46 +91,47 @@ describe('ClientGenerator', () => {
       config: {
         database: {
           provider: 'postgresql',
-          url: 'postgresql://localhost/test'
-        }
-      }
+          url: 'postgresql://localhost/test',
+        },
+      },
     })
     const output = generator.generateClientModule()
-    
+
     expect(output).toContain('Database dialect: postgresql')
   })
 
   it('should generate CRUD operations with transformations', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
-    
+
     // Should have all CRUD operations
-    expect(output).toContain('async findMany(')
-    expect(output).toContain('async findUnique(')
+    expect(output).toContain('async findMany<T extends')
+    expect(output).toContain('async findUnique<T extends')
     expect(output).toContain('async create(')
     expect(output).toContain('async update(')
     expect(output).toContain('async delete(')
-    
+
     // Should have transformation methods
     expect(output).toContain('prepareCreateData(')
     expect(output).toContain('prepareUpdateData(')
     expect(output).toContain('transformSelectResult(')
-    expect(output).toContain('transformWhereValue(')
+    expect(output).toContain('transformWhereValue_')
   })
 
   it('should include timestamp logic', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
-    
+
     // Should auto-generate timestamps
-    expect(output).toContain('Auto-generated createdAt timestamp')
-    expect(output).toContain('new Date().toISOString()')
+    expect(output).toContain(
+      'prepared.createdAt = data.createdAt ? new Date(data.createdAt) : new Date().toISOString()',
+    )
   })
 
   it('should generate client class with model operations', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
-    
+
     expect(output).toContain('export class RefractClient extends RefractClientBase')
     expect(output).toContain('declare readonly user: UserOperations')
     expect(output).toContain('super(dialect, { modelFactory: createModelOperations })')
@@ -155,9 +156,16 @@ describe('ClientGenerator', () => {
               fieldType: 'Int',
               isOptional: false,
               isList: false,
-              attributes: [{ name: 'id', args: [], type: 'Attribute', span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } } }],
+              attributes: [
+                {
+                  name: 'id',
+                  args: [],
+                  type: 'Attribute',
+                  span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+                },
+              ],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
             },
             {
               name: 'name',
@@ -166,7 +174,7 @@ describe('ClientGenerator', () => {
               isList: false,
               attributes: [],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
             },
             {
               name: 'posts',
@@ -175,12 +183,12 @@ describe('ClientGenerator', () => {
               isList: true,
               attributes: [],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-            }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+            },
           ],
           attributes: [],
           type: 'Model',
-          span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+          span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
         },
         {
           name: 'Post',
@@ -190,9 +198,16 @@ describe('ClientGenerator', () => {
               fieldType: 'Int',
               isOptional: false,
               isList: false,
-              attributes: [{ name: 'id', args: [], type: 'Attribute', span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } } }],
+              attributes: [
+                {
+                  name: 'id',
+                  args: [],
+                  type: 'Attribute',
+                  span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+                },
+              ],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
             },
             {
               name: 'title',
@@ -201,7 +216,7 @@ describe('ClientGenerator', () => {
               isList: false,
               attributes: [],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
             },
             {
               name: 'userId',
@@ -210,7 +225,7 @@ describe('ClientGenerator', () => {
               isList: false,
               attributes: [],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
             },
             {
               name: 'user',
@@ -225,33 +240,33 @@ describe('ClientGenerator', () => {
                       name: 'fields',
                       value: ['userId'],
                       type: 'AttributeArgument',
-                      span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+                      span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
                     },
                     {
                       name: 'references',
                       value: ['id'],
                       type: 'AttributeArgument',
-                      span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-                    }
+                      span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+                    },
                   ],
                   type: 'Attribute',
-                  span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-                }
+                  span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+                },
               ],
               type: 'Field',
-              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-            }
+              span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+            },
           ],
           attributes: [],
           type: 'Model',
-          span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-        }
+          span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
+        },
       ],
       enums: [],
       generators: [],
       datasources: [],
       type: 'Schema',
-      span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+      span: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
     }
 
     const generator = new ClientGenerator(schemaWithRelations)
@@ -264,9 +279,9 @@ describe('ClientGenerator', () => {
     // Should include include parameter in operations
     expect(output).toContain('include?: PostInclude')
 
-    // Should generate join logic
-    expect(output).toContain('applyIncludes(')
-    expect(output).toContain('leftJoin')
+    // Should generate include logic
+    expect(output).toContain('.$if(')
+    expect(output).toContain('jsonObjectFrom')
     expect(output).toContain('transformSelectResultWithIncludes(')
 
     // Should handle relation transformation

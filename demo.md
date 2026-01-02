@@ -116,6 +116,30 @@ const userWithProfile = await client.user.findUnique({
 // Returns user with nested profile object
 ```
 
+### Relation filtering
+
+```typescript
+// Users with at least one published post
+const usersWithPublishedPosts = await client.user.findMany({
+  where: { posts: { some: { published: true } } }
+})
+
+// Users where every post is published
+const usersWithAllPublishedPosts = await client.user.findMany({
+  where: { posts: { every: { published: true } } }
+})
+
+// Users with no published posts
+const usersWithNoPublishedPosts = await client.user.findMany({
+  where: { posts: { none: { published: true } } }
+})
+
+// Users that have a profile
+const usersWithProfiles = await client.user.findMany({
+  where: { profile: { isNot: null } }
+})
+```
+
 ### Transactions
 
 ```typescript
@@ -175,11 +199,22 @@ Published posts: [{ id: 1, title: 'Getting Started with Refract', published: tru
 📝 Updating post...
 ✅ Updated post: { id: 2, published: true, ... }
 
+📊 Creating additional user...
+✅ Created user: { id: 2, email: 'bob@example.com', name: 'Bob', ... }
+✅ Created profile: { id: 2, bio: 'Database enthusiast', userId: 2 }
+✅ Created user: { id: 3, email: 'charlie@example.com', name: null, ... }
+
 💰 Testing transaction for atomic operations...
 ✅ Transaction completed (user updated & post created atomically)
 
+🔍 Relation filtering examples...
+Users with published posts: ['alice@example.com', 'bob@example.com']
+Users where every post is published: ['bob@example.com', 'alice@example.com']
+Users with no published posts: ['charlie@example.com']
+Users with profiles: ['alice@example.com', 'bob@example.com']
+
 📊 Final counts:
-Users: 2
+Users: 3
 Posts: 3
 Published posts: 3
 

@@ -92,7 +92,7 @@ describe('WhereUniqueInput Constraints', () => {
         where: { id: tempUser.id },
       })
 
-      expect(deleted).toBeUndefined()
+      expect(deleted).toBeNull()
     })
 
     it('should delete using @unique field (email)', async () => {
@@ -112,7 +112,7 @@ describe('WhereUniqueInput Constraints', () => {
         where: { email: tempUser.email },
       })
 
-      expect(deleted).toBeUndefined()
+      expect(deleted).toBeNull()
     })
   })
 })

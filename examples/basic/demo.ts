@@ -123,7 +123,7 @@ async function main() {
     }
     console.log()
 
-    // Step 6b: Query with one-to-many relation (posts array)
+    // Step 7: Query with one-to-many relation (posts array)
     console.log('🔍 Querying user with posts relation (one-to-many)...')
     try {
       const userWithPosts = await client.user.findUnique({
@@ -137,7 +137,7 @@ async function main() {
     }
     console.log()
 
-    // Find all published posts
+    // Step 8: Find all published posts
     console.log('🔍 Finding published posts...')
     const publishedPosts = await client.post.findMany({
       where: { published: true },
@@ -146,7 +146,7 @@ async function main() {
     console.log('Published posts:', publishedPosts)
     console.log()
 
-    // Step 7: Update operations
+    // Step 9: Update operations
     console.log('📝 Updating post...')
     const updatedPost = await client.post.update({
       where: { id: post2.id },
@@ -155,7 +155,7 @@ async function main() {
     console.log('✅ Updated post:', updatedPost)
     console.log()
 
-    // Step 8: Create more data without transaction (not needed for independent operations)
+    // Step 10: Create more data without transaction (not needed for independent operations)
     console.log('📊 Creating additional user...')
     const bob = await client.user.create({
       data: {
@@ -172,9 +172,16 @@ async function main() {
       },
     })
     console.log('✅ Created profile:', bobProfile)
+    const charlie = await client.user.create({
+      data: {
+        email: 'charlie@example.com',
+        name: null,
+      },
+    })
+    console.log('✅ Created user:', charlie)
     console.log()
 
-    // Step 9: Transaction example (only when we need atomicity)
+    // Step 11: Transaction example (only when we need atomicity)
     console.log('💰 Testing transaction for atomic operations...')
     await client.$transaction(async (trx) => {
       // Update user and create post atomically
@@ -194,7 +201,30 @@ async function main() {
     })
     console.log('✅ Transaction completed (user updated & post created atomically)\n')
 
-    // Step 10: Count records
+    // Step 12: Relation filtering (some/every/none, is/isNot)
+    console.log('🔍 Relation filtering examples...')
+    const usersWithPublishedPosts = await client.user.findMany({
+      where: { posts: { some: { published: true } } },
+    })
+    console.log('Users with published posts:', usersWithPublishedPosts.map((u) => u.email))
+
+    const usersWithAllPublishedPosts = await client.user.findMany({
+      where: { posts: { every: { published: true } } },
+    })
+    console.log('Users where every post is published:', usersWithAllPublishedPosts.map((u) => u.email))
+
+    const usersWithNoPublishedPosts = await client.user.findMany({
+      where: { posts: { none: { published: true } } },
+    })
+    console.log('Users with no published posts:', usersWithNoPublishedPosts.map((u) => u.email))
+
+    const usersWithProfiles = await client.user.findMany({
+      where: { profile: { isNot: null } },
+    })
+    console.log('Users with profiles:', usersWithProfiles.map((u) => u.email))
+    console.log()
+
+    // Step 13: Count records
     console.log('📊 Final counts:')
     const userCount = await client.user.count()
     const postCount = await client.post.count()

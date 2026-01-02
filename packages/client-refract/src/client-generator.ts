@@ -52,6 +52,7 @@ export class ClientGenerator {
     return 'sqlite'
   }
 
+
   /**
    * Generate complete client module with generated model operations.
    */
@@ -92,7 +93,7 @@ export class ClientGenerator {
       ${importStyle} { RefractClientBase } ${fromStyle} '@refract/client'
       ${importStyle} { createKyselyDialect, loadRefractConfig } ${fromStyle} '@refract/config'
       ${importStyle} { Kysely } ${fromStyle} 'kysely'
-      ${importStyle} type { Dialect, ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder, Expression, SqlBool, ReferenceExpression } ${fromStyle} 'kysely'
+      ${importStyle} type { Dialect, ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder, Expression, SqlBool, ReferenceExpression, Selectable } ${fromStyle} 'kysely'
 
       ${jsonHelperImport}
     `
@@ -160,6 +161,7 @@ export class ClientGenerator {
     for (const model of this.schemaAST.models) {
       const modelName = model.name
       const relations = this.getModelRelations(model)
+      const hasRelations = relations.length > 0
       const modelNames = new Set(this.schemaAST.models.map((m) => m.name))
 
       // Generate scalar fields (non-relation fields)
@@ -173,7 +175,7 @@ export class ClientGenerator {
         .join('\n')
 
       // 1. {Model}Scalars - scalar fields only
-      types.push(dedent`
+      types.push(dedent.withOptions({ alignValues: true })`
         /**
          * ${modelName} scalar fields (no relations)
          */
@@ -183,7 +185,7 @@ export class ClientGenerator {
       `)
 
       // 2. {Model}Relations - relation payload types
-      if (relations.length > 0) {
+      if (hasRelations) {
         const relationFields = relations
           .map((rel) => {
             if (rel.isArray) {
@@ -196,7 +198,7 @@ export class ClientGenerator {
           })
           .join('\n')
 
-        types.push(dedent`
+        types.push(dedent.withOptions({ alignValues: true })`
           /**
            * ${modelName} relation payloads when included
            */
@@ -206,7 +208,7 @@ export class ClientGenerator {
         `)
 
         // 3. {Model}GetPayload<T> - conditional utility type
-        types.push(dedent`
+        types.push(dedent.withOptions({ alignValues: true })`
           /**
            * Get the return type for ${modelName} based on include options
            * @example
@@ -222,7 +224,7 @@ export class ClientGenerator {
         `)
       } else {
         // No relations - GetPayload just returns Scalars
-        types.push(dedent`
+        types.push(dedent.withOptions({ alignValues: true })`
           /**
            * Get the return type for ${modelName} (no relations available)
            */
@@ -231,14 +233,14 @@ export class ClientGenerator {
       }
 
       // 4. {Model} - full interface with optional relations (backwards compat)
-      const relationFields = relations.length > 0
+      const relationFields = hasRelations
         ? relations.map((rel) => {
             const listMarker = rel.isArray ? '[]' : ''
             return `${rel.fieldName}?: ${rel.relatedModel}${listMarker}`
           }).join('\n')
         : '// No relations'
 
-      types.push(dedent`
+      types.push(dedent.withOptions({ alignValues: true })`
         /**
          * Full ${modelName} type with optional relations
          * For precise typing based on include, use ${modelName}GetPayload<T>
@@ -246,6 +248,15 @@ export class ClientGenerator {
         export interface ${modelName} extends ${modelName}Scalars {
           ${relationFields}
         }
+      `)
+
+      const rowWithIncludesType = hasRelations
+        ? `${modelName}Row & Partial<${modelName}Relations>`
+        : `${modelName}Row`
+
+      types.push(dedent.withOptions({ alignValues: true })`
+        export type ${modelName}Row = Selectable<DatabaseSchema['${modelName}']>
+        export type ${modelName}RowWithIncludes = ${rowWithIncludesType}
       `)
     }
 
@@ -295,6 +306,10 @@ export class ClientGenerator {
 
   private isPrimaryKey(field: FieldAST): boolean {
     return field.attributes.some((attr) => attr.name === 'id')
+  }
+
+  private isUniqueField(field: FieldAST): boolean {
+    return field.attributes.some((attr) => attr.name === 'unique' || attr.name === 'id')
   }
 
   private isAutoTimestamp(field: FieldAST): boolean {
@@ -426,6 +441,9 @@ export class ClientGenerator {
       // Generate WhereInput for this model
       types.push(this.generateWhereInput(model))
 
+      // Generate WhereUniqueInput for this model
+      types.push(this.generateWhereUniqueInput(model))
+
       // Generate OrderByInput for this model
       types.push(this.generateOrderByInput(model))
 
@@ -534,6 +552,38 @@ export class ClientGenerator {
   }
 
   /**
+   * Generate WhereUniqueInput type for a model
+   * Only includes fields marked with @id or @unique
+   */
+  private generateWhereUniqueInput(model: ModelAST): string {
+    const fields: string[] = []
+    const modelNames = new Set(this.schemaAST.models.map((m) => m.name))
+
+    for (const field of model.fields) {
+      if (modelNames.has(field.fieldType)) {
+        continue
+      }
+
+      if (!this.isUniqueField(field)) {
+        continue
+      }
+
+      const shorthandType = this.getShorthandTypeForField(field)
+      fields.push(`${field.name}?: ${shorthandType}`)
+    }
+
+    if (fields.length === 0) {
+      return `export type ${model.name}WhereUniqueInput = never`
+    }
+
+    return dedent.withOptions({ alignValues: true })`
+      export type ${model.name}WhereUniqueInput = {
+        ${fields.join('\n')}
+      }
+    `
+  }
+
+  /**
    * Get the filter type for a field (e.g., NumericFilter<number>, StringFilter<string | null>)
    */
   private getFilterTypeForField(field: FieldAST): string {
@@ -587,7 +637,7 @@ export class ClientGenerator {
         continue
       }
 
-      fields.push(`${field.name}?: SortOrder`)
+      fields.push(`  ${field.name}?: SortOrder`)
     }
 
     // Note: Relation ordering deferred
@@ -735,7 +785,7 @@ ${fields.join('\n')}
       }
 
       export type ${model.name}FindUniqueArgs = {
-        where: ${model.name}WhereInput
+        where: ${model.name}WhereUniqueInput
         include?: ${includeType}
       }
 
@@ -754,7 +804,7 @@ ${fields.join('\n')}
       }
 
       export type ${model.name}UpdateArgs = {
-        where: ${model.name}WhereInput
+        where: ${model.name}WhereUniqueInput
         data: ${model.name}UpdateInput
       }
 
@@ -764,13 +814,13 @@ ${fields.join('\n')}
       }
 
       export type ${model.name}UpsertArgs = {
-        where: ${model.name}WhereInput
+        where: ${model.name}WhereUniqueInput
         create: ${model.name}CreateInput
         update: ${model.name}UpdateInput
       }
 
       export type ${model.name}DeleteArgs = {
-        where: ${model.name}WhereInput
+        where: ${model.name}WhereUniqueInput
       }
 
       export type ${model.name}DeleteManyArgs = {
@@ -816,6 +866,7 @@ ${includeFields}
   }
 
   private generateModelOperationsBlock(): string {
+    const whereHelpers = this.generateWhereHelpersBlock()
     const operationClasses = this.schemaAST.models.map((model) => this.generateModelOperations(model))
 
     const factoryEntries = this.schemaAST.models
@@ -824,19 +875,114 @@ ${includeFields}
 
     const factory = `const createModelOperations = (kysely: Kysely<DatabaseSchema>) => ({\n${factoryEntries}\n})`
 
-    return [...operationClasses, factory].join('\n\n')
+    return [whereHelpers, ...operationClasses, factory].filter(Boolean).join('\n\n')
+  }
+
+  private generateWhereHelpersBlock(): string {
+    const helpers = this.schemaAST.models.map((model) => this.generateWhereHelpers(model))
+    return helpers.filter(Boolean).join('\n\n')
   }
 
   private generateModelOperations(model: ModelAST): string {
     const className = `${model.name}Operations`
     const tableName = this.getTableName(model)
     const relations = this.getModelRelations(model)
+    const whereHelperName = `buildWhereExpression_${model.name}`
 
     // Generate private relation helper methods
     const relationHelpers = this.generateRelationHelperMethods(model, relations)
+    const hasRelations = relations.length > 0
 
     // Generate $if conditions for includes
     const ifConditions = this.generateIfConditions(model, relations)
+
+    const includeAssignments = relations
+      .map((rel) => {
+        if (rel.isArray) {
+          return dedent`
+            if (include?.${rel.fieldName}) {
+              result.${rel.fieldName} = row.${rel.fieldName} ?? []
+            }
+          `
+        }
+
+        return dedent`
+          if (include?.${rel.fieldName}) {
+            result.${rel.fieldName} = row.${rel.fieldName} ?? null
+          }
+        `
+      })
+      .join('\n')
+
+    const includeHelper = hasRelations
+      ? dedent`
+          private applyIncludes<TInclude extends ${model.name}Include>(
+            row: ${model.name}RowWithIncludes,
+            include: TInclude
+          ): ${model.name}GetPayload<{ include: TInclude }> {
+            const result: ${model.name}Scalars & Partial<${model.name}Relations> = this.transformSelectResult(row)
+
+            ${includeAssignments}
+
+            return result as ${model.name}GetPayload<{ include: TInclude }>
+          }
+        `
+      : ''
+
+    const findManyOverloads = hasRelations
+      ? dedent`
+          findMany(args?: Omit<${model.name}FindManyArgs, 'include'>): Promise<${model.name}Scalars[]>
+          findMany<T extends ${model.name}FindManyArgs>(args: T): Promise<${model.name}GetPayload<T>[]>
+        `
+      : ''
+
+    const findUniqueOverloads = hasRelations
+      ? dedent`
+          findUnique(args: Omit<${model.name}FindUniqueArgs, 'include'>): Promise<${model.name}Scalars | null>
+          findUnique<T extends ${model.name}FindUniqueArgs>(args: T): Promise<${model.name}GetPayload<T> | null>
+        `
+      : ''
+
+    const findFirstOverloads = hasRelations
+      ? dedent`
+          findFirst(args?: Omit<${model.name}FindFirstArgs, 'include'>): Promise<${model.name}Scalars | null>
+          findFirst<T extends ${model.name}FindFirstArgs>(args: T): Promise<${model.name}GetPayload<T> | null>
+        `
+      : ''
+
+    const findManyReturnType = hasRelations
+      ? `Promise<${model.name}Scalars[] | ${model.name}GetPayload<T>[]>`
+      : `Promise<${model.name}GetPayload<T>[]>`
+
+    const findOneReturnType = hasRelations
+      ? `Promise<${model.name}Scalars | ${model.name}GetPayload<T> | null>`
+      : `Promise<${model.name}GetPayload<T> | null>`
+
+    const findManyReturn = hasRelations
+      ? dedent`
+          const include = args?.include
+          if (!include) {
+            return results.map(row => this.transformSelectResult(row))
+          }
+
+          return results.map(row => this.applyIncludes(row, include))
+        `
+      : dedent`
+          return results.map(row => this.transformSelectResult(row))
+        `
+
+    const findOneReturn = hasRelations
+      ? dedent`
+          const include = args?.include
+          if (!include) {
+            return this.transformSelectResult(results[0])
+          }
+
+          return this.applyIncludes(results[0], include)
+        `
+      : dedent`
+          return this.transformSelectResult(results[0])
+        `
 
     return dedent.withOptions({ alignValues: true })`
       /**
@@ -847,13 +993,14 @@ ${includeFields}
 
         ${relationHelpers}
 
-        async findMany<T extends ${model.name}FindManyArgs = {}>(args?: T): Promise<${model.name}GetPayload<T>[]> {
+        ${findManyOverloads}
+        async findMany<T extends ${model.name}FindManyArgs = {}>(args?: T): ${findManyReturnType} {
           let query = this.kysely
             .selectFrom('${tableName}')
             .selectAll()
             ${ifConditions}
 
-          query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args?.where ?? {}))
 
           if (args?.orderBy) {
             const orderByArray = Array.isArray(args.orderBy) ? args.orderBy : [args.orderBy]
@@ -874,30 +1021,32 @@ ${includeFields}
 
           const results = await query.execute()
 
-          return results.map(row => this.transformSelectResult(row))
+          ${findManyReturn}
         }
 
-        async findUnique<T extends ${model.name}FindUniqueArgs>(args: T): Promise<${model.name}GetPayload<T> | null> {
+        ${findUniqueOverloads}
+        async findUnique<T extends ${model.name}FindUniqueArgs>(args: T): ${findOneReturnType} {
           let query = this.kysely
             .selectFrom('${tableName}')
             .selectAll()
             ${ifConditions}
 
-          query = query.where(eb => this.buildWhereExpression(eb, args.where))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args.where))
           const results = await query.execute()
 
           if (results.length === 0) return null
 
-          return results[0]
+          ${findOneReturn}
         }
 
-        async findFirst<T extends ${model.name}FindFirstArgs = {}>(args?: T): Promise<${model.name}GetPayload<T> | null> {
+        ${findFirstOverloads}
+        async findFirst<T extends ${model.name}FindFirstArgs = {}>(args?: T): ${findOneReturnType} {
           let query = this.kysely
             .selectFrom('${tableName}')
             .selectAll()
             ${ifConditions}
 
-          query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args?.where ?? {}))
 
           if (args?.orderBy) {
             const orderByArray = Array.isArray(args.orderBy) ? args.orderBy : [args.orderBy]
@@ -913,7 +1062,7 @@ ${includeFields}
 
           if (results.length === 0) return null
 
-          return results[0]
+          ${findOneReturn}
         }
 
         async create(args: ${model.name}CreateArgs): Promise<${model.name}> {
@@ -938,7 +1087,7 @@ ${includeFields}
         async update(args: ${model.name}UpdateArgs): Promise<${model.name}> {
           const prepared = this.prepareUpdateData(args.data)
           let query = this.kysely.updateTable('${tableName}').set(prepared as any)
-          query = query.where(eb => this.buildWhereExpression(eb, args.where))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args.where))
           const result = await query.returningAll().executeTakeFirstOrThrow()
           return this.transformSelectResult(result)
         }
@@ -947,7 +1096,7 @@ ${includeFields}
           const prepared = this.prepareUpdateData(args.data)
           let query = this.kysely.updateTable('${tableName}').set(prepared as any)
           
-          query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args?.where ?? {}))
           
           const result = await query.execute()
           return { count: Array.isArray(result) ? result.length : Number((result as any).numUpdatedRows || 0) }
@@ -968,7 +1117,7 @@ ${includeFields}
 
         async delete(args: ${model.name}DeleteArgs): Promise<${model.name}> {
           let query = this.kysely.deleteFrom('${tableName}')
-          query = query.where(eb => this.buildWhereExpression(eb, args.where))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args.where))
           const result = await query.returningAll().executeTakeFirstOrThrow()
           return this.transformSelectResult(result)
         }
@@ -976,7 +1125,7 @@ ${includeFields}
         async deleteMany(args?: ${model.name}DeleteManyArgs): Promise<{ count: number }> {
           let query = this.kysely.deleteFrom('${tableName}')
           
-          query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args?.where ?? {}))
           
           const result = await query.execute()
           return { count: Array.isArray(result) ? result.length : Number((result as any).numDeletedRows || 0) }
@@ -987,109 +1136,10 @@ ${includeFields}
             .selectFrom('${tableName}')
             .select(eb => eb.fn.count('id').as('count'))
             
-          query = query.where(eb => this.buildWhereExpression(eb, args?.where ?? {}))
+          query = query.where(eb => ${whereHelperName}(this.kysely, eb, args?.where ?? {}))
           
           const result = await query.executeTakeFirst() as { count: string | number | bigint } | undefined
           return Number(result?.count || 0)
-        }
-
-        private buildWhereExpression(
-          eb: ExpressionBuilder<DatabaseSchema, '${model.name}'>,
-          where: ${model.name}WhereInput
-        ) {
-          const expressions: Expression<SqlBool>[] = []
-
-          for (const [field, value] of Object.entries(where)) {
-            if (field === 'AND') {
-              expressions.push(eb.and((value as UserWhereInput[]).map(cond => this.buildWhereExpression(eb, cond))))
-            } else if (field === 'OR') {
-              expressions.push(eb.or((value as UserWhereInput[]).map(cond => this.buildWhereExpression(eb, cond))))
-            } else if (field === 'NOT') {
-              // \`eb.not\` doesn't accept a list, so need to negate each condition instead.
-              for (const cond of value as UserWhereInput[]) {
-                expressions.push(eb.not(this.buildWhereExpression(eb, cond)))
-              }
-            } else {
-              // Regular field condition
-              expressions.push(this.buildFieldExpression(eb, field, value))
-            }
-          }
-          
-          return eb.and(expressions)
-        }
-
-        private buildFieldExpression(
-          eb: ExpressionBuilder<DatabaseSchema, '${model.name}'>,
-          field: string,
-          value: unknown
-        ) {
-          const qualifiedField = \`${model.name}.$\{field}\` as ReferenceExpression<DatabaseSchema, '${model.name}'>
-
-          if (value === null) {
-            return eb(qualifiedField, 'is', null)
-          }
-
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            const conditions: Expression<SqlBool>[] = []
-
-            for (const [operator, operatorValue] of Object.entries(value)) {
-              switch (operator) {
-                case 'equals':
-                  if (operatorValue === null) {
-                    conditions.push(eb(qualifiedField, 'is', null))
-                  } else {
-                    conditions.push(eb(qualifiedField, '=', this.transformWhereValue(field, operatorValue)))
-                  }
-                  break
-                case 'gt':
-                  conditions.push(eb(qualifiedField, '>', this.transformWhereValue(field, operatorValue)))
-                  break
-                case 'gte':
-                  conditions.push(eb(qualifiedField, '>=', this.transformWhereValue(field, operatorValue)))
-                  break
-                case 'lt':
-                  conditions.push(eb(qualifiedField, '<', this.transformWhereValue(field, operatorValue)))
-                  break
-                case 'lte':
-                  conditions.push(eb(qualifiedField, '<=', this.transformWhereValue(field, operatorValue)))
-                  break
-                case 'not':
-                  if (operatorValue === null) {
-                    conditions.push(eb(qualifiedField, 'is not', null))
-                  } else {
-                    conditions.push(eb(qualifiedField, '!=', this.transformWhereValue(field, operatorValue)))
-                  }
-                  break
-                case 'in':
-                  conditions.push(
-                    eb(qualifiedField, 'in', (operatorValue as unknown[]).map(v => this.transformWhereValue(field, v)))
-                  )
-                  break
-                case 'notIn':
-                  conditions.push(
-                    eb(qualifiedField, 'not in', (operatorValue as unknown[]).map(v => this.transformWhereValue(field, v)))
-                  )
-                  break
-                case 'contains':
-                  conditions.push(eb(qualifiedField, 'like', \`%\${operatorValue}%\`))
-                  break
-                case 'startsWith':
-                  conditions.push(eb(qualifiedField, 'like', \`\${operatorValue}%\`))
-                  break
-                case 'endsWith':
-                  conditions.push(eb(qualifiedField, 'like', \`%\${operatorValue}\`))
-                  break
-              }
-            }
-
-            return eb.and(conditions)
-          }
-
-          return eb(qualifiedField, '=', this.transformWhereValue(field, value))
-        }
-
-        private transformWhereValue(fieldName: string, value: unknown): unknown {
-          ${this.generateFieldTransformationMethods(model, 'where')}
         }
 
         private prepareCreateData(data: ${model.name}CreateInput): Record<string, unknown> {
@@ -1108,13 +1158,15 @@ ${includeFields}
           return prepared
         }
 
-        private transformSelectResult(row: any): ${model.name} {
-          const result: any = {}
+        private transformSelectResult(row: ${model.name}Row): ${model.name}Scalars {
+          const result: Partial<${model.name}Scalars> = {}
 
           ${this.generateFieldTransformationMethods(model, 'select')}
 
-          return result
+          return result as ${model.name}Scalars
         }
+
+        ${includeHelper}
 
         private async fetchManyRelations(results: any[], relations: Array<{ field: string; relatedModel: string; prefix: string; type?: string }>): Promise<Record<string, any[]>> {
           const relatedData: Record<string, any[]> = {}
@@ -1141,6 +1193,263 @@ ${includeFields}
 
           return result
         }
+      }
+    `
+  }
+
+  private generateWhereHelpers(model: ModelAST): string {
+    const modelName = model.name
+    const tableName = this.getTableName(model)
+    const relations = this.getModelRelations(model)
+    const relationNames = relations.map((rel) => rel.fieldName)
+
+    const buildWhereName = `buildWhereExpression_${modelName}`
+    const buildFieldName = `buildFieldExpression_${modelName}`
+    const buildRelationName = `buildRelationExpression_${modelName}`
+    const transformWhereName = `transformWhereValue_${modelName}`
+
+    const relationSwitchCases = relations
+      .map((rel) => {
+        const relatedModel = this.findModelByName(rel.relatedModel)
+        if (!relatedModel) return ''
+
+        const relatedTable = this.getTableName(relatedModel)
+        const relatedPk = this.getPrimaryKeyField(relatedModel)
+        const relatedWhereHelper = `buildWhereExpression_${relatedModel.name}`
+
+        let leftRef: string
+        let rightRef: string
+
+        if (rel.foreignKeyField && rel.referencedField) {
+          leftRef = `${tableName}.${rel.foreignKeyField}`
+          rightRef = `${relatedTable}.${rel.referencedField}`
+        } else {
+          const foreignKeyField = this.getForeignKeyForRelation(relatedModel, modelName)
+          const referencedField = this.getPrimaryKeyField(model)
+          leftRef = `${relatedTable}.${foreignKeyField}`
+          rightRef = `${tableName}.${referencedField}`
+        }
+
+        const baseQuery = `() => eb.selectFrom('${relatedTable}').select('${relatedTable}.${relatedPk}').whereRef('${leftRef}', '=', '${rightRef}')`
+
+        if (rel.isArray) {
+          return dedent`
+            case '${rel.fieldName}': {
+              if (value === null || typeof value !== 'object') {
+                return eb.and([])
+              }
+
+              const filter = value as { some?: ${relatedModel.name}WhereInput; every?: ${relatedModel.name}WhereInput; none?: ${relatedModel.name}WhereInput }
+              const conditions: Expression<SqlBool>[] = []
+              const baseQuery = ${baseQuery}
+
+              if (filter.some) {
+                conditions.push(
+                  eb.exists(
+                    baseQuery().where((relEb) => ${relatedWhereHelper}(kysely, relEb, filter.some as ${relatedModel.name}WhereInput))
+                  )
+                )
+              }
+
+              if (filter.every) {
+                const existsAny = eb.exists(baseQuery())
+                const existsNonMatching = eb.exists(
+                  baseQuery().where((relEb) => relEb.not(${relatedWhereHelper}(kysely, relEb, filter.every as ${relatedModel.name}WhereInput)))
+                )
+                conditions.push(eb.and([existsAny, eb.not(existsNonMatching)]))
+              }
+
+              if (filter.none) {
+                conditions.push(
+                  eb.not(
+                    eb.exists(
+                      baseQuery().where((relEb) => ${relatedWhereHelper}(kysely, relEb, filter.none as ${relatedModel.name}WhereInput))
+                    )
+                  )
+                )
+              }
+
+              return eb.and(conditions)
+            }
+          `
+        }
+
+        return dedent`
+          case '${rel.fieldName}': {
+            const baseQuery = ${baseQuery}
+
+            if (value === null) {
+              return eb.not(eb.exists(baseQuery()))
+            }
+
+            if (value === null || typeof value !== 'object') {
+              return eb.and([])
+            }
+
+            const filter = value as { is?: ${relatedModel.name}WhereInput | null; isNot?: ${relatedModel.name}WhereInput | null }
+            const conditions: Expression<SqlBool>[] = []
+
+            if ('is' in filter) {
+              if (filter.is === null) {
+                conditions.push(eb.not(eb.exists(baseQuery())))
+              } else if (filter.is) {
+                conditions.push(
+                  eb.exists(
+                    baseQuery().where((relEb) => ${relatedWhereHelper}(kysely, relEb, filter.is as ${relatedModel.name}WhereInput))
+                  )
+                )
+              }
+            }
+
+            if ('isNot' in filter) {
+              if (filter.isNot === null) {
+                conditions.push(eb.exists(baseQuery()))
+              } else if (filter.isNot) {
+                const existsAny = eb.exists(baseQuery())
+                const existsMatch = eb.exists(
+                  baseQuery().where((relEb) => ${relatedWhereHelper}(kysely, relEb, filter.isNot as ${relatedModel.name}WhereInput))
+                )
+                conditions.push(eb.and([existsAny, eb.not(existsMatch)]))
+              }
+            }
+
+            return eb.and(conditions)
+          }
+        `
+      })
+      .filter(Boolean)
+      .join('\n')
+
+    const relationFieldCases = relationNames.length
+      ? relationNames.map((name) => `case '${name}':`).join('\n')
+      : ''
+
+    const relationFieldBlock = relationNames.length
+      ? dedent`
+          ${relationFieldCases}
+          expressions.push(${buildRelationName}(kysely, eb, field, value))
+          break
+          default:
+            expressions.push(${buildFieldName}(eb, field, value))
+        `
+      : dedent`
+          default:
+            expressions.push(${buildFieldName}(eb, field, value))
+        `
+
+    return dedent.withOptions({ alignValues: true })`
+      function ${transformWhereName}(fieldName: string, value: unknown): unknown {
+        ${this.generateFieldTransformationMethods(model, 'where')}
+      }
+
+      function ${buildFieldName}(
+        eb: ExpressionBuilder<DatabaseSchema, '${modelName}'>,
+        field: string,
+        value: unknown
+      ) {
+        const qualifiedField = \`${modelName}.$\{field}\` as ReferenceExpression<DatabaseSchema, '${modelName}'>
+
+        if (value === null) {
+          return eb(qualifiedField, 'is', null)
+        }
+
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          const conditions: Expression<SqlBool>[] = []
+
+          for (const [operator, operatorValue] of Object.entries(value)) {
+            switch (operator) {
+              case 'equals':
+                if (operatorValue === null) {
+                  conditions.push(eb(qualifiedField, 'is', null))
+                } else {
+                  conditions.push(eb(qualifiedField, '=', ${transformWhereName}(field, operatorValue)))
+                }
+                break
+              case 'gt':
+                conditions.push(eb(qualifiedField, '>', ${transformWhereName}(field, operatorValue)))
+                break
+              case 'gte':
+                conditions.push(eb(qualifiedField, '>=', ${transformWhereName}(field, operatorValue)))
+                break
+              case 'lt':
+                conditions.push(eb(qualifiedField, '<', ${transformWhereName}(field, operatorValue)))
+                break
+              case 'lte':
+                conditions.push(eb(qualifiedField, '<=', ${transformWhereName}(field, operatorValue)))
+                break
+              case 'not':
+                if (operatorValue === null) {
+                  conditions.push(eb(qualifiedField, 'is not', null))
+                } else {
+                  conditions.push(eb(qualifiedField, '!=', ${transformWhereName}(field, operatorValue)))
+                }
+                break
+              case 'in':
+                conditions.push(
+                  eb(qualifiedField, 'in', (operatorValue as unknown[]).map(v => ${transformWhereName}(field, v)))
+                )
+                break
+              case 'notIn':
+                conditions.push(
+                  eb(qualifiedField, 'not in', (operatorValue as unknown[]).map(v => ${transformWhereName}(field, v)))
+                )
+                break
+              case 'contains':
+                conditions.push(eb(qualifiedField, 'like', \`%\${operatorValue}%\`))
+                break
+              case 'startsWith':
+                conditions.push(eb(qualifiedField, 'like', \`\${operatorValue}%\`))
+                break
+              case 'endsWith':
+                conditions.push(eb(qualifiedField, 'like', \`%\${operatorValue}\`))
+                break
+            }
+          }
+
+          return eb.and(conditions)
+        }
+
+        return eb(qualifiedField, '=', ${transformWhereName}(field, value))
+      }
+
+      function ${buildRelationName}(
+        kysely: Kysely<DatabaseSchema>,
+        eb: ExpressionBuilder<DatabaseSchema, '${modelName}'>,
+        field: string,
+        value: unknown
+      ) {
+        switch (field) {
+          ${relationSwitchCases}
+          default:
+            return eb.and([])
+        }
+      }
+
+      function ${buildWhereName}(
+        kysely: Kysely<DatabaseSchema>,
+        eb: ExpressionBuilder<DatabaseSchema, '${modelName}'>,
+        where: ${modelName}WhereInput
+      ) {
+        const expressions: Expression<SqlBool>[] = []
+
+        for (const [field, value] of Object.entries(where)) {
+          if (field === 'AND') {
+            expressions.push(eb.and((value as ${modelName}WhereInput[]).map(cond => ${buildWhereName}(kysely, eb, cond))))
+          } else if (field === 'OR') {
+            expressions.push(eb.or((value as ${modelName}WhereInput[]).map(cond => ${buildWhereName}(kysely, eb, cond))))
+          } else if (field === 'NOT') {
+            // \`eb.not\` doesn't accept a list, so need to negate each condition instead.
+            for (const cond of value as ${modelName}WhereInput[]) {
+              expressions.push(eb.not(${buildWhereName}(kysely, eb, cond)))
+            }
+          } else {
+            switch (field) {
+              ${relationFieldBlock}
+            }
+          }
+        }
+
+        return eb.and(expressions)
       }
     `
   }
@@ -1178,18 +1487,24 @@ ${includeFields}
 
         switch (operation) {
           case 'where':
-            return dedent`if (fieldName === '${field.name}') {
-      return ${transformation.code.replaceAll('data.' + field.name, 'value')}
-    }`
+            return dedent`
+              if (fieldName === '${field.name}') {
+                return ${transformation.code.replaceAll('data.' + field.name, 'value')}
+              }
+            `
 
           case 'create':
           case 'update':
-            return dedent`if (data.${field.name} !== undefined) {
-      prepared.${field.name} = ${transformation.code}
-    }`
+            return dedent`
+              if (data.${field.name} !== undefined) {
+                prepared.${field.name} = ${transformation.code}
+              }
+            `
 
           case 'select':
-            return `result.${field.name} = ${transformation.code.replaceAll('data.' + field.name, 'row.' + field.name)}`
+            return dedent`
+              result.${field.name} = ${transformation.code.replaceAll('data.' + field.name, 'row.' + field.name)}
+            `
         }
       })
       .filter(Boolean)
@@ -1233,12 +1548,16 @@ ${includeFields}
 
       case 'create':
       case 'update':
-        return `if (data.${field.name} !== undefined) {
-      prepared.${field.name} = ${this.generateFieldValueTransformation(field, `data.${field.name}`)}
-    }`
+        return dedent`
+          if (data.${field.name} !== undefined) {
+            prepared.${field.name} = ${this.generateFieldValueTransformation(field, `data.${field.name}`)}
+          }
+        `
 
       case 'select':
-        return `result.${field.name} = ${this.generateFieldValueTransformation(field, `row.${field.name}`, true)}`
+        return dedent`
+          result.${field.name} = ${this.generateFieldValueTransformation(field, `row.${field.name}`, true)}
+        `
     }
   }
 
