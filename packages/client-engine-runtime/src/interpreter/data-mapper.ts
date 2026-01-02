@@ -286,7 +286,7 @@ function mapValue(
       if (enumValue === undefined) {
         throw new DataMapperError(`Value '${value}' not found in enum '${scalarType.name}'`)
       }
-      return enumValue
+      return value
     }
 
     default:
