@@ -48,7 +48,7 @@ export class TSClient implements Generable {
   }
 
   public toJS(): string {
-    const { edge, wasm, generator, datamodel: inlineSchema, runtimeName, reusedJs } = this.options
+    const { edge, wasm, generator, datamodel: inlineSchema, runtimeName, reusedJs, compilerBuild } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
@@ -88,7 +88,7 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
-${buildQueryCompilerWasmModule(wasm, runtimeName)}
+${buildQueryCompilerWasmModule(wasm, runtimeName, compilerBuild)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
