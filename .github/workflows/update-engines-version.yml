@@ -8,11 +8,12 @@ on:
         description: 'Version to check and update the engines version'
         required: true
       npmDistTag:
-        description: 'npm tag used for `@prisma/engines-version` in prisma/engines-wrapper repo (`latest` or `integration` or `patch`)'
+        description: 'npm tag used for `@prisma/engines-version` in prisma/engines-wrapper repo (`latest`, `next`, `integration` or `patch`)'
         required: true
         type: choice
         options:
           - latest
+          - next
           - integration
           - patch
 
@@ -27,7 +28,37 @@ jobs:
         run: |
           echo "$THE_INPUT"
 
+      - name: Determine base branch
+        id: select-base
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const distTag = context.payload.inputs.npmDistTag
+            const version = context.payload.inputs.version
+            let baseBranch = 'main'
+
+            if (distTag === 'next') {
+              baseBranch = 'next'
+            } else if (distTag === 'patch') {
+              const parts = version.split('.')
+              if (parts.length < 2) {
+                core.setFailed(`Unexpected version format: ${version}`)
+                return
+              }
+              baseBranch = `${parts[0]}.${parts[1]}.x`
+            }
+
+            core.info(`Using base branch: ${baseBranch}`)
+            core.setOutput('base', baseBranch)
+            core.setOutput('displayBase', baseBranch)
+            core.setOutput('isNext', distTag === 'next' ? 'true' : 'false')
+            core.setOutput('isPatch', distTag === 'patch' ? 'true' : 'false')
+            core.setOutput('distTag', distTag)
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.select-base.outputs.base }}
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4.0.0
 
@@ -118,12 +149,13 @@ jobs:
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           committer: 'Prismo <prismabots@gmail.com>'
           author: 'Prismo <prismabots@gmail.com>'
+          base: ${{ steps.select-base.outputs.base }}
           branch: deps/engines-${{ github.event.inputs.version }}
           delete-branch: true
           labels: automerge
           title: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           body: |
-            The base branch for this PR is: main
+            The base branch for this PR is: ${{ steps.select-base.outputs.displayBase }}
             This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
             This will get automatically merged if all the tests pass.
             :warning: If this PR needs to be updated, first remove the `automerge` label before pushing to avoid automerge to merge without waiting for tests.
@@ -152,6 +184,54 @@ jobs:
           number: ${{ steps.cpr.outputs.pull-request-number }}
 
       #
+      # Next branch engines PR (from prisma-engines next branch)
+      # Will be automerged if tests are passing
+      #
+      - name: Create Pull Request for Next engines
+        id: cpr-next
+        if: github.event.inputs.npmDistTag == 'next'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
+          committer: 'Prismo <prismabots@gmail.com>'
+          author: 'Prismo <prismabots@gmail.com>'
+          base: ${{ steps.select-base.outputs.base }}
+          branch: deps/next-engines-${{ github.event.inputs.version }}
+          delete-branch: true
+          labels: automerge
+          title: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
+          body: |
+            The base branch for this PR is: ${{ steps.select-base.outputs.displayBase }}
+            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
+            This will get automatically merged if all the tests pass.
+            :warning: If this PR needs to be updated, first remove the `automerge` label before pushing to avoid automerge to merge without waiting for tests.
+            ## Packages
+            | Package | NPM URL |
+            |---------|---------|
+            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/query-engine-wasm`| https://npmjs.com/package/@prisma/query-engine-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/query-compiler-wasm`| https://npmjs.com/package/@prisma/query-compiler-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/schema-engine-wasm`| https://npmjs.com/package/@prisma/schema-engine-wasm/v/${{ github.event.inputs.version }}|
+            ## Engines commit
+            [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
+      - name: PR url
+        if: github.event.inputs.npmDistTag == 'next'
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr-next.outputs.pull-request-url }}"
+      - name: Sleep for 5 seconds
+        if: github.event.inputs.npmDistTag == 'next'
+        run: sleep 5s
+        shell: bash
+      - name: Auto approve Pull Request (next)
+        if: github.event.inputs.npmDistTag == 'next' && steps.cpr-next.outputs.pull-request-operation == 'created'
+        uses: juliangruber/approve-pull-request-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.cpr-next.outputs.pull-request-number }}
+
+      #
       # Integration Engine PR for end to end testing (From prisma/prisma-engines to prisma/prisma and finally npm)
       # This will create a draft PR as we don't want to merge it
       # But we want to publish it to npm
@@ -166,12 +246,13 @@ jobs:
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           committer: 'Prismo <prismabots@gmail.com>'
           author: 'Prismo <prismabots@gmail.com>'
+          base: ${{ steps.select-base.outputs.base }}
           branch: integration/engines-${{ github.event.inputs.version }}
           delete-branch: true
           draft: true
           title: 'chore(Automated Integration PR): update engines to ${{ github.event.inputs.version }}'
           body: |
-            The base branch for this PR is: main
+            The base branch for this PR is: ${{ steps.select-base.outputs.displayBase }}
             This automatic integration PR updates the engines to version `${{ github.event.inputs.version }}`.
             :warning: This PR should normally not be merged.
             ## Packages
@@ -192,15 +273,6 @@ jobs:
       # Patch Engine PR, from a prisma-engines patch branch (e.g. "4.6.x")
       # This will create a PR that will need to be manually merged
       #
-      - name: Extract patch branch name from version
-        id: extract-patch-branch-name
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const parts = context.payload.inputs.version.split('.')
-            const patchBranch = `${parts[0]}.${parts[1]}.x`
-            console.log(`patchBranch: ${patchBranch}`)
-            core.setOutput('patchBranch', patchBranch)
       - name: Create Pull Request for Patch Engine
         id: cpr-patch
         if: github.event.inputs.npmDistTag == 'patch'
@@ -210,11 +282,11 @@ jobs:
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           committer: 'Prismo <prismabots@gmail.com>'
           author: 'Prismo <prismabots@gmail.com>'
-          base: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
+          base: ${{ steps.select-base.outputs.base }}
           branch: patch/${{ github.event.inputs.version }}
-          title: 'chore(deps): patch ${{ steps.extract-patch-branch-name.outputs.patchBranch }} ${{ github.event.inputs.version }}'
+          title: 'chore(deps): patch ${{ steps.select-base.outputs.displayBase }} ${{ github.event.inputs.version }}'
           body: |
-            The base branch for this PR is: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
+            The base branch for this PR is: ${{ steps.select-base.outputs.displayBase }}
             This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
             This PR will need to be manually merged (no auto-merge).
             ## Packages
