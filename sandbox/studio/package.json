@@ -22,7 +22,7 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/config": "../../packages/config",
-    "better-sqlite3": "^12.4.6",
+    "better-sqlite3": "^12.5.0",
     "dotenv": "^17.2.3",
     "mysql2": "^3.15.3",
     "postgres": "^3.4.7"

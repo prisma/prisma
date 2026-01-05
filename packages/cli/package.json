@@ -133,7 +133,7 @@
     "@types/jest": "29.5.14",
     "@types/node": "~20.19.24",
     "async-listen": "3.1.0",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "^12.5.0",
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",
     "dotenv": "17.2.3",
@@ -188,7 +188,7 @@
     "postgres": "3.4.7"
   },
   "peerDependencies": {
-    "better-sqlite3": ">=9.0.0",
+    "better-sqlite3": "^12.5.0",
     "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
