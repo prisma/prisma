@@ -137,9 +137,8 @@ export class ConfigErrorHandler {
       // Missing environment variables
       if (errorMessage.includes('DATABASE_URL') || errorMessage.includes('environment variable')) {
         logger.errorWithSuggestions('Missing required environment variables', [
-          'Set DATABASE_URL in your .env file',
-          'Check that .env file is in the correct location',
-          'Ensure environment variables are loaded properly',
+          'Set DATABASE_URL in your environment (shell, CI, or runtime config)',
+          'Verify the variable is available to your process',
           'Verify variable names match your configuration',
         ])
         throw new Error('Missing environment variables')
@@ -249,7 +248,7 @@ export class ConfigErrorHandler {
    * Extract missing package name from error message
    */
   private static extractMissingPackage(errorMessage: string): string {
-    const packages = ['pg', 'mysql2', 'better-sqlite3', '@cloudflare/d1', '@neondatabase/serverless']
+    const packages = ['pg', 'mysql2', 'better-sqlite3', '@cloudflare/d1']
 
     for (const pkg of packages) {
       if (errorMessage.includes(pkg)) {
@@ -271,7 +270,6 @@ export class ConfigErrorHandler {
       mysql2: 'npm install mysql2',
       'better-sqlite3': 'npm install better-sqlite3 @types/better-sqlite3',
       '@cloudflare/d1': 'npm install @cloudflare/d1',
-      '@neondatabase/serverless': 'npm install @neondatabase/serverless',
     }
 
     return installMap[packageName] || `npm install ${packageName}`

@@ -27,16 +27,12 @@
     "zod": "^3.22.4"
   },
   "peerDependencies": {
-    "@neondatabase/serverless": "*",
     "better-sqlite3": "^12.5.0",
     "kysely-d1": "*",
     "mysql2": "*",
     "pg": "*"
   },
   "peerDependenciesMeta": {
-    "@neondatabase/serverless": {
-      "optional": true
-    },
     "better-sqlite3": {
       "optional": true
     },
@@ -51,7 +47,6 @@
     }
   },
   "devDependencies": {
-    "@neondatabase/serverless": "*",
     "@types/better-sqlite3": "*",
     "@types/node": "^20.0.0",
     "@types/pg": "*",

@@ -16,20 +16,6 @@ describe('Configuration Bridge Utilities', () => {
         expect(detectProviderFromUrl('postgresql://user:pass@render.com:5432/db')).toBe('postgresql')
       })
 
-      it('should detect neon provider from URL patterns', () => {
-        expect(detectProviderFromUrl('postgresql://user:pass@ep-example.neon.tech/db')).toBe('neon')
-        expect(detectProviderFromUrl('postgresql://user:pass@ep-example.neon.database/db')).toBe('neon')
-        expect(detectProviderFromUrl('postgresql://user:pass@ep-example.us-east-1.aws.neon.tech/db')).toBe('neon')
-        expect(detectProviderFromUrl('postgres://user:pass@ep-example.neon.tech/db')).toBe('neon')
-      })
-
-      it('should detect supabase as postgresql (simplified approach)', () => {
-        // With simplified approach, Supabase URLs are treated as standard PostgreSQL
-        expect(detectProviderFromUrl('postgresql://user:pass@db.example.supabase.co:5432/postgres')).toBe('postgresql')
-        expect(detectProviderFromUrl('postgresql://postgres:pass@db.project.supabase.co:5432/postgres')).toBe(
-          'postgresql',
-        )
-      })
     })
 
     describe('MySQL family detection', () => {
@@ -77,14 +63,6 @@ describe('Configuration Bridge Utilities', () => {
   })
 
   describe('createConfigWithAutoDetection', () => {
-    it('should create config with auto-detected neon provider', () => {
-      const config = createConfigWithAutoDetection('postgresql://user:pass@ep-example.neon.tech/db')
-
-      expect(config.datasource.provider).toBe('neon')
-      expect(config.datasource.url).toBe('postgresql://user:pass@ep-example.neon.tech/db')
-      expect(config.schema).toBe('./schema.prisma')
-    })
-
     it('should create config with auto-detected postgresql provider', () => {
       const config = createConfigWithAutoDetection('postgresql://user:pass@localhost:5432/db')
 
@@ -130,12 +108,12 @@ describe('Configuration Bridge Utilities', () => {
     })
 
     it('should override auto-detected provider with explicit datasource options', () => {
-      const config = createConfigWithAutoDetection('postgresql://user:pass@ep-example.neon.tech/db', {
+      const config = createConfigWithAutoDetection('postgresql://user:pass@localhost:5432/db', {
         datasource: { provider: 'postgresql' },
       })
 
       expect(config.datasource.provider).toBe('postgresql') // Explicit override
-      expect(config.datasource.url).toBe('postgresql://user:pass@ep-example.neon.tech/db')
+      expect(config.datasource.url).toBe('postgresql://user:pass@localhost:5432/db')
     })
 
     it('should throw error for invalid URLs', () => {
@@ -148,7 +126,6 @@ describe('Configuration Bridge Utilities', () => {
   describe('validateProviderUrlCompatibility', () => {
     it('should pass for compatible provider and URL', () => {
       expect(() => validateProviderUrlCompatibility('postgresql', 'postgresql://localhost/db')).not.toThrow()
-      expect(() => validateProviderUrlCompatibility('neon', 'postgresql://ep-example.neon.tech/db')).not.toThrow()
       expect(() => validateProviderUrlCompatibility('mysql', 'mysql://localhost/db')).not.toThrow()
     })
 
@@ -162,15 +139,9 @@ describe('Configuration Bridge Utilities', () => {
       expect(result2.message).toContain('not compatible')
     })
 
-    it('should warn for postgresql provider with neon URLs but allow supabase', () => {
-      // Neon URLs should still suggest using neon provider for optimization
-      const result1 = validateProviderUrlCompatibility('postgresql', 'postgresql://ep-example.neon.tech/db')
-      expect(result1.isValid).toBe(false) // Should suggest using neon provider instead
-      expect(result1.message).toContain('neon')
-
-      // Supabase URLs are now treated as standard PostgreSQL (simplified approach)
-      const result2 = validateProviderUrlCompatibility('postgresql', 'postgresql://db.example.supabase.co/db')
-      expect(result2.isValid).toBe(true) // Should be valid since we treat Supabase as PostgreSQL
+    it('should allow postgresql URLs', () => {
+      const result2 = validateProviderUrlCompatibility('postgresql', 'postgresql://localhost/db')
+      expect(result2.isValid).toBe(true)
     })
   })
 })

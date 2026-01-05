@@ -4,8 +4,6 @@
 
 export interface ConfigTemplate {
   provider: string
-  defaultUrl: string
-  envVarName: string
   description: string
   installInstructions?: string
   additionalConfig?: Record<string, any>
@@ -14,40 +12,18 @@ export interface ConfigTemplate {
 export const CONFIG_TEMPLATES: Record<string, ConfigTemplate> = {
   postgresql: {
     provider: 'postgresql',
-    defaultUrl: 'postgresql://username:password@localhost:5432/database',
-    envVarName: 'DATABASE_URL',
     description: 'PostgreSQL database',
   },
   mysql: {
     provider: 'mysql',
-    defaultUrl: 'mysql://username:password@localhost:3306/database',
-    envVarName: 'DATABASE_URL',
     description: 'MySQL database',
   },
   sqlite: {
     provider: 'sqlite',
-    defaultUrl: 'file:./dev.db',
-    envVarName: 'DATABASE_URL',
     description: 'SQLite database file',
-  },
-  neon: {
-    provider: 'neon',
-    defaultUrl: 'postgresql://username:password@ep-example.us-east-1.aws.neon.tech/database',
-    envVarName: 'DATABASE_URL',
-    description: 'Neon serverless PostgreSQL',
-    installInstructions: 'npm install @neondatabase/serverless',
-  },
-  supabase: {
-    provider: 'supabase',
-    defaultUrl: 'postgresql://postgres:password@db.project.supabase.co:5432/postgres',
-    envVarName: 'DATABASE_URL',
-    description: 'Supabase PostgreSQL',
-    installInstructions: 'npm install @supabase/supabase-js',
   },
   d1: {
     provider: 'd1',
-    defaultUrl: 'file:./local.db',
-    envVarName: 'DATABASE_URL',
     description: 'Cloudflare D1 SQLite',
     installInstructions: 'npm install @cloudflare/workers-types',
     additionalConfig: {
@@ -121,20 +97,4 @@ export function generateConfigContent(
   )
 
   return configLines.join('\n')
-}
-
-/**
- * Generate environment file content
- */
-export function generateEnvContent(provider: string, url: string): string {
-  const template = CONFIG_TEMPLATES[provider]
-  const envVarName = template?.envVarName || 'DATABASE_URL'
-
-  const lines = ['# Database connection', `# ${template?.description || provider}`, `${envVarName}="${url}"`, '']
-
-  if (template?.installInstructions) {
-    lines.unshift(`# Install required packages: ${template.installInstructions}`, '')
-  }
-
-  return lines.join('\n')
 }

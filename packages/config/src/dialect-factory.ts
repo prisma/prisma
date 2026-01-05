@@ -15,7 +15,11 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
       const { PostgresDialect } = await import('kysely')
 
       try {
-        const { Pool } = await import('pg')
+        const pgModule = await import('pg')
+        const Pool = (pgModule as any).Pool ?? (pgModule as any).default?.Pool ?? (pgModule as any).default
+        if (!Pool) {
+          throw new Error('Pool constructor not found in pg module')
+        }
         return new PostgresDialect({
           pool: new Pool({
             connectionString: url,
@@ -23,29 +27,6 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
         })
       } catch (importError) {
         const metadata = PROVIDER_METADATA.postgresql
-        throw new Error(
-          `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
-            `Install with: npm install ${metadata.packages.join(' ')}. ` +
-            `Original error: ${importError instanceof Error ? importError.message : String(importError)}`,
-        )
-      }
-    }
-
-    case 'neon': {
-      const { PostgresDialect } = await import('kysely')
-
-      try {
-        const neonModule = await import('@neondatabase/serverless')
-        const { Pool, neonConfig } = neonModule
-
-        // Optimize for serverless environments
-        neonConfig.fetchConnectionCache = true
-
-        return new PostgresDialect({
-          pool: new Pool({ connectionString: url }),
-        })
-      } catch (importError) {
-        const metadata = PROVIDER_METADATA.neon
         throw new Error(
           `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
             `Install with: npm install ${metadata.packages.join(' ')}. ` +

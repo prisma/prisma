@@ -65,7 +65,6 @@ const kysely = new Kysely({ dialect })
 ## Supported Providers
 
 - `postgresql` - Standard PostgreSQL
-- `neon` - Neon serverless PostgreSQL  
 - `mysql` - MySQL
 - `sqlite` - SQLite
 - `d1` - Cloudflare D1
@@ -85,9 +84,6 @@ This package uses peer dependencies for database drivers, so only install what y
 ```bash
 # PostgreSQL
 npm install pg @types/pg
-
-# Neon
-npm install @neondatabase/serverless
 
 # MySQL  
 npm install mysql2

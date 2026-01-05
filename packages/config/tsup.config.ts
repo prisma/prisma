@@ -22,7 +22,6 @@ export default defineConfig({
     'pg',
     'mysql2',
     'better-sqlite3',
-    '@neondatabase/serverless',
     'kysely-d1',
   ],
 })

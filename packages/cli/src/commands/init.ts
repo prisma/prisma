@@ -2,13 +2,17 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 import prompts from 'prompts'
+import { PROVIDER_METADATA, SUPPORTED_PROVIDERS } from '@refract/config'
 
-import { CONFIG_TEMPLATES, generateConfigContent, generateEnvContent } from '../templates/config.js'
-import { generateSchemaContent, SCHEMA_TEMPLATES } from '../templates/schema.js'
+import { CONFIG_TEMPLATES, generateConfigContent } from '../config/presets.js'
+import { generateSchemaContent } from '../templates/schema.js'
 import type { CommandResult, InitOptions } from '../types.js'
 import { BaseCommand } from '../utils/command.js'
 import { cliCreateKyselyFromUrl } from '../utils/config-error-handler.js'
 import { logger } from '../utils/logger.js'
+import { detectProviderFromUrl } from '../utils/config.js'
+import { detectPackageManager, getPackageManager, runInstall } from '../utils/package-manager.js'
+import { findViteConfigPath, patchViteConfig } from '../utils/vite-config.js'
 
 const CONFIG_EXTENSIONS = ['.js', '.ts', '.mjs', '.cjs', '.mts', '.cts']
 
@@ -66,18 +70,25 @@ export class InitCommand extends BaseCommand {
     // Ensure type helper dependency for config validation
     await this.ensureConfigDependency(cwd)
 
-    // Generate environment file
-    if (!options.skipEnv) {
-      await this.generateEnvFile(cwd, answers)
-    }
-
     // Generate schema file
     if (!options.skipSchema) {
       await this.generateSchemaFile(cwd, answers)
     }
 
+    const packageJson = this.loadPackageJson(cwd)
+    const viteConfigPath = options.skipVite ? null : findViteConfigPath(cwd)
+    const isViteProject = this.isViteProject(packageJson, viteConfigPath)
+
+    if (!options.skipInstall) {
+      await this.maybeInstallDependencies(cwd, packageJson, answers.provider, isViteProject)
+    }
+
+    if (!options.skipVite && viteConfigPath) {
+      await this.maybePatchViteConfig(viteConfigPath)
+    }
+
     // Show next steps
-    this.showNextSteps(answers)
+    this.showNextSteps(answers, isViteProject)
 
     return {
       success: true,
@@ -88,33 +99,30 @@ export class InitCommand extends BaseCommand {
   private async promptForConfig(options: InitOptions) {
     const questions: prompts.PromptObject[] = []
 
-    // Streamlined URL-first approach with auto-detection
-    if (!options.url) {
+    if (options.provider && !SUPPORTED_PROVIDERS.includes(options.provider as (typeof SUPPORTED_PROVIDERS)[number])) {
+      throw new Error(`Unsupported provider: ${options.provider}`)
+    }
+
+    if (!options.url && !options.provider) {
       questions.push({
         type: 'text',
         name: 'url',
-        message: 'Database connection URL:',
-        hint: 'Provider will be auto-detected (postgresql://, mysql://, file:, d1://)',
-        validate: (value: string) => {
-          if (!value.trim()) {
-            return 'Database URL is required'
-          }
-          return true // Let the auto-detection handle validation with better error messages
-        },
+        message: 'Database connection URL (optional):',
+        hint: 'Leave blank to select a provider (postgresql, mysql, sqlite, d1)',
       })
-    }
 
-    if (!options.template) {
       questions.push({
-        type: 'select',
-        name: 'template',
-        message: 'Schema template:',
-        choices: [
-          { title: 'Basic (User & Post)', value: 'basic' },
-          { title: 'E-commerce (Product, Order)', value: 'ecommerce' },
-          { title: 'Blog (Post, Category, Tag)', value: 'blog' },
-        ],
-        initial: 0,
+        type: (_prev: unknown, values: { url?: string }) => (values.url?.trim() ? null : 'select'),
+        name: 'provider',
+        message: 'Select a database provider:',
+        choices: SUPPORTED_PROVIDERS.map((provider) => {
+          const metadata = PROVIDER_METADATA[provider]
+          return {
+            title: metadata?.name ?? provider,
+            value: provider,
+            description: metadata?.description,
+          }
+        }),
       })
     }
 
@@ -125,50 +133,63 @@ export class InitCommand extends BaseCommand {
       },
     })
 
-    const url = options.url || answers.url
+    const url = options.url || answers.url || ''
 
-    // Use enhanced auto-detection with better error handling
-    try {
-      const { kysely, config } = await cliCreateKyselyFromUrl(url)
+    if (url.trim()) {
+      const detectedProvider = detectProviderFromUrl(url)
 
-      // Clean up test connection
-      await kysely.destroy()
+      if (detectedProvider === 'd1') {
+        logger.success(`✓ Auto-detected provider: ${detectedProvider}`)
+        logger.warn('Skipping connection verification for D1 (requires Cloudflare Workers bindings)')
 
-      const provider = config.datasource.provider
-      logger.success(`✓ Auto-detected provider: ${provider}`)
-      logger.success(`✓ Connection verified successfully`)
-
-      return {
-        provider,
-        url,
-        template: options.template || answers.template || 'basic',
+        return {
+          provider: detectedProvider,
+          url,
+        }
       }
-    } catch (error) {
-      // Enhanced error handler already provides good error messages
-      throw error
+
+      // Use enhanced auto-detection with better error handling
+      try {
+        const { kysely, config } = await cliCreateKyselyFromUrl(url)
+
+        // Clean up test connection
+        await kysely.destroy()
+
+        const provider = config.datasource.provider
+        logger.success(`✓ Auto-detected provider: ${provider}`)
+        logger.success(`✓ Connection verified successfully`)
+
+        return {
+          provider,
+          url,
+        }
+      } catch (error) {
+        // Enhanced error handler already provides good error messages
+        throw error
+      }
+    }
+
+    const provider = options.provider || answers.provider
+
+    if (!provider) {
+      throw new Error('Database provider is required when no URL is provided')
+    }
+
+    logger.success(`✓ Selected provider: ${provider}`)
+
+    return {
+      provider,
+      url: '',
     }
   }
 
-  private async generateConfigFile(configPath: string, config: { provider: string; url: string; template: string }) {
+  private async generateConfigFile(configPath: string, config: { provider: string; url: string }) {
     const configContent = generateConfigContent(config.provider, config.url)
     writeFileSync(configPath, configContent, 'utf8')
     logger.success('Created Refract configuration')
   }
 
-  private async generateEnvFile(cwd: string, config: { provider: string; url: string; template: string }) {
-    const envPath = resolve(cwd, '.env')
-
-    if (existsSync(envPath)) {
-      logger.info('.env already exists, skipping...')
-      return
-    }
-
-    const envContent = generateEnvContent(config.provider, config.url)
-    writeFileSync(envPath, envContent, 'utf8')
-    logger.success('Created .env file')
-  }
-
-  private async generateSchemaFile(cwd: string, config: { provider: string; url: string; template: string }) {
+  private async generateSchemaFile(cwd: string, config: { provider: string; url: string }) {
     const schemaPath = resolve(cwd, 'schema.prisma')
 
     if (existsSync(schemaPath)) {
@@ -176,36 +197,35 @@ export class InitCommand extends BaseCommand {
       return
     }
 
-    let schemaContent: string
-    if (config.template === 'basic') {
-      schemaContent = generateSchemaContent(config.provider)
-    } else {
-      const template = SCHEMA_TEMPLATES[config.template]
-      if (template) {
-        schemaContent = template.content.replace(/provider = "postgresql"/, `provider = "${config.provider}"`)
-      } else {
-        schemaContent = generateSchemaContent(config.provider)
-      }
-    }
+    const schemaContent = generateSchemaContent(config.provider)
 
     writeFileSync(schemaPath, schemaContent, 'utf8')
-    logger.success(`Created schema.prisma with ${config.template} template`)
+    logger.success('Created schema.prisma')
   }
 
-  private showNextSteps(config: { provider: string; url: string; template: string }) {
+  private showNextSteps(config: { provider: string; url: string }, isViteProject: boolean) {
     const template = CONFIG_TEMPLATES[config.provider]
 
     logger.info('\n🎉 Project initialized successfully!')
     logger.info('\nNext steps:')
-    logger.info('1. Update your .env file with your actual database credentials')
+    if (config.url) {
+      logger.info('1. Review refract.config.ts and update the database connection if needed')
+    } else {
+      logger.info('1. Set datasource.url in refract.config.ts (or configure a custom dialect in code)')
+    }
 
     if (template?.installInstructions) {
       logger.info(`2. Install required packages: ${template.installInstructions}`)
     }
 
-    logger.info('3. Run your first migration: npx refract migrate dev')
-    logger.info('4. Generate the client: npx refract generate')
-    logger.info('5. Start building your application!')
+    if (isViteProject) {
+      logger.info('3. Start your dev server (Refract will auto-generate and migrate): pnpm dev')
+      logger.info('4. Start building your application!')
+    } else {
+      logger.info('3. Run your first migration: npx refract migrate dev')
+      logger.info('4. Generate the client: npx refract generate')
+      logger.info('5. Start building your application!')
+    }
 
     if (config.provider === 'd1') {
       logger.info('\n💡 For Cloudflare D1:')
@@ -270,6 +290,147 @@ export class InitCommand extends BaseCommand {
 
     return '0.0.1-alpha.1'
   }
+
+  private loadPackageJson(cwd: string): { dependencies?: Record<string, string>; devDependencies?: Record<string, string> } {
+    const packagePath = resolve(cwd, 'package.json')
+
+    if (!existsSync(packagePath)) {
+      return {}
+    }
+
+    try {
+      return JSON.parse(readFileSync(packagePath, 'utf8')) as {
+        dependencies?: Record<string, string>
+        devDependencies?: Record<string, string>
+      }
+    } catch {
+      return {}
+    }
+  }
+
+  private isViteProject(
+    packageJson: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> },
+    viteConfigPath: string | null,
+  ): boolean {
+    const hasViteDependency =
+      Boolean(packageJson.dependencies?.vite) || Boolean(packageJson.devDependencies?.vite)
+    return Boolean(viteConfigPath) || hasViteDependency
+  }
+
+  private hasDependency(
+    packageJson: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> },
+    name: string,
+  ): boolean {
+    return Boolean(packageJson.dependencies?.[name] || packageJson.devDependencies?.[name])
+  }
+
+  private async maybeInstallDependencies(
+    cwd: string,
+    packageJson: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> },
+    provider: string,
+    isViteProject: boolean,
+  ) {
+    if (!existsSync(resolve(cwd, 'package.json'))) {
+      logger.info('No package.json found. Skipping dependency installation.')
+      return
+    }
+
+    const devDeps: string[] = []
+    const prodDeps: string[] = []
+
+    if (!this.hasDependency(packageJson, '@refract/cli')) {
+      devDeps.push('@refract/cli')
+    }
+
+    if (isViteProject && !this.hasDependency(packageJson, 'unplugin-refract')) {
+      devDeps.push('unplugin-refract')
+    }
+
+    const metadata = PROVIDER_METADATA[provider as keyof typeof PROVIDER_METADATA]
+    if (metadata) {
+      for (const pkg of metadata.packages) {
+        if (!this.hasDependency(packageJson, pkg)) {
+          prodDeps.push(pkg)
+        }
+      }
+    }
+
+    if (devDeps.length === 0 && prodDeps.length === 0) {
+      return
+    }
+
+    const managerName = detectPackageManager(cwd)
+    const manager = getPackageManager(managerName)
+
+    const messageLines = [
+      'Install recommended dependencies now?',
+      devDeps.length > 0 ? `Dev: ${devDeps.join(', ')}` : null,
+      prodDeps.length > 0 ? `Prod: ${prodDeps.join(', ')}` : null,
+    ].filter((line): line is string => Boolean(line))
+
+    const response = await prompts({
+      type: 'confirm',
+      name: 'install',
+      message: messageLines.join('\n'),
+      initial: true,
+    })
+
+    if (!response.install) {
+      if (devDeps.length > 0) {
+        const cmd = manager.installDev(devDeps)
+        logger.info(`Run: ${cmd.command} ${cmd.args.join(' ')}`)
+      }
+      if (prodDeps.length > 0) {
+        const cmd = manager.installProd(prodDeps)
+        logger.info(`Run: ${cmd.command} ${cmd.args.join(' ')}`)
+      }
+      return
+    }
+
+    if (devDeps.length > 0) {
+      const cmd = manager.installDev(devDeps)
+      await runInstall(cmd.command, cmd.args, cwd)
+    }
+
+    if (prodDeps.length > 0) {
+      const cmd = manager.installProd(prodDeps)
+      await runInstall(cmd.command, cmd.args, cwd)
+    }
+  }
+
+  private async maybePatchViteConfig(viteConfigPath: string) {
+    const currentContent = readFileSync(viteConfigPath, 'utf8')
+    if (currentContent.includes('unplugin-refract') || /refract\s*\(/.test(currentContent)) {
+      logger.info('Vite config already includes unplugin-refract.')
+      return
+    }
+
+    const response = await prompts({
+      type: 'confirm',
+      name: 'patch',
+      message: `Update ${viteConfigPath} to enable unplugin-refract?`,
+      initial: true,
+    })
+
+    if (!response.patch) {
+      logger.info(
+        "Add the plugin manually: import refract from 'unplugin-refract/vite' and add refract({ autoGenerateClient: true, autoMigrate: true }) to your plugins.",
+      )
+      return
+    }
+
+    const result = patchViteConfig(viteConfigPath)
+
+    if (result.updated) {
+      logger.success(`Updated ${viteConfigPath} with unplugin-refract`)
+      return
+    }
+
+    if (result.reason) {
+      logger.warn(`${result.reason}. Add the plugin manually.`)
+      return
+    }
+  }
 }
 
 /**
@@ -278,12 +439,13 @@ export class InitCommand extends BaseCommand {
 export function registerInitCommand(program: any) {
   program
     .command('init')
-    .description('Initialize a new Refract project with automatic provider detection')
+    .description('Initialize a new Refract project')
     .option('--url <url>', 'Database connection URL (provider will be auto-detected)')
-    .option('--template <template>', 'Schema template: basic, ecommerce, or blog (default: basic)')
+    .option('--provider <provider>', 'Database provider when no URL is provided')
     .option('--force', 'Overwrite existing configuration files')
-    .option('--skip-env', 'Skip creating .env file')
     .option('--skip-schema', 'Skip creating schema.prisma file')
+    .option('--skip-install', 'Skip installing dependencies')
+    .option('--skip-vite', 'Skip Vite detection and config patching')
     .action(async (options: InitOptions) => {
       const command = new InitCommand()
       await command.run(options)

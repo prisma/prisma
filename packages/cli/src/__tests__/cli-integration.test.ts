@@ -59,35 +59,11 @@ describe('CLI Integration Tests - Auto-Detection', () => {
   }
 
   describe('init command with --url flag', () => {
-    it('should initialize with Neon URL auto-detection', async () => {
-      const result = await runCLI([
-        'init',
-        '--url',
-        'postgresql://user:pass@ep-example.us-east-1.aws.neon.tech/db',
-        '--template',
-        'basic',
-      ])
-
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('✓ Auto-detected provider: neon')
-      expect(result.stdout).toContain('Project initialized successfully!')
-
-      expect(existsSync('refract.config.ts')).toBe(true)
-      expect(existsSync('schema.prisma')).toBe(true)
-      expect(existsSync('.env')).toBe(true)
-
-      const configContent = readFileSync('refract.config.ts', 'utf8')
-      expect(configContent).toContain("provider: 'neon'")
-      expect(configContent).toContain('postgresql://user:pass@ep-example.us-east-1.aws.neon.tech/db')
-    }, 10000)
-
     it('should initialize with PostgreSQL URL auto-detection', async () => {
       const result = await runCLI([
         'init',
         '--url',
         'postgresql://user:pass@localhost:5432/testdb',
-        '--template',
-        'basic',
       ])
 
       expect(result.exitCode).toBe(0)
@@ -102,8 +78,6 @@ describe('CLI Integration Tests - Auto-Detection', () => {
         'init',
         '--url',
         'mysql://user:pass@localhost:3306/testdb',
-        '--template',
-        'ecommerce',
       ])
 
       expect(result.exitCode).toBe(0)
@@ -112,13 +86,10 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       const configContent = readFileSync('refract.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'mysql'")
 
-      const schemaContent = readFileSync('schema.prisma', 'utf8')
-      expect(schemaContent).toContain('model Product')
-      expect(schemaContent).toContain('model Order')
     }, 10000)
 
     it('should initialize with SQLite URL auto-detection', async () => {
-      const result = await runCLI(['init', '--url', 'file:./dev.db', '--template', 'blog'])
+      const result = await runCLI(['init', '--url', 'file:./dev.db'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: sqlite')
@@ -126,13 +97,10 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       const configContent = readFileSync('refract.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'sqlite'")
 
-      const schemaContent = readFileSync('schema.prisma', 'utf8')
-      expect(schemaContent).toContain('model Category')
-      expect(schemaContent).toContain('model Tag')
     }, 10000)
 
     it('should initialize with D1 URL auto-detection', async () => {
-      const result = await runCLI(['init', '--url', 'd1://my-database', '--template', 'basic'])
+      const result = await runCLI(['init', '--url', 'd1://my-database'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: d1')
@@ -142,17 +110,31 @@ describe('CLI Integration Tests - Auto-Detection', () => {
     }, 10000)
   })
 
+  describe('init command with --provider flag', () => {
+    it('should initialize with provider only and empty URL', async () => {
+      const result = await runCLI(['init', '--provider', 'sqlite', '--skip-schema'])
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain('✓ Selected provider: sqlite')
+      expect(existsSync('refract.config.ts')).toBe(true)
+
+      const configContent = readFileSync('refract.config.ts', 'utf8')
+      expect(configContent).toContain("provider: 'sqlite'")
+      expect(configContent).toContain("url: ''")
+    }, 10000)
+  })
+
   describe('init command error handling', () => {
     it('should fail with invalid URL format', async () => {
-      const result = await runCLI(['init', '--url', 'invalid://test', '--template', 'basic'])
+      const result = await runCLI(['init', '--url', 'invalid://test'])
 
       expect(result.exitCode).toBe(1)
-      expect(result.stderr).toContain('Failed to detect provider from URL')
+      expect(result.stderr).toContain('Unable to detect provider from URL')
       expect(result.stderr).toContain('Supported formats: postgresql://, mysql://, file:, d1://')
     }, 10000)
 
     it('should fail with unsupported protocol', async () => {
-      const result = await runCLI(['init', '--url', 'mongodb://localhost:27017/db', '--template', 'basic'])
+      const result = await runCLI(['init', '--url', 'mongodb://localhost:27017/db'])
 
       expect(result.exitCode).toBe(1)
       expect(result.stderr).toContain('Unable to detect provider from URL')
@@ -160,10 +142,10 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
     it('should fail when config already exists without --force', async () => {
       // First initialization
-      await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/db', '--template', 'basic'])
+      await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/db'])
 
       // Second initialization should fail
-      const result = await runCLI(['init', '--url', 'mysql://user:pass@localhost:3306/db', '--template', 'basic'])
+      const result = await runCLI(['init', '--url', 'mysql://user:pass@localhost:3306/db'])
 
       expect(result.exitCode).toBe(1)
       expect(result.stderr).toContain('already exists')
@@ -171,15 +153,13 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
     it('should succeed when config exists with --force', async () => {
       // First initialization
-      await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/db', '--template', 'basic'])
+      await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/db'])
 
       // Second initialization with force should succeed
       const result = await runCLI([
         'init',
         '--url',
         'mysql://user:pass@localhost:3306/db',
-        '--template',
-        'basic',
         '--force',
       ])
 
@@ -247,7 +227,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       const result = await runCLIWithTimeout(['init'], '')
 
       // The command should start and show the prompt, even if it times out
-      expect(result.stdout).toContain('Database connection URL (provider will be auto-detected)')
+      expect(result.stdout).toContain('Database connection URL (optional)')
       expect(result.stdout).toContain('Initializing Refract project')
 
       // This validates that the interactive flow is set up correctly
@@ -256,58 +236,23 @@ describe('CLI Integration Tests - Auto-Detection', () => {
   })
 
   describe('skip options', () => {
-    it('should skip .env file creation with --skip-env', async () => {
-      const result = await runCLI([
-        'init',
-        '--url',
-        'postgresql://user:pass@localhost:5432/db',
-        '--template',
-        'basic',
-        '--skip-env',
-      ])
-
-      expect(result.exitCode).toBe(0)
-      expect(existsSync('refract.config.ts')).toBe(true)
-      expect(existsSync('schema.prisma')).toBe(true)
-      expect(existsSync('.env')).toBe(false)
-    }, 10000)
-
     it('should skip schema file creation with --skip-schema', async () => {
       const result = await runCLI([
         'init',
         '--url',
         'postgresql://user:pass@localhost:5432/db',
-        '--template',
-        'basic',
         '--skip-schema',
       ])
 
       expect(result.exitCode).toBe(0)
       expect(existsSync('refract.config.ts')).toBe(true)
-      expect(existsSync('.env')).toBe(true)
       expect(existsSync('schema.prisma')).toBe(false)
     }, 10000)
   })
 
   describe('provider-specific features', () => {
-    it('should include Neon-specific instructions in output', async () => {
-      const result = await runCLI([
-        'init',
-        '--url',
-        'postgresql://user:pass@ep-example.neon.tech/db',
-        '--template',
-        'basic',
-      ])
-
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('npm install @neondatabase/serverless')
-
-      const envContent = readFileSync('.env', 'utf8')
-      expect(envContent).toContain('@neondatabase/serverless')
-    }, 10000)
-
     it('should include D1-specific instructions in output', async () => {
-      const result = await runCLI(['init', '--url', 'd1://my-database', '--template', 'basic'])
+      const result = await runCLI(['init', '--url', 'd1://my-database'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('For Cloudflare D1')
@@ -319,12 +264,13 @@ describe('CLI Integration Tests - Auto-Detection', () => {
     it('should show help with auto-detection description', async () => {
       const result = await runCLI(['init', '--help'])
 
-      // Commander.js exits with code 1 when displaying help, which is normal behavior
-      expect(result.exitCode).toBe(1)
-      expect(result.stdout).toContain('Initialize a new Refract project with auto-detected database provider')
+      // Commander.js exits with code 0 when displaying help
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain('Initialize a new Refract project')
       expect(result.stdout).toContain('--url <url>')
-      expect(result.stdout).toContain('Database connection URL (provider auto-detected)')
-      expect(result.stdout).not.toContain('--provider') // Should not show provider option
+      expect(result.stdout).toContain('Database connection URL')
+      expect(result.stdout).toContain('auto-detected')
+      expect(result.stdout).toContain('--provider')
     }, 10000)
   })
 })

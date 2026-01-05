@@ -7,6 +7,7 @@
 import { registerGenerateCommand } from './commands/generate.js'
 import { registerInitCommand } from './commands/init.js'
 import { registerMigrateCommand } from './commands/migrate.js'
+import { registerDevCommand } from './commands/dev.js'
 import { createProgram } from './utils/command.js'
 import { logger } from './utils/logger.js'
 
@@ -17,6 +18,7 @@ async function main() {
   registerInitCommand(program)
   registerMigrateCommand(program)
   registerGenerateCommand(program)
+  registerDevCommand(program)
 
   // Show help if no command provided
   if (process.argv.length <= 2) {

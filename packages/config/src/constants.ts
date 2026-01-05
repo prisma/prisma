@@ -5,7 +5,7 @@
  * 2. Add case in dialect-factory.ts
  * 3. Add peer dependency in package.json if needed
  */
-export const SUPPORTED_PROVIDERS = ['postgresql', 'mysql', 'sqlite', 'neon', 'd1'] as const
+export const SUPPORTED_PROVIDERS = ['postgresql', 'mysql', 'sqlite', 'd1'] as const
 
 /**
  * Type derived from supported providers
@@ -16,18 +16,7 @@ export type DatabaseProvider = (typeof SUPPORTED_PROVIDERS)[number]
  * Provider detection patterns for automatic URL detection
  */
 export const PROVIDER_URL_PATTERNS: Record<DatabaseProvider, (url: string) => boolean> = {
-  postgresql: (url) => {
-    const isPostgres = url.startsWith('postgresql://') || url.startsWith('postgres://')
-    // Exclude special cases that have their own providers
-    const isNeon = url.includes('neon.tech') || url.includes('neon.database')
-    return isPostgres && !isNeon
-  },
-
-  neon: (url) => {
-    const isPostgres = url.startsWith('postgresql://') || url.startsWith('postgres://')
-    const isNeon = url.includes('neon.tech') || url.includes('neon.database')
-    return isPostgres && isNeon
-  },
+  postgresql: (url) => url.startsWith('postgresql://') || url.startsWith('postgres://'),
 
   mysql: (url) => url.startsWith('mysql://'),
 
@@ -52,12 +41,6 @@ export const PROVIDER_METADATA: Record<
     name: 'PostgreSQL',
     packages: ['pg'],
     description: 'Standard PostgreSQL driver using node-postgres',
-  },
-
-  neon: {
-    name: 'Neon (Serverless PostgreSQL)',
-    packages: ['@neondatabase/serverless'],
-    description: 'Neon serverless PostgreSQL with connection pooling optimization',
   },
 
   mysql: {

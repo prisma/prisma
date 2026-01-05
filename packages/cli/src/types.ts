@@ -29,10 +29,11 @@ export interface CommandResult {
  */
 export interface InitOptions {
   url?: string
+  provider?: string
   force?: boolean
-  template?: 'basic' | 'ecommerce' | 'blog'
-  skipEnv?: boolean
   skipSchema?: boolean
+  skipInstall?: boolean
+  skipVite?: boolean
 }
 
 /**
@@ -49,6 +50,16 @@ export interface MigrateOptions {
 export interface GenerateOptions {
   output?: string
   watch?: boolean
+}
+
+/**
+ * Dev options
+ */
+export interface DevOptions {
+  yes?: boolean
+  unsafe?: boolean
+  noGenerate?: boolean
+  noMigrate?: boolean
 }
 
 /**
