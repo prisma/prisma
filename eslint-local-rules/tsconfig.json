@@ -1,8 +1,0 @@
-{
-  "extends": "../tsconfig.utils.typecheck.json",
-  "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "declaration": false
-  }
-}
