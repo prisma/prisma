@@ -63,7 +63,7 @@ export function translateDatasourceConfig(config: RefractDatasourceConfig): any 
     )
   }
 
-  const driverProvider = PRISMA_PROVIDER_TO_DRIVER_PROVIDER[config.provider] as 'pg' | 'neon' | 'supabase' | 'pglite'
+  const driverProvider = PRISMA_PROVIDER_TO_DRIVER_PROVIDER[config.provider] as 'pg'
 
   return {
     connectionString: config.connectionString,

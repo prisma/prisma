@@ -2,7 +2,6 @@ const typescriptEslint = require('@typescript-eslint/eslint-plugin')
 const jest = require('eslint-plugin-jest')
 const simpleImportSort = require('eslint-plugin-simple-import-sort')
 const _import = require('eslint-plugin-import-x')
-const localRules = require('eslint-plugin-local-rules')
 const path = require('path')
 
 const globals = require('globals')
@@ -69,7 +68,6 @@ module.exports = [
       jest,
       'simple-import-sort': simpleImportSort,
       import: _import,
-      'local-rules': localRules,
     },
 
     languageOptions: {
@@ -149,22 +147,6 @@ module.exports = [
       'import/first': 'error',
       'import/newline-after-import': 'error',
       'import/no-duplicates': 'error',
-    },
-  },
-  {
-    files: ['./packages/client/src/runtime/core/types/exported/*.ts'],
-    ignores: ['**/index.ts'],
-
-    rules: {
-      'local-rules/all-types-are-exported': 'error',
-      'local-rules/imports-from-same-directory': 'error',
-    },
-  },
-  {
-    files: ['./packages/client/src/runtime/core/types/exported/index.ts'],
-
-    rules: {
-      'local-rules/valid-exported-types-index': 'error',
     },
   },
 ]

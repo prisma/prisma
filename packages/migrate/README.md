@@ -8,7 +8,7 @@ TypeScript-native migration engine for Refract ORM with direct Kysely integratio
 
 ## Key Features
 
-- **Direct Kysely Integration**: Works with any Kysely dialect instance (kysely-neon, kysely-d1, etc.)
+- **Direct Kysely Integration**: Works with any Kysely dialect instance (kysely-d1, kysely-planetscale, etc.)
 - **TypeScript-Native**: No Rust binaries or external dependencies
 - **Programmatic API**: `await refract.migrate.diff()` and `await refract.migrate.apply()`
 - **Transparent Operations**: Uses Kysely's native introspection and DDL builders
@@ -124,7 +124,6 @@ Works with any Kysely dialect:
 - **PostgreSQL**: `kysely` with `PostgresDialect`
 - **MySQL**: `kysely` with `MysqlDialect`
 - **SQLite**: `kysely` with `SqliteDialect`
-- **Neon**: `kysely-neon`
 - **Cloudflare D1**: `kysely-d1`
 - **PlanetScale**: `kysely-planetscale`
 - **And more**: Any Kysely-compatible dialect

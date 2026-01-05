@@ -35,7 +35,6 @@
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
     "@sindresorhus/slugify": "2.2.1",
-    "@size-limit/file": "11.2.0",
     "@slack/webhook": "7.0.5",
     "@types/benchmark": "2.1.5",
     "@types/fs-extra": "11.0.4",
@@ -80,7 +79,6 @@
     "resolve": "1.22.10",
     "safe-buffer": "5.2.1",
     "semver": "7.7.0",
-    "size-limit": "11.2.0",
     "spdx-exceptions": "2.5.0",
     "spdx-license-ids": "3.0.21",
     "staged-git-files": "1.3.0",
@@ -106,38 +104,6 @@
       "eslint"
     ]
   },
-  "size-limit": [
-    {
-      "path": "packages/cli/build/index.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-libsql/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-neon/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-pg/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-d1/output.tgz",
-      "gzip": false,
-      "brotli": false
-    }
-  ],
   "cspell": {
     "version": "0.2",
     "ignorePaths": [],

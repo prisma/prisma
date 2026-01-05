@@ -42,7 +42,7 @@ export type {
 /**
  * Create a new RefractMigrate instance with the provided Kysely database instance
  *
- * @param kyselyInstance - Any Kysely dialect instance (kysely-neon, kysely-d1, etc.)
+ * @param kyselyInstance - Any Kysely dialect instance (kysely-d1, kysely-planetscale, etc.)
  * @param options - Optional configuration for migration behavior
  * @returns RefractMigrate instance ready for diff() and apply() operations
  *

@@ -1,5 +1,9 @@
 {
-  "extends": "./tsconfig.utils.typecheck.json",
+  "extends": "./tsconfig.build.regular.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "noEmit": true
+  },
   "include": ["./**/*", ".eslintrc.js"],
   "exclude": [
     "**/dist",
@@ -7,10 +11,6 @@
     "**/fixtures",
     "**/node_modules",
     "**/.prisma/client",
-    "./packages/cli/preinstall",
-    "./packages/cli/prisma-client",
-    "./packages/client/runtime",
-    "./packages/client/declaration",
-    "./packages/client/generator-build"
+    "./packages/cli/preinstall"
   ]
 }

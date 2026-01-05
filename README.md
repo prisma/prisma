@@ -36,13 +36,13 @@ While right now Refract is a dinky one-man show, we have a clear vision of a mat
 - **Programmatic migrations**: `diff()` and `apply()` APIs that work through Kysely
 - **Modern CLI**: `refract init`, `refract generate`, and `refract migrate` commands
 - **Vite-first generation**: `unplugin-refract` with hot module reloading for type updates
-- **Multi-database support**: PostgreSQL and SQLite today, with clear path to additional dialects
+- **Multi-database support**: PostgreSQL, MySQL, SQLite, and Cloudflare D1 today, with a clear path to additional dialects
 
 For architectural details, see `ARCHITECTURE.md`. For the delivery timeline, see `DELIVERY_ROADMAP.md`.
 
 ## Project Status
 
-- Current focus: **Phase 0 (End-to-End Prototype)** — stand up a working example that exercises schema parsing, client generation, migrations, and Kysely-backed execution for PostgreSQL and SQLite.
+- Current focus: **Phase 0 (End-to-End Prototype)** — stand up a working example that exercises schema parsing, client generation, migrations, and Kysely-backed execution for PostgreSQL, MySQL, SQLite, and Cloudflare D1.
 - Subsequent phases target a proud-to-demo release (Phase 1), Prisma-level parity (Phase 2), and differentiated features (Phase 3+).
 
 ## Key Packages
@@ -62,7 +62,7 @@ Each package is ESM-only and published to the `@refract/*` namespace once stabil
 Refract supports two workflows:
 
 1. **Vite + unplugin (recommended)**: auto-generates the client and keeps `.refract/types` in sync.
-2. **CLI-only (Prisma-style)**: run `refract generate` and `refract migrate` manually.
+2. **CLI-only (Prisma-style)**: run `refract dev` for a unified generate+migrate loop, or run commands manually.
 
 ### 1) Vite + unplugin (recommended)
 
@@ -88,6 +88,9 @@ export default defineConfig({
 })
 ```
 
+`refract init` will detect Vite and can auto-patch your `vite.config` to add this plugin. It can also offer to install recommended dependencies.
+If you don't provide a `--url`, it will prompt for a provider and leave `datasource.url` empty for you to fill in later.
+
 ### 2) CLI-only (Prisma-style)
 
 ```bash
@@ -97,11 +100,8 @@ pnpm add -D @refract/cli
 # Initialize config + schema
 npx refract init
 
-# Generate the client
-npx refract generate
-
-# Apply migrations (dev)
-npx refract migrate dev
+# Run the dev loop (generate + migrate on schema changes)
+npx refract dev
 ```
 
 > Note: Refract is under active development. APIs may change during Phase 0 as we converge on the end-to-end example. Track progress in `DELIVERY_ROADMAP.md` and `NEXT_STEPS.md`.

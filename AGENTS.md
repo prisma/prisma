@@ -28,7 +28,7 @@ These documents contain critical context that will help you understand the codeb
 
 ## Key Packages
 
-- `@refract/client-refract`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
+- `@refract/client`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
 - `@refract/schema-parser`: Pure TypeScript parser for `.prisma` files, produces AST for generators.
 - `@refract/migrate`: Programmatic migrations via Kysely (`diff`, `apply`, history APIs).
 - `@refract/config`: Config discovery and dialect creation (PostgreSQL, SQLite priority).
@@ -40,13 +40,13 @@ These documents contain critical context that will help you understand the codeb
 - Prioritize PostgreSQL and SQLite support while structuring code for additional Kysely dialects.
 - Keep schema parsing, client generation, and migrations TypeScript-native—no Rust engine integration.
 - Integrate with Vite via `unplugin-refract`; provide manual fallbacks for non-Vite environments.
-- Tests live alongside packages (`src/__tests__`) and as functional suites under `packages/client-refract`.
+- Tests live alongside packages (`src/__tests__`) and as functional suites under `packages/client`.
 
 ## Code Generation Workflow (IMPORTANT!)
 
 When making changes to the client generator:
 
-1. **Edit source**: Modify `packages/client-refract/src/client-generator.ts`
+1. **Edit source**: Modify `packages/client/src/client-generator.ts`
 2. **Rebuild client package**: `pnpm --filter @refract/client build`
 3. **Rebuild CLI**: `pnpm --filter @refract/cli build`
 4. **Regenerate example client**: `cd examples/basic && node ../../packages/cli/dist/bin.js generate`

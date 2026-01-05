@@ -218,24 +218,6 @@ services:
       timeout: 2s
       retries: 20
 
-  neon_wsproxy:
-    image: ghcr.io/neondatabase/wsproxy:latest
-    environment:
-      APPEND_PORT: 'postgres-16:5432'
-      ALLOW_ADDR_REGEX: '.*'
-      LOG_TRAFFIC: 'true'
-      LOG_CONN_INFO: 'true'
-    ports:
-      - '5488:80'
-    depends_on:
-      - postgres-16
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'nc', '-z', '127.0.0.1', '80']
-      interval: 5s
-      timeout: 2s
-      retries: 20
-
   planetscale_proxy:
     build: ./planetscale_proxy
     environment:
