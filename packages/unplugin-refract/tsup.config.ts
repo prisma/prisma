@@ -17,7 +17,7 @@ export default defineConfig({
     'unplugin',
     'chokidar',
     '@refract/schema-parser',
-    '@refract/client-refract',
+    '@refract/client',
     'vite',
     'webpack',
     'rollup',

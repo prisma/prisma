@@ -1,6 +1,6 @@
 {
   "name": "unplugin-refract",
-  "version": "0.1.0",
+  "version": "0.0.1-alpha.1",
   "description": "The PRIMARY blessed path for Refract development - provides virtual modules for clean .refract/types imports",
   "keywords": [
     "refract",
@@ -46,6 +46,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
+    "README.md",
     "dist"
   ],
   "scripts": {
@@ -63,6 +64,7 @@
     "@refract/client": "workspace:*",
     "@refract/config": "workspace:*",
     "@refract/field-translator": "workspace:*",
+    "@refract/migrate": "workspace:*",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {

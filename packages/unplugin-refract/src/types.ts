@@ -29,6 +29,33 @@ export interface RefractPluginOptions {
   silent?: boolean
 
   /**
+   * Preserve terminal output instead of clearing on regeneration
+   */
+  preserveLogs?: boolean
+
+  /**
+   * Automatically write the generated client to disk (default: true)
+   */
+  autoGenerateClient?: boolean
+
+  /**
+   * Automatically apply migrations on schema change (default: false)
+   */
+  autoMigrate?: boolean
+
+  /**
+   * Migration safety mode (default: 'safe')
+   * - safe: skip destructive changes
+   * - force: apply destructive changes
+   */
+  autoMigrateMode?: 'safe' | 'force'
+
+  /**
+   * Optional hook fired after schema changes are processed
+   */
+  onSchemaChange?: (info: SchemaChangeInfo) => void
+
+  /**
    * Project root directory (default: process.cwd())
    */
   root?: string
@@ -37,6 +64,15 @@ export interface RefractPluginOptions {
    * Production build configuration
    */
   production?: ProductionBuildOptions
+}
+
+export interface SchemaChangeInfo {
+  reason: string
+  schemaPath: string
+  generatedClient: boolean
+  migrated: boolean
+  migrationSkippedReason?: string
+  errors?: string[]
 }
 
 export interface ProductionBuildOptions {

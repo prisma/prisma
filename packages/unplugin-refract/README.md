@@ -89,11 +89,11 @@ Once the plugin is configured, you can use clean imports in your application:
 
 ```typescript
 // The blessed path - just works!
-import { RefractClient } from '@refract/client-refract'
-import { PostgresJSDialect } from 'kysely'
+import { RefractClient } from '@refract/client'
+import { PostgresDialect } from 'kysely'
 
 // Types are automatically available via virtual modules
-const client = new RefractClient(new PostgresJSDialect({ connectionString: process.env.DATABASE_URL }))
+const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL }))
 
 // Fully typed CRUD operations
 const user = await client.user.findUnique({
@@ -125,6 +125,31 @@ interface RefractPluginOptions {
   /** Enable debug logging (default: false) */
   debug?: boolean
 
+  /** Disable all output (default: false) */
+  silent?: boolean
+
+  /** Preserve terminal output instead of clearing on regeneration */
+  preserveLogs?: boolean
+
+  /** Automatically write the generated client to disk (default: true) */
+  autoGenerateClient?: boolean
+
+  /** Automatically apply migrations on schema change (default: false) */
+  autoMigrate?: boolean
+
+  /** Migration safety mode (default: 'safe') */
+  autoMigrateMode?: 'safe' | 'force'
+
+  /** Optional hook fired after schema changes are processed */
+  onSchemaChange?: (info: {
+    reason: string
+    schemaPath: string
+    generatedClient: boolean
+    migrated: boolean
+    migrationSkippedReason?: string
+    errors?: string[]
+  }) => void
+
   /** Project root directory (default: process.cwd()) */
   root?: string
 }
@@ -141,18 +166,17 @@ If you prefer not to use the plugin, you can still use Refract manually:
 ```bash
 # Standard Refract CLI commands work independently
 npx refract generate
-npx refract validate
-npx refract format
+npx refract migrate dev
 ```
 
 ### 2. Import from Generated Files
 
 ```typescript
 // Manual imports from generated files (not recommended)
-import type { User, Post } from './prisma/generated/types'
+import type { DatabaseSchema } from './.refract/types'
 import { RefractClient } from '@refract/client'
 
-const client = new RefractClient(dialect)
+const client = new RefractClient<DatabaseSchema>(dialect)
 ```
 
 ### 3. Manual Type Management

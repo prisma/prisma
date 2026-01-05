@@ -8,6 +8,7 @@ export interface DevOutputOptions {
   debug: boolean
   silent?: boolean
   prefix?: string
+  preserveLogs?: boolean
 }
 
 export class DevOutput {
@@ -32,7 +33,7 @@ export class DevOutput {
     this.isRegenerating = true
 
     // Clear previous output for clean experience
-    if (!this.options.debug) {
+    if (!this.options.debug && !this.options.preserveLogs) {
       console.clear()
     }
 
@@ -201,7 +202,7 @@ export class DevOutput {
   showStartup(schemaPath: string): void {
     if (this.options.silent) return
 
-    if (!this.options.debug) {
+    if (!this.options.debug && !this.options.preserveLogs) {
       console.clear()
     }
 

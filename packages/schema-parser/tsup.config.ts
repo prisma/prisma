@@ -7,7 +7,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['chevrotain', '@prisma/debug'],
+  external: ['chevrotain'],
   minify: false,
   splitting: false,
   bundle: true,

@@ -7,14 +7,22 @@ import { getDefaultOutputDir, loadRefractConfig } from '@refract/config'
 import { parseSchema } from '@refract/schema-parser'
 import { ClientGenerator } from '@refract/client'
 import { detectDialect, type DatabaseDialect } from '@refract/field-translator'
+import { RefractMigrate } from '@refract/migrate'
 import { watch } from 'chokidar'
 import { existsSync, readFileSync } from 'fs'
-import { resolve } from 'path'
+import fs from 'node:fs/promises'
+import path, { resolve } from 'path'
 import { createUnplugin } from 'unplugin'
 
 import { DevOutput } from './dev-output.js'
 import { ProductionBuildManager } from './production-build.js'
-import type { BuildContext, GeneratedTypes, GeneratedClientCode, RefractPluginOptions } from './types.js'
+import type {
+  BuildContext,
+  GeneratedTypes,
+  GeneratedClientCode,
+  RefractPluginOptions,
+  SchemaChangeInfo,
+} from './types.js'
 import { VirtualModuleManager, VirtualModuleResolver, VirtualTypeGenerator } from './virtual-modules.js'
 
 export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {}) => {
@@ -24,6 +32,11 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
     watch: enableWatch = true,
     debug = false,
     silent = false,
+    preserveLogs = false,
+    autoGenerateClient = true,
+    autoMigrate = false,
+    autoMigrateMode = 'safe',
+    onSchemaChange,
     root = process.cwd(),
     production = {},
   } = options
@@ -40,6 +53,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
   const devOutput = new DevOutput({
     debug,
     silent: silent || (buildContext.isProduction && !debug),
+    preserveLogs,
   })
 
   // Initialize virtual module system
@@ -57,7 +71,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
 
   // Generated client state
   let detectedDialect: DatabaseDialect | null = null
-  let refractConfig: any = null
+  let refractConfig: { config: any; configDir: string; configPath: string | null } | null = null
   let generatedClientCode: GeneratedClientCode | null = null
 
   // Legacy debug logging for backward compatibility
@@ -108,6 +122,127 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
       // Fallback to SQLite for compatibility
       detectedDialect = 'sqlite'
       return detectedDialect
+    }
+  }
+
+  const formatList = (label: string, values: string[]): string | null => {
+    if (!values.length) return null
+    const shown = values.slice(0, 3).join(', ')
+    const suffix = values.length > 3 ? `, +${values.length - 3} more` : ''
+    return `${label}: ${shown}${suffix}`
+  }
+
+  const ensureRefractConfig = async () => {
+    if (!refractConfig) {
+      refractConfig = await loadRefractConfig({ cwd: root })
+    }
+    return refractConfig
+  }
+
+  const writeGeneratedClient = async (
+    schemaPath: string,
+    schemaContent: string,
+    config: { generator?: { output?: string } },
+    configDir: string,
+    configPath: string | null,
+  ): Promise<string> => {
+    const parseResult = parseSchema(schemaContent)
+
+    if (parseResult.errors.length > 0) {
+      throw new Error(`Schema parsing failed: ${parseResult.errors.map((e) => e.message).join(', ')}`)
+    }
+
+    const datasource = parseResult.ast.datasources?.[0]
+    const generatorConfig = datasource
+      ? {
+          database: {
+            provider: datasource.provider?.toLowerCase(),
+            url: datasource.url,
+          },
+        }
+      : undefined
+
+    const outputDir = config.generator?.output || getDefaultOutputDir(configPath)
+    const resolvedOutputDir = path.resolve(configDir, outputDir)
+
+    await fs.mkdir(resolvedOutputDir, { recursive: true })
+
+    const generator = new ClientGenerator(parseResult.ast, {
+      includeTypes: true,
+      includeJSDoc: true,
+      esModules: true,
+      config: generatorConfig,
+    })
+
+    const clientContent = generator.generateClientModule()
+    const clientPath = path.join(resolvedOutputDir, 'index.ts')
+    await fs.writeFile(clientPath, clientContent, 'utf-8')
+
+    return clientPath
+  }
+
+  const runMigrations = async (
+    schemaPath: string,
+  ): Promise<{ migrated: boolean; skippedReason?: string; error?: string }> => {
+    const { createKyselyFromConfig } = await import('@refract/config')
+
+    let kysely: Awaited<ReturnType<typeof createKyselyFromConfig>>['kysely'] | null = null
+    try {
+      const result = await createKyselyFromConfig({ cwd: root })
+      kysely = result.kysely
+      const migrate = new RefractMigrate({ useTransaction: true, validateSchema: true })
+
+      const diff = await migrate.diff(kysely, schemaPath)
+
+      if (diff.statements.length === 0) {
+        devOutput.info('No migration changes detected')
+        return { migrated: true }
+      }
+
+      if (autoMigrateMode === 'safe' && diff.hasDestructiveChanges) {
+        const destructiveSummary = [
+          formatList('tablesDropped', diff.summary.tablesDropped),
+          formatList(
+            'columnsDropped',
+            diff.summary.columnsDropped.map((col) => `${col.table}.${col.column}`),
+          ),
+          formatList('foreignKeysDropped', diff.summary.foreignKeysDropped),
+          formatList('enumsDropped', diff.summary.enumsDropped),
+        ]
+          .filter(Boolean)
+          .join(', ')
+
+        const warningSummary =
+          destructiveSummary.length === 0 && diff.impact.warnings.length > 0
+            ? `warnings: ${diff.impact.warnings.slice(0, 2).join('; ')}${diff.impact.warnings.length > 2 ? '…' : ''}`
+            : ''
+        const details = destructiveSummary || warningSummary
+        const reason = details ? `Destructive changes detected (${details})` : 'Destructive changes detected'
+        devOutput.warn(
+          `${reason}. Set autoMigrateMode: 'force' to apply, or run \`refract migrate\` manually.`,
+        )
+        return { migrated: false, skippedReason: reason }
+      }
+
+      devOutput.info(`Applying ${diff.statements.length} migration statement(s)`)
+      const applyResult = await migrate.apply(kysely, schemaPath)
+
+      if (!applyResult.success) {
+        return { migrated: false, error: applyResult.errors.map((err) => err.message).join(', ') }
+      }
+
+      devOutput.info('Migrations applied')
+      return { migrated: true }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (message.includes('better-sqlite3') || message.includes('Missing database driver')) {
+        return { migrated: false, skippedReason: message }
+      }
+      return { migrated: false, error: message }
+    } finally {
+      if (kysely) {
+        await kysely.destroy()
+      }
     }
   }
 
@@ -268,6 +403,12 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
 
   const regenerateTypes = async (reason: string = 'Schema changed') => {
     const schemaPath = resolveSchemaPath()
+    const changeInfo: SchemaChangeInfo = {
+      reason,
+      schemaPath,
+      generatedClient: false,
+      migrated: false,
+    }
 
     // Start progress indication
     devOutput.startRegeneration(reason)
@@ -320,6 +461,8 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
       moduleManager.setModule('types', typeGenerator.generateErrorModule('Failed to parse schema'))
       moduleManager.setModule('client', typeGenerator.generateErrorModule('Generated client unavailable due to schema errors'))
       moduleManager.setModule('client-types', typeGenerator.generateErrorModule('Client types unavailable due to schema errors'))
+      changeInfo.errors = ['Schema parsing failed']
+      onSchemaChange?.(changeInfo)
       return
     }
 
@@ -371,6 +514,48 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
       devOutput.completeRegeneration(modelCount, Object.keys(updates).length)
       devOutput.debug(`Generated modules: ${Object.keys(updates).join(', ')}${clientStatus}`)
     }
+
+    if (autoGenerateClient) {
+      try {
+        const configResult = await ensureRefractConfig()
+        const configDir = configResult?.configDir || root
+        const configPath = configResult?.configPath || null
+        const clientPath = await writeGeneratedClient(
+          schemaPath,
+          schemaContent,
+          configResult.config,
+          configDir,
+          configPath,
+        )
+        changeInfo.generatedClient = true
+        devOutput.info(`Client written to ${path.relative(root, clientPath)}`)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        changeInfo.errors = [...(changeInfo.errors || []), message]
+        devOutput.warn(`Client generation failed: ${message}`)
+      }
+    }
+
+    if (autoMigrate) {
+      try {
+        await ensureRefractConfig()
+        const migrationResult = await runMigrations(schemaPath)
+        changeInfo.migrated = migrationResult.migrated
+        if (migrationResult.skippedReason) {
+          changeInfo.migrationSkippedReason = migrationResult.skippedReason
+        }
+        if (migrationResult.error) {
+          changeInfo.errors = [...(changeInfo.errors || []), migrationResult.error]
+          devOutput.warn(`Migration failed: ${migrationResult.error}`)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        changeInfo.errors = [...(changeInfo.errors || []), message]
+        devOutput.warn(`Migration failed: ${message}`)
+      }
+    }
+
+    onSchemaChange?.(changeInfo)
   }
 
   const debouncedRegenerateTypes = (reason: string = 'Schema changed') => {

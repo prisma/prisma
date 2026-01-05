@@ -1,6 +1,6 @@
 {
   "name": "@refract/schema-parser",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.1",
   "description": "TypeScript-native Prisma Schema Language parser for Refract ORM",
   "type": "module",
   "main": "dist/index.js",
@@ -14,12 +14,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/prisma/prisma.git",
+    "url": "https://github.com/jharrell/refract.git",
     "directory": "packages/schema-parser"
   },
-  "homepage": "https://www.prisma.io",
+  "homepage": "https://github.com/jharrell/refract",
   "author": "Refract Team",
-  "bugs": "https://github.com/prisma/prisma/issues",
+  "bugs": "https://github.com/jharrell/refract/issues",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "tsup --watch",
@@ -41,7 +41,6 @@
     "vitest": "3.2.4"
   },
   "dependencies": {
-    "@prisma/debug": "workspace:*",
     "chevrotain": "^11.0.3"
   },
   "peerDependencies": {
@@ -51,6 +50,9 @@
     "typescript": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=20.0.0"
