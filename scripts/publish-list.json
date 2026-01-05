@@ -1,0 +1,30 @@
+[
+  {
+    "name": "@refract/cli",
+    "path": "packages/cli"
+  },
+  {
+    "name": "@refract/client",
+    "path": "packages/client"
+  },
+  {
+    "name": "@refract/schema-parser",
+    "path": "packages/schema-parser"
+  },
+  {
+    "name": "@refract/field-translator",
+    "path": "packages/field-translator"
+  },
+  {
+    "name": "@refract/migrate",
+    "path": "packages/migrate"
+  },
+  {
+    "name": "@refract/config",
+    "path": "packages/config"
+  },
+  {
+    "name": "unplugin-refract",
+    "path": "packages/unplugin-refract"
+  }
+]
