@@ -1,4 +1,4 @@
-# @refract/client-refract
+# @refract/client
 
 TypeScript-native client runtime for Refract ORM with two clean usage paths.
 
@@ -10,10 +10,10 @@ Use `unplugin-refract` for automatic type discovery:
 
 ```typescript
 // unplugin-refract makes this import work seamlessly
-import { RefractClient } from '@refract/client-refract'
-import { PostgresJSDialect } from 'kysely'
+import { RefractClient } from '@refract/client'
+import { PostgresDialect } from 'kysely'
 
-const client = new RefractClient(new PostgresJSDialect({ connectionString: process.env.DATABASE_URL }))
+const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL }))
 
 // Types are automatically available via unplugin virtual modules
 await client.user.findMany()
@@ -24,11 +24,11 @@ await client.user.findMany()
 When unplugin isn't available, import types explicitly:
 
 ```typescript
-import { RefractClient } from '@refract/client-refract'
-import { PostgresJSDialect } from 'kysely'
+import { RefractClient } from '@refract/client'
+import { PostgresDialect } from 'kysely'
 import type { DatabaseSchema } from './.refract/types'
 
-const client = new RefractClient<DatabaseSchema>(new PostgresJSDialect({ connectionString: process.env.DATABASE_URL }))
+const client = new RefractClient<DatabaseSchema>(new PostgresDialect({ connectionString: process.env.DATABASE_URL }))
 
 await client.user.findMany()
 ```
@@ -56,9 +56,9 @@ const posts = await client.post.findMany({
 **Current Support (Phase 0)**:
 - ✅ Many-to-one relations (e.g., Post → User)
 - ✅ One-to-one relations
-- ⏳ One-to-many relations (e.g., User → Post[]) - Coming in Phase 1
+- ✅ One-to-many relations (e.g., User → Post[])
+- ✅ Relation filters in `where` (`some`, `every`, `none`, `is`, `isNot`)
 - ⏳ Nested includes - Coming in Phase 1
-- ⏳ Relation filters in `where` - Coming in Phase 1
 
 ## Direct Kysely Access
 
@@ -72,7 +72,7 @@ const result = await client.$kysely.selectFrom('user').innerJoin('post', 'user.i
 ## Installation
 
 ```bash
-npm install @refract/client-refract kysely
+npm install @refract/client kysely
 npm install unplugin-refract # Recommended for best experience
 ```
 

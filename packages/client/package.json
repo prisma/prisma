@@ -1,6 +1,6 @@
 {
   "name": "@refract/client",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.1",
   "description": "Type-safe database client with CRUD operations for Refract ORM",
   "type": "module",
   "main": "dist/index.js",
@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/jharrell/refract.git",
-    "directory": "packages/client-refract"
+    "directory": "packages/client"
   },
   "scripts": {
     "dev": "tsup --watch",
@@ -66,6 +66,9 @@
     "typescript": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=20.0.0"
