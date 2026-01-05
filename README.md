@@ -31,6 +31,7 @@ While right now Refract is a dinky one-man show, we have a clear vision of a mat
 - **Prisma schema compatibility**: Use your existing `.prisma` files without modification
 - **Type-safe client API**: Generated Prisma-like client with CRUD operations that map to Kysely queries
 - **Relation loading**: Support for `include` to fetch related records with proper typing
+- **Relation filtering**: `where` filters across relations (`some`, `every`, `none`, `is`, `isNot`)
 - **Kysely integration**: Direct access via `$kysely` for advanced queries
 - **Programmatic migrations**: `diff()` and `apply()` APIs that work through Kysely
 - **Modern CLI**: `refract init`, `refract generate`, and `refract migrate` commands
@@ -46,7 +47,7 @@ For architectural details, see `ARCHITECTURE.md`. For the delivery timeline, see
 
 ## Key Packages
 
-- `packages/client-refract` (`@refract/client`): Kysely-backed client runtime and code generator.
+- `packages/client` (`@refract/client`): Kysely-backed client runtime and code generator.
 - `packages/schema-parser`: TypeScript-native parser for `.prisma` schemas.
 - `packages/field-translator`: Database-specific field transformation code generators.
 - `packages/migrate`: Programmatic migration engine powered by Kysely.
@@ -56,16 +57,51 @@ For architectural details, see `ARCHITECTURE.md`. For the delivery timeline, see
 
 Each package is ESM-only and published to the `@refract/*` namespace once stabilized.
 
-## Getting Started (Preview)
+## Getting Started (Alpha)
+
+Refract supports two workflows:
+
+1. **Vite + unplugin (recommended)**: auto-generates the client and keeps `.refract/types` in sync.
+2. **CLI-only (Prisma-style)**: run `refract generate` and `refract migrate` manually.
+
+### 1) Vite + unplugin (recommended)
 
 ```bash
-pnpm install
+pnpm add -D @refract/cli unplugin-refract
+npx refract init
+pnpm dev
+```
 
-# Build workspace packages
-pnpm build
+Add the plugin in `vite.config.ts`:
 
-# Explore the client demo
-pnpm --filter @refract/client demo
+```ts
+import { defineConfig } from 'vite'
+import refract from 'unplugin-refract/vite'
+
+export default defineConfig({
+  plugins: [
+    refract({
+      autoGenerateClient: true,
+      autoMigrate: true,
+    }),
+  ],
+})
+```
+
+### 2) CLI-only (Prisma-style)
+
+```bash
+# Install the CLI
+pnpm add -D @refract/cli
+
+# Initialize config + schema
+npx refract init
+
+# Generate the client
+npx refract generate
+
+# Apply migrations (dev)
+npx refract migrate dev
 ```
 
 > Note: Refract is under active development. APIs may change during Phase 0 as we converge on the end-to-end example. Track progress in `DELIVERY_ROADMAP.md` and `NEXT_STEPS.md`.
@@ -75,14 +111,14 @@ pnpm --filter @refract/client demo
 1. Edit or create your `schema.prisma`.
 2. Use `pnpm --filter @refract/schema-parser test` to exercise parsing changes.
 3. Run `pnpm --filter @refract/client build` (or `pnpm watch`) to regenerate the client runtime.
-4. Use the CLI for init/generate/migrate flows (e.g., `cd examples/basic && pnpm generate`).
+4. Use the CLI for init/generate/migrate flows.
 5. Launch the demo project (Vite + unplugin) to validate type generation and CRUD operations.
 
 ## Contributing
 
-This repository is transitioning from the Prisma codebase. When touching legacy files, prefer modernizing them to align with Refract’s TypeScript-native strategy. Follow our workspace conventions:
+Refract is TypeScript-first. Follow our workspace conventions:
 
-- Node.js ≥ 20, pnpm ≥ 9.14.4.
+- Node.js ≥ 20, pnpm ≥ 10.
 - `pnpm lint`, `pnpm test`, and `pnpm build` at the workspace root before submitting changes.
 - Database-backed tests require Docker containers defined in `/docker`.
 

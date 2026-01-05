@@ -37,3 +37,8 @@ jobs:
 
       - name: CLI Help
         run: node packages/cli/dist/bin.js --help
+
+      - name: CLI Generate (Vite demo)
+        run: |
+          cd examples/vite
+          node ../../packages/cli/dist/bin.js generate

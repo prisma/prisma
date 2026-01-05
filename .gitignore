@@ -38,6 +38,7 @@ esm
 dev.db
 junit.xml
 /output.txt
+/sandbox
 
 .envrc.local
 

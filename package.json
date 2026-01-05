@@ -10,11 +10,9 @@
     "build": "pnpm -r build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
     "demo:postgres": "pnpm --filter @refract/example-basic demo",
-    "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
-    "publish-all": "tsx scripts/ci/publish.ts --publish",
-    "test": "dotenv -e ../../.db.env -- tsx scripts/ci/publish.ts --test",
-    "status": "tsx scripts/ci/publish.ts --status",
-    "pull": "tsx scripts/ci/publish.ts --pull",
+    "publish-dryrun": "tsx scripts/publish.ts --dry-run",
+    "publish": "tsx scripts/publish.ts",
+    "test": "pnpm -r test",
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
     "precommit": "lint-staged",
     "eslint": "eslint",
@@ -97,7 +95,10 @@
       "allowedVersions": {
         "@octokit/core": ">=3"
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   },
   "lint-staged": {
     "*.{md,yml,json}": "prettier --check",
@@ -142,7 +143,9 @@
     "ignorePaths": [],
     "dictionaryDefinitions": [],
     "dictionaries": [],
-    "words": ["Kysely"],
+    "words": [
+      "Kysely"
+    ],
     "ignoreWords": [],
     "import": []
   }
