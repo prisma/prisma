@@ -90,9 +90,9 @@ export function generateConfigContent(
   delete config.generator
 
   const configLines = [
-    "import { defineConfig } from '@refract/cli'",
+    "import type { RefractConfig } from '@refract/config'",
     '',
-    'export default defineConfig({',
+    'export default {',
     '  datasource: {',
     `    provider: '${provider}',`,
     `    url: '${url}',`,
@@ -116,7 +116,7 @@ export function generateConfigContent(
     "    output: './.refract',",
     '  },',
     "  schema: './schema.prisma',",
-    '})',
+    '} satisfies RefractConfig',
     '',
   )
 

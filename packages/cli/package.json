@@ -1,6 +1,6 @@
 {
   "name": "@refract/cli",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.1",
   "description": "CLI for Refract ORM",
   "type": "module",
   "main": "dist/index.js",
@@ -63,7 +63,7 @@
     "kysely": "^0.27.4",
     "pg": "^8.12.0",
     "mysql2": "^3.11.4",
-    "better-sqlite3": "^11.6.0"
+    "better-sqlite3": "^12.5.0"
   },
   "devDependencies": {
     "@swc/core": "1.11.5",
@@ -75,7 +75,7 @@
     "kysely": "^0.27.4",
     "pg": "^8.12.0",
     "mysql2": "^3.11.4",
-    "better-sqlite3": "^11.6.0",
+    "better-sqlite3": "^12.5.0",
     "tsup": "^8.3.5",
     "tsx": "4.19.3",
     "typescript": "5.4.5",
@@ -88,6 +88,9 @@
     "typescript": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=20.0.0"

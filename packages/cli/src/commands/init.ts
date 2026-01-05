@@ -1,5 +1,5 @@
 /* import { PROVIDER_URL_PATTERNS } from '@refract/config' - not used, removed for lint */
-import { existsSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 import prompts from 'prompts'
 
@@ -7,8 +7,24 @@ import { CONFIG_TEMPLATES, generateConfigContent, generateEnvContent } from '../
 import { generateSchemaContent, SCHEMA_TEMPLATES } from '../templates/schema.js'
 import type { CommandResult, InitOptions } from '../types.js'
 import { BaseCommand } from '../utils/command.js'
-import { cliCreateKyselyFromUrl, cliLoadRefractConfig } from '../utils/config-error-handler.js'
+import { cliCreateKyselyFromUrl } from '../utils/config-error-handler.js'
 import { logger } from '../utils/logger.js'
+
+const CONFIG_EXTENSIONS = ['.js', '.ts', '.mjs', '.cjs', '.mts', '.cts']
+
+const findExistingConfigPath = (cwd: string): string | null => {
+  const directConfig = CONFIG_EXTENSIONS.map((ext) => resolve(cwd, `refract.config${ext}`))
+  const nestedConfig = CONFIG_EXTENSIONS.map((ext) => resolve(cwd, '.config', `refract${ext}`))
+  const candidates = [...directConfig, ...nestedConfig]
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate
+    }
+  }
+
+  return null
+}
 
 /**
  * Initialize a new Refract project
@@ -19,14 +35,8 @@ export class InitCommand extends BaseCommand {
 
     logger.info('Initializing Refract project...')
 
-    // Check if config already exists using enhanced detection logic
-    let existingConfigPath: string | null = null
-    try {
-      const { configPath } = await cliLoadRefractConfig({ cwd })
-      existingConfigPath = configPath
-    } catch {
-      // No config found - this is expected for new projects
-    }
+    // Check if config already exists using direct filesystem detection
+    const existingConfigPath = findExistingConfigPath(cwd)
 
     if (existingConfigPath && !options.force) {
       return {
@@ -52,6 +62,9 @@ export class InitCommand extends BaseCommand {
 
     // Generate configuration file
     await this.generateConfigFile(configPath, answers)
+
+    // Ensure type helper dependency for config validation
+    await this.ensureConfigDependency(cwd)
 
     // Generate environment file
     if (!options.skipEnv) {
@@ -199,6 +212,63 @@ export class InitCommand extends BaseCommand {
       logger.info('   - Update the d1DatabaseId in refract.config.ts')
       logger.info('   - Use wrangler for local development: wrangler d1 execute')
     }
+  }
+
+  private async ensureConfigDependency(cwd: string): Promise<void> {
+    const packagePath = resolve(cwd, 'package.json')
+
+    if (!existsSync(packagePath)) {
+      logger.info('No package.json found. Install @refract/config for type checking when you add one.')
+      return
+    }
+
+    try {
+      const packageJson = JSON.parse(readFileSync(packagePath, 'utf8')) as {
+        dependencies?: Record<string, string>
+        devDependencies?: Record<string, string>
+      }
+
+      if (packageJson.dependencies?.['@refract/config'] || packageJson.devDependencies?.['@refract/config']) {
+        return
+      }
+
+      const version = this.getCliVersion()
+      packageJson.devDependencies = {
+        ...packageJson.devDependencies,
+        '@refract/config': version,
+      }
+
+      writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8')
+      logger.success('Added @refract/config to devDependencies')
+    } catch (error) {
+      logger.info('Could not update package.json. Install @refract/config for type checking if needed.')
+      if (process.env.DEBUG) {
+        logger.debug(`package.json update failed: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+  }
+
+  private getCliVersion(): string {
+    try {
+      if (process.env.npm_package_version) {
+        return process.env.npm_package_version
+      }
+
+      const binPath = process.argv[1]
+      if (!binPath) {
+        return '0.0.1-alpha.1'
+      }
+
+      const packagePath = resolve(binPath, '..', 'package.json')
+      const packageJson = JSON.parse(readFileSync(packagePath, 'utf8')) as { version?: string }
+      if (packageJson.version) {
+        return packageJson.version
+      }
+    } catch {
+      // Fall back to a reasonable default when running from source.
+    }
+
+    return '0.0.1-alpha.1'
   }
 }
 

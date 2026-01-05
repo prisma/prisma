@@ -12,8 +12,7 @@ export interface SchemaTemplate {
  * Generate schema content for a specific provider
  */
 export function generateSchemaContent(provider: string): string {
-  const baseSchema = `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+  const baseSchema = `// This is your Refract schema file (.prisma syntax).
 
 generator client {
   provider = "@refract/client"
