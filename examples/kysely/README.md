@@ -17,7 +17,7 @@ This example demonstrates the low-level `$kysely` API for direct Kysely query ac
 
 - Node.js >= 20
 - Docker (for Testcontainers)
-- pnpm >= 9
+- pnpm >= 10
 
 ## Setup
 

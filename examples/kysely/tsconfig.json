@@ -18,5 +18,5 @@
     "types": ["node", "vitest/globals"]
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "generated"]
+  "exclude": ["node_modules", "dist", ".refract"]
 }

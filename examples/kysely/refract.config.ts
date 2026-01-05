@@ -8,6 +8,6 @@ export default defineConfig({
   },
   generator: {
     provider: 'refract',
-    output: './generated',
+    output: './.refract',
   },
 })

@@ -1,0 +1,29 @@
+{
+  "name": "@refract/example-vite",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vite tooling demo for Refract client generation and migrations",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "generate": "refract generate",
+    "generate:local": "node ../../packages/cli/dist/bin.js generate"
+  },
+  "dependencies": {
+    "@refract/client": "workspace:*",
+    "@refract/config": "workspace:*",
+    "@refract/migrate": "workspace:*",
+    "@refract/schema-parser": "workspace:*",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.5.0",
+    "kysely": "^0.27.4",
+    "unplugin-refract": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.5",
+    "vite": "^6.1.0"
+  }
+}

@@ -10,7 +10,7 @@ This example demonstrates the high-level Prisma-like API with generated client c
 - ✅ Programmatic migrations via `RefractMigrate`
 - ✅ Type-safe CRUD operations (`create`, `findUnique`, `findMany`, `update`, `count`)
 - ✅ Relation loading with `include`
-- ✅ Filtering with `where` clauses
+- ✅ Filtering with `where` clauses (including relation filters: `some`, `every`, `none`, `is`, `isNot`)
 - ✅ Ordering with `orderBy`
 - ✅ Transactions with `$transaction`
 
@@ -18,7 +18,7 @@ This example demonstrates the high-level Prisma-like API with generated client c
 
 - Node.js >= 20
 - Docker (for Testcontainers)
-- pnpm >= 9
+- pnpm >= 10
 
 ## Setup
 
@@ -32,7 +32,7 @@ This example demonstrates the high-level Prisma-like API with generated client c
    pnpm generate
    ```
 
-   This runs `refract generate` to create the typed client in `./generated/` based on your `schema.prisma`.
+   This runs `refract generate` to create the typed client in `./.refract/` based on your `schema.prisma`.
 
 3. Run the demo:
    ```bash
@@ -60,7 +60,7 @@ The schema includes three models with relations:
 ## Example Usage
 
 ```typescript
-import { RefractClient } from './generated/index.js'
+import { RefractClient } from './.refract/index.js'
 
 const client = new RefractClient(dialect)
 await client.$connect()
@@ -84,21 +84,26 @@ const publishedPosts = await client.post.findMany({
   where: { published: true },
   orderBy: { createdAt: 'desc' }
 })
+
+// Relation filtering
+const usersWithPublishedPosts = await client.user.findMany({
+  where: { posts: { some: { published: true } } }
+})
 ```
 
 ## Client Generation
 
 The `refract generate` command reads `schema.prisma` and generates:
 
-- `generated/index.ts` - Main client with model delegates
-- `generated/models.d.ts` - TypeScript type definitions for models
-- `generated/schema.d.ts` - Database schema types
+- `.refract/index.ts` - Main client with model delegates
+- `.refract/models.d.ts` - TypeScript type definitions for models
+- `.refract/schema.d.ts` - Database schema types
 
 All operations are fully type-safe based on your schema.
 
 ## Next Steps
 
-- Explore the generated client code in `./generated/`
+- Explore the generated client code in `./.refract/`
 - Modify the schema and regenerate to see type changes
 - Compare with the `kysely` example to see low-level `$kysely` API usage
 - Try filtering, pagination, and complex queries

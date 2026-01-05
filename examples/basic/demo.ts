@@ -8,7 +8,7 @@
  * - Transactions with the same API surface
  */
 
-import { RefractClient } from './generated/index.js'
+import { RefractClient } from './.refract/index.js'
 import { PostgreSqlContainer } from '@testcontainers/postgresql'
 import { RefractMigrate } from '@refract/migrate'
 import { PostgresDialect } from 'kysely'
