@@ -7,10 +7,13 @@ import { sql } from 'kysely'
 import type {
   AnyKyselyDatabase,
   AnyKyselyTransaction,
+  DatabaseColumn,
   DatabaseEnum,
   DatabaseForeignKey,
+  DatabaseIndex,
   DatabaseSchema,
   DatabaseTable,
+  DatabaseUniqueConstraint,
   DetailedMigrationSummary,
   EnhancedMigrationHistoryEntry,
   MigrationDiff,
@@ -37,6 +40,14 @@ interface MigrationHistoryRow {
   success: boolean
 }
 
+type SqliteCapabilities = {
+  version: string
+  supportsRenameColumn: boolean
+  supportsDropColumn: boolean
+}
+
+const INTERNAL_MIGRATION_TABLES = new Set(['_refract_migrations', '_refract_migration_locks'])
+
 /**
  * Main migration engine class that works directly with Kysely dialect instances
  */
@@ -62,7 +73,11 @@ export class RefractMigrate {
 
       const currentSchema = await this.introspectDatabase(kyselyInstance)
 
-      const diff = this.generateDiff(kyselyInstance, currentSchema, schemaAST)
+      const dialect = this.getDialectFromSchema(schemaAST)
+      const sqliteCapabilities =
+        dialect === 'sqlite' ? await this.getSqliteCapabilities(kyselyInstance) : null
+
+      const diff = await this.generateDiff(kyselyInstance, currentSchema, schemaAST, dialect, sqliteCapabilities)
 
       return diff
     } catch (error) {
@@ -752,19 +767,26 @@ export class RefractMigrate {
       const introspector = kyselyInstance.introspection
 
       const tableMetadata = await introspector.getTables()
+      const visibleTables = tableMetadata.filter((table) => !INTERNAL_MIGRATION_TABLES.has(table.name))
+      const sqliteCapabilities = await this.getSqliteCapabilities(kyselyInstance)
+      const isSqlite = sqliteCapabilities !== null
 
       const databaseTables = await Promise.all(
-        tableMetadata.map(async (table) => {
-          const columns = table.columns.map((col) => ({
-            name: col.name,
-            type: col.dataType,
-            nullable: col.isNullable,
-            defaultValue: col.hasDefaultValue ? 'DEFAULT' : undefined,
-            autoIncrement: col.isAutoIncrementing,
-            comment: col.comment,
-          }))
+        visibleTables.map(async (table) => {
+          const columns = isSqlite
+            ? await this.getSqliteColumns(kyselyInstance, table.name)
+            : table.columns.map((col) => ({
+                name: col.name,
+                type: col.dataType,
+                nullable: col.isNullable,
+                defaultValue: col.hasDefaultValue ? 'DEFAULT' : undefined,
+                autoIncrement: col.isAutoIncrementing,
+                comment: col.comment,
+              }))
 
-          const additionalConstraints = await this.getAdditionalConstraints(kyselyInstance, table.name)
+          const additionalConstraints = isSqlite
+            ? await this.getSqliteConstraints(kyselyInstance, table.name)
+            : await this.getAdditionalConstraints(kyselyInstance, table.name)
 
           return {
             name: table.name,
@@ -858,13 +880,13 @@ export class RefractMigrate {
     }
   }
 
-  private generateDiff(
+  private async generateDiff(
     kyselyInstance: AnyKyselyDatabase,
     currentSchema: DatabaseSchema,
     targetSchemaAST: SchemaAST,
-  ): MigrationDiff {
-    // Extract dialect from schema for type mapping
-    const dialect = this.getDialectFromSchema(targetSchemaAST)
+    dialect: DatabaseDialect,
+    sqliteCapabilities: SqliteCapabilities | null,
+  ): Promise<MigrationDiff> {
 
     const summary: MigrationSummary = {
       tablesCreated: [],
@@ -888,7 +910,9 @@ export class RefractMigrate {
     const tablesAffected: string[] = []
 
     try {
-      const currentTables = new Map(currentSchema.tables.map((t) => [t.name, t]))
+      const currentTables = new Map(
+        currentSchema.tables.filter((t) => !INTERNAL_MIGRATION_TABLES.has(t.name)).map((t) => [t.name, t]),
+      )
       const targetModels = new Map(targetSchemaAST.models.map((m) => [m.name, m]))
 
       for (const [modelName, model] of targetModels) {
@@ -935,7 +959,13 @@ export class RefractMigrate {
       for (const [tableName, currentTable] of currentTables) {
         const targetModel = targetModels.get(tableName)
         if (targetModel) {
-          const tableDiff = this.compareTableStructure(kyselyInstance, currentTable, targetModel, dialect)
+          const tableDiff = this.compareTableStructure(
+            kyselyInstance,
+            currentTable,
+            targetModel,
+            dialect,
+            sqliteCapabilities,
+          )
 
           if (tableDiff.hasChanges) {
             summary.tablesModified.push(tableName)
@@ -958,39 +988,54 @@ export class RefractMigrate {
               hasDestructiveChanges = true
               warnings.push(`Modifying columns in '${tableName}' may cause data loss`)
             }
-          }
 
-          // Compare foreign keys for this table
-          const foreignKeyDiff = this.compareForeignKeys(kyselyInstance, currentTable, targetModel)
-          if (foreignKeyDiff.hasChanges) {
-            statements.push(...foreignKeyDiff.statements)
-            summary.foreignKeysCreated.push(...foreignKeyDiff.foreignKeysCreated)
-            summary.foreignKeysDropped.push(...foreignKeyDiff.foreignKeysDropped)
-            if (!summary.tablesModified.includes(tableName)) {
-              summary.tablesModified.push(tableName)
-            }
-            if (!tablesAffected.includes(tableName)) {
-              tablesAffected.push(tableName)
-            }
-
-            // Foreign key drops are potentially destructive
-            if (foreignKeyDiff.foreignKeysDropped.length > 0) {
-              hasDestructiveChanges = true
-              warnings.push(`Dropping foreign key constraints from '${tableName}' may affect data integrity`)
+            if (tableDiff.requiresTableRebuild) {
+              warnings.push(`SQLite will rebuild table '${tableName}' to apply column changes`)
             }
           }
 
-          // Compare indexes for this table (including unique, multi-column, and custom indexes)
-          const indexDiff = this.compareIndexes(kyselyInstance, currentTable, targetModel)
-          if (indexDiff.hasChanges) {
-            statements.push(...indexDiff.statements)
-            summary.indexesCreated.push(...indexDiff.indexesCreated)
-            summary.indexesDropped.push(...indexDiff.indexesDropped)
-            if (!summary.tablesModified.includes(tableName)) {
-              summary.tablesModified.push(tableName)
+          if (dialect === 'sqlite') {
+            const sqliteForeignKeys = this.extractForeignKeysFromModel(targetModel)
+            if (sqliteForeignKeys.length > 0 && (tableDiff.hasChanges || summary.tablesCreated.includes(tableName))) {
+              warnings.push(
+                `SQLite does not support altering foreign keys; constraints for '${tableName}' are ignored in migrations`,
+              )
             }
-            if (!tablesAffected.includes(tableName)) {
-              tablesAffected.push(tableName)
+          } else {
+            // Compare foreign keys for this table
+            const foreignKeyDiff = this.compareForeignKeys(kyselyInstance, currentTable, targetModel)
+            if (foreignKeyDiff.hasChanges) {
+              statements.push(...foreignKeyDiff.statements)
+              summary.foreignKeysCreated.push(...foreignKeyDiff.foreignKeysCreated)
+              summary.foreignKeysDropped.push(...foreignKeyDiff.foreignKeysDropped)
+              if (!summary.tablesModified.includes(tableName)) {
+                summary.tablesModified.push(tableName)
+              }
+              if (!tablesAffected.includes(tableName)) {
+                tablesAffected.push(tableName)
+              }
+
+              // Foreign key drops are potentially destructive
+              if (foreignKeyDiff.foreignKeysDropped.length > 0) {
+                hasDestructiveChanges = true
+                warnings.push(`Dropping foreign key constraints from '${tableName}' may affect data integrity`)
+              }
+            }
+          }
+
+          if (!(dialect === 'sqlite' && tableDiff.requiresTableRebuild)) {
+            // Compare indexes for this table (including unique, multi-column, and custom indexes)
+            const indexDiff = this.compareIndexes(kyselyInstance, currentTable, targetModel)
+            if (indexDiff.hasChanges) {
+              statements.push(...indexDiff.statements)
+              summary.indexesCreated.push(...indexDiff.indexesCreated)
+              summary.indexesDropped.push(...indexDiff.indexesDropped)
+              if (!summary.tablesModified.includes(tableName)) {
+                summary.tablesModified.push(tableName)
+              }
+              if (!tablesAffected.includes(tableName)) {
+                tablesAffected.push(tableName)
+              }
             }
           }
         }
@@ -1044,9 +1089,10 @@ export class RefractMigrate {
     kyselyInstance: AnyKyselyDatabase,
     model: ModelAST,
     dialect: DatabaseDialect,
+    tableNameOverride?: string,
   ): string {
     try {
-      const tableName = this.getTableName(model)
+      const tableName = tableNameOverride ?? this.getTableName(model)
       let createTableBuilder = kyselyInstance.schema.createTable(tableName)
 
       // Only create columns for fields that should be in the database
@@ -1097,6 +1143,34 @@ export class RefractMigrate {
 
           return col
         })
+      }
+
+      if (dialect === 'sqlite') {
+        const foreignKeys = this.extractForeignKeysFromModel(model)
+        for (const fk of foreignKeys) {
+          createTableBuilder = createTableBuilder.addForeignKeyConstraint(
+            fk.name,
+            fk.columns as never[],
+            fk.referencedTable,
+            fk.referencedColumns as never[],
+            (constraint) => {
+              let builder = constraint
+              if (fk.onDelete) {
+                const normalizedAction = this.normalizeSqliteFkActionForBuilder(fk.onDelete)
+                if (normalizedAction) {
+                  builder = builder.onDelete(normalizedAction)
+                }
+              }
+              if (fk.onUpdate) {
+                const normalizedAction = this.normalizeSqliteFkActionForBuilder(fk.onUpdate)
+                if (normalizedAction) {
+                  builder = builder.onUpdate(normalizedAction)
+                }
+              }
+              return builder
+            },
+          )
+        }
       }
 
       const compiledQuery = createTableBuilder.compile()
@@ -1195,12 +1269,14 @@ export class RefractMigrate {
     currentTable: DatabaseTable,
     targetModel: ModelAST,
     dialect: DatabaseDialect,
+    sqliteCapabilities: SqliteCapabilities | null,
   ): {
     hasChanges: boolean
     columnsAdded: string[]
     columnsModified: Array<{ name: string; change: string; isDestructive: boolean }>
     columnsDropped: string[]
     statements: string[]
+    requiresTableRebuild: boolean
   } {
     const result = {
       hasChanges: false,
@@ -1208,6 +1284,7 @@ export class RefractMigrate {
       columnsModified: [] as Array<{ name: string; change: string; isDestructive: boolean }>,
       columnsDropped: [] as string[],
       statements: [] as string[],
+      requiresTableRebuild: false,
     }
 
     try {
@@ -1215,6 +1292,10 @@ export class RefractMigrate {
       const targetFields = new Map(
         targetModel.fields.filter((f) => this.shouldCreateDatabaseColumn(f)).map((f) => [f.name, f]),
       )
+      const pendingStatements: string[] = []
+      const isSqlite = dialect === 'sqlite'
+      const supportsDropColumn = sqliteCapabilities?.supportsDropColumn ?? false
+      const primaryKeyColumns = new Set(currentTable.primaryKey || [])
 
       for (const [fieldName, field] of targetFields) {
         if (!currentColumns.has(fieldName)) {
@@ -1243,7 +1324,7 @@ export class RefractMigrate {
             })
 
           const compiledQuery = alterTableBuilder.compile()
-          result.statements.push(compiledQuery.sql)
+          pendingStatements.push(compiledQuery.sql)
         }
       }
 
@@ -1252,10 +1333,13 @@ export class RefractMigrate {
           result.hasChanges = true
           result.columnsDropped.push(columnName)
 
-          const dropColumnBuilder = kyselyInstance.schema.alterTable(currentTable.name).dropColumn(columnName)
-
-          const compiledQuery = dropColumnBuilder.compile()
-          result.statements.push(compiledQuery.sql)
+          if (isSqlite && !supportsDropColumn) {
+            result.requiresTableRebuild = true
+          } else {
+            const dropColumnBuilder = kyselyInstance.schema.alterTable(currentTable.name).dropColumn(columnName)
+            const compiledQuery = dropColumnBuilder.compile()
+            pendingStatements.push(compiledQuery.sql)
+          }
         }
       }
 
@@ -1264,8 +1348,12 @@ export class RefractMigrate {
         if (targetField) {
           const targetType = this.mapFieldTypeToSQL(targetField, dialect)
           const targetNullable = targetField.isOptional
+          const normalizedCurrentType = isSqlite ? currentColumn.type.toLowerCase() : currentColumn.type
+          const normalizedTargetType = isSqlite ? targetType.toLowerCase() : targetType
+          const normalizedCurrentNullable =
+            isSqlite && primaryKeyColumns.has(columnName) ? false : currentColumn.nullable
 
-          if (currentColumn.type !== targetType) {
+          if (normalizedCurrentType !== normalizedTargetType) {
             result.hasChanges = true
             result.columnsModified.push({
               name: columnName,
@@ -1273,36 +1361,46 @@ export class RefractMigrate {
               isDestructive: this.isTypeChangeDestructive(currentColumn.type, targetType),
             })
 
-            const alterColumnBuilder = kyselyInstance.schema
-              .alterTable(currentTable.name)
-              .alterColumn(columnName, (col) => col.setDataType(targetType as never))
-
-            const compiledQuery = alterColumnBuilder.compile()
-            result.statements.push(compiledQuery.sql)
+            if (isSqlite) {
+              result.requiresTableRebuild = true
+            } else {
+              const alterColumnBuilder = kyselyInstance.schema
+                .alterTable(currentTable.name)
+                .alterColumn(columnName, (col) => col.setDataType(targetType as never))
+              const compiledQuery = alterColumnBuilder.compile()
+              pendingStatements.push(compiledQuery.sql)
+            }
           }
 
-          if (currentColumn.nullable !== targetNullable) {
+          if (normalizedCurrentNullable !== targetNullable) {
             result.hasChanges = true
             result.columnsModified.push({
               name: columnName,
-              change: `nullable: ${currentColumn.nullable} → ${targetNullable}`,
-              isDestructive: !targetNullable && currentColumn.nullable,
+              change: `nullable: ${normalizedCurrentNullable} → ${targetNullable}`,
+              isDestructive: !targetNullable && normalizedCurrentNullable,
             })
 
-            const alterColumnBuilder = kyselyInstance.schema
-              .alterTable(currentTable.name)
-              .alterColumn(columnName, (col) => {
-                return targetNullable ? col.dropNotNull() : col.setNotNull()
-              })
-
-            const compiledQuery = alterColumnBuilder.compile()
-            result.statements.push(compiledQuery.sql)
+            if (isSqlite) {
+              result.requiresTableRebuild = true
+            } else {
+              const alterColumnBuilder = kyselyInstance.schema
+                .alterTable(currentTable.name)
+                .alterColumn(columnName, (col) => {
+                  return targetNullable ? col.dropNotNull() : col.setNotNull()
+                })
+              const compiledQuery = alterColumnBuilder.compile()
+              pendingStatements.push(compiledQuery.sql)
+            }
           }
 
           // Compare default values
           const currentDefault = this.normalizeDefaultValue(currentColumn.defaultValue)
           const targetDefault = this.extractDefaultValueFromField(targetField)
           const normalizedTargetDefault = this.normalizeDefaultValue(targetDefault)
+
+          if (isSqlite) {
+            continue
+          }
 
           if (currentDefault !== normalizedTargetDefault) {
             result.hasChanges = true
@@ -1313,19 +1411,34 @@ export class RefractMigrate {
               isDestructive: false, // Default changes are generally not destructive
             })
 
-            // Generate ALTER statement for default value change
-            if (normalizedTargetDefault === null) {
-              // Remove default
-              result.statements.push(`ALTER TABLE "${currentTable.name}" ALTER COLUMN "${columnName}" DROP DEFAULT`)
+            if (isSqlite) {
+              result.requiresTableRebuild = true
             } else {
-              // Set new default
-              const defaultSQL = this.formatDefaultValueForSQL(targetDefault)
-              result.statements.push(
-                `ALTER TABLE "${currentTable.name}" ALTER COLUMN "${columnName}" SET DEFAULT ${defaultSQL}`,
-              )
+              // Generate ALTER statement for default value change
+              if (normalizedTargetDefault === null) {
+                // Remove default
+                pendingStatements.push(`ALTER TABLE "${currentTable.name}" ALTER COLUMN "${columnName}" DROP DEFAULT`)
+              } else {
+                // Set new default
+                const defaultSQL = this.formatDefaultValueForSQL(targetDefault)
+                pendingStatements.push(
+                  `ALTER TABLE "${currentTable.name}" ALTER COLUMN "${columnName}" SET DEFAULT ${defaultSQL}`,
+                )
+              }
             }
           }
         }
+      }
+
+      if (result.requiresTableRebuild && isSqlite) {
+        result.statements = this.buildSqliteTableRebuildStatements(
+          kyselyInstance,
+          currentTable,
+          targetModel,
+          dialect,
+        )
+      } else {
+        result.statements = pendingStatements
       }
 
       return result
@@ -1447,12 +1560,252 @@ export class RefractMigrate {
     return 'postgresql'
   }
 
+  private async getSqliteCapabilities(kyselyInstance: AnyKyselyDatabase): Promise<SqliteCapabilities | null> {
+    try {
+      const result = await sql<{ version: string }>`select sqlite_version() as version`.execute(kyselyInstance)
+      const version = result.rows?.[0]?.version || '0.0.0'
+      if (version === '0.0.0') {
+        return null
+      }
+      const supportsRenameColumn = this.isSqliteVersionAtLeast(version, 3, 25, 0)
+      const supportsDropColumn = this.isSqliteVersionAtLeast(version, 3, 35, 0)
+      return {
+        version,
+        supportsRenameColumn,
+        supportsDropColumn,
+      }
+    } catch (error) {
+      return null
+    }
+  }
+
+  private isSqliteVersionAtLeast(version: string, major: number, minor: number, patch: number): boolean {
+    const [vMajor, vMinor, vPatch] = version
+      .split('.')
+      .slice(0, 3)
+      .map((part) => Number.parseInt(part, 10))
+      .map((value) => (Number.isFinite(value) ? value : 0))
+    if (vMajor !== major) {
+      return vMajor > major
+    }
+    if (vMinor !== minor) {
+      return vMinor > minor
+    }
+    return vPatch >= patch
+  }
+
+  private buildSqliteTableRebuildStatements(
+    kyselyInstance: AnyKyselyDatabase,
+    currentTable: DatabaseTable,
+    targetModel: ModelAST,
+    dialect: DatabaseDialect,
+  ): string[] {
+    const tableName = currentTable.name
+    const tempTableName = `_refract_tmp_${tableName}_${Date.now()}`
+    const statements: string[] = []
+
+    statements.push(this.generateCreateTableStatement(kyselyInstance, targetModel, dialect, tempTableName))
+
+    const currentColumns = new Set(currentTable.columns.map((col) => col.name))
+    const targetColumns = targetModel.fields
+      .filter((field) => this.shouldCreateDatabaseColumn(field))
+      .map((field) => field.name)
+    const columnsToCopy = targetColumns.filter((column) => currentColumns.has(column))
+
+    if (columnsToCopy.length > 0) {
+      const quotedColumns = columnsToCopy.map((column) => `"${column}"`).join(', ')
+      statements.push(
+        `INSERT INTO "${tempTableName}" (${quotedColumns}) SELECT ${quotedColumns} FROM "${tableName}"`,
+      )
+    }
+
+    statements.push(`DROP TABLE "${tableName}"`)
+    statements.push(`ALTER TABLE "${tempTableName}" RENAME TO "${tableName}"`)
+
+    const targetIndexes = this.extractIndexesFromModel(targetModel)
+    for (const index of targetIndexes) {
+      statements.push(
+        this.generateCreateIndexSQL(
+          index.name,
+          tableName,
+          index.columns,
+          index.unique,
+          true,
+        ),
+      )
+    }
+
+    return statements
+  }
+
+  private async getSqliteColumns(kyselyInstance: AnyKyselyDatabase, tableName: string): Promise<DatabaseColumn[]> {
+    const pragmaTable = this.quoteSqliteIdentifier(tableName)
+    const rows = await this.querySqlitePragma<{
+      name: string
+      type: string
+      notnull: number
+      dflt_value: any
+      pk: number
+    }>(kyselyInstance, `PRAGMA table_info("${pragmaTable}")`)
+
+    return rows.map((row) => ({
+      name: row.name,
+      type: row.type,
+      nullable: row.notnull === 0,
+      defaultValue: row.dflt_value,
+      autoIncrement: false,
+    }))
+  }
+
+  private async getSqliteConstraints(
+    kyselyInstance: AnyKyselyDatabase,
+    tableName: string,
+  ): Promise<{
+    primaryKey: string[]
+    foreignKeys: DatabaseForeignKey[]
+    uniqueConstraints: DatabaseUniqueConstraint[]
+    indexes: DatabaseIndex[]
+  }> {
+    const pragmaTable = this.quoteSqliteIdentifier(tableName)
+    const tableInfo = await this.querySqlitePragma<{ name: string; pk: number }>(
+      kyselyInstance,
+      `PRAGMA table_info("${pragmaTable}")`,
+    )
+    const primaryKey = tableInfo.filter((col) => col.pk > 0).sort((a, b) => a.pk - b.pk).map((col) => col.name)
+
+    const indexList = await this.querySqlitePragma<{
+      name: string
+      unique: number
+      origin: string
+    }>(kyselyInstance, `PRAGMA index_list("${pragmaTable}")`)
+
+    const indexes: DatabaseIndex[] = []
+    const uniqueConstraints: DatabaseUniqueConstraint[] = []
+
+    for (const index of indexList) {
+      if (index.origin === 'pk') {
+        continue
+      }
+
+      if (index.origin !== 'c' && index.origin !== 'u') {
+        continue
+      }
+
+      const indexName = index.name
+      const pragmaIndex = this.quoteSqliteIdentifier(indexName)
+      const indexInfo = await this.querySqlitePragma<{ name: string; seqno: number }>(
+        kyselyInstance,
+        `PRAGMA index_info("${pragmaIndex}")`,
+      )
+      const columns = indexInfo.sort((a, b) => a.seqno - b.seqno).map((col) => col.name)
+
+      const entry: DatabaseIndex = {
+        name: indexName,
+        tableName,
+        columns,
+        unique: index.unique === 1,
+      }
+      indexes.push(entry)
+
+      if (entry.unique) {
+        uniqueConstraints.push({
+          name: entry.name,
+          columns: entry.columns,
+        })
+      }
+    }
+
+    const foreignKeyRows = await this.querySqlitePragma<{
+      id: number
+      seq: number
+      table: string
+      from: string
+      to: string
+      on_update: string
+      on_delete: string
+    }>(kyselyInstance, `PRAGMA foreign_key_list("${pragmaTable}")`)
+
+    const foreignKeys: DatabaseForeignKey[] = []
+    const grouped = new Map<number, typeof foreignKeyRows>()
+    for (const row of foreignKeyRows) {
+      const existing = grouped.get(row.id)
+      if (existing) {
+        existing.push(row)
+      } else {
+        grouped.set(row.id, [row])
+      }
+    }
+
+    for (const rows of grouped.values()) {
+      const ordered = rows.sort((a, b) => a.seq - b.seq)
+      const referencedTable = ordered[0]?.table ?? ''
+      const columns = ordered.map((row) => row.from)
+      const referencedColumns = ordered.map((row) => row.to)
+      const constraintName = `fk_${tableName}_${columns.join('_')}_${referencedTable}`
+      foreignKeys.push({
+        name: constraintName,
+        columns,
+        referencedTable,
+        referencedColumns,
+        onDelete: this.normalizeSqliteFkAction(ordered[0]?.on_delete),
+        onUpdate: this.normalizeSqliteFkAction(ordered[0]?.on_update),
+      })
+    }
+
+    return {
+      primaryKey,
+      foreignKeys,
+      uniqueConstraints,
+      indexes,
+    }
+  }
+
+  private normalizeSqliteFkAction(action?: string): DatabaseForeignKey['onDelete'] {
+    if (!action) return undefined
+    const normalized = action.toUpperCase()
+    if (normalized === 'CASCADE' || normalized === 'SET NULL' || normalized === 'RESTRICT' || normalized === 'NO ACTION') {
+      return normalized
+    }
+    return undefined
+  }
+
+  private normalizeSqliteFkActionForBuilder(
+    action: DatabaseForeignKey['onDelete'],
+  ): 'no action' | 'restrict' | 'cascade' | 'set null' | 'set default' | undefined {
+    if (!action) return undefined
+    const normalized = action.toLowerCase()
+    if (
+      normalized === 'no action' ||
+      normalized === 'restrict' ||
+      normalized === 'cascade' ||
+      normalized === 'set null' ||
+      normalized === 'set default'
+    ) {
+      return normalized
+    }
+    return undefined
+  }
+
+  private quoteSqliteIdentifier(identifier: string): string {
+    return identifier.replace(/"/g, '""')
+  }
+
+  private async querySqlitePragma<T>(kyselyInstance: AnyKyselyDatabase, statement: string): Promise<T[]> {
+    const result = await sql.raw(statement).execute(kyselyInstance)
+    return result.rows as T[]
+  }
+
   private mapFieldTypeToSQL(field: FieldAST, dialect: DatabaseDialect): string {
     try {
       // Get the appropriate generator for this dialect
       const generator = transformationRegistry.getGenerator(dialect)
       if (generator) {
-        return generator.getDatabaseColumnType(field)
+        const type = generator.getDatabaseColumnType(field)
+        // Kysely's SQLite schema builder expects lowercase type keywords.
+        if (dialect === 'sqlite') {
+          return type.toLowerCase()
+        }
+        return type
       }
     } catch (error) {
       // Fall back to basic type mapping if field-translator fails
@@ -1576,6 +1929,23 @@ export class RefractMigrate {
     const conflicts: string[] = []
     const visited = new Set<string>()
     const recursionStack = new Set<string>()
+    const modelMap = new Map(models.map((model) => [model.name, model]))
+
+    const isDirectBackReference = (currentModel: string, referencedModel: string, path: string[]): boolean => {
+      const parent = path[path.length - 1]
+      if (!parent || parent !== referencedModel) {
+        return false
+      }
+
+      const parentModel = modelMap.get(parent)
+      if (!parentModel) {
+        return false
+      }
+
+      return parentModel.fields.some(
+        (field) => this.isRelationField(field) && this.extractReferencedModel(field) === currentModel,
+      )
+    }
 
     const detectCycle = (modelName: string, path: string[]): boolean => {
       if (recursionStack.has(modelName)) {
@@ -1591,12 +1961,16 @@ export class RefractMigrate {
       visited.add(modelName)
       recursionStack.add(modelName)
 
-      const model = models.find((m) => m.name === modelName)
+      const model = modelMap.get(modelName)
       if (model) {
         for (const field of model.fields) {
           if (this.isRelationField(field)) {
             const referencedModel = this.extractReferencedModel(field)
-            if (referencedModel && detectCycle(referencedModel, [...path, modelName])) {
+            if (
+              referencedModel &&
+              !isDirectBackReference(modelName, referencedModel, path) &&
+              detectCycle(referencedModel, [...path, modelName])
+            ) {
               return true
             }
           }
@@ -1817,13 +2191,13 @@ export class RefractMigrate {
           checksum,
           appliedAt: new Date().toISOString(),
           executionTime,
-          success: true,
+          success: 1,
           statements: JSON.stringify(diff.statements),
           dependencies: JSON.stringify([]),
           schemaVersion: `v${Date.now()}`,
           rollbackStatements: rollbackInfo ? JSON.stringify(rollbackInfo.rollbackStatements) : null,
           rollbackChecksum: rollbackInfo?.rollbackChecksum || null,
-          canRollback: rollbackInfo?.canRollback || false,
+          canRollback: rollbackInfo?.canRollback ? 1 : 0,
           rollbackWarnings: rollbackInfo ? JSON.stringify(rollbackInfo.warnings) : null,
         })
         .execute()
@@ -1964,12 +2338,12 @@ export class RefractMigrate {
           checksum: rollbackInfo.rollbackChecksum,
           appliedAt: new Date().toISOString(),
           executionTime,
-          success: true,
+          success: 1,
           statements: JSON.stringify(rollbackInfo.rollbackStatements),
           dependencies: JSON.stringify([]),
           rollbackStatements: null,
           rollbackChecksum: null,
-          canRollback: false,
+          canRollback: 0,
         })
         .execute()
     } catch (error) {

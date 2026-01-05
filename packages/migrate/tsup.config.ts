@@ -7,7 +7,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['kysely', '@prisma/debug', '@refract/schema-parser'],
+  external: ['kysely', '@refract/schema-parser'],
   minify: false,
   splitting: false,
   bundle: true,
