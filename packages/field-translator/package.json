@@ -1,8 +1,15 @@
 {
   "name": "@refract/field-translator",
-  "version": "0.1.0",
+  "version": "0.0.1-alpha.1",
   "description": "Build-time database-specific field transformation code generators for Refract ORM",
-  "keywords": ["refract", "orm", "database", "typescript", "code generation", "build-time"],
+  "keywords": [
+    "refract",
+    "orm",
+    "database",
+    "typescript",
+    "code generation",
+    "build-time"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -13,7 +20,10 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "README.md",
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest",
@@ -28,11 +38,20 @@
     "typescript": "^5.3.0",
     "vitest": "^1.0.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "tsup": {
-    "entry": ["src/index.ts"],
-    "format": ["esm"],
+    "entry": [
+      "src/index.ts"
+    ],
+    "format": [
+      "esm"
+    ],
     "dts": true,
     "clean": true,
-    "external": ["@refract/schema-parser"]  
+    "external": [
+      "@refract/schema-parser"
+    ]
   }
 }
