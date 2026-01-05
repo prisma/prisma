@@ -1,3 +1,4 @@
+import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -14,12 +15,10 @@ export default testMatrix.setupSchema(({ provider }) => {
       PENDING  @map("pending")
       ACCEPTED @map("accepted")
       REJECTED @map("rejected")
-
-      @@map("SuggestionStatus")
     }
 
     model SuggestionModel {
-      id                 Int              @id @default(autoincrement())
+      id                 ${idForProvider(provider, { includeDefault: true })}
       suggestedContent   String           @map("suggested_content")
       status             SuggestionStatus @default(PENDING)
 
