@@ -25,7 +25,8 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
         const metadata = PROVIDER_METADATA.postgresql
         throw new Error(
           `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
-            `Install with: npm install ${metadata.packages.join(' ')}`,
+            `Install with: npm install ${metadata.packages.join(' ')}. ` +
+            `Original error: ${importError instanceof Error ? importError.message : String(importError)}`,
         )
       }
     }
@@ -47,7 +48,8 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
         const metadata = PROVIDER_METADATA.neon
         throw new Error(
           `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
-            `Install with: npm install ${metadata.packages.join(' ')}`,
+            `Install with: npm install ${metadata.packages.join(' ')}. ` +
+            `Original error: ${importError instanceof Error ? importError.message : String(importError)}`,
         )
       }
     }
@@ -66,7 +68,8 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
         const metadata = PROVIDER_METADATA.mysql
         throw new Error(
           `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
-            `Install with: npm install ${metadata.packages.join(' ')}`,
+            `Install with: npm install ${metadata.packages.join(' ')}. ` +
+            `Original error: ${importError instanceof Error ? importError.message : String(importError)}`,
         )
       }
     }
@@ -84,7 +87,8 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
         const metadata = PROVIDER_METADATA.sqlite
         throw new Error(
           `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
-            `Install with: npm install ${metadata.packages.join(' ')}`,
+            `Install with: npm install ${metadata.packages.join(' ')}. ` +
+            `Original error: ${importError instanceof Error ? importError.message : String(importError)}`,
         )
       }
     }
@@ -113,7 +117,8 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
         const metadata = PROVIDER_METADATA.d1
         throw new Error(
           `${metadata.name} provider requires ${metadata.packages.join(', ')} package(s). ` +
-            `Install with: npm install ${metadata.packages.join(' ')}`,
+            `Install with: npm install ${metadata.packages.join(' ')}. ` +
+            `Original error: ${importError instanceof Error ? importError.message : String(importError)}`,
         )
       }
     }

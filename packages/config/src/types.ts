@@ -14,7 +14,7 @@ export const RefractConfigSchema = z.object({
   generator: z
     .object({
       provider: z.string().default('@refract/client'),
-      output: z.string().default('./node_modules/@refract/client'),
+      output: z.string().default('./.refract'),
     })
     .optional(),
   schema: z.string().default('./schema.prisma'),

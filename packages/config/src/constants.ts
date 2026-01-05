@@ -50,7 +50,7 @@ export const PROVIDER_METADATA: Record<
 > = {
   postgresql: {
     name: 'PostgreSQL',
-    packages: ['pg', '@types/pg'],
+    packages: ['pg'],
     description: 'Standard PostgreSQL driver using node-postgres',
   },
 
@@ -68,7 +68,7 @@ export const PROVIDER_METADATA: Record<
 
   sqlite: {
     name: 'SQLite',
-    packages: ['better-sqlite3', '@types/better-sqlite3'],
+    packages: ['better-sqlite3'],
     description: 'SQLite driver using better-sqlite3',
   },
 

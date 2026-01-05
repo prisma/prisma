@@ -1,6 +1,6 @@
 {
   "name": "@refract/config",
-  "version": "0.1.0",
+  "version": "0.0.1-alpha.1",
   "description": "Shared configuration and Kysely instance management for Refract",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,8 +12,8 @@
     }
   },
   "files": [
-    "dist",
-    "src"
+    "README.md",
+    "dist"
   ],
   "scripts": {
     "build": "tsup",
@@ -28,7 +28,7 @@
   },
   "peerDependencies": {
     "@neondatabase/serverless": "*",
-    "better-sqlite3": "*",
+    "better-sqlite3": "^12.5.0",
     "kysely-d1": "*",
     "mysql2": "*",
     "pg": "*"
@@ -55,13 +55,16 @@
     "@types/better-sqlite3": "*",
     "@types/node": "^20.0.0",
     "@types/pg": "*",
-    "better-sqlite3": "*",
+    "better-sqlite3": "^12.5.0",
     "kysely-d1": "*",
     "mysql2": "*",
     "pg": "*",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=18.0.0"

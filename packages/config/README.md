@@ -4,7 +4,7 @@ Shared configuration and Kysely instance management for Refract packages.
 
 ## Purpose
 
-This package centralizes configuration loading and Kysely instance creation across all Refract packages (`cli`, `migrate`, `client-refract`), eliminating duplication and ensuring consistent database setup.
+This package centralizes configuration loading and Kysely instance creation across all Refract packages (`cli`, `migrate`, `client`), eliminating duplication and ensuring consistent database setup.
 
 ## Key Features
 
