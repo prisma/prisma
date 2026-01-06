@@ -1,5 +1,5 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
-import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
+import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 import type { O } from 'ts-toolbelt'
@@ -68,7 +68,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.datamodel.enums
   .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
   .join('\n\n')}
@@ -76,10 +76,7 @@ ${this.dmmf.datamodel.enums
 ${new Enum(
   {
     name: 'ModelName',
-    data: this.dmmf.mappings.modelOperations.map((m) => ({
-      key: m.model,
-      value: m.model,
-    })),
+    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
 ).toJS()}
@@ -132,9 +129,7 @@ Object.assign(exports, Prisma)
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) =>
-      new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toTS(),
-    )
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
@@ -186,10 +181,7 @@ ${indent(
 ${new Enum(
   {
     name: 'ModelName',
-    data: this.dmmf.mappings.modelOperations.map((m) => ({
-      key: m.model,
-      value: m.model,
-    })),
+    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
 ).toTS()}
@@ -282,16 +274,13 @@ export const dmmf: runtime.BaseDMMF
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
     name: 'ModelName',
-    data: this.dmmf.mappings.modelOperations.map((m) => ({
-      key: m.model,
-      value: m.model,
-    })),
+    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
 ).toJS()}
