@@ -2,6 +2,7 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
+  PrismaValue,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -15,7 +16,11 @@ import {
   PrismaClientUnknownRequestError,
 } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
-import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type {
+  ArgType,
+  IsolationLevel as SqlIsolationLevel,
+  SqlDriverAdapterFactory,
+} from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import type { TracingHelper } from '@prisma/instrumentation-contract'
 import { assertNever } from '@prisma/internals'
@@ -453,15 +458,19 @@ export class ClientEngine implements Engine {
     })
 
     let queryPlan: QueryPlanNode
-    try {
-      queryPlan = this.#withLocalPanicHandler(() =>
-        this.#withCompileSpan({
-          queries: [query],
-          execute: () => queryCompiler.compile(queryStr) as QueryPlanNode,
-        }),
-      )
-    } catch (error) {
-      throw this.#transformCompileError(error)
+    if (isRawQuery(query)) {
+      queryPlan = compileRawQuery(query)
+    } else {
+      try {
+        queryPlan = this.#withLocalPanicHandler(() =>
+          this.#withCompileSpan({
+            queries: [query],
+            execute: () => queryCompiler.compile(queryStr) as QueryPlanNode,
+          }),
+        )
+      } catch (error) {
+        throw this.#transformCompileError(error)
+      }
     }
 
     try {
@@ -511,15 +520,24 @@ export class ClientEngine implements Engine {
     })
 
     let batchResponse: BatchResponse
-    try {
-      batchResponse = this.#withLocalPanicHandler(() =>
-        this.#withCompileSpan({
-          queries,
-          execute: () => queryCompiler.compileBatch(request),
-        }),
-      )
-    } catch (err) {
-      throw this.#transformCompileError(err)
+
+    const allRaw = queries.filter(isRawQuery)
+    if (allRaw.length === queries.length) {
+      batchResponse = {
+        type: 'multi',
+        plans: allRaw.map((q) => compileRawQuery(q)),
+      }
+    } else {
+      try {
+        batchResponse = this.#withLocalPanicHandler(() =>
+          this.#withCompileSpan({
+            queries,
+            execute: () => queryCompiler.compileBatch(request),
+          }),
+        )
+      } catch (err) {
+        throw this.#transformCompileError(err)
+      }
     }
 
     try {
@@ -678,4 +696,24 @@ function getErrorMessageWithLink(engine: ClientEngine, title: string, query?: st
     database: engine.config.activeProvider as any,
     query,
   })
+}
+
+function isRawQuery(query: JsonQuery): query is JsonQuery & { action: 'queryRaw' | 'executeRaw' } {
+  return query.action === 'queryRaw' || query.action === 'executeRaw'
+}
+
+function compileRawQuery(query: JsonQuery & { action: 'queryRaw' | 'executeRaw' }): QueryPlanNode {
+  const sql = query.query.arguments!['query']
+  const args = JSON.parse(query.query.arguments!['parameters'] as string) as PrismaValue[]
+  const argTypes = args.map((arg) => ({
+    scalarType: 'unknown',
+    arity: Array.isArray(arg) ? 'list' : 'scalar',
+  })) satisfies ArgType[]
+
+  const queryArgs = { type: 'rawSql', sql, args, argTypes } as const
+  const type = query.action === 'queryRaw' ? 'query' : 'execute'
+  return {
+    type,
+    args: queryArgs,
+  }
 }
