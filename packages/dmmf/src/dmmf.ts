@@ -19,7 +19,6 @@ export type OtherOperationMappings = ReadonlyDeep<{
   write: string[]
 }>
 
-// Type of `context.dmmf.datamodel.enums[number]`
 export type DatamodelEnum = ReadonlyDeep<{
   name: string
   values: EnumValue[]
@@ -27,18 +26,9 @@ export type DatamodelEnum = ReadonlyDeep<{
   documentation?: string
 }>
 
-// Type of `dmmf.schema.enumTypes.{prisma,models}`
-export type DatamodelSchemaEnum = ReadonlyDeep<{
-  name: string
-  values: string[]
-}>
-
 export type SchemaEnum = ReadonlyDeep<{
   name: string
-  data: {
-    key: string
-    value: string
-  }[]
+  values: string[]
 }>
 
 export type EnumValue = ReadonlyDeep<{
@@ -152,8 +142,8 @@ export type Schema = ReadonlyDeep<{
     prisma: OutputType[]
   }
   enumTypes: {
-    model?: DatamodelSchemaEnum[]
-    prisma: DatamodelSchemaEnum[]
+    model?: SchemaEnum[]
+    prisma: SchemaEnum[]
   }
   fieldRefTypes: {
     prisma?: FieldRefType[]
