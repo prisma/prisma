@@ -9,7 +9,7 @@ import type { RefractConfig } from './types.js'
  * export default defineConfig({
  *   datasource: {
  *     provider: 'postgresql',
- *     url: process.env.DATABASE_URL
+ *     url: process.env.DATABASE_URL!
  *   }
  * })
  * ```

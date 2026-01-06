@@ -54,6 +54,21 @@ describe('InitCommand', () => {
     expect(existsSync('schema.prisma')).toBe(true)
   })
 
+  it('should write schema.prisma with the provided URL', async () => {
+    const command = new InitCommand()
+    const url = 'postgresql://test:test@localhost:5432/test'
+
+    const result = await command.execute({
+      url,
+    })
+
+    expect(result.success).toBe(true)
+
+    const schemaContent = readFileSync('schema.prisma', 'utf8')
+    expect(schemaContent).toContain(`url      = "${url}"`)
+    expect(schemaContent).not.toContain('env("DATABASE_URL")')
+  })
+
   it('should create refract.config.ts with all supported providers', async () => {
     const command = new InitCommand()
     const testCases = [

@@ -42,7 +42,7 @@ export type {
 /**
  * Create a new RefractMigrate instance with the provided Kysely database instance
  *
- * @param kyselyInstance - Any Kysely dialect instance (kysely-d1, kysely-planetscale, etc.)
+ * @param kyselyInstance - Any Kysely dialect instance (PostgreSQL, MySQL, SQLite, or D1)
  * @param options - Optional configuration for migration behavior
  * @returns RefractMigrate instance ready for diff() and apply() operations
  *
@@ -54,7 +54,7 @@ export type {
  *
  * const db = new Kysely({
  *   dialect: new PostgresDialect({
- *     pool: new Pool({ connectionString: process.env.DATABASE_URL })
+ *     pool: new Pool({ connectionString: 'postgresql://user:pass@localhost:5432/db' })
  *   })
  * })
  *

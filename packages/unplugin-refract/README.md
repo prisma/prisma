@@ -93,7 +93,7 @@ import { RefractClient } from '@refract/client'
 import { PostgresDialect } from 'kysely'
 
 // Types are automatically available via virtual modules
-const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL }))
+const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL! }))
 
 // Fully typed CRUD operations
 const user = await client.user.findUnique({

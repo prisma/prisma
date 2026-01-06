@@ -1,7 +1,7 @@
 /**
  * Generate schema content for a specific provider
  */
-export function generateSchemaContent(provider: string): string {
+export function generateSchemaContent(provider: string, url: string = ''): string {
   const baseSchema = `// This is your Refract schema file (.prisma syntax).
 
 generator client {
@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "${provider}"
-  url      = env("DATABASE_URL")
+  url      = "${url}"
 }
 
 model User {

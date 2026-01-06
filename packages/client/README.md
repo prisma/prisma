@@ -13,7 +13,7 @@ Use `unplugin-refract` for automatic type discovery:
 import { RefractClient } from '@refract/client'
 import { PostgresDialect } from 'kysely'
 
-const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL }))
+const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL! }))
 
 // Types are automatically available via unplugin virtual modules
 await client.user.findMany()
@@ -28,7 +28,9 @@ import { RefractClient } from '@refract/client'
 import { PostgresDialect } from 'kysely'
 import type { DatabaseSchema } from './.refract/types'
 
-const client = new RefractClient<DatabaseSchema>(new PostgresDialect({ connectionString: process.env.DATABASE_URL }))
+const client = new RefractClient<DatabaseSchema>(
+  new PostgresDialect({ connectionString: process.env.DATABASE_URL! })
+)
 
 await client.user.findMany()
 ```

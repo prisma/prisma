@@ -28,7 +28,6 @@ import { parseSchema } from '@refract/schema-parser'
 const schema = `
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {

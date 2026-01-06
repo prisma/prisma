@@ -197,7 +197,7 @@ export class InitCommand extends BaseCommand {
       return
     }
 
-    const schemaContent = generateSchemaContent(config.provider)
+    const schemaContent = generateSchemaContent(config.provider, config.url)
 
     writeFileSync(schemaPath, schemaContent, 'utf8')
     logger.success('Created schema.prisma')
@@ -220,11 +220,9 @@ export class InitCommand extends BaseCommand {
 
     if (isViteProject) {
       logger.info('3. Start your dev server (Refract will auto-generate and migrate): pnpm dev')
-      logger.info('4. Start building your application!')
     } else {
       logger.info('3. Run your first migration: npx refract migrate dev')
       logger.info('4. Generate the client: npx refract generate')
-      logger.info('5. Start building your application!')
     }
 
     if (config.provider === 'd1') {
