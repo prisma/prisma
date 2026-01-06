@@ -21,7 +21,7 @@ pnpm install
 ## Build
 
 ```bash
-pnpm -r build
+pnpm build
 ```
 
 For faster local dev:
@@ -36,11 +36,9 @@ pnpm -r run dev
 pnpm -r test
 ```
 
-Database-backed tests require Docker. See `docker/README.md`.
-
 ## Examples
 
-Vite demo (recommended for Phase 0):
+Vite demo:
 
 ```bash
 pnpm --filter @refract/cli build
@@ -49,7 +47,7 @@ node ../../packages/cli/dist/bin.js generate
 pnpm dev
 ```
 
-Postgres demo (optional):
+Postgres demo:
 
 ```bash
 pnpm demo:postgres
