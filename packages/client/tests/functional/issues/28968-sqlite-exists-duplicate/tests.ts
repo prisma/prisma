@@ -34,8 +34,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'sqlite', 'sqlserver', 'postgresql', 'mysql', 'cockroachdb'],
-      reason: 'this test is for a SQlite implementation bug',
+      from: ['mongodb', 'sqlserver', 'postgresql', 'mysql', 'cockroachdb'],
+      reason: 'this test is for a SQLite implementation bug',
     },
   },
 )
