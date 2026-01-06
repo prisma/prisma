@@ -134,7 +134,7 @@ describe('ClientGenerator', () => {
 
     expect(output).toContain('export class RefractClient extends RefractClientBase')
     expect(output).toContain('declare readonly user: UserOperations')
-    expect(output).toContain('super(dialect, { modelFactory: createModelOperations })')
+    expect(output).toContain('super(dialect, { modelFactory: createModelOperations, log: options?.log })')
     expect(output).toContain('const createModelOperations = (kysely: Kysely<DatabaseSchema>) => ({')
   })
 
@@ -142,7 +142,7 @@ describe('ClientGenerator', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
 
-    expect(output).toContain('export function createRefractClient(dialect: Dialect): RefractClient')
+    expect(output).toContain('export function createRefractClient(dialect: Dialect, options?: RefractClientOptions): RefractClient')
   })
 
   it('should generate relation include types and logic', () => {

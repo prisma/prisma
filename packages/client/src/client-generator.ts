@@ -93,7 +93,7 @@ export class ClientGenerator {
       ${importStyle} { RefractClientBase } ${fromStyle} '@refract/client'
       ${importStyle} { createKyselyDialect, loadRefractConfig } ${fromStyle} '@refract/config'
       ${importStyle} { Kysely } ${fromStyle} 'kysely'
-      ${importStyle} type { Dialect, ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder, Expression, SqlBool, ReferenceExpression, Selectable } ${fromStyle} 'kysely'
+      ${importStyle} type { Dialect, ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder, Expression, SqlBool, ReferenceExpression, Selectable, LogConfig } ${fromStyle} 'kysely'
 
       ${jsonHelperImport}
     `
@@ -1612,9 +1612,13 @@ ${includeFields}
  * Database dialect: ${this.dialect}
  * No runtime schema parsing - all model operations are embedded at generation time
  */
+export interface RefractClientOptions {
+  log?: LogConfig
+}
+
 export class RefractClient extends RefractClientBase<DatabaseSchema> {
-${declarationsBlock}  constructor(dialect: Dialect) {
-    super(dialect, { modelFactory: createModelOperations })
+${declarationsBlock}  constructor(dialect: Dialect, options?: RefractClientOptions) {
+    super(dialect, { modelFactory: createModelOperations, log: options?.log })
   }
 }`
   }
@@ -1623,8 +1627,8 @@ ${declarationsBlock}  constructor(dialect: Dialect) {
     return `/**
  * Factory function for creating RefractClient instances
  */
-export function createRefractClient(dialect: Dialect): RefractClient {
-  return new RefractClient(dialect)
+export function createRefractClient(dialect: Dialect, options?: RefractClientOptions): RefractClient {
+  return new RefractClient(dialect, options)
 }
 
 /**

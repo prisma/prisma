@@ -1,27 +1,36 @@
-import { parseSchema } from '@refract/schema-parser'
-import { ClientGenerator } from '../../client-generator'
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
+import { parseSchema } from '@refract/schema-parser'
+import { ClientGenerator } from '../../client-generator'
+
+export interface TestClientOptions {
+  schemaPath?: string
+  dialect?: 'postgresql' | 'mysql' | 'sqlite'
+  outputFileName?: string
+}
 
 /**
  * Generate a Refract client from the test schema
  * Writes the generated client to a temporary location and returns the path
  */
-export function generateTestClient(): string {
-  // Read test schema
-  const schemaPath = join(__dirname, 'test-schema.prisma')
+export function generateTestClient(options: TestClientOptions = {}): string {
+  const schemaPath = options.schemaPath ?? join(__dirname, 'test-schema.prisma')
+  const dialect = options.dialect ?? 'postgresql'
   const schemaContent = readFileSync(schemaPath, 'utf-8')
 
   // Parse schema
   const { ast: schemaAST } = parseSchema(schemaContent)
 
   // Generate client code
-  const generator = new ClientGenerator(schemaAST, { dialect: 'postgresql' })
+  const generator = new ClientGenerator(schemaAST, { dialect })
   const generatedCode = generator.generateClientModule()
 
   // Write to temporary location
   const outputDir = join(__dirname, '../fixtures')
-  const outputPath = join(outputDir, 'generated-test-client.ts')
+  const outputFileName =
+    options.outputFileName ??
+    (dialect === 'postgresql' ? 'generated-test-client.ts' : `generated-test-client-${dialect}.ts`)
+  const outputPath = join(outputDir, outputFileName)
 
   mkdirSync(outputDir, { recursive: true })
   writeFileSync(outputPath, generatedCode, 'utf-8')
@@ -33,8 +42,8 @@ export function generateTestClient(): string {
  * Import the generated test client
  * Returns the createRefractClient function from the generated code
  */
-export async function importTestClient() {
-  const clientPath = generateTestClient()
+export async function importTestClient(options: TestClientOptions = {}) {
+  const clientPath = generateTestClient(options)
 
   // Dynamic import with cache busting
   const timestamp = Date.now()

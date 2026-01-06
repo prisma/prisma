@@ -26,14 +26,14 @@ const { kysely, config } = await createKyselyFromConfig()
 // With explicit config
 const { kysely } = await createKyselyFromConfig({
   config: {
-    datasource: { provider: 'postgresql', url: 'postgres://...' },
+    datasource: { provider: 'postgresql', url: process.env.DATABASE_URL! },
     schema: './schema.prisma'
   }
 })
 
 // From URL (auto-detects provider)
 import { createKyselyFromUrl } from '@refract/config'
-const { kysely } = await createKyselyFromUrl('postgres://...')
+const { kysely } = await createKyselyFromUrl(process.env.DATABASE_URL!)
 ```
 
 ### Configuration Loading Only

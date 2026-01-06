@@ -53,6 +53,8 @@
     "@types/node": "^20.0.0",
     "@types/pg": "^8.11.10",
     "@vitest/ui": "3.2.4",
+    "better-sqlite3": "^12.5.0",
+    "@types/better-sqlite3": "^7.6.13",
     "pg": "^8.13.1",
     "tsup": "^8.3.5",
     "tsx": "4.19.3",

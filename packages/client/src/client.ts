@@ -1,4 +1,4 @@
-import { type Dialect, Kysely } from 'kysely'
+import { type Dialect, Kysely, type LogConfig } from 'kysely'
 
 import type { DatabaseSchema } from './types.js'
 
@@ -14,6 +14,11 @@ export interface RefractClientOptions<TSchema extends DatabaseSchema> {
    * Providing this enables transaction support that reuses the same CRUD surface inside the transaction scope.
    */
   modelFactory?: ModelFactory<TSchema>
+  /**
+   * Optional Kysely log configuration.
+   * Passes through to the underlying Kysely instance.
+   */
+  log?: LogConfig
 }
 
 /**
@@ -28,7 +33,7 @@ export class RefractClientBase<TSchema extends DatabaseSchema = DatabaseSchema> 
   private readonly modelNames = new Set<string>()
 
   constructor(dialect: Dialect, options: RefractClientOptions<TSchema> = {}) {
-    this.$kysely = new Kysely<TSchema>({ dialect })
+    this.$kysely = new Kysely<TSchema>({ dialect, log: options.log })
     this.modelFactory = options.modelFactory
 
     if (this.modelFactory) {

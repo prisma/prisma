@@ -54,7 +54,7 @@ describe('InitCommand', () => {
     expect(existsSync('schema.prisma')).toBe(true)
   })
 
-  it('should write schema.prisma with the provided URL', async () => {
+  it('should omit datasource.url in schema.prisma even when a URL is provided', async () => {
     const command = new InitCommand()
     const url = 'postgresql://test:test@localhost:5432/test'
 
@@ -65,7 +65,8 @@ describe('InitCommand', () => {
     expect(result.success).toBe(true)
 
     const schemaContent = readFileSync('schema.prisma', 'utf8')
-    expect(schemaContent).toContain(`url      = "${url}"`)
+    expect(schemaContent).toContain('provider = "postgresql"')
+    expect(schemaContent).not.toContain('url')
     expect(schemaContent).not.toContain('env("DATABASE_URL")')
   })
 

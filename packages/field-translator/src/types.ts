@@ -10,7 +10,7 @@ import type { FieldAST } from '@refract/schema-parser'
 /**
  * Supported database dialects for transformation code generation
  */
-export type DatabaseDialect = 'postgresql' | 'mysql' | 'sqlite' | 'sqlserver'
+export type DatabaseDialect = 'postgresql' | 'mysql' | 'sqlite'
 
 /**
  * Field transformation context for code generation

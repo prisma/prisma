@@ -88,10 +88,6 @@ export class DialectDetector {
     if (urlLower.startsWith('sqlite:') || urlLower.includes('.db') || urlLower.includes('.sqlite')) {
       return 'sqlite'
     }
-    if (urlLower.startsWith('sqlserver://') || urlLower.startsWith('mssql://')) {
-      return 'sqlserver'
-    }
-
     throw new Error(`Unable to detect dialect from URL: ${url}`)
   }
 
@@ -116,10 +112,6 @@ export class DialectDetector {
       case 'sqlite3':
         return 'sqlite'
       
-      case 'sqlserver':
-      case 'mssql':
-        return 'sqlserver'
-      
       default:
         throw new Error(`Unsupported provider: ${provider}`)
     }
@@ -140,10 +132,6 @@ export class DialectDetector {
     if (dialectName.includes('sqlite')) {
       return 'sqlite'
     }
-    if (dialectName.includes('mssql') || dialectName.includes('sqlserver')) {
-      return 'sqlserver'
-    }
-
     throw new Error(`Unable to detect dialect from Kysely dialect: ${dialectName}`)
   }
 
@@ -151,7 +139,7 @@ export class DialectDetector {
    * Validate that a dialect string is supported
    */
   static validateDialect(dialect: string): DatabaseDialect {
-    const supportedDialects: DatabaseDialect[] = ['postgresql', 'mysql', 'sqlite', 'sqlserver']
+    const supportedDialects: DatabaseDialect[] = ['postgresql', 'mysql', 'sqlite']
     
     if (supportedDialects.includes(dialect as DatabaseDialect)) {
       return dialect as DatabaseDialect
@@ -164,7 +152,7 @@ export class DialectDetector {
    * Get all supported dialects
    */
   static getSupportedDialects(): DatabaseDialect[] {
-    return ['postgresql', 'mysql', 'sqlite', 'sqlserver']
+    return ['postgresql', 'mysql', 'sqlite']
   }
 
   /**

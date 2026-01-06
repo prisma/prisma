@@ -27,6 +27,7 @@ Then:
 ```bash
 cd examples/vite
 pnpm approve-builds
+export DATABASE_URL="file:./dev.db"
 pnpm dev
 ```
 
@@ -59,3 +60,4 @@ pnpm generate:local
 - The generated client is written to `./.refract`.
 - The SQLite database lives at `./dev.db`.
 - If migrations fail with missing `better-sqlite3`, run `pnpm approve-builds` and reinstall.
+- Alternatively, you can skip `DATABASE_URL` by hardcoding `datasource.url` in `refract.config.ts`.

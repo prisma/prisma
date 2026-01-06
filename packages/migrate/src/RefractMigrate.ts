@@ -1553,7 +1553,6 @@ export class RefractMigrate {
     if (provider === 'postgresql' || provider === 'postgres') return 'postgresql'
     if (provider === 'mysql') return 'mysql'
     if (provider === 'sqlite') return 'sqlite'
-    if (provider === 'sqlserver') return 'sqlserver'
 
     // Default to postgresql for unknown providers
     console.warn(`Unknown provider '${provider}', defaulting to postgresql`)

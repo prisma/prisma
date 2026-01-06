@@ -2,6 +2,15 @@
 
 Refract is a TypeScript-native ORM, built on the Prisma schema language and Kysely query builder.
 
+> [!CAUTION] 
+> **Should I use Refract?**
+> No, probably not. Refract is a fork of Prisma ORM that:
+>
+> 1. Involved a lot of LLM-generated code
+> 2. Is written by a person who has no idea what they're doing
+> 3. Isn't stable or mature
+>    Despite these concerns, if you're still willing to try out the project, thank you very much! I'll do my best to address feedback and concerns.
+
 ## Vision
 
 Refract wants to be your ORM du jour. We want to get there by offering the following:
@@ -35,25 +44,28 @@ While right now Refract is a dinky one-man show, we have a clear vision of a mat
 - **Kysely integration**: Direct access via `$kysely` for advanced queries
 - **Programmatic migrations**: `diff()` and `apply()` APIs that work through Kysely
 - **Modern CLI**: `refract init`, `refract generate`, and `refract migrate` commands
-- **Vite-first generation**: `unplugin-refract` with hot module reloading for type updates
-- **Multi-database support**: PostgreSQL, MySQL, SQLite, and Cloudflare D1 today, with a clear path to additional dialects
-
-For architectural details, see `ARCHITECTURE.md`. For the delivery timeline, see `DELIVERY_ROADMAP.md`.
+- **Modern build tool integrations**: `unplugin-refract` with hot reloading
+- **Multi-database support**: PostgreSQL, MySQL, and SQLite today, with a clear path to additional dialects
 
 ## Project Status
 
-- Current focus: **Phase 0 (End-to-End Prototype)** — stand up a working example that exercises schema parsing, client generation, migrations, and Kysely-backed execution for PostgreSQL, MySQL, SQLite, and Cloudflare D1.
-- Subsequent phases target a proud-to-demo release (Phase 1), Prisma-level parity (Phase 2), and differentiated features (Phase 3+).
+The project's current focus is an alpha version that includes schema parsing, client generation, migrations, and Kysely-backed execution for PostgreSQL, MySQL, and SQLite queries.
+
+Future effort will be put towards:
+
+1. A beta release
+2. As much parity with Prisma ORM as is possible (incl. DB support, etc)
+3. Feature differentiation (Prisma Schema Language superset)
 
 ## Key Packages
 
-- `packages/client` (`@refract/client`): Kysely-backed client runtime and code generator.
+- `packages/client`: Client runtime and code generation.
 - `packages/schema-parser`: TypeScript-native parser for `.prisma` schemas.
-- `packages/field-translator`: Database-specific field transformation code generators.
+- `packages/field-translator`: Database-specific field transformation for code generation.
 - `packages/migrate`: Programmatic migration engine powered by Kysely.
 - `packages/config`: Configuration discovery and dialect wiring.
 - `packages/unplugin-refract`: Build-tool integration (Vite, Webpack, Rollup, esbuild) that emits virtual `.refract/types` modules.
-- `packages/cli`: ESM-first CLI (`refract`) that orchestrates config, generation, and migrations.
+- `packages/cli`: CLI (`refract`) that orchestrates config, generation, and migrations.
 
 Each package is ESM-only and published to the `@refract/*` namespace once stabilized.
 
@@ -69,8 +81,12 @@ Refract supports two workflows:
 ```bash
 pnpm add -D @refract/cli unplugin-refract
 npx refract init
+export DATABASE_URL="file:./dev.db"
 pnpm dev
 ```
+
+> [!NOTE] 
+> `refract init` will detect Vite and can auto-patch your `vite.config` to add this plugin. It can also offer to install recommended dependencies.
 
 Add the plugin in `vite.config.ts`:
 
@@ -88,23 +104,16 @@ export default defineConfig({
 })
 ```
 
-`refract init` will detect Vite and can auto-patch your `vite.config` to add this plugin. It can also offer to install recommended dependencies.
-If you don't provide a `--url`, it will prompt for a provider and leave `datasource.url` empty for you to fill in later.
-
-### 2) CLI-only (Prisma-style)
+### 2) CLI-only
 
 ```bash
-# Install the CLI
-pnpm add -D @refract/cli
-
 # Initialize config + schema
 npx refract init
 
 # Run the dev loop (generate + migrate on schema changes)
+export DATABASE_URL="postgresql://user:pass@localhost:5432/db"
 npx refract dev
 ```
-
-> Note: Refract is under active development. APIs may change during Phase 0 as we converge on the end-to-end example. Track progress in `DELIVERY_ROADMAP.md` and `NEXT_STEPS.md`.
 
 ## Development Workflow
 

@@ -45,7 +45,7 @@ describe('Query Logging', () => {
 
   describe('Log levels', () => {
     it('should support query logging', async () => {
-      const mockLog = vi.fn()
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       // Create client with query logging enabled
       const client = createRefractClient(dialect, {
@@ -55,35 +55,33 @@ describe('Query Logging', () => {
       // Execute a query
       await client.user.findMany()
 
-      // Kysely should have logged the query
-      // This will fail because log option doesn't exist yet
-      expect(mockLog).toHaveBeenCalled()
+      // Kysely should have logged the query via console
+      expect(consoleSpy).toHaveBeenCalled()
+      consoleSpy.mockRestore()
     })
 
     it('should support error logging', async () => {
-      const mockError = vi.fn()
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       // Create client with error logging enabled
       const client = createRefractClient(dialect, {
         log: ['error'],
       })
 
-      // Execute a failing query
+      // Execute a failing query to trigger error logging
       try {
-        await client.user.findUnique({
-          where: { id: 999999 }, // Non-existent ID
-        })
-      } catch (error) {
-        // Expected - may or may not throw depending on implementation
+        await client.$kysely.selectFrom('MissingTable').selectAll().execute()
+      } catch {
+        // Expected error from missing table
       }
 
-      // Should have logged if there was an error
-      // This will fail because log option doesn't exist yet
-      expect(mockError).toHaveBeenCalled()
+      expect(errorSpy).toHaveBeenCalled()
+      errorSpy.mockRestore()
     })
 
     it('should support multiple log levels', async () => {
-      const mockLog = vi.fn()
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       // Create client with multiple log levels
       const client = createRefractClient(dialect, {
@@ -91,9 +89,16 @@ describe('Query Logging', () => {
       })
 
       await client.user.findMany()
+      try {
+        await client.$kysely.selectFrom('MissingTable').selectAll().execute()
+      } catch {
+        // Expected error from missing table
+      }
 
-      // This will fail because log option doesn't exist yet
-      expect(mockLog).toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalled()
+      expect(errorSpy).toHaveBeenCalled()
+      consoleSpy.mockRestore()
+      errorSpy.mockRestore()
     })
   })
 
@@ -119,7 +124,7 @@ describe('Query Logging', () => {
       expect(customLogger).toHaveBeenCalledWith(
         expect.objectContaining({
           level: 'query',
-          sql: expect.stringContaining('SELECT'),
+          sql: expect.stringMatching(/select/i),
           params: expect.any(Array),
         })
       )
@@ -161,7 +166,7 @@ describe('Query Logging', () => {
       expect(customLogger).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
-            sql: expect.stringContaining('SELECT'),
+            sql: expect.stringMatching(/select/i),
             parameters: expect.arrayContaining(['alice@example.com']),
           }),
         })
@@ -169,7 +174,7 @@ describe('Query Logging', () => {
     })
 
     it('should not log when log level not specified', async () => {
-      const customLogger = vi.fn()
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       // Create client with only error logging (no query logging)
       const client = createRefractClient(dialect, {
@@ -179,8 +184,8 @@ describe('Query Logging', () => {
       await client.user.findMany()
 
       // Should NOT have logged queries (only errors would be logged)
-      // This will fail because we can't verify non-logging without mocking console
-      expect(customLogger).not.toHaveBeenCalled()
+      expect(consoleSpy).not.toHaveBeenCalled()
+      consoleSpy.mockRestore()
     })
   })
 
@@ -203,7 +208,7 @@ describe('Query Logging', () => {
 
   describe('Logging with different operations', () => {
     it('should log findMany queries', async () => {
-      const customLogger = vi.fn()
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const client = createRefractClient(dialect, {
         log: ['query'],
@@ -211,12 +216,12 @@ describe('Query Logging', () => {
 
       await client.user.findMany()
 
-      // This will fail because log option doesn't exist yet
-      expect(customLogger).toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalled()
+      consoleSpy.mockRestore()
     })
 
     it('should log create queries', async () => {
-      const customLogger = vi.fn()
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const client = createRefractClient(dialect, {
         log: ['query'],
@@ -231,8 +236,8 @@ describe('Query Logging', () => {
         where: { email: 'test-log@example.com' },
       })
 
-      // This will fail because log option doesn't exist yet
-      expect(customLogger).toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalled()
+      consoleSpy.mockRestore()
     })
   })
 })

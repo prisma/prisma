@@ -407,6 +407,9 @@ importers:
       '@testcontainers/postgresql':
         specifier: ^10.18.0
         version: 10.28.0
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.7
@@ -416,6 +419,9 @@ importers:
       '@vitest/ui':
         specifier: 3.2.4
         version: 3.2.4(vitest@3.2.4)
+      better-sqlite3:
+        specifier: ^12.5.0
+        version: 12.5.0
       pg:
         specifier: ^8.13.1
         version: 8.14.1

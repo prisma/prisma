@@ -56,14 +56,10 @@ export const PRISMA_PROVIDER_TO_DRIVER_PROVIDER: Record<string, string> = {
  * Utility function to translate Prisma-style datasource config to driver config
  */
 export function translateDatasourceConfig(config: RefractDatasourceConfig): any {
-  // For now, only PostgreSQL is supported
-  if (config.provider !== 'postgresql' && config.provider !== 'postgres') {
-    throw new Error(
-      `Unsupported provider: ${config.provider}. Currently only 'postgresql' and 'postgres' are supported.`,
-    )
+  const driverProvider = PRISMA_PROVIDER_TO_DRIVER_PROVIDER[config.provider]
+  if (!driverProvider) {
+    throw new Error(`Unsupported provider: ${config.provider}.`)
   }
-
-  const driverProvider = PRISMA_PROVIDER_TO_DRIVER_PROVIDER[config.provider] as 'pg'
 
   return {
     connectionString: config.connectionString,

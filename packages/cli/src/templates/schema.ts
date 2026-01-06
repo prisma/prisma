@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "${provider}"
-  url      = "${url}"
 }
 
 model User {

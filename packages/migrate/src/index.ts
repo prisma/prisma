@@ -54,7 +54,7 @@ export type {
  *
  * const db = new Kysely({
  *   dialect: new PostgresDialect({
- *     pool: new Pool({ connectionString: 'postgresql://user:pass@localhost:5432/db' })
+ *     pool: new Pool({ connectionString: process.env.DATABASE_URL! })
  *   })
  * })
  *
