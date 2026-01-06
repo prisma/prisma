@@ -4,7 +4,7 @@ export default defineConfig({
   schema: './schema.prisma',
   datasource: {
     provider: 'postgresql',
-    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/refract_basic',
+    url: process.env.DATABASE_URL!,
   },
   generator: {
     provider: 'refract',
