@@ -2,7 +2,6 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
-  PrismaValue,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -16,17 +15,14 @@ import {
   PrismaClientUnknownRequestError,
 } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
-import type {
-  ArgType,
-  IsolationLevel as SqlIsolationLevel,
-  SqlDriverAdapterFactory,
-} from '@prisma/driver-adapter-utils'
+import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import type { TracingHelper } from '@prisma/instrumentation-contract'
 import { assertNever } from '@prisma/internals'
-import type { JsonQuery } from '@prisma/json-protocol'
+import type { JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
 
 import { version as clientVersion } from '../../../../../package.json'
+import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
@@ -698,22 +694,15 @@ function getErrorMessageWithLink(engine: ClientEngine, title: string, query?: st
   })
 }
 
-function isRawQuery(query: JsonQuery): query is JsonQuery & { action: 'queryRaw' | 'executeRaw' } {
+function isRawQuery(query: JsonQuery): query is RawJsonQuery {
   return query.action === 'queryRaw' || query.action === 'executeRaw'
 }
 
-function compileRawQuery(query: JsonQuery & { action: 'queryRaw' | 'executeRaw' }): QueryPlanNode {
-  const sql = query.query.arguments!['query']
-  const args = JSON.parse(query.query.arguments!['parameters'] as string) as PrismaValue[]
-  const argTypes = args.map((arg) => ({
-    scalarType: 'unknown',
-    arity: Array.isArray(arg) ? 'list' : 'scalar',
-  })) satisfies ArgType[]
-
-  const queryArgs = { type: 'rawSql', sql, args, argTypes } as const
-  const type = query.action === 'queryRaw' ? 'query' : 'execute'
+function compileRawQuery(query: RawJsonQuery): QueryPlanNode {
+  const sql = query.query.arguments.query
+  const { args, argTypes } = deserializeRawParameters(query.query.arguments.parameters)
   return {
-    type,
-    args: queryArgs,
+    type: query.action === 'queryRaw' ? 'query' : 'execute',
+    args: { type: 'rawSql', sql, args, argTypes },
   }
 }

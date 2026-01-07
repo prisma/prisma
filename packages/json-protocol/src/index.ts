@@ -4,6 +4,16 @@ export type JsonQuery = {
   query: JsonFieldSelection
 }
 
+export type RawJsonQuery = JsonQuery & {
+  action: 'executeRaw' | 'queryRaw'
+  query: {
+    arguments: {
+      query: string
+      parameters: string
+    }
+  }
+}
+
 export type JsonBatchQuery = {
   batch: JsonQuery[]
   transaction?: { isolationLevel?: IsolationLevel }
