@@ -3,6 +3,7 @@
 Refract is a TypeScript-native ORM, built on the Prisma schema language and Kysely query builder.
 
 > [!CAUTION]
+>
 > **Should I use Refract?**
 >
 > No, probably not. Refract is a fork of Prisma ORM that:
@@ -87,8 +88,7 @@ export DATABASE_URL="file:./dev.db"
 pnpm dev
 ```
 
-> [!NOTE]
-> `refract init` will detect Vite and can auto-patch your `vite.config` to add this plugin. It can also offer to install recommended dependencies.
+> [!NOTE] > `refract init` will detect Vite and can auto-patch your `vite.config` to add this plugin. It can also offer to install recommended dependencies.
 
 Add the plugin in `vite.config.ts`:
 
