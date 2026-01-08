@@ -115,4 +115,21 @@ describe('deserializeRawParameters', () => {
     expect(result.args).toEqual(expectedArgs)
     expect(result.argTypes).toEqual(expectedTypes)
   })
+
+  test('throws error for invalid JSON', () => {
+    expect(() => deserializeRawParameters('not valid json')).toThrow()
+  })
+
+  test('throws error for non-array input', () => {
+    expect(() => deserializeRawParameters('{"key": "value"}')).toThrow(
+      'Received invalid serialized parameters: expected an array',
+    )
+  })
+
+  test('throws error for prisma__value without prisma__type', () => {
+    const serialized = JSON.stringify([{ prisma__value: '123' }])
+    expect(() => deserializeRawParameters(serialized)).toThrow(
+      'Invalid serialized parameter, prisma__type should not be present when prisma__value is present',
+    )
+  })
 })

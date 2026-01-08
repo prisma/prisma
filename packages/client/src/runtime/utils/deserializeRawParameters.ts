@@ -14,9 +14,14 @@ const tagToArgScalarType: Record<string, ArgScalarType> = {
 }
 
 export function deserializeRawParameters(serializedParameters: string): RawParameters {
-  const parsed = JSON.parse(serializedParameters)
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(serializedParameters)
+  } catch (err) {
+    throw new Error(`Received invalid serialized parameters: ${err}`)
+  }
   if (!Array.isArray(parsed)) {
-    throw new Error('Invalid serialized parameters')
+    throw new Error('Received invalid serialized parameters: expected an array')
   }
   const args = parsed.map((parameter: unknown) => decodeParameter(parameter))
   const argTypes = parsed.map((parameter: unknown) => getArgType(parameter))
@@ -28,12 +33,10 @@ function decodeParameter(parameter: unknown): PrismaValue {
     return parameter.map((item) => decodeParameter(item))
   }
 
-  if (
-    typeof parameter === 'object' &&
-    parameter !== null &&
-    'prisma__type' in parameter &&
-    'prisma__value' in parameter
-  ) {
+  if (typeof parameter === 'object' && parameter !== null && 'prisma__value' in parameter) {
+    if (!('prisma__type' in parameter)) {
+      throw new Error('Invalid serialized parameter, prisma__type should not be present when prisma__value is present')
+    }
     return `${parameter.prisma__value}`
   }
 
