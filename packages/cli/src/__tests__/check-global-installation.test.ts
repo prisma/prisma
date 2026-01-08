@@ -6,31 +6,49 @@ import { shouldWarnAboutGlobalInstallation, getLocalPrismaVersion } from '../uti
 
 describe('shouldWarnAboutGlobalInstallation', () => {
   it('should return false when no local prisma is installed', () => {
-    // Use a directory that definitely has no node_modules/prisma
-    const result = shouldWarnAboutGlobalInstallation('/tmp/non-existent-project')
-    expect(result).toBe(false)
+    const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-test-nolocal-'))
+    try {
+      const result = shouldWarnAboutGlobalInstallation(projectDir)
+      expect(result).toBe(false)
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true })
+    }
   })
 
   it('should return false for non-existent project directory', () => {
-    const result = shouldWarnAboutGlobalInstallation('/path/that/does/not/exist')
+    const projectDir = path.join(os.tmpdir(), `prisma-test-missing-${Date.now()}-${Math.random()}`)
+    const result = shouldWarnAboutGlobalInstallation(projectDir)
     expect(result).toBe(false)
   })
 })
 
 describe('getLocalPrismaVersion', () => {
   it('should return null when no local prisma is installed', async () => {
-    const result = await getLocalPrismaVersion('/tmp/non-existent-project')
-    expect(result).toBeNull()
+    const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-test-nolocal-'))
+    try {
+      const result = await getLocalPrismaVersion(projectDir)
+      expect(result).toBeNull()
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true })
+    }
   })
 
   it('should return null for non-existent project directory', async () => {
-    const result = await getLocalPrismaVersion('/path/that/does/not/exist')
+    const projectDir = path.join(os.tmpdir(), `prisma-test-missing-${Date.now()}-${Math.random()}`)
+    const result = await getLocalPrismaVersion(projectDir)
     expect(result).toBeNull()
   })
 })
 
 describe('with local prisma installation', () => {
   let tempDir: string
+
+  function writeLocalPrismaPackageJson(pkg: unknown) {
+    const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(path.join(prismaDir, 'package.json'), typeof pkg === 'string' ? pkg : JSON.stringify(pkg))
+    return prismaDir
+  }
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-test-'))
@@ -41,49 +59,28 @@ describe('with local prisma installation', () => {
   })
 
   it('shouldWarnAboutGlobalInstallation returns true when local install exists and CLI is elsewhere', () => {
-    // Create a mock local prisma installation
-    const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
-    fs.mkdirSync(prismaDir, { recursive: true })
-    fs.writeFileSync(
-      path.join(prismaDir, 'package.json'),
-      JSON.stringify({ name: 'prisma', version: '5.10.2' }),
-    )
+    writeLocalPrismaPackageJson({ name: 'prisma', version: '5.10.2' })
 
-    // The test CLI is running from a different location than tempDir/node_modules,
-    // so shouldWarnAboutGlobalInstallation should return true
     const result = shouldWarnAboutGlobalInstallation(tempDir)
     expect(result).toBe(true)
   })
 
   it('getLocalPrismaVersion should return version from local package.json', async () => {
-    // Create a mock local prisma installation
-    const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
-    fs.mkdirSync(prismaDir, { recursive: true })
-    fs.writeFileSync(
-      path.join(prismaDir, 'package.json'),
-      JSON.stringify({ name: 'prisma', version: '5.10.2' }),
-    )
+    writeLocalPrismaPackageJson({ name: 'prisma', version: '5.10.2' })
 
     const version = await getLocalPrismaVersion(tempDir)
     expect(version).toBe('5.10.2')
   })
 
   it('getLocalPrismaVersion should return null for malformed package.json', async () => {
-    const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
-    fs.mkdirSync(prismaDir, { recursive: true })
-    fs.writeFileSync(path.join(prismaDir, 'package.json'), 'not valid json')
+    writeLocalPrismaPackageJson('not valid json')
 
     const version = await getLocalPrismaVersion(tempDir)
     expect(version).toBeNull()
   })
 
   it('getLocalPrismaVersion should return null for package.json without version', async () => {
-    const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
-    fs.mkdirSync(prismaDir, { recursive: true })
-    fs.writeFileSync(
-      path.join(prismaDir, 'package.json'),
-      JSON.stringify({ name: 'prisma' }),
-    )
+    writeLocalPrismaPackageJson({ name: 'prisma' })
 
     const version = await getLocalPrismaVersion(tempDir)
     expect(version).toBeNull()
