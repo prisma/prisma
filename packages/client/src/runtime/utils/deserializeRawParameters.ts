@@ -63,20 +63,12 @@ function getScalarType(parameter: unknown): ArgScalarType {
     return tagToArgScalarType[parameter.prisma__type]
   }
 
-  if (typeof parameter === 'bigint') {
-    return 'bigint'
-  }
-
   if (typeof parameter === 'number') {
     return 'decimal'
   }
 
   if (typeof parameter === 'string') {
     return 'string'
-  }
-
-  if (parameter instanceof Date) {
-    return 'datetime'
   }
 
   return 'unknown'

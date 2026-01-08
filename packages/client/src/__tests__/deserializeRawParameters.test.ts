@@ -13,7 +13,7 @@ describe('deserializeRawParameters', () => {
     expect(result).toEqual({ args: [], argTypes: [] })
   })
 
-  describe.each([
+  test.each([
     {
       name: 'primitives',
       input: [0, 1, true, false, '', 'hi', null, undefined],
@@ -94,15 +94,13 @@ describe('deserializeRawParameters', () => {
         { scalarType: 'unknown', arity: 'scalar' },
       ],
     },
-  ])('fast serialization mode: $name', ({ input, expectedArgs, expectedTypes }) => {
-    test('round-trip', () => {
-      const result = roundTrip(input)
-      expect(result.args).toEqual(expectedArgs)
-      expect(result.argTypes).toEqual(expectedTypes)
-    })
+  ])('$name - fast serialization roundtrip', ({ input, expectedArgs, expectedTypes }) => {
+    const result = roundTrip(input)
+    expect(result.args).toEqual(expectedArgs)
+    expect(result.argTypes).toEqual(expectedTypes)
   })
 
-  describe.each([
+  test.each([
     {
       name: 'BigInt',
       input: [BigInt('999'), [BigInt('123'), 'text']],
@@ -112,11 +110,9 @@ describe('deserializeRawParameters', () => {
         { scalarType: 'bigint', arity: 'list' },
       ],
     },
-  ])('slow serialization mode: $name', ({ input, expectedArgs, expectedTypes }) => {
-    test('round-trip', () => {
-      const result = roundTrip(input)
-      expect(result.args).toEqual(expectedArgs)
-      expect(result.argTypes).toEqual(expectedTypes)
-    })
+  ])('$name - slow serialization roundtrip', ({ input, expectedArgs, expectedTypes }) => {
+    const result = roundTrip(input)
+    expect(result.args).toEqual(expectedArgs)
+    expect(result.argTypes).toEqual(expectedTypes)
   })
 })
