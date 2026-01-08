@@ -88,14 +88,15 @@ export type JoinExpression = {
   isRelationUnique: boolean
 }
 
-export type QueryPlanNode =
+export type PureQueryPlanNode<Rest = never> =
   | {
       type: 'value'
       args: PrismaValue
+      lastInsertId?: string
     }
   | {
       type: 'seq'
-      args: QueryPlanNode[]
+      args: (PureQueryPlanNode<Rest> | Rest)[]
     }
   | {
       type: 'get'
@@ -106,8 +107,11 @@ export type QueryPlanNode =
   | {
       type: 'let'
       args: {
-        bindings: QueryPlanBinding[]
-        expr: QueryPlanNode
+        bindings: {
+          name: string
+          expr: PureQueryPlanNode<Rest> | Rest
+        }[]
+        expr: PureQueryPlanNode<Rest> | Rest
       }
     }
   | {
@@ -117,55 +121,48 @@ export type QueryPlanNode =
       }
     }
   | {
-      type: 'query'
-      args: QueryPlanDbQuery
-    }
-  | {
-      type: 'execute'
-      args: QueryPlanDbQuery
-    }
-  | {
       type: 'reverse'
-      args: QueryPlanNode
+      args: PureQueryPlanNode<Rest> | Rest
     }
   | {
       type: 'sum'
-      args: QueryPlanNode[]
+      args: (PureQueryPlanNode<Rest> | Rest)[]
     }
   | {
       type: 'concat'
-      args: QueryPlanNode[]
+      args: (PureQueryPlanNode<Rest> | Rest)[]
     }
   | {
       type: 'unique'
-      args: QueryPlanNode
+      args: PureQueryPlanNode<Rest> | Rest
     }
   | {
       type: 'required'
-      args: QueryPlanNode
+      args: PureQueryPlanNode<Rest> | Rest
     }
   | {
       type: 'join'
       args: {
-        parent: QueryPlanNode
-        children: JoinExpression[]
+        parent: PureQueryPlanNode<Rest> | Rest
+        children: {
+          child: PureQueryPlanNode<Rest> | Rest
+          on: [left: string, right: string][]
+          parentField: string
+          isRelationUnique: boolean
+        }[]
       }
     }
   | {
       type: 'mapField'
       args: {
         field: string
-        records: QueryPlanNode
+        records: PureQueryPlanNode<Rest> | Rest
       }
-    }
-  | {
-      type: 'transaction'
-      args: QueryPlanNode
     }
   | {
       type: 'dataMap'
       args: {
-        expr: QueryPlanNode
+        expr: PureQueryPlanNode<Rest> | Rest
         structure: ResultNode
         enums: Record<string, Record<string, string>>
       }
@@ -173,17 +170,17 @@ export type QueryPlanNode =
   | {
       type: 'validate'
       args: {
-        expr: QueryPlanNode
+        expr: PureQueryPlanNode<Rest> | Rest
         rules: DataRule[]
       } & ValidationError
     }
   | {
       type: 'if'
       args: {
-        value: QueryPlanNode
+        value: PureQueryPlanNode<Rest> | Rest
         rule: DataRule
-        then: QueryPlanNode
-        else: QueryPlanNode
+        then: PureQueryPlanNode<Rest> | Rest
+        else: PureQueryPlanNode<Rest> | Rest
       }
     }
   | {
@@ -192,32 +189,48 @@ export type QueryPlanNode =
   | {
       type: 'diff'
       args: {
-        from: QueryPlanNode
-        to: QueryPlanNode
+        from: PureQueryPlanNode<Rest> | Rest
+        to: PureQueryPlanNode<Rest> | Rest
         fields: string[]
       }
     }
   | {
       type: 'initializeRecord'
       args: {
-        expr: QueryPlanNode
+        expr: PureQueryPlanNode<Rest> | Rest
         fields: Record<string, FieldInitializer>
       }
     }
   | {
       type: 'mapRecord'
       args: {
-        expr: QueryPlanNode
+        expr: PureQueryPlanNode<Rest> | Rest
         fields: Record<string, FieldOperation>
       }
     }
   | {
       type: 'process'
       args: {
-        expr: QueryPlanNode
+        expr: PureQueryPlanNode<Rest> | Rest
         operations: InMemoryOps
       }
     }
+
+export type ImpureQueryPlanNode =
+  | {
+      type: 'query'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'execute'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'transaction'
+      args: QueryPlanNode
+    }
+
+export type QueryPlanNode = ImpureQueryPlanNode | PureQueryPlanNode<ImpureQueryPlanNode>
 
 export type FieldInitializer = { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }
 
