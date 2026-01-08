@@ -40,6 +40,21 @@ describe('with local prisma installation', () => {
     fs.rmSync(tempDir, { recursive: true, force: true })
   })
 
+  it('shouldWarnAboutGlobalInstallation returns true when local install exists and CLI is elsewhere', () => {
+    // Create a mock local prisma installation
+    const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'package.json'),
+      JSON.stringify({ name: 'prisma', version: '5.10.2' }),
+    )
+
+    // The test CLI is running from a different location than tempDir/node_modules,
+    // so shouldWarnAboutGlobalInstallation should return true
+    const result = shouldWarnAboutGlobalInstallation(tempDir)
+    expect(result).toBe(true)
+  })
+
   it('getLocalPrismaVersion should return version from local package.json', async () => {
     // Create a mock local prisma installation
     const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
