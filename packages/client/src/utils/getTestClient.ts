@@ -50,12 +50,16 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     activeProvider,
     inlineSchema: datamodel[0][1], // TODO: merge schemas
     compilerWasm: {
-      getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${activeProvider}.js`))),
+      getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_fast_bg.${activeProvider}.js`))),
       getQueryCompilerWasmModule: () => {
-        const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${activeProvider}.wasm-base64.js`)
+        const queryCompilerWasmFilePath = path.join(
+          runtimeBase,
+          `query_compiler_fast_bg.${activeProvider}.wasm-base64.js`,
+        )
         const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
         return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
       },
+      importName: './query_compiler_fast_bg.js',
     },
   }
 

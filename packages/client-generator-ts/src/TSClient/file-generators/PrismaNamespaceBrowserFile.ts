@@ -1,4 +1,3 @@
-import { datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
 import { Enum } from '../Enum'
@@ -18,9 +17,7 @@ const jsDocHeader = `/*
  */
 `
 export function createPrismaNamespaceBrowserFile(context: GenerateContext): string {
-  const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((datamodelEnum) =>
-    new Enum(datamodelSchemaEnumToSchemaEnum(datamodelEnum), false).toTS(),
-  )
+  const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
   return `${jsDocHeader}
 ${ts.stringify(ts.moduleImport(`${context.runtimeBase}/index-browser`).asNamespace('runtime'))}
@@ -35,10 +32,7 @@ ${nullTypes}
 ${new Enum(
   {
     name: 'ModelName',
-    data: context.dmmf.mappings.modelOperations.map((m) => ({
-      key: m.model,
-      value: m.model,
-    })),
+    values: context.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
 ).toTS()}

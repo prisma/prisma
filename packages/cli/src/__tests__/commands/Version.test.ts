@@ -12,8 +12,7 @@ describe('version', () => {
     const data = await ctx.cli('version')
     expect(data.exitCode).toBe(0)
     expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-      "Prisma schema loaded from schema.prisma
-      prisma               : 0.0.0
+      "prisma               : 0.0.0
       @prisma/client       : 0.0.0
       Operating System     : OS
       Architecture         : ARCHITECTURE
@@ -27,7 +26,8 @@ describe('version', () => {
     `)
     expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-      "
+
+      Prisma schema loaded from schema.prisma."
     `)
   })
 })
