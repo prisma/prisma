@@ -35,7 +35,11 @@ function getLocalPrismaPath(cwd: string): string | null {
     })
 
     // Make sure it's actually in the local node_modules and not a global installation
-    if (resolvedPath.includes(path.join(cwd, 'node_modules'))) {
+    // Resolve symlinks to ensure consistent path comparison across platforms
+    const realCwd = fs.realpathSync(cwd)
+    const realResolvedPath = fs.realpathSync(resolvedPath)
+    const localNodeModules = path.join(realCwd, 'node_modules') + path.sep
+    if (realResolvedPath.startsWith(localNodeModules)) {
       return resolvedPath
     }
 
