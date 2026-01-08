@@ -1,9 +1,16 @@
-import { PrismaValue } from '@prisma/client-engine-runtime'
-import { ArgScalarType, ArgType } from '@prisma/driver-adapter-utils'
+import type { PrismaValue } from '@prisma/client-engine-runtime'
+import type { ArgScalarType, ArgType } from '@prisma/driver-adapter-utils'
 
 type RawParameters = {
   args: PrismaValue[]
   argTypes: ArgType[]
+}
+
+const tagToArgScalarType: Record<string, ArgScalarType> = {
+  bigint: 'bigint',
+  date: 'datetime',
+  decimal: 'decimal',
+  bytes: 'bytes',
 }
 
 export function deserializeRawParameters(serializedParameters: string): RawParameters {
@@ -46,20 +53,14 @@ function getArgType(parameter: unknown): ArgType {
 }
 
 function getScalarType(parameter: unknown): ArgScalarType {
-  if (typeof parameter === 'object' && parameter !== null && 'prisma__type' in parameter) {
-    switch (parameter.prisma__type) {
-      case 'bigint':
-        return 'bigint'
-
-      case 'date':
-        return 'datetime'
-
-      case 'decimal':
-        return 'decimal'
-
-      case 'bytes':
-        return 'bytes'
-    }
+  if (
+    typeof parameter === 'object' &&
+    parameter !== null &&
+    'prisma__type' in parameter &&
+    typeof parameter.prisma__type === 'string' &&
+    parameter.prisma__type in tagToArgScalarType
+  ) {
+    return tagToArgScalarType[parameter.prisma__type]
   }
 
   if (typeof parameter === 'bigint') {

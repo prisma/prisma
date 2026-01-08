@@ -19,7 +19,7 @@ import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } fro
 import type { ActiveConnectorType } from '@prisma/generator'
 import type { TracingHelper } from '@prisma/instrumentation-contract'
 import { assertNever } from '@prisma/internals'
-import type { JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
+import type { JsonBatchQuery, JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
 
 import { version as clientVersion } from '../../../../../package.json'
 import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
@@ -447,35 +447,19 @@ export class ClientEngine implements Engine {
     { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
   ): Promise<{ data: T }> {
     debug(`sending request`)
-    const queryStr = JSON.stringify(query)
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, queryStr)
+      throw this.#transformRequestError(err, JSON.stringify(query))
     })
-
-    let queryPlan: QueryPlanNode
-    if (isRawQuery(query)) {
-      queryPlan = compileRawQuery(query)
-    } else {
-      try {
-        queryPlan = this.#withLocalPanicHandler(() =>
-          this.#withCompileSpan({
-            queries: [query],
-            execute: () => queryCompiler.compile(queryStr) as QueryPlanNode,
-          }),
-        )
-      } catch (error) {
-        throw this.#transformCompileError(error)
-      }
-    }
+    const plan = this.#compileQuery(query, queryCompiler)
 
     try {
-      debug(`query plan created`, queryPlan)
+      debug(`query plan created`, plan)
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const result = await executor.execute({
-        plan: queryPlan,
+        plan,
         model: query.modelName,
         operation: query.action,
         placeholderValues,
@@ -494,7 +478,7 @@ export class ClientEngine implements Engine {
 
       return { data: { [query.action]: result } as T }
     } catch (e: any) {
-      throw this.#transformRequestError(e, queryStr)
+      throw this.#transformRequestError(e, JSON.stringify(query))
     }
   }
 
@@ -509,32 +493,13 @@ export class ClientEngine implements Engine {
     const firstAction = queries[0].action
     const firstModelName = queries[0].modelName
 
-    const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
+    const request = getBatchRequestPayload(queries, transaction)
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, request)
+      throw this.#transformRequestError(err, JSON.stringify(request))
     })
 
-    let batchResponse: BatchResponse
-
-    const allRaw = queries.filter(isRawQuery)
-    if (allRaw.length === queries.length) {
-      batchResponse = {
-        type: 'multi',
-        plans: allRaw.map((q) => compileRawQuery(q)),
-      }
-    } else {
-      try {
-        batchResponse = this.#withLocalPanicHandler(() =>
-          this.#withCompileSpan({
-            queries,
-            execute: () => queryCompiler.compileBatch(request),
-          }),
-        )
-      } catch (err) {
-        throw this.#transformCompileError(err)
-      }
-    }
+    const batchResponse = this.#compileBatch(request, queryCompiler)
 
     try {
       let txInfo: InteractiveTransactionInfo | undefined
@@ -627,7 +592,7 @@ export class ClientEngine implements Engine {
         }
       }
     } catch (e: any) {
-      throw this.#transformRequestError(e, request)
+      throw this.#transformRequestError(e, JSON.stringify(request))
     }
   }
 
@@ -637,6 +602,44 @@ export class ClientEngine implements Engine {
   async apiKey(): Promise<string | null> {
     const { executor } = await this.#ensureStarted()
     return executor.apiKey()
+  }
+
+  #compileQuery(query: JsonQuery, compiler: QueryCompiler): QueryPlanNode {
+    if (isRawQuery(query)) {
+      return compileRawQuery(query)
+    }
+
+    try {
+      return this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries: [query],
+          execute: () => compiler.compile(JSON.stringify(query)) as QueryPlanNode,
+        }),
+      )
+    } catch (error) {
+      throw this.#transformCompileError(error)
+    }
+  }
+
+  #compileBatch(request: JsonBatchQuery, compiler: QueryCompiler): BatchResponse {
+    const allRaw = request.batch.filter(isRawQuery)
+    if (allRaw.length === request.batch.length) {
+      return {
+        type: 'multi',
+        plans: allRaw.map((q) => compileRawQuery(q)),
+      }
+    }
+
+    try {
+      return this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries: request.batch,
+          execute: () => compiler.compileBatch(JSON.stringify(request)),
+        }),
+      )
+    } catch (err) {
+      throw this.#transformCompileError(err)
+    }
   }
 
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {
