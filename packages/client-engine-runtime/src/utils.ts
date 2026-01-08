@@ -126,3 +126,44 @@ export function safeJsonStringify(obj: unknown): string {
     return val
   })
 }
+
+/**
+ * Regular expression to match JSON integer values that may lose precision when
+ * parsed as JavaScript Number. Matches integers with more than 15 significant digits.
+ *
+ * The pattern handles integers in both contexts:
+ * - Object values: `"key": 12345678901234567,`
+ * - Array values: `[12345678901234567,` or `, 12345678901234567,`
+ *
+ * Uses lookahead (?=...) to avoid consuming the suffix character, allowing
+ * consecutive matches in arrays like `[123..., 456...]`.
+ *
+ * Capturing groups:
+ * - Group 1: The prefix (`:`, `[`, or `,` with optional whitespace)
+ * - Group 2: The integer value (16+ digits, optionally negative)
+ * - Lookahead asserts suffix (`,`, `}`, or `]`) without consuming it
+ */
+const LARGE_INT_PATTERN = /(:\s*|[,\[]\s*)(-?\d{16,})(?=\s*[,}\]])/g
+
+/**
+ * `JSON.parse` wrapper that preserves precision for large integer values.
+ *
+ * JavaScript's Number type can only safely represent integers up to
+ * Number.MAX_SAFE_INTEGER (2^53 - 1 = 9007199254740991). Larger integers
+ * lose precision when parsed as Number.
+ *
+ * This function pre-processes the JSON string to convert large integers to
+ * strings before parsing, preserving their precision. The data mapper will
+ * later convert these string values to BigInt as needed.
+ *
+ * This is particularly important for relationJoins queries where BigInt foreign
+ * key values are embedded in JSON-aggregated relation data from PostgreSQL.
+ */
+export function safeJsonParse(json: string): unknown {
+  // Replace large integers with quoted strings to preserve precision.
+  // Numbers with 16+ digits may exceed MAX_SAFE_INTEGER and lose precision.
+  const safeJson = json.replace(LARGE_INT_PATTERN, (_match, prefix, num) => {
+    return `${prefix}"${num}"`
+  })
+  return JSON.parse(safeJson)
+}

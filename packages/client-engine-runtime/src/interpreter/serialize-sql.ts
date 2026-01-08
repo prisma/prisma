@@ -1,6 +1,6 @@
 import { type ColumnType, ColumnTypeEnum, type SqlResultSet } from '@prisma/driver-adapter-utils'
 
-import { assertNever } from '../utils'
+import { assertNever, safeJsonParse } from '../utils'
 
 export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[] {
   return resultSet.rows.map((row) =>
@@ -62,7 +62,7 @@ function serializeRawValue(value: unknown, type: ColumnType): unknown {
     case ColumnTypeEnum.Json:
       switch (typeof value) {
         case 'string':
-          return JSON.parse(value)
+          return safeJsonParse(value)
         default:
           throw new Error(`Cannot serialize value of type ${typeof value} as Json`)
       }
