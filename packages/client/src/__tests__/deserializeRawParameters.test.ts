@@ -82,6 +82,18 @@ describe('deserializeRawParameters', () => {
       expectedArgs: [['hello', 'world', 'test']],
       expectedTypes: [{ scalarType: 'string', arity: 'list' }],
     },
+    {
+      name: 'JSON object',
+      input: [
+        { name: 'John', age: 30, active: true },
+        { items: ['a', 'b', 'c'], count: 3 },
+      ],
+      expectedArgs: ['{"name":"John","age":30,"active":true}', '{"items":["a","b","c"],"count":3}'],
+      expectedTypes: [
+        { scalarType: 'unknown', arity: 'scalar' },
+        { scalarType: 'unknown', arity: 'scalar' },
+      ],
+    },
   ])('fast serialization mode: $name', ({ input, expectedArgs, expectedTypes }) => {
     test('round-trip', () => {
       const result = roundTrip(input)
