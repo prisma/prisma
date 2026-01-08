@@ -19,9 +19,9 @@ export function shouldWarnAboutGlobalInstallation(cwd: string = process.cwd()): 
   const currentCliPath = path.dirname(__dirname)
   const localCliPath = path.dirname(localPrismaPath)
 
-  // If the current CLI path is different from the local CLI path,
-  // we're likely running from a global installation
-  return !currentCliPath.includes(path.join(cwd, 'node_modules'))
+  // If the current CLI path doesn't start with the local CLI path,
+  // we're running from a different installation (likely global)
+  return !currentCliPath.startsWith(localCliPath)
 }
 
 /**

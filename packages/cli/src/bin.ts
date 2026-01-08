@@ -48,7 +48,7 @@ import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
-import { shouldWarnAboutGlobalInstallation } from './utils/check-global-installation'
+import { shouldWarnAboutGlobalInstallation, getLocalPrismaVersion } from './utils/check-global-installation'
 import { loadOrInitializeCommandState } from './utils/commandState'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
@@ -91,8 +91,10 @@ const args = arg(
 async function main(): Promise<number> {
   // Warn if running global Prisma CLI while a local version is installed
   if (shouldWarnAboutGlobalInstallation()) {
+    const localVersion = await getLocalPrismaVersion()
+    const versionInfo = localVersion ? ` (local version: ${localVersion})` : ''
     console.warn(
-      `${yellow(bold('warn'))} You are running a global installation of Prisma CLI, but a local version is installed in your project's node_modules. It is recommended to use the locally installed version by running it with npx, pnpm, or yarn.`,
+      `${yellow(bold('warn'))} You are running a global installation of Prisma CLI, but a local version is installed in your project's node_modules${versionInfo}. It is recommended to use the locally installed version by running it with npx, pnpm, or yarn.`,
     )
   }
 
