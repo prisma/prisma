@@ -18,7 +18,7 @@ export function deserializeRawParameters(serializedParameters: string): RawParam
   try {
     parsed = JSON.parse(serializedParameters)
   } catch (err) {
-    throw new Error(`Received invalid serialized parameters: ${err}`)
+    throw new Error(`Received invalid serialized parameters: ${err.message}`)
   }
   if (!Array.isArray(parsed)) {
     throw new Error('Received invalid serialized parameters: expected an array')
@@ -35,7 +35,7 @@ function decodeParameter(parameter: unknown): PrismaValue {
 
   if (typeof parameter === 'object' && parameter !== null && 'prisma__value' in parameter) {
     if (!('prisma__type' in parameter)) {
-      throw new Error('Invalid serialized parameter, prisma__type should not be present when prisma__value is present')
+      throw new Error('Invalid serialized parameter, prisma__type should be present when prisma__value is present')
     }
     return `${parameter.prisma__value}`
   }
