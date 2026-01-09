@@ -45,6 +45,7 @@ describe('rethrowSanitizedError', () => {
   it.each([
     ['basic mysql connection string', 'mysql://user:password@localhost:3306/database', '[REDACTED]'],
     ['mariadb connection string', 'mariadb://user:password@localhost:3306/database', '[REDACTED]'],
+    ['postgres connection string', 'postgres://user:password@localhost:5432/database', '[REDACTED]'],
     ['postgresql connection string', 'postgresql://user:password@localhost:5432/database', '[REDACTED]'],
     [
       'jdbc:sqlserver connection string',
@@ -52,6 +53,7 @@ describe('rethrowSanitizedError', () => {
       '[REDACTED]',
     ],
     ['sqlserver connection string', 'sqlserver://localhost:1433;database=test;user=sa;password=pass', '[REDACTED]'],
+    ['mssql connection string', 'mssql://user:password@localhost:1433/database', '[REDACTED]'],
     ['sqlite connection string', 'sqlite://path/to/database.db', '[REDACTED]'],
     ['mongodb connection string', 'mongodb://user:password@localhost:27017/database', '[REDACTED]'],
     [
@@ -111,5 +113,41 @@ describe('rethrowSanitizedError', () => {
 
   it('rethrows non-Error values unchanged', () => {
     expect(() => rethrowSanitizedError('string error')).toThrow('string error')
+  })
+
+  it('sanitizes connection strings in error cause', () => {
+    const error = new Error('Connection error occurred', {
+      cause: new Error('Failed to connect to mysql://user:pass@host:3306/db'),
+    })
+
+    try {
+      rethrowSanitizedError(error)
+    } catch (caughtError) {
+      expect(caughtError).toBeInstanceOf(Error)
+      expect((caughtError as Error).message).toBe('Connection error occurred')
+      expect((caughtError as Error).cause).toBeInstanceOf(Error)
+      expect(((caughtError as Error).cause as Error).message).toBe('Failed to connect to [REDACTED]')
+    }
+  })
+
+  it('sanitizes connection strings in AggregateError', () => {
+    const aggregateError = new AggregateError(
+      [
+        new Error('Connection failed: mysql://user:pass@host1:3306/db1'),
+        new Error('Another failure: postgresql://user:pass@host2:5432/db2'),
+      ],
+      'Multiple connection errors',
+    )
+
+    try {
+      rethrowSanitizedError(aggregateError)
+    } catch (caughtError) {
+      expect(caughtError).toBeInstanceOf(AggregateError)
+      const caught = caughtError as AggregateError
+      expect(caught.message).toBe('Multiple connection errors')
+      expect(caught.errors).toHaveLength(2)
+      expect(caught.errors[0].message).toBe('Connection failed: [REDACTED]')
+      expect(caught.errors[1].message).toBe('Another failure: [REDACTED]')
+    }
   })
 })
