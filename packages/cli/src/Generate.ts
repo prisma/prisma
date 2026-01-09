@@ -29,7 +29,6 @@ import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -144,7 +143,6 @@ ${bold('Examples')}
       }),
       cwd,
     })
-    const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
@@ -259,7 +257,6 @@ Please make sure they have the same version.`
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${renderPromotion(promotion)}
 ${breakingChangesStr}${versionsWarning}`
         }
       }
