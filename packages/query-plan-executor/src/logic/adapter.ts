@@ -65,3 +65,5 @@ const factories: Factory[] = [
     },
   },
 ]
+
+export const allAllowedProtocols: string[] = factories.flatMap((factory) => factory.protocols)

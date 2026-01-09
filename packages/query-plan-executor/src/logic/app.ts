@@ -17,7 +17,8 @@ import * as log from '../log/facade'
 import { Options } from '../options'
 import { TracingHandler } from '../tracing/handler'
 import { runInActiveSpan, tracer } from '../tracing/tracer'
-import { createAdapter } from './adapter'
+import { rethrowSanitizedError } from '../utils/error'
+import { allAllowedProtocols, createAdapter } from './adapter'
 import { ResourceLimitError, ResourceLimits } from './resource-limits'
 
 /**
@@ -40,7 +41,9 @@ export class App {
   static async start(options: Options): Promise<App> {
     const connector = createAdapter(options.databaseUrl)
 
-    const db = await runInActiveSpan('connect', () => connector.connect())
+    const db = await runInActiveSpan('connect', () =>
+      connector.connect().catch((err) => rethrowSanitizedError(err, allAllowedProtocols)),
+    )
 
     const tracingHandler = new TracingHandler(tracer)
 
