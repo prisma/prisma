@@ -59,7 +59,7 @@ describe('with local prisma installation', () => {
     fs.rmSync(tempDir, { recursive: true, force: true })
   })
 
-  it('shouldWarnAboutGlobalInstallation returns true when local install exists and CLI is elsewhere', () => {
+  it('shouldWarnAboutGlobalInstallation returns true when local install exists but CLI runs from outside it', () => {
     writeLocalPrismaPackageJson({ name: 'prisma', version: '5.10.2' })
 
     const result = shouldWarnAboutGlobalInstallation(tempDir)

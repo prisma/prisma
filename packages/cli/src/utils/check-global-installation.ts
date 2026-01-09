@@ -6,21 +6,26 @@ import path from 'node:path'
  * Returns true if we should show a warning.
  */
 export function shouldWarnAboutGlobalInstallation(cwd: string = process.cwd()): boolean {
-  // Check if there's a local prisma installation in node_modules
-  const localPrismaPath = getLocalPrismaPath(cwd)
-  if (!localPrismaPath) {
-    // No local installation found, no need to warn
+  try {
+    // Check if there's a local prisma installation in node_modules
+    const localPrismaPath = getLocalPrismaPath(cwd)
+    if (!localPrismaPath) {
+      // No local installation found, no need to warn
+      return false
+    }
+
+    // Check if we're running from the global installation
+    // Resolve symlinks to ensure consistent path comparison across platforms
+    const currentCliPath = fs.realpathSync(path.dirname(__dirname))
+    const localCliPath = fs.realpathSync(path.dirname(localPrismaPath))
+
+    // If the current CLI path is not the same as or inside the local CLI path,
+    // we're running from a different installation (likely global)
+    return !(currentCliPath === localCliPath || currentCliPath.startsWith(localCliPath + path.sep))
+  } catch {
+    // If anything goes wrong (e.g., permissions, broken symlinks), don't warn
     return false
   }
-
-  // Check if we're running from the global installation
-  // Resolve symlinks to ensure consistent path comparison across platforms
-  const currentCliPath = fs.realpathSync(path.dirname(__dirname))
-  const localCliPath = fs.realpathSync(path.dirname(localPrismaPath))
-
-  // If the current CLI path is not the same as or inside the local CLI path,
-  // we're running from a different installation (likely global)
-  return !(currentCliPath === localCliPath || currentCliPath.startsWith(localCliPath + path.sep))
 }
 
 /**
