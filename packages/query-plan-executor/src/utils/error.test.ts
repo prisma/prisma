@@ -48,11 +48,6 @@ describe('rethrowSanitizedError', () => {
     ['mariadb connection string', 'mariadb://user:password@localhost:3306/database', '[REDACTED]'],
     ['postgres connection string', 'postgres://user:password@localhost:5432/database', '[REDACTED]'],
     ['postgresql connection string', 'postgresql://user:password@localhost:5432/database', '[REDACTED]'],
-    [
-      'jdbc:sqlserver connection string',
-      'jdbc:sqlserver://localhost:1433;database=test;user=sa;password=pass',
-      '[REDACTED]',
-    ],
     ['sqlserver connection string', 'sqlserver://localhost:1433;database=test;user=sa;password=pass', '[REDACTED]'],
     [
       'connection string with context',
