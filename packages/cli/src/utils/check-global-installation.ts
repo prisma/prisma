@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import Module from 'node:module'
 import path from 'node:path'
 
 /**
@@ -15,13 +14,13 @@ export function shouldWarnAboutGlobalInstallation(cwd: string = process.cwd()): 
   }
 
   // Check if we're running from the global installation
-  // We compare the current CLI's location with the local installation
-  const currentCliPath = path.dirname(__dirname)
-  const localCliPath = path.dirname(localPrismaPath)
+  // Resolve symlinks to ensure consistent path comparison across platforms
+  const currentCliPath = fs.realpathSync(path.dirname(__dirname))
+  const localCliPath = fs.realpathSync(path.dirname(localPrismaPath))
 
-  // If the current CLI path doesn't start with the local CLI path,
+  // If the current CLI path is not the same as or inside the local CLI path,
   // we're running from a different installation (likely global)
-  return !currentCliPath.startsWith(localCliPath)
+  return !(currentCliPath === localCliPath || currentCliPath.startsWith(localCliPath + path.sep))
 }
 
 /**
@@ -31,7 +30,7 @@ function getLocalPrismaPath(cwd: string): string | null {
   try {
     // Try to resolve the local prisma package
     const resolvedPath = require.resolve('prisma/package.json', {
-      paths: (Module as any)._nodeModulePaths(cwd),
+      paths: [cwd],
     })
 
     // Make sure it's actually in the local node_modules and not a global installation
@@ -40,7 +39,7 @@ function getLocalPrismaPath(cwd: string): string | null {
     const realResolvedPath = fs.realpathSync(resolvedPath)
     const localNodeModules = path.join(realCwd, 'node_modules') + path.sep
     if (realResolvedPath.startsWith(localNodeModules)) {
-      return resolvedPath
+      return realResolvedPath
     }
 
     return null
@@ -61,7 +60,7 @@ export async function getLocalPrismaVersion(cwd: string = process.cwd()): Promis
   try {
     const pkgJsonString = await fs.promises.readFile(localPrismaPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
-    return pkgJson.version ?? null
+    return typeof pkgJson?.version === 'string' ? pkgJson.version : null
   } catch {
     return null
   }
