@@ -27,11 +27,16 @@ export class App {
   readonly #db: SqlDriverAdapter
   readonly #transactionManager: TransactionManager
   readonly #tracingHandler: TracingHandler
+  readonly #interpreter: QueryInterpreter
 
   constructor(db: SqlDriverAdapter, transactionManager: TransactionManager, tracingHandler: TracingHandler) {
     this.#db = db
     this.#transactionManager = transactionManager
     this.#tracingHandler = tracingHandler
+    this.#interpreter = QueryInterpreter.forSql({
+      tracingHelper: this.#tracingHandler,
+      onQuery: logQuery,
+    })
   }
 
   /**
@@ -72,14 +77,14 @@ export class App {
    * Executes a query plan and returns the result.
    *
    * @param queryPlan - The query plan to execute
-   * @param placeholderValues - Placeholder values for the query
+   * @param scope - Placeholder values for the query
    * @param comments - Pre-computed SQL commenter tags from the client
    * @param resourceLimits - Resource limits for the query
    * @param transactionId - Transaction ID if running within a transaction
    */
   async query(
     queryPlan: QueryPlanNode,
-    placeholderValues: Record<string, unknown>,
+    scope: Record<string, unknown>,
     comments: Record<string, string> | undefined,
     resourceLimits: ResourceLimits,
     transactionId: string | null,
@@ -98,17 +103,14 @@ export class App {
           }
         : undefined
 
-    const queryInterpreter = QueryInterpreter.forSql({
-      placeholderValues,
-      tracingHelper: this.#tracingHandler,
-      transactionManager:
-        transactionId === null ? { enabled: true, manager: this.#transactionManager } : { enabled: false },
-      onQuery: logQuery,
-      sqlCommenter,
-    })
-
     const result = await Promise.race([
-      queryInterpreter.run(queryPlan, queryable),
+      this.#interpreter.run(queryPlan, {
+        queryable,
+        transactionManager:
+          transactionId === null ? { enabled: true, manager: this.#transactionManager } : { enabled: false },
+        scope,
+        sqlCommenter,
+      }),
       timers.setTimeout(resourceLimits.queryTimeout.total('milliseconds'), undefined, { ref: false }).then(() => {
         throw new ResourceLimitError('Query timeout exceeded')
       }),
