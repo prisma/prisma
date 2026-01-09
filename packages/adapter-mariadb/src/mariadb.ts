@@ -193,6 +193,10 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
     try {
       pool = mariadb.createPool(this.#config)
     } catch (error) {
+      // We match on an error which is known to leak the connection string and replace it with
+      // a custom error message.
+      // The error might change in a future version of the driver, but this is covered in a
+      // test, which checks for credential leakage regardless of the exact error message.
       if (error instanceof Error && error.message.startsWith('error parsing connection string')) {
         throw new Error(
           "error parsing connection string, format must be 'mariadb://[<user>[:<password>]@]<host>[:<port>]/[<db>[?<opt1>=<value1>[&<opt2>=<value2>]]]'",
