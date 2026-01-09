@@ -1,13 +1,12 @@
 {
-  "name": "@refract/example-basic",
+  "name": "@refract/example-kysely",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Basic Refract example with PostgreSQL and Testcontainers",
+  "description": "Kysely-focused Refract example demonstrating low-level $kysely API",
   "scripts": {
     "generate": "refract generate",
-    "demo": "tsx demo.ts",
-    "test": "vitest run"
+    "demo": "tsx demo.ts"
   },
   "dependencies": {
     "@refract/client": "workspace:*",

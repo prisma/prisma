@@ -403,6 +403,7 @@ export class SchemaASTMockFactory {
       errors: [],
       ast: {
         type: 'Schema',
+        datasources: [],
         models: models.map(model => ({
           type: 'Model',
           name: model.name,

@@ -131,7 +131,7 @@ Refract is TypeScript-first. Follow our workspace conventions:
 
 - Node.js ≥ 20, pnpm ≥ 10.
 - `pnpm lint`, `pnpm test`, and `pnpm build` at the workspace root before submitting changes.
-- Database-backed tests require Docker containers defined in `/docker`.
+- Database-backed tests use Testcontainers (no local `/docker` directory required).
 
 ## License
 

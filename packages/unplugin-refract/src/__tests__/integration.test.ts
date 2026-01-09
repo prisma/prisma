@@ -5,6 +5,11 @@ import { unpluginRefract } from '../core.js'
 // Mock file system
 const mockFs = {
   '/test/schema.prisma': `
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model User {
   id       Int    @id @default(autoincrement())
   email    String @unique
@@ -78,7 +83,7 @@ describe('Unplugin Refract Integration', () => {
     }
   })
 
-  it('should load generated virtual modules', () => {
+  it('should load generated virtual modules', async () => {
     const plugin = unpluginRefract.raw({
       schema: '/test/schema.prisma',
       root: '/test',
@@ -87,7 +92,7 @@ describe('Unplugin Refract Integration', () => {
 
     // Trigger buildStart to generate types
     if (plugin.buildStart) {
-      plugin.buildStart.call({})
+      await plugin.buildStart.call({})
     }
 
     const load = plugin.load
@@ -102,7 +107,7 @@ describe('Unplugin Refract Integration', () => {
     }
   })
 
-  it('should handle missing schema file gracefully', () => {
+  it('should handle missing schema file gracefully', async () => {
     const plugin = unpluginRefract.raw({
       schema: '/test/missing.prisma',
       root: '/test',
@@ -110,7 +115,7 @@ describe('Unplugin Refract Integration', () => {
 
     // Trigger buildStart
     if (plugin.buildStart) {
-      plugin.buildStart.call({})
+      await plugin.buildStart.call({})
     }
 
     const load = plugin.load
@@ -122,15 +127,15 @@ describe('Unplugin Refract Integration', () => {
     }
   })
 
-  it('should generate multiple virtual modules', () => {
+  it('should generate multiple virtual modules', async () => {
     const plugin = unpluginRefract.raw({
       schema: '/test/schema.prisma',
       root: '/test',
     })
 
-    // Trigger buildStart
+    // Trigger buildStart (async)
     if (plugin.buildStart) {
-      plugin.buildStart.call({})
+      await plugin.buildStart.call({})
     }
 
     const load = plugin.load

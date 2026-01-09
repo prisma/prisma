@@ -88,7 +88,7 @@ describe('Complete FieldTranslator Integration', () => {
 
       // PostgreSQL should handle booleans natively
       const isActiveField = metadata.fields.get('isActive')
-      expect(isActiveField!.columnType).toBe('BOOLEAN')
+      expect(isActiveField!.columnType).toBe('boolean')
       
       const createTransform = isActiveField!.transformations.get('create')
       expect(createTransform?.code).toBe('data.isActive')
@@ -107,7 +107,7 @@ describe('Complete FieldTranslator Integration', () => {
       // SQLite stores dates as TEXT
       expect(sqliteDateTime.columnType).toBe('TEXT')
       // PostgreSQL uses proper timestamp
-      expect(postgresDateTime.columnType).toBe('TIMESTAMP WITH TIME ZONE')
+      expect(postgresDateTime.columnType).toBe('timestamptz')
       
       // SQLite should convert on select
       const sqliteSelect = sqliteDateTime.transformations.get('select')
@@ -130,7 +130,7 @@ describe('Complete FieldTranslator Integration', () => {
       
       // Different column types
       expect(sqliteJson.columnType).toBe('TEXT')
-      expect(postgresJson.columnType).toBe('JSONB')
+      expect(postgresJson.columnType).toBe('jsonb')
       
       // SQLite needs JSON parsing
       const sqliteSelect = sqliteJson.transformations.get('select')

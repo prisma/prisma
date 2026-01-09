@@ -1542,7 +1542,7 @@ export class RefractMigrate {
    * Extract database dialect from schema AST
    */
   private getDialectFromSchema(schemaAST: SchemaAST): DatabaseDialect {
-    const datasource = schemaAST.datasources[0]
+    const datasource = schemaAST.datasources?.[0]
     if (!datasource) {
       // Default to postgresql if no datasource specified
       return 'postgresql'

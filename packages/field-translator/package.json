@@ -2,6 +2,7 @@
   "name": "@refract/field-translator",
   "version": "0.0.1-alpha.1",
   "description": "Build-time database-specific field transformation code generators for Refract ORM",
+  "license": "Apache-2.0",
   "keywords": [
     "refract",
     "orm",
@@ -26,8 +27,9 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest",
-    "type-check": "tsc --noEmit"
+    "test": "vitest run",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@refract/schema-parser": "workspace:*"
@@ -40,6 +42,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "tsup": {
     "entry": [

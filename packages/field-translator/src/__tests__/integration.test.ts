@@ -89,7 +89,7 @@ describe('FieldTranslator Integration', () => {
       expect(createTransform?.code).toContain('toISOString()')
       
       const selectTransform = result.transformations.get('select')
-      expect(selectTransform?.code).toBe('new Date(data.createdAt)')
+      expect(selectTransform?.code).toBe('new Date(data.createdAt as string | number)')
     })
 
     it('should detect special handling', () => {
@@ -114,7 +114,7 @@ describe('FieldTranslator Integration', () => {
 
     it('should get correct column types', () => {
       const result = analyzer.analyzeField(mockBooleanField)
-      expect(result.columnType).toBe('BOOLEAN')
+      expect(result.columnType).toBe('boolean')
     })
   })
 

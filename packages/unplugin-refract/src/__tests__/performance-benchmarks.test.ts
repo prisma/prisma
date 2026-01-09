@@ -1,14 +1,26 @@
 /**
  * Performance benchmarks for unplugin-refract
  * Compares against other ORM development experiences
+ *
+ * Uses real temporary files instead of mocking fs to avoid ESM module resolution issues.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
+import { join } from 'path'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { unpluginRefract } from '../core.js'
 
 // Performance test schemas of varying complexity
-const SMALL_SCHEMA = `
+const DATASOURCE = `
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+`
+
+const SMALL_SCHEMA = `${DATASOURCE}
 model User {
   id    Int    @id @default(autoincrement())
   email String @unique
@@ -22,7 +34,7 @@ model Post {
 }
 `
 
-const MEDIUM_SCHEMA = `
+const MEDIUM_SCHEMA = `${DATASOURCE}
 ${Array.from(
   { length: 10 },
   (_, i) => `
@@ -35,14 +47,14 @@ model Model${i} {
   field5    String?
   field6    Json?
   related   Model${(i + 1) % 10}[]
-  
+
   @@map("model_${i}")
 }
 `,
 ).join('\n')}
 `
 
-const LARGE_SCHEMA = `
+const LARGE_SCHEMA = `${DATASOURCE}
 ${Array.from(
   { length: 100 },
   (_, i) => `
@@ -58,12 +70,12 @@ model Model${i} {
   field8    BigInt?
   field9    Bytes?
   field10   Float[]
-  
+
   // Relations to create complexity
   related1  Model${(i + 1) % 100}[]
   related2  Model${(i + 2) % 100}?
   related3  Model${(i + 3) % 100}[]
-  
+
   @@map("model_${i}")
   @@index([field1, field2])
   @@index([field4])
@@ -72,18 +84,27 @@ model Model${i} {
 ).join('\n')}
 `
 
-const mockFs: Record<string, string> = {
-  '/test/small.prisma': SMALL_SCHEMA,
-  '/test/medium.prisma': MEDIUM_SCHEMA,
-  '/test/large.prisma': LARGE_SCHEMA,
+// Create real temp directory and files for tests
+const TEST_DIR = join(tmpdir(), 'unplugin-refract-perf-test')
+
+// Paths to real test files
+const testPaths = {
+  small: join(TEST_DIR, 'small.prisma'),
+  medium: join(TEST_DIR, 'medium.prisma'),
+  large: join(TEST_DIR, 'large.prisma'),
 }
 
-vi.mock('fs', () => ({
-  existsSync: vi.fn((path: string) => mockFs[path] !== undefined),
-  readFileSync: vi.fn((path: string) => mockFs[path] || ''),
-  writeFileSync: vi.fn(),
-  mkdirSync: vi.fn(),
-}))
+// Setup and teardown real test files
+beforeAll(() => {
+  mkdirSync(TEST_DIR, { recursive: true })
+  writeFileSync(testPaths.small, SMALL_SCHEMA)
+  writeFileSync(testPaths.medium, MEDIUM_SCHEMA)
+  writeFileSync(testPaths.large, LARGE_SCHEMA)
+})
+
+afterAll(() => {
+  rmSync(TEST_DIR, { recursive: true, force: true })
+})
 
 vi.mock('chokidar', () => ({
   watch: vi.fn(() => ({
@@ -129,8 +150,8 @@ describe('Performance Benchmarks', () => {
         'Small Schema Processing',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/small.prisma',
-            root: '/test',
+            schema: testPaths.small,
+            root: TEST_DIR,
             production: { cache: false }, // Disable cache for fair benchmarking
           })
 
@@ -160,8 +181,8 @@ describe('Performance Benchmarks', () => {
         'Medium Schema Processing',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/medium.prisma',
-            root: '/test',
+            schema: testPaths.medium,
+            root: TEST_DIR,
             production: { cache: false },
           })
 
@@ -190,8 +211,8 @@ describe('Performance Benchmarks', () => {
         'Large Schema Processing',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/large.prisma',
-            root: '/test',
+            schema: testPaths.large,
+            root: TEST_DIR,
             production: { cache: false },
           })
 
@@ -225,8 +246,8 @@ describe('Performance Benchmarks', () => {
   describe('Virtual Module Performance', () => {
     it('should resolve virtual modules quickly', async () => {
       const plugin = unpluginRefract.raw({
-        schema: '/test/medium.prisma',
-        root: '/test',
+        schema: testPaths.medium,
+        root: TEST_DIR,
       })
 
       if (plugin.buildStart) {
@@ -258,8 +279,8 @@ describe('Performance Benchmarks', () => {
 
     it('should load virtual modules efficiently', async () => {
       const plugin = unpluginRefract.raw({
-        schema: '/test/medium.prisma',
-        root: '/test',
+        schema: testPaths.medium,
+        root: TEST_DIR,
       })
 
       if (plugin.buildStart) {
@@ -300,8 +321,8 @@ describe('Performance Benchmarks', () => {
         'Production Build Optimization',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/medium.prisma',
-            root: '/test',
+            schema: testPaths.medium,
+            root: TEST_DIR,
             production: {
               optimize: true,
               cache: false, // Disable cache for benchmarking
@@ -337,8 +358,8 @@ describe('Performance Benchmarks', () => {
         'First Build (No Cache)',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/medium.prisma',
-            root: '/test',
+            schema: testPaths.medium,
+            root: TEST_DIR,
             production: {
               optimize: true,
               cache: true,
@@ -357,8 +378,8 @@ describe('Performance Benchmarks', () => {
         'Second Build (With Cache)',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/medium.prisma',
-            root: '/test',
+            schema: testPaths.medium,
+            root: TEST_DIR,
             production: {
               optimize: true,
               cache: true,
@@ -392,8 +413,8 @@ describe('Performance Benchmarks', () => {
       // Create multiple plugin instances to test memory usage
       const plugins = Array.from({ length: 10 }, () =>
         unpluginRefract.raw({
-          schema: '/test/medium.prisma',
-          root: '/test',
+          schema: testPaths.medium,
+          root: TEST_DIR,
         }),
       )
 
@@ -436,7 +457,7 @@ describe('Performance Benchmarks', () => {
         'Manual Workflow Simulation',
         async () => {
           // Simulate schema reading
-          const schemaContent = mockFs['/test/medium.prisma']
+          const schemaContent = readFileSync(testPaths.medium, 'utf-8')
 
           // Simulate manual parsing (just string operations for comparison)
           const models = schemaContent.match(/model \w+ \{[^}]+\}/g) || []
@@ -463,8 +484,8 @@ describe('Performance Benchmarks', () => {
         'Plugin Workflow',
         async () => {
           const plugin = unpluginRefract.raw({
-            schema: '/test/medium.prisma',
-            root: '/test',
+            schema: testPaths.medium,
+            root: TEST_DIR,
             production: { cache: false },
           })
 
@@ -495,8 +516,8 @@ describe('Performance Benchmarks', () => {
   describe('Stress Testing', () => {
     it('should handle rapid schema changes', async () => {
       const plugin = unpluginRefract.raw({
-        schema: '/test/medium.prisma',
-        root: '/test',
+        schema: testPaths.medium,
+        root: TEST_DIR,
       })
 
       const result = await benchmark(
@@ -524,8 +545,8 @@ describe('Performance Benchmarks', () => {
 
     it('should handle concurrent module requests', async () => {
       const plugin = unpluginRefract.raw({
-        schema: '/test/medium.prisma',
-        root: '/test',
+        schema: testPaths.medium,
+        root: TEST_DIR,
       })
 
       if (plugin.buildStart) {

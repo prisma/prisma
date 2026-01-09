@@ -8,15 +8,10 @@ import { Pool } from 'pg'
 /**
  * Tests for Query Logging
  *
- * CURRENT STATE: Logging not implemented
- * - createRefractClient doesn't accept log options yet
- * - No LogConfig type defined
- * - Kysely logging not passed through
- *
- * GOAL: Pass Kysely's native logging through createRefractClient options
+ * Implementation passes Kysely's native logging through createRefractClient options:
  * - Support log levels: 'query', 'error'
  * - Support custom log handler functions
- * - Leverage Kysely's built-in logging (includes duration, SQL, params)
+ * - Leverages Kysely's built-in logging (includes duration, SQL, params)
  */
 describe('Query Logging', () => {
   let testEnv: TestEnvironment
@@ -120,7 +115,6 @@ describe('Query Logging', () => {
       await client.user.findMany()
 
       // Should have called custom logger with query details
-      // This will fail because log option doesn't exist yet
       expect(customLogger).toHaveBeenCalledWith(
         expect.objectContaining({
           level: 'query',
@@ -140,7 +134,6 @@ describe('Query Logging', () => {
       await client.user.findMany()
 
       // Kysely's LogEvent includes queryDurationMillis
-      // This will fail because log option doesn't exist yet
       expect(customLogger).toHaveBeenCalledWith(
         expect.objectContaining({
           queryDurationMillis: expect.any(Number),
@@ -162,7 +155,6 @@ describe('Query Logging', () => {
       })
 
       // Kysely provides structured log events with SQL and parameters
-      // This will fail because log option doesn't exist yet
       expect(customLogger).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
@@ -193,7 +185,7 @@ describe('Query Logging', () => {
     it('should pass log config directly to Kysely constructor', async () => {
       const customLogger = vi.fn()
 
-      // Our implementation should pass the log option to new Kysely({ log: ... })
+      // Our implementation passes the log option to new Kysely({ log: ... })
       // This leverages Kysely's native logging rather than custom plugins
       const client = createRefractClient(dialect, {
         log: (event) => customLogger(event),
@@ -201,7 +193,6 @@ describe('Query Logging', () => {
 
       await client.user.findMany()
 
-      // This will fail because the implementation doesn't pass log to Kysely yet
       expect(customLogger).toHaveBeenCalled()
     })
   })

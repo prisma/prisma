@@ -39,8 +39,20 @@ export interface Post {
     mockClientModule = {
       clientCode: `// Generated client code with embedded operations
 export class RefractClient extends RefractClientBase<any> {
-  declare readonly user: any
-  declare readonly post: any
+  declare readonly user: {
+    findMany: (args?: any) => Promise<User[]>
+    findUnique: (args: any) => Promise<User | null>
+    create: (args: any) => Promise<User>
+    update: (args: any) => Promise<User>
+    delete: (args: any) => Promise<User>
+  }
+  declare readonly post: {
+    findMany: (args?: any) => Promise<Post[]>
+    findUnique: (args: any) => Promise<Post | null>
+    create: (args: any) => Promise<Post>
+    update: (args: any) => Promise<Post>
+    delete: (args: any) => Promise<Post>
+  }
 
   constructor(dialect: any) {
     super(dialect)
