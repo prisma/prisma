@@ -46,7 +46,8 @@ describe('with local prisma installation', () => {
   function writeLocalPrismaPackageJson(pkg: unknown) {
     const prismaDir = path.join(tempDir, 'node_modules', 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
-    fs.writeFileSync(path.join(prismaDir, 'package.json'), typeof pkg === 'string' ? pkg : JSON.stringify(pkg))
+    const content = typeof pkg === 'string' ? pkg : JSON.stringify(pkg)
+    fs.writeFileSync(path.join(prismaDir, 'package.json'), content + '\n', 'utf8')
     return prismaDir
   }
 
