@@ -2,7 +2,7 @@ import { Decimal } from '@prisma/client-runtime-utils'
 
 import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
-import { assertNever, safeJsonStringify } from '../utils'
+import { assertNever, safeJsonParse, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
 export class DataMapperError extends UserFacingError {
@@ -68,7 +68,7 @@ function mapArrayOrObject(
   if (typeof data === 'string') {
     let decodedData: Value
     try {
-      decodedData = JSON.parse(data)
+      decodedData = safeJsonParse(data) as Value
     } catch (error) {
       throw new DataMapperError(`Expected an array or object, got a string that is not valid JSON`, {
         cause: error,

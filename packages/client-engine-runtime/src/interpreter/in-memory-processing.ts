@@ -1,5 +1,5 @@
 import { InMemoryOps, Pagination } from '../query-plan'
-import { doKeysMatch } from '../utils'
+import { doKeysMatch, safeJsonParse } from '../utils'
 
 export function processRecords(value: unknown, ops: InMemoryOps): unknown {
   if (value == null) {
@@ -7,7 +7,7 @@ export function processRecords(value: unknown, ops: InMemoryOps): unknown {
   }
 
   if (typeof value === 'string') {
-    return processRecords(JSON.parse(value), ops)
+    return processRecords(safeJsonParse(value), ops)
   }
 
   if (Array.isArray(value)) {
