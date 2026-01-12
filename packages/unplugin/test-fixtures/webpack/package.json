@@ -1,0 +1,24 @@
+{
+  "name": "unplugin-ork-webpack-fixture",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Webpack test fixture for unplugin-ork blessed path",
+  "scripts": {
+    "build": "webpack --mode=production",
+    "dev": "webpack --mode=development --watch",
+    "serve": "webpack serve --mode=development",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ork/client": "workspace:*",
+    "unplugin-ork": "workspace:*"
+  },
+  "devDependencies": {
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.3",
+    "@types/node": "^20.0.0"
+  }
+}

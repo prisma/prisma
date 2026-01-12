@@ -1,0 +1,21 @@
+{
+  "name": "unplugin-ork-vite-fixture",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Vite test fixture for unplugin-ork blessed path",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ork/client": "workspace:*",
+    "unplugin-ork": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7",
+    "typescript": "^5.7.3",
+    "@types/node": "^20.0.0"
+  }
+}
