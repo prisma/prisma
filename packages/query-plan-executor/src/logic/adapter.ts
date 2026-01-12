@@ -3,7 +3,7 @@ import { PrismaMssql } from '@prisma/adapter-mssql'
 import { PrismaPg } from '@prisma/adapter-pg'
 import type { SqlDriverAdapter, SqlDriverAdapterFactory, Transaction } from '@prisma/driver-adapter-utils'
 
-export function createAdapter(url: string, supportedFactories: Factory[] = factories): SqlDriverAdapterFactory {
+export function createAdapter(url: string, supportedFactories: Factory[] = defaultFactories): SqlDriverAdapterFactory {
   for (const factory of supportedFactories) {
     if (factory.protocols.some((protocol) => url.startsWith(`${protocol}://`))) {
       return wrapFactory(factory.create(url))
@@ -23,7 +23,7 @@ type Factory = {
   create: (url: string) => SqlDriverAdapterFactory
 }
 
-const factories: Factory[] = [
+const defaultFactories: Factory[] = [
   {
     protocols: ['postgres', 'postgresql'],
     create(connectionString) {
@@ -66,7 +66,7 @@ const factories: Factory[] = [
   },
 ]
 
-const allSupportedProtocols = factories.flatMap((factory) => factory.protocols)
+const defaultSupportedProtocols = defaultFactories.flatMap((factory) => factory.protocols)
 
 /**
  * Rethrows the given error after sanitizing its message by redacting
@@ -96,7 +96,7 @@ function sanitizeError(error: object, regex: RegExp, visited: WeakSet<object> = 
 }
 
 function createConnectionStringRegex() {
-  const escapedProtocols = allSupportedProtocols.join('|')
+  const escapedProtocols = defaultSupportedProtocols.join('|')
 
   // A lenient regex to match connection strings in error messages.
   // It might match some false positives, but that's acceptable for errors in the QPE.
