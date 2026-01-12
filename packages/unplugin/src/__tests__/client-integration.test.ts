@@ -2,9 +2,10 @@
  * Integration test for generated client modules in unplugin-ork
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { VirtualTypeGenerator } from '../virtual-modules.js'
+import { beforeEach, describe, expect, it } from 'vitest'
+
 import type { GeneratedClientCode, GeneratedTypes } from '../types.js'
+import { VirtualTypeGenerator } from '../virtual-modules.js'
 
 describe('Client Module Integration', () => {
   let typeGenerator: VirtualTypeGenerator
@@ -33,7 +34,7 @@ export interface Post {
 }`,
       augmentation: `declare module '@ork/client' {
   interface OrkGeneratedSchema extends DatabaseSchema {}
-}`
+}`,
     }
 
     mockClientModule = {
@@ -70,7 +71,7 @@ export interface Post {
   content: string
   authorId: number
 }`,
-      dialect: 'sqlite'
+      dialect: 'sqlite',
     }
   })
 
@@ -139,7 +140,7 @@ export interface Post {
     const emptyTypes: GeneratedTypes = {
       interfaces: '',
       schema: 'export interface DatabaseSchema { [key: string]: any }',
-      augmentation: 'declare module "@ork/client" { interface OrkGeneratedSchema extends DatabaseSchema {} }'
+      augmentation: 'declare module "@ork/client" { interface OrkGeneratedSchema extends DatabaseSchema {} }',
     }
 
     const indexModule = typeGenerator.generateIndexModule(emptyTypes, false)

@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync } from 'fs'
+import { mkdir, readFile, writeFile } from 'fs/promises'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DevOutput } from '../dev-output.js'
@@ -8,18 +9,21 @@ import type { BuildContext, GeneratedTypes } from '../types.js'
 // Mock file system
 vi.mock('fs', () => ({
   existsSync: vi.fn(),
-  readFileSync: vi.fn(),
-  writeFileSync: vi.fn(),
-  mkdirSync: vi.fn(),
   readdirSync: vi.fn(() => []),
   statSync: vi.fn(() => ({ mtime: { getTime: () => Date.now() } })),
   unlinkSync: vi.fn(),
 }))
 
+vi.mock('fs/promises', () => ({
+  mkdir: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+}))
+
 const mockExistsSync = vi.mocked(existsSync)
-const mockReadFileSync = vi.mocked(readFileSync)
-const mockWriteFileSync = vi.mocked(writeFileSync)
-const mockMkdirSync = vi.mocked(mkdirSync)
+const mockReadFile = vi.mocked(readFile)
+const mockWriteFile = vi.mocked(writeFile)
+const mockMkdir = vi.mocked(mkdir)
 
 describe('ProductionBuildManager', () => {
   let devOutput: DevOutput
@@ -88,7 +92,7 @@ export interface Post {
 
       // Mock cache exists
       mockExistsSync.mockReturnValue(true)
-      mockReadFileSync.mockReturnValue(
+      mockReadFile.mockResolvedValue(
         JSON.stringify({
           schemaHash: expectedHash,
           generatedTypes: mockGeneratedTypes,
@@ -108,7 +112,7 @@ export interface Post {
 
       // Mock cache exists with old version
       mockExistsSync.mockReturnValue(true)
-      mockReadFileSync.mockReturnValue(
+      mockReadFile.mockResolvedValue(
         JSON.stringify({
           schemaHash: 'test-hash',
           generatedTypes: mockGeneratedTypes,
@@ -127,8 +131,8 @@ export interface Post {
 
       await manager.generateProductionModules('/test/schema.prisma', schemaContent, mockGeneratedTypes)
 
-      expect(mockMkdirSync).toHaveBeenCalled()
-      expect(mockWriteFileSync).toHaveBeenCalled()
+      expect(mockMkdir).toHaveBeenCalled()
+      expect(mockWriteFile).toHaveBeenCalled()
     })
   })
 
@@ -201,9 +205,7 @@ export interface Post {
 
     it('should handle cache errors gracefully', async () => {
       mockExistsSync.mockReturnValue(true)
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('File read error')
-      })
+      mockReadFile.mockRejectedValue(new Error('File read error'))
 
       const result = await manager.generateProductionModules(
         '/test/schema.prisma',
@@ -288,10 +290,10 @@ export interface Post {
 
       // Mock cache directory with many files
       mockExistsSync.mockReturnValue(true)
-      mockReaddirSync.mockReturnValue(['old1.json', 'old2.json', 'old3.json'] as any)
+      mockReaddirSync.mockReturnValue(['old1.json', 'old2.json', 'old3.json'])
       mockStatSync.mockReturnValue({
         mtime: { getTime: () => Date.now() - 1000000 },
-      } as any)
+      })
 
       await manager.cleanCache(1) // Keep only 1 file
 

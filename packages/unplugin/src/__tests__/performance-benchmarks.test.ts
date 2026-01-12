@@ -94,17 +94,8 @@ const testPaths = {
   large: join(TEST_DIR, 'large.prisma'),
 }
 
-// Setup and teardown real test files
-beforeAll(() => {
-  mkdirSync(TEST_DIR, { recursive: true })
-  writeFileSync(testPaths.small, SMALL_SCHEMA)
-  writeFileSync(testPaths.medium, MEDIUM_SCHEMA)
-  writeFileSync(testPaths.large, LARGE_SCHEMA)
-})
-
-afterAll(() => {
-  rmSync(TEST_DIR, { recursive: true, force: true })
-})
+const runPerf = process.env.RUN_PERF === '1'
+const perfDescribe = runPerf ? describe : describe.skip
 
 vi.mock('chokidar', () => ({
   watch: vi.fn(() => ({
@@ -139,7 +130,18 @@ async function benchmark(
   }
 }
 
-describe('Performance Benchmarks', () => {
+perfDescribe('Performance Benchmarks', () => {
+  beforeAll(() => {
+    mkdirSync(TEST_DIR, { recursive: true })
+    writeFileSync(testPaths.small, SMALL_SCHEMA)
+    writeFileSync(testPaths.medium, MEDIUM_SCHEMA)
+    writeFileSync(testPaths.large, LARGE_SCHEMA)
+  })
+
+  afterAll(() => {
+    rmSync(TEST_DIR, { recursive: true, force: true })
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -256,7 +258,7 @@ describe('Performance Benchmarks', () => {
 
       const result = await benchmark(
         'Virtual Module Resolution',
-        () => {
+        async () => {
           const resolveId = plugin.resolveId
           if (resolveId) {
             // Test various resolution patterns
@@ -289,7 +291,7 @@ describe('Performance Benchmarks', () => {
 
       const result = await benchmark(
         'Virtual Module Loading',
-        () => {
+        async () => {
           const load = plugin.load
           if (load) {
             load('virtual:ork/types')

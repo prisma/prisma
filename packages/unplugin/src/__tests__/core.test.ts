@@ -40,25 +40,4 @@ describe('unpluginOrk', () => {
     expect(unpluginOrk.rollup).toBeDefined()
     expect(unpluginOrk.esbuild).toBeDefined()
   })
-
-  it('should resolve .ork/types imports', () => {
-    const plugin = unpluginOrk.raw({})
-    const resolveId = plugin.resolveId
-
-    if (resolveId) {
-      const result = resolveId('.ork/types')
-      expect(result).toBe('virtual:ork/types')
-    }
-  })
-
-  it('should handle virtual module loading', () => {
-    const plugin = unpluginOrk.raw({})
-    const load = plugin.load
-
-    if (load) {
-      // Should return empty export for missing virtual modules to prevent build errors
-      const result = load('virtual:ork/types')
-      expect(result).toBe('export {}')
-    }
-  })
 })

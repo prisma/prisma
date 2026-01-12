@@ -4,7 +4,8 @@
  */
 
 import { createHash } from 'crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync } from 'fs'
+import { mkdir, readFile, writeFile } from 'fs/promises'
 import { dirname, resolve } from 'path'
 
 import { DevOutput } from './dev-output.js'
@@ -64,7 +65,10 @@ export class ProductionBuildManager {
   /**
    * Create optimized virtual modules for production
    */
-  private createOptimizedModules(generatedTypes: GeneratedTypes, clientModule?: GeneratedClientCode | null): Record<string, string> {
+  private createOptimizedModules(
+    generatedTypes: GeneratedTypes,
+    clientModule?: GeneratedClientCode | null,
+  ): Record<string, string> {
     const modules: Record<string, string> = {}
 
     // Main types module with production optimizations
@@ -87,7 +91,7 @@ export class ProductionBuildManager {
       modules['types.map'] = this.createSourceMap('types', modules.types)
       modules['index.map'] = this.createSourceMap('index', modules.index)
       modules['generated.map'] = this.createSourceMap('generated', modules.generated)
-      
+
       if (clientModule) {
         modules['client.map'] = this.createSourceMap('client', modules.client)
         modules['client-types.map'] = this.createSourceMap('client-types', modules['client-types'])
@@ -137,11 +141,13 @@ export type { DatabaseSchema } from './types'
 // Model type exports for tree-shaking
 ${modelNames.map((name) => `export type { ${name} } from './types'`).join('\n')}`
 
-    const enhancedContent = hasClientModule ? `
+    const enhancedContent = hasClientModule
+      ? `
 
 // Generated client exports (runtime + types)
 export * from './client'
-export type * from './client-types'` : ''
+export type * from './client-types'`
+      : ''
 
     const content = baseContent + enhancedContent
 
@@ -164,7 +170,7 @@ ${generatedTypes.interfaces}`
    */
   private createOptimizedClientModule(clientModule: GeneratedClientCode): string {
     const header = '// Generated Ork Client - production build'
-    
+
     const content = `${header}
 ${this.options.sourceMaps ? '//# sourceMappingURL=client.map' : ''}
 // Database dialect: ${clientModule.dialect}
@@ -179,7 +185,7 @@ ${clientModule.clientCode}`
    */
   private createOptimizedClientTypesModule(clientModule: GeneratedClientCode): string {
     const header = '// Generated Ork Client Types - production build'
-    
+
     const content = `${header}
 ${this.options.sourceMaps ? '//# sourceMappingURL=client-types.map' : ''}
 
@@ -217,7 +223,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
   private extractModelNames(interfaces: string): string[] {
     const modelRegex = /export interface (\w+) \{/g
     const names: string[] = []
-    let match
+    let match: RegExpExecArray | null
 
     while ((match = modelRegex.exec(interfaces)) !== null) {
       names.push(match[1])
@@ -276,7 +282,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
         return null
       }
 
-      const cacheData = JSON.parse(readFileSync(cacheFile, 'utf-8')) as BuildCache
+      const cacheData = JSON.parse(await readFile(cacheFile, 'utf-8')) as BuildCache
 
       // Validate cache
       if (cacheData.schemaHash !== schemaHash || cacheData.version !== this.version || !cacheData.generatedTypes) {
@@ -307,7 +313,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
       const cacheDir = dirname(cacheFile)
 
       // Ensure cache directory exists
-      mkdirSync(cacheDir, { recursive: true })
+      await mkdir(cacheDir, { recursive: true })
 
       const cacheData: BuildCache = {
         schemaHash,
@@ -316,7 +322,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
         version: this.version,
       }
 
-      writeFileSync(cacheFile, JSON.stringify(cacheData, null, 2))
+      await writeFile(cacheFile, JSON.stringify(cacheData, null, 2))
       this.devOutput.debug(`Cached build results: ${cacheFile}`)
     } catch (error) {
       this.devOutput.debug(`Cache save error: ${error}`)
@@ -368,7 +374,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
   /**
    * Handle build-time errors with appropriate reporting
    */
-  handleBuildError(error: Error, schemaPath: string): void {
+  handleBuildError(error: Error, _schemaPath: string): void {
     const errorMessage = `Production build failed: ${error.message}`
 
     if (this.options.failOnError && this.buildContext.isProduction) {

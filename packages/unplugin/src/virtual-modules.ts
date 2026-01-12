@@ -219,7 +219,7 @@ ${generatedTypes.interfaces}
   private extractModelNames(interfaces: string): string[] {
     const modelRegex = /export interface (\w+) \{/g
     const names: string[] = []
-    let match
+    let match: RegExpExecArray | null
 
     while ((match = modelRegex.exec(interfaces)) !== null) {
       names.push(match[1])

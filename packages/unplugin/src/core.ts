@@ -3,32 +3,26 @@
  * Provides virtual modules for clean .ork/types imports
  */
 
-import { getDefaultOutputDir, loadOrkConfig } from '@ork/config'
-import { parseSchema } from '@ork/schema-parser'
-import { ClientGenerator } from '@ork/client'
-import { detectDialect, type DatabaseDialect } from '@ork/field-translator'
-import { OrkMigrate } from '@ork/migrate'
-import { watch } from 'chokidar'
-import { existsSync, readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
-import path, { resolve } from 'path'
+import path, { resolve } from 'node:path'
+
+import { ClientGenerator } from '@ork/client'
+import { type ConfigLoadResult, getDefaultOutputDir, loadOrkConfig, type OrkConfig } from '@ork/config'
+import { type DatabaseDialect, detectDialect } from '@ork/field-translator'
+import { OrkMigrate } from '@ork/migrate'
+import { parseSchema } from '@ork/schema-parser'
+import { watch } from 'chokidar'
 import { createUnplugin } from 'unplugin'
 
 import { DevOutput } from './dev-output.js'
 import { ProductionBuildManager } from './production-build.js'
-import type {
-  BuildContext,
-  GeneratedTypes,
-  GeneratedClientCode,
-  OrkPluginOptions,
-  SchemaChangeInfo,
-} from './types.js'
+import type { BuildContext, GeneratedClientCode, GeneratedTypes, OrkPluginOptions, SchemaChangeInfo } from './types.js'
 import { VirtualModuleManager, VirtualModuleResolver, VirtualTypeGenerator } from './virtual-modules.js'
 
 export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
   const {
     schema = './schema.prisma',
-    outputDir = './.ork', // Keep existing default for now - could be enhanced later
     watch: enableWatch = true,
     debug = false,
     silent = false,
@@ -71,7 +65,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
 
   // Generated client state
   let detectedDialect: DatabaseDialect | null = null
-  let orkConfig: { config: any; configDir: string; configPath: string | null } | null = null
+  let orkConfig: ConfigLoadResult | null = null
   let generatedClientCode: GeneratedClientCode | null = null
 
   // Legacy debug logging for backward compatibility
@@ -113,8 +107,8 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
     try {
       // Load ork config to detect database type
       orkConfig = await loadOrkConfig({ cwd: root })
-      detectedDialect = detectDialect(orkConfig.config)
-      
+      detectedDialect = detectDialect(orkConfig.config.datasource.provider)
+
       log(`Detected database dialect: ${detectedDialect}`)
       return detectedDialect
     } catch (error) {
@@ -132,7 +126,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
     return `${label}: ${shown}${suffix}`
   }
 
-  const ensureOrkConfig = async () => {
+  const ensureOrkConfig = async (): Promise<ConfigLoadResult> => {
     if (!orkConfig) {
       orkConfig = await loadOrkConfig({ cwd: root })
     }
@@ -142,7 +136,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
   const writeGeneratedClient = async (
     schemaPath: string,
     schemaContent: string,
-    config: { generator?: { output?: string } },
+    config: OrkConfig,
     configDir: string,
     configPath: string | null,
   ): Promise<string> => {
@@ -218,9 +212,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
             : ''
         const details = destructiveSummary || warningSummary
         const reason = details ? `Destructive changes detected (${details})` : 'Destructive changes detected'
-        devOutput.warn(
-          `${reason}. Set autoMigrateMode: 'force' to apply, or run \`ork migrate\` manually.`,
-        )
+        devOutput.warn(`${reason}. Set autoMigrateMode: 'force' to apply, or run \`ork migrate\` manually.`)
         return { migrated: false, skippedReason: reason }
       }
 
@@ -379,11 +371,13 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
       const clientCode = generator.generateClientModule()
 
       // Extract TypeScript declarations (types only)
-      const declarationLines = clientCode.split('\n').filter(line => {
-        return line.startsWith('export interface') || 
-               line.startsWith('export type') || 
-               line.includes('interface ') ||
-               line.includes('type ')
+      const declarationLines = clientCode.split('\n').filter((line) => {
+        return (
+          line.startsWith('export interface') ||
+          line.startsWith('export type') ||
+          line.includes('interface ') ||
+          line.includes('type ')
+        )
       })
       const declarations = declarationLines.join('\n')
 
@@ -450,17 +444,18 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
 
     if (hasErrors) {
       // Handle build-time errors appropriately
-      try {
-        productionManager.handleBuildError(new Error('Schema parsing failed'), schemaPath)
-      } catch (error) {
-        // Re-throw in production if failOnError is true
-        throw error
-      }
+      productionManager.handleBuildError(new Error('Schema parsing failed'), schemaPath)
 
       // Generate error modules for development
       moduleManager.setModule('types', typeGenerator.generateErrorModule('Failed to parse schema'))
-      moduleManager.setModule('client', typeGenerator.generateErrorModule('Generated client unavailable due to schema errors'))
-      moduleManager.setModule('client-types', typeGenerator.generateErrorModule('Client types unavailable due to schema errors'))
+      moduleManager.setModule(
+        'client',
+        typeGenerator.generateErrorModule('Generated client unavailable due to schema errors'),
+      )
+      moduleManager.setModule(
+        'client-types',
+        typeGenerator.generateErrorModule('Client types unavailable due to schema errors'),
+      )
       changeInfo.errors = ['Schema parsing failed']
       onSchemaChange?.(changeInfo)
       return
@@ -510,7 +505,9 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
 
       // Extract model count for success message
       const modelCount = (generatedTypes.interfaces.match(/export interface \w+ \{/g) || []).length
-      const clientStatus = generatedClientCode ? ` (with generated client for ${generatedClientCode.dialect})` : ' (types only)'
+      const clientStatus = generatedClientCode
+        ? ` (with generated client for ${generatedClientCode.dialect})`
+        : ' (types only)'
       devOutput.completeRegeneration(modelCount, Object.keys(updates).length)
       devOutput.debug(`Generated modules: ${Object.keys(updates).join(', ')}${clientStatus}`)
     }
@@ -681,13 +678,13 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
     vite: {
       configureServer(server) {
         // Enhanced HMR support
-        const originalInvalidate = server.moduleGraph.invalidateModule
+        const originalInvalidate = server.moduleGraph.invalidateModule.bind(server.moduleGraph)
         server.moduleGraph.invalidateModule = function (mod, ...args) {
           // Check if this is a virtual module invalidation
           if (mod?.id && moduleResolver.isVirtualModule(mod.id)) {
             log(`Invalidating virtual module: ${mod.id}`)
           }
-          return originalInvalidate.call(this, mod, ...args)
+          return originalInvalidate(mod, ...args)
         }
 
         // Custom HMR events with debouncing
@@ -722,12 +719,12 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
 
         // Exclude ork virtual modules from optimization
         config.optimizeDeps.exclude.push('@ork/client', '@ork/field-translator', 'virtual:ork/*')
-        
+
         // Add .ork modules to external list for proper resolution
         if (!config.build) config.build = {}
         if (!config.build.rollupOptions) config.build.rollupOptions = {}
         if (!config.build.rollupOptions.external) config.build.rollupOptions.external = []
-        
+
         const external = config.build.rollupOptions.external as string[]
         external.push('.ork/client', '.ork/client-types', '.ork/types')
       },
