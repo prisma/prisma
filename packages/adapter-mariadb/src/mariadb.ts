@@ -201,9 +201,8 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
         throw new Error(
           "error parsing connection string, format must be 'mariadb://[<user>[:<password>]@]<host>[:<port>]/[<db>[?<opt1>=<value1>[&<opt2>=<value2>]]]'",
         )
-      } else {
-        throw error
       }
+      throw error
     }
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
