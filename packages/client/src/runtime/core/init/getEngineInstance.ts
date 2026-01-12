@@ -2,7 +2,6 @@ import { GetPrismaClientConfig } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
 import { BinaryEngine, ClientEngine, DataProxyEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
-import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
@@ -69,11 +68,10 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
-  else if (isUsing.accelerate && TARGET_BUILD_TYPE !== 'wasm-engine-edge') return new DataProxyEngine(engineConfig)
+  else if (isUsing.accelerate) return new DataProxyEngine(engineConfig)
   else if (isUsing.driverAdapters && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
-  else if (isUsing.accelerate && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new AccelerateEngine(engineConfig)
   // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
   else if (TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
