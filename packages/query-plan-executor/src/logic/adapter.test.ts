@@ -272,13 +272,13 @@ describe('createAdapter wrapper error handling', () => {
     ])('sanitizes $description', async ({ error, expectedError }) => {
       const failingFactory: SqlDriverAdapterFactory = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         connect: vi.fn().mockRejectedValue(error),
       }
 
       const wrappedFactory = createAdapter('postgresql://user:secret@host:5432/db', [
         {
-          protocols: ['postgresql'],
+          protocols: ['postgresql', 'postgres', 'mysql', 'sqlserver', 'mariadb'],
           create: () => failingFactory,
         },
       ])
@@ -295,7 +295,7 @@ describe('createAdapter wrapper error handling', () => {
       const genericError = new Error('Generic database connection error')
       const failingFactory: SqlDriverAdapterFactory = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         connect: vi.fn().mockRejectedValue(genericError),
       }
 
@@ -317,7 +317,7 @@ describe('createAdapter wrapper error handling', () => {
     beforeEach(() => {
       mockAdapter = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         dispose: vi.fn(),
         executeRaw: vi.fn(),
         queryRaw: vi.fn(),
@@ -327,7 +327,7 @@ describe('createAdapter wrapper error handling', () => {
 
       successfulFactory = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         connect: vi.fn().mockResolvedValue(mockAdapter),
       }
     })
@@ -418,7 +418,7 @@ describe('createAdapter wrapper error handling', () => {
     beforeEach(() => {
       mockTransaction = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         options: { usePhantomQuery: false },
         commit: vi.fn(),
         rollback: vi.fn(),
@@ -428,7 +428,7 @@ describe('createAdapter wrapper error handling', () => {
 
       mockAdapter = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         dispose: vi.fn(),
         executeRaw: vi.fn(),
         queryRaw: vi.fn(),
@@ -438,7 +438,7 @@ describe('createAdapter wrapper error handling', () => {
 
       successfulFactory = {
         provider: 'postgres',
-        adapterName: '@prisma/adapter-pg',
+        adapterName: '@prisma/dummy',
         connect: vi.fn().mockResolvedValue(mockAdapter),
       }
     })
@@ -530,7 +530,7 @@ describe('createAdapter wrapper error handling', () => {
       const tx = await adapter.startTransaction()
 
       expect(tx.provider).toBe('postgres')
-      expect(tx.adapterName).toBe('@prisma/adapter-pg')
+      expect(tx.adapterName).toBe('@prisma/dummy')
       expect(tx.options).toEqual({ usePhantomQuery: false })
     })
   })

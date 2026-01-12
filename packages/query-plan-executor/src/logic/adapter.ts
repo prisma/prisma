@@ -4,9 +4,10 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import type { SqlDriverAdapter, SqlDriverAdapterFactory, Transaction } from '@prisma/driver-adapter-utils'
 
 export function createAdapter(url: string, supportedFactories: Factory[] = defaultFactories): SqlDriverAdapterFactory {
+  const allSupportedProtocols = supportedFactories.flatMap((factory) => factory.protocols)
   for (const factory of supportedFactories) {
     if (factory.protocols.some((protocol) => url.startsWith(`${protocol}://`))) {
-      return wrapFactory(factory.create(url))
+      return wrapFactory(allSupportedProtocols, factory.create(url))
     }
   }
   let urlObj: URL
@@ -66,15 +67,13 @@ const defaultFactories: Factory[] = [
   },
 ]
 
-const defaultSupportedProtocols = defaultFactories.flatMap((factory) => factory.protocols)
-
 /**
  * Rethrows the given error after sanitizing its message by redacting
  * any connection strings found within it.
  */
-function rethrowSanitizedError(error: unknown): never {
+function rethrowSanitizedError(protocols: string[], error: unknown): never {
   if (typeof error === 'object' && error !== null) {
-    sanitizeError(error, createConnectionStringRegex())
+    sanitizeError(error, createConnectionStringRegex(protocols))
   }
   throw error
 }
@@ -88,15 +87,20 @@ function sanitizeError(error: object, regex: RegExp, visited: WeakSet<object> = 
   for (const key of Object.getOwnPropertyNames(error)) {
     const value = error[key]
     if (typeof value === 'string') {
-      error[key] = value.replaceAll(regex, '[REDACTED]')
+      // the property might not be writable
+      try {
+        error[key] = value.replaceAll(regex, '[REDACTED]')
+      } catch {
+        // best-effort: never mask the original error
+      }
     } else if (typeof value === 'object' && value !== null) {
       sanitizeError(value as object, regex, visited)
     }
   }
 }
 
-function createConnectionStringRegex() {
-  const escapedProtocols = defaultSupportedProtocols.join('|')
+function createConnectionStringRegex(protocols: string[]) {
+  const escapedProtocols = protocols.join('|')
 
   // A lenient regex to match connection strings in error messages.
   // It might match some false positives, but that's acceptable for errors in the QPE.
@@ -112,31 +116,35 @@ function createConnectionStringRegex() {
   return new RegExp(pattern, 'gi')
 }
 
-function wrapFactory(factory: SqlDriverAdapterFactory): SqlDriverAdapterFactory {
+function wrapFactory(protocols: string[], factory: SqlDriverAdapterFactory): SqlDriverAdapterFactory {
   return {
     ...factory,
-    connect: () => factory.connect().then(wrapAdapter, rethrowSanitizedError),
+    connect: () =>
+      factory.connect().then(wrapAdapter.bind(null, protocols), rethrowSanitizedError.bind(null, protocols)),
   }
 }
 
-function wrapAdapter(adapter: SqlDriverAdapter): SqlDriverAdapter {
+function wrapAdapter(protocols: string[], adapter: SqlDriverAdapter): SqlDriverAdapter {
   return {
     ...adapter,
-    dispose: () => adapter.dispose().catch(rethrowSanitizedError),
-    executeRaw: (query) => adapter.executeRaw(query).catch(rethrowSanitizedError),
-    queryRaw: (query) => adapter.queryRaw(query).catch(rethrowSanitizedError),
-    executeScript: (script) => adapter.executeScript(script).catch(rethrowSanitizedError),
+    dispose: () => adapter.dispose().catch(rethrowSanitizedError.bind(null, protocols)),
+    executeRaw: (query) => adapter.executeRaw(query).catch(rethrowSanitizedError.bind(null, protocols)),
+    queryRaw: (query) => adapter.queryRaw(query).catch(rethrowSanitizedError.bind(null, protocols)),
+    executeScript: (script) => adapter.executeScript(script).catch(rethrowSanitizedError.bind(null, protocols)),
     startTransaction: (isolationLevel) =>
-      adapter.startTransaction(isolationLevel).then(wrapTransaction, rethrowSanitizedError),
+      adapter
+        .startTransaction(isolationLevel)
+        .then(wrapTransaction.bind(null, protocols), rethrowSanitizedError.bind(null, protocols)),
+    getConnectionInfo: adapter.getConnectionInfo?.bind(adapter),
   }
 }
 
-function wrapTransaction(tx: Transaction): Transaction {
+function wrapTransaction(protocols: string[], tx: Transaction): Transaction {
   return {
     ...tx,
-    commit: () => tx.commit().catch(rethrowSanitizedError),
-    rollback: () => tx.rollback().catch(rethrowSanitizedError),
-    executeRaw: (query) => tx.executeRaw(query).catch(rethrowSanitizedError),
-    queryRaw: (query) => tx.queryRaw(query).catch(rethrowSanitizedError),
+    commit: () => tx.commit().catch(rethrowSanitizedError.bind(null, protocols)),
+    rollback: () => tx.rollback().catch(rethrowSanitizedError.bind(null, protocols)),
+    executeRaw: (query) => tx.executeRaw(query).catch(rethrowSanitizedError.bind(null, protocols)),
+    queryRaw: (query) => tx.queryRaw(query).catch(rethrowSanitizedError.bind(null, protocols)),
   }
 }
