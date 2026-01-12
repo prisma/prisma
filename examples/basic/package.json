@@ -1,18 +1,18 @@
 {
-  "name": "@refract/example-basic",
+  "name": "@ork/example-basic",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Basic Refract example with PostgreSQL and Testcontainers",
+  "description": "Basic Ork example with PostgreSQL and Testcontainers",
   "scripts": {
-    "generate": "refract generate",
+    "generate": "ork generate",
     "demo": "tsx demo.ts"
   },
   "dependencies": {
-    "@refract/client": "workspace:*",
-    "@refract/config": "workspace:*",
-    "@refract/migrate": "workspace:*",
-    "@refract/schema-parser": "workspace:*",
+    "@ork/client": "workspace:*",
+    "@ork/config": "workspace:*",
+    "@ork/migrate": "workspace:*",
+    "@ork/schema-parser": "workspace:*",
     "kysely": "^0.27.4",
     "pg": "^8.11.3"
   },

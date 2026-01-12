@@ -1,6 +1,6 @@
-import type { ConfigLoadOptions, ConfigLoadResult, KyselyResult } from '@refract/config'
+import type { ConfigLoadOptions, ConfigLoadResult, KyselyResult } from '@ork/config'
 import {
-  loadRefractConfig,
+  loadOrkConfig,
   createKyselyFromConfig,
   createKyselyFromUrl,
   createKyselyDialect,
@@ -8,29 +8,29 @@ import {
   PROVIDER_METADATA,
   SUPPORTED_PROVIDERS,
   type DatabaseProvider,
-} from '@refract/config'
+} from '@ork/config'
 
 import { logger } from './logger.js'
 
 /**
- * Enhanced error handling wrapper for @refract/config functions
+ * Enhanced error handling wrapper for @ork/config functions
  * Provides actionable error messages and suggestions for common issues
  */
 export class ConfigErrorHandler {
   /**
-   * Load Refract configuration with enhanced error handling
+   * Load Ork configuration with enhanced error handling
    */
-  static async loadRefractConfig(options?: ConfigLoadOptions): Promise<ConfigLoadResult> {
+  static async loadOrkConfig(options?: ConfigLoadOptions): Promise<ConfigLoadResult> {
     try {
-      return await loadRefractConfig(options)
+      return await loadOrkConfig(options)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
       // Configuration file not found
       if (errorMessage.includes('configuration file not found') || errorMessage.includes('ENOENT')) {
-        logger.errorWithSuggestions('No Refract configuration file found', [
-          'Run `npx refract init` to create a new project',
-          'Create refract.config.ts manually in your project root',
+        logger.errorWithSuggestions('No Ork configuration file found', [
+          'Run `npx ork init` to create a new project',
+          'Create ork.config.ts manually in your project root',
           "Check that you're in the correct directory",
           'Ensure the configuration file has proper ESM exports',
         ])
@@ -68,7 +68,7 @@ export class ConfigErrorHandler {
       // Configuration syntax errors
       if (errorMessage.includes('SyntaxError') || errorMessage.includes('parse')) {
         logger.errorWithSuggestions('Syntax error in configuration file', [
-          'Check your refract.config.ts for syntax errors',
+          'Check your ork.config.ts for syntax errors',
           'Ensure proper TypeScript/JavaScript syntax',
           'Verify all imports and exports are correct',
           'Use a TypeScript checker or ESLint to validate syntax',
@@ -145,7 +145,7 @@ export class ConfigErrorHandler {
       }
 
       // First try to load config to provide better context
-      await this.loadRefractConfig(options)
+      await this.loadOrkConfig(options)
       throw error
     }
   }
@@ -277,7 +277,7 @@ export class ConfigErrorHandler {
 }
 
 // Re-export CLI-specific functions with better error handling
-export const cliLoadRefractConfig = ConfigErrorHandler.loadRefractConfig
+export const cliLoadOrkConfig = ConfigErrorHandler.loadOrkConfig
 export const cliCreateKyselyFromConfig = ConfigErrorHandler.createKyselyFromConfig
 export const cliCreateKyselyFromUrl = ConfigErrorHandler.createKyselyFromUrl
 export const cliCreateKyselyDialect = ConfigErrorHandler.createKyselyDialect

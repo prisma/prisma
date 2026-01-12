@@ -1,4 +1,4 @@
-// This is your Prisma schema file for Refract
+// This is your Prisma schema file for Ork
 // Learn more: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -6,8 +6,8 @@ datasource db {
 }
 
 generator client {
-  provider = "refract"
-  output   = "./.refract"
+  provider = "ork"
+  output   = "./.ork"
 }
 
 model User {

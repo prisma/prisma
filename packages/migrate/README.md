@@ -1,16 +1,16 @@
-# @refract/migrate
+# @ork/migrate
 
-TypeScript-native migration engine for Refract ORM with direct Kysely integration.
+TypeScript-native migration engine for Ork ORM with direct Kysely integration.
 
 ## Overview
 
-`@refract/migrate` provides programmatic migration capabilities that work directly with Kysely dialect instances, eliminating custom driver abstractions and providing transparent, type-safe database operations.
+`@ork/migrate` provides programmatic migration capabilities that work directly with Kysely dialect instances, eliminating custom driver abstractions and providing transparent, type-safe database operations.
 
 ## Key Features
 
 - **Direct Kysely Integration**: Works with Kysely dialect instances for PostgreSQL, MySQL, SQLite, and D1
 - **TypeScript-Native**: No Rust binaries or external dependencies
-- **Programmatic API**: `await refract.migrate.diff()` and `await refract.migrate.apply()`
+- **Programmatic API**: `await ork.migrate.diff()` and `await ork.migrate.apply()`
 - **Transparent Operations**: Uses Kysely's native introspection and DDL builders
 - **Type Safety**: Full TypeScript support with proper type inference
 - **Comprehensive Schema Diffing**: 
@@ -24,9 +24,9 @@ TypeScript-native migration engine for Refract ORM with direct Kysely integratio
 ## Installation
 
 ```bash
-npm install @refract/migrate kysely
+npm install @ork/migrate kysely
 # or
-pnpm add @refract/migrate kysely
+pnpm add @ork/migrate kysely
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ pnpm add @refract/migrate kysely
 ### Basic Setup
 
 ```typescript
-import { createMigrate } from '@refract/migrate'
+import { createMigrate } from '@ork/migrate'
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 
@@ -125,7 +125,7 @@ Works with any Kysely dialect:
 - **MySQL**: `kysely` with `MysqlDialect`
 - **SQLite**: `kysely` with `SqliteDialect`
 - **Cloudflare D1**: `kysely-d1`
-- **Note**: Refract targets these providers today; other Kysely dialects may work but are not officially supported yet.
+- **Note**: Ork targets these providers today; other Kysely dialects may work but are not officially supported yet.
 
 ## Configuration Options
 
@@ -137,7 +137,7 @@ interface MigrationOptions {
   timeout?: number
   /** Whether to validate schema before applying migrations (default: true) */
   validateSchema?: boolean
-  /** Custom migration table name (default: '_refract_migrations') */
+  /** Custom migration table name (default: '_ork_migrations') */
   migrationTableName?: string
 }
 ```
@@ -146,7 +146,7 @@ interface MigrationOptions {
 
 ### Direct Kysely Integration
 
-Unlike traditional ORMs that use custom driver abstractions, `@refract/migrate` works directly with your Kysely instance:
+Unlike traditional ORMs that use custom driver abstractions, `@ork/migrate` works directly with your Kysely instance:
 
 1. **Introspection**: Uses `kysely.introspection.getTables()` to get current database state
 2. **DDL Generation**: Uses `kysely.schema.createTable()`, `kysely.schema.alterTable()` for SQL generation

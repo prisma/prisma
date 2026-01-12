@@ -12,7 +12,7 @@ import {
   ModelTransformationRegistry,
   generators
 } from '../index.js'
-import type { FieldAST, ModelAST } from '@refract/schema-parser'
+import type { FieldAST, ModelAST } from '@ork/schema-parser'
 
 describe('Complete FieldTranslator Integration', () => {
   const mockUserModel: ModelAST = {

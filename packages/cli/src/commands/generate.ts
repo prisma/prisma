@@ -1,15 +1,15 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { ClientGenerator } from '@refract/client'
-import { findSchemaFile, getDefaultOutputDir } from '@refract/config'
-import { parseSchema } from '@refract/schema-parser'
-import { type SchemaAST } from '@refract/schema-parser'
+import { ClientGenerator } from '@ork/client'
+import { findSchemaFile, getDefaultOutputDir } from '@ork/config'
+import { parseSchema } from '@ork/schema-parser'
+import { type SchemaAST } from '@ork/schema-parser'
 import ora from 'ora'
 
 import type { CommandResult, GenerateOptions } from '../types.js'
 import { BaseCommand } from '../utils/command.js'
-import { cliLoadRefractConfig } from '../utils/config-error-handler.js'
+import { cliLoadOrkConfig } from '../utils/config-error-handler.js'
 import { logger } from '../utils/logger.js'
 
 /**
@@ -17,11 +17,11 @@ import { logger } from '../utils/logger.js'
  */
 export class GenerateCommand extends BaseCommand {
   async execute(options: GenerateOptions = {}): Promise<CommandResult> {
-    const spinner = ora('Generating Refract client...').start()
+    const spinner = ora('Generating Ork client...').start()
 
     try {
       // Load configuration using enhanced error handling
-      const { config, configDir, configPath } = await cliLoadRefractConfig()
+      const { config, configDir, configPath } = await cliLoadOrkConfig()
 
       // Find and read schema file
       const schemaPath = findSchemaFile(config, configDir)
@@ -58,7 +58,7 @@ export class GenerateCommand extends BaseCommand {
 
       spinner.succeed('Client generation completed successfully!')
 
-      logger.success('✅ Generated Refract client:')
+      logger.success('✅ Generated Ork client:')
       logger.info(`   Output directory: ${resolvedOutputDir}`)
       logger.info(`   Generated file: ${clientFile}`)
       logger.info('')
@@ -97,7 +97,7 @@ export class GenerateCommand extends BaseCommand {
 
       // Extract datasource provider from schema AST for dialect detection
       const datasource = schemaAST.datasources?.[0]
-      const refractConfig = datasource
+      const orkConfig = datasource
         ? {
             database: {
               provider: datasource.provider?.toLowerCase(),
@@ -111,7 +111,7 @@ export class GenerateCommand extends BaseCommand {
         includeTypes: true,
         includeJSDoc: true,
         esModules: true,
-        config: refractConfig,
+        config: orkConfig,
       })
 
       const clientContent = clientGenerator.generateClientModule()
@@ -134,7 +134,7 @@ export class GenerateCommand extends BaseCommand {
 export function registerGenerateCommand(program: any) {
   const generateCmd = program
     .command('generate')
-    .description('Generate Refract client from schema')
+    .description('Generate Ork client from schema')
     .option('-o, --output <path>', 'Output directory for generated client')
     .option('-w, --watch', 'Watch for schema changes and regenerate automatically')
     .action(async (options: GenerateOptions) => {
@@ -150,7 +150,7 @@ export function registerGenerateCommand(program: any) {
         await command.run(options)
 
         try {
-          const { config, configDir } = await cliLoadRefractConfig()
+          const { config, configDir } = await cliLoadOrkConfig()
           const schemaPath = findSchemaFile(config, configDir)
 
           // Watch schema file for changes

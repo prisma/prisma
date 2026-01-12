@@ -1,15 +1,15 @@
-import { loadRefractConfig } from './config-loader.js'
+import { loadOrkConfig } from './config-loader.js'
 import { type DatabaseProvider, PROVIDER_URL_PATTERNS } from './constants.js'
 import { createKyselyDialect } from './dialect-factory.js'
 import type { ConfigLoadOptions, KyselyResult } from './types.js'
 
 /**
- * Create a fully configured Kysely instance from Refract configuration
+ * Create a fully configured Kysely instance from Ork configuration
  * This is the main high-level function that combines config loading and Kysely creation
  */
 export async function createKyselyFromConfig(options: ConfigLoadOptions = {}): Promise<KyselyResult> {
   // Load configuration with priority resolution
-  const { config, configPath, configDir } = await loadRefractConfig(options)
+  const { config, configPath, configDir } = await loadOrkConfig(options)
 
   // Create dialect from config
   const dialect = await createKyselyDialect(config)

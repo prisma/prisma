@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`RefractMigrate > DDL Generation with Kysely Builders > should produce deterministic SQL statements (golden snapshot) 1`] = `
+exports[`OrkMigrate > DDL Generation with Kysely Builders > should produce deterministic SQL statements (golden snapshot) 1`] = `
 [
   "CREATE TABLE "User" (...)",
   "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_email" ON "User" ("email")",

@@ -1,13 +1,13 @@
 {
-  "name": "@refract/cli",
+  "name": "ork",
   "version": "0.0.1-alpha.1",
-  "description": "CLI for Refract ORM",
+  "description": "CLI for Ork ORM",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "refract": "dist/bin.js"
+    "ork": "dist/bin.js"
   },
   "exports": {
     ".": {
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharrell/refract.git",
+    "url": "https://github.com/jharrell/ork.git",
     "directory": "packages/cli"
   },
   "scripts": {
@@ -28,7 +28,7 @@
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
-    "refract": "tsx src/bin.ts",
+    "ork": "tsx src/bin.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
@@ -36,7 +36,7 @@
     "dist"
   ],
   "keywords": [
-    "refract",
+    "ork",
     "cli",
     "orm",
     "typescript",
@@ -45,14 +45,14 @@
     "migration",
     "schema"
   ],
-  "author": "Refract Team",
+  "author": "Ork Team",
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@refract/schema-parser": "workspace:*",
-    "@refract/migrate": "workspace:*",
-    "@refract/client": "workspace:*",
-    "@refract/config": "workspace:*",
+    "@ork/schema-parser": "workspace:*",
+    "@ork/migrate": "workspace:*",
+    "@ork/client": "workspace:*",
+    "@ork/config": "workspace:*",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "ora": "^8.2.0",

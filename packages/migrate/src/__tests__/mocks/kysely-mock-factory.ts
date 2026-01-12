@@ -186,7 +186,7 @@ export class KyselyMockFactory {
     return this.createKyselyMock({
       tables: [
         {
-          name: '_refract_migrations',
+          name: '_ork_migrations',
           columns: [
             { name: 'id', dataType: 'varchar(255)', isNullable: false },
             { name: 'name', dataType: 'varchar(255)', isNullable: false },

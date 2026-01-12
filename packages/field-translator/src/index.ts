@@ -1,5 +1,5 @@
 /**
- * @refract/field-translator - Build-time database-specific field transformation code generators
+ * @ork/field-translator - Build-time database-specific field transformation code generators
  *
  * This package provides build-time code generators that produce database-specific
  * transformation code with ZERO runtime overhead. All translators are build-time
@@ -46,7 +46,7 @@ export {
 
 // Dialect detection utilities
 export { DialectDetector, detectDialect } from './dialect-detector.js'
-export type { RefractConfig, KyselyDialectInfo } from './dialect-detector.js'
+export type { OrkConfig, KyselyDialectInfo } from './dialect-detector.js'
 
 // Field analysis and metadata
 export { FieldAnalyzer, ModelTransformationRegistry } from './field-analyzer.js'
@@ -74,4 +74,4 @@ export function createFieldTranslator(dialect: DatabaseDialect) {
 
 // Version and metadata
 export const VERSION = '0.1.0'
-export const DESCRIPTION = 'Build-time database-specific field transformation code generators for Refract ORM'
+export const DESCRIPTION = 'Build-time database-specific field transformation code generators for Ork ORM'

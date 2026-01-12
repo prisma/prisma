@@ -1,19 +1,19 @@
-# @refract/client
+# @ork/client
 
-TypeScript-native client runtime for Refract ORM with two clean usage paths.
+TypeScript-native client runtime for Ork ORM with two clean usage paths.
 
 ## Usage Patterns
 
-### Blessed Path (Recommended)
+### Recommended Path (Recommended)
 
-Use `unplugin-refract` for automatic type discovery:
+Use `unplugin-ork` for automatic type discovery:
 
 ```typescript
-// unplugin-refract makes this import work seamlessly
-import { RefractClient } from '@refract/client'
+// unplugin-ork makes this import work seamlessly
+import { OrkClient } from '@ork/client'
 import { PostgresDialect } from 'kysely'
 
-const client = new RefractClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL! }))
+const client = new OrkClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL! }))
 
 // Types are automatically available via unplugin virtual modules
 await client.user.findMany()
@@ -24,11 +24,11 @@ await client.user.findMany()
 When unplugin isn't available, import types explicitly:
 
 ```typescript
-import { RefractClient } from '@refract/client'
+import { OrkClient } from '@ork/client'
 import { PostgresDialect } from 'kysely'
-import type { DatabaseSchema } from './.refract/types'
+import type { DatabaseSchema } from './.ork/types'
 
-const client = new RefractClient<DatabaseSchema>(
+const client = new OrkClient<DatabaseSchema>(
   new PostgresDialect({ connectionString: process.env.DATABASE_URL! })
 )
 
@@ -74,12 +74,12 @@ const result = await client.$kysely.selectFrom('user').innerJoin('post', 'user.i
 ## Installation
 
 ```bash
-npm install @refract/client kysely
-npm install unplugin-refract # Recommended for best experience
+npm install @ork/client kysely
+npm install unplugin-ork # Recommended for best experience
 ```
 
 ## Client Code Generation
 
-- Runtime usage imports `RefractClient` from this package and passes a Kysely dialect directly.
-- Build tools can emit client code ahead of time via the exported `ClientGenerator` class. This is what the CLI and `unplugin-refract` consume to bake CRUD operations and field translations ahead of time.
+- Runtime usage imports `OrkClient` from this package and passes a Kysely dialect directly.
+- Build tools can emit client code ahead of time via the exported `ClientGenerator` class. This is what the CLI and `unplugin-ork` consume to bake CRUD operations and field translations ahead of time.
 - Lower-level type generation utilities remain available through `TypeGenerator` for bespoke workflows.

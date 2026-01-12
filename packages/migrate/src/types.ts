@@ -10,7 +10,7 @@ export interface MigrationOptions {
   timeout?: number
   /** Whether to validate schema before applying migrations */
   validateSchema?: boolean
-  /** Custom migration table name (default: '_refract_migrations') */
+  /** Custom migration table name (default: '_ork_migrations') */
   migrationTableName?: string
 }
 

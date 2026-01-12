@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import { RefractMigrate } from '../RefractMigrate.js'
+import { OrkMigrate } from '../OrkMigrate.js'
 
 // Test schema definitions for golden snapshots
 const GOLDEN_SCHEMA_TESTS = {
@@ -183,8 +183,8 @@ model Post {
 }
 
 // Mock schema parser to return actual parsed schemas for our test cases
-vi.mock('@refract/schema-parser', async () => {
-  const actual = await vi.importActual('@refract/schema-parser')
+vi.mock('@ork/schema-parser', async () => {
+  const actual = await vi.importActual('@ork/schema-parser')
   return {
     ...actual,
     parseSchema: vi.fn((schemaPath: string) => {
@@ -341,11 +341,11 @@ const createMockKyselyInstance = () => ({
 })
 
 describe('Golden Snapshot Tests', () => {
-  let migrate: RefractMigrate
+  let migrate: OrkMigrate
 
   beforeEach(() => {
     vi.clearAllMocks()
-    migrate = new RefractMigrate()
+    migrate = new OrkMigrate()
   })
 
   Object.entries(GOLDEN_SCHEMA_TESTS).forEach(([testKey, testData]) => {

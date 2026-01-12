@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { RefractMigrate } from '../RefractMigrate.js'
+import { OrkMigrate } from '../OrkMigrate.js'
 
 // Mock console.warn to suppress expected warnings during tests
 const originalConsoleWarn = console.warn
@@ -15,7 +15,7 @@ afterEach(() => {
 import { KyselyMockFactory, SchemaASTMockFactory } from './mocks/kysely-mock-factory.ts'
 
 // Mock the schema parser
-vi.mock('@refract/schema-parser', () => ({
+vi.mock('@ork/schema-parser', () => ({
   parseSchema: vi.fn((schemaPath: string) => {
     // Return empty schema for empty schema test
     if (schemaPath.includes('Empty schema') || schemaPath.includes('// Empty schema')) {
@@ -30,8 +30,8 @@ vi.mock('@refract/schema-parser', () => ({
 // Create reusable mock instance
 let mockKyselyInstance: any
 
-describe('RefractMigrate', () => {
-  let migrate: RefractMigrate
+describe('OrkMigrate', () => {
+  let migrate: OrkMigrate
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -39,12 +39,12 @@ describe('RefractMigrate', () => {
     // Create fresh mock instance for each test
     mockKyselyInstance = KyselyMockFactory.createMockWithMigrationTable()
 
-    migrate = new RefractMigrate()
+    migrate = new OrkMigrate()
   })
 
   describe('constructor', () => {
     it('should create instance with default options', () => {
-      expect(migrate).toBeInstanceOf(RefractMigrate)
+      expect(migrate).toBeInstanceOf(OrkMigrate)
     })
 
     it('should create instance with custom options', () => {
@@ -55,8 +55,8 @@ describe('RefractMigrate', () => {
         migrationTableName: 'custom_migrations',
       }
 
-      const customMigrate = new RefractMigrate(customOptions)
-      expect(customMigrate).toBeInstanceOf(RefractMigrate)
+      const customMigrate = new OrkMigrate(customOptions)
+      expect(customMigrate).toBeInstanceOf(OrkMigrate)
     })
   })
 
@@ -127,7 +127,7 @@ describe('RefractMigrate', () => {
     it('should return migration history', async () => {
       mockKyselyInstance.introspection.getTables.mockResolvedValue([
         {
-          name: '_refract_migrations',
+          name: '_ork_migrations',
           columns: [
             { name: 'id', dataType: 'varchar(255)', isNullable: false },
             { name: 'name', dataType: 'varchar(255)', isNullable: false },

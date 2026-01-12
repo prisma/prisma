@@ -1,6 +1,6 @@
-# Contributing to Refract ORM
+# Contributing to Ork
 
-Thanks for helping build Refract. This project is intentionally small and TypeScript-first.
+Thanks for helping build Ork. This project is intentionally small and TypeScript-first.
 
 ## Code of Conduct
 
@@ -41,7 +41,7 @@ pnpm -r test
 Vite demo:
 
 ```bash
-pnpm --filter @refract/cli build
+pnpm --filter ork build
 cd examples/vite
 node ../../packages/cli/dist/bin.js generate
 pnpm dev
@@ -56,4 +56,4 @@ pnpm demo:postgres
 ## Notes
 
 - Keep changes small and focused.
-- Prefer the Refract-first workflow (`refract` CLI + `unplugin-refract`).
+- Prefer the Ork-first workflow (`ork` CLI + `unplugin-ork`).

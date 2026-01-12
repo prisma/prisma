@@ -1,14 +1,14 @@
 /**
- * @refract/client
+ * @ork/client
  *
  * Type precedence:
  * Manual types > Generated types > Any types
  *
  */
 
-export type { ModelFactory, RefractClientOptions } from './client'
-export { RefractClientBase } from './client'
-export { RefractClientBase as RefractClient } from './client'
+export type { ModelFactory, OrkClientOptions } from './client'
+export { OrkClientBase } from './client'
+export { OrkClientBase as OrkClient } from './client'
 
 // Core types
 export type {
@@ -19,8 +19,8 @@ export type {
   ModelOperations,
   PRISMA_TO_KYSELY_TYPES,
   PRISMA_TO_TS_TYPES,
-  RefractClientConfig,
-  RefractDatasourceConfig,
+  OrkClientConfig,
+  OrkDatasourceConfig,
 } from './types'
 export { PRISMA_PROVIDER_TO_DRIVER_PROVIDER, translateDatasourceConfig } from './types'
 
@@ -37,7 +37,7 @@ export type {
   ModelAST,
   ParseResult,
   SchemaAST,
-} from '@refract/schema-parser'
+} from '@ork/schema-parser'
 
 // Kysely types (users control dialect dependencies directly)
 export type {
@@ -51,4 +51,4 @@ export type {
 } from 'kysely'
 
 // Convenience factory using shared config
-export { createRefractClientFromConfig } from './client-factory'
+export { createOrkClientFromConfig } from './client-factory'

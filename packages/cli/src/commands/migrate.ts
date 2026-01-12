@@ -1,5 +1,4 @@
-import { findSchemaFile } from '@refract/config'
-import type { AnyKyselyDatabase } from '@refract/migrate'
+import { findSchemaFile } from '@ork/config'
 import prompts from 'prompts'
 
 import type { CommandResult, MigrateOptions } from '../types.js'
@@ -22,8 +21,8 @@ export class MigrateCommand extends BaseCommand {
       const schemaPath = findSchemaFile(config, configDir)
 
       // Import migration engine
-      const { RefractMigrate } = await import('@refract/migrate')
-      const migrate = new RefractMigrate({
+      const { OrkMigrate } = await import('@ork/migrate')
+      const migrate = new OrkMigrate({
         useTransaction: true,
         validateSchema: true,
         timeout: 30000,
@@ -250,8 +249,8 @@ class MigrateStatusCommand extends BaseCommand {
       const schemaPath = findSchemaFile(config, configDir)
 
       // Import migration engine
-      const { RefractMigrate } = await import('@refract/migrate')
-      const migrate = new RefractMigrate()
+      const { OrkMigrate } = await import('@ork/migrate')
+      const migrate = new OrkMigrate()
 
       // Check if schema is up to date
       const isValid = await migrate.validate(kyselyInstance, schemaPath)
@@ -265,7 +264,7 @@ class MigrateStatusCommand extends BaseCommand {
         const diff = await migrate.diff(kyselyInstance, schemaPath)
         if (diff.statements.length > 0) {
           logger.info(`📋 ${diff.statements.length} pending migration(s)`)
-          logger.info('Run `refract migrate dev` to apply changes')
+          logger.info('Run `ork migrate dev` to apply changes')
         }
       }
 
@@ -298,8 +297,8 @@ class MigrateHistoryCommand extends BaseCommand {
       const { kysely: kyselyInstance } = await cliCreateKyselyFromConfig()
 
       // Import migration engine
-      const { RefractMigrate } = await import('@refract/migrate')
-      const migrate = new RefractMigrate()
+      const { OrkMigrate } = await import('@ork/migrate')
+      const migrate = new OrkMigrate()
 
       // Get migration history
       const history = await migrate.getHistory(kyselyInstance)
@@ -357,8 +356,8 @@ class MigrateRollbackCommand extends BaseCommand {
       const { kysely: kyselyInstance } = await cliCreateKyselyFromConfig()
 
       // Import migration engine
-      const { RefractMigrate } = await import('@refract/migrate')
-      const migrate = new RefractMigrate()
+      const { OrkMigrate } = await import('@ork/migrate')
+      const migrate = new OrkMigrate()
 
       // Get latest migration
       const history = await migrate.getHistory(kyselyInstance)

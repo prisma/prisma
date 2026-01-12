@@ -1,8 +1,8 @@
-import { findSchemaFile } from '@refract/config'
+import { findSchemaFile } from '@ork/config'
 import { Command } from 'commander'
 
 import type { CommandContext, CommandResult } from '../types.js'
-import { cliLoadRefractConfig } from './config-error-handler.js'
+import { cliLoadOrkConfig } from './config-error-handler.js'
 import { logger } from './logger.js'
 
 /**
@@ -20,7 +20,7 @@ export abstract class BaseCommand {
     }
 
     try {
-      const { config, configPath, configDir } = await cliLoadRefractConfig({ cwd })
+      const { config, configPath, configDir } = await cliLoadOrkConfig({ cwd })
       const schemaPath = findSchemaFile(config, configDir)
 
       this.context = {
@@ -72,13 +72,13 @@ export abstract class BaseCommand {
 }
 
 /**
- * Enhanced Commander.js program with Refract branding
+ * Enhanced Commander.js program with Ork branding
  */
 export function createProgram(): Command {
   const program = new Command()
 
   program
-    .name('refract')
+    .name('ork')
     .description('Modern TypeScript-native ORM with declarative schema syntax')
     .version('0.0.0') // Will be replaced during build
     .option('-d, --debug', 'Enable debug output')

@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "refract",
+  "name": "ork",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0",
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
-    "demo:postgres": "pnpm --filter @refract/example-basic demo",
+    "demo:postgres": "pnpm --filter @ork/example-basic demo",
     "publish-dryrun": "tsx scripts/publish.ts --dry-run",
     "publish": "tsx scripts/publish.ts",
     "test": "pnpm -r test",

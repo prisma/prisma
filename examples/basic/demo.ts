@@ -1,5 +1,5 @@
 /**
- * Refract Basic Example - High-Level Prisma-like API
+ * Ork Basic Example - High-Level Prisma-like API
  *
  * This demo showcases the Prisma-compatible API:
  * - Using generated client with model operations (user.create, post.findMany, etc.)
@@ -8,14 +8,14 @@
  * - Transactions with the same API surface
  */
 
-import { RefractClient } from './.refract/index.js'
+import { OrkClient } from './.ork/index.js'
 import { PostgreSqlContainer } from '@testcontainers/postgresql'
-import { RefractMigrate } from '@refract/migrate'
+import { OrkMigrate } from '@ork/migrate'
 import { PostgresDialect } from 'kysely'
 import pg from 'pg'
 
 async function main() {
-  console.log('🚀 Starting Refract Basic Example (High-Level API)\n')
+  console.log('🚀 Starting Ork Basic Example (High-Level API)\n')
 
   // Step 1: Start PostgreSQL container
   console.log('📦 Starting PostgreSQL container...')
@@ -35,17 +35,17 @@ async function main() {
     })
     console.log('✅ Kysely dialect created\n')
 
-    // Step 3: Create Refract client with generated operations
-    console.log('🔧 Creating Refract client...')
-    const client = new RefractClient(dialect)
+    // Step 3: Create Ork client with generated operations
+    console.log('🔧 Creating Ork client...')
+    const client = new OrkClient(dialect)
     await client.$connect()
-    console.log('✅ Refract client connected\n')
+    console.log('✅ Ork client connected\n')
 
     // Step 4: Run migrations
     console.log('📝 Running migrations...')
     const schemaPath = './schema.prisma'
 
-    const migrate = new RefractMigrate({
+    const migrate = new OrkMigrate({
       useTransaction: true,
       validateSchema: true,
     })
@@ -90,8 +90,8 @@ async function main() {
     // Create posts
     const post1 = await client.post.create({
       data: {
-        title: 'Getting Started with Refract',
-        content: 'Refract is a TypeScript-native ORM built on Kysely...',
+        title: 'Getting Started with Ork',
+        content: 'Ork is a TypeScript-native ORM built on Kysely...',
         published: true,
         authorId: user.id,
       },

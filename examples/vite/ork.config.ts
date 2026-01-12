@@ -1,4 +1,4 @@
-import type { RefractConfig } from '@refract/config'
+import type { OrkConfig } from '@ork/config'
 
 export default {
   schema: './schema.prisma',
@@ -7,7 +7,7 @@ export default {
     url: process.env.DATABASE_URL ?? 'file:./dev.db',
   },
   generator: {
-    provider: 'refract',
-    output: './.refract',
+    provider: 'ork',
+    output: './.ork',
   },
-} satisfies RefractConfig
+} satisfies OrkConfig

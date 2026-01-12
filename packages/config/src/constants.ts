@@ -1,5 +1,5 @@
 /**
- * Supported database providers for Refract
+ * Supported database providers for Ork
  * Adding new providers should be as simple as:
  * 1. Add to this array
  * 2. Add case in dialect-factory.ts

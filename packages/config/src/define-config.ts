@@ -1,7 +1,7 @@
-import type { RefractConfig } from './types.js'
+import type { OrkConfig } from './types.js'
 
 /**
- * Type-safe helper for defining Refract configuration
+ * Type-safe helper for defining Ork configuration
  * Provides IntelliSense and type checking for config files
  *
  * @example
@@ -14,6 +14,6 @@ import type { RefractConfig } from './types.js'
  * })
  * ```
  */
-export function defineConfig(config: RefractConfig): RefractConfig {
+export function defineConfig(config: OrkConfig): OrkConfig {
   return config
 }

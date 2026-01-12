@@ -1,7 +1,7 @@
-import type { AttributeAST, AttributeArgumentAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@refract/schema-parser'
-import { parseSchema } from '@refract/schema-parser'
-import type { DatabaseDialect } from '@refract/field-translator'
-import { transformationRegistry } from '@refract/field-translator'
+import type { AttributeAST, AttributeArgumentAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@ork/schema-parser'
+import { parseSchema } from '@ork/schema-parser'
+import type { DatabaseDialect } from '@ork/field-translator'
+import { transformationRegistry } from '@ork/field-translator'
 import { sql } from 'kysely'
 
 import type {
@@ -46,12 +46,12 @@ type SqliteCapabilities = {
   supportsDropColumn: boolean
 }
 
-const INTERNAL_MIGRATION_TABLES = new Set(['_refract_migrations', '_refract_migration_locks'])
+const INTERNAL_MIGRATION_TABLES = new Set(['_ork_migrations', '_ork_migration_locks'])
 
 /**
  * Main migration engine class that works directly with Kysely dialect instances
  */
-export class RefractMigrate {
+export class OrkMigrate {
   // TODO: Split this class into focused modules (diffing, execution, history/locks, preview/logging).
   // TODO: Replace `any`/`as never` with typed Kysely table interfaces for migration tables.
   // TODO: Route all warnings through the logging helper or injected logger instead of console.warn.
@@ -62,7 +62,7 @@ export class RefractMigrate {
       useTransaction: true,
       timeout: 30000,
       validateSchema: true,
-      migrationTableName: '_refract_migrations',
+      migrationTableName: '_ork_migrations',
       ...options,
     }
   }
@@ -234,7 +234,7 @@ export class RefractMigrate {
 
       // Check for existing locks
       const existingLocks = await kyselyInstance
-        .selectFrom('_refract_migration_locks' as never)
+        .selectFrom('_ork_migration_locks' as never)
         .selectAll()
         .where('migrationId' as never, '=', migrationId as never)
         .execute()
@@ -245,7 +245,7 @@ export class RefractMigrate {
 
       // Acquire the lock
       await kyselyInstance
-        .insertInto('_refract_migration_locks' as never)
+        .insertInto('_ork_migration_locks' as never)
         .values({
           id: lockId,
           processId,
@@ -274,7 +274,7 @@ export class RefractMigrate {
     try {
       // Check if the lock table exists before trying to delete
       const tables = await kyselyInstance.introspection.getTables()
-      const lockTableExists = tables.some((t) => t.name === '_refract_migration_locks')
+      const lockTableExists = tables.some((t) => t.name === '_ork_migration_locks')
 
       if (!lockTableExists) {
         // Table doesn't exist, so the lock is already gone (or was never created)
@@ -282,7 +282,7 @@ export class RefractMigrate {
       }
 
       await kyselyInstance
-        .deleteFrom('_refract_migration_locks' as never)
+        .deleteFrom('_ork_migration_locks' as never)
         .where('id' as never, '=', lock.id as never)
         .where('processId' as never, '=', lock.processId as never)
         .execute()
@@ -300,7 +300,7 @@ export class RefractMigrate {
       await this.ensureMigrationLockTableExists(kyselyInstance)
       await this.cleanupExpiredLocks(kyselyInstance)
 
-      let query = kyselyInstance.selectFrom('_refract_migration_locks' as never).selectAll()
+      let query = kyselyInstance.selectFrom('_ork_migration_locks' as never).selectAll()
 
       if (migrationId) {
         query = query.where('migrationId' as never, '=', migrationId as never)
@@ -1600,7 +1600,7 @@ export class RefractMigrate {
     dialect: DatabaseDialect,
   ): string[] {
     const tableName = currentTable.name
-    const tempTableName = `_refract_tmp_${tableName}_${Date.now()}`
+    const tempTableName = `_ork_tmp_${tableName}_${Date.now()}`
     const statements: string[] = []
 
     statements.push(this.generateCreateTableStatement(kyselyInstance, targetModel, dialect, tempTableName))
@@ -2222,11 +2222,11 @@ export class RefractMigrate {
     try {
       const tableExists = await kyselyInstance.introspection
         .getTables()
-        .then((tables) => tables.some((t) => t.name === '_refract_migration_locks'))
+        .then((tables) => tables.some((t) => t.name === '_ork_migration_locks'))
 
       if (!tableExists) {
         await kyselyInstance.schema
-          .createTable('_refract_migration_locks')
+          .createTable('_ork_migration_locks')
           .addColumn('id', 'varchar(255)', (col) => col.primaryKey())
           .addColumn('processId', 'varchar(255)', (col) => col.notNull())
           .addColumn('acquiredAt', 'timestamp', (col) => col.notNull())
@@ -2248,7 +2248,7 @@ export class RefractMigrate {
     try {
       const now = new Date().toISOString()
       await kyselyInstance
-        .deleteFrom('_refract_migration_locks' as never)
+        .deleteFrom('_ork_migration_locks' as never)
         .where('expiresAt' as never, '<', now as never)
         .execute()
     } catch (error) {

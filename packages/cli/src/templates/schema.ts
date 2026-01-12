@@ -2,10 +2,10 @@
  * Generate schema content for a specific provider
  */
 export function generateSchemaContent(provider: string, url: string = ''): string {
-  const baseSchema = `// This is your Refract schema file (.prisma syntax).
+  const baseSchema = `// This is your Ork schema file (.prisma syntax).
 
 generator client {
-  provider = "@refract/client"
+  provider = "ork"
 }
 
 datasource db {

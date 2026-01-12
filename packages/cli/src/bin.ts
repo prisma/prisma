@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Refract CLI - Main entry point
+ * Ork CLI - Main entry point
  */
 
 import { registerGenerateCommand } from './commands/generate.js'

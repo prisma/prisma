@@ -1,14 +1,14 @@
 /**
- * Core types for Refract client generation and operations
+ * Core types for Ork client generation and operations
  */
 
-import type { SchemaAST } from '@refract/schema-parser'
+import type { SchemaAST } from '@ork/schema-parser'
 import type { Kysely } from 'kysely'
 
 /**
- * Configuration for the Refract client
+ * Configuration for the Ork client
  */
-export interface RefractClientConfig {
+export interface OrkClientConfig {
   datasourceUrl: string
   provider: 'postgresql' | 'postgres' | 'mysql' | 'sqlite'
   enableLogging?: boolean
@@ -18,7 +18,7 @@ export interface RefractClientConfig {
 /**
  * Prisma-compatible datasource configuration
  */
-export interface RefractDatasourceConfig {
+export interface OrkDatasourceConfig {
   /** Database connection string */
   connectionString: string
   /** Prisma-compatible provider name */
@@ -55,7 +55,7 @@ export const PRISMA_PROVIDER_TO_DRIVER_PROVIDER: Record<string, string> = {
 /**
  * Utility function to translate Prisma-style datasource config to driver config
  */
-export function translateDatasourceConfig(config: RefractDatasourceConfig): any {
+export function translateDatasourceConfig(config: OrkDatasourceConfig): any {
   const driverProvider = PRISMA_PROVIDER_TO_DRIVER_PROVIDER[config.provider]
   if (!driverProvider) {
     throw new Error(`Unsupported provider: ${config.provider}.`)
@@ -74,7 +74,7 @@ export function translateDatasourceConfig(config: RefractDatasourceConfig): any 
 
 /**
  * Database interface that represents the entire schema as Kysely-compatible types
- * Note: In Refract, this should represent your Prisma models, not table names
+ * Note: In Ork, this should represent your Prisma models, not table names
  * Example:
  * interface MySchema extends DatabaseSchema {
  *   User: { id: number, email: string }     // model User
@@ -155,17 +155,17 @@ export type SchemaModels<TSchema extends DatabaseSchema> = {
 }
 
 /**
- * Base Refract client interface (implementable by classes)
+ * Base Ork client interface (implementable by classes)
  */
-export interface RefractClient<TSchema extends DatabaseSchema = DatabaseSchema> {
+export interface OrkClient<TSchema extends DatabaseSchema = DatabaseSchema> {
   readonly $kysely: Kysely<TSchema>
 }
 
 /**
- * Enhanced RefractClient type with proper model typing for external usage
+ * Enhanced OrkClient type with proper model typing for external usage
  * This provides the full TypeScript intellisense while allowing class implementation
  */
-export type EnhancedRefractClientType<TSchema extends DatabaseSchema> = RefractClient<TSchema> &
+export type EnhancedOrkClientType<TSchema extends DatabaseSchema> = OrkClient<TSchema> &
   SchemaModels<TSchema> & {
     /** Connect to the database */
     $connect(): Promise<void>
@@ -174,7 +174,7 @@ export type EnhancedRefractClientType<TSchema extends DatabaseSchema> = RefractC
     $disconnect(): Promise<void>
 
     /** Execute operations within a transaction */
-    $transaction<T>(fn: (client: EnhancedRefractClientType<TSchema>) => Promise<T>): Promise<T>
+    $transaction<T>(fn: (client: EnhancedOrkClientType<TSchema>) => Promise<T>): Promise<T>
 
     /** Get client metadata and statistics */
     $info(): Promise<{
@@ -246,7 +246,7 @@ export const PRISMA_TO_KYSELY_TYPES: Record<string, string> = {
 export interface GeneratorConfig {
   schema: SchemaAST
   outputPath: string
-  clientConfig: RefractClientConfig
+  clientConfig: OrkClientConfig
 }
 
 /**

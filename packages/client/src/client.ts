@@ -8,7 +8,7 @@ import type { DatabaseSchema } from './types.js'
  */
 export type ModelFactory<TSchema extends DatabaseSchema> = (kysely: Kysely<TSchema>) => Record<string, unknown>
 
-export interface RefractClientOptions<TSchema extends DatabaseSchema> {
+export interface OrkClientOptions<TSchema extends DatabaseSchema> {
   /**
    * Optional factory that was used to create model operations.
    * Providing this enables transaction support that reuses the same CRUD surface inside the transaction scope.
@@ -25,14 +25,14 @@ export interface RefractClientOptions<TSchema extends DatabaseSchema> {
  * Minimal runtime client that manages the Kysely instance and exposes hooks for generated CRUD operations.
  * Generated client modules extend this class and register their model operations via `registerModel`.
  */
-export class RefractClientBase<TSchema extends DatabaseSchema = DatabaseSchema> {
+export class OrkClientBase<TSchema extends DatabaseSchema = DatabaseSchema> {
   /** Direct access to the underlying Kysely instance for advanced queries. */
   readonly $kysely: Kysely<TSchema>
 
   private readonly modelFactory?: ModelFactory<TSchema>
   private readonly modelNames = new Set<string>()
 
-  constructor(dialect: Dialect, options: RefractClientOptions<TSchema> = {}) {
+  constructor(dialect: Dialect, options: OrkClientOptions<TSchema> = {}) {
     this.$kysely = new Kysely<TSchema>({ dialect, log: options.log })
     this.modelFactory = options.modelFactory
 

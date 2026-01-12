@@ -7,7 +7,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['@refract/schema-parser', 'kysely'],
+  external: ['@ork/schema-parser', 'kysely'],
   minify: false,
   splitting: false,
   bundle: true,

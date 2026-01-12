@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { ClientGenerator } from '../client-generator.js'
-import type { SchemaAST } from '@refract/schema-parser'
+import type { SchemaAST } from '@ork/schema-parser'
 
 describe('ClientGenerator', () => {
   const mockSchema: SchemaAST = {
@@ -132,7 +132,7 @@ describe('ClientGenerator', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
 
-    expect(output).toContain('export class RefractClient extends RefractClientBase')
+    expect(output).toContain('export class OrkClient extends OrkClientBase')
     expect(output).toContain('declare readonly user: UserOperations')
     expect(output).toContain('super(dialect, { modelFactory: createModelOperations, log: options?.log })')
     expect(output).toContain('const createModelOperations = (kysely: Kysely<DatabaseSchema>) => ({')
@@ -142,7 +142,7 @@ describe('ClientGenerator', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
 
-    expect(output).toContain('export function createRefractClient(dialect: Dialect, options?: RefractClientOptions): RefractClient')
+    expect(output).toContain('export function createOrkClient(dialect: Dialect, options?: OrkClientOptions): OrkClient')
   })
 
   it('should generate relation include types and logic', () => {

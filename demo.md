@@ -1,6 +1,6 @@
-# Refract Demo Guide
+# Ork Demo Guide
 
-This guide walks through demonstrating Refract's end-to-end workflow: schema parsing, code generation, migrations, and CRUD operations.
+This guide walks through demonstrating Ork's end-to-end workflow: schema parsing, code generation, migrations, and CRUD operations.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ pnpm build
 | File | Description |
 |------|-------------|
 | `examples/basic/schema.prisma` | Prisma schema with User, Post, Profile models |
-| `examples/basic/refract.config.ts` | Refract configuration (datasource, generator output) |
+| `examples/basic/ork.config.ts` | Ork configuration (datasource, generator output) |
 | `examples/basic/generated/index.ts` | Generated type-safe client (~1600 lines) |
 | `examples/basic/demo.ts` | Demo script showing all CRUD operations |
 
@@ -64,7 +64,7 @@ node ../../packages/cli/dist/bin.js generate
 
 Output:
 ```
-- Generating Refract client...
+- Generating Ork client...
 ✔ Client generation completed successfully!
 ```
 
@@ -163,7 +163,7 @@ const result = await client.$kysely
 ## Expected Output
 
 ```
-🚀 Starting Refract Basic Example (High-Level API)
+🚀 Starting Ork Basic Example (High-Level API)
 
 📦 Starting PostgreSQL container...
 ✅ PostgreSQL running at: postgres://test:test@localhost:55006/test
@@ -171,8 +171,8 @@ const result = await client.$kysely
 🔧 Creating Kysely dialect...
 ✅ Kysely dialect created
 
-🔧 Creating Refract client...
-✅ Refract client connected
+🔧 Creating Ork client...
+✅ Ork client connected
 
 📝 Running migrations...
 Generated migration SQL:
@@ -184,7 +184,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_email" ON "User" ("email")
 📊 Creating sample data with high-level API...
 ✅ Created user: { id: 1, email: 'alice@example.com', name: 'Alice', ... }
 ✅ Created profile: { id: 1, bio: 'Software engineer...', userId: 1 }
-✅ Created post: { id: 1, title: 'Getting Started with Refract', ... }
+✅ Created post: { id: 1, title: 'Getting Started with Ork', ... }
 
 🔍 Querying user with profile relation...
 User with profile: {
@@ -194,7 +194,7 @@ User with profile: {
 }
 
 🔍 Finding published posts...
-Published posts: [{ id: 1, title: 'Getting Started with Refract', published: true, ... }]
+Published posts: [{ id: 1, title: 'Getting Started with Ork', published: true, ... }]
 
 📝 Updating post...
 ✅ Updated post: { id: 2, published: true, ... }
@@ -245,19 +245,19 @@ schema.prisma
      │
      ▼
 ┌─────────────────┐
-│ @refract/schema │  Parse .prisma files
+│ @ork/schema │  Parse .prisma files
 │    -parser      │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ @refract/field  │  Generate dialect-specific
+│ @ork/field  │  Generate dialect-specific
 │   -translator   │  type transformations
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ @refract/client │  Generate typed client with
+│ @ork/client │  Generate typed client with
 │                 │  embedded CRUD operations
 └────────┬────────┘
          │

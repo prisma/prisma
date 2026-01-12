@@ -1,7 +1,7 @@
 {
-  "name": "@refract/client",
+  "name": "@ork/client",
   "version": "0.0.1-alpha.1",
-  "description": "Type-safe database client with CRUD operations for Refract ORM",
+  "description": "Type-safe database client with CRUD operations for Ork ORM",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharrell/refract.git",
+    "url": "https://github.com/jharrell/ork.git",
     "directory": "packages/client"
   },
   "scripts": {
@@ -29,7 +29,7 @@
     "dist"
   ],
   "keywords": [
-    "refract",
+    "ork",
     "client",
     "orm",
     "typescript",
@@ -37,13 +37,13 @@
     "database",
     "crud"
   ],
-  "author": "Refract Team",
+  "author": "Ork Team",
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@refract/config": "workspace:*",
-    "@refract/field-translator": "workspace:*",
-    "@refract/schema-parser": "workspace:*",
+    "@ork/config": "workspace:*",
+    "@ork/field-translator": "workspace:*",
+    "@ork/schema-parser": "workspace:*",
     "dedent": "1.7.0",
     "kysely": "^0.27.4"
   },

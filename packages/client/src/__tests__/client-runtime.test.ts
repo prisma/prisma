@@ -1,11 +1,11 @@
 /**
- * Tests for the lightweight Refract client runtime.
+ * Tests for the lightweight Ork client runtime.
  * Verifies that model factories are invoked and transactions create scoped clients.
  */
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { RefractClientBase, type ModelFactory } from '../client.js'
+import { OrkClientBase, type ModelFactory } from '../client.js'
 
 // Mock Kysely dialect to avoid requiring database connections
 const mockKysely = {
@@ -42,7 +42,7 @@ vi.mock('kysely', async () => {
   }
 })
 
-describe('RefractClientBase', () => {
+describe('OrkClientBase', () => {
   const modelFactory: ModelFactory<any> = vi.fn((kysely) => ({
     user: {
       findMany: vi.fn().mockImplementation(() => kysely.selectFrom('user')),
@@ -50,14 +50,14 @@ describe('RefractClientBase', () => {
   }))
 
   it('exposes the underlying Kysely instance', () => {
-    const client = new RefractClientBase(mockDialect, { modelFactory })
+    const client = new OrkClientBase(mockDialect, { modelFactory })
 
     expect(client.$kysely).toBe(mockKysely)
     expect(modelFactory).toHaveBeenCalledWith(mockKysely)
   })
 
   it('attaches model operations from the factory', () => {
-    const client = new RefractClientBase(mockDialect, { modelFactory })
+    const client = new OrkClientBase(mockDialect, { modelFactory })
 
     expect(client.user).toBeDefined()
     expect(typeof client.user.findMany).toBe('function')
@@ -66,7 +66,7 @@ describe('RefractClientBase', () => {
   })
 
   it('supports transactions by cloning with a scoped Kysely instance', async () => {
-    const client = new RefractClientBase(mockDialect, { modelFactory })
+    const client = new OrkClientBase(mockDialect, { modelFactory })
     modelFactory.mockClear()
 
     const result = await client.$transaction(async (scopedClient) => {
@@ -83,7 +83,7 @@ describe('RefractClientBase', () => {
   })
 
   it('allows manual model registration for advanced use-cases', () => {
-    class CustomClient extends RefractClientBase {
+    class CustomClient extends OrkClientBase {
       constructor() {
         super(mockDialect)
         this.registerModel('custom', {

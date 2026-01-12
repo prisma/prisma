@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { setupTestDatabase, type TestEnvironment } from './helpers/test-container'
 import { seedTestData } from './helpers/seed'
-import { createRefractClient } from './fixtures/generated-test-client'
+import { createOrkClient } from './fixtures/generated-test-client'
 import { PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 
 /**
  * Tests for Query Logging
  *
- * Implementation passes Kysely's native logging through createRefractClient options:
+ * Implementation passes Kysely's native logging through createOrkClient options:
  * - Support log levels: 'query', 'error'
  * - Support custom log handler functions
  * - Leverages Kysely's built-in logging (includes duration, SQL, params)
@@ -43,7 +43,7 @@ describe('Query Logging', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       // Create client with query logging enabled
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: ['query'],
       })
 
@@ -59,7 +59,7 @@ describe('Query Logging', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       // Create client with error logging enabled
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: ['error'],
       })
 
@@ -79,7 +79,7 @@ describe('Query Logging', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       // Create client with multiple log levels
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: ['query', 'error'],
       })
 
@@ -102,7 +102,7 @@ describe('Query Logging', () => {
       const customLogger = vi.fn()
 
       // Create client with custom logger
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: (event) => {
           customLogger({
             level: event.level,
@@ -127,7 +127,7 @@ describe('Query Logging', () => {
     it('should provide query execution time in logs', async () => {
       const customLogger = vi.fn()
 
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: (event) => customLogger(event),
       })
 
@@ -146,7 +146,7 @@ describe('Query Logging', () => {
     it('should log queries with SQL and parameters', async () => {
       const customLogger = vi.fn()
 
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: (event) => customLogger(event),
       })
 
@@ -169,7 +169,7 @@ describe('Query Logging', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       // Create client with only error logging (no query logging)
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: ['error'],
       })
 
@@ -187,7 +187,7 @@ describe('Query Logging', () => {
 
       // Our implementation passes the log option to new Kysely({ log: ... })
       // This leverages Kysely's native logging rather than custom plugins
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: (event) => customLogger(event),
       })
 
@@ -201,7 +201,7 @@ describe('Query Logging', () => {
     it('should log findMany queries', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: ['query'],
       })
 
@@ -214,7 +214,7 @@ describe('Query Logging', () => {
     it('should log create queries', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const client = createRefractClient(dialect, {
+      const client = createOrkClient(dialect, {
         log: ['query'],
       })
 

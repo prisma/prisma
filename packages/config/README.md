@@ -1,14 +1,14 @@
-# @refract/config
+# @ork/config
 
-Shared configuration and Kysely instance management for Refract packages.
+Shared configuration and Kysely instance management for Ork packages.
 
 ## Purpose
 
-This package centralizes configuration loading and Kysely instance creation across all Refract packages (`cli`, `migrate`, `client`), eliminating duplication and ensuring consistent database setup.
+This package centralizes configuration loading and Kysely instance creation across all Ork packages (`cli`, `migrate`, `client`), eliminating duplication and ensuring consistent database setup.
 
 ## Key Features
 
-- **Priority-based config resolution**: Explicit config > refract.config.ts > .config/refract.ts
+- **Priority-based config resolution**: Explicit config > ork.config.ts > .config/ork.ts
 - **Centralized provider support**: Easy to add new database providers
 - **Kysely dialect creation**: Handles all provider-specific setup
 - **Type-safe configuration**: Zod schema validation
@@ -18,7 +18,7 @@ This package centralizes configuration loading and Kysely instance creation acro
 ### Basic Kysely Creation
 
 ```typescript
-import { createKyselyFromConfig } from '@refract/config'
+import { createKyselyFromConfig } from '@ork/config'
 
 // Uses config file discovery
 const { kysely, config } = await createKyselyFromConfig()
@@ -32,16 +32,16 @@ const { kysely } = await createKyselyFromConfig({
 })
 
 // From URL (auto-detects provider)
-import { createKyselyFromUrl } from '@refract/config'
+import { createKyselyFromUrl } from '@ork/config'
 const { kysely } = await createKyselyFromUrl(process.env.DATABASE_URL!)
 ```
 
 ### Configuration Loading Only
 
 ```typescript
-import { loadRefractConfig } from '@refract/config'
+import { loadOrkConfig } from '@ork/config'
 
-const { config, configPath } = await loadRefractConfig({
+const { config, configPath } = await loadOrkConfig({
   cwd: '/path/to/project'
 })
 ```
@@ -49,7 +49,7 @@ const { config, configPath } = await loadRefractConfig({
 ### Dialect Creation Only
 
 ```typescript
-import { createKyselyDialect } from '@refract/config'
+import { createKyselyDialect } from '@ork/config'
 
 const dialect = await createKyselyDialect(config)
 const kysely = new Kysely({ dialect })
@@ -59,8 +59,8 @@ const kysely = new Kysely({ dialect })
 
 1. **Explicit config parameter** (highest priority)
 2. **Explicit configFile parameter**
-3. **refract.config.ts/js/mjs** 
-4. **.config/refract.ts/js/mjs** (lowest priority)
+3. **ork.config.ts/js/mjs** 
+4. **.config/ork.ts/js/mjs** (lowest priority)
 
 ## Supported Providers
 

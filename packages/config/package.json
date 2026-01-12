@@ -1,7 +1,7 @@
 {
-  "name": "@refract/config",
+  "name": "@ork/config",
   "version": "0.0.1-alpha.1",
-  "description": "Shared configuration and Kysely instance management for Refract",
+  "description": "Shared configuration and Kysely instance management for Ork",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",

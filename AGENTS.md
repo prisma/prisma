@@ -4,7 +4,7 @@
 
 When beginning work on this project, **always read these core documents first**:
 
-1. **README.md** - Vision, why Refract exists, strategic pillars, and feature overview
+1. **README.md** - Vision, why Ork exists, strategic pillars, and feature overview
 2. **ARCHITECTURE.md** - How code generation works, package dependencies, template system, design principles, and common pitfalls
 3. **DELIVERY_ROADMAP.md** - Phase-based delivery plan and completion criteria
 4. **NEXT_STEPS.md** - Current tactical tasks and progress tracking
@@ -13,7 +13,7 @@ These documents contain critical context that will help you understand the codeb
 
 ## Project Snapshot
 
-- **Name**: Refract ORM
+- **Name**: Ork ORM
 - **Goal**: Deliver a TypeScript-native fork of Prisma that keeps the `.prisma` schema language and Prisma-style client while delegating query execution to Kysely.
 - **Phase**: 0 (end-to-end prototype in progress). See `DELIVERY_ROADMAP.md` and `NEXT_STEPS.md`.
 - **Key Docs**: `README.md` (vision/features), `ARCHITECTURE.md` (internals), `DELIVERY_ROADMAP.md` (timeline).
@@ -28,18 +28,18 @@ These documents contain critical context that will help you understand the codeb
 
 ## Key Packages
 
-- `@refract/client`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
-- `@refract/schema-parser`: Pure TypeScript parser for `.prisma` files, produces AST for generators.
-- `@refract/migrate`: Programmatic migrations via Kysely (`diff`, `apply`, history APIs).
-- `@refract/config`: Config discovery and dialect creation (PostgreSQL, SQLite priority).
-- `unplugin-refract`: Build-tool integration that emits virtual `.refract/types` modules for IDE support.
-- `@refract/cli`: ESM-only CLI wrapping config, generation, and migrations (implementation in progress).
+- `@ork/client`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
+- `@ork/schema-parser`: Pure TypeScript parser for `.prisma` files, produces AST for generators.
+- `@ork/migrate`: Programmatic migrations via Kysely (`diff`, `apply`, history APIs).
+- `@ork/config`: Config discovery and dialect creation (PostgreSQL, SQLite priority).
+- `unplugin-ork`: Build-tool integration that emits virtual `.ork/types` modules for IDE support.
+- `ork`: ESM-only CLI wrapping config, generation, and migrations (implementation in progress).
 
 ## Development Notes
 
 - Prioritize PostgreSQL and SQLite support while structuring code for additional Kysely dialects.
 - Keep schema parsing, client generation, and migrations TypeScript-native—no Rust engine integration.
-- Integrate with Vite via `unplugin-refract`; provide manual fallbacks for non-Vite environments.
+- Integrate with Vite via `unplugin-ork`; provide manual fallbacks for non-Vite environments.
 - Tests live alongside packages (`src/__tests__`) and as functional suites under `packages/client`.
 
 ## Code Generation Workflow (IMPORTANT!)
@@ -47,8 +47,8 @@ These documents contain critical context that will help you understand the codeb
 When making changes to the client generator:
 
 1. **Edit source**: Modify `packages/client/src/client-generator.ts`
-2. **Rebuild client package**: `pnpm --filter @refract/client build`
-3. **Rebuild CLI**: `pnpm --filter @refract/cli build`
+2. **Rebuild client package**: `pnpm --filter @ork/client build`
+3. **Rebuild CLI**: `pnpm --filter ork build`
 4. **Regenerate example client**: `cd examples/basic && node ../../packages/cli/dist/bin.js generate`
 5. **Test**: `cd examples/basic && pnpm demo`
 

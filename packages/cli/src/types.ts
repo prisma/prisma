@@ -1,15 +1,15 @@
-// Re-export shared types from @refract/config
+// Re-export shared types from @ork/config
 // Import for use in local interfaces
-import type { RefractConfig } from '@refract/config'
+import type { OrkConfig } from '@ork/config'
 
-export type { RefractConfig } from '@refract/config'
-export { RefractConfigSchema } from '@refract/config'
+export type { OrkConfig } from '@ork/config'
+export { OrkConfigSchema } from '@ork/config'
 
 /**
  * CLI command context
  */
 export interface CommandContext {
-  config: RefractConfig
+  config: OrkConfig
   schemaPath: string
   configPath: string
   cwd: string

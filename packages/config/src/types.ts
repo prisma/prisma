@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { SUPPORTED_PROVIDERS } from './constants.js'
 
 /**
- * Refract configuration schema
+ * Ork configuration schema
  */
-export const RefractConfigSchema = z.object({
+export const OrkConfigSchema = z.object({
   datasource: z.object({
     provider: z.enum(SUPPORTED_PROVIDERS),
     url: z.string(),
@@ -13,14 +13,14 @@ export const RefractConfigSchema = z.object({
   }),
   generator: z
     .object({
-      provider: z.string().default('@refract/client'),
-      output: z.string().default('./.refract'),
+      provider: z.string().default('ork'),
+      output: z.string().default('./.ork'),
     })
     .optional(),
   schema: z.string().default('./schema.prisma'),
 })
 
-export type RefractConfig = z.infer<typeof RefractConfigSchema>
+export type OrkConfig = z.infer<typeof OrkConfigSchema>
 
 /**
  * Configuration loading options with priority resolution
@@ -30,7 +30,7 @@ export interface ConfigLoadOptions {
    * Priority 1: Explicit config to use instead of loading from file
    * Highest priority - bypasses all file loading
    */
-  config?: RefractConfig
+  config?: OrkConfig
 
   /**
    * Starting directory to search for config files
@@ -49,7 +49,7 @@ export interface ConfigLoadOptions {
  * Result of configuration loading
  */
 export interface ConfigLoadResult {
-  config: RefractConfig
+  config: OrkConfig
   configPath: string | null
   configDir: string
 }
@@ -59,7 +59,7 @@ export interface ConfigLoadResult {
  */
 export interface KyselyResult {
   kysely: import('kysely').Kysely<any>
-  config: RefractConfig
+  config: OrkConfig
   configPath: string | null
   configDir: string
 }

@@ -5,7 +5,7 @@
  * with ZERO runtime overhead - no translator dependencies or runtime processing.
  */
 
-import type { FieldAST } from '@refract/schema-parser'
+import type { FieldAST } from '@ork/schema-parser'
 
 /**
  * Supported database dialects for transformation code generation

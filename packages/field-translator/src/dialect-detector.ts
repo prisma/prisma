@@ -11,7 +11,7 @@ import { UnsupportedDialectError } from './types.js'
 /**
  * Configuration source for dialect detection
  */
-export interface RefractConfig {
+export interface OrkConfig {
   /** Database URL or connection configuration */
   database?: {
     url?: string
@@ -40,9 +40,9 @@ export interface KyselyDialectInfo {
  */
 export class DialectDetector {
   /**
-   * Detect database dialect from Refract configuration
+   * Detect database dialect from Ork configuration
    */
-  static detectFromConfig(config: RefractConfig): DatabaseDialect {
+  static detectFromConfig(config: OrkConfig): DatabaseDialect {
     // Direct dialect specification
     if (config.database?.dialect) {
       return this.validateDialect(config.database.dialect)
@@ -167,7 +167,7 @@ export class DialectDetector {
  * Convenience function for detecting dialect from various sources
  */
 export function detectDialect(
-  source: RefractConfig | string | KyselyDialectInfo
+  source: OrkConfig | string | KyselyDialectInfo
 ): DatabaseDialect {
   if (typeof source === 'string') {
     // Assume it's a URL or provider string

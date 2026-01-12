@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import { parseSchema } from '@refract/schema-parser'
+import { parseSchema } from '@ork/schema-parser'
 import { ClientGenerator } from '../../client-generator'
 
 export interface TestClientOptions {
@@ -10,7 +10,7 @@ export interface TestClientOptions {
 }
 
 /**
- * Generate a Refract client from the test schema
+ * Generate a Ork client from the test schema
  * Writes the generated client to a temporary location and returns the path
  */
 export function generateTestClient(options: TestClientOptions = {}): string {
@@ -40,7 +40,7 @@ export function generateTestClient(options: TestClientOptions = {}): string {
 
 /**
  * Import the generated test client
- * Returns the createRefractClient function from the generated code
+ * Returns the createOrkClient function from the generated code
  */
 export async function importTestClient(options: TestClientOptions = {}) {
   const clientPath = generateTestClient(options)
@@ -49,6 +49,6 @@ export async function importTestClient(options: TestClientOptions = {}) {
   const timestamp = Date.now()
   const module = await import(`${clientPath}?t=${timestamp}`)
 
-  // Return createRefractClient which accepts a Dialect, not createClient which auto-loads config
-  return module.createRefractClient
+  // Return createOrkClient which accepts a Dialect, not createClient which auto-loads config
+  return module.createOrkClient
 }

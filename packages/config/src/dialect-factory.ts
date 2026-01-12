@@ -1,13 +1,13 @@
 import type { Dialect } from 'kysely'
 
 import { PROVIDER_METADATA } from './constants.js'
-import type { RefractConfig } from './types.js'
+import type { OrkConfig } from './types.js'
 
 /**
- * Create Kysely dialect instance from Refract configuration
+ * Create Kysely dialect instance from Ork configuration
  * This centralizes all provider-specific dialect creation logic
  */
-export async function createKyselyDialect(config: RefractConfig): Promise<Dialect> {
+export async function createKyselyDialect(config: OrkConfig): Promise<Dialect> {
   const { provider, url } = config.datasource
 
   switch (provider) {
@@ -113,7 +113,7 @@ export async function createKyselyDialect(config: RefractConfig): Promise<Dialec
 /**
  * Validate database connection using the created dialect
  */
-export async function validateConnection(config: RefractConfig): Promise<boolean> {
+export async function validateConnection(config: OrkConfig): Promise<boolean> {
   try {
     const dialect = await createKyselyDialect(config)
     const { Kysely, sql } = await import('kysely')

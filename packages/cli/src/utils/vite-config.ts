@@ -26,8 +26,7 @@ export const findViteConfigPath = (cwd: string): string | null => {
   return null
 }
 
-const hasRefractPlugin = (content: string): boolean =>
-  content.includes('unplugin-refract') || /refract\s*\(/.test(content)
+const hasOrkPlugin = (content: string): boolean => content.includes('unplugin-ork') || /ork\s*\(/.test(content)
 
 const insertImport = (content: string, importLine: string): string => {
   const importRegex = /^import[\s\S]*?from\s+['"][^'"]+['"];?$/gm
@@ -72,12 +71,12 @@ export const patchViteConfig = (viteConfigPath: string): PatchResult => {
 
   const content = readFileSync(viteConfigPath, 'utf8')
 
-  if (hasRefractPlugin(content)) {
-    return { updated: false, reason: 'Vite config already includes Refract plugin', filePath: viteConfigPath }
+  if (hasOrkPlugin(content)) {
+    return { updated: false, reason: 'Vite config already includes Ork plugin', filePath: viteConfigPath }
   }
 
-  const withImport = insertImport(content, "import refract from 'unplugin-refract/vite'")
-  const pluginSnippet = 'refract({ autoGenerateClient: true, autoMigrate: true })'
+  const withImport = insertImport(content, "import ork from 'unplugin-ork/vite'")
+  const pluginSnippet = 'ork({ autoGenerateClient: true, autoMigrate: true })'
   const updated = addPluginToDefineConfig(withImport, pluginSnippet)
 
   if (!updated) {

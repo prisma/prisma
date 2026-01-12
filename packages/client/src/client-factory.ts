@@ -1,20 +1,20 @@
-import { type ConfigLoadOptions, createKyselyDialect, loadRefractConfig } from '@refract/config'
+import { type ConfigLoadOptions, createKyselyDialect, loadOrkConfig } from '@ork/config'
 
-import type { RefractClientOptions } from './client.js'
-import { RefractClientBase } from './client.js'
+import type { OrkClientOptions } from './client.js'
+import { OrkClientBase } from './client.js'
 
 /**
- * Convenience factory to create RefractClient from configuration
+ * Convenience factory to create OrkClient from configuration
  * Combines config loading, dialect creation, and client instantiation
  */
-export async function createRefractClientFromConfig(
+export async function createOrkClientFromConfig(
   configOptions: ConfigLoadOptions = {},
-  clientOptions: RefractClientOptions<any> = {},
-): Promise<RefractClientBase> {
+  clientOptions: OrkClientOptions<any> = {},
+): Promise<OrkClientBase> {
   // Load config and create dialect
-  const { config } = await loadRefractConfig(configOptions)
+  const { config } = await loadOrkConfig(configOptions)
   const dialect = await createKyselyDialect(config)
 
   // Create client with the dialect
-  return new RefractClientBase(dialect, clientOptions)
+  return new OrkClientBase(dialect, clientOptions)
 }

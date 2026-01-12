@@ -42,7 +42,7 @@ describe('InitCommand', () => {
     }
   })
 
-  it('should create refract.config.ts and schema.prisma', async () => {
+  it('should create ork.config.ts and schema.prisma', async () => {
     const command = new InitCommand()
 
     const result = await command.execute({
@@ -50,7 +50,7 @@ describe('InitCommand', () => {
     })
 
     expect(result.success).toBe(true)
-    expect(existsSync('refract.config.ts')).toBe(true)
+    expect(existsSync('ork.config.ts')).toBe(true)
     expect(existsSync('schema.prisma')).toBe(true)
   })
 
@@ -70,7 +70,7 @@ describe('InitCommand', () => {
     expect(schemaContent).not.toContain('env("DATABASE_URL")')
   })
 
-  it('should create refract.config.ts with all supported providers', async () => {
+  it('should create ork.config.ts with all supported providers', async () => {
     const command = new InitCommand()
     const testCases = [
       { url: 'postgresql://user:pass@localhost:5432/db', expectedProvider: 'postgresql' },
@@ -81,7 +81,7 @@ describe('InitCommand', () => {
 
     for (const { url, expectedProvider } of testCases) {
       // Clean up between tests
-      if (existsSync('refract.config.ts')) unlinkSync('refract.config.ts')
+      if (existsSync('ork.config.ts')) unlinkSync('ork.config.ts')
       if (existsSync('schema.prisma')) unlinkSync('schema.prisma')
 
       const result = await command.execute({
@@ -89,9 +89,9 @@ describe('InitCommand', () => {
       })
 
       expect(result.success).toBe(true)
-      expect(existsSync('refract.config.ts')).toBe(true)
+      expect(existsSync('ork.config.ts')).toBe(true)
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain(`provider: '${expectedProvider}'`)
       expect(configContent).toContain(url)
     }
@@ -106,7 +106,7 @@ describe('InitCommand', () => {
     })
 
     expect(result.success).toBe(true)
-    expect(existsSync('refract.config.ts')).toBe(true)
+    expect(existsSync('ork.config.ts')).toBe(true)
     expect(existsSync('schema.prisma')).toBe(false)
   })
 
@@ -119,9 +119,9 @@ describe('InitCommand', () => {
     })
 
     expect(result.success).toBe(true)
-    expect(existsSync('refract.config.ts')).toBe(true)
+    expect(existsSync('ork.config.ts')).toBe(true)
 
-    const configContent = readFileSync('refract.config.ts', 'utf8')
+    const configContent = readFileSync('ork.config.ts', 'utf8')
     expect(configContent).toContain("provider: 'sqlite'")
     expect(configContent).toContain("url: ''")
   })
@@ -179,8 +179,8 @@ describe('InitCommand', () => {
 
 describe('Configuration Bridge', () => {
   beforeEach(() => {
-    if (existsSync('refract.config.ts')) {
-      unlinkSync('refract.config.ts')
+    if (existsSync('ork.config.ts')) {
+      unlinkSync('ork.config.ts')
     }
     if (existsSync('schema.prisma')) {
       unlinkSync('schema.prisma')
@@ -188,8 +188,8 @@ describe('Configuration Bridge', () => {
   })
 
   afterEach(() => {
-    if (existsSync('refract.config.ts')) {
-      unlinkSync('refract.config.ts')
+    if (existsSync('ork.config.ts')) {
+      unlinkSync('ork.config.ts')
     }
     if (existsSync('schema.prisma')) {
       unlinkSync('schema.prisma')

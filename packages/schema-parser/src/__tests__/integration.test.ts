@@ -1,5 +1,5 @@
 /**
- * Comprehensive integration tests for Refract Schema Parser
+ * Comprehensive integration tests for Ork Schema Parser
  * Tests the complete pipeline: Chevrotain lexing -> parsing -> AST -> TypeScript codegen
  */
 
@@ -257,7 +257,7 @@ describe('Schema Parser Integration Tests', () => {
     test('should parse datasource and generator blocks', () => {
       const schema = `
         generator client {
-          provider = "refract-client"
+          provider = "ork"
           output   = "./generated/client"
         }
 
@@ -279,7 +279,7 @@ describe('Schema Parser Integration Tests', () => {
 
       const generator = result.ast.generators[0]
       expect(generator.name).toBe('client')
-      expect(generator.provider).toBe('refract-client')
+      expect(generator.provider).toBe('ork')
       expect(generator.output).toBe('./generated/client')
 
       const datasource = result.ast.datasources[0]

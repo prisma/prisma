@@ -1,4 +1,4 @@
-import { defineConfig } from '@refract/config'
+import { defineConfig } from '@ork/config'
 
 export default defineConfig({
   schema: './schema.prisma',
@@ -7,7 +7,7 @@ export default defineConfig({
     url: process.env.DATABASE_URL!,
   },
   generator: {
-    provider: 'refract',
-    output: './.refract',
+    provider: 'ork',
+    output: './.ork',
   },
 })

@@ -5,8 +5,8 @@ import type { Logger } from '../types.js'
 /**
  * Enhanced logger with colored output for better developer experience
  */
-export class RefractLogger implements Logger {
-  private prefix = chalk.blue.bold('refract')
+export class OrkLogger implements Logger {
+  private prefix = chalk.blue.bold('ork')
 
   info(message: string): void {
     console.log(`${this.prefix} ${chalk.blue('ℹ')} ${message}`)
@@ -52,7 +52,7 @@ export class RefractLogger implements Logger {
     options: Array<{ flag: string; description: string }> = [],
   ) {
     console.log()
-    console.log(chalk.blue.bold(`refract ${command}`))
+    console.log(chalk.blue.bold(`ork ${command}`))
     console.log()
     console.log(chalk.gray(description))
     console.log()
@@ -106,4 +106,4 @@ export class RefractLogger implements Logger {
 }
 
 // Export singleton instance
-export const logger = new RefractLogger()
+export const logger = new OrkLogger()

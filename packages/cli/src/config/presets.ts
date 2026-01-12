@@ -53,8 +53,8 @@ export function generateConfigContent(
       ...additionalOptions.datasource,
     },
     generator: {
-      provider: '@refract/client',
-      output: './.refract',
+      provider: 'ork',
+      output: './.ork',
       ...additionalOptions.generator,
     },
     schema: './schema.prisma',
@@ -66,7 +66,7 @@ export function generateConfigContent(
   delete config.generator
 
   const configLines = [
-    "import type { RefractConfig } from '@refract/config'",
+    "import type { OrkConfig } from '@ork/config'",
     '',
     'export default {',
     '  datasource: {',
@@ -88,11 +88,11 @@ export function generateConfigContent(
   configLines.push(
     '  },',
     '  generator: {',
-    "    provider: '@refract/client',",
-    "    output: './.refract',",
+    "    provider: 'ork',",
+    "    output: './.ork',",
     '  },',
     "  schema: './schema.prisma',",
-    '} satisfies RefractConfig',
+    '} satisfies OrkConfig',
     '',
   )
 

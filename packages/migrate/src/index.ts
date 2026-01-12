@@ -1,14 +1,14 @@
 /**
- * @refract/migrate - TypeScript-native migration engine for Refract ORM
+ * @ork/migrate - TypeScript-native migration engine for Ork ORM
  *
  * This package provides programmatic migration capabilities with direct Kysely integration,
  * eliminating custom driver abstractions and providing transparent, type-safe database operations.
  */
 
-import { RefractMigrate } from './RefractMigrate'
+import { OrkMigrate } from './OrkMigrate'
 import type { MigrationOptions } from './types'
 
-export { RefractMigrate }
+export { OrkMigrate }
 
 export type {
   AnyKyselyDatabase,
@@ -40,15 +40,15 @@ export type {
 } from './types.js'
 
 /**
- * Create a new RefractMigrate instance with the provided Kysely database instance
+ * Create a new OrkMigrate instance with the provided Kysely database instance
  *
  * @param kyselyInstance - Any Kysely dialect instance (PostgreSQL, MySQL, SQLite, or D1)
  * @param options - Optional configuration for migration behavior
- * @returns RefractMigrate instance ready for diff() and apply() operations
+ * @returns OrkMigrate instance ready for diff() and apply() operations
  *
  * @example
  * ```typescript
- * import { createMigrate } from '@refract/migrate'
+ * import { createMigrate } from '@ork/migrate'
  * import { Kysely, PostgresDialect } from 'kysely'
  * import { Pool } from 'pg'
  *
@@ -72,6 +72,6 @@ export type {
  * console.log('Migration result:', result.success)
  * ```
  */
-export function createMigrate(options?: MigrationOptions): RefractMigrate {
-  return new RefractMigrate(options)
+export function createMigrate(options?: MigrationOptions): OrkMigrate {
+  return new OrkMigrate(options)
 }

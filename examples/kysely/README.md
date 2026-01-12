@@ -1,13 +1,13 @@
-# Refract Kysely Example
+# Ork Kysely Example
 
 This example demonstrates the low-level `$kysely` API for direct Kysely query access without generated client code.
 
 ## Features Demonstrated
 
 - ✅ PostgreSQL setup with Testcontainers
-- ✅ Refract client instantiation with Kysely dialect
+- ✅ Ork client instantiation with Kysely dialect
 - ✅ Schema parsing and migration generation
-- ✅ Programmatic migrations via `RefractMigrate`
+- ✅ Programmatic migrations via `OrkMigrate`
 - ✅ Direct CRUD operations via `$kysely`
 - ✅ Manual type definitions for database schema
 - ✅ Relation loading (manual with Kysely queries)
@@ -33,7 +33,7 @@ This example demonstrates the low-level `$kysely` API for direct Kysely query ac
 
 The demo will:
 1. Start a PostgreSQL container via Testcontainers
-2. Create a Refract client with PostgreSQL dialect
+2. Create a Ork client with PostgreSQL dialect
 3. Parse the schema and generate migrations
 4. Apply migrations to create tables
 5. Perform CRUD operations using raw Kysely queries
@@ -52,7 +52,7 @@ The schema includes three models with relations:
 ## Example Usage
 
 ```typescript
-import { RefractClientBase } from '@refract/client'
+import { OrkClientBase } from '@ork/client'
 import type { Generated } from 'kysely'
 
 // Define database schema types manually
@@ -68,7 +68,7 @@ interface DatabaseSchema {
   [modelName: string]: Record<string, any>
 }
 
-const client = new RefractClientBase<DatabaseSchema>(dialect)
+const client = new OrkClientBase<DatabaseSchema>(dialect)
 await client.$connect()
 
 // Create a user with direct Kysely query
@@ -104,7 +104,7 @@ The `$kysely` API is ideal for:
 
 - **Maximum flexibility**: Complex queries that benefit from Kysely's full API
 - **Performance tuning**: Direct control over SQL generation
-- **Learning**: Understanding how Refract works under the hood
+- **Learning**: Understanding how Ork works under the hood
 - **Gradual migration**: Use raw Kysely while transitioning from another ORM
 - **Power users**: Teams already familiar with Kysely who want explicit control
 
@@ -114,11 +114,11 @@ For most applications, prefer the high-level API shown in the `basic` example.
 
 | Feature | `kysely` Example | `basic` Example |
 |---------|-----------------|-----------------|
-| Client Type | `RefractClientBase<T>` | Generated `RefractClient` |
+| Client Type | `OrkClientBase<T>` | Generated `OrkClient` |
 | Type Definitions | Manual interface | Auto-generated from schema |
 | Query Style | `client.$kysely.insertInto()` | `client.user.create()` |
 | Relations | Manual separate queries | Automatic with `include` |
-| Code Generation | Not required | Required (`refract generate`) |
+| Code Generation | Not required | Required (`ork generate`) |
 | Use Case | Power users, complex queries | Prisma-like DX, rapid development |
 
 ## Next Steps

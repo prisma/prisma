@@ -69,7 +69,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: postgresql')
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'postgresql'")
     }, 10000)
 
@@ -83,7 +83,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: mysql')
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'mysql'")
 
     }, 10000)
@@ -94,7 +94,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: sqlite')
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'sqlite'")
 
     }, 10000)
@@ -105,7 +105,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: d1')
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'd1'")
     }, 10000)
   })
@@ -116,9 +116,9 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Selected provider: sqlite')
-      expect(existsSync('refract.config.ts')).toBe(true)
+      expect(existsSync('ork.config.ts')).toBe(true)
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'sqlite'")
       expect(configContent).toContain("url: ''")
     }, 10000)
@@ -166,7 +166,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: mysql')
 
-      const configContent = readFileSync('refract.config.ts', 'utf8')
+      const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'mysql'")
     }, 10000)
   })
@@ -228,7 +228,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
       // The command should start and show the prompt, even if it times out
       expect(result.stdout).toContain('Database connection URL (optional)')
-      expect(result.stdout).toContain('Initializing Refract project')
+      expect(result.stdout).toContain('Initializing Ork project')
 
       // This validates that the interactive flow is set up correctly
       // The actual interactive functionality is tested manually and through --url flag tests
@@ -245,7 +245,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       ])
 
       expect(result.exitCode).toBe(0)
-      expect(existsSync('refract.config.ts')).toBe(true)
+      expect(existsSync('ork.config.ts')).toBe(true)
       expect(existsSync('schema.prisma')).toBe(false)
     }, 10000)
   })
@@ -266,7 +266,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
       // Commander.js exits with code 0 when displaying help
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('Initialize a new Refract project')
+      expect(result.stdout).toContain('Initialize a new Ork project')
       expect(result.stdout).toContain('--url <url>')
       expect(result.stdout).toContain('Database connection URL')
       expect(result.stdout).toContain('auto-detected')

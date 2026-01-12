@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite'
-import refract from 'unplugin-refract/vite'
+import ork from 'unplugin-ork/vite'
 
 export default defineConfig({
   clearScreen: false,
   plugins: [
-    refract({
+    ork({
       schema: './schema.prisma',
       debug: false,
       preserveLogs: true,

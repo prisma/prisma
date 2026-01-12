@@ -2,8 +2,8 @@ datasource db {
   provider = "sqlite"
 }
 
-generator refract {
-  provider = "refract"
+generator ork {
+  provider = "ork"
 }
 
 model User {

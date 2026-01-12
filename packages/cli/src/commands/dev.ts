@@ -1,11 +1,11 @@
-import { findSchemaFile } from '@refract/config'
-import { RefractMigrate } from '@refract/migrate'
+import { findSchemaFile } from '@ork/config'
+import { OrkMigrate } from '@ork/migrate'
 import { watch } from 'node:fs'
 
 import { generateClient } from './generate.js'
 import type { CommandResult, DevOptions } from '../types.js'
 import { BaseCommand } from '../utils/command.js'
-import { cliCreateKyselyFromConfig, cliLoadRefractConfig } from '../utils/config-error-handler.js'
+import { cliCreateKyselyFromConfig, cliLoadOrkConfig } from '../utils/config-error-handler.js'
 import { logger } from '../utils/logger.js'
 
 type RunState = {
@@ -24,10 +24,10 @@ export class DevCommand extends BaseCommand {
       }
     }
 
-    const { config, configDir } = await cliLoadRefractConfig()
+    const { config, configDir } = await cliLoadOrkConfig()
     const schemaPath = findSchemaFile(config, configDir)
 
-    logger.info('Starting Refract dev loop...')
+    logger.info('Starting Ork dev loop...')
     logger.info(`Watching schema: ${schemaPath}`)
 
     const runState = createRunState()
@@ -82,7 +82,7 @@ export class DevCommand extends BaseCommand {
   private async runMigrations(options: DevOptions): Promise<void> {
     const { kysely, config, configDir } = await cliCreateKyselyFromConfig()
     const schemaPath = findSchemaFile(config, configDir)
-    const migrate = new RefractMigrate({
+    const migrate = new OrkMigrate({
       useTransaction: true,
       validateSchema: true,
       timeout: 30000,
@@ -136,7 +136,7 @@ export class DevCommand extends BaseCommand {
 export function registerDevCommand(program: any) {
   program
     .command('dev')
-    .description('Run the Refract dev loop (generate + migrate on schema changes)')
+    .description('Run the Ork dev loop (generate + migrate on schema changes)')
     .option('-y, --yes', 'Skip confirmation prompts')
     .option('--unsafe', 'Allow destructive migrations')
     .option('--no-generate', 'Skip client generation')

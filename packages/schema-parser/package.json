@@ -1,7 +1,7 @@
 {
-  "name": "@refract/schema-parser",
+  "name": "@ork/schema-parser",
   "version": "0.0.1-alpha.1",
-  "description": "TypeScript-native Prisma Schema Language parser for Refract ORM",
+  "description": "TypeScript-native Prisma Schema Language parser for Ork ORM",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -14,12 +14,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharrell/refract.git",
+    "url": "https://github.com/jharrell/ork.git",
     "directory": "packages/schema-parser"
   },
-  "homepage": "https://github.com/jharrell/refract",
-  "author": "Refract Team",
-  "bugs": "https://github.com/jharrell/refract/issues",
+  "homepage": "https://github.com/jharrell/ork",
+  "author": "Ork Team",
+  "bugs": "https://github.com/jharrell/ork/issues",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "tsup --watch",

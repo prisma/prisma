@@ -5,7 +5,7 @@ import { importTestClient } from './generate-test-client'
 
 export interface TestEnvironment {
   kysely: Kysely<any>
-  client: any // The generated Refract client
+  client: any // The generated Ork client
   container: StartedPostgreSqlContainer
   cleanup: () => Promise<void>
 }
@@ -16,7 +16,7 @@ export interface TestEnvironment {
 export async function setupTestDatabase(): Promise<TestEnvironment> {
   // Start PostgreSQL container
   const container = await new PostgreSqlContainer('postgres:16-alpine')
-    .withDatabase('refract_test')
+    .withDatabase('ork_test')
     .withUsername('test')
     .withPassword('test')
     .start()
@@ -38,8 +38,8 @@ export async function setupTestDatabase(): Promise<TestEnvironment> {
   await applyTestSchema(kysely)
 
   // Generate and import test client
-  const createRefractClient = await importTestClient()
-  const client = createRefractClient(dialect)
+  const createOrkClient = await importTestClient()
+  const client = createOrkClient(dialect)
 
   return {
     kysely,

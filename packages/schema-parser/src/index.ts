@@ -1,7 +1,7 @@
 /**
- * @refract/schema-parser
+ * @ork/schema-parser
  *
- * TypeScript-native Prisma Schema Language parser for Refract ORM.
+ * TypeScript-native Prisma Schema Language parser for Ork ORM.
  * Provides AST generation and TypeScript code generation capabilities.
  */
 

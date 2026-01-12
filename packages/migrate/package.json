@@ -1,7 +1,7 @@
 {
-  "name": "@refract/migrate",
+  "name": "@ork/migrate",
   "version": "0.0.1-alpha.1",
-  "description": "TypeScript-native migration engine for Refract ORM with direct Kysely integration",
+  "description": "TypeScript-native migration engine for Ork ORM with direct Kysely integration",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -14,12 +14,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharrell/refract.git",
+    "url": "https://github.com/jharrell/ork.git",
     "directory": "packages/migrate"
   },
-  "homepage": "https://github.com/jharrell/refract",
-  "author": "Refract Team",
-  "bugs": "https://github.com/jharrell/refract/issues",
+  "homepage": "https://github.com/jharrell/ork",
+  "author": "Ork Team",
+  "bugs": "https://github.com/jharrell/ork/issues",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "tsup --watch",
@@ -41,8 +41,8 @@
     "vitest": "3.2.4"
   },
   "dependencies": {
-    "@refract/field-translator": "workspace:*",
-    "@refract/schema-parser": "workspace:*",
+    "@ork/field-translator": "workspace:*",
+    "@ork/schema-parser": "workspace:*",
     "kysely": "^0.27.0"
   },
   "peerDependencies": {

@@ -1,6 +1,6 @@
-# @refract/cli
+# ork
 
-CLI for Refract ORM.
+CLI for Ork ORM.
 
 ## Features
 
@@ -13,22 +13,22 @@ CLI for Refract ORM.
 ## Installation
 
 ```bash
-npm install @refract/cli
+npm install ork
 # or
-pnpm add @refract/cli
+pnpm add ork
 ```
 
 ## Commands
 
-### `refract init`
+### `ork init`
 
-Initialize a new Refract project with interactive prompts.
-If Vite is detected, it can auto-patch your `vite.config` to enable `unplugin-refract`.
+Initialize a new Ork project with interactive prompts.
+If Vite is detected, it can auto-patch your `vite.config` to enable `unplugin-ork`.
 It can also offer to install recommended dependencies based on your provider.
 Supported providers: `postgresql`, `mysql`, `sqlite`, `d1`.
 
 ```bash
-npx refract init
+npx ork init
 ```
 
 Options:
@@ -40,44 +40,44 @@ Options:
 - `--skip-install` - Skip dependency installation prompts
 - `--skip-vite` - Skip Vite detection and auto-patching
 
-### `refract migrate`
+### `ork migrate`
 
 Run database migrations using the TypeScript-native migration engine.
 
 ```bash
-refract migrate dev
-refract migrate status
-refract migrate history
-refract migrate rollback
+ork migrate dev
+ork migrate status
+ork migrate history
+ork migrate rollback
 ```
 
-### `refract generate`
+### `ork generate`
 
-Generate type-safe Refract client code.
+Generate type-safe Ork client code.
 
 ```bash
-refract generate
-refract generate --watch
+ork generate
+ork generate --watch
 ```
 
-### `refract dev`
+### `ork dev`
 
 Unified dev loop that watches your schema and runs generation + migrations.
 
 ```bash
-refract dev
-refract dev --yes
-refract dev --unsafe
-refract dev --no-migrate
-refract dev --no-generate
+ork dev
+ork dev --yes
+ork dev --unsafe
+ork dev --no-migrate
+ork dev --no-generate
 ```
 
 ## Configuration
 
-The CLI uses `refract.config.ts` for configuration:
+The CLI uses `ork.config.ts` for configuration:
 
 ```typescript
-import type { RefractConfig } from '@refract/config'
+import type { OrkConfig } from '@ork/config'
 
 export default {
   datasource: {
@@ -85,11 +85,11 @@ export default {
     url: '',
   },
   generator: {
-    provider: '@refract/client',
-    output: './.refract',
+    provider: 'ork',
+    output: './.ork',
   },
   schema: './schema.prisma',
-} satisfies RefractConfig
+} satisfies OrkConfig
 ```
 
 Set `datasource.url` to your connection string (or wire a custom dialect in code).
@@ -101,7 +101,7 @@ The CLI is alpha-stage and focused on the core workflow: `init`, `generate`, and
 
 ## Related Packages
 
-- `@refract/schema-parser` - TypeScript-native schema parsing
-- `@refract/migrate` - Programmatic migration engine
-- `@refract/client` - Type-safe database client
-- `unplugin-refract` - Build tool integration
+- `@ork/schema-parser` - TypeScript-native schema parsing
+- `@ork/migrate` - Programmatic migration engine
+- `@ork/client` - Type-safe database client
+- `unplugin-ork` - Build tool integration

@@ -1,6 +1,6 @@
-# @refract/schema-parser
+# @ork/schema-parser
 
-TypeScript-native Prisma Schema Language parser for Refract ORM.
+TypeScript-native Prisma Schema Language parser for Ork ORM.
 
 ## Overview
 
@@ -17,13 +17,13 @@ This package provides a complete TypeScript-native implementation for parsing Pr
 ## Installation
 
 ```bash
-pnpm add @refract/schema-parser
+pnpm add @ork/schema-parser
 ```
 
 ## Usage
 
 ```typescript
-import { parseSchema } from '@refract/schema-parser'
+import { parseSchema } from '@ork/schema-parser'
 
 const schema = `
 datasource db {
@@ -69,7 +69,7 @@ Main parsing function that converts PSL source code into an AST.
 
 ## Development
 
-This package is part of the Refract ORM project and follows its development conventions:
+This package is part of the Ork ORM project and follows its development conventions:
 
 ```bash
 # Build the package

@@ -8,8 +8,8 @@ import {
   detectDialect, 
   generators,
   transformationRegistry 
-} from '@refract/field-translator'
-import type { FieldAST } from '@refract/schema-parser'
+} from '@ork/field-translator'
+import type { FieldAST } from '@ork/schema-parser'
 
 describe('FieldTranslator Integration in Client Generator', () => {
   const mockBooleanField: FieldAST = {

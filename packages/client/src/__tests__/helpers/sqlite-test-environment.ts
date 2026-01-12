@@ -17,8 +17,8 @@ export async function setupSqliteTestDatabase(): Promise<SqliteTestEnvironment> 
   await applySqliteSchema(kysely)
 
   const schemaPath = join(__dirname, 'test-schema-sqlite.prisma')
-  const createRefractClient = await importTestClient({ schemaPath, dialect: 'sqlite' })
-  const client = createRefractClient(dialect)
+  const createOrkClient = await importTestClient({ schemaPath, dialect: 'sqlite' })
+  const client = createOrkClient(dialect)
 
   return {
     kysely,

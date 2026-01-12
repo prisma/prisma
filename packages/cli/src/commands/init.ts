@@ -1,8 +1,7 @@
-/* import { PROVIDER_URL_PATTERNS } from '@refract/config' - not used, removed for lint */
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 import prompts from 'prompts'
-import { PROVIDER_METADATA, SUPPORTED_PROVIDERS } from '@refract/config'
+import { PROVIDER_METADATA, SUPPORTED_PROVIDERS } from '@ork/config'
 
 import { CONFIG_TEMPLATES, generateConfigContent } from '../config/presets.js'
 import { generateSchemaContent } from '../templates/schema.js'
@@ -17,8 +16,8 @@ import { findViteConfigPath, patchViteConfig } from '../utils/vite-config.js'
 const CONFIG_EXTENSIONS = ['.js', '.ts', '.mjs', '.cjs', '.mts', '.cts']
 
 const findExistingConfigPath = (cwd: string): string | null => {
-  const directConfig = CONFIG_EXTENSIONS.map((ext) => resolve(cwd, `refract.config${ext}`))
-  const nestedConfig = CONFIG_EXTENSIONS.map((ext) => resolve(cwd, '.config', `refract${ext}`))
+  const directConfig = CONFIG_EXTENSIONS.map((ext) => resolve(cwd, `ork.config${ext}`))
+  const nestedConfig = CONFIG_EXTENSIONS.map((ext) => resolve(cwd, '.config', `ork${ext}`))
   const candidates = [...directConfig, ...nestedConfig]
 
   for (const candidate of candidates) {
@@ -31,13 +30,13 @@ const findExistingConfigPath = (cwd: string): string | null => {
 }
 
 /**
- * Initialize a new Refract project
+ * Initialize a new Ork project
  */
 export class InitCommand extends BaseCommand {
   async execute(options: InitOptions = {}): Promise<CommandResult> {
     const cwd = process.cwd()
 
-    logger.info('Initializing Refract project...')
+    logger.info('Initializing Ork project...')
 
     // Check if config already exists using direct filesystem detection
     const existingConfigPath = findExistingConfigPath(cwd)
@@ -45,12 +44,12 @@ export class InitCommand extends BaseCommand {
     if (existingConfigPath && !options.force) {
       return {
         success: false,
-        message: `Refract configuration already exists at ${existingConfigPath}. Use --force to overwrite.`,
+        message: `Ork configuration already exists at ${existingConfigPath}. Use --force to overwrite.`,
       }
     }
 
-    // Default to creating refract.config.ts (higher priority location)
-    const configPath = resolve(cwd, 'refract.config.ts')
+    // Default to creating ork.config.ts (higher priority location)
+    const configPath = resolve(cwd, 'ork.config.ts')
 
     // Interactive prompts for configuration with streamlined auto-detection
     let answers
@@ -92,7 +91,7 @@ export class InitCommand extends BaseCommand {
 
     return {
       success: true,
-      message: 'Refract project initialized successfully!',
+      message: 'Ork project initialized successfully!',
     }
   }
 
@@ -186,7 +185,7 @@ export class InitCommand extends BaseCommand {
   private async generateConfigFile(configPath: string, config: { provider: string; url: string }) {
     const configContent = generateConfigContent(config.provider, config.url)
     writeFileSync(configPath, configContent, 'utf8')
-    logger.success('Created Refract configuration')
+    logger.success('Created Ork configuration')
   }
 
   private async generateSchemaFile(cwd: string, config: { provider: string; url: string }) {
@@ -209,9 +208,9 @@ export class InitCommand extends BaseCommand {
     logger.info('\n🎉 Project initialized successfully!')
     logger.info('\nNext steps:')
     if (config.url) {
-      logger.info('1. Review refract.config.ts and update the database connection if needed')
+      logger.info('1. Review ork.config.ts and update the database connection if needed')
     } else {
-      logger.info('1. Set datasource.url in refract.config.ts (or configure a custom dialect in code)')
+      logger.info('1. Set datasource.url in ork.config.ts (or configure a custom dialect in code)')
     }
 
     if (template?.installInstructions) {
@@ -219,15 +218,15 @@ export class InitCommand extends BaseCommand {
     }
 
     if (isViteProject) {
-      logger.info('3. Start your dev server (Refract will auto-generate and migrate): pnpm dev')
+      logger.info('3. Start your dev server (Ork will auto-generate and migrate): pnpm dev')
     } else {
-      logger.info('3. Run your first migration: npx refract migrate dev')
-      logger.info('4. Generate the client: npx refract generate')
+      logger.info('3. Run your first migration: npx ork migrate dev')
+      logger.info('4. Generate the client: npx ork generate')
     }
 
     if (config.provider === 'd1') {
       logger.info('\n💡 For Cloudflare D1:')
-      logger.info('   - Update the d1DatabaseId in refract.config.ts')
+      logger.info('   - Update the d1DatabaseId in ork.config.ts')
       logger.info('   - Use wrangler for local development: wrangler d1 execute')
     }
   }
@@ -236,7 +235,7 @@ export class InitCommand extends BaseCommand {
     const packagePath = resolve(cwd, 'package.json')
 
     if (!existsSync(packagePath)) {
-      logger.info('No package.json found. Install @refract/config for type checking when you add one.')
+      logger.info('No package.json found. Install @ork/config for type checking when you add one.')
       return
     }
 
@@ -246,20 +245,20 @@ export class InitCommand extends BaseCommand {
         devDependencies?: Record<string, string>
       }
 
-      if (packageJson.dependencies?.['@refract/config'] || packageJson.devDependencies?.['@refract/config']) {
+      if (packageJson.dependencies?.['@ork/config'] || packageJson.devDependencies?.['@ork/config']) {
         return
       }
 
       const version = this.getCliVersion()
       packageJson.devDependencies = {
         ...packageJson.devDependencies,
-        '@refract/config': version,
+        '@ork/config': version,
       }
 
       writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8')
-      logger.success('Added @refract/config to devDependencies')
+      logger.success('Added @ork/config to devDependencies')
     } catch (error) {
-      logger.info('Could not update package.json. Install @refract/config for type checking if needed.')
+      logger.info('Could not update package.json. Install @ork/config for type checking if needed.')
       if (process.env.DEBUG) {
         logger.debug(`package.json update failed: ${error instanceof Error ? error.message : String(error)}`)
       }
@@ -289,7 +288,10 @@ export class InitCommand extends BaseCommand {
     return '0.0.1-alpha.1'
   }
 
-  private loadPackageJson(cwd: string): { dependencies?: Record<string, string>; devDependencies?: Record<string, string> } {
+  private loadPackageJson(cwd: string): {
+    dependencies?: Record<string, string>
+    devDependencies?: Record<string, string>
+  } {
     const packagePath = resolve(cwd, 'package.json')
 
     if (!existsSync(packagePath)) {
@@ -310,8 +312,7 @@ export class InitCommand extends BaseCommand {
     packageJson: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> },
     viteConfigPath: string | null,
   ): boolean {
-    const hasViteDependency =
-      Boolean(packageJson.dependencies?.vite) || Boolean(packageJson.devDependencies?.vite)
+    const hasViteDependency = Boolean(packageJson.dependencies?.vite) || Boolean(packageJson.devDependencies?.vite)
     return Boolean(viteConfigPath) || hasViteDependency
   }
 
@@ -336,12 +337,12 @@ export class InitCommand extends BaseCommand {
     const devDeps: string[] = []
     const prodDeps: string[] = []
 
-    if (!this.hasDependency(packageJson, '@refract/cli')) {
-      devDeps.push('@refract/cli')
+    if (!this.hasDependency(packageJson, 'ork')) {
+      devDeps.push('ork')
     }
 
-    if (isViteProject && !this.hasDependency(packageJson, 'unplugin-refract')) {
-      devDeps.push('unplugin-refract')
+    if (isViteProject && !this.hasDependency(packageJson, 'unplugin-ork')) {
+      devDeps.push('unplugin-ork')
     }
 
     const metadata = PROVIDER_METADATA[provider as keyof typeof PROVIDER_METADATA]
@@ -398,21 +399,21 @@ export class InitCommand extends BaseCommand {
 
   private async maybePatchViteConfig(viteConfigPath: string) {
     const currentContent = readFileSync(viteConfigPath, 'utf8')
-    if (currentContent.includes('unplugin-refract') || /refract\s*\(/.test(currentContent)) {
-      logger.info('Vite config already includes unplugin-refract.')
+    if (currentContent.includes('unplugin-ork') || /ork\s*\(/.test(currentContent)) {
+      logger.info('Vite config already includes unplugin-ork.')
       return
     }
 
     const response = await prompts({
       type: 'confirm',
       name: 'patch',
-      message: `Update ${viteConfigPath} to enable unplugin-refract?`,
+      message: `Update ${viteConfigPath} to enable unplugin-ork?`,
       initial: true,
     })
 
     if (!response.patch) {
       logger.info(
-        "Add the plugin manually: import refract from 'unplugin-refract/vite' and add refract({ autoGenerateClient: true, autoMigrate: true }) to your plugins.",
+        "Add the plugin manually: import ork from 'unplugin-ork/vite' and add ork({ autoGenerateClient: true, autoMigrate: true }) to your plugins.",
       )
       return
     }
@@ -420,7 +421,7 @@ export class InitCommand extends BaseCommand {
     const result = patchViteConfig(viteConfigPath)
 
     if (result.updated) {
-      logger.success(`Updated ${viteConfigPath} with unplugin-refract`)
+      logger.success(`Updated ${viteConfigPath} with unplugin-ork`)
       return
     }
 
@@ -437,7 +438,7 @@ export class InitCommand extends BaseCommand {
 export function registerInitCommand(program: any) {
   program
     .command('init')
-    .description('Initialize a new Refract project')
+    .description('Initialize a new Ork project')
     .option('--url <url>', 'Database connection URL (provider will be auto-detected)')
     .option('--provider <provider>', 'Database provider when no URL is provided')
     .option('--force', 'Overwrite existing configuration files')

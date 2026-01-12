@@ -1,13 +1,13 @@
-# Refract Basic Example
+# Ork Basic Example
 
 This example demonstrates the high-level Prisma-like API with generated client code, PostgreSQL, and Testcontainers.
 
 ## Features Demonstrated
 
 - ✅ PostgreSQL setup with Testcontainers
-- ✅ Generated Refract client with typed model operations
+- ✅ Generated Ork client with typed model operations
 - ✅ Schema parsing and client code generation
-- ✅ Programmatic migrations via `RefractMigrate`
+- ✅ Programmatic migrations via `OrkMigrate`
 - ✅ Type-safe CRUD operations (`create`, `findUnique`, `findMany`, `update`, `count`)
 - ✅ Relation loading with `include`
 - ✅ Filtering with `where` clauses (including relation filters: `some`, `every`, `none`, `is`, `isNot`)
@@ -32,7 +32,7 @@ This example demonstrates the high-level Prisma-like API with generated client c
    pnpm generate
    ```
 
-   This runs `refract generate` to create the typed client in `./.refract/` based on your `schema.prisma`.
+   This runs `ork generate` to create the typed client in `./.ork/` based on your `schema.prisma`.
 
 3. Run the demo:
    ```bash
@@ -41,7 +41,7 @@ This example demonstrates the high-level Prisma-like API with generated client c
 
 The demo will:
 1. Start a PostgreSQL container via Testcontainers
-2. Create a Refract client with PostgreSQL dialect
+2. Create a Ork client with PostgreSQL dialect
 3. Parse the schema and generate migrations
 4. Apply migrations to create tables
 5. Perform CRUD operations using the generated client
@@ -60,9 +60,9 @@ The schema includes three models with relations:
 ## Example Usage
 
 ```typescript
-import { RefractClient } from './.refract/index.js'
+import { OrkClient } from './.ork/index.js'
 
-const client = new RefractClient(dialect)
+const client = new OrkClient(dialect)
 await client.$connect()
 
 // Create a user with type safety
@@ -93,17 +93,17 @@ const usersWithPublishedPosts = await client.user.findMany({
 
 ## Client Generation
 
-The `refract generate` command reads `schema.prisma` and generates:
+The `ork generate` command reads `schema.prisma` and generates:
 
-- `.refract/index.ts` - Main client with model delegates
-- `.refract/models.d.ts` - TypeScript type definitions for models
-- `.refract/schema.d.ts` - Database schema types
+- `.ork/index.ts` - Main client with model delegates
+- `.ork/models.d.ts` - TypeScript type definitions for models
+- `.ork/schema.d.ts` - Database schema types
 
 All operations are fully type-safe based on your schema.
 
 ## Next Steps
 
-- Explore the generated client code in `./.refract/`
+- Explore the generated client code in `./.ork/`
 - Modify the schema and regenerate to see type changes
 - Compare with the `kysely` example to see low-level `$kysely` API usage
 - Try filtering, pagination, and complex queries

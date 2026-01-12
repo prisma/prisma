@@ -1,5 +1,5 @@
-import type { RefractConfig } from '@refract/config'
-import { PROVIDER_URL_PATTERNS, SUPPORTED_PROVIDERS, type DatabaseProvider } from '@refract/config'
+import type { OrkConfig } from '@ork/config'
+import { PROVIDER_URL_PATTERNS, SUPPORTED_PROVIDERS, type DatabaseProvider } from '@ork/config'
 
 const SUPPORTED_FORMATS = ['postgresql://', 'mysql://', 'file:', 'd1://']
 
@@ -10,15 +10,10 @@ export function detectProviderFromUrl(url: string): DatabaseProvider {
     }
   }
 
-  throw new Error(
-    `Unable to detect provider from URL: ${url}. Supported formats: ${SUPPORTED_FORMATS.join(', ')}`,
-  )
+  throw new Error(`Unable to detect provider from URL: ${url}. Supported formats: ${SUPPORTED_FORMATS.join(', ')}`)
 }
 
-export function createConfigWithAutoDetection(
-  url: string,
-  additionalOptions: Partial<RefractConfig> = {},
-): RefractConfig {
+export function createConfigWithAutoDetection(url: string, additionalOptions: Partial<OrkConfig> = {}): OrkConfig {
   const detectedProvider = detectProviderFromUrl(url)
   const provider = additionalOptions.datasource?.provider ?? detectedProvider
   const { datasource, generator, schema, ...rest } = additionalOptions
@@ -35,7 +30,10 @@ export function createConfigWithAutoDetection(
   }
 }
 
-export function validateProviderUrlCompatibility(provider: DatabaseProvider, url: string): {
+export function validateProviderUrlCompatibility(
+  provider: DatabaseProvider,
+  url: string,
+): {
   isValid: boolean
   message?: string
 } {

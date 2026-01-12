@@ -264,7 +264,7 @@ describe('parseSchema Input Handling', () => {
       const result = parseSchema([
         `
           generator client {
-            provider = "refract-client"
+            provider = "ork"
             output   = "./generated/client"
           }
         `,
@@ -281,7 +281,7 @@ describe('parseSchema Input Handling', () => {
       expect(result.ast.generators).toHaveLength(1)
       expect(result.ast.datasources).toHaveLength(1)
       expect(result.ast.models).toHaveLength(1)
-      expect(result.ast.generators[0].provider).toBe('refract-client')
+      expect(result.ast.generators[0].provider).toBe('ork')
     })
   })
 })

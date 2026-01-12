@@ -10,7 +10,7 @@ import {
   DialectDetector,
   generators
 } from '../index.js'
-import type { FieldAST } from '@refract/schema-parser'
+import type { FieldAST } from '@ork/schema-parser'
 
 describe('FieldTranslator Integration', () => {
   const mockStringField: FieldAST = {
@@ -58,7 +58,7 @@ describe('FieldTranslator Integration', () => {
       expect(DialectDetector.dialectFromProvider('sqlite')).toBe('sqlite')
     })
 
-    it('should detect from Refract config', () => {
+    it('should detect from Ork config', () => {
       const config = {
         database: {
           provider: 'postgresql',
