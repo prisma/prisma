@@ -1,13 +1,12 @@
 /**
- * Vite Test Fixture - Demonstrates blessed path usage
+ * Vite Test Fixture
  */
 
-// The blessed path - clean .ork/types imports
 import { OrkClient } from '@ork/client'
 
 import type { DatabaseSchema, Post, Profile, Tag, User } from '.ork/types'
 
-console.log('🚀 Vite + Ork Blessed Path Demo')
+console.log('🚀 Vite + Ork Recommended Path Demo')
 
 // Types are automatically available
 const exampleUser: User = {
@@ -24,7 +23,7 @@ const exampleUser: User = {
 const examplePost: Post = {
   id: 1,
   title: 'Hello Ork',
-  content: 'This is a test post using the blessed path!',
+  content: 'This is a test post using the recommended path!',
   published: true,
   publishedAt: new Date(),
   createdAt: new Date(),

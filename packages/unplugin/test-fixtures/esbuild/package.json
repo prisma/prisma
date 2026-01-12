@@ -2,7 +2,7 @@
   "name": "unplugin-ork-esbuild-fixture",
   "private": true,
   "version": "0.1.0",
-  "description": "ESBuild test fixture for unplugin-ork blessed path",
+  "description": "ESBuild test fixture for unplugin-ork",
   "type": "module",
   "scripts": {
     "build": "NODE_ENV=production node build.js",

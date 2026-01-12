@@ -1,7 +1,7 @@
 {
   "name": "unplugin-ork",
   "version": "0.0.1-alpha.1",
-  "description": "The PRIMARY blessed path for Ork development - provides virtual modules for clean .ork/types imports",
+  "description": "Provides virtual modules for .ork imports.",
   "keywords": [
     "ork",
     "unplugin",
@@ -77,7 +77,9 @@
     "vite": "^6.0.7",
     "webpack": "^5.97.1",
     "rollup": "^4.30.1",
-    "esbuild": "^0.24.2"
+    "esbuild": "^0.24.2",
+    "zod": "^3.24.2",
+    "c12": "^3.2.0"
   },
   "peerDependencies": {
     "vite": ">=5.0.0",

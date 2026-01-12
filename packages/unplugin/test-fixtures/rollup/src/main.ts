@@ -1,11 +1,10 @@
 /**
- * Rollup Test Fixture - Demonstrates blessed path usage
+ * Rollup Test Fixture
  */
 
-// The blessed path - clean .ork/types imports
 import type { DatabaseSchema, Post, Profile, Tag, User } from '.ork/types'
 
-console.log('🗞️ Rollup + Ork Blessed Path Demo')
+console.log('🗞️ Rollup + Ork Recommended Path Demo')
 
 // Test complex nested types
 const complexUser: User = {

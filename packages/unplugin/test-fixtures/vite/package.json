@@ -2,7 +2,7 @@
   "name": "unplugin-ork-vite-fixture",
   "private": true,
   "version": "0.1.0",
-  "description": "Vite test fixture for unplugin-ork blessed path",
+  "description": "Vite test fixture for unplugin-ork",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

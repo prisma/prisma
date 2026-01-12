@@ -2,7 +2,7 @@
   "name": "unplugin-ork-rollup-fixture",
   "private": true,
   "version": "0.1.0",
-  "description": "Rollup test fixture for unplugin-ork blessed path",
+  "description": "Rollup test fixture for unplugin-ork",
   "type": "module",
   "scripts": {
     "build": "NODE_ENV=production rollup -c",

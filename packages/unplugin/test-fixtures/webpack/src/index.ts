@@ -1,11 +1,10 @@
 /**
- * Webpack Test Fixture - Demonstrates blessed path usage
+ * Webpack Test Fixture
  */
 
-// The blessed path - clean .ork/types imports
 import type { DatabaseSchema, Post, Profile, Tag, User } from '.ork/types'
 
-console.log('📦 Webpack + Ork Blessed Path Demo')
+console.log('📦 Webpack + Ork Recommended Path Demo')
 
 // Create typed data
 const sampleUser: User = {

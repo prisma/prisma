@@ -2,7 +2,7 @@
   "name": "unplugin-ork-webpack-fixture",
   "private": true,
   "version": "0.1.0",
-  "description": "Webpack test fixture for unplugin-ork blessed path",
+  "description": "Webpack test fixture for unplugin-ork",
   "scripts": {
     "build": "webpack --mode=production",
     "dev": "webpack --mode=development --watch",

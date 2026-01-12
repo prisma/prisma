@@ -1,5 +1,5 @@
 /**
- * unplugin-ork - The PRIMARY blessed path for Ork development
+ * unplugin-ork - The recommended path for Ork development
  *
  * Provides virtual modules for clean .ork/types imports that work
  * like Next.js and React Router 7 patterns.

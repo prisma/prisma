@@ -1,11 +1,10 @@
 /**
- * ESBuild Test Fixture - Demonstrates blessed path usage with ultra-fast builds
+ * ESBuild Test Fixture
  */
 
-// The blessed path - clean .ork/types imports
 import type { DatabaseSchema, Post, Profile, Tag, User } from '.ork/types'
 
-console.log('⚡ ESBuild + Ork Blessed Path Demo')
+console.log('⚡ ESBuild + Ork Recommended Path Demo')
 
 // Test performance-focused usage patterns
 const performanceUser: User = {

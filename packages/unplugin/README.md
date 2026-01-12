@@ -1,16 +1,13 @@
 # unplugin-ork
 
-> The **PRIMARY blessed path** for Ork development
-
-Provides virtual modules for clean `.ork/types` imports that work like Next.js and React Router 7 patterns. This is the **recommended way** to use Ork.
+Provides virtual modules for clean `.ork` imports. This is the recommended way to use Ork.
 
 ## Features
 
-✨ **Virtual Modules**: Clean `.ork/types` imports without physical files  
-🔥 **Hot Module Replacement**: Instant type updates during development  
-🏗️ **Universal Support**: Works with Vite, Webpack, Rollup, and esbuild  
-⚡ **Zero Config**: Works out of the box with sensible defaults  
-🎯 **TypeScript Native**: Perfect type inference and IntelliSense
+- Clean `.ork` imports via virtual modules.
+- Instant type updates and HMR during development.
+- Works with Vite, Webpack, Rollup, and esbuild
+- Works out of the box with sensible defaults
 
 ## Installation
 
@@ -88,7 +85,6 @@ build({
 Once the plugin is configured, you can use clean imports in your application:
 
 ```typescript
-// The blessed path - just works!
 import { OrkClient } from '@ork/client'
 import { PostgresDialect } from 'kysely'
 
@@ -103,11 +99,11 @@ const user = await client.user.findUnique({
 
 ## How It Works
 
-1. **Schema Watching**: Monitors your `schema.prisma` file for changes
-2. **Type Generation**: Parses schema and generates TypeScript interfaces
-3. **Virtual Modules**: Creates virtual `.ork/types` module during build
-4. **Module Augmentation**: Automatically augments OrkClient with your types
-5. **HMR Integration**: Provides instant updates during development
+1. Monitors your `schema.prisma` file for changes via watch.
+2. Parses your schema and generates TypeScript interfaces.
+3. Creates virtual `.ork/types` module during build.
+4. Automatically augments OrkClient with your types.
+5. Provides instant updates during development via HMR.
 
 ## Options
 
@@ -155,40 +151,7 @@ interface OrkPluginOptions {
 }
 ```
 
-## Manual Fallback Workflow
-
-> **Note**: The plugin above is the **recommended blessed path**. Manual workflows are supported but not the primary experience.
-
-If you prefer not to use the plugin, you can still use Ork manually:
-
-### 1. Generate Types Manually
-
-```bash
-# Standard Ork CLI commands work independently
-npx ork generate
-npx ork migrate dev
-```
-
-### 2. Import from Generated Files
-
-```typescript
-// Manual imports from generated files (not recommended)
-import type { DatabaseSchema } from './.ork/types'
-import { OrkClient } from '@ork/client'
-
-const client = new OrkClient<DatabaseSchema>(dialect)
-```
-
-### 3. Manual Type Management
-
-You'll need to:
-
-- Manually regenerate types after schema changes
-- Manage file watching yourself
-- Handle TypeScript compilation manually
-- Set up your own build integration
-
-### Migration from Manual to Plugin
+## Migrate an Ork project to use `unplugin-ork`
 
 **Step 1**: Install the plugin
 
@@ -198,17 +161,7 @@ npm install unplugin-ork
 
 **Step 2**: Add to your bundler config (see examples above)
 
-**Step 3**: Update imports
-
-```typescript
-// Before (manual)
-import type { User } from './prisma/generated/types'
-
-// After (blessed path)
-import type { User } from '.ork/types'
-```
-
-**Step 4**: Remove manual generation scripts
+**Step 3**: Remove manual generation scripts
 
 - Remove custom file watchers
 - Remove manual `ork generate` calls from build scripts
@@ -216,14 +169,14 @@ import type { User } from '.ork/types'
 
 ### Why the Plugin is Recommended
 
-| Feature           | Manual Workflow          | Plugin (Blessed Path)    |
+| Feature           | Manual Workflow          | Plugin                   |
 | ----------------- | ------------------------ | ------------------------ |
 | Setup complexity  | High - many manual steps | Low - single config line |
 | Type updates      | Manual regeneration      | Automatic with HMR       |
 | Error handling    | Basic CLI output         | Rich contextual errors   |
 | Build integration | Custom setup required    | Built-in optimization    |
 | Performance       | No caching               | Production caching       |
-| Import style      | Verbose paths            | Clean `.ork/types`   |
+| Import style      | Verbose paths            | Clean `.ork/types`       |
 | Development UX    | Basic                    | Next.js-like experience  |
 
 ## License
