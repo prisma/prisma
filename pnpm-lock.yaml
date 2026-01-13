@@ -222,8 +222,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       better-sqlite3:
-        specifier: 12.4.1
-        version: 12.4.1
+        specifier: ^12.6.0
+        version: 12.6.0
     devDependencies:
       '@types/better-sqlite3':
         specifier: 7.6.12
@@ -4536,9 +4536,9 @@ packages:
   better-sqlite3@11.10.0:
     resolution: {integrity: sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ==}
 
-  better-sqlite3@12.4.1:
-    resolution: {integrity: sha512-3yVdyZhklTiNrtg+4WqHpJpFDd+WHTg2oM7UcR80GqL05AOV0xEJzc6qNvFYoEtE+hRp1n9MpN6/+4yhlGkDXQ==}
-    engines: {node: 20.x || 22.x || 23.x || 24.x}
+  better-sqlite3@12.6.0:
+    resolution: {integrity: sha512-FXI191x+D6UPWSze5IzZjhz+i9MK9nsuHsmTX9bXVl52k06AfZ2xql0lrgIUuzsMsJ7Vgl5kIptvDgBLIV3ZSQ==}
+    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
 
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
@@ -11264,7 +11264,7 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
 
-  better-sqlite3@12.4.1:
+  better-sqlite3@12.6.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.3
