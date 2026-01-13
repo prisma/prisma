@@ -5,17 +5,13 @@ import { PrismaMariaDbAdapterFactory } from './mariadb'
 describe('credential sanitization', () => {
   test('connection string parse error should not expose password', async () => {
     const secretPassword = 'super_secret_password_12345'
-    // IPv6 address in brackets - causes parse error in mariadb driver
-    const connectionString = `mariadb://user:${secretPassword}@[64:ff9b::23be:d64c]/db`
+    // A connection string with a port but no host, which the mariadb driver rejects while
+    // echoing the whole string, including the password, back in its error message.
+    const connectionString = `mariadb://user:${secretPassword}@:3306/db`
 
     const factory = new PrismaMariaDbAdapterFactory(connectionString)
 
-    try {
-      await factory.connect()
-      expect.fail('Expected connection to fail')
-    } catch (error) {
-      const errorMessage = String(error)
-      expect(errorMessage).not.toContain(secretPassword)
-    }
+    await expect(factory.connect()).rejects.toThrow()
+    await expect(factory.connect()).rejects.not.toThrow(secretPassword)
   })
 })

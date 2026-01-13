@@ -306,13 +306,24 @@ export function inferCapabilities(version: unknown): Capabilities {
 }
 
 /**
- * Rewrites mysql:// connection strings to mariadb:// format.
- * This allows users to use mysql:// connection strings with the MariaDB adapter.
+ * Rewrites a connection string into the form the mariadb driver's own parser accepts:
+ *
+ * - `mysql://` is rewritten to `mariadb://`, so that users can point the MariaDB adapter
+ *   at a `mysql://` connection string.
+ * - The colons of a bracketed IPv6 host are percent-encoded. The driver's connection
+ *   string grammar forbids colons in the host, so `[::1]` never matches and the whole
+ *   string is rejected; it does run the host through `decodeURIComponent`, so an encoded
+ *   host round-trips to the correct address.
  */
 export function rewriteConnectionString(url: URL): URL {
   if (url.protocol === 'mysql:') {
     url.protocol = 'mariadb:'
   }
+
+  if (url.hostname.startsWith('[') && url.hostname.endsWith(']')) {
+    url.hostname = encodeURIComponent(url.hostname.slice(1, -1))
+  }
+
   return url
 }
 
