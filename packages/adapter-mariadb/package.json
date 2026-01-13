@@ -25,7 +25,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "vitest run"
+    "test": "dotenv -e ../../.db.env -- vitest run"
   },
   "files": [
     "dist",
