@@ -56,6 +56,7 @@ export interface GenerateClientOptions {
   clientVersion: string
   activeProvider: ActiveConnectorType
   typedSql?: SqlQueryOutput[]
+  compilerBuild: 'fast' | 'small'
 }
 
 export interface FileMap {
@@ -82,6 +83,7 @@ export async function buildClient({
   clientVersion,
   activeProvider,
   typedSql,
+  compilerBuild,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   const baseClientOptions: Omit<TSClientOptions, 'runtimeName'> = {
     dmmf: getPrismaClientDMMF(dmmf),
@@ -96,6 +98,7 @@ export async function buildClient({
     engineVersion,
     activeProvider,
     datamodel,
+    compilerBuild,
     browser: false,
     edge: false,
     wasm: false,
@@ -185,8 +188,10 @@ export async function buildClient({
   // In short: A lot can be simplified, but can only happen in GA & P6.
   fileMap['default.js'] = JS(trampolineTsClient)
   fileMap['default.d.ts'] = TS(trampolineTsClient)
-  fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
-  fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
+
+  const qcArtifactName = `query_compiler_${compilerBuild}_bg`
+  fileMap['wasm-worker-loader.mjs'] = `export default import('./${qcArtifactName}.wasm')`
+  fileMap['wasm-edge-light-loader.mjs'] = `export default import('./${qcArtifactName}.wasm?module')`
 
   pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
   pkgJson['imports'] = {
@@ -311,6 +316,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     typedSql,
+    compilerBuild,
   } = options
 
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
@@ -330,6 +336,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     testMode,
     typedSql,
+    compilerBuild,
   })
 
   const provider = datasources[0].provider
@@ -373,7 +380,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (isWasmEngineSupported(provider)) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
-    const filename = 'query_compiler_bg'
+    const filename = `query_compiler_${compilerBuild}_bg`
 
     // Despite the `!testMode` condition above, we can't assume we are
     // necessarily inside the bundled Prisma CLI because the `prisma-client-js`

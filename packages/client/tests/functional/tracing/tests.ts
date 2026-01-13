@@ -643,11 +643,7 @@ testMatrix.setupTestSuite(
         // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
-          operation(undefined, 'queryRaw', [
-            ...clientCompile('queryRaw'),
-            clientSerialize(),
-            ...engine([dbQuery('SELECT 1 + 1;')]),
-          ]),
+          operation(undefined, 'queryRaw', [clientSerialize(), ...engine([dbQuery('SELECT 1 + 1;')])]),
         )
       })
 
@@ -661,11 +657,7 @@ testMatrix.setupTestSuite(
         await prisma.$executeRaw`SELECT 1 + 1;`
 
         await waitForSpanTree(
-          operation(undefined, 'executeRaw', [
-            ...clientCompile('executeRaw'),
-            clientSerialize(),
-            ...engine([dbQuery('SELECT 1 + 1;')]),
-          ]),
+          operation(undefined, 'executeRaw', [clientSerialize(), ...engine([dbQuery('SELECT 1 + 1;')])]),
         )
       })
     })
