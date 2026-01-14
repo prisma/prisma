@@ -28,6 +28,7 @@ function field(name: string, inputTypes: DMMF.InputTypeRef[]): DMMF.SchemaArg {
     isRequired: false,
     isNullable: false,
     inputTypes,
+    isParameterizable: false,
   }
 }
 
