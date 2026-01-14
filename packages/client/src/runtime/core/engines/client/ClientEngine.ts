@@ -33,6 +33,8 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
+import { parameterizeBatch, parameterizeQuery } from './parameterize'
+import { QueryPlanCache } from './QueryPlanCache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
@@ -98,6 +100,8 @@ export class ClientEngine implements Engine {
   #state: EngineState = { type: 'disconnected' }
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
+  #queryPlanCache: QueryPlanCache
+  #queryPlanCacheEnabled: boolean
 
   config: EngineConfig
   datamodel: string
@@ -135,6 +139,8 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
+    this.#queryPlanCache = new QueryPlanCache()
+    this.#queryPlanCacheEnabled = true
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -451,13 +457,39 @@ export class ClientEngine implements Engine {
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, JSON.stringify(query))
     })
-    const plan = this.#compileQuery(query, queryCompiler)
+
+    let plan: QueryPlanNode
+    let placeholderValues: Record<string, unknown> = {}
+
+    if (isRawQuery(query)) {
+      plan = compileRawQuery(query)
+    } else if (this.#queryPlanCacheEnabled) {
+      try {
+        const { parameterizedQuery, placeholderValues: extractedValues, placeholderPaths } = parameterizeQuery(query)
+        const cacheKey = JSON.stringify(parameterizedQuery)
+        placeholderValues = extractedValues
+
+        const cached = this.#queryPlanCache.getSingle(cacheKey)
+        if (cached) {
+          debug('query plan cache hit')
+          plan = cached.plan
+        } else {
+          debug('query plan cache miss')
+          plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
+          this.#queryPlanCache.setSingle(cacheKey, { plan, placeholderPaths })
+        }
+      } catch (error) {
+        throw new PrismaClientUnknownRequestError(String(error), {
+          clientVersion: this.config.clientVersion,
+        })
+      }
+    } else {
+      plan = this.#compileQuery(query, JSON.stringify(query), queryCompiler)
+    }
 
     try {
       debug(`query plan created`, plan)
 
-      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
-      const placeholderValues = {}
       const result = await executor.execute({
         plan,
         model: query.modelName,
@@ -493,13 +525,51 @@ export class ClientEngine implements Engine {
     const firstAction = queries[0].action
     const firstModelName = queries[0].modelName
 
-    const request = getBatchRequestPayload(queries, transaction)
+    const batchPayload = getBatchRequestPayload(queries, transaction)
+    const request = JSON.stringify(batchPayload)
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, JSON.stringify(request))
+      throw this.#transformRequestError(err, request)
     })
 
-    const batchResponse = this.#compileBatch(request, queryCompiler)
+    const hasRawQueries = firstModelName === undefined
+    let batchResponse: BatchResponse
+    let placeholderValues: Record<string, unknown> = {}
+
+    if (this.#queryPlanCacheEnabled && !hasRawQueries) {
+      try {
+        const {
+          parameterizedBatch,
+          placeholderValues: extractedValues,
+          placeholderPaths,
+        } = parameterizeBatch(batchPayload as JsonBatchQuery)
+        const cacheKeyStr = JSON.stringify(parameterizedBatch)
+        placeholderValues = extractedValues
+
+        const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
+        if (cached) {
+          debug('batch query plan cache hit')
+          batchResponse = cached.response
+        } else {
+          debug('batch query plan cache miss')
+          try {
+            batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
+            this.#queryPlanCache.setBatch(cacheKeyStr, {
+              response: batchResponse,
+              placeholderPaths,
+            })
+          } catch (error) {
+            throw this.#transformCompileError(error)
+          }
+        }
+      } catch (error) {
+        throw new PrismaClientUnknownRequestError(String(error), {
+          clientVersion: this.config.clientVersion,
+        })
+      }
+    } else {
+      batchResponse = this.#compileBatch(queries, request, queryCompiler)
+    }
 
     try {
       let txInfo: InteractiveTransactionInfo | undefined
@@ -507,9 +577,6 @@ export class ClientEngine implements Engine {
         // If we are already in an interactive transaction we do not nest transactions
         txInfo = transaction.options
       }
-
-      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
-      const placeholderValues = {}
 
       switch (batchResponse.type) {
         case 'multi': {
@@ -592,7 +659,7 @@ export class ClientEngine implements Engine {
         }
       }
     } catch (e: any) {
-      throw this.#transformRequestError(e, JSON.stringify(request))
+      throw this.#transformRequestError(e, request)
     }
   }
 
@@ -604,16 +671,12 @@ export class ClientEngine implements Engine {
     return executor.apiKey()
   }
 
-  #compileQuery(query: JsonQuery, compiler: QueryCompiler): QueryPlanNode {
-    if (isRawQuery(query)) {
-      return compileRawQuery(query)
-    }
-
+  #compileQuery(query: JsonQuery, request: string, compiler: QueryCompiler): QueryPlanNode {
     try {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
           queries: [query],
-          execute: () => compiler.compile(JSON.stringify(query)) as QueryPlanNode,
+          execute: () => compiler.compile(request) as QueryPlanNode,
         }),
       )
     } catch (error) {
@@ -621,20 +684,19 @@ export class ClientEngine implements Engine {
     }
   }
 
-  #compileBatch(request: JsonBatchQuery, compiler: QueryCompiler): BatchResponse {
-    const allRaw = request.batch.filter(isRawQuery)
-    if (allRaw.length === request.batch.length) {
+  #compileBatch(queries: JsonQuery[], request: string, compiler: QueryCompiler): BatchResponse {
+    if (queries.every(isRawQuery)) {
       return {
         type: 'multi',
-        plans: allRaw.map((q) => compileRawQuery(q)),
+        plans: queries.map((q) => compileRawQuery(q)),
       }
     }
 
     try {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
-          queries: request.batch,
-          execute: () => compiler.compileBatch(JSON.stringify(request)),
+          queries,
+          execute: () => compiler.compileBatch(request),
         }),
       )
     } catch (err) {
