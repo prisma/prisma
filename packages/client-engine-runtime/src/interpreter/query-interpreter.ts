@@ -20,14 +20,26 @@ import { doesSatisfyRule, performValidation } from './validation'
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
 export type QueryInterpreterOptions = {
-  transactionManager: QueryInterpreterTransactionManager
-  placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
   tracingHelper: TracingHelper
   serializer: (results: SqlResultSet) => Value
   rawSerializer?: (results: SqlResultSet) => Value
   provider?: SchemaProvider
   connectionInfo?: ConnectionInfo
+}
+
+export type QueryRuntimeOptions = {
+  queryable: SqlQueryable
+  transactionManager: QueryInterpreterTransactionManager
+  scope: Record<string, unknown>
+  sqlCommenter?: QueryInterpreterSqlCommenter
+}
+
+type QueryRuntimeContext = {
+  queryable: SqlQueryable
+  transactionManager: QueryInterpreterTransactionManager
+  scope: Record<string, unknown>
+  generators: GeneratorRegistrySnapshot
   sqlCommenter?: QueryInterpreterSqlCommenter
 }
 
@@ -37,8 +49,6 @@ export type QueryInterpreterSqlCommenter = {
 }
 
 export class QueryInterpreter {
-  readonly #transactionManager: QueryInterpreterTransactionManager
-  readonly #placeholderValues: Record<string, unknown>
   readonly #onQuery?: (event: QueryEvent) => void
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
   readonly #tracingHelper: TracingHelper
@@ -46,98 +56,80 @@ export class QueryInterpreter {
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
   readonly #connectionInfo?: ConnectionInfo
-  readonly #sqlCommenter?: QueryInterpreterSqlCommenter
 
   constructor({
-    transactionManager,
-    placeholderValues,
     onQuery,
     tracingHelper,
     serializer,
     rawSerializer,
     provider,
     connectionInfo,
-    sqlCommenter,
   }: QueryInterpreterOptions) {
-    this.#transactionManager = transactionManager
-    this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
     this.#tracingHelper = tracingHelper
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
     this.#connectionInfo = connectionInfo
-    this.#sqlCommenter = sqlCommenter
   }
 
   static forSql(options: {
-    transactionManager: QueryInterpreterTransactionManager
-    placeholderValues: Record<string, unknown>
     onQuery?: (event: QueryEvent) => void
     tracingHelper: TracingHelper
     provider?: SchemaProvider
     connectionInfo?: ConnectionInfo
-    sqlCommenter?: QueryInterpreterSqlCommenter
   }): QueryInterpreter {
     return new QueryInterpreter({
-      transactionManager: options.transactionManager,
-      placeholderValues: options.placeholderValues,
       onQuery: options.onQuery,
       tracingHelper: options.tracingHelper,
       serializer: serializeSql,
       rawSerializer: serializeRawSql,
       provider: options.provider,
       connectionInfo: options.connectionInfo,
-      sqlCommenter: options.sqlCommenter,
     })
   }
 
-  async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
-    const { value } = await this.interpretNode(
-      queryPlan,
-      queryable,
-      this.#placeholderValues,
-      this.#generators.snapshot(),
-    ).catch((e) => rethrowAsUserFacing(e))
+  async run(queryPlan: QueryPlanNode, options: QueryRuntimeOptions): Promise<unknown> {
+    const { value } = await this.interpretNode(queryPlan, {
+      ...options,
+      generators: this.#generators.snapshot(),
+    }).catch((e) => rethrowAsUserFacing(e))
 
     return value
   }
 
-  private async interpretNode(
-    node: QueryPlanNode,
-    queryable: SqlQueryable,
-    scope: ScopeBindings,
-    generators: GeneratorRegistrySnapshot,
-  ): Promise<IntermediateValue> {
+  private async interpretNode(node: QueryPlanNode, context: QueryRuntimeContext): Promise<IntermediateValue> {
     switch (node.type) {
       case 'value': {
-        return { value: evaluateArg(node.args, scope, generators) }
+        return {
+          value: evaluateArg(node.args, context.scope, context.generators),
+        }
       }
 
       case 'seq': {
         let result: IntermediateValue | undefined
         for (const arg of node.args) {
-          result = await this.interpretNode(arg, queryable, scope, generators)
+          result = await this.interpretNode(arg, context)
         }
         return result ?? { value: undefined }
       }
 
       case 'get': {
-        return { value: scope[node.args.name] }
+        return { value: context.scope[node.args.name] }
       }
 
       case 'let': {
-        const nestedScope: ScopeBindings = Object.create(scope)
+        const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(binding.expr, queryable, nestedScope, generators)
+          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
           nestedScope[binding.name] = value
         }
-        return this.interpretNode(node.args.expr, queryable, nestedScope, generators)
+        return this.interpretNode(node.args.expr, { ...context, scope: nestedScope })
       }
 
       case 'getFirstNonEmpty': {
         for (const name of node.args.names) {
-          const value = scope[name]
+          const value = context.scope[name]
           if (!isEmpty(value)) {
             return { value }
           }
@@ -147,7 +139,7 @@ export class QueryInterpreter {
 
       case 'concat': {
         const parts = await Promise.all(
-          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+          node.args.map((arg) => this.interpretNode(arg, context).then((res) => res.value)),
         )
         return {
           value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
@@ -156,7 +148,7 @@ export class QueryInterpreter {
 
       case 'sum': {
         const parts = await Promise.all(
-          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+          node.args.map((arg) => this.interpretNode(arg, context).then((res) => res.value)),
         )
         return {
           value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
@@ -164,13 +156,13 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
         let sum = 0
         for (const query of queries) {
-          const commentedQuery = this.#applyComments(query)
-          sum += await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
-            queryable
+          const commentedQuery = applyComments(query, context.sqlCommenter)
+          sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+            context.queryable
               .executeRaw(commentedQuery)
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
@@ -182,13 +174,13 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const commentedQuery = this.#applyComments(query)
-          const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
-            queryable
+          const commentedQuery = applyComments(query, context.sqlCommenter)
+          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+            context.queryable
               .queryRaw(commentedQuery)
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
@@ -209,12 +201,12 @@ export class QueryInterpreter {
       }
 
       case 'reverse': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, context)
         return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
       }
 
       case 'unique': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, context)
         if (!Array.isArray(value)) {
           return { value, lastInsertId }
         }
@@ -225,7 +217,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, context)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -233,12 +225,12 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.records, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.records, context)
         return { value: mapField(value, node.args.field), lastInsertId }
       }
 
       case 'join': {
-        const { value: parent, lastInsertId } = await this.interpretNode(node.args.parent, queryable, scope, generators)
+        const { value: parent, lastInsertId } = await this.interpretNode(node.args.parent, context)
 
         if (parent === null) {
           return { value: null, lastInsertId }
@@ -247,7 +239,7 @@ export class QueryInterpreter {
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, queryable, scope, generators)).value,
+            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
           })),
         )) satisfies JoinExpressionWithRecords[]
 
@@ -255,15 +247,15 @@ export class QueryInterpreter {
       }
 
       case 'transaction': {
-        if (!this.#transactionManager.enabled) {
-          return this.interpretNode(node.args, queryable, scope, generators)
+        if (!context.transactionManager.enabled) {
+          return this.interpretNode(node.args, context)
         }
 
-        const transactionManager = this.#transactionManager.manager
+        const transactionManager = context.transactionManager.manager
         const transactionInfo = await transactionManager.startInternalTransaction()
         const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
         try {
-          const value = await this.interpretNode(node.args, transaction, scope, generators)
+          const value = await this.interpretNode(node.args, { ...context, queryable: transaction })
           await transactionManager.commitTransaction(transactionInfo.id)
           return value
         } catch (e) {
@@ -273,23 +265,23 @@ export class QueryInterpreter {
       }
 
       case 'dataMap': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
         return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
       }
 
       case 'validate': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
         performValidation(value, node.args.rules, node.args)
 
         return { value, lastInsertId }
       }
 
       case 'if': {
-        const { value } = await this.interpretNode(node.args.value, queryable, scope, generators)
+        const { value } = await this.interpretNode(node.args.value, context)
         if (doesSatisfyRule(value, node.args.rule)) {
-          return await this.interpretNode(node.args.then, queryable, scope, generators)
+          return await this.interpretNode(node.args.then, context)
         } else {
-          return await this.interpretNode(node.args.else, queryable, scope, generators)
+          return await this.interpretNode(node.args.else, context)
         }
       }
 
@@ -298,8 +290,8 @@ export class QueryInterpreter {
       }
 
       case 'diff': {
-        const { value: from } = await this.interpretNode(node.args.from, queryable, scope, generators)
-        const { value: to } = await this.interpretNode(node.args.to, queryable, scope, generators)
+        const { value: from } = await this.interpretNode(node.args.from, context)
+        const { value: to } = await this.interpretNode(node.args.to, context)
 
         const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node.args.fields) : null)
 
@@ -308,26 +300,26 @@ export class QueryInterpreter {
       }
 
       case 'process': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
         return { value: processRecords(value, node.args.operations), lastInsertId }
       }
 
       case 'initializeRecord': {
-        const { lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { lastInsertId } = await this.interpretNode(node.args.expr, context)
 
         const record = {}
         for (const [key, initializer] of Object.entries(node.args.fields)) {
-          record[key] = evalFieldInitializer(initializer, lastInsertId, scope, generators)
+          record[key] = evalFieldInitializer(initializer, lastInsertId, context.scope, context.generators)
         }
         return { value: record, lastInsertId }
       }
 
       case 'mapRecord': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
 
         const record = value === null ? {} : asRecord(value)
         for (const [key, entry] of Object.entries(node.args.fields)) {
-          record[key] = evalFieldOperation(entry, record[key], scope, generators)
+          record[key] = evalFieldOperation(entry, record[key], context.scope, context.generators)
         }
         return { value: record, lastInsertId }
       }
@@ -375,26 +367,6 @@ export class QueryInterpreter {
       tracingHelper: this.#tracingHelper,
       onQuery: this.#onQuery,
     })
-  }
-
-  #applyComments(query: SqlQuery): SqlQuery {
-    if (!this.#sqlCommenter || this.#sqlCommenter.plugins.length === 0) {
-      return query
-    }
-
-    const comment = buildSqlComment(this.#sqlCommenter.plugins, {
-      query: this.#sqlCommenter.queryInfo,
-      sql: query.sql,
-    })
-
-    if (!comment) {
-      return query
-    }
-
-    return {
-      ...query,
-      sql: appendSqlComment(query.sql, comment),
-    }
   }
 }
 
@@ -532,5 +504,25 @@ function evalFieldOperation(
     }
     default:
       assertNever(op, `Unexpected field operation type: ${op['type']}`)
+  }
+}
+
+function applyComments(query: SqlQuery, sqlCommenter?: QueryInterpreterSqlCommenter): SqlQuery {
+  if (!sqlCommenter || sqlCommenter.plugins.length === 0) {
+    return query
+  }
+
+  const comment = buildSqlComment(sqlCommenter.plugins, {
+    query: sqlCommenter.queryInfo,
+    sql: query.sql,
+  })
+
+  if (!comment) {
+    return query
+  }
+
+  return {
+    ...query,
+    sql: appendSqlComment(query.sql, comment),
   }
 }
