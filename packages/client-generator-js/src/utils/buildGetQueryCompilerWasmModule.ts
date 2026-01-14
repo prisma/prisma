@@ -7,17 +7,20 @@ import { TSClientOptions } from '../TSClient/TSClient'
 export function buildQueryCompilerWasmModule(
   forceEdgeWasmLoader: boolean,
   runtimeName: TSClientOptions['runtimeName'],
+  compilerBuild: TSClientOptions['compilerBuild'],
 ) {
+  const artifactName = `query_compiler_${compilerBuild}_bg`
   if (runtimeName === 'client' && !forceEdgeWasmLoader) {
     return `config.compilerWasm = {
-      getRuntime: async () => require('./query_compiler_bg.js'),
+      getRuntime: async () => require('./${artifactName}.js'),
       getQueryCompilerWasmModule: async () => {
         const { Buffer } = require('node:buffer')
-        const { wasm } = require('./query_compiler_bg.wasm-base64.js')
+        const { wasm } = require('./${artifactName}.wasm-base64.js')
         const queryCompilerWasmFileBytes = Buffer.from(wasm, 'base64')
 
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
-      }
+      },
+      importName: './${artifactName}.js',
     }`
   }
 
@@ -31,12 +34,13 @@ export function buildQueryCompilerWasmModule(
   // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
   if ((runtimeName === 'client' && forceEdgeWasmLoader) || runtimeName === 'wasm-compiler-edge') {
     return `config.compilerWasm = {
-  getRuntime: async () => require('./query_compiler_bg.js'),
+  getRuntime: async () => require('./${artifactName}.js'),
   getQueryCompilerWasmModule: async () => {
     const loader = (await import('#wasm-compiler-loader')).default
     const compiler = (await loader).default
     return compiler
-  }
+  },
+  importName: './${artifactName}.js',
 }`
   }
 

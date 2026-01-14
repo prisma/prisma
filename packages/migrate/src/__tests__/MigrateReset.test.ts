@@ -11,7 +11,7 @@ describe('prisma.config.ts', () => {
 
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma migrate reset."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma migrate reset."`,
     )
   })
 })
@@ -61,8 +61,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
 
@@ -83,8 +82,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -105,8 +103,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from config/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       Database reset successful
 
@@ -122,8 +119,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -144,8 +140,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -168,8 +163,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -186,8 +180,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Reset cancelled.
@@ -217,8 +210,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
