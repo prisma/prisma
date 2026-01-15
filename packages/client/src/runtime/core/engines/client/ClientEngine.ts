@@ -33,7 +33,8 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { parameterizeBatch, parameterizeQuery } from './parameterize'
+import { createParamGraphView, ParamGraphView } from './parameterization/param-graph-view'
+import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
 import { QueryPlanCache } from './QueryPlanCache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -102,6 +103,7 @@ export class ClientEngine implements Engine {
   #executorKind: ExecutorKind
   #queryPlanCache: QueryPlanCache
   #queryPlanCacheEnabled: boolean
+  #paramGraphView: ParamGraphView
 
   config: EngineConfig
   datamodel: string
@@ -141,6 +143,7 @@ export class ClientEngine implements Engine {
     this.tracingHelper = config.tracingHelper
     this.#queryPlanCache = new QueryPlanCache()
     this.#queryPlanCacheEnabled = true
+    this.#paramGraphView = createParamGraphView(config.parameterizationSchema, config.runtimeDataModel)
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -465,27 +468,18 @@ export class ClientEngine implements Engine {
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
     } else if (this.#queryPlanCacheEnabled) {
-      try {
-        const { parameterizedQuery, placeholderValues: extractedValues, placeholderPaths } = parameterizeQuery(query)
-        const cacheKey = JSON.stringify(parameterizedQuery)
-        placeholderValues = extractedValues
+      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraphView)
+      const cacheKey = JSON.stringify(parameterizedQuery)
+      placeholderValues = extractedValues
 
-        const cached = this.#queryPlanCache.getSingle(cacheKey)
-        if (cached) {
-          debug('query plan cache hit')
-          plan = cached.plan
-        } else {
-          debug('query plan cache miss')
-          plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
-          this.#queryPlanCache.setSingle(cacheKey, { plan, placeholderPaths })
-        }
-      } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError) {
-          throw error
-        }
-        throw new PrismaClientUnknownRequestError(String(error), {
-          clientVersion: this.config.clientVersion,
-        })
+      const cached = this.#queryPlanCache.getSingle(cacheKey)
+      if (cached) {
+        debug('query plan cache hit')
+        plan = cached
+      } else {
+        debug('query plan cache miss')
+        plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
+        this.#queryPlanCache.setSingle(cacheKey, plan)
       }
     } else {
       plan = this.#compileQuery(query, JSON.stringify(query), queryCompiler)
@@ -541,38 +535,25 @@ export class ClientEngine implements Engine {
     let placeholderValues: Record<string, unknown> = {}
 
     if (this.#queryPlanCacheEnabled && !hasRawQueries) {
-      try {
-        const {
-          parameterizedBatch,
-          placeholderValues: extractedValues,
-          placeholderPaths,
-        } = parameterizeBatch(batchPayload as JsonBatchQuery)
-        const cacheKeyStr = JSON.stringify(parameterizedBatch)
-        placeholderValues = extractedValues
+      const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
+        batchPayload as JsonBatchQuery,
+        this.#paramGraphView,
+      )
+      const cacheKeyStr = JSON.stringify(parameterizedBatch)
+      placeholderValues = extractedValues
 
-        const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
-        if (cached) {
-          debug('batch query plan cache hit')
-          batchResponse = cached.response
-        } else {
-          debug('batch query plan cache miss')
-          try {
-            batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
-            this.#queryPlanCache.setBatch(cacheKeyStr, {
-              response: batchResponse,
-              placeholderPaths,
-            })
-          } catch (error) {
-            throw this.#transformCompileError(error)
-          }
+      const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
+      if (cached) {
+        debug('batch query plan cache hit')
+        batchResponse = cached
+      } else {
+        debug('batch query plan cache miss')
+        try {
+          batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
+          this.#queryPlanCache.setBatch(cacheKeyStr, batchResponse)
+        } catch (error) {
+          throw this.#transformCompileError(error)
         }
-      } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError) {
-          throw error
-        }
-        throw new PrismaClientUnknownRequestError(String(error), {
-          clientVersion: this.config.clientVersion,
-        })
       }
     } else {
       batchResponse = this.#compileBatch(queries, request, queryCompiler)
