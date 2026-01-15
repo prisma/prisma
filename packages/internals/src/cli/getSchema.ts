@@ -218,7 +218,7 @@ function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
     `You can either provide it with ${green('`--schema`')} argument,`,
     `set it in your Prisma Config file (e.g., ${green('`prisma.config.ts`')}),`,
     `set it as ${green('`prisma.schema`')} in your ${green('package.json')},`,
-    `or put it into the default location (${green('`./prisma/schema.prisma`')}, or ${green('`./schema.prisma`')}.`,
+    `or put it into the default location (${green('`./prisma/schema.prisma`')}, or ${green('`./schema.prisma`')})`,
     'Checked following paths:\n',
   ]
   const printedPaths = new Set<string>()
