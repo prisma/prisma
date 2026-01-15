@@ -1,6 +1,25 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type {
+  AttributeArgumentAST,
+  AttributeAST,
+  EnumAST,
+  EnumValueAST,
+  FieldAST,
+  ModelAST,
+  Span,
+} from '@ork/schema-parser'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { OrkMigrate } from '../OrkMigrate.js'
+import type {
+  AlterTableBuilderLike,
+  AnyKyselyDatabase,
+  ColumnBuilderLike,
+  CreateIndexBuilderLike,
+  CreateTableBuilderLike,
+  DeleteQueryBuilderLike,
+  InsertQueryBuilderLike,
+  SelectQueryBuilderLike,
+} from '../types.js'
 
 // Test schema definitions for golden snapshots
 const GOLDEN_SCHEMA_TESTS = {
@@ -189,81 +208,108 @@ vi.mock('@ork/schema-parser', async () => {
     ...actual,
     parseSchema: vi.fn((schemaPath: string) => {
       // Extract test case name from schema path
-      const testCase = Object.entries(GOLDEN_SCHEMA_TESTS).find(([key, test]) => 
-        schemaPath.includes(key) || schemaPath.includes(test.name)
+      const testCase = Object.entries(GOLDEN_SCHEMA_TESTS).find(
+        ([key, test]) => schemaPath.includes(key) || schemaPath.includes(test.name),
       )
-      
+
       if (!testCase) {
-        return {
-          errors: [],
-          ast: { models: [], enums: [] }
-        }
+        return parseTestSchema('')
       }
-      
+
       const [, test] = testCase
       const isAfter = schemaPath.includes('after')
       const schemaContent = isAfter ? test.afterSchema : test.beforeSchema
-      
+
       // Parse the schema content to create appropriate AST
       return parseTestSchema(schemaContent)
     }),
   }
 })
 
+const emptySpan: Span = {
+  start: { line: 0, column: 0, offset: 0 },
+  end: { line: 0, column: 0, offset: 0 },
+}
+
 // Helper to parse test schemas into AST format
 function parseTestSchema(schemaContent: string) {
-  const models: any[] = []
-  const enums: any[] = []
-  
+  const models: ModelAST[] = []
+  const enums: EnumAST[] = []
+  const buildAttributes = (
+    attributes: Array<{ name: string; args?: Array<{ name?: string; value: AttributeArgumentAST['value'] }> }>,
+  ): AttributeAST[] =>
+    attributes.map((attr) => ({
+      type: 'Attribute',
+      span: emptySpan,
+      name: attr.name,
+      args: (attr.args || []).map((arg) => ({
+        type: 'AttributeArgument',
+        span: emptySpan,
+        name: arg.name,
+        value: arg.value,
+      })),
+    }))
+
   // Very basic parsing for test purposes
   const modelRegex = /model\s+(\w+)\s*\{([^}]+)\}/g
   const enumRegex = /enum\s+(\w+)\s*\{([^}]+)\}/g
-  
+
   let match
-  
+
   // Parse enums
   while ((match = enumRegex.exec(schemaContent)) !== null) {
     const [, name, content] = match
-    const values = content
+    const values: Array<{ name: string; attributes: AttributeAST[] }> = content
       .trim()
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith('//'))
-      .map(line => ({ name: line, attributes: [] }))
-    
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('//'))
+      .map((line) => ({ name: line, attributes: [] }))
+
     enums.push({
       type: 'Enum',
+      span: emptySpan,
       name,
-      values,
+      values: values.map(
+        (value): EnumValueAST => ({
+          type: 'EnumValue',
+          span: emptySpan,
+          name: value.name,
+          attributes: value.attributes,
+        }),
+      ),
     })
   }
-  
+
   // Parse models
   while ((match = modelRegex.exec(schemaContent)) !== null) {
     const [, name, content] = match
-    const fields: any[] = []
-    
+    const fields: FieldAST[] = []
+
     const fieldLines = content
       .trim()
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith('@@') && !line.startsWith('//'))
-    
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('@@') && !line.startsWith('//'))
+
     for (const line of fieldLines) {
       const fieldMatch = line.match(/(\w+)\s+(\w+(?:\[\])?)\s*(.*)/)
       if (fieldMatch) {
         const [, fieldName, fieldType, rest] = fieldMatch
-        const attributes: any[] = []
-        
+        const attributes: Array<{
+          name: string
+          args?: Array<{ name?: string; value: AttributeArgumentAST['value'] }>
+        }> = []
+
         // Parse basic attributes
         if (rest.includes('@id')) attributes.push({ name: 'id', args: [] })
         if (rest.includes('@unique')) attributes.push({ name: 'unique', args: [] })
         if (rest.includes('@default(')) {
           const defaultMatch = rest.match(/@default\(([^)]+)\)/)
           if (defaultMatch) {
-            attributes.push({ 
-              name: 'default', 
-              args: [{ value: defaultMatch[1] }] 
+            attributes.push({
+              name: 'default',
+              args: [{ value: defaultMatch[1] }],
             })
           }
         }
@@ -271,74 +317,148 @@ function parseTestSchema(schemaContent: string) {
           // Parse relation attributes - simplified
           attributes.push({ name: 'relation', args: [] })
         }
-        
+
         fields.push({
           type: 'Field',
+          span: emptySpan,
           name: fieldName,
           fieldType: fieldType.replace('[]', ''),
           isOptional: rest.includes('?'),
           isList: fieldType.includes('[]'),
-          attributes,
+          attributes: buildAttributes(attributes),
         })
       }
     }
-    
+
     models.push({
       type: 'Model',
+      span: emptySpan,
       name,
       fields,
       attributes: [], // Model-level attributes would be parsed here
     })
   }
-  
+
   return {
     errors: [],
     ast: {
       type: 'Schema',
+      span: emptySpan,
+      datasources: [],
+      generators: [],
       models,
+      types: [],
+      views: [],
       enums,
     },
   }
 }
 
 // Mock Kysely instance for golden tests
-const createMockKyselyInstance = () => ({
-  introspection: {
-    getTables: vi.fn().mockResolvedValue([])
-  },
-  schema: {
-    createTable: vi.fn((tableName: string) => ({
-      addColumn: vi.fn(function(name: string, type: string, callback?: any) {
-        const columnBuilder = {
-          notNull: vi.fn(() => columnBuilder),
-          primaryKey: vi.fn(() => columnBuilder),
-          defaultTo: vi.fn(() => columnBuilder),
-        }
-        if (callback) callback(columnBuilder)
-        return this
-      }),
-      compile: vi.fn(() => ({ sql: `CREATE TABLE "${tableName}" (...)` })),
-    })),
-    alterTable: vi.fn((tableName: string) => ({
-      addColumn: vi.fn(() => ({ compile: vi.fn(() => ({ sql: `ALTER TABLE "${tableName}" ADD COLUMN ...` })) })),
-      dropColumn: vi.fn(() => ({ compile: vi.fn(() => ({ sql: `ALTER TABLE "${tableName}" DROP COLUMN ...` })) })),
-      alterColumn: vi.fn(() => ({ compile: vi.fn(() => ({ sql: `ALTER TABLE "${tableName}" ALTER COLUMN ...` })) })),
-    })),
-    dropTable: vi.fn((tableName: string) => ({
-      compile: vi.fn(() => ({ sql: `DROP TABLE "${tableName}"` })),
-    })),
-    createIndex: vi.fn((indexName: string) => ({
-      on: vi.fn(() => ({
-        column: vi.fn(() => ({
-          compile: vi.fn(() => ({ sql: `CREATE INDEX "${indexName}" ...` })),
-        })),
+const createMockKyselyInstance = (): AnyKyselyDatabase => {
+  const createColumnBuilder = (): ColumnBuilderLike => {
+    const columnBuilder: ColumnBuilderLike = {
+      notNull: () => columnBuilder,
+      primaryKey: () => columnBuilder,
+      defaultTo: () => columnBuilder,
+      setDataType: () => columnBuilder,
+      setNotNull: () => columnBuilder,
+      dropNotNull: () => columnBuilder,
+    }
+    return columnBuilder
+  }
+
+  const createTableBuilder = (tableName: string): CreateTableBuilderLike => {
+    const tableBuilder: CreateTableBuilderLike = {
+      addColumn: (_name, _type, callback) => {
+        if (callback) callback(createColumnBuilder())
+        return tableBuilder
+      },
+      addForeignKeyConstraint: () => tableBuilder,
+      compile: () => ({ sql: `CREATE TABLE "${tableName}" (...)` }),
+      execute: vi.fn().mockResolvedValue({}),
+    }
+    return tableBuilder
+  }
+
+  const createAlterTableBuilder = (tableName: string): AlterTableBuilderLike => {
+    const alterBuilder: AlterTableBuilderLike = {
+      addColumn: (_name, _type, callback) => {
+        if (callback) callback(createColumnBuilder())
+        return alterBuilder
+      },
+      dropColumn: () => alterBuilder,
+      alterColumn: (_name, callback) => {
+        callback(createColumnBuilder())
+        return alterBuilder
+      },
+      compile: () => ({ sql: `ALTER TABLE "${tableName}" ...` }),
+      execute: vi.fn().mockResolvedValue({}),
+    }
+    return alterBuilder
+  }
+
+  const createChainableQuery = (): SelectQueryBuilderLike => {
+    const chainableQuery: SelectQueryBuilderLike = {
+      selectAll: () => chainableQuery,
+      orderBy: () => chainableQuery,
+      where: () => chainableQuery,
+      execute: vi.fn().mockResolvedValue([]),
+    }
+    return chainableQuery
+  }
+
+  return {
+    introspection: {
+      getTables: vi.fn().mockResolvedValue([]),
+    },
+    schema: {
+      createTable: vi.fn((tableName: string) => createTableBuilder(tableName)),
+      alterTable: vi.fn((tableName: string) => createAlterTableBuilder(tableName)),
+      dropTable: vi.fn((tableName: string) => ({
+        compile: vi.fn(() => ({ sql: `DROP TABLE "${tableName}"` })),
+        execute: vi.fn().mockResolvedValue({}),
       })),
+      createIndex: vi.fn(
+        (indexName: string): CreateIndexBuilderLike => ({
+          on: vi.fn(() => ({
+            column: vi.fn(() => ({
+              compile: vi.fn(() => ({ sql: `CREATE INDEX "${indexName}" ...` })),
+              execute: vi.fn().mockResolvedValue({}),
+            })),
+          })),
+        }),
+      ),
+      dropIndex: vi.fn((indexName: string) => ({
+        compile: vi.fn(() => ({ sql: `DROP INDEX "${indexName}"` })),
+        execute: vi.fn().mockResolvedValue({}),
+      })),
+    },
+    selectFrom: vi.fn(() => createChainableQuery()),
+    insertInto: vi.fn(
+      (): InsertQueryBuilderLike => ({
+        values: () => ({
+          execute: vi.fn().mockResolvedValue({}),
+        }),
+      }),
+    ),
+    deleteFrom: vi.fn(
+      (): DeleteQueryBuilderLike => ({
+        where: () => ({
+          where: () => ({
+            execute: vi.fn().mockResolvedValue({}),
+          }),
+          execute: vi.fn().mockResolvedValue({}),
+        }),
+        execute: vi.fn().mockResolvedValue({}),
+      }),
+    ),
+    transaction: vi.fn(() => ({
+      execute: vi.fn((callback) => callback({ executeQuery: vi.fn().mockResolvedValue({ rows: [] }) })),
     })),
-    dropIndex: vi.fn((indexName: string) => ({
-      compile: vi.fn(() => ({ sql: `DROP INDEX "${indexName}"` })),
-    })),
-  },
-})
+    executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+  }
+}
 
 describe('Golden Snapshot Tests', () => {
   let migrate: OrkMigrate
@@ -352,10 +472,10 @@ describe('Golden Snapshot Tests', () => {
     describe(testData.name, () => {
       it('should generate expected SQL migration statements', async () => {
         const mockDb = createMockKyselyInstance()
-        
+
         // Generate diff from before -> after schema
-        const diff = await migrate.diff(mockDb as any, `test-${testKey}-after`)
-        
+        const diff = await migrate.diff(mockDb, `test-${testKey}-after`)
+
         // Create snapshot of the migration SQL statements
         expect({
           testCase: testData.name,
@@ -382,12 +502,12 @@ describe('Golden Snapshot Tests', () => {
 
       it('should generate deterministic SQL across multiple runs', async () => {
         const mockDb = createMockKyselyInstance()
-        
+
         // Generate diff multiple times
-        const diff1 = await migrate.diff(mockDb as any, `test-${testKey}-after`)
-        const diff2 = await migrate.diff(mockDb as any, `test-${testKey}-after`)
-        const diff3 = await migrate.diff(mockDb as any, `test-${testKey}-after`)
-        
+        const diff1 = await migrate.diff(mockDb, `test-${testKey}-after`)
+        const diff2 = await migrate.diff(mockDb, `test-${testKey}-after`)
+        const diff3 = await migrate.diff(mockDb, `test-${testKey}-after`)
+
         // All runs should produce identical results
         expect(diff1.statements).toEqual(diff2.statements)
         expect(diff2.statements).toEqual(diff3.statements)
@@ -397,9 +517,9 @@ describe('Golden Snapshot Tests', () => {
 
       it('should validate migration preview generation', async () => {
         const mockDb = createMockKyselyInstance()
-        
-        const preview = await migrate.generateMigrationPreview(mockDb as any, `test-${testKey}-after`)
-        
+
+        const preview = await migrate.generateMigrationPreview(mockDb, `test-${testKey}-after`)
+
         expect({
           testCase: testData.name,
           description: preview.description,
@@ -415,18 +535,18 @@ describe('Golden Snapshot Tests', () => {
 
   describe('Dialect-Specific SQL Generation', () => {
     const testDialects = ['postgresql', 'mysql', 'sqlite']
-    
-    testDialects.forEach(dialect => {
+
+    testDialects.forEach((dialect) => {
       it(`should generate ${dialect}-compatible SQL`, async () => {
         const mockDb = createMockKyselyInstance()
-        
+
         // Test with a complex schema that exercises all features
-        const diff = await migrate.diff(mockDb as any, 'test-complex-after')
-        
+        const diff = await migrate.diff(mockDb, 'test-complex-after')
+
         // Verify SQL is generated (actual dialect-specific logic would be more complex)
         expect(diff.statements.length).toBeGreaterThan(0)
-        expect(diff.statements.every(stmt => typeof stmt === 'string')).toBe(true)
-        
+        expect(diff.statements.every((stmt) => typeof stmt === 'string')).toBe(true)
+
         // Snapshot the generated SQL for this dialect
         expect({
           dialect,
@@ -440,9 +560,9 @@ describe('Golden Snapshot Tests', () => {
   describe('Error Handling and Edge Cases', () => {
     it('should handle empty schema gracefully', async () => {
       const mockDb = createMockKyselyInstance()
-      
-      const diff = await migrate.diff(mockDb as any, 'test-empty-after')
-      
+
+      const diff = await migrate.diff(mockDb, 'test-empty-after')
+
       expect(diff.statements).toEqual([])
       expect(diff.hasDestructiveChanges).toBe(false)
       expect(diff.impact.riskLevel).toBe('low')
@@ -450,10 +570,10 @@ describe('Golden Snapshot Tests', () => {
 
     it('should detect conflicting schema changes', async () => {
       const mockDb = createMockKyselyInstance()
-      
+
       // This would test schemas that have conflicts
-      const diff = await migrate.diff(mockDb as any, 'test-complex-after')
-      
+      const diff = await migrate.diff(mockDb, 'test-complex-after')
+
       // Verify warnings are generated for potentially problematic changes
       expect(diff.impact.warnings).toBeDefined()
       expect(Array.isArray(diff.impact.warnings)).toBe(true)
@@ -463,9 +583,9 @@ describe('Golden Snapshot Tests', () => {
   describe('Migration History and Rollback', () => {
     it('should generate rollback information', async () => {
       const mockDb = createMockKyselyInstance()
-      
-      const preview = await migrate.generateMigrationPreview(mockDb as any, 'test-complex-after')
-      
+
+      const preview = await migrate.generateMigrationPreview(mockDb, 'test-complex-after')
+
       expect(preview.rollbackInfo).toBeDefined()
       expect(typeof preview.rollbackInfo.available).toBe('boolean')
       expect(Array.isArray(preview.rollbackInfo.statements)).toBe(true)

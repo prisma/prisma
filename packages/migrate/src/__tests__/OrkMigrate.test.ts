@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { OrkMigrate } from '../OrkMigrate.js'
+import type { AnyKyselyDatabase, MigrationDiff } from '../types.js'
+import { KyselyMockFactory, SchemaASTMockFactory } from './mocks/kysely-mock-factory.ts'
 
 // Mock console.warn to suppress expected warnings during tests
 const originalConsoleWarn = console.warn
@@ -11,8 +13,6 @@ beforeEach(() => {
 afterEach(() => {
   console.warn = originalConsoleWarn
 })
-
-import { KyselyMockFactory, SchemaASTMockFactory } from './mocks/kysely-mock-factory.ts'
 
 // Mock the schema parser
 vi.mock('@ork/schema-parser', () => ({
@@ -28,7 +28,7 @@ vi.mock('@ork/schema-parser', () => ({
 }))
 
 // Create reusable mock instance
-let mockKyselyInstance: any
+let mockKyselyInstance: AnyKyselyDatabase
 
 describe('OrkMigrate', () => {
   let migrate: OrkMigrate
@@ -71,7 +71,7 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const result = await migrate.diff(mockKyselyInstance as any, testSchema)
+      const result = await migrate.diff(mockKyselyInstance, testSchema)
 
       expect(result).toHaveProperty('statements')
       expect(result).toHaveProperty('summary')
@@ -84,7 +84,7 @@ describe('OrkMigrate', () => {
       // Use the new spy wrapper approach for error handling
       mockKyselyInstance = KyselyMockFactory.createDatabaseErrorSpyMock(new Error('Database connection failed'))
 
-      await expect(migrate.diff(mockKyselyInstance as any, './test-schema.prisma')).rejects.toThrow(
+      await expect(migrate.diff(mockKyselyInstance, './test-schema.prisma')).rejects.toThrow(
         'Failed to generate migration diff',
       )
     })
@@ -96,7 +96,7 @@ describe('OrkMigrate', () => {
       mockKyselyInstance = KyselyMockFactory.createEmptyDatabaseMock()
 
       const testSchema = `// Empty schema`
-      const result = await migrate.apply(mockKyselyInstance as any, testSchema)
+      const result = await migrate.apply(mockKyselyInstance, testSchema)
 
       expect(result.success).toBe(true)
       expect(result.statementsExecuted).toBe(0)
@@ -115,7 +115,7 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const result = await migrate.apply(mockKyselyInstance as any, testSchema)
+      const result = await migrate.apply(mockKyselyInstance, testSchema)
 
       expect(result.success).toBe(false)
       expect(result.errors).toHaveLength(1)
@@ -125,7 +125,7 @@ describe('OrkMigrate', () => {
 
   describe('getHistory', () => {
     it('should return migration history', async () => {
-      mockKyselyInstance.introspection.getTables.mockResolvedValue([
+      mockKyselyInstance.introspection.getTables = vi.fn().mockResolvedValue([
         {
           name: '_ork_migrations',
           columns: [
@@ -153,9 +153,9 @@ describe('OrkMigrate', () => {
       const mockExecute = vi.fn().mockResolvedValue(mockHistory)
       const mockOrderBy = vi.fn(() => ({ execute: mockExecute }))
       const mockSelectAll = vi.fn(() => ({ orderBy: mockOrderBy }))
-      mockKyselyInstance.selectFrom.mockReturnValue({ selectAll: mockSelectAll })
+      mockKyselyInstance.selectFrom = vi.fn(() => ({ selectAll: mockSelectAll }))
 
-      const history = await migrate.getHistory(mockKyselyInstance as any)
+      const history = await migrate.getHistory(mockKyselyInstance)
 
       expect(Array.isArray(history)).toBe(true)
       expect(history).toHaveLength(1)
@@ -168,6 +168,7 @@ describe('OrkMigrate', () => {
   describe('DDL Generation with Kysely Builders', () => {
     it('should generate CREATE TABLE statement using Kysely DDL builders', async () => {
       mockKyselyInstance = KyselyMockFactory.createEmptyDatabaseMock()
+      const createTableSpy = vi.spyOn(mockKyselyInstance.schema, 'createTable')
 
       const testSchema = `
         model User {
@@ -176,9 +177,9 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const result = await migrate.diff(mockKyselyInstance as any, testSchema)
+      const result = await migrate.diff(mockKyselyInstance, testSchema)
 
-      expect(mockKyselyInstance.schema.createTable).toHaveBeenCalled()
+      expect(createTableSpy).toHaveBeenCalled()
       expect(result.statements).toEqual(expect.arrayContaining([expect.stringContaining('CREATE TABLE')]))
     })
 
@@ -192,9 +193,11 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const result = await migrate.diff(mockKyselyInstance as any, testSchema)
+      const result = await migrate.diff(mockKyselyInstance, testSchema)
 
-      expect(result.summary.indexesCreated.some((n) => n.includes('uniq_User_email') || n.includes('uniq_user_email'))).toBe(true)
+      expect(
+        result.summary.indexesCreated.some((n) => n.includes('uniq_User_email') || n.includes('uniq_user_email')),
+      ).toBe(true)
       expect(result.statements.some((s) => s.toUpperCase().includes('CREATE UNIQUE INDEX'))).toBe(true)
     })
 
@@ -208,7 +211,7 @@ describe('OrkMigrate', () => {
           email  String  @unique
         }
       `
-      const result = await migrate.diff(mockKyselyInstance as any, testSchema)
+      const result = await migrate.diff(mockKyselyInstance, testSchema)
 
       expect(result.statements).toMatchSnapshot()
     })
@@ -223,7 +226,7 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const result = await migrate.diff(mockKyselyInstance as any, testSchema)
+      const result = await migrate.diff(mockKyselyInstance, testSchema)
 
       expect(result).toHaveProperty('statements')
       expect(Array.isArray(result.statements)).toBe(true)
@@ -250,20 +253,21 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const result = await migrate.diff(mockKyselyInstance as any, testSchema)
+      const dropTableSpy = vi.spyOn(mockKyselyInstance.schema, 'dropTable')
+      const result = await migrate.diff(mockKyselyInstance, testSchema)
 
-      expect(mockKyselyInstance.schema.dropTable).toHaveBeenCalledWith('old_table')
+      expect(dropTableSpy).toHaveBeenCalledWith('old_table')
       expect(result.statements).toEqual(expect.arrayContaining([expect.stringContaining('DROP TABLE "old_table"')]))
       expect(result.hasDestructiveChanges).toBe(true)
     })
 
     it('should handle DDL generation errors gracefully', async () => {
       mockKyselyInstance = KyselyMockFactory.createEmptyDatabaseMock()
-      mockKyselyInstance.schema.createTable.mockImplementation(() => {
+      mockKyselyInstance.schema.createTable = vi.fn(() => {
         throw new Error('DDL generation failed')
       })
 
-      await expect(migrate.diff(mockKyselyInstance as any, './test-schema.prisma')).rejects.toThrow(
+      await expect(migrate.diff(mockKyselyInstance, './test-schema.prisma')).rejects.toThrow(
         'Failed to generate migration diff',
       )
     })
@@ -281,7 +285,7 @@ describe('OrkMigrate', () => {
           email String  @unique
         }
       `
-      const isValid = await migrate.validate(mockKyselyInstance as any, testSchema)
+      const isValid = await migrate.validate(mockKyselyInstance, testSchema)
 
       expect(typeof isValid).toBe('boolean')
       expect(isValid).toBe(false) // Should be false because database is empty but schema has User model
@@ -294,7 +298,7 @@ describe('OrkMigrate', () => {
       const emptySchema = `
         // Empty schema
       `
-      const isValid = await migrate.validate(mockKyselyInstance as any, emptySchema)
+      const isValid = await migrate.validate(mockKyselyInstance, emptySchema)
 
       expect(typeof isValid).toBe('boolean')
       expect(isValid).toBe(true) // Should be true because both database and schema are empty
@@ -303,7 +307,7 @@ describe('OrkMigrate', () => {
     it('should handle validation errors', async () => {
       mockKyselyInstance = KyselyMockFactory.createDatabaseErrorMock(new Error('Validation failed'))
 
-      await expect(migrate.validate(mockKyselyInstance as any, './test-schema.prisma')).rejects.toThrow(
+      await expect(migrate.validate(mockKyselyInstance, './test-schema.prisma')).rejects.toThrow(
         'Failed to validate schema',
       )
     })
@@ -321,7 +325,7 @@ describe('OrkMigrate', () => {
         }
       `
 
-      const preview = await migrate.generateMigrationPreview(mockKyselyInstance as any, testSchema)
+      const preview = await migrate.generateMigrationPreview(mockKyselyInstance, testSchema)
 
       expect(preview).toBeDefined()
       expect(preview.summary).toBeDefined()
@@ -336,7 +340,7 @@ describe('OrkMigrate', () => {
     })
 
     it('should generate migration warnings for common pitfalls', async () => {
-      const mockDiff: any = {
+      const mockDiff: MigrationDiff = {
         statements: [
           'ALTER TABLE users ADD COLUMN age INTEGER NOT NULL',
           'DROP TABLE old_table',
@@ -351,6 +355,11 @@ describe('OrkMigrate', () => {
           columnsDropped: [],
           indexesCreated: ['idx_email'],
           indexesDropped: [],
+          foreignKeysCreated: [],
+          foreignKeysDropped: [],
+          enumsCreated: [],
+          enumsModified: [],
+          enumsDropped: [],
         },
         hasDestructiveChanges: true,
         impact: {
@@ -363,7 +372,7 @@ describe('OrkMigrate', () => {
 
       mockKyselyInstance = KyselyMockFactory.createMockWithUserTable()
 
-      const warnings = await migrate.generateMigrationWarnings(mockKyselyInstance as any, mockDiff)
+      const warnings = await migrate.generateMigrationWarnings(mockKyselyInstance, mockDiff)
 
       expect(Array.isArray(warnings)).toBe(true)
       expect(warnings.length).toBeGreaterThan(0)
@@ -390,12 +399,7 @@ describe('OrkMigrate', () => {
         logProgress: false,
       }
 
-      const result = await migrate.applyWithConfirmation(
-        mockKyselyInstance as any,
-        testSchema,
-        promptConfig,
-        loggingConfig,
-      )
+      const result = await migrate.applyWithConfirmation(mockKyselyInstance, testSchema, promptConfig, loggingConfig)
 
       expect(result.success).toBe(true)
       expect(typeof result.executionTime).toBe('number')
@@ -422,12 +426,7 @@ describe('OrkMigrate', () => {
         logProgress: false,
       }
 
-      const result = await migrate.applyWithConfirmation(
-        mockKyselyInstance as any,
-        testSchema,
-        promptConfig,
-        loggingConfig,
-      )
+      const result = await migrate.applyWithConfirmation(mockKyselyInstance, testSchema, promptConfig, loggingConfig)
 
       // Should be cancelled due to high risk and explicit confirmation requirement
       expect(result.success).toBe(false)

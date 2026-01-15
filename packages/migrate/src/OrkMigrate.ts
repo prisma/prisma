@@ -1,7 +1,7 @@
-import type { AttributeAST, AttributeArgumentAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@ork/schema-parser'
-import { parseSchema } from '@ork/schema-parser'
 import type { DatabaseDialect } from '@ork/field-translator'
 import { transformationRegistry } from '@ork/field-translator'
+import type { AttributeArgumentAST, AttributeAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@ork/schema-parser'
+import { parseSchema } from '@ork/schema-parser'
 import { sql } from 'kysely'
 
 import type {
@@ -14,9 +14,11 @@ import type {
   DatabaseSchema,
   DatabaseTable,
   DatabaseUniqueConstraint,
+  DefaultValue,
   DetailedMigrationSummary,
   EnhancedMigrationHistoryEntry,
   MigrationDiff,
+  MigrationError,
   MigrationHistoryEntry,
   MigrationImpact,
   MigrationLock,
@@ -31,15 +33,6 @@ import type {
   MigrationValidation,
 } from './types'
 
-interface MigrationHistoryRow {
-  id: string
-  name: string
-  checksum: string
-  appliedAt: string
-  executionTime: number
-  success: boolean
-}
-
 type SqliteCapabilities = {
   version: string
   supportsRenameColumn: boolean
@@ -53,7 +46,6 @@ const INTERNAL_MIGRATION_TABLES = new Set(['_ork_migrations', '_ork_migration_lo
  */
 export class OrkMigrate {
   // TODO: Split this class into focused modules (diffing, execution, history/locks, preview/logging).
-  // TODO: Replace `any`/`as never` with typed Kysely table interfaces for migration tables.
   // TODO: Route all warnings through the logging helper or injected logger instead of console.warn.
   private readonly options: Required<MigrationOptions>
 
@@ -69,15 +61,14 @@ export class OrkMigrate {
 
   async diff(kyselyInstance: AnyKyselyDatabase, schemaPath: string): Promise<MigrationDiff> {
     try {
-      const schemaAST = await this.parseSchema(schemaPath)
+      const schemaAST = this.parseSchema(schemaPath)
 
       const currentSchema = await this.introspectDatabase(kyselyInstance)
 
       const dialect = this.getDialectFromSchema(schemaAST)
-      const sqliteCapabilities =
-        dialect === 'sqlite' ? await this.getSqliteCapabilities(kyselyInstance) : null
+      const sqliteCapabilities = dialect === 'sqlite' ? await this.getSqliteCapabilities(kyselyInstance) : null
 
-      const diff = await this.generateDiff(kyselyInstance, currentSchema, schemaAST, dialect, sqliteCapabilities)
+      const diff = this.generateDiff(kyselyInstance, currentSchema, schemaAST, dialect, sqliteCapabilities)
 
       return diff
     } catch (error) {
@@ -151,14 +142,17 @@ export class OrkMigrate {
         .orderBy('appliedAt', 'desc')
         .execute()
 
-      return (result as MigrationHistoryRow[]).map((row) => ({
-        id: row.id,
-        name: row.name,
-        checksum: row.checksum,
-        appliedAt: new Date(row.appliedAt),
-        executionTime: row.executionTime,
-        success: row.success,
-      }))
+      return result.map((row) => {
+        const record = this.asRecord(row)
+        return {
+          id: this.coerceString(record.id),
+          name: this.coerceString(record.name),
+          checksum: this.coerceString(record.checksum),
+          appliedAt: this.coerceDate(record.appliedAt),
+          executionTime: this.coerceNumber(record.executionTime),
+          success: this.coerceBoolean(record.success),
+        }
+      })
     } catch (error) {
       throw new Error(`Failed to get migration history: ${error instanceof Error ? error.message : String(error)}`)
     }
@@ -181,31 +175,42 @@ export class OrkMigrate {
       await this.ensureMigrationTableExists(kyselyInstance)
 
       const result = await kyselyInstance
-        .selectFrom(this.options.migrationTableName as never)
+        .selectFrom(this.options.migrationTableName)
         .selectAll()
         .orderBy('appliedAt', 'desc')
         .execute()
 
-      return (result as any[]).map((row) => ({
-        id: row.id,
-        name: row.name,
-        checksum: row.checksum,
-        appliedAt: new Date(row.appliedAt),
-        executionTime: row.executionTime,
-        success: row.success,
-        statements: row.statements ? JSON.parse(row.statements) : [],
-        dependencies: row.dependencies ? JSON.parse(row.dependencies) : [],
-        schemaVersion: row.schemaVersion,
-        rollback: row.rollbackStatements
-          ? {
-              migrationId: row.id,
-              rollbackStatements: JSON.parse(row.rollbackStatements),
-              rollbackChecksum: row.rollbackChecksum,
-              canRollback: row.canRollback || false,
-              warnings: row.rollbackWarnings ? JSON.parse(row.rollbackWarnings) : [],
-            }
-          : undefined,
-      }))
+      return result.map((row) => {
+        const record = this.asRecord(row)
+        const statements = this.parseJsonStringArray(record['statements'])
+        const dependencies = this.parseJsonStringArray(record['dependencies'])
+        const rollbackStatements = this.parseJsonStringArray(record['rollbackStatements'])
+        const rollbackWarnings = this.parseJsonStringArray(record['rollbackWarnings'])
+
+        const schemaVersion = this.optionalString(record['schemaVersion'])
+
+        return {
+          id: this.coerceString(record.id),
+          name: this.coerceString(record.name),
+          checksum: this.coerceString(record.checksum),
+          appliedAt: this.coerceDate(record.appliedAt),
+          executionTime: this.coerceNumber(record.executionTime),
+          success: this.coerceBoolean(record.success),
+          statements,
+          dependencies,
+          schemaVersion,
+          rollback:
+            rollbackStatements.length > 0 || rollbackWarnings.length > 0
+              ? {
+                  migrationId: this.coerceString(record['id']),
+                  rollbackStatements,
+                  rollbackChecksum: this.coerceString(record['rollbackChecksum']),
+                  canRollback: this.coerceBoolean(record['canRollback']),
+                  warnings: rollbackWarnings,
+                }
+              : undefined,
+        }
+      })
     } catch (error) {
       throw new Error(
         `Failed to get enhanced migration history: ${error instanceof Error ? error.message : String(error)}`,
@@ -234,9 +239,9 @@ export class OrkMigrate {
 
       // Check for existing locks
       const existingLocks = await kyselyInstance
-        .selectFrom('_ork_migration_locks' as never)
+        .selectFrom('_ork_migration_locks')
         .selectAll()
-        .where('migrationId' as never, '=', migrationId as never)
+        .where('migrationId', '=', migrationId)
         .execute()
 
       if (existingLocks.length > 0) {
@@ -245,7 +250,7 @@ export class OrkMigrate {
 
       // Acquire the lock
       await kyselyInstance
-        .insertInto('_ork_migration_locks' as never)
+        .insertInto('_ork_migration_locks')
         .values({
           id: lockId,
           processId,
@@ -282,9 +287,9 @@ export class OrkMigrate {
       }
 
       await kyselyInstance
-        .deleteFrom('_ork_migration_locks' as never)
-        .where('id' as never, '=', lock.id as never)
-        .where('processId' as never, '=', lock.processId as never)
+        .deleteFrom('_ork_migration_locks')
+        .where('id', '=', lock.id)
+        .where('processId', '=', lock.processId)
         .execute()
     } catch (error) {
       // Silently handle errors during lock release - the lock will expire anyway
@@ -300,10 +305,10 @@ export class OrkMigrate {
       await this.ensureMigrationLockTableExists(kyselyInstance)
       await this.cleanupExpiredLocks(kyselyInstance)
 
-      let query = kyselyInstance.selectFrom('_ork_migration_locks' as never).selectAll()
+      let query = kyselyInstance.selectFrom('_ork_migration_locks').selectAll()
 
       if (migrationId) {
-        query = query.where('migrationId' as never, '=', migrationId as never)
+        query = query.where('migrationId', '=', migrationId)
       }
 
       const locks = await query.execute()
@@ -560,7 +565,7 @@ export class OrkMigrate {
       const needsConfirmation = this.shouldPromptForConfirmation(preview, promptConfig)
 
       if (needsConfirmation && promptConfig.enabled) {
-        const confirmed = await this.promptForConfirmation(preview, promptConfig, loggingConfig)
+        const confirmed = this.promptForConfirmation(preview, promptConfig, loggingConfig)
         if (!confirmed) {
           this.log(loggingConfig, 'info', 'Migration cancelled by user')
           return {
@@ -751,7 +756,7 @@ export class OrkMigrate {
     return warnings
   }
 
-  private async parseSchema(schemaPath: string) {
+  private parseSchema(schemaPath: string): SchemaAST {
     const parseResult = parseSchema(schemaPath)
 
     if (parseResult.errors.length > 0) {
@@ -834,9 +839,9 @@ export class OrkMigrate {
     tableName: string,
   ): Promise<{
     primaryKey: string[]
-    foreignKeys: any[]
-    uniqueConstraints: any[]
-    indexes: any[]
+    foreignKeys: DatabaseForeignKey[]
+    uniqueConstraints: DatabaseUniqueConstraint[]
+    indexes: DatabaseIndex[]
   }> {
     try {
       // Use only Kysely's introspection API for database-agnostic constraint detection
@@ -860,8 +865,8 @@ export class OrkMigrate {
       // Note: Kysely's introspection doesn't provide detailed constraint info for all databases
       // For now, return empty arrays for foreign keys and unique constraints
       // This is acceptable since the migration system can still generate CREATE/DROP TABLE statements
-      const foreignKeys: any[] = []
-      const uniqueConstraints: any[] = []
+      const foreignKeys: DatabaseForeignKey[] = []
+      const uniqueConstraints: DatabaseUniqueConstraint[] = []
 
       return {
         primaryKey,
@@ -880,14 +885,13 @@ export class OrkMigrate {
     }
   }
 
-  private async generateDiff(
+  private generateDiff(
     kyselyInstance: AnyKyselyDatabase,
     currentSchema: DatabaseSchema,
     targetSchemaAST: SchemaAST,
     dialect: DatabaseDialect,
     sqliteCapabilities: SqliteCapabilities | null,
-  ): Promise<MigrationDiff> {
-
+  ): MigrationDiff {
     const summary: MigrationSummary = {
       tablesCreated: [],
       tablesModified: [],
@@ -933,7 +937,7 @@ export class OrkMigrate {
           )
           for (const f of uniqueFields) {
             const idxName = this.generateIndexName(modelName, [f.name], true)
-            const idxSql = this.generateCreateIndexSQL(idxName, modelName, [f.name], true, true)
+            const idxSql = this.generateCreateIndexSQL(idxName, modelName, [f.name], true, true, dialect)
             statements.push(idxSql)
             summary.indexesCreated.push(idxName)
           }
@@ -1025,7 +1029,7 @@ export class OrkMigrate {
 
           if (!(dialect === 'sqlite' && tableDiff.requiresTableRebuild)) {
             // Compare indexes for this table (including unique, multi-column, and custom indexes)
-            const indexDiff = this.compareIndexes(kyselyInstance, currentTable, targetModel)
+            const indexDiff = this.compareIndexes(kyselyInstance, currentTable, targetModel, dialect)
             if (indexDiff.hasChanges) {
               statements.push(...indexDiff.statements)
               summary.indexesCreated.push(...indexDiff.indexesCreated)
@@ -1102,15 +1106,15 @@ export class OrkMigrate {
         const sqlType = this.mapFieldTypeToSQL(field, dialect)
         const isSerialType = sqlType.toLowerCase() === 'serial' || sqlType.toLowerCase() === 'bigserial'
 
-        createTableBuilder = createTableBuilder.addColumn(field.name, sqlType as never, (col) => {
+        createTableBuilder = createTableBuilder.addColumn(field.name, sqlType, (col) => {
           // SERIAL types are implicitly NOT NULL, so don't add it
           if (!field.isOptional && !isSerialType) {
             col = col.notNull()
           }
 
-          const isId = field.attributes?.some((attr: any) => attr.name === 'id')
+          const isId = field.attributes?.some((attr) => attr.name === 'id')
           const hasAutoIncrement = field.attributes?.some(
-            (attr: any) => attr.name === 'default' && attr.args?.[0]?.value === 'autoincrement()',
+            (attr) => attr.name === 'default' && attr.args?.[0]?.value === 'autoincrement()',
           )
 
           if (isId) {
@@ -1123,8 +1127,8 @@ export class OrkMigrate {
           }
 
           // SERIAL types have built-in defaults, so skip @default(autoincrement())
-          if (field.attributes?.some((attr: any) => attr.name === 'default')) {
-            const defaultAttr = field.attributes.find((attr: any) => attr.name === 'default')
+          if (field.attributes?.some((attr) => attr.name === 'default')) {
+            const defaultAttr = field.attributes.find((attr) => attr.name === 'default')
             if (defaultAttr?.args?.[0]) {
               // Extract the actual value from the AttributeArgumentAST object
               const defaultValue = defaultAttr.args[0].value || defaultAttr.args[0]
@@ -1150,9 +1154,9 @@ export class OrkMigrate {
         for (const fk of foreignKeys) {
           createTableBuilder = createTableBuilder.addForeignKeyConstraint(
             fk.name,
-            fk.columns as never[],
+            fk.columns,
             fk.referencedTable,
-            fk.referencedColumns as never[],
+            fk.referencedColumns,
             (constraint) => {
               let builder = constraint
               if (fk.onDelete) {
@@ -1257,9 +1261,11 @@ export class OrkMigrate {
     columns: string[],
     unique: boolean,
     ifNotExists = false,
+    dialect?: DatabaseDialect,
   ): string {
     const uniqueSql = unique ? 'UNIQUE ' : ''
-    const ifNotExistsSql = ifNotExists ? 'IF NOT EXISTS ' : ''
+    const supportsIfNotExists = dialect !== 'mysql'
+    const ifNotExistsSql = ifNotExists && supportsIfNotExists ? 'IF NOT EXISTS ' : ''
     const cols = columns.map((c) => `"${c}"`).join(', ')
     return `CREATE ${uniqueSql}INDEX ${ifNotExistsSql}"${indexName}" ON "${table}" (${cols})`
   }
@@ -1306,13 +1312,13 @@ export class OrkMigrate {
 
           const alterTableBuilder = kyselyInstance.schema
             .alterTable(currentTable.name)
-            .addColumn(fieldName, sqlType as never, (col) => {
+            .addColumn(fieldName, sqlType, (col) => {
               if (!field.isOptional) {
                 col = col.notNull()
               }
 
-              if (field.attributes?.some((attr: any) => attr.name === 'default')) {
-                const defaultAttr = field.attributes.find((attr: any) => attr.name === 'default')
+              if (field.attributes?.some((attr) => attr.name === 'default')) {
+                const defaultAttr = field.attributes.find((attr) => attr.name === 'default')
                 if (defaultAttr?.args?.[0]) {
                   // Extract the actual value from the AttributeArgumentAST object
                   const defaultValue = defaultAttr.args[0].value || defaultAttr.args[0]
@@ -1366,7 +1372,7 @@ export class OrkMigrate {
             } else {
               const alterColumnBuilder = kyselyInstance.schema
                 .alterTable(currentTable.name)
-                .alterColumn(columnName, (col) => col.setDataType(targetType as never))
+                .alterColumn(columnName, (col) => col.setDataType(targetType))
               const compiledQuery = alterColumnBuilder.compile()
               pendingStatements.push(compiledQuery.sql)
             }
@@ -1431,12 +1437,7 @@ export class OrkMigrate {
       }
 
       if (result.requiresTableRebuild && isSqlite) {
-        result.statements = this.buildSqliteTableRebuildStatements(
-          kyselyInstance,
-          currentTable,
-          targetModel,
-          dialect,
-        )
+        result.statements = this.buildSqliteTableRebuildStatements(kyselyInstance, currentTable, targetModel, dialect)
       } else {
         result.statements = pendingStatements
       }
@@ -1464,7 +1465,7 @@ export class OrkMigrate {
     }
 
     // If it has @relation attribute, it's a relation field - don't create column
-    if (field.attributes?.some((attr: any) => attr.name === 'relation')) {
+    if (field.attributes?.some((attr) => attr.name === 'relation')) {
       return false
     }
 
@@ -1489,7 +1490,7 @@ export class OrkMigrate {
   /**
    * Format default values for SQL
    */
-  private formatDefaultValue(value: any): any {
+  private formatDefaultValue(value: unknown): DefaultValue | null {
     if (typeof value === 'string') {
       // Handle special Prisma functions (as parsed by schema parser)
       if (value === 'autoincrement()') {
@@ -1529,8 +1530,11 @@ export class OrkMigrate {
     }
 
     // Handle AttributeArgumentAST objects that weren't extracted properly
-    if (typeof value === 'object' && value !== null && value.type === 'AttributeArgument') {
-      return this.formatDefaultValue(value.value)
+    if (typeof value === 'object' && value !== null) {
+      const record = this.asRecord(value)
+      if (record['type'] === 'AttributeArgument') {
+        return this.formatDefaultValue(record['value'])
+      }
     }
 
     // Fallback: convert to string and log warning
@@ -1613,9 +1617,7 @@ export class OrkMigrate {
 
     if (columnsToCopy.length > 0) {
       const quotedColumns = columnsToCopy.map((column) => `"${column}"`).join(', ')
-      statements.push(
-        `INSERT INTO "${tempTableName}" (${quotedColumns}) SELECT ${quotedColumns} FROM "${tableName}"`,
-      )
+      statements.push(`INSERT INTO "${tempTableName}" (${quotedColumns}) SELECT ${quotedColumns} FROM "${tableName}"`)
     }
 
     statements.push(`DROP TABLE "${tableName}"`)
@@ -1623,15 +1625,7 @@ export class OrkMigrate {
 
     const targetIndexes = this.extractIndexesFromModel(targetModel)
     for (const index of targetIndexes) {
-      statements.push(
-        this.generateCreateIndexSQL(
-          index.name,
-          tableName,
-          index.columns,
-          index.unique,
-          true,
-        ),
-      )
+      statements.push(this.generateCreateIndexSQL(index.name, tableName, index.columns, index.unique, true, dialect))
     }
 
     return statements
@@ -1643,7 +1637,7 @@ export class OrkMigrate {
       name: string
       type: string
       notnull: number
-      dflt_value: any
+      dflt_value: unknown
       pk: number
     }>(kyselyInstance, `PRAGMA table_info("${pragmaTable}")`)
 
@@ -1670,7 +1664,10 @@ export class OrkMigrate {
       kyselyInstance,
       `PRAGMA table_info("${pragmaTable}")`,
     )
-    const primaryKey = tableInfo.filter((col) => col.pk > 0).sort((a, b) => a.pk - b.pk).map((col) => col.name)
+    const primaryKey = tableInfo
+      .filter((col) => col.pk > 0)
+      .sort((a, b) => a.pk - b.pk)
+      .map((col) => col.name)
 
     const indexList = await this.querySqlitePragma<{
       name: string
@@ -1762,7 +1759,12 @@ export class OrkMigrate {
   private normalizeSqliteFkAction(action?: string): DatabaseForeignKey['onDelete'] {
     if (!action) return undefined
     const normalized = action.toUpperCase()
-    if (normalized === 'CASCADE' || normalized === 'SET NULL' || normalized === 'RESTRICT' || normalized === 'NO ACTION') {
+    if (
+      normalized === 'CASCADE' ||
+      normalized === 'SET NULL' ||
+      normalized === 'RESTRICT' ||
+      normalized === 'NO ACTION'
+    ) {
       return normalized
     }
     return undefined
@@ -1789,9 +1791,13 @@ export class OrkMigrate {
     return identifier.replace(/"/g, '""')
   }
 
-  private async querySqlitePragma<T>(kyselyInstance: AnyKyselyDatabase, statement: string): Promise<T[]> {
+  private async querySqlitePragma<T extends Record<string, unknown>>(
+    kyselyInstance: AnyKyselyDatabase,
+    statement: string,
+  ): Promise<T[]> {
     const result = await sql.raw(statement).execute(kyselyInstance)
-    return result.rows as T[]
+    const rows = Array.isArray(result.rows) ? result.rows : []
+    return rows.filter((row): row is T => typeof row === 'object' && row !== null)
   }
 
   private mapFieldTypeToSQL(field: FieldAST, dialect: DatabaseDialect): string {
@@ -1909,7 +1915,7 @@ export class OrkMigrate {
     }
 
     // If it's a list type or has @relation, it's a relation
-    if (field.isList || field.attributes?.some((attr: any) => attr.name === 'relation')) {
+    if (field.isList || field.attributes?.some((attr) => attr.name === 'relation')) {
       return true
     }
 
@@ -2021,11 +2027,11 @@ export class OrkMigrate {
   /**
    * Get table name for a model, respecting @@map directive
    */
-  private getTableName(model: ModelAST): string {
+  private getTableName(model: { name: string; attributes?: AttributeAST[] }): string {
     // Check for @@map attribute
     const mapAttribute = model.attributes?.find((attr: AttributeAST) => attr.name === 'map')
     if (mapAttribute?.args?.[0]) {
-      const mappedName = (mapAttribute.args[0] as AttributeArgumentAST).value
+      const mappedName = mapAttribute.args[0].value
       // Remove quotes if present
       return typeof mappedName === 'string' ? mappedName.replace(/^["']|["']$/g, '') : String(mappedName)
     }
@@ -2062,7 +2068,7 @@ export class OrkMigrate {
   private async executeInTransaction(kyselyInstance: AnyKyselyDatabase, diff: MigrationDiff): Promise<MigrationResult> {
     const startTime = Date.now()
     let statementsExecuted = 0
-    const errors: any[] = []
+    const errors: MigrationError[] = []
 
     try {
       await kyselyInstance.transaction().execute(async (trx: AnyKyselyTransaction) => {
@@ -2108,7 +2114,7 @@ export class OrkMigrate {
   private async executeStatements(kyselyInstance: AnyKyselyDatabase, diff: MigrationDiff): Promise<MigrationResult> {
     const startTime = Date.now()
     let statementsExecuted = 0
-    const errors: any[] = []
+    const errors: MigrationError[] = []
 
     for (const statement of diff.statements) {
       try {
@@ -2177,26 +2183,26 @@ export class OrkMigrate {
       // Generate rollback information
       let rollbackInfo: MigrationRollback | null = null
       try {
-        rollbackInfo = await this.generateRollbackForStatements(kyselyInstance, diff.statements)
+        rollbackInfo = this.generateRollbackForStatements(kyselyInstance, diff.statements)
       } catch (error) {
         console.warn(`Failed to generate rollback info: ${error instanceof Error ? error.message : String(error)}`)
       }
 
       await kyselyInstance
-        .insertInto(this.options.migrationTableName as never)
+        .insertInto(this.options.migrationTableName)
         .values({
           id: migrationId,
           name: `Migration ${new Date().toISOString()}`,
           checksum,
           appliedAt: new Date().toISOString(),
           executionTime,
-          success: 1,
+          success: true,
           statements: JSON.stringify(diff.statements),
           dependencies: JSON.stringify([]),
           schemaVersion: `v${Date.now()}`,
           rollbackStatements: rollbackInfo ? JSON.stringify(rollbackInfo.rollbackStatements) : null,
           rollbackChecksum: rollbackInfo?.rollbackChecksum || null,
-          canRollback: rollbackInfo?.canRollback ? 1 : 0,
+          canRollback: rollbackInfo?.canRollback ?? false,
           rollbackWarnings: rollbackInfo ? JSON.stringify(rollbackInfo.warnings) : null,
         })
         .execute()
@@ -2247,10 +2253,7 @@ export class OrkMigrate {
   private async cleanupExpiredLocks(kyselyInstance: AnyKyselyDatabase): Promise<void> {
     try {
       const now = new Date().toISOString()
-      await kyselyInstance
-        .deleteFrom('_ork_migration_locks' as never)
-        .where('expiresAt' as never, '<', now as never)
-        .execute()
+      await kyselyInstance.deleteFrom('_ork_migration_locks').where('expiresAt', '<', now).execute()
     } catch (error) {
       console.warn(`Failed to cleanup expired locks: ${error instanceof Error ? error.message : String(error)}`)
     }
@@ -2330,19 +2333,19 @@ export class OrkMigrate {
       const rollbackId = `rollback_${originalMigrationId}_${Date.now()}`
 
       await kyselyInstance
-        .insertInto(this.options.migrationTableName as never)
+        .insertInto(this.options.migrationTableName)
         .values({
           id: rollbackId,
           name: `Rollback of ${originalMigrationId}`,
           checksum: rollbackInfo.rollbackChecksum,
           appliedAt: new Date().toISOString(),
           executionTime,
-          success: 1,
+          success: true,
           statements: JSON.stringify(rollbackInfo.rollbackStatements),
           dependencies: JSON.stringify([]),
           rollbackStatements: null,
           rollbackChecksum: null,
-          canRollback: 0,
+          canRollback: false,
         })
         .execute()
     } catch (error) {
@@ -2355,10 +2358,7 @@ export class OrkMigrate {
    */
   private async removeMigrationFromHistory(kyselyInstance: AnyKyselyDatabase, migrationId: string): Promise<void> {
     try {
-      await kyselyInstance
-        .deleteFrom(this.options.migrationTableName as never)
-        .where('id' as never, '=', migrationId as never)
-        .execute()
+      await kyselyInstance.deleteFrom(this.options.migrationTableName).where('id', '=', migrationId).execute()
     } catch (error) {
       console.warn(`Failed to remove migration from history: ${error instanceof Error ? error.message : String(error)}`)
     }
@@ -2390,7 +2390,7 @@ export class OrkMigrate {
           try {
             const alterBuilder = kyselyInstance.schema
               .alterTable(this.options.migrationTableName)
-              .addColumn(column.name, column.type as never, (col) => {
+              .addColumn(column.name, column.type, (col) => {
                 if (column.defaultValue !== undefined) {
                   col = col.defaultTo(column.defaultValue)
                 }
@@ -2415,10 +2415,7 @@ export class OrkMigrate {
   /**
    * Generate rollback information for a set of statements
    */
-  private async generateRollbackForStatements(
-    kyselyInstance: AnyKyselyDatabase,
-    statements: string[],
-  ): Promise<MigrationRollback> {
+  private generateRollbackForStatements(kyselyInstance: AnyKyselyDatabase, statements: string[]): MigrationRollback {
     const rollbackStatements: string[] = []
     const warnings: string[] = []
 
@@ -2604,7 +2601,7 @@ export class OrkMigrate {
   /**
    * Generate rollback preview information
    */
-  private async generateRollbackPreview(
+  private generateRollbackPreview(
     kyselyInstance: AnyKyselyDatabase,
     statements: string[],
   ): Promise<{
@@ -2613,7 +2610,7 @@ export class OrkMigrate {
     warnings: string[]
   }> {
     try {
-      const rollbackInfo = await this.generateRollbackForStatements(kyselyInstance, statements)
+      const rollbackInfo = this.generateRollbackForStatements(kyselyInstance, statements)
       return {
         available: rollbackInfo.canRollback,
         statements: rollbackInfo.rollbackStatements,
@@ -2769,11 +2766,11 @@ export class OrkMigrate {
   /**
    * Prompt user for confirmation (mock implementation - would be replaced with actual CLI prompts)
    */
-  private async promptForConfirmation(
+  private promptForConfirmation(
     preview: MigrationPreview,
     config: MigrationPromptConfig,
     loggingConfig: MigrationLoggingConfig,
-  ): Promise<boolean> {
+  ): boolean {
     // In a real implementation, this would use a CLI prompt library like inquirer
     // For now, we'll simulate based on risk level and configuration
 
@@ -2803,7 +2800,7 @@ export class OrkMigrate {
   ): Promise<MigrationResult> {
     const startTime = Date.now()
     let statementsExecuted = 0
-    const errors: any[] = []
+    const errors: MigrationError[] = []
 
     for (let i = 0; i < diff.statements.length; i++) {
       const statement = diff.statements[i]
@@ -2861,7 +2858,7 @@ export class OrkMigrate {
   ): Promise<MigrationResult> {
     const startTime = Date.now()
     let statementsExecuted = 0
-    const errors: any[] = []
+    const errors: MigrationError[] = []
 
     try {
       await kyselyInstance.transaction().execute(async (trx: AnyKyselyTransaction) => {
@@ -2930,7 +2927,7 @@ export class OrkMigrate {
   /**
    * Log message with appropriate level and formatting
    */
-  private log(config: MigrationLoggingConfig, level: string, message: string, metadata?: any): void {
+  private log(config: MigrationLoggingConfig, level: string, message: string, metadata?: unknown): void {
     if (config.customLogger) {
       config.customLogger(level, message, metadata)
       return
@@ -2957,6 +2954,67 @@ export class OrkMigrate {
         break
       default:
         console.log(formattedMessage, metadata || '')
+    }
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (typeof value === 'object' && value !== null) {
+      return value as Record<string, unknown>
+    }
+    return {}
+  }
+
+  private coerceString(value: unknown, fallback = ''): string {
+    if (typeof value === 'string') return value
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+    if (value instanceof Date) return value.toISOString()
+    return fallback
+  }
+
+  private optionalString(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined
+    return value.length > 0 ? value : undefined
+  }
+
+  private coerceNumber(value: unknown, fallback = 0): number {
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string') {
+      const parsed = Number(value)
+      if (Number.isFinite(parsed)) return parsed
+    }
+    if (typeof value === 'boolean') return value ? 1 : 0
+    return fallback
+  }
+
+  private coerceBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') return value
+    if (typeof value === 'number') return value !== 0
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase()
+      return normalized === 'true' || normalized === '1'
+    }
+    return false
+  }
+
+  private coerceDate(value: unknown): Date {
+    if (value instanceof Date) return value
+    const date = new Date(this.coerceString(value))
+    return Number.isNaN(date.getTime()) ? new Date(0) : date
+  }
+
+  private parseJsonStringArray(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string')
+    }
+    if (typeof value !== 'string') {
+      return []
+    }
+    try {
+      const parsed = JSON.parse(value)
+      if (!Array.isArray(parsed)) return []
+      return parsed.filter((item): item is string => typeof item === 'string')
+    } catch {
+      return []
     }
   }
 
@@ -2989,7 +3047,7 @@ export class OrkMigrate {
       const targetForeignKeysMap = new Map(targetForeignKeys.map((fk) => [fk.name, fk]))
 
       // Find foreign keys to drop (exist in current but not in target)
-      for (const [fkName, currentFk] of currentForeignKeys) {
+      for (const [fkName] of currentForeignKeys) {
         if (!targetForeignKeysMap.has(fkName)) {
           result.hasChanges = true
           result.foreignKeysDropped.push(fkName)
@@ -3069,19 +3127,31 @@ export class OrkMigrate {
               (arg: AttributeArgumentAST) => typeof arg === 'object' && 'name' in arg && arg.name === 'onUpdate',
             )
 
-            const onDelete =
-              onDeleteArg && 'value' in onDeleteArg
-                ? (onDeleteArg.value as 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION')
-                : 'RESTRICT'
-            const onUpdate =
-              onUpdateArg && 'value' in onUpdateArg
-                ? (onUpdateArg.value as 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION')
-                : 'RESTRICT'
+            const parseAction = (
+              value: AttributeArgumentAST['value'] | undefined,
+              fallback: DatabaseForeignKey['onDelete'],
+            ): DatabaseForeignKey['onDelete'] => {
+              if (typeof value === 'string') {
+                const normalized = value.toUpperCase()
+                if (
+                  normalized === 'CASCADE' ||
+                  normalized === 'SET NULL' ||
+                  normalized === 'RESTRICT' ||
+                  normalized === 'NO ACTION'
+                ) {
+                  return normalized
+                }
+              }
+              return fallback
+            }
+
+            const onDelete = parseAction(onDeleteArg?.value, 'RESTRICT')
+            const onUpdate = parseAction(onUpdateArg?.value, 'RESTRICT')
 
             foreignKeys.push({
               name: constraintName,
               columns: localColumns,
-              referencedTable: this.getTableName({ name: referencedModel } as ModelAST),
+              referencedTable: this.getTableName({ name: referencedModel }),
               referencedColumns: referencedColumns,
               onDelete,
               onUpdate,
@@ -3179,6 +3249,7 @@ export class OrkMigrate {
     kyselyInstance: AnyKyselyDatabase,
     currentTable: DatabaseTable,
     targetModel: ModelAST,
+    dialect: DatabaseDialect,
   ): {
     hasChanges: boolean
     indexesCreated: string[]
@@ -3195,14 +3266,17 @@ export class OrkMigrate {
     try {
       // Extract current indexes (note: the introspection currently returns empty array,
       // but this is structured for future enhancement when proper index introspection is added)
-      const currentIndexes = new Map(currentTable.indexes?.map((idx) => [idx.name, idx]) || [])
+      const currentIndexes = new Map<string, DatabaseIndex>()
+      for (const index of currentTable.indexes ?? []) {
+        currentIndexes.set(index.name, index)
+      }
 
       // Extract target indexes from schema AST
       const targetIndexes = this.extractIndexesFromModel(targetModel)
       const targetIndexesMap = new Map(targetIndexes.map((idx) => [idx.name, idx]))
 
       // Find indexes to drop (exist in current but not in target)
-      for (const [idxName, currentIdx] of currentIndexes) {
+      for (const [idxName] of currentIndexes) {
         if (!targetIndexesMap.has(String(idxName))) {
           result.hasChanges = true
           result.indexesDropped.push(String(idxName))
@@ -3225,9 +3299,10 @@ export class OrkMigrate {
               targetIdx.columns,
               targetIdx.unique,
               true, // ifNotExists
+              dialect,
             ),
           )
-        } else if (!this.areIndexesEqual(currentIdx as any, targetIdx)) {
+        } else if (!this.areIndexesEqual(currentIdx, targetIdx)) {
           // Index exists but is different - drop and recreate
           result.hasChanges = true
           result.indexesDropped.push(String(idxName))
@@ -3240,6 +3315,7 @@ export class OrkMigrate {
               targetIdx.columns,
               targetIdx.unique,
               true, // ifNotExists
+              dialect,
             ),
           )
         }
@@ -3388,7 +3464,7 @@ export class OrkMigrate {
   /**
    * Extract default value from a field AST
    */
-  private extractDefaultValueFromField(field: FieldAST): any {
+  private extractDefaultValueFromField(field: FieldAST): unknown {
     const defaultAttr = field.attributes?.find((attr: AttributeAST) => attr.name === 'default')
     if (!defaultAttr?.args?.[0]) {
       return null
@@ -3401,7 +3477,7 @@ export class OrkMigrate {
   /**
    * Normalize default value for comparison
    */
-  private normalizeDefaultValue(value: any): string | null {
+  private normalizeDefaultValue(value: unknown): string | null {
     if (value === null || value === undefined) {
       return null
     }
@@ -3451,7 +3527,7 @@ export class OrkMigrate {
   /**
    * Format default value for SQL statement
    */
-  private formatDefaultValueForSQL(value: any): string {
+  private formatDefaultValueForSQL(value: unknown): string {
     if (value === null || value === undefined) {
       return 'NULL'
     }
@@ -3515,7 +3591,7 @@ export class OrkMigrate {
       const targetEnums = new Map(targetSchema.enums.map((enumType) => [enumType.name, enumType]))
 
       // Find enums to drop (exist in current but not in target)
-      for (const [enumName, currentEnum] of currentEnums) {
+      for (const [enumName] of currentEnums) {
         if (!targetEnums.has(enumName)) {
           result.hasChanges = true
           result.enumsDropped.push(enumName)

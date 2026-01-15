@@ -1,4 +1,26 @@
+import type {
+  AttributeArgumentAST,
+  AttributeAST,
+  EnumAST,
+  EnumValueAST,
+  FieldAST,
+  ModelAST,
+  SchemaAST,
+  Span,
+} from '@ork/schema-parser'
 import { vi } from 'vitest'
+
+import type {
+  AlterTableBuilderLike,
+  AnyKyselyDatabase,
+  AnyKyselyTransaction,
+  ColumnBuilderLike,
+  CreateIndexBuilderLike,
+  CreateTableBuilderLike,
+  DeleteQueryBuilderLike,
+  InsertQueryBuilderLike,
+  SelectQueryBuilderLike,
+} from '../../types.js'
 
 /**
  * Comprehensive Kysely mock factory using real Kysely structure
@@ -6,108 +28,102 @@ import { vi } from 'vitest'
  */
 export class KyselyMockFactory {
   // Static property to control current mock instance for importOriginal pattern
-  static currentMockInstance: any = null
+  static currentMockInstance: AnyKyselyDatabase | null = null
   /**
    * Create a full Kysely instance mock with all necessary methods
    * This method creates a mock that maintains Kysely's fluent API structure
    */
-  static createKyselyMock(options: {
-    /** Tables returned by introspection */
-    tables?: Array<{
-      name: string
-      columns?: Array<{
+  static createKyselyMock(
+    options: {
+      /** Tables returned by introspection */
+      tables?: Array<{
         name: string
-        dataType: string
-        isNullable: boolean
-        hasDefaultValue?: boolean
-        isAutoIncrementing?: boolean
-        comment?: string
+        columns?: Array<{
+          name: string
+          dataType: string
+          isNullable: boolean
+          hasDefaultValue?: boolean
+          isAutoIncrementing?: boolean
+          comment?: string
+        }>
+        schema?: string
+        isView?: boolean
       }>
-      schema?: string
-      isView?: boolean
-    }>
-    /** Whether introspection should fail */
-    introspectionShouldFail?: boolean
-    /** Error to throw on introspection failure */
-    introspectionError?: Error
-  } = {}): any {
-    const { 
-      tables = [], 
-      introspectionShouldFail = false, 
-      introspectionError = new Error('Database error') 
-    } = options
+      /** Whether introspection should fail */
+      introspectionShouldFail?: boolean
+      /** Error to throw on introspection failure */
+      introspectionError?: Error
+    } = {},
+  ): AnyKyselyDatabase {
+    const { tables = [], introspectionShouldFail = false, introspectionError = new Error('Database error') } = options
 
     // Create chainable query builder
-    const createChainableQuery = () => {
-      const chainableQuery = {
-        selectAll: vi.fn(() => chainableQuery),
-        orderBy: vi.fn(() => chainableQuery),
-        where: vi.fn(() => chainableQuery),
+    const createChainableQuery = (): SelectQueryBuilderLike => {
+      const chainableQuery: SelectQueryBuilderLike = {
+        selectAll: () => chainableQuery,
+        orderBy: () => chainableQuery,
+        where: () => chainableQuery,
         execute: vi.fn().mockResolvedValue([]),
       }
       return chainableQuery
     }
 
-    // Create chainable table builder for CREATE TABLE operations
-    const createTableBuilder = (tableName: string) => {
-      const tableBuilder = {
-        addColumn: vi.fn((name: string, type: string, callback?: any) => {
-          const columnBuilder = {
-            notNull: vi.fn(() => columnBuilder),
-            primaryKey: vi.fn(() => columnBuilder),
-            defaultTo: vi.fn(() => columnBuilder),
-          }
-          if (callback) callback(columnBuilder)
+    const createColumnBuilder = (): ColumnBuilderLike => {
+      const columnBuilder: ColumnBuilderLike = {
+        notNull: () => columnBuilder,
+        primaryKey: () => columnBuilder,
+        defaultTo: () => columnBuilder,
+        setDataType: () => columnBuilder,
+        setNotNull: () => columnBuilder,
+        dropNotNull: () => columnBuilder,
+      }
+      return columnBuilder
+    }
+
+    const createTableBuilder = (tableName: string): CreateTableBuilderLike => {
+      const tableBuilder: CreateTableBuilderLike = {
+        addColumn: (_name, _type, callback) => {
+          if (callback) callback(createColumnBuilder())
           return tableBuilder
-        }),
-        compile: vi.fn(() => ({ sql: `CREATE TABLE "${tableName}" (...)` })),
+        },
+        addForeignKeyConstraint: () => tableBuilder,
+        compile: () => ({ sql: `CREATE TABLE "${tableName}" (...)` }),
         execute: vi.fn().mockResolvedValue({}),
       }
       return tableBuilder
     }
 
     // Create ALTER TABLE builder
-    const createAlterTableBuilder = (tableName: string) => ({
-      addColumn: vi.fn((name: string, type: string, callback?: any) => {
-        const columnBuilder = {
-          notNull: vi.fn(() => columnBuilder),
-          defaultTo: vi.fn(() => columnBuilder),
-        }
-        if (callback) callback(columnBuilder)
-        return {
-          compile: vi.fn(() => ({ sql: `ALTER TABLE "${tableName}" ADD COLUMN ${name} ${type}` })),
-          execute: vi.fn().mockResolvedValue({}),
-        }
-      }),
-      dropColumn: vi.fn((name: string) => ({
-        compile: vi.fn(() => ({ sql: `ALTER TABLE "${tableName}" DROP COLUMN ${name}` })),
-        execute: vi.fn().mockResolvedValue({})
-      })),
-      alterColumn: vi.fn((name: string, callback?: any) => {
-        const columnBuilder = {
-          setDataType: vi.fn(() => columnBuilder),
-          setNotNull: vi.fn(() => columnBuilder),
-          dropNotNull: vi.fn(() => columnBuilder),
-        }
-        if (callback) callback(columnBuilder)
-        return {
-          compile: vi.fn(() => ({ sql: `ALTER TABLE "${tableName}" ALTER COLUMN ${name}` })),
-          execute: vi.fn().mockResolvedValue({}),
-        }
-      }),
-    })
+    const createAlterTableBuilder = (tableName: string): AlterTableBuilderLike => {
+      const alterBuilder: AlterTableBuilderLike = {
+        addColumn: (_name, _type, callback) => {
+          if (callback) callback(createColumnBuilder())
+          return alterBuilder
+        },
+        dropColumn: () => alterBuilder,
+        alterColumn: (_name, callback) => {
+          callback(createColumnBuilder())
+          return alterBuilder
+        },
+        compile: () => ({ sql: `ALTER TABLE "${tableName}" ...` }),
+        execute: vi.fn().mockResolvedValue({}),
+      }
+      return alterBuilder
+    }
 
     // Create the main mock object
-    const mock = {
+    const mock: AnyKyselyDatabase = {
       introspection: {
-        getTables: introspectionShouldFail 
+        getTables: introspectionShouldFail
           ? vi.fn().mockRejectedValue(introspectionError)
-          : vi.fn().mockResolvedValue(tables.map(table => ({
-              name: table.name,
-              columns: table.columns || [],
-              schema: table.schema,
-              isView: table.isView || false,
-            }))),
+          : vi.fn().mockResolvedValue(
+              tables.map((table) => ({
+                name: table.name,
+                columns: table.columns || [],
+                schema: table.schema,
+                isView: table.isView || false,
+              })),
+            ),
         getColumns: vi.fn().mockResolvedValue([]),
       },
       schema: {
@@ -117,37 +133,44 @@ export class KyselyMockFactory {
           compile: vi.fn(() => ({ sql: `DROP TABLE "${tableName}"` })),
           execute: vi.fn().mockResolvedValue({}),
         })),
-        createIndex: vi.fn((indexName: string) => ({
-          on: vi.fn(() => ({
-            column: vi.fn(() => ({
-              compile: vi.fn(() => ({ sql: `CREATE INDEX "${indexName}" ...` })),
-              execute: vi.fn().mockResolvedValue({}),
+        createIndex: vi.fn(
+          (indexName: string): CreateIndexBuilderLike => ({
+            on: vi.fn(() => ({
+              column: vi.fn(() => ({
+                compile: vi.fn(() => ({ sql: `CREATE INDEX "${indexName}" ...` })),
+                execute: vi.fn().mockResolvedValue({}),
+              })),
             })),
-          })),
-        })),
+          }),
+        ),
         dropIndex: vi.fn((name: string) => ({
           compile: vi.fn(() => ({ sql: `DROP INDEX "${name}"` })),
           execute: vi.fn().mockResolvedValue({}),
         })),
       },
       selectFrom: vi.fn(() => createChainableQuery()),
-      insertInto: vi.fn(() => ({
-        values: vi.fn(() => ({
-          execute: vi.fn().mockResolvedValue({}),
-        })),
-      })),
-      deleteFrom: vi.fn(() => ({
-        where: vi.fn(() => ({
-          where: vi.fn(() => ({
+      insertInto: vi.fn(
+        (): InsertQueryBuilderLike => ({
+          values: () => ({
             execute: vi.fn().mockResolvedValue({}),
-          })),
+          }),
+        }),
+      ),
+      deleteFrom: vi.fn(
+        (): DeleteQueryBuilderLike => ({
+          where: () => ({
+            where: () => ({
+              execute: vi.fn().mockResolvedValue({}),
+            }),
+            execute: vi.fn().mockResolvedValue({}),
+          }),
           execute: vi.fn().mockResolvedValue({}),
-        })),
-      })),
+        }),
+      ),
       transaction: vi.fn(() => ({
         execute: vi.fn((callback) => {
           // Create a transaction mock that passes itself to the callback
-          const trxMock = {
+          const trxMock: AnyKyselyTransaction = {
             ...mock,
             executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
           }
@@ -155,9 +178,6 @@ export class KyselyMockFactory {
         }),
       })),
       executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
-      raw: vi.fn(() => ({
-        compile: vi.fn(() => ({ sql: 'RAW SQL' })),
-      })),
     }
 
     return mock
@@ -174,8 +194,8 @@ export class KyselyMockFactory {
    * Create an empty database mock using the spy wrapper approach
    */
   static createEmptyDatabaseSpyMock() {
-    return this.createKyselySpyWrapper({ 
-      introspectionResults: [] 
+    return this.createKyselySpyWrapper({
+      introspectionResults: [],
     })
   }
 
@@ -211,9 +231,9 @@ export class KyselyMockFactory {
    * Create a mock for database error scenarios
    */
   static createDatabaseErrorMock(error = new Error('Database error')) {
-    return this.createKyselyMock({ 
-      introspectionShouldFail: true, 
-      introspectionError: error 
+    return this.createKyselyMock({
+      introspectionShouldFail: true,
+      introspectionError: error,
     })
   }
 
@@ -221,9 +241,9 @@ export class KyselyMockFactory {
    * Create a database error mock using the spy wrapper approach
    */
   static createDatabaseErrorSpyMock(error = new Error('Database error')) {
-    return this.createKyselySpyWrapper({ 
-      shouldFail: true, 
-      error 
+    return this.createKyselySpyWrapper({
+      shouldFail: true,
+      error,
     })
   }
 
@@ -249,42 +269,42 @@ export class KyselyMockFactory {
    * Create a Kysely spy wrapper using the real Kysely instance structure
    * This maintains perfect type compatibility while allowing controllable behavior
    */
-  static createKyselySpyWrapper(options: {
-    /** Mock execution results */
-    queryResults?: any[]
-    /** Mock introspection results */
-    introspectionResults?: any
-    /** Whether operations should fail */
-    shouldFail?: boolean
-    /** Error to throw on failure */
-    error?: Error
-  } = {}) {
-    const { 
-      queryResults = [], 
-      introspectionResults = [], 
-      shouldFail = false, 
-      error = new Error('Mock error') 
+  static createKyselySpyWrapper(
+    options: {
+      /** Mock execution results */
+      queryResults?: unknown[]
+      /** Mock introspection results */
+      introspectionResults?: unknown[]
+      /** Whether operations should fail */
+      shouldFail?: boolean
+      /** Error to throw on failure */
+      error?: Error
+    } = {},
+  ): AnyKyselyDatabase {
+    const {
+      queryResults = [],
+      introspectionResults = [],
+      shouldFail = false,
+      error = new Error('Mock error'),
     } = options
 
     // Create a proxy that maintains Kysely's fluent API behavior
-    const createFluentProxy = (baseMethods: Record<string, any> = {}): any => {
+    const createFluentProxy = <T extends Record<string, unknown>>(baseMethods: T): T => {
       return new Proxy(baseMethods, {
         get(target, prop: string | symbol) {
-          if (typeof prop === 'symbol') return (target as any)[prop]
-          
+          if (typeof prop === 'symbol') return Reflect.get(target, prop)
+
           // If the method exists in our base methods, use it
           if (prop in target) {
-            return target[prop]
+            return Reflect.get(target, prop)
           }
 
           // For unknown methods, create a chainable spy that returns the proxy itself
           const spy = vi.fn()
-          
+
           // Determine what this method should return
           if (prop === 'execute' || prop === 'executeQuery') {
-            spy.mockImplementation(() => 
-              shouldFail ? Promise.reject(error) : Promise.resolve(queryResults)
-            )
+            spy.mockImplementation(() => (shouldFail ? Promise.reject(error) : Promise.resolve(queryResults)))
           } else if (prop === 'compile') {
             spy.mockReturnValue({ sql: 'MOCK SQL', parameters: [] })
           } else {
@@ -292,31 +312,30 @@ export class KyselyMockFactory {
             spy.mockReturnValue(createFluentProxy())
           }
 
-          target[prop] = spy
+          const mutableTarget = target as Record<string, unknown>
+          mutableTarget[prop] = spy
           return spy
-        }
-      })
+        },
+      }) as T
     }
 
     // Create the main Kysely-like mock object
-    const baseMethods = {
+    const baseMethods: AnyKyselyDatabase = {
       // Schema operations
       schema: createFluentProxy({
-        createTable: vi.fn(() => createFluentProxy()),
-        alterTable: vi.fn(() => createFluentProxy()),
-        dropTable: vi.fn(() => createFluentProxy()),
-        createIndex: vi.fn(() => createFluentProxy()),
-        dropIndex: vi.fn(() => createFluentProxy()),
+        createTable: vi.fn(() => createFluentProxy({})),
+        alterTable: vi.fn(() => createFluentProxy({})),
+        dropTable: vi.fn(() => createFluentProxy({})),
+        createIndex: vi.fn(() => createFluentProxy({})),
+        dropIndex: vi.fn(() => createFluentProxy({})),
       }),
 
       // Query operations
-      selectFrom: vi.fn(() => createFluentProxy()),
-      insertInto: vi.fn(() => createFluentProxy()),
-      updateTable: vi.fn(() => createFluentProxy()),
-      deleteFrom: vi.fn(() => createFluentProxy()),
-      
+      selectFrom: vi.fn(() => createFluentProxy({})),
+      insertInto: vi.fn(() => createFluentProxy({})),
+      deleteFrom: vi.fn(() => createFluentProxy({})),
+
       // Raw and transaction operations
-      raw: vi.fn(() => createFluentProxy()),
       transaction: vi.fn((callback) => {
         const trxProxy = createFluentProxy({ ...baseMethods })
         return callback ? callback(trxProxy) : trxProxy
@@ -324,20 +343,14 @@ export class KyselyMockFactory {
 
       // Introspection
       introspection: {
-        getTables: shouldFail 
-          ? vi.fn().mockRejectedValue(error)
-          : vi.fn().mockResolvedValue(introspectionResults),
+        getTables: shouldFail ? vi.fn().mockRejectedValue(error) : vi.fn().mockResolvedValue(introspectionResults),
         getColumns: vi.fn().mockResolvedValue([]),
         getIndexes: vi.fn().mockResolvedValue([]),
       },
 
       // Execution methods
-      executeQuery: shouldFail 
-        ? vi.fn().mockRejectedValue(error) 
-        : vi.fn().mockResolvedValue({ rows: queryResults }),
-      execute: shouldFail 
-        ? vi.fn().mockRejectedValue(error) 
-        : vi.fn().mockResolvedValue(queryResults),
+      executeQuery: shouldFail ? vi.fn().mockRejectedValue(error) : vi.fn().mockResolvedValue({ rows: queryResults }),
+      execute: shouldFail ? vi.fn().mockRejectedValue(error) : vi.fn().mockResolvedValue(queryResults),
     }
 
     return createFluentProxy(baseMethods)
@@ -346,7 +359,7 @@ export class KyselyMockFactory {
   /**
    * Set the current mock instance for importOriginal pattern
    */
-  static setCurrentMockInstance(mockInstance: any) {
+  static setCurrentMockInstance(mockInstance: AnyKyselyDatabase) {
     this.currentMockInstance = mockInstance
   }
 
@@ -360,14 +373,15 @@ export class KyselyMockFactory {
   /**
    * Reset all mocks to their initial state
    */
-  static resetAllMocks(mockInstance: any) {
+  static resetAllMocks(mockInstance: Record<string, unknown>) {
     // Reset all vi.fn() calls recursively
-    const resetMockRecursively = (obj: any) => {
+    const resetMockRecursively = (obj: Record<string, unknown>) => {
       for (const key in obj) {
-        if (typeof obj[key] === 'function' && obj[key]._isMockFunction) {
-          obj[key].mockReset()
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          resetMockRecursively(obj[key])
+        const value = obj[key]
+        if (typeof value === 'function' && '_isMockFunction' in value) {
+          value.mockReset()
+        } else if (typeof value === 'object' && value !== null) {
+          resetMockRecursively(value as Record<string, unknown>)
         }
       }
     }
@@ -379,50 +393,99 @@ export class KyselyMockFactory {
  * Schema AST mock factory to eliminate duplication
  */
 export class SchemaASTMockFactory {
+  private static readonly emptySpan: Span = {
+    start: { line: 0, column: 0, offset: 0 },
+    end: { line: 0, column: 0, offset: 0 },
+  }
+
   /**
    * Create a basic schema AST mock
    */
-  static createBasicSchema(options: {
-    models?: Array<{
-      name: string
-      fields: Array<{
+  static createBasicSchema(
+    options: {
+      models?: Array<{
         name: string
-        type: string
-        isOptional?: boolean
-        attributes?: Array<{ name: string; args?: any[] }>
+        fields: Array<{
+          name: string
+          type: string
+          isOptional?: boolean
+          attributes?: Array<{ name: string; args?: Array<{ name?: string; value: AttributeArgumentAST['value'] }> }>
+        }>
       }>
-    }>
-    enums?: Array<{
-      name: string
-      values: Array<{ name: string; attributes?: any[] }>
-    }>
-  } = {}) {
+      enums?: Array<{
+        name: string
+        values: Array<{
+          name: string
+          attributes?: Array<{ name: string; args?: Array<{ name?: string; value: AttributeArgumentAST['value'] }> }>
+        }>
+      }>
+    } = {},
+  ) {
     const { models = [], enums = [] } = options
+
+    const buildAttributes = (
+      attributes: Array<{ name: string; args?: Array<{ name?: string; value: AttributeArgumentAST['value'] }> }>,
+    ): AttributeAST[] =>
+      attributes.map((attr) => ({
+        type: 'Attribute',
+        span: SchemaASTMockFactory.emptySpan,
+        name: attr.name,
+        args: (attr.args || []).map((arg) => ({
+          type: 'AttributeArgument',
+          span: SchemaASTMockFactory.emptySpan,
+          name: arg.name,
+          value: arg.value,
+        })),
+      }))
+
+    const modelsAst: ModelAST[] = models.map((model) => ({
+      type: 'Model',
+      span: SchemaASTMockFactory.emptySpan,
+      name: model.name,
+      fields: model.fields.map((field) => {
+        const isList = field.type.endsWith('[]')
+        const fieldType = isList ? field.type.slice(0, -2) : field.type
+        return {
+          type: 'Field',
+          span: SchemaASTMockFactory.emptySpan,
+          name: field.name,
+          fieldType,
+          isOptional: field.isOptional || false,
+          isList,
+          attributes: buildAttributes(field.attributes || []),
+        } satisfies FieldAST
+      }),
+      attributes: [],
+    }))
+
+    const enumsAst: EnumAST[] = enums.map((enumDef) => ({
+      type: 'Enum',
+      span: SchemaASTMockFactory.emptySpan,
+      name: enumDef.name,
+      values: enumDef.values.map(
+        (value): EnumValueAST => ({
+          type: 'EnumValue',
+          span: SchemaASTMockFactory.emptySpan,
+          name: value.name,
+          attributes: buildAttributes(value.attributes || []),
+        }),
+      ),
+    }))
+
+    const schemaAst: SchemaAST = {
+      type: 'Schema',
+      span: SchemaASTMockFactory.emptySpan,
+      datasources: [],
+      generators: [],
+      models: modelsAst,
+      types: [],
+      views: [],
+      enums: enumsAst,
+    }
 
     return {
       errors: [],
-      ast: {
-        type: 'Schema',
-        datasources: [],
-        models: models.map(model => ({
-          type: 'Model',
-          name: model.name,
-          fields: model.fields.map(field => ({
-            type: 'Field',
-            name: field.name,
-            fieldType: field.type,
-            isOptional: field.isOptional || false,
-            isList: field.type.endsWith('[]'),
-            attributes: field.attributes || [],
-          })),
-          attributes: [],
-        })),
-        enums: enums.map(enumDef => ({
-          type: 'Enum',
-          name: enumDef.name,
-          values: enumDef.values,
-        })),
-      },
+      ast: schemaAst,
     }
   }
 
@@ -455,12 +518,12 @@ export class SchemaASTMockFactory {
 // Mock Kysely using importOriginal to maintain real structure with controllable behavior
 vi.mock('kysely', async (importOriginal: () => Promise<typeof import('kysely')>) => {
   const original = await importOriginal()
-  
+
   return {
     ...original,
     Kysely: vi.fn().mockImplementation(() => {
       // Return the current mock instance set by factory methods
       return KyselyMockFactory.currentMockInstance || KyselyMockFactory.createEmptyDatabaseSpyMock()
-    })
+    }),
   }
 })

@@ -1,5 +1,3 @@
-import type { Kysely, Transaction } from 'kysely'
-
 /**
  * Options for configuring migration operations
  */
@@ -273,7 +271,7 @@ export interface MigrationLoggingConfig {
   /** Whether to log progress updates */
   logProgress: boolean
   /** Custom logger function */
-  customLogger?: (level: string, message: string, metadata?: any) => void
+  customLogger?: (level: string, message: string, metadata?: unknown) => void
 }
 
 /** Migration preview result */
@@ -345,7 +343,7 @@ export interface DatabaseColumn {
   /** Whether the column is nullable */
   nullable: boolean
   /** Default value */
-  defaultValue?: any
+  defaultValue?: unknown
   /** Whether the column is auto-incrementing */
   autoIncrement?: boolean
   /** Column comment */
@@ -417,9 +415,106 @@ export interface DatabaseEnum {
 /**
  * Generic Kysely database interface
  */
-export type AnyKyselyDatabase = Kysely<any>
+export interface CompiledQueryLike {
+  sql: string
+  parameters?: readonly unknown[]
+}
 
-/**
- * Transaction type for any Kysely database
- */
-export type AnyKyselyTransaction = Transaction<any>
+export type DefaultValue = string | number | boolean | Date | { sql: string } | { toOperationNode?: () => unknown }
+
+export interface ColumnBuilderLike {
+  notNull(): ColumnBuilderLike
+  primaryKey(): ColumnBuilderLike
+  defaultTo(value: DefaultValue): ColumnBuilderLike
+  setDataType(type: string): ColumnBuilderLike
+  setNotNull(): ColumnBuilderLike
+  dropNotNull(): ColumnBuilderLike
+}
+
+export interface ForeignKeyConstraintBuilderLike {
+  onDelete(action: 'no action' | 'restrict' | 'cascade' | 'set null' | 'set default'): ForeignKeyConstraintBuilderLike
+  onUpdate(action: 'no action' | 'restrict' | 'cascade' | 'set null' | 'set default'): ForeignKeyConstraintBuilderLike
+}
+
+export interface CreateTableBuilderLike {
+  addColumn(name: string, type: string, callback?: (column: ColumnBuilderLike) => ColumnBuilderLike | void): this
+  addForeignKeyConstraint(
+    name: string,
+    columns: string[],
+    referencedTable: string,
+    referencedColumns: string[],
+    callback?: (constraint: ForeignKeyConstraintBuilderLike) => ForeignKeyConstraintBuilderLike | void,
+  ): this
+  compile(): CompiledQueryLike
+  execute(): Promise<unknown>
+}
+
+export interface AlterTableBuilderLike {
+  addColumn(name: string, type: string, callback?: (column: ColumnBuilderLike) => ColumnBuilderLike | void): this
+  dropColumn(name: string): this
+  alterColumn(name: string, callback: (column: ColumnBuilderLike) => ColumnBuilderLike | void): this
+  compile(): CompiledQueryLike
+  execute(): Promise<unknown>
+}
+
+export interface IndexColumnBuilderLike {
+  column(name: string): { compile(): CompiledQueryLike; execute(): Promise<unknown> }
+}
+
+export interface CreateIndexBuilderLike {
+  on(tableName: string): IndexColumnBuilderLike
+}
+
+export interface DeleteQueryBuilderLike {
+  where(column: string, operator: string, value: string | number | boolean | Date): DeleteQueryBuilderLike
+  execute(): Promise<unknown>
+}
+
+export interface InsertQueryBuilderLike {
+  values(values: Record<string, unknown>): { execute(): Promise<unknown> }
+}
+
+export interface SelectQueryBuilderLike {
+  selectAll(): SelectQueryBuilderLike
+  orderBy(column: string, direction?: 'asc' | 'desc'): SelectQueryBuilderLike
+  where(column: string, operator: string, value: string | number | boolean | Date): SelectQueryBuilderLike
+  execute(): Promise<unknown[]>
+}
+
+export interface KyselyIntrospectionTable {
+  name: string
+  schema?: string
+  isView?: boolean
+  columns: Array<{
+    name: string
+    dataType: string
+    isNullable: boolean
+    hasDefaultValue?: boolean
+    isAutoIncrementing?: boolean
+    comment?: string
+  }>
+}
+
+export interface KyselyIntrospectionLike {
+  getTables(): Promise<KyselyIntrospectionTable[]>
+}
+
+export interface AnyKyselyDatabase {
+  schema: {
+    createTable(tableName: string): CreateTableBuilderLike
+    alterTable(tableName: string): AlterTableBuilderLike
+    dropTable(tableName: string): { compile(): CompiledQueryLike; execute(): Promise<unknown> }
+    createIndex(indexName: string): CreateIndexBuilderLike
+    dropIndex(indexName: string): { compile(): CompiledQueryLike; execute(): Promise<unknown> }
+  }
+  introspection: KyselyIntrospectionLike
+  selectFrom(tableName: string): SelectQueryBuilderLike
+  insertInto(tableName: string): InsertQueryBuilderLike
+  deleteFrom(tableName: string): DeleteQueryBuilderLike
+  transaction(): { execute<T>(callback: (trx: AnyKyselyTransaction) => Promise<T>): Promise<T> }
+  executeQuery(query: CompiledQueryLike): Promise<{ rows: unknown[] }>
+}
+
+export interface AnyKyselyTransaction {
+  executeQuery(query: CompiledQueryLike): Promise<{ rows: unknown[] }>
+}
