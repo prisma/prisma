@@ -61,6 +61,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
       },
       importName: './query_compiler_fast_bg.js',
     },
+    parameterizationSchema: { s: [], e: [], i: [], o: [], r: {} },
   }
 
   return getPrismaClient(options)
