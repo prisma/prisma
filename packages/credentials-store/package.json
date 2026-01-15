@@ -27,8 +27,7 @@
     "xdg-app-paths": "8.3.0"
   },
   "devDependencies": {
-    "tempy": "1.0.1",
-    "vitest": "3.2.4"
+    "tempy": "1.0.1"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
