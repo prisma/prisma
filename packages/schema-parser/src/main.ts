@@ -63,6 +63,8 @@ export function parseSchema(input: string | string[]): ParseResult {
         datasources: [],
         generators: [],
         models: [],
+        types: [],
+        views: [],
         enums: [],
       },
       errors: [

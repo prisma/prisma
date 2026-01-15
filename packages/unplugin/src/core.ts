@@ -9,7 +9,7 @@ import path, { resolve } from 'node:path'
 
 import { ClientGenerator } from '@ork/client'
 import { type ConfigLoadResult, getDefaultOutputDir, loadOrkConfig, type OrkConfig } from '@ork/config'
-import { type DatabaseDialect, detectDialect } from '@ork/field-translator'
+import { type DatabaseDialect, detectDialect, type OrkConfig as FieldTranslatorConfig } from '@ork/field-translator'
 import { OrkMigrate } from '@ork/migrate'
 import { parseSchema } from '@ork/schema-parser'
 import { watch } from 'chokidar'
@@ -359,9 +359,18 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
       const dialect = await detectDatabaseDialect()
 
       // Create client generator
+      const generatorConfig = orkConfig
+        ? ({
+            database: {
+              provider: orkConfig.config.datasource.provider,
+              url: orkConfig.config.datasource.url,
+            },
+          } satisfies FieldTranslatorConfig)
+        : undefined
+
       const generator = new ClientGenerator(parseResult.ast, {
         dialect,
-        config: orkConfig?.config,
+        config: generatorConfig,
         includeTypes: true,
         includeJSDoc: true,
         esModules: true,

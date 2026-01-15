@@ -2,7 +2,7 @@
  * Chevrotain-based Prisma Schema Language Lexer
  */
 
-import { createToken, IToken, Lexer as ChevrotainLexer } from 'chevrotain'
+import { createToken, type ILexingError, IToken, Lexer as ChevrotainLexer } from 'chevrotain'
 
 // Identifiers and literals - declare first for reference
 export const Identifier = createToken({ name: 'Identifier', pattern: /[a-zA-Z_][a-zA-Z0-9_]*/ })
@@ -107,7 +107,7 @@ export type { IToken }
 /**
  * Tokenize a Prisma schema string
  */
-export function tokenizeSchema(text: string): { tokens: IToken[]; errors: any[] } {
+export function tokenizeSchema(text: string): { tokens: IToken[]; errors: ILexingError[] } {
   const lexingResult = SchemaLexer.tokenize(text)
 
   return {

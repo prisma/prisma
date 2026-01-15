@@ -4,6 +4,8 @@
 
 import type { CodeGenOptions, EnumAST, FieldAST, FieldType, ModelAST, SchemaAST } from './types.js'
 
+type ModelLike = Pick<ModelAST, 'name' | 'fields'>
+
 export interface GeneratedCode {
   typescript: string
   interfaces: string
@@ -43,6 +45,18 @@ export class CodeGenerator {
       lines.push('')
     }
 
+    // Generate composite type interfaces
+    for (const typeDef of ast.types) {
+      lines.push(...this.generateModelInterface(typeDef))
+      lines.push('')
+    }
+
+    // Generate view interfaces
+    for (const viewDef of ast.views) {
+      lines.push(...this.generateModelInterface(viewDef))
+      lines.push('')
+    }
+
     return lines.join('\n')
   }
 
@@ -63,7 +77,7 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  private generateModelInterface(model: ModelAST): string[] {
+  private generateModelInterface(model: ModelLike): string[] {
     const lines: string[] = []
 
     if (this.options.includeComments) {

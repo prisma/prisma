@@ -23,6 +23,8 @@ export interface SchemaAST extends ASTNode {
   datasources: DataSourceAST[]
   generators: GeneratorAST[]
   models: ModelAST[]
+  types: TypeAST[]
+  views: ViewAST[]
   enums: EnumAST[]
 }
 
@@ -42,6 +44,20 @@ export interface GeneratorAST extends ASTNode {
 
 export interface ModelAST extends ASTNode {
   type: 'Model'
+  name: string
+  fields: FieldAST[]
+  attributes: AttributeAST[]
+}
+
+export interface TypeAST extends ASTNode {
+  type: 'Type'
+  name: string
+  fields: FieldAST[]
+  attributes: AttributeAST[]
+}
+
+export interface ViewAST extends ASTNode {
+  type: 'View'
   name: string
   fields: FieldAST[]
   attributes: AttributeAST[]
@@ -77,20 +93,14 @@ export interface AttributeAST extends ASTNode {
 export interface AttributeArgumentAST extends ASTNode {
   type: 'AttributeArgument'
   name?: string
-  value: string | number | boolean | string[] // Support array values for @relation
+  value: AttributeValue
 }
 
-export type FieldType =
-  | 'String'
-  | 'Int'
-  | 'Float'
-  | 'Boolean'
-  | 'DateTime'
-  | 'Json'
-  | 'Bytes'
-  | 'BigInt'
-  | 'Decimal'
-  | string // Custom types/models
+export type AttributeValue = string | number | boolean | Array<string | number | boolean>
+
+export type ScalarType = 'String' | 'Int' | 'Float' | 'Boolean' | 'DateTime' | 'Json' | 'Bytes' | 'BigInt' | 'Decimal'
+
+export type FieldType = ScalarType | (string & {}) // Custom types/models
 
 export interface CodeGenOptions {
   target: 'typescript'

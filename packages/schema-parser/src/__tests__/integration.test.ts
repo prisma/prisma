@@ -251,6 +251,30 @@ describe('Schema Parser Integration Tests', () => {
       // Check model uses enum type
       expect(code.interfaces).toContain('status: UserStatus')
     })
+
+    test('should generate interfaces for types and views', () => {
+      const schema = `
+        type Address {
+          street String
+          city   String
+        }
+
+        view ActiveUser {
+          id   Int
+          name String
+        }
+      `
+
+      const parseResult = parseSchema(schema)
+      expect(parseResult.errors).toHaveLength(0)
+
+      const generator = new CodeGenerator({ target: 'typescript' })
+      const code = generator.generateCode(parseResult.ast)
+
+      expect(code.interfaces).toContain('export interface Address {')
+      expect(code.interfaces).toContain('street: string')
+      expect(code.interfaces).toContain('export interface ActiveUser {')
+    })
   })
 
   describe('Schema Configuration', () => {
@@ -286,6 +310,58 @@ describe('Schema Parser Integration Tests', () => {
       expect(datasource.name).toBe('db')
       expect(datasource.provider).toBe('postgresql')
       expect(datasource.url).toBe('env("DATABASE_URL")')
+    })
+
+    test('should accept array and boolean config values', () => {
+      const schema = `
+        generator client {
+          provider = "ork"
+          previewFeatures = ["fullTextIndex", "postgresqlExtensions"]
+          binaryTargets = ["native"]
+        }
+
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+          shadowDatabaseUrl = "postgresql://shadow"
+        }
+      `
+
+      const result = parseSchema(schema)
+
+      expect(result.errors).toHaveLength(0)
+      expect(result.ast.generators).toHaveLength(1)
+      expect(result.ast.datasources).toHaveLength(1)
+    })
+  })
+
+  describe('Composite Types and Views', () => {
+    test('should parse type and view declarations', () => {
+      const schema = `
+        type Address {
+          street String
+          city   String
+        }
+
+        view ActiveUser {
+          id   Int
+          name String
+        }
+
+        model User {
+          id      Int     @id
+          address Address?
+        }
+      `
+
+      const result = parseSchema(schema)
+
+      expect(result.errors).toHaveLength(0)
+      expect(result.ast.types).toHaveLength(1)
+      expect(result.ast.views).toHaveLength(1)
+      expect(result.ast.models).toHaveLength(1)
+      expect(result.ast.types[0].name).toBe('Address')
+      expect(result.ast.views[0].name).toBe('ActiveUser')
     })
   })
 
