@@ -2,17 +2,22 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
-import { QueryCompiler, QueryCompilerConstructor } from '@prisma/client-common'
-import { JsonQuery } from '@prisma/json-protocol'
+import { dmmfToRuntimeDataModel, type QueryCompiler, type QueryCompilerConstructor } from '@prisma/client-common'
+import { getDMMF } from '@prisma/client-generator-js'
+import type { JsonQuery } from '@prisma/json-protocol'
+import { buildParamGraph } from '@prisma/param-graph-builder'
 import Benchmark from 'benchmark'
 
-import { parameterizeQuery } from '../../../runtime/core/engines/client/parameterize'
+import { createParamGraphView, ParamGraphView } from '../../../runtime/core/engines/client/parameterization'
+import { parameterizeQuery } from '../../../runtime/core/engines/client/parameterization/parameterize'
 import { loadQueryCompiler } from './qc-loader'
 
-let QueryCompilerClass: QueryCompilerConstructor
+let QueryCompiler: QueryCompilerConstructor
 let queryCompiler: QueryCompiler
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
+
+let paramGraphView: ParamGraphView
 
 type Param = { $type: 'Param'; value: string }
 type Parameterizable<T> = T | Param
@@ -106,15 +111,20 @@ function createBlogPostPageQuery(id: Parameterizable<number>): JsonQuery {
 async function setup(): Promise<void> {
   const provider = 'sqlite'
 
-  QueryCompilerClass = await loadQueryCompiler(provider)
+  QueryCompiler = await loadQueryCompiler(provider)
 
-  queryCompiler = new QueryCompilerClass({
+  queryCompiler = new QueryCompiler({
     provider,
     connectionInfo: {
       supportsRelationJoins: false,
     },
     datamodel: BENCHMARK_DATAMODEL,
   })
+
+  const dmmf = await getDMMF({ datamodel: BENCHMARK_DATAMODEL })
+  const paramGraph = buildParamGraph(dmmf)
+  const runtimeDataModel = dmmfToRuntimeDataModel(dmmf.datamodel)
+  paramGraphView = createParamGraphView(paramGraph, runtimeDataModel)
 }
 
 function syncBench(fn: () => void): Benchmark.Options {
@@ -150,21 +160,21 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'parameterize findUnique',
     syncBench(() => {
-      parameterizeQuery(createFindUniqueQuery(1))
+      parameterizeQuery(createFindUniqueQuery(1), paramGraphView)
     }),
   )
 
   suite.add(
     'parameterize findMany',
     syncBench(() => {
-      parameterizeQuery(createFindManyQuery())
+      parameterizeQuery(createFindManyQuery(), paramGraphView)
     }),
   )
 
   suite.add(
     'parameterize blog post page query',
     syncBench(() => {
-      parameterizeQuery(createBlogPostPageQuery(1))
+      parameterizeQuery(createBlogPostPageQuery(1), paramGraphView)
     }),
   )
 
