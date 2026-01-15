@@ -56,6 +56,7 @@ function serialize(params: SimplifiedParams) {
       clientMethod: 'foo',
       errorFormat: 'colorless',
       clientVersion: '0.0.0',
+      wrapRawValues: true,
     }),
     null,
     2,

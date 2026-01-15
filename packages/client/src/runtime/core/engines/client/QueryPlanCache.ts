@@ -1,18 +1,8 @@
 import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime'
 
-interface SingleCacheEntry {
-  plan: QueryPlanNode
-  placeholderPaths: string[]
-}
-
-interface BatchCacheEntry {
-  response: BatchResponse
-  placeholderPaths: string[]
-}
-
 export class QueryPlanCache {
-  readonly #singleCache: Map<string, SingleCacheEntry>
-  readonly #batchCache: Map<string, BatchCacheEntry>
+  readonly #singleCache: Map<string, QueryPlanNode>
+  readonly #batchCache: Map<string, BatchResponse>
   readonly #maxSize: number
 
   constructor(maxSize = 1000) {
@@ -21,7 +11,7 @@ export class QueryPlanCache {
     this.#maxSize = maxSize
   }
 
-  getSingle(key: string): SingleCacheEntry | undefined {
+  getSingle(key: string): QueryPlanNode | undefined {
     const entry = this.#singleCache.get(key)
     if (entry) {
       // Move to end for LRU behavior
@@ -31,11 +21,11 @@ export class QueryPlanCache {
     return entry
   }
 
-  setSingle(key: string, entry: SingleCacheEntry): void {
+  setSingle(key: string, plan: QueryPlanNode): void {
     if (this.#singleCache.has(key)) {
       // Update existing entry (also moves to end for LRU)
       this.#singleCache.delete(key)
-      this.#singleCache.set(key, entry)
+      this.#singleCache.set(key, plan)
       return
     }
 
@@ -47,10 +37,10 @@ export class QueryPlanCache {
       }
     }
 
-    this.#singleCache.set(key, entry)
+    this.#singleCache.set(key, plan)
   }
 
-  getBatch(key: string): BatchCacheEntry | undefined {
+  getBatch(key: string): BatchResponse | undefined {
     const entry = this.#batchCache.get(key)
     if (entry) {
       // Move to end for LRU behavior
@@ -60,11 +50,11 @@ export class QueryPlanCache {
     return entry
   }
 
-  setBatch(key: string, entry: BatchCacheEntry): void {
+  setBatch(key: string, response: BatchResponse): void {
     if (this.#batchCache.has(key)) {
       // Update existing entry (also moves to end for LRU)
       this.#batchCache.delete(key)
-      this.#batchCache.set(key, entry)
+      this.#batchCache.set(key, response)
       return
     }
 
@@ -76,7 +66,7 @@ export class QueryPlanCache {
       }
     }
 
-    this.#batchCache.set(key, entry)
+    this.#batchCache.set(key, response)
   }
 
   clear(): void {
