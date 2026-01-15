@@ -209,6 +209,8 @@
     "@prisma/internals": "workspace:*",
     "@prisma/json-protocol": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@prisma/param-graph": "workspace:*",
+    "@prisma/param-graph-builder": "workspace:*",
     "@prisma/query-compiler-wasm": "7.3.0-18.parameterization-16130f2ab61c2f20c4820512e1573eca783338e6",
     "@prisma/query-plan-executor": "workspace:*",
     "@prisma/sqlcommenter": "workspace:*",
