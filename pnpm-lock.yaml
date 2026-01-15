@@ -759,6 +759,12 @@ importers:
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
+      '@prisma/param-graph':
+        specifier: workspace:*
+        version: link:../param-graph
+      '@prisma/param-graph-builder':
+        specifier: workspace:*
+        version: link:../param-graph-builder
       '@prisma/query-compiler-wasm':
         specifier: 7.4.0-11.8583547702bad6d8e7de7d9812f7ec5c22e1c509
         version: 7.4.0-11.8583547702bad6d8e7de7d9812f7ec5c22e1c509
@@ -936,6 +942,9 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
+      '@prisma/param-graph':
+        specifier: workspace:*
+        version: link:../param-graph
 
   packages/client-engine-runtime:
     dependencies:
@@ -1024,6 +1033,9 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
+      '@prisma/param-graph-builder':
+        specifier: workspace:*
+        version: link:../param-graph-builder
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -1101,6 +1113,9 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
+      '@prisma/param-graph-builder':
+        specifier: workspace:*
+        version: link:../param-graph-builder
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -1818,6 +1833,17 @@ importers:
       webpack:
         specifier: 5.92.1
         version: 5.92.1(@swc/core@1.11.5)(esbuild@0.25.5)
+
+  packages/param-graph: {}
+
+  packages/param-graph-builder:
+    dependencies:
+      '@prisma/dmmf':
+        specifier: workspace:*
+        version: link:../dmmf
+      '@prisma/param-graph':
+        specifier: workspace:*
+        version: link:../param-graph
 
   packages/query-plan-executor:
     devDependencies:
