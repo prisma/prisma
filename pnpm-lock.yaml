@@ -6,7 +6,7 @@ settings:
 
 overrides:
   form-data: '>=4.0.4'
-  hono: '>=4.11.4'
+  hono: ^4.11.4
   jws: '>=4.0.1'
   tar-fs: '>=2.1.4'
 
@@ -551,7 +551,7 @@ importers:
         specifier: 4.10.0
         version: 4.10.0
       hono:
-        specifier: '>=4.11.4'
+        specifier: ^4.11.4
         version: 4.11.4
       jest:
         specifier: 29.7.0
@@ -1822,7 +1822,7 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       hono:
-        specifier: '>=4.11.4'
+        specifier: ^4.11.4
         version: 4.11.4
       temporal-polyfill:
         specifier: 0.3.0
@@ -2791,18 +2791,18 @@ packages:
     resolution: {integrity: sha512-1k8/8OHf5VIymJEcJyVksFpT+AQ5euY0VA5hUkCnlKpD4mr8FSbvXaHblxeTTEr90OaqWzAkQaqD80qHZQKxBA==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
-      hono: '>=4.11.4'
+      hono: ^4.11.4
 
   '@hono/node-server@1.19.6':
     resolution: {integrity: sha512-Shz/KjlIeAhfiuE93NDKVdZ7HdBVLQAfdbaXEaoAVO3ic9ibRSLGIQGkcBbFyuLr+7/1D5ZCINM8B+6IvXeMtw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
-      hono: '>=4.11.4'
+      hono: ^4.11.4
 
   '@hono/zod-validator@0.7.2':
     resolution: {integrity: sha512-ub5eL/NeZ4eLZawu78JpW/J+dugDAYhwqUIdp9KYScI6PZECij4Hx4UsrthlEUutqDDhPwRI0MscUfNkvn/mqQ==}
     peerDependencies:
-      hono: '>=4.11.4'
+      hono: ^4.11.4
       zod: ^3.25.0 || ^4.0.0
 
   '@humanfs/core@0.19.1':
