@@ -146,6 +146,12 @@ export function safeJsonStringify(obj: unknown): string {
 const LARGE_INT_PATTERN = /(:\s*|[,\[]\s*)(-?\d{16,})(?=\s*[,}\]])/g
 
 /**
+ * Fast check pattern to detect if a string might contain large integers.
+ * Used as a quick pre-filter before applying the more expensive LARGE_INT_PATTERN.
+ */
+const HAS_LARGE_INT = /\d{16}/
+
+/**
  * `JSON.parse` wrapper that preserves precision for large integer values.
  *
  * JavaScript's Number type can only safely represent integers up to
@@ -160,7 +166,13 @@ const LARGE_INT_PATTERN = /(:\s*|[,\[]\s*)(-?\d{16,})(?=\s*[,}\]])/g
  * key values are embedded in JSON-aggregated relation data from PostgreSQL.
  */
 export function safeJsonParse(json: string): unknown {
-  // Replace large integers with quoted strings to preserve precision.
+  // Fast path: skip expensive regex replacement if no 16+ digit sequences exist.
+  // This handles the common case where JSON contains no large integers.
+  if (!HAS_LARGE_INT.test(json)) {
+    return JSON.parse(json)
+  }
+
+  // Slow path: replace large integers with quoted strings to preserve precision.
   // Numbers with 16+ digits may exceed MAX_SAFE_INTEGER and lose precision.
   const safeJson = json.replace(LARGE_INT_PATTERN, (_match, prefix, num) => {
     return `${prefix}"${num}"`
