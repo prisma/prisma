@@ -128,7 +128,9 @@ describe('safeJsonStringify', () => {
         files: [{ fileId: BigInt('412590077454712834') }],
       },
     }
-    const result = safeJsonParse(safeJsonStringify(obj))
+    const result = safeJsonParse(safeJsonStringify(obj)) as {
+      user: { id: string; files: Array<{ fileId: string }> }
+    }
     expect(result.user.id).toBe('312590077454712834')
     expect(result.user.files[0].fileId).toBe('412590077454712834')
   })
