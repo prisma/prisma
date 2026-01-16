@@ -15,6 +15,12 @@ describe('safeJsonParse', () => {
     })
   })
 
+  test('handles top-level large integer JSON values', () => {
+    // JSON can be a bare scalar value (e.g., JSON columns storing numeric scalars)
+    expect(safeJsonParse('312590077454712834')).toBe('312590077454712834')
+    expect(safeJsonParse('-312590077454712834')).toBe('-312590077454712834')
+  })
+
   test('preserves 15-digit integers as numbers (safe)', () => {
     // 15-digit integers are always safe
     expect(safeJsonParse('{"id":123456789012345}')).toEqual({ id: 123456789012345 })

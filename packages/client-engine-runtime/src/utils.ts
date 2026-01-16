@@ -150,6 +150,12 @@ const LARGE_INT_PATTERN = /("(?:[^"\\]|\\.)*")|(:\s*|[,\[]\s*)(-?\d{16,})(?=\s*[
 const HAS_LARGE_INT = /\d{16}/
 
 /**
+ * Pattern to match a top-level large integer (JSON can be a bare scalar value).
+ * Handles cases like JSON columns storing numeric scalars.
+ */
+const TOP_LEVEL_LARGE_INT = /^-?\d{16,}$/
+
+/**
  * `JSON.parse` wrapper that preserves precision for large integer values.
  *
  * JavaScript's Number type can only safely represent integers up to
@@ -168,6 +174,12 @@ export function safeJsonParse(json: string): unknown {
   // This handles the common case where JSON contains no large integers.
   if (!HAS_LARGE_INT.test(json)) {
     return JSON.parse(json)
+  }
+
+  // Handle top-level large integers (JSON can be a bare scalar value).
+  // The main regex only matches integers after :, ,, or [ so this case needs special handling.
+  if (TOP_LEVEL_LARGE_INT.test(json)) {
+    return json
   }
 
   // Slow path: replace large integers with quoted strings to preserve precision.
