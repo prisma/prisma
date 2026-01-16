@@ -129,21 +129,19 @@ export function safeJsonStringify(obj: unknown): string {
 
 /**
  * Regular expression to match JSON integer values that may lose precision when
- * parsed as JavaScript Number. Matches integers with more than 15 significant digits.
+ * parsed as JavaScript Number. Matches integers with 16 or more significant digits.
  *
- * The pattern handles integers in both contexts:
- * - Object values: `"key": 12345678901234567,`
- * - Array values: `[12345678901234567,` or `, 12345678901234567,`
- *
- * Uses lookahead (?=...) to avoid consuming the suffix character, allowing
- * consecutive matches in arrays like `[123..., 456...]`.
+ * The pattern uses two alternatives to avoid matching inside string literals:
+ * - First alternative: matches complete JSON string literals (to skip them)
+ * - Second alternative: matches large integers in object/array contexts
  *
  * Capturing groups:
- * - Group 1: The prefix (`:`, `[`, or `,` with optional whitespace)
- * - Group 2: The integer value (16+ digits, optionally negative)
+ * - Group 1: JSON string literal (when matched, replacement returns it unchanged)
+ * - Group 2: The prefix (`:`, `[`, or `,` with optional whitespace)
+ * - Group 3: The integer value (16+ digits, optionally negative)
  * - Lookahead asserts suffix (`,`, `}`, or `]`) without consuming it
  */
-const LARGE_INT_PATTERN = /(:\s*|[,\[]\s*)(-?\d{16,})(?=\s*[,}\]])/g
+const LARGE_INT_PATTERN = /("(?:[^"\\]|\\.)*")|(:\s*|[,\[]\s*)(-?\d{16,})(?=\s*[,}\]])/g
 
 /**
  * Fast check pattern to detect if a string might contain large integers.
@@ -174,7 +172,12 @@ export function safeJsonParse(json: string): unknown {
 
   // Slow path: replace large integers with quoted strings to preserve precision.
   // Numbers with 16+ digits may exceed MAX_SAFE_INTEGER and lose precision.
-  const safeJson = json.replace(LARGE_INT_PATTERN, (_match, prefix, num) => {
+  // The regex has two alternatives: string literals (group 1) and integers (groups 2-3).
+  // When a string literal is matched, return it unchanged to avoid corruption.
+  const safeJson = json.replace(LARGE_INT_PATTERN, (match, stringLiteral, prefix, num) => {
+    if (stringLiteral !== undefined) {
+      return match
+    }
     return `${prefix}"${num}"`
   })
   return JSON.parse(safeJson)

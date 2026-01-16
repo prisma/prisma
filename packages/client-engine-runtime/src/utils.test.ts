@@ -69,6 +69,25 @@ describe('safeJsonParse', () => {
     expect(result).toEqual([1, '312590077454712834', 3])
   })
 
+  test('preserves large integers inside string values unchanged', () => {
+    // Large integers inside string literals should not be modified
+    const json = '{"msg": "ID: 12345678901234567890, more text", "id": 9876543210987654321}'
+    const result = safeJsonParse(json)
+    expect(result).toEqual({
+      msg: 'ID: 12345678901234567890, more text',
+      id: '9876543210987654321',
+    })
+  })
+
+  test('handles escaped quotes in strings with large integers', () => {
+    const json = '{"msg": "Say \\"12345678901234567890\\" here", "val": 1234567890123456789}'
+    const result = safeJsonParse(json)
+    expect(result).toEqual({
+      msg: 'Say "12345678901234567890" here',
+      val: '1234567890123456789',
+    })
+  })
+
   test('demonstrates the precision loss problem it solves', () => {
     const originalId = '312590077454712834'
     const json = `{"userId":${originalId}}`
@@ -103,7 +122,7 @@ describe('safeJsonStringify', () => {
         files: [{ fileId: BigInt('412590077454712834') }],
       },
     }
-    const result = JSON.parse(safeJsonStringify(obj))
+    const result = safeJsonParse(safeJsonStringify(obj))
     expect(result.user.id).toBe('312590077454712834')
     expect(result.user.files[0].fileId).toBe('412590077454712834')
   })
