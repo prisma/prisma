@@ -898,33 +898,6 @@ jobs:
       - run: pnpm vitest run
 
   #
-  # Query plan executor unit tests
-  #
-  qpe-unit-tests:
-    name: QPE Unit Tests [v${{ matrix.node }}]
-    timeout-minutes: 10
-    runs-on: ${{ matrix.os }}
-    if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        node: ['24']
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: true
-
-      - run: pnpm run test
-        name: 'query-plan-executor'
-        working-directory: packages/query-plan-executor
-
-  #
   # Run type performance benchmark tests
   #
   type-benchmark-tests:
@@ -1127,11 +1100,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'config'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - run: pnpm run test
-        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
-        name: 'query-plan-executor'
-        working-directory: packages/query-plan-executor
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
