@@ -309,6 +309,7 @@ function serializeArgumentsValue(
 
   if (ArrayBuffer.isView(jsValue)) {
     const { buffer, byteOffset, byteLength } = jsValue
+    // TODO(perf): get rid of this conversion
     return { $type: 'Bytes', value: Buffer.from(buffer, byteOffset, byteLength).toString('base64') }
   }
 

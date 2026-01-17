@@ -59,6 +59,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
         const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
         return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
       },
+      getRuntimePath: () => path.join(runtimeBase, `query_compiler_fast_bg.${activeProvider}.js`),
       importName: './query_compiler_fast_bg.js',
     },
   }

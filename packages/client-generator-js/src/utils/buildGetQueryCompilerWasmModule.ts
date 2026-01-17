@@ -20,6 +20,7 @@ export function buildQueryCompilerWasmModule(
 
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
       },
+      getRuntimePath: () => require.resolve('./${artifactName}.js'),
       importName: './${artifactName}.js',
     }`
   }
