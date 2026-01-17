@@ -32,6 +32,13 @@ export function loadQueryCompiler(provider: string): Promise<QueryCompilerConstr
         }
         return new WebAssembly.Module(moduleBytes)
       },
+      getRuntimePath: () => {
+        if (process.env.LOCAL_QC_BUILD_DIRECTORY) {
+          return path.join(process.env.LOCAL_QC_BUILD_DIRECTORY, provider, 'query_compiler_fast_bg.js')
+        } else {
+          return path.join(runtimeBase, `query_compiler_fast_bg.${provider}.js`)
+        }
+      },
       importName: `./query_compiler_fast_bg.js`,
     },
   })
