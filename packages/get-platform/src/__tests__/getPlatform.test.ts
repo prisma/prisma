@@ -1,9 +1,11 @@
 import { stripVTControlCharacters } from 'node:util'
 
-import { getBinaryTargetForCurrentPlatformInternal, getPlatformInfoMemoized } from '../getPlatform'
-import { jestConsoleContext, jestContext } from '../test-utils'
+import { describe, expect, it } from 'vitest'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+import { getBinaryTargetForCurrentPlatformInternal, getPlatformInfoMemoized } from '../getPlatform'
+import { vitestConsoleContext, vitestContext } from '../test-utils'
+
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 describe('getPlatformInfoMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
