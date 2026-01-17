@@ -14,7 +14,6 @@ export default defineConfig({
       '!packages/client',
       '!packages/config',
       '!packages/debug',
-      '!packages/get-platform',
       '!packages/integration-tests',
       '!packages/internals',
       '!packages/migrate',

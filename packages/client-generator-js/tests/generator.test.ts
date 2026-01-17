@@ -74,8 +74,6 @@ const registry = {
   },
 } satisfies GeneratorRegistry
 
-vi.setConfig({ testTimeout: 30_000 })
-
 describe('generator', () => {
   test('minimal', async () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')

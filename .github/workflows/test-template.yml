@@ -865,10 +865,6 @@ jobs:
         working-directory: packages/debug
 
       - run: pnpm run test
-        name: 'get-platform'
-        working-directory: packages/get-platform
-
-      - run: pnpm run test
         name: 'config'
         working-directory: packages/config
 
@@ -1082,15 +1078,6 @@ jobs:
         working-directory: packages/debug
         env:
           JEST_JUNIT_SUITE_NAME: 'debug'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - name: Test packages/get-platform
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        run: pnpm run test
-        working-directory: packages/get-platform
-        env:
-          JEST_JUNIT_SUITE_NAME: 'get-platform'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - name: Test packages/config
