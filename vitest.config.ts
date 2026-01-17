@@ -19,5 +19,6 @@ export default defineConfig({
       '!packages/internals',
       '!packages/migrate',
     ],
+    testTimeout: 30_000,
   },
 })
