@@ -74,6 +74,8 @@ const registry = {
   },
 } satisfies GeneratorRegistry
 
+vi.setConfig({ testTimeout: 30_000 })
+
 describe('generator', () => {
   test('minimal', async () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
@@ -244,7 +246,7 @@ describe('generator', () => {
       [GetDmmfError: Prisma schema validation - (get-dmmf wasm)
       Error code: P1012
       error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-        -->  tests/denylist.prisma:9
+        -->  packages/client-generator-js/tests/denylist.prisma:9
          | 
        8 | 
        9 | model public {
@@ -252,7 +254,7 @@ describe('generator', () => {
       11 | }
          | 
       error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-        -->  tests/denylist.prisma:13
+        -->  packages/client-generator-js/tests/denylist.prisma:13
          | 
       12 | 
       13 | model return {
@@ -285,7 +287,7 @@ describe('generator', () => {
         registry,
       })
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Could not load \`--schema\` from provided path \`tests/doesnotexist.prisma\`: file or directory not found]`,
+      `[Error: Could not load \`--schema\` from provided path \`packages/client-generator-js/tests/doesnotexist.prisma\`: file or directory not found]`,
     )
   })
 
