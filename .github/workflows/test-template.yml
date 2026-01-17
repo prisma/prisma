@@ -635,34 +635,6 @@ jobs:
         working-directory: packages/client
 
   #
-  # Client internals and generator packages
-  #
-  client-packages:
-    name: Client internals and generators [v${{ matrix.node }}]
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        node: ['20.19.0', '22.12.0', '24']
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: false
-
-      - run: pnpm run test
-        name: 'client-engine-runtime'
-        working-directory: packages/client-engine-runtime
-
-  #
   # WORKSPACE-TYPES
   #
   workspace-types:
@@ -1156,13 +1128,6 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'config'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - name: Test packages/client-engine-runtime
-        if: contains(inputs.jobsToRun, '-all-')
-        run: pnpm run test
-        working-directory: packages/client-engine-runtime
-        env:
-          JEST_JUNIT_SUITE_NAME: 'client-engine-runtime'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
       - run: pnpm run test
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
         name: 'query-plan-executor'
