@@ -4,7 +4,7 @@ import { PrismaBetterSqlite3Options } from './better-sqlite3'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
-type Value = null | string | number | bigint | ArrayBuffer | Buffer
+type Value = null | string | number | bigint | Buffer
 export type Row = {
   /** Number of columns in this row.
    *
@@ -150,15 +150,6 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   for (let i = 0; i < row.length; i++) {
     const value = row[i]
 
-    // Convert array buffers to arrays of bytes.
-    // Base64 would've been more efficient but would collide with the existing
-    // logic that treats string values of type Bytes as raw UTF-8 bytes that was
-    // implemented for other adapters.
-    if (value instanceof ArrayBuffer || value instanceof Buffer) {
-      result[i] = Array.from(new Uint8Array(value))
-      continue
-    }
-
     // If an integer is required and the current number isn't one,
     // discard the fractional part.
     if (
@@ -238,10 +229,6 @@ export function mapArg<A>(
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
     return Buffer.from(arg, 'base64')
-  }
-
-  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
-    return Buffer.from(arg)
   }
 
   return arg

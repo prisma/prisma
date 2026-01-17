@@ -13,6 +13,18 @@ export class DataMapperError extends UserFacingError {
   }
 }
 
+// Optimization: Cache field entries to avoid repeated Object.entries() allocations per row
+const fieldEntriesCache = new WeakMap<Record<string, ResultNode>, [string, ResultNode][]>()
+
+function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
+  let entries = fieldEntriesCache.get(fields)
+  if (!entries) {
+    entries = Object.entries(fields)
+    fieldEntriesCache.set(fields, entries)
+  }
+  return entries
+}
+
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
   switch (structure.type) {
     case 'affectedRows':
@@ -79,21 +91,22 @@ function mapObject(
   }
 
   const result = {}
-  for (const [name, node] of Object.entries(fields)) {
+  for (const [name, node] of getFieldEntries(fields)) {
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
       }
 
       case 'object': {
-        if (node.serializedName !== null && !Object.hasOwn(data, node.serializedName)) {
+        const { serializedName, fields: nodeFields, skipNulls } = node
+        if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
           throw new DataMapperError(
             `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
           )
         }
 
-        const target = node.serializedName !== null ? data[node.serializedName] : data
-        result[name] = mapArrayOrObject(target, node.fields, enums, node.skipNulls)
+        const target = serializedName !== null ? data[serializedName] : data
+        result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls)
         break
       }
 
@@ -208,7 +221,7 @@ function mapValue(
           throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
         }
       }
-      if (Array.isArray(value)) {
+      if (Array.isArray(value) || value instanceof Uint8Array) {
         for (const byte of value) {
           if (byte !== 0) return true
         }

@@ -80,6 +80,7 @@ export async function generateInFolder({ projectDir, packageSource }: GenerateIn
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
+    compilerBuild: 'fast',
   })
 
   const time = performance.now() - before
