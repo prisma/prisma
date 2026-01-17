@@ -74,8 +74,23 @@ export function buildGetWasmModule({
   if (buildNonEdgeLoader) {
     wasmBindingsPath = `${wasmPathBase}.${extension}`
     wasmModulePath = `${wasmPathBase}.wasm-base64.${extension}`
-    return `
-async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+
+    // For ESM, we need to create a require function using createRequire since bare require doesn't exist.
+    // For CJS, we can use require.resolve directly.
+    const esmPreamble =
+      moduleFormat === 'esm'
+        ? `import { createRequire as __createRequire } from 'node:module'
+const __require = __createRequire(import.meta.url)
+
+`
+        : ''
+
+    const resolveCall =
+      moduleFormat === 'esm'
+        ? `__require.resolve(${JSON.stringify(wasmBindingsPath)})`
+        : `require.resolve(${JSON.stringify(wasmBindingsPath)})`
+
+    return `${esmPreamble}async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
   const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
@@ -88,6 +103,8 @@ config.compilerWasm = {
     const { wasm } = await import(${JSON.stringify(wasmModulePath)})
     return await decodeBase64AsWasm(wasm)
   },
+
+  getRuntimePath: () => ${resolveCall},
 
   importName: ${JSON.stringify(`./${artifactName}.js`)}
 }`

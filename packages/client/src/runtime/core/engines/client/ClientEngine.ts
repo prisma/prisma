@@ -35,6 +35,7 @@ import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
 import { createParamGraphView, ParamGraphView } from './parameterization'
 import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
+import { QueryCompilerWorkerPanicError, QueryCompilerWorkerPool } from './QueryCompilerWorkerPool'
 import { QueryPlanCache } from './QueryPlanCache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -104,6 +105,10 @@ export class ClientEngine implements Engine {
   #queryPlanCache: QueryPlanCache
   #queryPlanCacheEnabled: boolean
   #paramGraphView: ParamGraphView
+  #workerPool?: QueryCompilerWorkerPool
+  #wasmModule?: WebAssembly.Module
+  #wasmRuntimePath?: string
+  #wasmImportName?: string
 
   config: EngineConfig
   datamodel: string
@@ -251,9 +256,39 @@ export class ClientEngine implements Engine {
     if (QueryCompilerConstructor === undefined) {
       QueryCompilerConstructor = await this.#queryCompilerLoader.loadQueryCompiler(this.config)
       this.#QueryCompilerConstructor = QueryCompilerConstructor
+
+      // Load and cache the Wasm module for the worker pool
+      if (this.config.compilerWasm !== undefined) {
+        const wasmModule = (await this.config.compilerWasm.getQueryCompilerWasmModule()) as WebAssembly.Module
+        this.#wasmModule = wasmModule
+        // Get the absolute path to the runtime module for the worker thread
+        // This is only available in Node.js builds (not edge runtimes)
+        this.#wasmRuntimePath = this.config.compilerWasm.getRuntimePath?.()
+        this.#wasmImportName = this.config.compilerWasm.importName
+      }
     }
 
     const { provider, connectionInfo } = await executor.getConnectionInfo()
+
+    // Initialize the worker pool for background compilation on cache miss
+    if (
+      TARGET_BUILD_TYPE === 'client' &&
+      this.#workerPool === undefined &&
+      this.#wasmModule !== undefined &&
+      this.#wasmRuntimePath !== undefined &&
+      this.#wasmImportName !== undefined
+    ) {
+      this.#workerPool = new QueryCompilerWorkerPool({
+        compilerOptions: {
+          datamodel: this.datamodel,
+          provider,
+          connectionInfo,
+        },
+        wasmModule: this.#wasmModule,
+        runtimePath: this.#wasmRuntimePath,
+        importName: this.#wasmImportName,
+      })
+    }
 
     try {
       return this.#withLocalPanicHandler(
@@ -379,12 +414,16 @@ export class ClientEngine implements Engine {
         const engine = this.#state.engine
 
         const disconnecting = this.tracingHelper.runInChildSpan('disconnect', async () => {
-          try {
-            await engine.executor.disconnect()
-            engine.queryCompiler.free()
-          } finally {
-            this.#state = { type: 'disconnected' }
+          engine.queryCompiler.free()
+          await engine.executor.disconnect()
+
+          // Terminate the worker pool
+          if (this.#workerPool !== undefined) {
+            await this.#workerPool.terminate()
+            this.#workerPool = undefined
           }
+
+          this.#state = { type: 'disconnected' }
         })
 
         this.#state = {
@@ -481,7 +520,7 @@ export class ClientEngine implements Engine {
           plan = cached
         } else {
           debug('query plan cache miss')
-          plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
+          plan = await this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
           this.#queryPlanCache.setSingle(cacheKey, plan)
         }
       } catch (error) {
@@ -490,7 +529,7 @@ export class ClientEngine implements Engine {
         })
       }
     } else {
-      plan = this.#compileQuery(query, JSON.stringify(query), queryCompiler)
+      plan = await this.#compileQuery(query, JSON.stringify(query), queryCompiler)
     }
 
     try {
@@ -558,7 +597,7 @@ export class ClientEngine implements Engine {
         } else {
           debug('batch query plan cache miss')
           try {
-            batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
+            batchResponse = await this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
             this.#queryPlanCache.setBatch(cacheKeyStr, batchResponse)
           } catch (error) {
             throw this.#transformCompileError(error)
@@ -570,7 +609,7 @@ export class ClientEngine implements Engine {
         })
       }
     } else {
-      batchResponse = this.#compileBatch(queries, request, queryCompiler)
+      batchResponse = await this.#compileBatch(queries, request, queryCompiler)
     }
 
     try {
@@ -673,7 +712,23 @@ export class ClientEngine implements Engine {
     return executor.apiKey()
   }
 
-  #compileQuery(query: JsonQuery, request: string, compiler: QueryCompiler): QueryPlanNode {
+  async #compileQuery(query: JsonQuery, request: string, compiler: QueryCompiler): Promise<QueryPlanNode> {
+    // Use worker thread for compilation if available
+    if (this.#workerPool !== undefined) {
+      try {
+        return await this.#withCompileSpanAsync({
+          queries: [query],
+          execute: () => this.#workerPool!.compile(request),
+        })
+      } catch (error) {
+        if (error instanceof QueryCompilerWorkerPanicError) {
+          this.#handleWorkerPanic(error.message, request)
+        }
+        throw this.#transformCompileError(error)
+      }
+    }
+
+    // Fall back to main thread compilation
     try {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
@@ -686,7 +741,7 @@ export class ClientEngine implements Engine {
     }
   }
 
-  #compileBatch(queries: JsonQuery[], request: string, compiler: QueryCompiler): BatchResponse {
+  async #compileBatch(queries: JsonQuery[], request: string, compiler: QueryCompiler): Promise<BatchResponse> {
     if (queries.every(isRawQuery)) {
       return {
         type: 'multi',
@@ -694,6 +749,22 @@ export class ClientEngine implements Engine {
       }
     }
 
+    // Use worker thread for compilation if available
+    if (this.#workerPool !== undefined) {
+      try {
+        return await this.#withCompileSpanAsync({
+          queries,
+          execute: () => this.#workerPool!.compileBatch(request),
+        })
+      } catch (error) {
+        if (error instanceof QueryCompilerWorkerPanicError) {
+          this.#handleWorkerPanic(error.message, request)
+        }
+        throw this.#transformCompileError(error)
+      }
+    }
+
+    // Fall back to main thread compilation
     try {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
@@ -704,6 +775,25 @@ export class ClientEngine implements Engine {
     } catch (err) {
       throw this.#transformCompileError(err)
     }
+  }
+
+  #handleWorkerPanic(message: string, query?: string): never {
+    // Discard the current state to avoid memory leaks
+    this.#QueryCompilerConstructor = undefined
+    this.#wasmModule = undefined
+    this.#wasmRuntimePath = undefined
+    this.#wasmImportName = undefined
+
+    // Terminate the worker pool
+    if (this.#workerPool !== undefined) {
+      void this.#workerPool.terminate().catch((err) => debug('failed to terminate worker pool:', err))
+      this.#workerPool = undefined
+    }
+
+    // Disconnect the engine
+    void this.stop().catch((err) => debug('failed to disconnect:', err))
+
+    throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, message, query), this.config.clientVersion)
   }
 
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {
@@ -737,6 +827,25 @@ export class ClientEngine implements Engine {
   }
 
   #withCompileSpan<T>({ queries, execute }: { queries: JsonQuery[]; execute: () => T }): T {
+    return this.tracingHelper.runInChildSpan(
+      {
+        name: 'compile',
+        attributes: {
+          models: queries.map((q) => q.modelName).filter((m) => m !== undefined),
+          actions: queries.map((q) => q.action),
+        },
+      },
+      execute,
+    )
+  }
+
+  async #withCompileSpanAsync<T>({
+    queries,
+    execute,
+  }: {
+    queries: JsonQuery[]
+    execute: () => Promise<T>
+  }): Promise<T> {
     return this.tracingHelper.runInChildSpan(
       {
         name: 'compile',
