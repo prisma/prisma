@@ -12,7 +12,8 @@ describe('version', () => {
     const data = await ctx.cli('version')
     expect(data.exitCode).toBe(0)
     expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-      "prisma               : 0.0.0
+      "Prisma schema loaded from schema.prisma
+      prisma               : 0.0.0
       @prisma/client       : 0.0.0
       Operating System     : OS
       Architecture         : ARCHITECTURE
@@ -22,12 +23,11 @@ describe('version', () => {
       PSL                  : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
       Schema Engine        : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
       Default Engines Hash : ENGINE_VERSION
-      Studio               : STUDIO_VERSION"
+      Studio               : 0.8.2"
     `)
     expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-
-      Prisma schema loaded from schema.prisma."
+      "
     `)
   })
 })

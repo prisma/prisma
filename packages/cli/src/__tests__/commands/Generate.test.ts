@@ -20,7 +20,7 @@ describe('prisma.config.ts', () => {
 
     const result = Generate.new().parse(['--sql'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
+      `"The datasource property is required in your Prisma config file when using prisma generate --sql."`,
     )
   })
 })
@@ -37,17 +37,18 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "
+      "Prisma schema loaded from prisma/schema.prisma
+
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-
-      Prisma schema loaded from prisma/schema.prisma."
+      "
     `)
   }, 60_000) // timeout
 
@@ -57,14 +58,16 @@ describe('using cli', () => {
     const stdout = data.stdout
 
     expect(stdout).toMatchInlineSnapshot(`
-      "
+      "Prisma schema loaded from prisma/schema
+
       ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
+      Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
       "
     `)
-    expect(data.stderr).toMatchInlineSnapshot(`"Prisma schema loaded from prisma/schema."`)
+    expect(data.stderr).toMatchInlineSnapshot(`""`)
   })
 
   it('should display the right yarn command for custom outputs', async () => {
@@ -77,17 +80,18 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "
+      "Prisma schema loaded from prisma/schema.prisma
+
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
+      Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-
-      Prisma schema loaded from prisma/schema.prisma."
+      "
     `)
   })
 
@@ -101,17 +105,18 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "
+      "Prisma schema loaded from prisma/schema.prisma
+
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
+      Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-
-      Prisma schema loaded from prisma/schema.prisma."
+      "
     `)
   })
 
@@ -125,17 +130,18 @@ describe('using cli', () => {
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "
+      "Prisma schema loaded from prisma/schema.prisma
+
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-
-      Prisma schema loaded from prisma/schema.prisma."
+      "
     `)
   })
 
@@ -153,17 +159,18 @@ describe('using cli', () => {
     stdout = stdout.replace(outputLocation!, '<output>')
 
     expect(stdout).toMatchInlineSnapshot(`
-      "
+      "Prisma schema loaded from prisma/schema.prisma
+
       ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
+      Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
-
-      Prisma schema loaded from prisma/schema.prisma."
+      "
     `)
   })
 })
@@ -246,14 +253,14 @@ it('should hide hints with --no-hints', async () => {
   }
 
   expect(data.stdout).toMatchInlineSnapshot(`
-    "
+    "Prisma schema loaded from prisma/schema.prisma
+
     ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
     "
   `)
   expect(data.stderr).toMatchInlineSnapshot(`
     "Loaded Prisma config from prisma.config.ts.
-
-    Prisma schema loaded from prisma/schema.prisma."
+    "
   `)
 })
 
