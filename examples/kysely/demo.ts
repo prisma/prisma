@@ -11,10 +11,10 @@
  * - Transactions with $transaction
  */
 
-import { OrkClientBase } from '@ork/client'
+import { OrkClientBase } from '@ork-orm/client'
+import { OrkMigrate } from '@ork-orm/migrate'
 import { PostgreSqlContainer } from '@testcontainers/postgresql'
-import { OrkMigrate } from '@ork/migrate'
-import { PostgresDialect, type Generated } from 'kysely'
+import { type Generated, PostgresDialect } from 'kysely'
 import pg from 'pg'
 
 // Define the database schema types manually for this demo
@@ -91,7 +91,7 @@ async function main() {
 
       const result = await migrate.apply(client.$kysely, schemaPath)
       if (!result.success) {
-        throw new Error(`Migration failed: ${result.errors.map(e => e.message).join(', ')}`)
+        throw new Error(`Migration failed: ${result.errors.map((e) => e.message).join(', ')}`)
       }
       console.log('✅ Migrations applied\n')
     } catch (migrationError) {
@@ -171,11 +171,7 @@ async function main() {
     console.log('User:', userWithPosts)
 
     // Get posts separately (in a generated client, this would be via include)
-    const posts = await client.$kysely
-      .selectFrom('Post')
-      .selectAll()
-      .where('authorId', '=', user.id)
-      .execute()
+    const posts = await client.$kysely.selectFrom('Post').selectAll().where('authorId', '=', user.id).execute()
 
     console.log('Posts:', posts)
     console.log()
@@ -243,7 +239,6 @@ async function main() {
     console.log('🧹 Cleaning up...')
     await client.$disconnect()
     console.log('✅ Client disconnected')
-
   } finally {
     await container.stop()
     console.log('✅ Container stopped')

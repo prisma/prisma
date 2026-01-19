@@ -1,12 +1,13 @@
-import type { DatabaseDialect } from '@ork/field-translator'
-import { transformationRegistry } from '@ork/field-translator'
-import type { AttributeArgumentAST, AttributeAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@ork/schema-parser'
-import { parseSchema } from '@ork/schema-parser'
+import type { DatabaseDialect } from '@ork-orm/field-translator'
+import { transformationRegistry } from '@ork-orm/field-translator'
+import type { AttributeArgumentAST, AttributeAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@ork-orm/schema-parser'
+import { parseSchema } from '@ork-orm/schema-parser'
 import { sql } from 'kysely'
 
 import type {
   AnyKyselyDatabase,
   AnyKyselyTransaction,
+  CompiledQueryLike,
   DatabaseColumn,
   DatabaseEnum,
   DatabaseForeignKey,
@@ -509,7 +510,7 @@ export class OrkMigrate {
       const migrationDiff = await this.diff(kyselyInstance, schemaPath)
       const detailedSummary = await this.generateDetailedSummary(kyselyInstance, migrationDiff)
       const riskAssessment = this.assessMigrationRisk(kyselyInstance, migrationDiff, detailedSummary)
-      const rollbackInfo = await this.generateRollbackPreview(kyselyInstance, migrationDiff.statements)
+      const rollbackInfo = this.generateRollbackPreview(kyselyInstance, migrationDiff.statements)
 
       const description = this.generateHumanReadableDescription(detailedSummary)
 
@@ -765,6 +766,14 @@ export class OrkMigrate {
     }
 
     return parseResult.ast
+  }
+
+  /**
+   * Create a compiled query object for raw SQL execution.
+   * This bypasses the sql template tag to avoid QueryExecutorProvider type requirements.
+   */
+  private rawQuery(statement: string): CompiledQueryLike {
+    return { sql: statement, parameters: [] }
   }
 
   private async introspectDatabase(kyselyInstance: AnyKyselyDatabase): Promise<DatabaseSchema> {
@@ -1322,7 +1331,10 @@ export class OrkMigrate {
                 if (defaultAttr?.args?.[0]) {
                   // Extract the actual value from the AttributeArgumentAST object
                   const defaultValue = defaultAttr.args[0].value || defaultAttr.args[0]
-                  col = col.defaultTo(this.formatDefaultValue(defaultValue))
+                  const formattedDefault = this.formatDefaultValue(defaultValue)
+                  if (formattedDefault !== null) {
+                    col = col.defaultTo(formattedDefault)
+                  }
                 }
               }
 
@@ -1565,8 +1577,9 @@ export class OrkMigrate {
 
   private async getSqliteCapabilities(kyselyInstance: AnyKyselyDatabase): Promise<SqliteCapabilities | null> {
     try {
-      const result = await sql<{ version: string }>`select sqlite_version() as version`.execute(kyselyInstance)
-      const version = result.rows?.[0]?.version || '0.0.0'
+      const result = await kyselyInstance.executeQuery(this.rawQuery('SELECT sqlite_version() as version'))
+      const row = result.rows?.[0] as { version?: string } | undefined
+      const version = row?.version || '0.0.0'
       if (version === '0.0.0') {
         return null
       }
@@ -1795,7 +1808,7 @@ export class OrkMigrate {
     kyselyInstance: AnyKyselyDatabase,
     statement: string,
   ): Promise<T[]> {
-    const result = await sql.raw(statement).execute(kyselyInstance)
+    const result = await kyselyInstance.executeQuery(this.rawQuery(statement))
     const rows = Array.isArray(result.rows) ? result.rows : []
     return rows.filter((row): row is T => typeof row === 'object' && row !== null)
   }
@@ -2074,7 +2087,7 @@ export class OrkMigrate {
       await kyselyInstance.transaction().execute(async (trx: AnyKyselyTransaction) => {
         for (const statement of diff.statements) {
           try {
-            await trx.executeQuery(sql`${sql.raw(statement)}`.compile(trx))
+            await trx.executeQuery(this.rawQuery(statement))
             statementsExecuted++
           } catch (error) {
             errors.push({
@@ -2118,7 +2131,7 @@ export class OrkMigrate {
 
     for (const statement of diff.statements) {
       try {
-        await kyselyInstance.executeQuery(sql`${sql.raw(statement)}`.compile(kyselyInstance))
+        await kyselyInstance.executeQuery(this.rawQuery(statement))
         statementsExecuted++
       } catch (error) {
         errors.push({
@@ -2604,11 +2617,11 @@ export class OrkMigrate {
   private generateRollbackPreview(
     kyselyInstance: AnyKyselyDatabase,
     statements: string[],
-  ): Promise<{
+  ): {
     available: boolean
     statements: string[]
     warnings: string[]
-  }> {
+  } {
     try {
       const rollbackInfo = this.generateRollbackForStatements(kyselyInstance, statements)
       return {
@@ -2822,7 +2835,7 @@ export class OrkMigrate {
 
       try {
         const statementStartTime = Date.now()
-        await kyselyInstance.executeQuery(sql`${sql.raw(statement)}`.compile(kyselyInstance))
+        await kyselyInstance.executeQuery(this.rawQuery(statement))
         statementsExecuted++
 
         if (loggingConfig.logExecutionTimes) {
@@ -2882,7 +2895,7 @@ export class OrkMigrate {
 
           try {
             const statementStartTime = Date.now()
-            await trx.executeQuery(sql`${sql.raw(statement)}`.compile(trx))
+            await trx.executeQuery(this.rawQuery(statement))
             statementsExecuted++
 
             if (loggingConfig.logExecutionTimes) {

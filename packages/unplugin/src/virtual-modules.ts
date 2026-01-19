@@ -172,7 +172,7 @@ ${generatedTypes.schema}
 ${generatedTypes.augmentation}
 
 // Re-export core types for convenience
-export type { OrkClient, OrkClientOptions } from '@ork/client'
+export type { OrkClient, OrkClientOptions } from '@ork-orm/client'
 
 // Export generated types
 export type * from './generated'
@@ -249,11 +249,11 @@ export interface DatabaseSchema {
   [tableName: string]: any
 }
 
-declare module '@ork/client' {
+declare module '@ork-orm/client' {
   interface OrkGeneratedSchema extends DatabaseSchema {}
 }
 
-export type { OrkClient, OrkClientOptions } from '@ork/client'
+export type { OrkClient, OrkClientOptions } from '@ork-orm/client'
 `
   }
 
@@ -283,7 +283,7 @@ ${generatedClientCode.clientCode}
 ${generatedClientCode.declarations}
 
 // Export types for external usage
-export type { OrkClient, OrkClientOptions } from '@ork/client'
+export type { OrkClient, OrkClientOptions } from '@ork-orm/client'
 `
   }
 
@@ -294,13 +294,13 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'
     this.log('Generating fallback client module')
 
     return `// Fallback Ork Client - client generation failed
-// Use manual setup: import { OrkClient } from '@ork/client'
+// Use manual setup: import { OrkClient } from '@ork-orm/client'
 
-import { OrkClient } from '@ork/client'
+import { OrkClient } from '@ork-orm/client'
 
 // Re-export client class for compatibility
 export { OrkClient }
-export type { OrkClientOptions } from '@ork/client'
+export type { OrkClientOptions } from '@ork-orm/client'
 
 // Create a note about manual setup needed
 export const __ORK_FALLBACK__ = true
@@ -321,7 +321,7 @@ export interface DatabaseSchema {
   [tableName: string]: any
 }
 
-export type { OrkClient, OrkClientOptions } from '@ork/client'
+export type { OrkClient, OrkClientOptions } from '@ork-orm/client'
 
 // Fallback indicator
 export const __ORK_FALLBACK__ = true

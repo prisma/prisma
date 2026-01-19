@@ -1,19 +1,21 @@
-import type { ConfigLoadOptions, ConfigLoadResult, KyselyResult } from '@ork/config'
-import {
-  loadOrkConfig,
+import type {
+  ConfigLoadOptions,
+  ConfigLoadResult,
+  createKyselyDialect,
   createKyselyFromConfig,
   createKyselyFromUrl,
-  createKyselyDialect,
-  validateConnection,
+  type DatabaseProvider,
+  KyselyResult,
+  loadOrkConfig,
   PROVIDER_METADATA,
   SUPPORTED_PROVIDERS,
-  type DatabaseProvider,
-} from '@ork/config'
+  validateConnection,
+} from '@ork-orm/config'
 
 import { logger } from './logger.js'
 
 /**
- * Enhanced error handling wrapper for @ork/config functions
+ * Enhanced error handling wrapper for @ork-orm/config functions
  * Provides actionable error messages and suggestions for common issues
  */
 export class ConfigErrorHandler {

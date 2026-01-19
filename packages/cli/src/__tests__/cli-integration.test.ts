@@ -60,11 +60,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
   describe('init command with --url flag', () => {
     it('should initialize with PostgreSQL URL auto-detection', async () => {
-      const result = await runCLI([
-        'init',
-        '--url',
-        'postgresql://user:pass@localhost:5432/testdb',
-      ])
+      const result = await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/testdb'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: postgresql')
@@ -74,18 +70,13 @@ describe('CLI Integration Tests - Auto-Detection', () => {
     }, 10000)
 
     it('should initialize with MySQL URL auto-detection', async () => {
-      const result = await runCLI([
-        'init',
-        '--url',
-        'mysql://user:pass@localhost:3306/testdb',
-      ])
+      const result = await runCLI(['init', '--url', 'mysql://user:pass@localhost:3306/testdb'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: mysql')
 
       const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'mysql'")
-
     }, 10000)
 
     it('should initialize with SQLite URL auto-detection', async () => {
@@ -96,7 +87,6 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
       const configContent = readFileSync('ork.config.ts', 'utf8')
       expect(configContent).toContain("provider: 'sqlite'")
-
     }, 10000)
 
     it('should initialize with D1 URL auto-detection', async () => {
@@ -156,12 +146,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
       await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/db'])
 
       // Second initialization with force should succeed
-      const result = await runCLI([
-        'init',
-        '--url',
-        'mysql://user:pass@localhost:3306/db',
-        '--force',
-      ])
+      const result = await runCLI(['init', '--url', 'mysql://user:pass@localhost:3306/db', '--force'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('✓ Auto-detected provider: mysql')
@@ -237,12 +222,7 @@ describe('CLI Integration Tests - Auto-Detection', () => {
 
   describe('skip options', () => {
     it('should skip schema file creation with --skip-schema', async () => {
-      const result = await runCLI([
-        'init',
-        '--url',
-        'postgresql://user:pass@localhost:5432/db',
-        '--skip-schema',
-      ])
+      const result = await runCLI(['init', '--url', 'postgresql://user:pass@localhost:5432/db', '--skip-schema'])
 
       expect(result.exitCode).toBe(0)
       expect(existsSync('ork.config.ts')).toBe(true)

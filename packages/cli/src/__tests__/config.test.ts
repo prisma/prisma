@@ -15,7 +15,6 @@ describe('Configuration Bridge Utilities', () => {
         expect(detectProviderFromUrl('postgresql://user:pass@railway.app:5432/db')).toBe('postgresql')
         expect(detectProviderFromUrl('postgresql://user:pass@render.com:5432/db')).toBe('postgresql')
       })
-
     })
 
     describe('MySQL family detection', () => {

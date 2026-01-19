@@ -1,5 +1,5 @@
 /**
- * @ork/client
+ * @ork-orm/client
  *
  * Type precedence:
  * Manual types > Generated types > Any types
@@ -17,10 +17,10 @@ export type {
   GeneratedModel,
   GeneratorConfig,
   ModelOperations,
-  PRISMA_TO_KYSELY_TYPES,
-  PRISMA_TO_TS_TYPES,
   OrkClientConfig,
   OrkDatasourceConfig,
+  PRISMA_TO_KYSELY_TYPES,
+  PRISMA_TO_TS_TYPES,
 } from './types'
 export { PRISMA_PROVIDER_TO_DRIVER_PROVIDER, translateDatasourceConfig } from './types'
 
@@ -37,7 +37,7 @@ export type {
   ModelAST,
   ParseResult,
   SchemaAST,
-} from '@ork/schema-parser'
+} from '@ork-orm/schema-parser'
 
 // Kysely types (users control dialect dependencies directly)
 export type {

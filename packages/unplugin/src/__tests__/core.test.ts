@@ -15,7 +15,7 @@ vi.mock('fs', () => ({
   readFileSync: vi.fn(),
 }))
 
-vi.mock('@ork/schema-parser', () => ({
+vi.mock('@ork-orm/schema-parser', () => ({
   parseSchema: vi.fn(),
 }))
 

@@ -1,4 +1,4 @@
-import { findSchemaFile } from '@ork/config'
+import { findSchemaFile } from '@ork-orm/config'
 import prompts from 'prompts'
 
 import type { CommandResult, MigrateOptions } from '../types.js'
@@ -21,7 +21,7 @@ export class MigrateCommand extends BaseCommand {
       const schemaPath = findSchemaFile(config, configDir)
 
       // Import migration engine
-      const { OrkMigrate } = await import('@ork/migrate')
+      const { OrkMigrate } = await import('@ork-orm/migrate')
       const migrate = new OrkMigrate({
         useTransaction: true,
         validateSchema: true,
@@ -249,7 +249,7 @@ class MigrateStatusCommand extends BaseCommand {
       const schemaPath = findSchemaFile(config, configDir)
 
       // Import migration engine
-      const { OrkMigrate } = await import('@ork/migrate')
+      const { OrkMigrate } = await import('@ork-orm/migrate')
       const migrate = new OrkMigrate()
 
       // Check if schema is up to date
@@ -297,7 +297,7 @@ class MigrateHistoryCommand extends BaseCommand {
       const { kysely: kyselyInstance } = await cliCreateKyselyFromConfig()
 
       // Import migration engine
-      const { OrkMigrate } = await import('@ork/migrate')
+      const { OrkMigrate } = await import('@ork-orm/migrate')
       const migrate = new OrkMigrate()
 
       // Get migration history
@@ -356,7 +356,7 @@ class MigrateRollbackCommand extends BaseCommand {
       const { kysely: kyselyInstance } = await cliCreateKyselyFromConfig()
 
       // Import migration engine
-      const { OrkMigrate } = await import('@ork/migrate')
+      const { OrkMigrate } = await import('@ork-orm/migrate')
       const migrate = new OrkMigrate()
 
       // Get latest migration

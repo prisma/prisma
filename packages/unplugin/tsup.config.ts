@@ -16,8 +16,8 @@ export default defineConfig({
   external: [
     'unplugin',
     'chokidar',
-    '@ork/schema-parser',
-    '@ork/client',
+    '@ork-orm/schema-parser',
+    '@ork-orm/client',
     'vite',
     'webpack',
     'rollup',

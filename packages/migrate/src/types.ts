@@ -458,7 +458,9 @@ export interface AlterTableBuilderLike {
 }
 
 export interface IndexColumnBuilderLike {
-  column(name: string): { compile(): CompiledQueryLike; execute(): Promise<unknown> }
+  column(name: string): IndexColumnBuilderLike
+  compile(): CompiledQueryLike
+  execute(): Promise<unknown>
 }
 
 export interface CreateIndexBuilderLike {

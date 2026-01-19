@@ -1,4 +1,4 @@
-import { defineConfig } from '@ork/config'
+import { defineConfig } from '@ork-orm/config'
 
 export default defineConfig({
   schema: './schema.prisma',

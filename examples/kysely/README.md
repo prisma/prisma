@@ -52,7 +52,7 @@ The schema includes three models with relations:
 ## Example Usage
 
 ```typescript
-import { OrkClientBase } from '@ork/client'
+import { OrkClientBase } from '@ork-orm/client'
 import type { Generated } from 'kysely'
 
 // Define database schema types manually

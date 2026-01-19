@@ -66,7 +66,7 @@ export function generateConfigContent(
   delete config.generator
 
   const configLines = [
-    "import type { OrkConfig } from '@ork/config'",
+    "import type { OrkConfig } from '@ork-orm/config'",
     '',
     'export default {',
     '  datasource: {',

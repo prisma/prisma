@@ -1,5 +1,5 @@
 {
-  "name": "@ork/client",
+  "name": "@ork-orm/client",
   "version": "0.0.1-alpha.1",
   "description": "Type-safe database client with CRUD operations for Ork ORM",
   "type": "module",
@@ -41,9 +41,9 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@ork/config": "workspace:*",
-    "@ork/field-translator": "workspace:*",
-    "@ork/schema-parser": "workspace:*",
+    "@ork-orm/config": "workspace:*",
+    "@ork-orm/field-translator": "workspace:*",
+    "@ork-orm/schema-parser": "workspace:*",
     "dedent": "1.7.0",
     "kysely": "^0.27.4"
   },

@@ -75,7 +75,7 @@ describe('VirtualTypeGenerator', () => {
     const generatedTypes = {
       interfaces: 'export interface User { id: number }',
       schema: 'export interface DatabaseSchema { user: User }',
-      augmentation: 'declare module "@ork/client" { interface OrkGeneratedSchema extends DatabaseSchema {} }',
+      augmentation: 'declare module "@ork-orm/client" { interface OrkGeneratedSchema extends DatabaseSchema {} }',
     }
 
     const result = generator.generateTypesModule(generatedTypes)

@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
 import ork from 'unplugin-ork/vite'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   clearScreen: false,

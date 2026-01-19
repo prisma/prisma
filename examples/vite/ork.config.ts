@@ -1,4 +1,4 @@
-import type { OrkConfig } from '@ork/config'
+import type { OrkConfig } from '@ork-orm/config'
 
 export default {
   schema: './schema.prisma',

@@ -245,19 +245,19 @@ schema.prisma
      │
      ▼
 ┌─────────────────┐
-│ @ork/schema │  Parse .prisma files
+│ @ork-orm/schema │  Parse .prisma files
 │    -parser      │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ @ork/field  │  Generate dialect-specific
+│ @ork-orm/field  │  Generate dialect-specific
 │   -translator   │  type transformations
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ @ork/client │  Generate typed client with
+│ @ork-orm/client │  Generate typed client with
 │                 │  embedded CRUD operations
 └────────┬────────┘
          │

@@ -1,10 +1,6 @@
-import { describe, it } from 'vitest'
-import { expectTypeOf } from 'vitest'
-import type {
-  UserFindUniqueArgs,
-  UserUpdateArgs,
-  UserDeleteArgs,
-} from './fixtures/generated-test-client'
+import { describe, expectTypeOf, it } from 'vitest'
+
+import type { UserDeleteArgs, UserFindUniqueArgs, UserUpdateArgs } from './fixtures/generated-test-client'
 
 /**
  * Type-level tests for WhereUniqueInput constraints

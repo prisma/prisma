@@ -32,7 +32,7 @@ export interface Post {
   user: User
   post: Post
 }`,
-      augmentation: `declare module '@ork/client' {
+      augmentation: `declare module '@ork-orm/client' {
   interface OrkGeneratedSchema extends DatabaseSchema {}
 }`,
     }
@@ -140,7 +140,7 @@ export interface Post {
     const emptyTypes: GeneratedTypes = {
       interfaces: '',
       schema: 'export interface DatabaseSchema { [key: string]: any }',
-      augmentation: 'declare module "@ork/client" { interface OrkGeneratedSchema extends DatabaseSchema {} }',
+      augmentation: 'declare module "@ork-orm/client" { interface OrkGeneratedSchema extends DatabaseSchema {} }',
     }
 
     const indexModule = typeGenerator.generateIndexModule(emptyTypes, false)

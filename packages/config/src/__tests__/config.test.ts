@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { defineConfig, PROVIDER_URL_PATTERNS, SUPPORTED_PROVIDERS } from '../index.js'
 
-describe('@ork/config', () => {
+describe('@ork-orm/config', () => {
   describe('SUPPORTED_PROVIDERS', () => {
     it('should include all expected providers', () => {
       expect(SUPPORTED_PROVIDERS).toContain('postgresql')

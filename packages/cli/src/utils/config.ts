@@ -1,5 +1,4 @@
-import type { OrkConfig } from '@ork/config'
-import { PROVIDER_URL_PATTERNS, SUPPORTED_PROVIDERS, type DatabaseProvider } from '@ork/config'
+import type { type DatabaseProvider, OrkConfig, PROVIDER_URL_PATTERNS, SUPPORTED_PROVIDERS } from '@ork-orm/config'
 
 const SUPPORTED_FORMATS = ['postgresql://', 'mysql://', 'file:', 'd1://']
 

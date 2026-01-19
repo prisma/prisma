@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ork/client": "workspace:*",
+    "@ork-orm/client": "workspace:*",
     "unplugin-ork": "workspace:*"
   },
   "devDependencies": {

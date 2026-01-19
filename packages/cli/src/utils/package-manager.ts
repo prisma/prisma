@@ -1,5 +1,6 @@
-import { existsSync } from 'fs'
 import { spawn } from 'node:child_process'
+
+import { existsSync } from 'fs'
 import { join } from 'path'
 
 export type PackageManagerName = 'pnpm' | 'npm' | 'yarn'

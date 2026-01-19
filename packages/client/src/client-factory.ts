@@ -1,4 +1,4 @@
-import { type ConfigLoadOptions, createKyselyDialect, loadOrkConfig } from '@ork/config'
+import { type ConfigLoadOptions, createKyselyDialect, loadOrkConfig } from '@ork-orm/config'
 
 import type { OrkClientOptions } from './client.js'
 import { OrkClientBase } from './client.js'

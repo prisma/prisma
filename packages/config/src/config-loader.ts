@@ -1,6 +1,6 @@
+import { loadConfig } from 'c12'
 import { existsSync } from 'fs'
 import { basename, dirname, resolve } from 'path'
-import { loadConfig } from 'c12'
 
 import type { ConfigLoadOptions, ConfigLoadResult, OrkConfig } from './types.js'
 import { OrkConfigSchema } from './types.js'
@@ -92,7 +92,6 @@ export async function loadOrkConfig(options: ConfigLoadOptions = {}): Promise<Co
     configDir,
   }
 }
-
 
 /**
  * Find schema file based on configuration

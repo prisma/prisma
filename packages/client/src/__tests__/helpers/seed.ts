@@ -54,7 +54,7 @@ export async function seedTestData(kysely: Kysely<any>): Promise<SeedData> {
         authorId: users[0].id,
       },
       {
-        title: 'Bob\'s First Post',
+        title: "Bob's First Post",
         content: 'Hello world!',
         published: true,
         authorId: users[1].id,

@@ -119,7 +119,7 @@ ${generatedTypes.schema}
 ${generatedTypes.augmentation}
 
 // Re-export core types for convenience
-export type { OrkClient, OrkClientOptions } from '@ork/client'
+export type { OrkClient, OrkClientOptions } from '@ork-orm/client'
 
 // Export generated types for tree-shaking
 export type * from './generated'`
@@ -192,7 +192,7 @@ ${this.options.sourceMaps ? '//# sourceMappingURL=client-types.map' : ''}
 ${clientModule.declarations}
 
 // Export types for external usage
-export type { OrkClient, OrkClientOptions } from '@ork/client'`
+export type { OrkClient, OrkClientOptions } from '@ork-orm/client'`
 
     return this.options.optimize ? this.optimizeTypeScript(content) : content
   }
@@ -404,7 +404,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
           // Vite-specific optimizations
           build: {
             rollupOptions: {
-              external: ['@ork/client'],
+              external: ['@ork-orm/client'],
               output: {
                 manualChunks: undefined, // Let Vite handle chunking
               },
@@ -427,7 +427,7 @@ export type { OrkClient, OrkClientOptions } from '@ork/client'`
         optimizations.rollup = {
           // Rollup-specific optimizations
           treeshake: true,
-          external: ['@ork/client'],
+          external: ['@ork-orm/client'],
         }
         break
 

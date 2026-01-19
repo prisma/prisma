@@ -7,11 +7,11 @@ import { existsSync, readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path, { resolve } from 'node:path'
 
-import { ClientGenerator } from '@ork/client'
-import { type ConfigLoadResult, getDefaultOutputDir, loadOrkConfig, type OrkConfig } from '@ork/config'
-import { type DatabaseDialect, detectDialect, type OrkConfig as FieldTranslatorConfig } from '@ork/field-translator'
-import { OrkMigrate } from '@ork/migrate'
-import { parseSchema } from '@ork/schema-parser'
+import { ClientGenerator } from '@ork-orm/client'
+import { type ConfigLoadResult, getDefaultOutputDir, loadOrkConfig, type OrkConfig } from '@ork-orm/config'
+import { type DatabaseDialect, detectDialect, type OrkConfig as FieldTranslatorConfig } from '@ork-orm/field-translator'
+import { type AnyKyselyDatabase, OrkMigrate } from '@ork-orm/migrate'
+import { parseSchema } from '@ork-orm/schema-parser'
 import { watch } from 'chokidar'
 import { createUnplugin } from 'unplugin'
 
@@ -178,7 +178,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
   const runMigrations = async (
     schemaPath: string,
   ): Promise<{ migrated: boolean; skippedReason?: string; error?: string }> => {
-    const { createKyselyFromConfig } = await import('@ork/config')
+    const { createKyselyFromConfig } = await import('@ork-orm/config')
 
     let kysely: Awaited<ReturnType<typeof createKyselyFromConfig>>['kysely'] | null = null
     try {
@@ -186,7 +186,8 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
       kysely = result.kysely
       const migrate = new OrkMigrate({ useTransaction: true, validateSchema: true })
 
-      const diff = await migrate.diff(kysely, schemaPath)
+      // Kysely instance is structurally compatible with AnyKyselyDatabase at runtime
+      const diff = await migrate.diff(kysely as unknown as AnyKyselyDatabase, schemaPath)
 
       if (diff.statements.length === 0) {
         devOutput.info('No migration changes detected')
@@ -217,7 +218,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
       }
 
       devOutput.info(`Applying ${diff.statements.length} migration statement(s)`)
-      const applyResult = await migrate.apply(kysely, schemaPath)
+      const applyResult = await migrate.apply(kysely as unknown as AnyKyselyDatabase, schemaPath)
 
       if (!applyResult.success) {
         return { migrated: false, error: applyResult.errors.map((err) => err.message).join(', ') }
@@ -256,7 +257,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
         return {
           interfaces: `// Schema parsing errors: ${parseResult.errors.map((e) => e.message).join(', ')}`,
           schema: 'export interface DatabaseSchema { [key: string]: any }',
-          augmentation: `declare module '@ork/client' { interface OrkGeneratedSchema extends DatabaseSchema {} }`,
+          augmentation: `declare module '@ork-orm/client' { interface OrkGeneratedSchema extends DatabaseSchema {} }`,
         }
       }
 
@@ -265,7 +266,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
         return {
           interfaces: '// No models found in schema',
           schema: 'export interface DatabaseSchema { [key: string]: any }',
-          augmentation: `declare module '@ork/client' { interface OrkGeneratedSchema extends DatabaseSchema {} }`,
+          augmentation: `declare module '@ork-orm/client' { interface OrkGeneratedSchema extends DatabaseSchema {} }`,
         }
       }
 
@@ -293,7 +294,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
         .join('\n')}\n}`
 
       // Generate module augmentation for OrkClient
-      const augmentation = `/**\n * Module augmentation for @ork/client\n * Provides automatic type inference for generated schema\n */\ndeclare module '@ork/client' {\n  interface OrkGeneratedSchema extends DatabaseSchema {}\n}`
+      const augmentation = `/**\n * Module augmentation for @ork-orm/client\n * Provides automatic type inference for generated schema\n */\ndeclare module '@ork-orm/client' {\n  interface OrkGeneratedSchema extends DatabaseSchema {}\n}`
 
       // Success - generated types for models
       log(`Generated types for ${parseResult.ast.models.length} models`)
@@ -316,7 +317,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
       return {
         interfaces: `// Type generation error: ${errorMessage}`,
         schema: 'export interface DatabaseSchema { [key: string]: any }',
-        augmentation: `declare module '@ork/client' { interface OrkGeneratedSchema extends DatabaseSchema {} }`,
+        augmentation: `declare module '@ork-orm/client' { interface OrkGeneratedSchema extends DatabaseSchema {} }`,
       }
     }
   }
@@ -727,7 +728,7 @@ export const unpluginOrk = createUnplugin<OrkPluginOptions>((options = {}) => {
         config.optimizeDeps.exclude = config.optimizeDeps.exclude || []
 
         // Exclude ork virtual modules from optimization
-        config.optimizeDeps.exclude.push('@ork/client', '@ork/field-translator', 'virtual:ork/*')
+        config.optimizeDeps.exclude.push('@ork-orm/client', '@ork-orm/field-translator', 'virtual:ork/*')
 
         // Add .ork modules to external list for proper resolution
         if (!config.build) config.build = {}

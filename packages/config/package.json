@@ -1,5 +1,5 @@
 {
-  "name": "@ork/config",
+  "name": "@ork-orm/config",
   "version": "0.0.1-alpha.1",
   "description": "Shared configuration and Kysely instance management for Ork",
   "license": "Apache-2.0",

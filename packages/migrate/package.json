@@ -1,5 +1,5 @@
 {
-  "name": "@ork/migrate",
+  "name": "@ork-orm/migrate",
   "version": "0.0.1-alpha.1",
   "description": "TypeScript-native migration engine for Ork ORM with direct Kysely integration",
   "type": "module",
@@ -41,8 +41,8 @@
     "vitest": "3.2.4"
   },
   "dependencies": {
-    "@ork/field-translator": "workspace:*",
-    "@ork/schema-parser": "workspace:*",
+    "@ork-orm/field-translator": "workspace:*",
+    "@ork-orm/schema-parser": "workspace:*",
     "kysely": "^0.27.0"
   },
   "peerDependencies": {

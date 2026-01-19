@@ -5,16 +5,17 @@
  * generation state for optimal code output.
  */
 
-import type { FieldAST, ModelAST } from '@ork/schema-parser'
+import type { FieldAST, ModelAST } from '@ork-orm/schema-parser'
+
 import type {
   DatabaseDialect,
   FieldAnalysisResult,
-  ModelTransformationMetadata,
-  SpecialFieldHandling,
-  TransformationOperation,
   FieldTransformationGenerator,
   FieldTransformContext,
   GeneratedTransformation,
+  ModelTransformationMetadata,
+  SpecialFieldHandling,
+  TransformationOperation,
 } from './types.js'
 
 /**

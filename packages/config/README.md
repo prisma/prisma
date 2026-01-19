@@ -1,4 +1,4 @@
-# @ork/config
+# @ork-orm/config
 
 Shared configuration and Kysely instance management for Ork packages.
 
@@ -18,7 +18,7 @@ This package centralizes configuration loading and Kysely instance creation acro
 ### Basic Kysely Creation
 
 ```typescript
-import { createKyselyFromConfig } from '@ork/config'
+import { createKyselyFromConfig } from '@ork-orm/config'
 
 // Uses config file discovery
 const { kysely, config } = await createKyselyFromConfig()
@@ -32,14 +32,14 @@ const { kysely } = await createKyselyFromConfig({
 })
 
 // From URL (auto-detects provider)
-import { createKyselyFromUrl } from '@ork/config'
+import { createKyselyFromUrl } from '@ork-orm/config'
 const { kysely } = await createKyselyFromUrl(process.env.DATABASE_URL!)
 ```
 
 ### Configuration Loading Only
 
 ```typescript
-import { loadOrkConfig } from '@ork/config'
+import { loadOrkConfig } from '@ork-orm/config'
 
 const { config, configPath } = await loadOrkConfig({
   cwd: '/path/to/project'
@@ -49,7 +49,7 @@ const { config, configPath } = await loadOrkConfig({
 ### Dialect Creation Only
 
 ```typescript
-import { createKyselyDialect } from '@ork/config'
+import { createKyselyDialect } from '@ork-orm/config'
 
 const dialect = await createKyselyDialect(config)
 const kysely = new Kysely({ dialect })

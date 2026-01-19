@@ -77,7 +77,7 @@ ork dev --no-generate
 The CLI uses `ork.config.ts` for configuration:
 
 ```typescript
-import type { OrkConfig } from '@ork/config'
+import type { OrkConfig } from '@ork-orm/config'
 
 export default {
   datasource: {
@@ -101,7 +101,11 @@ The CLI is alpha-stage and focused on the core workflow: `init`, `generate`, and
 
 ## Related Packages
 
-- `@ork/schema-parser` - TypeScript-native schema parsing
-- `@ork/migrate` - Programmatic migration engine
-- `@ork/client` - Type-safe database client
+- `@ork-orm/schema-parser` - TypeScript-native schema parsing
+- `@ork-orm/migrate` - Programmatic migration engine
+- `@ork-orm/client` - Type-safe database client
 - `unplugin-ork` - Build tool integration
+
+## Special Thanks
+
+Thank you to William ([@willguitaradmfar](https://github.com/willguitaradmfar)) for generously donating the `ork` npm package name.

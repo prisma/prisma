@@ -1,4 +1,4 @@
-# @ork/field-translator
+# @ork-orm/field-translator
 
 Build-time database-specific field transformation code generators for Ork.
 
@@ -10,13 +10,13 @@ runtime use.
 
 Most users should not import this package directly. It is consumed by:
 
-- `@ork/client` (client generation)
-- `@ork/migrate` (schema diffing and DDL mapping)
+- `@ork-orm/client` (client generation)
+- `@ork-orm/migrate` (schema diffing and DDL mapping)
 
 If you do need it for custom tooling, use the dialect helpers:
 
 ```ts
-import { createFieldTranslator, detectDialect } from '@ork/field-translator'
+import { createFieldTranslator, detectDialect } from '@ork-orm/field-translator'
 
 const dialect = detectDialect({ database: { provider: 'postgresql' } })
 const translator = createFieldTranslator(dialect)

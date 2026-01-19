@@ -188,16 +188,16 @@ importers:
 
   examples/basic:
     dependencies:
-      '@ork/client':
+      '@ork-orm/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@ork/config':
+      '@ork-orm/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ork/migrate':
+      '@ork-orm/migrate':
         specifier: workspace:*
         version: link:../../packages/migrate
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../../packages/schema-parser
       kysely:
@@ -231,16 +231,16 @@ importers:
 
   examples/kysely:
     dependencies:
-      '@ork/client':
+      '@ork-orm/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@ork/config':
+      '@ork-orm/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ork/migrate':
+      '@ork-orm/migrate':
         specifier: workspace:*
         version: link:../../packages/migrate
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../../packages/schema-parser
       kysely:
@@ -274,16 +274,16 @@ importers:
 
   examples/vite:
     dependencies:
-      '@ork/client':
+      '@ork-orm/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@ork/config':
+      '@ork-orm/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ork/migrate':
+      '@ork-orm/migrate':
         specifier: workspace:*
         version: link:../../packages/migrate
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../../packages/schema-parser
       '@types/better-sqlite3':
@@ -311,16 +311,16 @@ importers:
 
   packages/cli:
     dependencies:
-      '@ork/client':
+      '@ork-orm/client':
         specifier: workspace:*
         version: link:../client
-      '@ork/config':
+      '@ork-orm/config':
         specifier: workspace:*
         version: link:../config
-      '@ork/migrate':
+      '@ork-orm/migrate':
         specifier: workspace:*
         version: link:../migrate
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../schema-parser
       chalk:
@@ -385,13 +385,13 @@ importers:
 
   packages/client:
     dependencies:
-      '@ork/config':
+      '@ork-orm/config':
         specifier: workspace:*
         version: link:../config
-      '@ork/field-translator':
+      '@ork-orm/field-translator':
         specifier: workspace:*
         version: link:../field-translator
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../schema-parser
       dedent:
@@ -483,7 +483,7 @@ importers:
 
   packages/field-translator:
     dependencies:
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../schema-parser
     devDependencies:
@@ -502,10 +502,10 @@ importers:
 
   packages/migrate:
     dependencies:
-      '@ork/field-translator':
+      '@ork-orm/field-translator':
         specifier: workspace:*
         version: link:../field-translator
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../schema-parser
       kysely:
@@ -564,19 +564,19 @@ importers:
 
   packages/unplugin:
     dependencies:
-      '@ork/client':
+      '@ork-orm/client':
         specifier: workspace:*
         version: link:../client
-      '@ork/config':
+      '@ork-orm/config':
         specifier: workspace:*
         version: link:../config
-      '@ork/field-translator':
+      '@ork-orm/field-translator':
         specifier: workspace:*
         version: link:../field-translator
-      '@ork/migrate':
+      '@ork-orm/migrate':
         specifier: workspace:*
         version: link:../migrate
-      '@ork/schema-parser':
+      '@ork-orm/schema-parser':
         specifier: workspace:*
         version: link:../schema-parser
       chokidar:

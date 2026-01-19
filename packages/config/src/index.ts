@@ -1,5 +1,5 @@
 /**
- * @ork/config - Shared configuration and Kysely instance management
+ * @ork-orm/config - Shared configuration and Kysely instance management
  *
  * This package centralizes:
  * 1. Configuration loading with priority resolution

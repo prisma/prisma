@@ -1,9 +1,9 @@
-// Re-export shared types from @ork/config
+// Re-export shared types from @ork-orm/config
 // Import for use in local interfaces
-import type { OrkConfig } from '@ork/config'
+import type { OrkConfig } from '@ork-orm/config'
 
-export type { OrkConfig } from '@ork/config'
-export { OrkConfigSchema } from '@ork/config'
+export type { OrkConfig } from '@ork-orm/config'
+export { OrkConfigSchema } from '@ork-orm/config'
 
 /**
  * CLI command context

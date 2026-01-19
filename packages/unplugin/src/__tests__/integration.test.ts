@@ -358,7 +358,7 @@ describe('Unplugin Ork Integration', () => {
       if (plugin.vite?.config) {
         plugin.vite.config(mockConfig)
 
-        expect(mockConfig.optimizeDeps.exclude).toContain('@ork/client')
+        expect(mockConfig.optimizeDeps.exclude).toContain('@ork-orm/client')
         expect(mockConfig.optimizeDeps.exclude).toContain('virtual:ork/*')
       }
     })
@@ -526,7 +526,7 @@ describe('Recommended Path Integration Tests', () => {
       if (plugin.vite?.config) {
         plugin.vite.config(mockConfig)
 
-        expect(mockConfig.optimizeDeps.exclude).toContain('@ork/client')
+        expect(mockConfig.optimizeDeps.exclude).toContain('@ork-orm/client')
         expect(mockConfig.optimizeDeps.exclude).toContain('virtual:ork/*')
       }
     })
@@ -896,7 +896,7 @@ model Model${i} {
         expect(typesContent).toContain('export interface DatabaseSchema')
 
         // Test module augmentation syntax
-        expect(typesContent).toContain("declare module '@ork/client'")
+        expect(typesContent).toContain("declare module '@ork-orm/client'")
         expect(typesContent).toContain('interface OrkGeneratedSchema extends DatabaseSchema')
       }
     })

@@ -1,11 +1,11 @@
 /**
  * Core interfaces and types for build-time field transformation code generation
- * 
+ *
  * The FieldTranslator system generates inline transformation code at build time
  * with ZERO runtime overhead - no translator dependencies or runtime processing.
  */
 
-import type { FieldAST } from '@ork/schema-parser'
+import type { FieldAST } from '@ork-orm/schema-parser'
 
 /**
  * Supported database dialects for transformation code generation
@@ -25,11 +25,11 @@ export interface FieldTransformContext {
 /**
  * Database operation context for transformations
  */
-export type TransformationOperation = 
-  | 'create'       // INSERT operations - input to database format
-  | 'update'       // UPDATE operations - input to database format  
-  | 'where'        // WHERE conditions - input to database format
-  | 'select'       // SELECT results - database to JavaScript format
+export type TransformationOperation =
+  | 'create' // INSERT operations - input to database format
+  | 'update' // UPDATE operations - input to database format
+  | 'where' // WHERE conditions - input to database format
+  | 'select' // SELECT results - database to JavaScript format
 
 /**
  * Generated transformation code result
@@ -59,33 +59,33 @@ export interface TransformationPerformance {
 
 /**
  * Core interface for dialect-specific transformation code generators
- * 
+ *
  * Each database dialect implements this interface to generate optimized
  * transformation code for their specific type system and requirements.
  */
 export interface FieldTransformationGenerator {
   /** Database dialect this generator supports */
   readonly dialect: DatabaseDialect
-  
-  /** 
+
+  /**
    * Generate transformation code for a specific field and operation
-   * 
+   *
    * @param context - Field and operation context
    * @returns Generated inline transformation code
    */
   generateTransformation(context: FieldTransformContext): GeneratedTransformation
-  
+
   /**
    * Check if this generator supports transforming the given field type
-   * 
+   *
    * @param field - Field to check
    * @returns true if field type is supported
    */
   supportsField(field: FieldAST): boolean
-  
+
   /**
    * Get the expected database column type for a schema field
-   * 
+   *
    * @param field - Schema field
    * @returns Database-specific column type
    */
@@ -98,13 +98,13 @@ export interface FieldTransformationGenerator {
 export interface TransformationGeneratorRegistry {
   /** Register a transformation generator for a dialect */
   register(generator: FieldTransformationGenerator): void
-  
+
   /** Get generator for a specific dialect */
   getGenerator(dialect: DatabaseDialect): FieldTransformationGenerator | undefined
-  
+
   /** Get all registered dialects */
   getSupportedDialects(): DatabaseDialect[]
-  
+
   /** Generate transformation for field in specified dialect */
   generateTransformation(dialect: DatabaseDialect, context: FieldTransformContext): GeneratedTransformation
 }
@@ -126,15 +126,15 @@ export interface FieldAnalysisResult {
 /**
  * Special handling requirements for fields
  */
-export type SpecialFieldHandling = 
-  | 'timestamp_auto'      // Auto-generated timestamps
-  | 'primary_key'         // Primary key field
-  | 'foreign_key'         // Foreign key relationship
-  | 'unique_constraint'   // Unique constraint
-  | 'nullable'            // Nullable field
-  | 'default_value'       // Has default value
-  | 'json_validation'     // JSON field requiring validation
-  | 'enum_constraint'     // Enum type constraint
+export type SpecialFieldHandling =
+  | 'timestamp_auto' // Auto-generated timestamps
+  | 'primary_key' // Primary key field
+  | 'foreign_key' // Foreign key relationship
+  | 'unique_constraint' // Unique constraint
+  | 'nullable' // Nullable field
+  | 'default_value' // Has default value
+  | 'json_validation' // JSON field requiring validation
+  | 'enum_constraint' // Enum type constraint
 
 /**
  * Complete model transformation metadata
@@ -160,7 +160,7 @@ export class TransformationGenerationError extends Error {
     message: string,
     public readonly field: FieldAST,
     public readonly dialect: DatabaseDialect,
-    public readonly operation: TransformationOperation
+    public readonly operation: TransformationOperation,
   ) {
     super(message)
     this.name = 'TransformationGenerationError'
@@ -169,12 +169,7 @@ export class TransformationGenerationError extends Error {
 
 export class UnsupportedFieldTypeError extends TransformationGenerationError {
   constructor(field: FieldAST, dialect: DatabaseDialect) {
-    super(
-      `Field type '${field.fieldType}' is not supported for dialect '${dialect}'`,
-      field,
-      dialect,
-      'create'
-    )
+    super(`Field type '${field.fieldType}' is not supported for dialect '${dialect}'`, field, dialect, 'create')
     this.name = 'UnsupportedFieldTypeError'
   }
 }

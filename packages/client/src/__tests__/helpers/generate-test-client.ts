@@ -1,6 +1,7 @@
-import { readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { parseSchema } from '@ork-orm/schema-parser'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { parseSchema } from '@ork/schema-parser'
+
 import { ClientGenerator } from '../../client-generator'
 
 export interface TestClientOptions {

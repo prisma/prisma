@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { setupTestDatabase, type TestEnvironment } from './helpers/test-container'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
 import { seedTestData } from './helpers/seed'
+import { setupTestDatabase, type TestEnvironment } from './helpers/test-container'
 
 /**
  * Runtime tests for unique constraint operations

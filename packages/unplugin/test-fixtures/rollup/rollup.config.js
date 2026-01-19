@@ -29,5 +29,5 @@ export default {
       sourceMap: true,
     }),
   ],
-  external: ['@ork/client'],
+  external: ['@ork-orm/client'],
 }

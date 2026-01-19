@@ -8,11 +8,12 @@
  * - Transactions with the same API surface
  */
 
-import { OrkClient } from './.ork/index.js'
+import { OrkMigrate } from '@ork-orm/migrate'
 import { PostgreSqlContainer } from '@testcontainers/postgresql'
-import { OrkMigrate } from '@ork/migrate'
 import { PostgresDialect } from 'kysely'
 import pg from 'pg'
+
+import { OrkClient } from './.ork/index.js'
 
 async function main() {
   console.log('🚀 Starting Ork Basic Example (High-Level API)\n')
@@ -206,22 +207,34 @@ async function main() {
     const usersWithPublishedPosts = await client.user.findMany({
       where: { posts: { some: { published: true } } },
     })
-    console.log('Users with published posts:', usersWithPublishedPosts.map((u) => u.email))
+    console.log(
+      'Users with published posts:',
+      usersWithPublishedPosts.map((u) => u.email),
+    )
 
     const usersWithAllPublishedPosts = await client.user.findMany({
       where: { posts: { every: { published: true } } },
     })
-    console.log('Users where every post is published:', usersWithAllPublishedPosts.map((u) => u.email))
+    console.log(
+      'Users where every post is published:',
+      usersWithAllPublishedPosts.map((u) => u.email),
+    )
 
     const usersWithNoPublishedPosts = await client.user.findMany({
       where: { posts: { none: { published: true } } },
     })
-    console.log('Users with no published posts:', usersWithNoPublishedPosts.map((u) => u.email))
+    console.log(
+      'Users with no published posts:',
+      usersWithNoPublishedPosts.map((u) => u.email),
+    )
 
     const usersWithProfiles = await client.user.findMany({
       where: { profile: { isNot: null } },
     })
-    console.log('Users with profiles:', usersWithProfiles.map((u) => u.email))
+    console.log(
+      'Users with profiles:',
+      usersWithProfiles.map((u) => u.email),
+    )
     console.log()
 
     // Step 13: Count records

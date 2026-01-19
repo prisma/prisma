@@ -2,9 +2,10 @@
  * Tests for the client generator with FieldTranslator integration
  */
 
-import { describe, it, expect } from 'vitest'
+import type { SchemaAST } from '@ork-orm/schema-parser'
+import { describe, expect, it } from 'vitest'
+
 import { ClientGenerator } from '../client-generator.js'
-import type { SchemaAST } from '@ork/schema-parser'
 
 describe('ClientGenerator', () => {
   const mockSchema: SchemaAST = {

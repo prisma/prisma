@@ -1,5 +1,5 @@
 /**
- * @ork/migrate - TypeScript-native migration engine for Ork ORM
+ * @ork-orm/migrate - TypeScript-native migration engine for Ork ORM
  *
  * This package provides programmatic migration capabilities with direct Kysely integration,
  * eliminating custom driver abstractions and providing transparent, type-safe database operations.
@@ -48,7 +48,7 @@ export type {
  *
  * @example
  * ```typescript
- * import { createMigrate } from '@ork/migrate'
+ * import { createMigrate } from '@ork-orm/migrate'
  * import { Kysely, PostgresDialect } from 'kysely'
  * import { Pool } from 'pg'
  *

@@ -61,11 +61,11 @@
   "dependencies": {
     "unplugin": "^2.3.5",
     "chokidar": "^4.0.1",
-    "@ork/schema-parser": "workspace:*",
-    "@ork/client": "workspace:*",
-    "@ork/config": "workspace:*",
-    "@ork/field-translator": "workspace:*",
-    "@ork/migrate": "workspace:*",
+    "@ork-orm/schema-parser": "workspace:*",
+    "@ork-orm/client": "workspace:*",
+    "@ork-orm/config": "workspace:*",
+    "@ork-orm/field-translator": "workspace:*",
+    "@ork-orm/migrate": "workspace:*",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {

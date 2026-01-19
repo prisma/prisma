@@ -399,7 +399,9 @@ export class SchemaVisitor implements ICstVisitor<unknown, unknown> {
     const children = node.children
     const name = getTokenImage(children, 'name')
     const configBlock = getNodes(children, 'configBlock')[0]
-    const properties = configBlock ? getNodes(configBlock.children, 'configProperty').map((child) => this.configProperty(child)) : []
+    const properties = configBlock
+      ? getNodes(configBlock.children, 'configProperty').map((child) => this.configProperty(child))
+      : []
 
     let provider = ''
     let url = ''
@@ -425,7 +427,9 @@ export class SchemaVisitor implements ICstVisitor<unknown, unknown> {
     const children = node.children
     const name = getTokenImage(children, 'name')
     const configBlock = getNodes(children, 'configBlock')[0]
-    const properties = configBlock ? getNodes(configBlock.children, 'configProperty').map((child) => this.configProperty(child)) : []
+    const properties = configBlock
+      ? getNodes(configBlock.children, 'configProperty').map((child) => this.configProperty(child))
+      : []
 
     let provider = ''
     let output: string | undefined

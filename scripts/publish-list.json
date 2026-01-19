@@ -4,23 +4,23 @@
     "path": "packages/cli"
   },
   {
-    "name": "@ork/client",
+    "name": "@ork-orm/client",
     "path": "packages/client"
   },
   {
-    "name": "@ork/schema-parser",
+    "name": "@ork-orm/schema-parser",
     "path": "packages/schema-parser"
   },
   {
-    "name": "@ork/field-translator",
+    "name": "@ork-orm/field-translator",
     "path": "packages/field-translator"
   },
   {
-    "name": "@ork/migrate",
+    "name": "@ork-orm/migrate",
     "path": "packages/migrate"
   },
   {
-    "name": "@ork/config",
+    "name": "@ork-orm/config",
     "path": "packages/config"
   },
   {

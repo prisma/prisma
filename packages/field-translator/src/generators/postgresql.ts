@@ -7,7 +7,8 @@
  * All transformations produce inline code with zero runtime overhead.
  */
 
-import type { FieldAST } from '@ork/schema-parser'
+import type { FieldAST } from '@ork-orm/schema-parser'
+
 import type {
   FieldTransformationGenerator,
   FieldTransformContext,

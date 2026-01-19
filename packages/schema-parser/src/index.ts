@@ -1,5 +1,5 @@
 /**
- * @ork/schema-parser
+ * @ork-orm/schema-parser
  *
  * TypeScript-native Prisma Schema Language parser for Ork ORM.
  * Provides AST generation and TypeScript code generation capabilities.

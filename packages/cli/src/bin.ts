@@ -4,10 +4,10 @@
  * Ork CLI - Main entry point
  */
 
+import { registerDevCommand } from './commands/dev.js'
 import { registerGenerateCommand } from './commands/generate.js'
 import { registerInitCommand } from './commands/init.js'
 import { registerMigrateCommand } from './commands/migrate.js'
-import { registerDevCommand } from './commands/dev.js'
 import { createProgram } from './utils/command.js'
 import { logger } from './utils/logger.js'
 

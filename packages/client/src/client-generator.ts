@@ -2,19 +2,14 @@
  * Ork client code generator with FieldTranslator integration.
  *
  * Emits client modules ahead of time with database-specific field transformations
- * using the @ork/field-translator system for zero runtime overhead.
+ * using the @ork-orm/field-translator system for zero runtime overhead.
  */
 
-import {
-  createFieldTranslator,
-  detectDialect,
-  type DatabaseDialect,
-  type OrkConfig,
-} from '@ork/field-translator'
-import type { FieldAST, ModelAST, SchemaAST } from '@ork/schema-parser'
+import { createFieldTranslator, type DatabaseDialect, detectDialect, type OrkConfig } from '@ork-orm/field-translator'
+import type { FieldAST, ModelAST, SchemaAST } from '@ork-orm/schema-parser'
+import dedent from 'dedent'
 
 import { PRISMA_TO_TS_TYPES } from './types'
-import dedent from 'dedent'
 
 export interface ClientGeneratorOptions {
   /** Database dialect for transformations */
@@ -51,7 +46,6 @@ export class ClientGenerator {
     // Default to SQLite for compatibility
     return 'sqlite'
   }
-
 
   /**
    * Generate complete client module with generated model operations.
@@ -90,8 +84,8 @@ export class ClientGenerator {
     const jsonHelperImport = this.generateJsonHelperImport(importStyle, fromStyle)
 
     return dedent`
-      ${importStyle} { OrkClientBase } ${fromStyle} '@ork/client'
-      ${importStyle} { createKyselyDialect, loadOrkConfig } ${fromStyle} '@ork/config'
+      ${importStyle} { OrkClientBase } ${fromStyle} '@ork-orm/client'
+      ${importStyle} { createKyselyDialect, loadOrkConfig } ${fromStyle} '@ork-orm/config'
       ${importStyle} { Kysely } ${fromStyle} 'kysely'
       ${importStyle} type { Dialect, ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder, DeleteQueryBuilder, Expression, SqlBool, ReferenceExpression, Selectable, LogConfig } ${fromStyle} 'kysely'
 
@@ -234,10 +228,12 @@ export class ClientGenerator {
 
       // 4. {Model} - full interface with optional relations (backwards compat)
       const relationFields = hasRelations
-        ? relations.map((rel) => {
-            const listMarker = rel.isArray ? '[]' : ''
-            return `${rel.fieldName}?: ${rel.relatedModel}${listMarker}`
-          }).join('\n')
+        ? relations
+            .map((rel) => {
+              const listMarker = rel.isArray ? '[]' : ''
+              return `${rel.fieldName}?: ${rel.relatedModel}${listMarker}`
+            })
+            .join('\n')
         : '// No relations'
 
       types.push(dedent.withOptions({ alignValues: true })`
@@ -250,9 +246,7 @@ export class ClientGenerator {
         }
       `)
 
-      const rowWithIncludesType = hasRelations
-        ? `${modelName}Row & Partial<${modelName}Relations>`
-        : `${modelName}Row`
+      const rowWithIncludesType = hasRelations ? `${modelName}Row & Partial<${modelName}Relations>` : `${modelName}Row`
 
       types.push(dedent.withOptions({ alignValues: true })`
         export type ${modelName}Row = Selectable<DatabaseSchema['${modelName}']>
@@ -1320,9 +1314,7 @@ ${includeFields}
       .filter(Boolean)
       .join('\n')
 
-    const relationFieldCases = relationNames.length
-      ? relationNames.map((name) => `case '${name}':`).join('\n')
-      : ''
+    const relationFieldCases = relationNames.length ? relationNames.map((name) => `case '${name}':`).join('\n') : ''
 
     const relationFieldBlock = relationNames.length
       ? dedent`

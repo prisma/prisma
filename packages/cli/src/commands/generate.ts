@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { ClientGenerator } from '@ork/client'
-import { findSchemaFile, getDefaultOutputDir } from '@ork/config'
-import { parseSchema } from '@ork/schema-parser'
-import { type SchemaAST } from '@ork/schema-parser'
+import { ClientGenerator } from '@ork-orm/client'
+import { findSchemaFile, getDefaultOutputDir } from '@ork-orm/config'
+import { parseSchema } from '@ork-orm/schema-parser'
+import { type SchemaAST } from '@ork-orm/schema-parser'
 import ora from 'ora'
 
 import type { CommandResult, GenerateOptions } from '../types.js'

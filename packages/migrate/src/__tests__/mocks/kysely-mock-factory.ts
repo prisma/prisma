@@ -7,7 +7,7 @@ import type {
   ModelAST,
   SchemaAST,
   Span,
-} from '@ork/schema-parser'
+} from '@ork-orm/schema-parser'
 import { vi } from 'vitest'
 
 import type {

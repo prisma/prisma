@@ -1,6 +1,6 @@
 /**
  * Transformation generator registry implementation
- * 
+ *
  * Manages dialect-specific field transformation generators and provides
  * a unified interface for generating transformation code.
  */
@@ -8,9 +8,9 @@
 import type {
   DatabaseDialect,
   FieldTransformationGenerator,
-  TransformationGeneratorRegistry,
   FieldTransformContext,
-  GeneratedTransformation
+  GeneratedTransformation,
+  TransformationGeneratorRegistry,
 } from './types.js'
 import { UnsupportedDialectError } from './types.js'
 

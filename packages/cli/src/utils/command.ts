@@ -1,4 +1,4 @@
-import { findSchemaFile } from '@ork/config'
+import { findSchemaFile } from '@ork-orm/config'
 import { Command } from 'commander'
 
 import type { CommandContext, CommandResult } from '../types.js'

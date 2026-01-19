@@ -7,13 +7,14 @@
  * All transformations produce inline code with zero runtime overhead.
  */
 
-import type { FieldAST } from '@ork/schema-parser'
+import type { FieldAST } from '@ork-orm/schema-parser'
+
 import type {
   FieldTransformationGenerator,
   FieldTransformContext,
   GeneratedTransformation,
-  TransformationPerformance,
   TransformationOperation,
+  TransformationPerformance,
 } from '../types.js'
 import { UnsupportedFieldTypeError } from '../types.js'
 

@@ -70,7 +70,7 @@ Future effort will be put towards:
 - `packages/unplugin`: Build-tool integration (Vite, Webpack, Rollup, esbuild) that emits virtual `.ork/types` modules.
 - `packages/cli`: CLI (`ork`) that orchestrates config, generation, and migrations.
 
-Core libraries publish under `@ork/*`, with `ork` (CLI) and `unplugin-ork` as unscoped packages.
+Core libraries publish under `@ork-orm/*`, with `ork` (CLI) and `unplugin-ork` as unscoped packages.
 
 ## Getting Started (Alpha)
 
@@ -120,8 +120,8 @@ npx ork dev
 ## Development Workflow
 
 1. Edit or create your `schema.prisma`.
-2. Use `pnpm --filter @ork/schema-parser test` to exercise parsing changes.
-3. Run `pnpm --filter @ork/client build` (or `pnpm watch`) to regenerate the client runtime.
+2. Use `pnpm --filter @ork-orm/schema-parser test` to exercise parsing changes.
+3. Run `pnpm --filter @ork-orm/client build` (or `pnpm watch`) to regenerate the client runtime.
 4. Use the CLI for init/generate/migrate flows.
 5. Launch the demo project (Vite + unplugin) to validate type generation and CRUD operations.
 
@@ -132,6 +132,10 @@ Ork is TypeScript-first. Follow our workspace conventions:
 - Node.js ≥ 20, pnpm ≥ 10.
 - `pnpm lint`, `pnpm test`, and `pnpm build` at the workspace root before submitting changes.
 - Database-backed tests use Testcontainers (no local `/docker` directory required).
+
+## Special Thanks
+
+Thank you to William ([@willguitaradmfar](https://github.com/willguitaradmfar)) for generously donating the `ork` npm package name.
 
 ## License
 

@@ -1,5 +1,5 @@
 {
-  "name": "@ork/example-vite",
+  "name": "@ork-orm/example-vite",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,10 +12,10 @@
     "generate:local": "node ../../packages/cli/dist/bin.js generate"
   },
   "dependencies": {
-    "@ork/client": "workspace:*",
-    "@ork/config": "workspace:*",
-    "@ork/migrate": "workspace:*",
-    "@ork/schema-parser": "workspace:*",
+    "@ork-orm/client": "workspace:*",
+    "@ork-orm/config": "workspace:*",
+    "@ork-orm/migrate": "workspace:*",
+    "@ork-orm/schema-parser": "workspace:*",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.5.0",
     "kysely": "^0.27.4",

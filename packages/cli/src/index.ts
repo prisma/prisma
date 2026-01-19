@@ -7,7 +7,12 @@ export type { CommandContext, CommandResult, OrkConfig } from './types.js'
 export { OrkConfigSchema } from './types.js'
 export { BaseCommand, createProgram } from './utils/command.js'
 export { logger, OrkLogger } from './utils/logger.js'
-export { createKyselyFromConfig, findSchemaFile, loadOrkConfig as loadConfig, validateConnection } from '@ork/config'
+export {
+  createKyselyFromConfig,
+  findSchemaFile,
+  loadOrkConfig as loadConfig,
+  validateConnection,
+} from '@ork-orm/config'
 
 // Command exports
 export { generateClient, GenerateCommand } from './commands/generate.js'

@@ -1,5 +1,5 @@
 {
-  "name": "@ork/schema-parser",
+  "name": "@ork-orm/schema-parser",
   "version": "0.0.1-alpha.1",
   "description": "TypeScript-native Prisma Schema Language parser for Ork ORM",
   "type": "module",

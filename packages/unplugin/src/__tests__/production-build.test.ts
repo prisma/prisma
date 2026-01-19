@@ -60,7 +60,7 @@ export interface Post {
   user: User  
   post: Post
 }`,
-      augmentation: `declare module '@ork/client' {
+      augmentation: `declare module '@ork-orm/client' {
   interface OrkGeneratedSchema extends DatabaseSchema {}
 }`,
     }

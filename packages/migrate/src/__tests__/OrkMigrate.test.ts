@@ -15,7 +15,7 @@ afterEach(() => {
 })
 
 // Mock the schema parser
-vi.mock('@ork/schema-parser', () => ({
+vi.mock('@ork-orm/schema-parser', () => ({
   parseSchema: vi.fn((schemaPath: string) => {
     // Return empty schema for empty schema test
     if (schemaPath.includes('Empty schema') || schemaPath.includes('// Empty schema')) {

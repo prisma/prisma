@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3'
-import { Kysely, SqliteDialect, sql } from 'kysely'
-import { importTestClient } from './generate-test-client'
+import { Kysely, sql, SqliteDialect } from 'kysely'
 import { join } from 'path'
+
+import { importTestClient } from './generate-test-client'
 
 export interface SqliteTestEnvironment {
   kysely: Kysely<any>

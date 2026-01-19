@@ -6,7 +6,7 @@ import type {
   FieldAST,
   ModelAST,
   Span,
-} from '@ork/schema-parser'
+} from '@ork-orm/schema-parser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { OrkMigrate } from '../OrkMigrate.js'
@@ -202,8 +202,8 @@ model Post {
 }
 
 // Mock schema parser to return actual parsed schemas for our test cases
-vi.mock('@ork/schema-parser', async () => {
-  const actual = await vi.importActual('@ork/schema-parser')
+vi.mock('@ork-orm/schema-parser', async () => {
+  const actual = await vi.importActual('@ork-orm/schema-parser')
   return {
     ...actual,
     parseSchema: vi.fn((schemaPath: string) => {

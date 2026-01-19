@@ -1,12 +1,13 @@
-import { findSchemaFile } from '@ork/config'
-import { OrkMigrate } from '@ork/migrate'
 import { watch } from 'node:fs'
 
-import { generateClient } from './generate.js'
+import { findSchemaFile } from '@ork-orm/config'
+import { OrkMigrate } from '@ork-orm/migrate'
+
 import type { CommandResult, DevOptions } from '../types.js'
 import { BaseCommand } from '../utils/command.js'
 import { cliCreateKyselyFromConfig, cliLoadOrkConfig } from '../utils/config-error-handler.js'
 import { logger } from '../utils/logger.js'
+import { generateClient } from './generate.js'
 
 type RunState = {
   running: boolean
@@ -108,17 +109,12 @@ export class DevCommand extends BaseCommand {
         requireExplicitConfirmation: !options.yes,
       } as const
 
-      const result = await migrate.applyWithConfirmation(
-        kysely,
-        schemaPath,
-        promptConfig,
-        {
-          level: 'info',
-          logStatements: true,
-          logExecutionTimes: true,
-          logProgress: true,
-        },
-      )
+      const result = await migrate.applyWithConfirmation(kysely, schemaPath, promptConfig, {
+        level: 'info',
+        logStatements: true,
+        logExecutionTimes: true,
+        logProgress: true,
+      })
 
       if (result.success) {
         logger.success(

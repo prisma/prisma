@@ -28,10 +28,10 @@ These documents contain critical context that will help you understand the codeb
 
 ## Key Packages
 
-- `@ork/client`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
-- `@ork/schema-parser`: Pure TypeScript parser for `.prisma` files, produces AST for generators.
-- `@ork/migrate`: Programmatic migrations via Kysely (`diff`, `apply`, history APIs).
-- `@ork/config`: Config discovery and dialect creation (PostgreSQL, SQLite priority).
+- `@ork-orm/client`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
+- `@ork-orm/schema-parser`: Pure TypeScript parser for `.prisma` files, produces AST for generators.
+- `@ork-orm/migrate`: Programmatic migrations via Kysely (`diff`, `apply`, history APIs).
+- `@ork-orm/config`: Config discovery and dialect creation (PostgreSQL, SQLite priority).
 - `unplugin-ork`: Build-tool integration that emits virtual `.ork/types` modules for IDE support.
 - `ork`: ESM-only CLI wrapping config, generation, and migrations (implementation in progress).
 
@@ -47,7 +47,7 @@ These documents contain critical context that will help you understand the codeb
 When making changes to the client generator:
 
 1. **Edit source**: Modify `packages/client/src/client-generator.ts`
-2. **Rebuild client package**: `pnpm --filter @ork/client build`
+2. **Rebuild client package**: `pnpm --filter @ork-orm/client build`
 3. **Rebuild CLI**: `pnpm --filter ork build`
 4. **Regenerate example client**: `cd examples/basic && node ../../packages/cli/dist/bin.js generate`
 5. **Test**: `cd examples/basic && pnpm demo`

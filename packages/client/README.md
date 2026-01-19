@@ -1,4 +1,4 @@
-# @ork/client
+# @ork-orm/client
 
 TypeScript-native client runtime for Ork ORM with two clean usage paths.
 
@@ -10,7 +10,7 @@ Use `unplugin-ork` for automatic type discovery:
 
 ```typescript
 // unplugin-ork makes this import work seamlessly
-import { OrkClient } from '@ork/client'
+import { OrkClient } from '@ork-orm/client'
 import { PostgresDialect } from 'kysely'
 
 const client = new OrkClient(new PostgresDialect({ connectionString: process.env.DATABASE_URL! }))
@@ -24,7 +24,7 @@ await client.user.findMany()
 When unplugin isn't available, import types explicitly:
 
 ```typescript
-import { OrkClient } from '@ork/client'
+import { OrkClient } from '@ork-orm/client'
 import { PostgresDialect } from 'kysely'
 import type { DatabaseSchema } from './.ork/types'
 
@@ -74,7 +74,7 @@ const result = await client.$kysely.selectFrom('user').innerJoin('post', 'user.i
 ## Installation
 
 ```bash
-npm install @ork/client kysely
+npm install @ork-orm/client kysely
 npm install unplugin-ork # Recommended for best experience
 ```
 

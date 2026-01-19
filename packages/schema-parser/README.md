@@ -1,4 +1,4 @@
-# @ork/schema-parser
+# @ork-orm/schema-parser
 
 TypeScript-native Prisma Schema Language parser for Ork ORM.
 
@@ -17,13 +17,13 @@ This package provides a complete TypeScript-native implementation for parsing Pr
 ## Installation
 
 ```bash
-pnpm add @ork/schema-parser
+pnpm add @ork-orm/schema-parser
 ```
 
 ## Usage
 
 ```typescript
-import { parseSchema } from '@ork/schema-parser'
+import { parseSchema } from '@ork-orm/schema-parser'
 
 const schema = `
 datasource db {

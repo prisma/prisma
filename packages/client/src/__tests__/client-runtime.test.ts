@@ -5,7 +5,7 @@
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { OrkClientBase, type ModelFactory } from '../client.js'
+import { type ModelFactory, OrkClientBase } from '../client.js'
 
 // Mock Kysely dialect to avoid requiring database connections
 const mockKysely = {

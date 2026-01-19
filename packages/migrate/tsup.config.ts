@@ -7,7 +7,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['kysely', '@ork/schema-parser'],
+  external: ['kysely', '@ork-orm/schema-parser'],
   minify: false,
   splitting: false,
   bundle: true,

@@ -2,15 +2,10 @@
  * Integration tests for the FieldTranslator system
  */
 
-import { describe, it, expect } from 'vitest'
-import {
-  createFieldTranslator,
-  transformationRegistry,
-  detectDialect,
-  DialectDetector,
-  generators
-} from '../index.js'
-import type { FieldAST } from '@ork/schema-parser'
+import type { FieldAST } from '@ork-orm/schema-parser'
+import { describe, expect, it } from 'vitest'
+
+import { createFieldTranslator, detectDialect, DialectDetector, generators, transformationRegistry } from '../index.js'
 
 describe('FieldTranslator Integration', () => {
   const mockStringField: FieldAST = {
@@ -18,7 +13,7 @@ describe('FieldTranslator Integration', () => {
     fieldType: 'String',
     isOptional: false,
     isList: false,
-    attributes: []
+    attributes: [],
   }
 
   const mockBooleanField: FieldAST = {
@@ -26,7 +21,7 @@ describe('FieldTranslator Integration', () => {
     fieldType: 'Boolean',
     isOptional: true,
     isList: false,
-    attributes: []
+    attributes: [],
   }
 
   const mockDateTimeField: FieldAST = {
@@ -34,7 +29,7 @@ describe('FieldTranslator Integration', () => {
     fieldType: 'DateTime',
     isOptional: false,
     isList: false,
-    attributes: [{ name: 'default', args: [{ value: 'now()' }] }]
+    attributes: [{ name: 'default', args: [{ value: 'now()' }] }],
   }
 
   describe('Dialect Detection', () => {
@@ -62,8 +57,8 @@ describe('FieldTranslator Integration', () => {
       const config = {
         database: {
           provider: 'postgresql',
-          url: 'postgresql://localhost/test'
-        }
+          url: 'postgresql://localhost/test',
+        },
       }
       expect(detectDialect(config)).toBe('postgresql')
     })
@@ -74,20 +69,20 @@ describe('FieldTranslator Integration', () => {
 
     it('should generate Boolean transformations', () => {
       const result = analyzer.analyzeField(mockBooleanField)
-      
+
       const createTransform = result.transformations.get('create')
       expect(createTransform?.code).toBe('data.isActive ? 1 : 0')
-      
+
       const selectTransform = result.transformations.get('select')
       expect(selectTransform?.code).toBe('data.isActive === 1')
     })
 
     it('should generate DateTime transformations', () => {
       const result = analyzer.analyzeField(mockDateTimeField)
-      
+
       const createTransform = result.transformations.get('create')
       expect(createTransform?.code).toContain('toISOString()')
-      
+
       const selectTransform = result.transformations.get('select')
       expect(selectTransform?.code).toBe('new Date(data.createdAt as string | number)')
     })
@@ -103,11 +98,11 @@ describe('FieldTranslator Integration', () => {
 
     it('should generate Boolean transformations', () => {
       const result = analyzer.analyzeField(mockBooleanField)
-      
+
       // PostgreSQL supports native booleans - no transformation needed
       const createTransform = result.transformations.get('create')
       expect(createTransform?.code).toBe('data.isActive')
-      
+
       const selectTransform = result.transformations.get('select')
       expect(selectTransform?.code).toBe('data.isActive')
     })
@@ -123,10 +118,10 @@ describe('FieldTranslator Integration', () => {
 
     it('should generate Boolean transformations', () => {
       const result = analyzer.analyzeField(mockBooleanField)
-      
+
       const createTransform = result.transformations.get('create')
       expect(createTransform?.code).toBe('data.isActive ? 1 : 0')
-      
+
       const selectTransform = result.transformations.get('select')
       expect(selectTransform?.code).toBe('data.isActive === 1')
     })
@@ -139,9 +134,7 @@ describe('FieldTranslator Integration', () => {
 
   describe('Registry System', () => {
     it('should have all generators registered', () => {
-      expect(transformationRegistry.getSupportedDialects()).toEqual([
-        'sqlite', 'postgresql', 'mysql'
-      ])
+      expect(transformationRegistry.getSupportedDialects()).toEqual(['sqlite', 'postgresql', 'mysql'])
     })
 
     it('should generate transformations through registry', () => {
@@ -149,7 +142,7 @@ describe('FieldTranslator Integration', () => {
         field: mockStringField,
         dialect: 'sqlite' as const,
         operation: 'create' as const,
-        variableName: 'data.email'
+        variableName: 'data.email',
       }
 
       const result = transformationRegistry.generateTransformation('sqlite', context)
@@ -161,7 +154,7 @@ describe('FieldTranslator Integration', () => {
     it('should mark simple transformations correctly', () => {
       const analyzer = createFieldTranslator('sqlite')
       const result = analyzer.analyzeField(mockStringField)
-      
+
       const createTransform = result.transformations.get('create')
       expect(createTransform?.performance.complexity).toBe('simple')
       expect(createTransform?.performance.inlinable).toBe(true)
@@ -171,7 +164,7 @@ describe('FieldTranslator Integration', () => {
     it('should mark complex transformations correctly', () => {
       const analyzer = createFieldTranslator('sqlite')
       const result = analyzer.analyzeField(mockDateTimeField)
-      
+
       const createTransform = result.transformations.get('create')
       expect(createTransform?.performance.complexity).toBe('moderate')
       expect(createTransform?.needsErrorHandling).toBe(true)

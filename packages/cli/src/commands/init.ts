@@ -1,15 +1,15 @@
+import { PROVIDER_METADATA, SUPPORTED_PROVIDERS } from '@ork-orm/config'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 import prompts from 'prompts'
-import { PROVIDER_METADATA, SUPPORTED_PROVIDERS } from '@ork/config'
 
 import { CONFIG_TEMPLATES, generateConfigContent } from '../config/presets.js'
 import { generateSchemaContent } from '../templates/schema.js'
 import type { CommandResult, InitOptions } from '../types.js'
 import { BaseCommand } from '../utils/command.js'
+import { detectProviderFromUrl } from '../utils/config.js'
 import { cliCreateKyselyFromUrl } from '../utils/config-error-handler.js'
 import { logger } from '../utils/logger.js'
-import { detectProviderFromUrl } from '../utils/config.js'
 import { detectPackageManager, getPackageManager, runInstall } from '../utils/package-manager.js'
 import { findViteConfigPath, patchViteConfig } from '../utils/vite-config.js'
 
@@ -235,7 +235,7 @@ export class InitCommand extends BaseCommand {
     const packagePath = resolve(cwd, 'package.json')
 
     if (!existsSync(packagePath)) {
-      logger.info('No package.json found. Install @ork/config for type checking when you add one.')
+      logger.info('No package.json found. Install @ork-orm/config for type checking when you add one.')
       return
     }
 
@@ -245,20 +245,20 @@ export class InitCommand extends BaseCommand {
         devDependencies?: Record<string, string>
       }
 
-      if (packageJson.dependencies?.['@ork/config'] || packageJson.devDependencies?.['@ork/config']) {
+      if (packageJson.dependencies?.['@ork-orm/config'] || packageJson.devDependencies?.['@ork-orm/config']) {
         return
       }
 
       const version = this.getCliVersion()
       packageJson.devDependencies = {
         ...packageJson.devDependencies,
-        '@ork/config': version,
+        '@ork-orm/config': version,
       }
 
       writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8')
-      logger.success('Added @ork/config to devDependencies')
+      logger.success('Added @ork-orm/config to devDependencies')
     } catch (error) {
-      logger.info('Could not update package.json. Install @ork/config for type checking if needed.')
+      logger.info('Could not update package.json. Install @ork-orm/config for type checking if needed.')
       if (process.env.DEBUG) {
         logger.debug(`package.json update failed: ${error instanceof Error ? error.message : String(error)}`)
       }

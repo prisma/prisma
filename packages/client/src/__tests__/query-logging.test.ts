@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { setupTestDatabase, type TestEnvironment } from './helpers/test-container'
-import { seedTestData } from './helpers/seed'
-import { createOrkClient } from './fixtures/generated-test-client'
 import { PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
+import { createOrkClient } from './fixtures/generated-test-client'
+import { seedTestData } from './helpers/seed'
+import { setupTestDatabase, type TestEnvironment } from './helpers/test-container'
 
 /**
  * Tests for Query Logging
@@ -120,7 +121,7 @@ describe('Query Logging', () => {
           level: 'query',
           sql: expect.stringMatching(/select/i),
           params: expect.any(Array),
-        })
+        }),
       )
     })
 
@@ -137,7 +138,7 @@ describe('Query Logging', () => {
       expect(customLogger).toHaveBeenCalledWith(
         expect.objectContaining({
           queryDurationMillis: expect.any(Number),
-        })
+        }),
       )
     })
   })
@@ -161,7 +162,7 @@ describe('Query Logging', () => {
             sql: expect.stringMatching(/select/i),
             parameters: expect.arrayContaining(['alice@example.com']),
           }),
-        })
+        }),
       )
     })
 

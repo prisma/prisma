@@ -85,7 +85,7 @@ build({
 Once the plugin is configured, you can use clean imports in your application:
 
 ```typescript
-import { OrkClient } from '@ork/client'
+import { OrkClient } from '@ork-orm/client'
 import { PostgresDialect } from 'kysely'
 
 // Types are automatically available via virtual modules

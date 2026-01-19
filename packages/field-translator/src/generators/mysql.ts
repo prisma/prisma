@@ -1,18 +1,19 @@
 /**
  * MySQL Field Transformation Code Generator
- * 
+ *
  * Generates build-time transformation code for MySQL-specific type mappings
  * including TINYINT boolean support, JSON handling, and DECIMAL precision.
- * 
+ *
  * All transformations produce inline code with zero runtime overhead.
  */
 
-import type { FieldAST } from '@ork/schema-parser'
+import type { FieldAST } from '@ork-orm/schema-parser'
+
 import type {
   FieldTransformationGenerator,
   FieldTransformContext,
   GeneratedTransformation,
-  TransformationOperation
+  TransformationOperation,
 } from '../types.js'
 import { UnsupportedFieldTypeError } from '../types.js'
 
@@ -29,24 +30,24 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
     switch (field.fieldType) {
       case 'Boolean':
         return this.generateBooleanTransformation(operation, variableName)
-      
+
       case 'DateTime':
         return this.generateDateTimeTransformation(operation, variableName, field)
-      
+
       case 'Json':
         return this.generateJsonTransformation(operation, variableName)
-      
+
       case 'Int':
       case 'BigInt':
         return this.generateIntegerTransformation(operation, variableName, field)
-      
+
       case 'Float':
       case 'Decimal':
         return this.generateNumericTransformation(operation, variableName, field)
-      
+
       case 'String':
         return this.generateStringTransformation(operation, variableName, field)
-      
+
       default:
         throw new UnsupportedFieldTypeError(field, this.dialect)
     }
@@ -82,7 +83,7 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
 
   private generateBooleanTransformation(
     operation: TransformationOperation,
-    variableName: string
+    variableName: string,
   ): GeneratedTransformation {
     if (operation === 'select') {
       // MySQL returns TINYINT as 0/1, convert to boolean
@@ -93,8 +94,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -106,15 +107,15 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateDateTimeTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
 
@@ -127,8 +128,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -155,14 +156,14 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
       performance: {
         complexity: 'moderate',
         inlinable: true,
-        impact: 'low'
-      }
+        impact: 'low',
+      },
     }
   }
 
   private generateJsonTransformation(
     operation: TransformationOperation,
-    variableName: string
+    variableName: string,
   ): GeneratedTransformation {
     if (operation === 'select') {
       // MySQL JSON is automatically parsed by the driver in most cases
@@ -173,8 +174,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'moderate',
           inlinable: true,
-          impact: 'low'
-        }
+          impact: 'low',
+        },
       }
     }
 
@@ -186,15 +187,15 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
       performance: {
         complexity: 'moderate',
         inlinable: true,
-        impact: 'low'
-      }
+        impact: 'low',
+      },
     }
   }
 
   private generateIntegerTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isBigInt = field.fieldType === 'BigInt'
     const isOptional = field.isOptional
@@ -209,8 +210,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
           performance: {
             complexity: 'simple',
             inlinable: true,
-            impact: 'negligible'
-          }
+            impact: 'negligible',
+          },
         }
       } else {
         return {
@@ -220,8 +221,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
           performance: {
             complexity: 'simple',
             inlinable: true,
-            impact: 'negligible'
-          }
+            impact: 'negligible',
+          },
         }
       }
     }
@@ -231,7 +232,7 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
       const transformation = isOptional
         ? `${variableName} !== null ? Number(${variableName}) : null`
         : `Number(${variableName})`
-      
+
       return {
         code: transformation,
         imports: [],
@@ -239,14 +240,14 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     } else {
       const transformation = isOptional
         ? `${variableName} !== null ? Number(${variableName}) : null`
         : `Number(${variableName})`
-      
+
       return {
         code: transformation,
         imports: [],
@@ -254,8 +255,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
   }
@@ -263,10 +264,10 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
   private generateNumericTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
-    
+
     if (operation === 'select') {
       // MySQL driver handles numeric conversion
       return {
@@ -276,8 +277,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -293,15 +294,15 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateStringTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
 
@@ -314,8 +315,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -331,8 +332,8 @@ export class MySQLTransformationGenerator implements FieldTransformationGenerato
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 }

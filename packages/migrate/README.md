@@ -1,10 +1,10 @@
-# @ork/migrate
+# @ork-orm/migrate
 
 TypeScript-native migration engine for Ork ORM with direct Kysely integration.
 
 ## Overview
 
-`@ork/migrate` provides programmatic migration capabilities that work directly with Kysely dialect instances, eliminating custom driver abstractions and providing transparent, type-safe database operations.
+`@ork-orm/migrate` provides programmatic migration capabilities that work directly with Kysely dialect instances, eliminating custom driver abstractions and providing transparent, type-safe database operations.
 
 ## Key Features
 
@@ -24,9 +24,9 @@ TypeScript-native migration engine for Ork ORM with direct Kysely integration.
 ## Installation
 
 ```bash
-npm install @ork/migrate kysely
+npm install @ork-orm/migrate kysely
 # or
-pnpm add @ork/migrate kysely
+pnpm add @ork-orm/migrate kysely
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ pnpm add @ork/migrate kysely
 ### Basic Setup
 
 ```typescript
-import { createMigrate } from '@ork/migrate'
+import { createMigrate } from '@ork-orm/migrate'
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 
@@ -146,7 +146,7 @@ interface MigrationOptions {
 
 ### Direct Kysely Integration
 
-Unlike traditional ORMs that use custom driver abstractions, `@ork/migrate` works directly with your Kysely instance:
+Unlike traditional ORMs that use custom driver abstractions, `@ork-orm/migrate` works directly with your Kysely instance:
 
 1. **Introspection**: Uses `kysely.introspection.getTables()` to get current database state
 2. **DDL Generation**: Uses `kysely.schema.createTable()`, `kysely.schema.alterTable()` for SQL generation

@@ -2,8 +2,6 @@
  * Vite Test Fixture
  */
 
-import { OrkClient } from '@ork/client'
-
 import type { DatabaseSchema, Post, Profile, Tag, User } from '.ork/types'
 
 console.log('🚀 Vite + Ork Recommended Path Demo')

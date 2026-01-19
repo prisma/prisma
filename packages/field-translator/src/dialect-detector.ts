@@ -1,6 +1,6 @@
 /**
  * Build-time database dialect detection system
- * 
+ *
  * Analyzes project configuration to determine database type and select
  * appropriate transformation code generators.
  */
@@ -78,7 +78,7 @@ export class DialectDetector {
    */
   static dialectFromUrl(url: string): DatabaseDialect {
     const urlLower = url.toLowerCase()
-    
+
     if (urlLower.startsWith('postgres://') || urlLower.startsWith('postgresql://')) {
       return 'postgresql'
     }
@@ -96,22 +96,22 @@ export class DialectDetector {
    */
   static dialectFromProvider(provider: string): DatabaseDialect {
     const providerLower = provider.toLowerCase()
-    
+
     switch (providerLower) {
       case 'postgresql':
       case 'postgres':
       case 'pg':
         return 'postgresql'
-      
+
       case 'mysql':
       case 'mariadb':
         return 'mysql'
-      
+
       case 'sqlite':
       case 'better-sqlite3':
       case 'sqlite3':
         return 'sqlite'
-      
+
       default:
         throw new Error(`Unsupported provider: ${provider}`)
     }
@@ -122,7 +122,7 @@ export class DialectDetector {
    */
   static dialectFromKysely(dialectInfo: KyselyDialectInfo): DatabaseDialect {
     const dialectName = dialectInfo.dialectName.toLowerCase()
-    
+
     if (dialectName.includes('postgres')) {
       return 'postgresql'
     }
@@ -140,11 +140,11 @@ export class DialectDetector {
    */
   static validateDialect(dialect: string): DatabaseDialect {
     const supportedDialects: DatabaseDialect[] = ['postgresql', 'mysql', 'sqlite']
-    
+
     if (supportedDialects.includes(dialect as DatabaseDialect)) {
       return dialect as DatabaseDialect
     }
-    
+
     throw new UnsupportedDialectError(dialect)
   }
 
@@ -166,9 +166,7 @@ export class DialectDetector {
 /**
  * Convenience function for detecting dialect from various sources
  */
-export function detectDialect(
-  source: OrkConfig | string | KyselyDialectInfo
-): DatabaseDialect {
+export function detectDialect(source: OrkConfig | string | KyselyDialectInfo): DatabaseDialect {
   if (typeof source === 'string') {
     // Assume it's a URL or provider string
     if (source.includes('://') || source.includes('.db') || source.includes('.sqlite')) {
@@ -177,10 +175,10 @@ export function detectDialect(
       return DialectDetector.dialectFromProvider(source)
     }
   }
-  
+
   if ('dialectName' in source) {
     return DialectDetector.dialectFromKysely(source)
   }
-  
+
   return DialectDetector.detectFromConfig(source)
 }

@@ -2,14 +2,9 @@
  * Integration test to verify FieldTranslator system works correctly
  */
 
-import { describe, it, expect } from 'vitest'
-import { 
-  createFieldTranslator, 
-  detectDialect, 
-  generators,
-  transformationRegistry 
-} from '@ork/field-translator'
-import type { FieldAST } from '@ork/schema-parser'
+import { createFieldTranslator, detectDialect, transformationRegistry } from '@ork-orm/field-translator'
+import type { FieldAST } from '@ork-orm/schema-parser'
+import { describe, expect, it } from 'vitest'
 
 describe('FieldTranslator Integration in Client Generator', () => {
   const mockBooleanField: FieldAST = {
@@ -17,7 +12,7 @@ describe('FieldTranslator Integration in Client Generator', () => {
     fieldType: 'Boolean',
     isOptional: false,
     isList: false,
-    attributes: []
+    attributes: [],
   }
 
   const mockDateTimeField: FieldAST = {
@@ -25,7 +20,7 @@ describe('FieldTranslator Integration in Client Generator', () => {
     fieldType: 'DateTime',
     isOptional: false,
     isList: false,
-    attributes: []
+    attributes: [],
   }
 
   it('should create field translator for different dialects', () => {
@@ -50,7 +45,7 @@ describe('FieldTranslator Integration in Client Generator', () => {
 
     // SQLite should transform booleans to 0/1
     expect(sqliteCreateTransform?.code).toContain('? 1 : 0')
-    
+
     // PostgreSQL should pass booleans through unchanged
     expect(postgresCreateTransform?.code).toBe('data.isActive')
   })
@@ -67,7 +62,7 @@ describe('FieldTranslator Integration in Client Generator', () => {
 
     // SQLite should convert from ISO string
     expect(sqliteSelectTransform?.code).toContain('new Date(')
-    
+
     // PostgreSQL driver handles dates automatically
     expect(postgresSelectTransform?.code).toBe('data.createdAt')
   })
@@ -88,13 +83,13 @@ describe('FieldTranslator Integration in Client Generator', () => {
 
   it('should detect special handling requirements', () => {
     const translator = createFieldTranslator('sqlite')
-    
+
     const optionalField: FieldAST = {
       name: 'email',
       fieldType: 'String',
       isOptional: true,
       isList: false,
-      attributes: []
+      attributes: [],
     }
 
     const result = translator.analyzeField(optionalField)
@@ -104,7 +99,7 @@ describe('FieldTranslator Integration in Client Generator', () => {
   it('should provide performance metadata', () => {
     const translator = createFieldTranslator('sqlite')
     const result = translator.analyzeField(mockBooleanField)
-    
+
     const createTransform = result.transformations.get('create')
     expect(createTransform?.performance).toBeDefined()
     expect(createTransform?.performance.complexity).toBe('simple')
@@ -116,19 +111,17 @@ describe('FieldTranslator Integration in Client Generator', () => {
     expect(detectDialect('postgresql://localhost/test')).toBe('postgresql')
     expect(detectDialect('mysql://localhost/test')).toBe('mysql')
     expect(detectDialect('sqlite:./test.db')).toBe('sqlite')
-    
+
     expect(detectDialect({ database: { provider: 'postgresql' } })).toBe('postgresql')
   })
 
   it('should have all generators registered', () => {
-    expect(transformationRegistry.getSupportedDialects()).toEqual([
-      'sqlite', 'postgresql', 'mysql'
-    ])
-    
+    expect(transformationRegistry.getSupportedDialects()).toEqual(['sqlite', 'postgresql', 'mysql'])
+
     const sqliteGen = transformationRegistry.getGenerator('sqlite')
     const postgresGen = transformationRegistry.getGenerator('postgresql')
     const mysqlGen = transformationRegistry.getGenerator('mysql')
-    
+
     expect(sqliteGen).toBeDefined()
     expect(postgresGen).toBeDefined()
     expect(mysqlGen).toBeDefined()
@@ -137,9 +130,9 @@ describe('FieldTranslator Integration in Client Generator', () => {
   it('should generate inline transformation code', () => {
     const translator = createFieldTranslator('sqlite')
     const result = translator.analyzeField(mockBooleanField)
-    
+
     const createTransform = result.transformations.get('create')
-    
+
     // Should be actual executable JavaScript code
     expect(createTransform?.code).toBe('data.isActive ? 1 : 0')
     expect(createTransform?.imports).toEqual([])

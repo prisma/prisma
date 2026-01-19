@@ -2,7 +2,7 @@
  * Core types for Ork client generation and operations
  */
 
-import type { SchemaAST } from '@ork/schema-parser'
+import type { SchemaAST } from '@ork-orm/schema-parser'
 import type { Kysely } from 'kysely'
 
 /**

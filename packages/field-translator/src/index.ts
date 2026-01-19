@@ -1,5 +1,5 @@
 /**
- * @ork/field-translator - Build-time database-specific field transformation code generators
+ * @ork-orm/field-translator - Build-time database-specific field transformation code generators
  *
  * This package provides build-time code generators that produce database-specific
  * transformation code with ZERO runtime overhead. All translators are build-time
@@ -14,48 +14,48 @@
  */
 
 // Core types and interfaces
+// Auto-register all built-in generators
+import { FieldAnalyzer } from './field-analyzer.js'
+import { generators } from './generators/index.js'
+import { transformationRegistry } from './registry.js'
+import type { DatabaseDialect } from './types.js'
+
 export type {
   DatabaseDialect,
-  FieldTransformContext,
-  TransformationOperation,
-  GeneratedTransformation,
-  TransformationPerformance,
-  FieldTransformationGenerator,
-  TransformationGeneratorRegistry,
   FieldAnalysisResult,
+  FieldTransformationGenerator,
+  FieldTransformContext,
+  GeneratedTransformation,
   ModelTransformationMetadata,
   SpecialFieldHandling,
+  TransformationGeneratorRegistry,
+  TransformationOperation,
+  TransformationPerformance,
 } from './types.js'
 
 // Error types
-export { TransformationGenerationError, UnsupportedFieldTypeError, UnsupportedDialectError } from './types.js'
+export { TransformationGenerationError, UnsupportedDialectError, UnsupportedFieldTypeError } from './types.js'
 
 // Core registry implementation
 export { DefaultTransformationGeneratorRegistry, transformationRegistry } from './registry.js'
 
 // Database-specific generators
 export {
-  SQLiteTransformationGenerator,
-  sqliteGenerator,
-  PostgreSQLTransformationGenerator,
-  postgresqlGenerator,
-  MySQLTransformationGenerator,
-  mysqlGenerator,
   generators,
+  mysqlGenerator,
+  MySQLTransformationGenerator,
+  postgresqlGenerator,
+  PostgreSQLTransformationGenerator,
+  sqliteGenerator,
+  SQLiteTransformationGenerator,
 } from './generators/index.js'
 
 // Dialect detection utilities
-export { DialectDetector, detectDialect } from './dialect-detector.js'
-export type { OrkConfig, KyselyDialectInfo } from './dialect-detector.js'
+export type { KyselyDialectInfo, OrkConfig } from './dialect-detector.js'
+export { detectDialect, DialectDetector } from './dialect-detector.js'
 
 // Field analysis and metadata
 export { FieldAnalyzer, ModelTransformationRegistry } from './field-analyzer.js'
-
-// Auto-register all built-in generators
-import { generators } from './generators/index.js'
-import { transformationRegistry } from './registry.js'
-import { FieldAnalyzer } from './field-analyzer.js'
-import type { DatabaseDialect } from './types.js'
 
 // Register all generators on import
 Object.values(generators).forEach((generator) => {

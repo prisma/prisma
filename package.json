@@ -9,7 +9,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
-    "demo:postgres": "pnpm --filter @ork/example-basic demo",
+    "demo:postgres": "pnpm --filter @ork-orm/example-basic demo",
     "publish-dryrun": "tsx scripts/publish.ts --dry-run",
     "publish": "tsx scripts/publish.ts",
     "test": "pnpm -r test",
