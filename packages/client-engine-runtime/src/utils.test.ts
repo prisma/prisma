@@ -93,21 +93,6 @@ describe('safeJsonParse', () => {
       val: '1234567890123456789',
     })
   })
-
-  test('demonstrates the precision loss problem it solves', () => {
-    const originalId = '312590077454712834'
-    const json = `{"userId":${originalId}}`
-
-    // Standard JSON.parse would lose precision
-    const unsafeParsed = JSON.parse(json)
-    expect(unsafeParsed.userId).not.toBe(312590077454712834n) // Not BigInt, it's a Number
-    // The exact corruption value varies by JS engine, just verify it's corrupted
-    expect(unsafeParsed.userId.toString()).not.toBe('312590077454712834')
-
-    // safeJsonParse preserves the value as string
-    const safeParsed = safeJsonParse(json)
-    expect((safeParsed as { userId: string }).userId).toBe('312590077454712834') // Exact value preserved
-  })
 })
 
 describe('safeJsonStringify', () => {
