@@ -5,24 +5,16 @@
 const secret = Symbol()
 
 /**
- * Emulate a private property via a WeakMap manually. Using native private
- * properties is a breaking change for downstream users with minimal TypeScript
- * configs, because TypeScript uses ES3 as the default target.
- *
- * TODO: replace this with a `#representation` private property in the
- * `ObjectEnumValue` class and document minimal required `target` for TypeScript.
- */
-const representations = new WeakMap<ObjectEnumValue, string>()
-
-/**
  * Base class for unique values of object-valued enums.
  */
 export abstract class ObjectEnumValue {
+  #representation: string
+
   constructor(arg?: symbol) {
     if (arg === secret) {
-      representations.set(this, `Prisma.${this._getName()}`)
+      this.#representation = `Prisma.${this._getName()}`
     } else {
-      representations.set(this, `new Prisma.${this._getNamespace()}.${this._getName()}()`)
+      this.#representation = `new Prisma.${this._getNamespace()}.${this._getName()}()`
     }
   }
 
@@ -33,7 +25,7 @@ export abstract class ObjectEnumValue {
   }
 
   toString() {
-    return representations.get(this)!
+    return this.#representation
   }
 }
 
