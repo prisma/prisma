@@ -181,7 +181,7 @@
   },
   "dependencies": {
     "@prisma/config": "workspace:*",
-    "@prisma/dev": "0.17.0",
+    "@prisma/dev": "0.20.0",
     "@prisma/engines": "workspace:*",
     "@prisma/studio-core": "0.13.1",
     "mysql2": "3.15.3",
