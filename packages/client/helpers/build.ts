@@ -207,6 +207,26 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
+// Worker for query compilation on separate thread (Node.js only)
+function queryCompilerWorkerConfig(format: ModuleFormat): BuildOptions {
+  return {
+    format,
+    name: 'query-compiler-worker',
+    entryPoints: ['src/runtime/core/engines/client/query-compiler-worker.ts'],
+    outfile: 'runtime/query-compiler-worker',
+    outExtension: getOutExtension(format),
+    bundle: true,
+    minify: shouldMinify,
+    sourcemap: 'linked',
+    emitTypes: false,
+    define: {
+      NODE_CLIENT: 'true',
+    },
+    plugins: [nodeProtocolPlugin],
+    banner: format === 'esm' ? { js: NODE_ESM_BANNER } : undefined,
+  }
+}
+
 // default-index.js file in scripts
 const defaultIndexConfig: BuildOptions = {
   name: 'default-index',
@@ -242,12 +262,19 @@ function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
   }
 }
 
+function* allQueryCompilerWorkerConfigs(): Generator<BuildOptions> {
+  for (const format of MODULE_FORMATS) {
+    yield queryCompilerWorkerConfig(format)
+  }
+}
+
 void build([
   generatorBuildConfig,
   ...allNodeRuntimeBuildConfigs(),
   ...browserBuildConfigs(),
   ...allWasmEdgeRuntimeConfigs(),
   ...allWasmBindgenRuntimeConfigs(),
+  ...allQueryCompilerWorkerConfigs(),
   defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('wasm-compiler-edge.d.ts')

@@ -35,5 +35,12 @@ export type CompilerWasmLoadingConfig = {
    */
   getQueryCompilerWasmModule: () => Promise<unknown>
 
+  /**
+   * Returns the absolute path to the wasm-bindgen runtime module.
+   * Used by the query compiler worker thread to load the runtime.
+   * @remarks Only available in Node.js builds, not edge runtimes.
+   */
+  getRuntimePath?: () => string
+
   importName: string
 }
