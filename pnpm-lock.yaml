@@ -956,6 +956,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@prisma/json-protocol':
+        specifier: workspace:*
+        version: link:../json-protocol
       '@prisma/sqlcommenter':
         specifier: workspace:*
         version: link:../sqlcommenter

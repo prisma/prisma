@@ -30,6 +30,7 @@
     "@prisma/client-runtime-utils": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
+    "@prisma/json-protocol": "workspace:*",
     "@prisma/sqlcommenter": "workspace:*",
     "klona": "2.0.6",
     "nanoid": "5.1.5",
