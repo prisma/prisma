@@ -94,7 +94,7 @@ jobs:
         working-directory: ./
 
       - name: Run pnpm audit (production dependencies only)
-        run: pnpm audit --prod --filter="...[origin/main]"
+        run: pnpm audit --prod
 
   #
   # CLIENT (legacy tests without types test)
