@@ -729,8 +729,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -759,8 +759,8 @@ importers:
         specifier: workspace:*
         version: link:../migrate
       '@prisma/query-compiler-wasm':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/query-plan-executor':
         specifier: workspace:*
         version: link:../query-plan-executor
@@ -1009,8 +1009,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1086,8 +1086,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1221,8 +1221,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1258,8 +1258,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1547,11 +1547,11 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/schema-engine-wasm':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1712,8 +1712,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@prisma/engines-version':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -1866,8 +1866,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
-        version: 7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735
+        specifier: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
+        version: 7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
@@ -3586,8 +3586,8 @@ packages:
   '@prisma/dev@0.20.0':
     resolution: {integrity: sha512-ovlBYwWor0OzG+yH4J3Ot+AneD818BttLA+Ii7wjbcLHUrnC4tbUPVGyNd3c/+71KETPKZfjhkTSpdS15dmXNQ==}
 
-  '@prisma/engines-version@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735':
-    resolution: {integrity: sha512-IH2va2ouUHihyiTTRW889LjKAl1CusZOvFfZxCDNpjSENt7g2ndFsK0vdIw/72v7+jCN6YgkHmdAP/BI7SDgyg==}
+  '@prisma/engines-version@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309':
+    resolution: {integrity: sha512-TAu8r5OPJJS87//GGuZlwQ+Wmzb7o7SyOtl6pwnexda7X7Ugf1hq4dylA0OQ1Isa1fFLCdnn8r9uKZbU5GNeDg==}
 
   '@prisma/get-platform@7.2.0':
     resolution: {integrity: sha512-k1V0l0Td1732EHpAfi2eySTezyllok9dXb6UQanajkJQzPUGi3vO2z7jdkz67SypFTdmbnyGYxvEvYZdZsMAVA==}
@@ -3598,17 +3598,17 @@ packages:
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
 
-  '@prisma/prisma-schema-wasm@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735':
-    resolution: {integrity: sha512-pL9W918JLoK9fdAccH07ryjN9D4TZU1H3zBrLtYZbd+YhsAYQVvyM8hhyxzv8UrXVDKwsiYWoMdTb2PC+cjy3A==}
+  '@prisma/prisma-schema-wasm@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309':
+    resolution: {integrity: sha512-chk8v3ZJokRWW7FqBcmwcFQM5C6wDIck3TFstg33QlloaKdN3v4JEIb6/mVj7st8z5/amKVkmdcmP0uPVXBC6A==}
 
-  '@prisma/query-compiler-wasm@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735':
-    resolution: {integrity: sha512-RsqWxibTq1vXlCpns2NuZ8VJQuxPKtf0CK+786jsxHEBJ2utuSlMpcyl8bFazu2hMPCNE8EjaKRcJrROk3fmwQ==}
+  '@prisma/query-compiler-wasm@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309':
+    resolution: {integrity: sha512-0ZwYGGMSPPdi34fFLnQQ6QJyyuP7V6231AhhCdWd5ZQQ60kSnuwTD3Y+siys0ZWrc4fmaJ6/qqSeNH4Yt3os+w==}
 
   '@prisma/query-plan-executor@7.2.0':
     resolution: {integrity: sha512-EOZmNzcV8uJ0mae3DhTsiHgoNCuu1J9mULQpGCh62zN3PxPTd+qI9tJvk5jOst8WHKQNwJWR3b39t0XvfBB0WQ==}
 
-  '@prisma/schema-engine-wasm@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735':
-    resolution: {integrity: sha512-C1Ahpv7VAfrSKhooPWBJlxIrljwfQsm7LaXTxgk7zxooHWyiRI7uK3HVBHYL4fC8PM4kCT5Q6FXvuMWR5eq6vg==}
+  '@prisma/schema-engine-wasm@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309':
+    resolution: {integrity: sha512-tv53Hmb0Pgc3Nkh3wPeuZx2H3NCBI47GE5t4lF2ODVyFZHsd0ZbssSXhSMp/YIL/dcO3FbcuIYET6OIA3lA7sA==}
 
   '@prisma/studio-core@0.13.1':
     resolution: {integrity: sha512-agdqaPEePRHcQ7CexEfkX1RvSH9uWDb6pXrZnhCRykhDFAV0/0P3d07WtfiY8hZWb7oRU4v+NkT4cGFHkQJIPg==}
@@ -10202,7 +10202,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@prisma/engines-version@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735': {}
+  '@prisma/engines-version@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309': {}
 
   '@prisma/get-platform@7.2.0':
     dependencies:
@@ -10219,13 +10219,13 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@prisma/prisma-schema-wasm@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735': {}
+  '@prisma/prisma-schema-wasm@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309': {}
 
-  '@prisma/query-compiler-wasm@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735': {}
+  '@prisma/query-compiler-wasm@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309': {}
 
   '@prisma/query-plan-executor@7.2.0': {}
 
-  '@prisma/schema-engine-wasm@7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735': {}
+  '@prisma/schema-engine-wasm@7.3.0-19.feat-minor-fixes-on-qc-parameterization-c32a571f4d5d8fe47265c7a4515fcd51d88c7309': {}
 
   '@prisma/studio-core@0.13.1': {}
 
