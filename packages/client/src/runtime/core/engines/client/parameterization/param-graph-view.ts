@@ -108,7 +108,7 @@ export function createParamGraphView(graph: ParamGraph, runtimeDataModel: Runtim
         return undefined
       }
       const enumName = graph.e[edge.e]
-      if (!enumName) {
+      if (!enumName || !Object.hasOwn(runtimeDataModel.enums, enumName)) {
         return undefined
       }
       const enumDef = runtimeDataModel.enums[enumName]
