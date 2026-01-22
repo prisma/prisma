@@ -43,10 +43,78 @@ export interface ParameterizeBatchResult {
 }
 
 /**
+ * Map from create field path to the where placeholder path to reuse.
+ * Used for upsert to ensure where and create unique fields get the same placeholder.
+ */
+type UpsertAliasMap = Map<string, string>
+
+/**
  * Creates a placeholder object with the given path.
  */
 function createPlaceholder(path: string, type: PlaceholderType): PlaceholderTaggedValue {
   return { $type: 'Param', value: { name: path, ...type } }
+}
+
+function resolvePlaceholderPath(path: string, upsertAliasMap?: UpsertAliasMap): string {
+  return upsertAliasMap?.get(path) ?? path
+}
+
+/**
+ * Builds an alias map for upsert operations.
+ * Maps create field paths to where field paths when values are equal.
+ * Handles both simple unique fields and compound unique constraints.
+ */
+function buildUpsertAliasMap(
+  whereArg: Record<string, unknown>,
+  createArg: Record<string, unknown>,
+  basePath: string,
+): UpsertAliasMap {
+  const aliasMap: UpsertAliasMap = new Map()
+
+  for (const [key, value] of Object.entries(whereArg)) {
+    if (isPlainObject(value)) {
+      // Compound unique: where.{constraintName}.{field} -> create.{field}
+      const nested = value as Record<string, unknown>
+      for (const [nestedKey, nestedValue] of Object.entries(nested)) {
+        if (nestedKey in createArg && valuesAreEqual(nestedValue, createArg[nestedKey])) {
+          const createPath = `${basePath}.create.${nestedKey}`
+          const wherePath = `${basePath}.where.${key}.${nestedKey}`
+          aliasMap.set(createPath, wherePath)
+        }
+      }
+    } else if (key in createArg && valuesAreEqual(value, createArg[key])) {
+      // Simple unique: where.{field} -> create.{field}
+      const createPath = `${basePath}.create.${key}`
+      const wherePath = `${basePath}.where.${key}`
+      aliasMap.set(createPath, wherePath)
+    }
+  }
+
+  return aliasMap
+}
+
+function valuesAreEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) {
+    return true
+  }
+
+  if (typeof a !== typeof b) {
+    return false
+  }
+
+  if (typeof a !== 'object' || a === null || b === null) {
+    return false
+  }
+
+  if (Array.isArray(a) !== Array.isArray(b)) {
+    return false
+  }
+
+  try {
+    return JSON.stringify(a) === JSON.stringify(b)
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -62,9 +130,19 @@ export function parameterizeQuery(query: JsonQuery, view: ParamGraphView): Param
   const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
   const root = view.root(rootKey)
 
+  let upsertAliasMap: UpsertAliasMap | undefined
+  if (query.action === 'upsertOne' && query.query.arguments && !('$type' in query.query.arguments)) {
+    const args = query.query.arguments as Record<string, unknown>
+    const whereArg = args.where
+    const createArg = args.create
+    if (isPlainObject(whereArg) && isPlainObject(createArg)) {
+      upsertAliasMap = buildUpsertAliasMap(whereArg, createArg, 'query.arguments')
+    }
+  }
+
   const parameterizedQuery: JsonQuery = {
     ...query,
-    query: parameterizeFieldSelection(query.query, root?.a, root?.o, 'query', view, placeholders),
+    query: parameterizeFieldSelection(query.query, root?.a, root?.o, 'query', view, placeholders, upsertAliasMap),
   }
 
   return {
@@ -90,9 +168,27 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraphView): 
     const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
     const root = view.root(rootKey)
 
+    let upsertAliasMap: UpsertAliasMap | undefined
+    if (query.action === 'upsertOne' && query.query.arguments && !('$type' in query.query.arguments)) {
+      const args = query.query.arguments as Record<string, unknown>
+      const whereArg = args.where
+      const createArg = args.create
+      if (isPlainObject(whereArg) && isPlainObject(createArg)) {
+        upsertAliasMap = buildUpsertAliasMap(whereArg, createArg, `batch[${i}].query.arguments`)
+      }
+    }
+
     parameterizedQueries.push({
       ...query,
-      query: parameterizeFieldSelection(query.query, root?.a, root?.o, `batch[${i}].query`, view, placeholders),
+      query: parameterizeFieldSelection(
+        query.query,
+        root?.a,
+        root?.o,
+        `batch[${i}].query`,
+        view,
+        placeholders,
+        upsertAliasMap,
+      ),
     })
   }
 
@@ -112,6 +208,7 @@ function parameterizeFieldSelection(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): JsonFieldSelection {
   const argsNode = view.inputNode(argsNodeId)
   const outNode = view.outputNode(outNodeId)
@@ -126,12 +223,20 @@ function parameterizeFieldSelection(
       `${path}.arguments`,
       view,
       placeholders,
+      upsertAliasMap,
     )
   }
 
   // Process selection using output node
   if (sel.selection) {
-    result.selection = parameterizeSelection(sel.selection, outNode, `${path}.selection`, view, placeholders)
+    result.selection = parameterizeSelection(
+      sel.selection,
+      outNode,
+      `${path}.selection`,
+      view,
+      placeholders,
+      upsertAliasMap,
+    )
   }
 
   return result
@@ -146,6 +251,7 @@ function parameterizeObject(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): Record<string, JsonArgumentValue> {
   if (!node) {
     // No parameterizable fields in this subtree - return as-is
@@ -159,7 +265,7 @@ function parameterizeObject(
     const fieldPath = `${path}.${key}`
 
     if (edge) {
-      result[key] = parameterizeValue(value, edge, fieldPath, view, placeholders) as JsonArgumentValue
+      result[key] = parameterizeValue(value, edge, fieldPath, view, placeholders, upsertAliasMap) as JsonArgumentValue
     } else {
       result[key] = value as JsonArgumentValue
     }
@@ -177,6 +283,7 @@ function parameterizeValue(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): unknown {
   const classified = classifyValue(value)
 
@@ -189,16 +296,16 @@ function parameterizeValue(
       return value
 
     case 'primitive':
-      return handlePrimitive(classified.value, edge, path, view, placeholders)
+      return handlePrimitive(classified.value, edge, path, view, placeholders, upsertAliasMap)
 
     case 'taggedScalar':
-      return handleTaggedScalar(value as JsonInputTaggedValue, classified.tag, edge, path, placeholders)
+      return handleTaggedScalar(value as JsonInputTaggedValue, classified.tag, edge, path, placeholders, upsertAliasMap)
 
     case 'array':
-      return handleArray(classified.items, value, edge, path, view, placeholders)
+      return handleArray(classified.items, value, edge, path, view, placeholders, upsertAliasMap)
 
     case 'object':
-      return handleObject(classified.entries, edge, path, view, placeholders)
+      return handleObject(classified.entries, edge, path, view, placeholders, upsertAliasMap)
 
     default:
       throw new Error(`Unknown value kind ${(classified satisfies never as ValueClass).kind}`)
@@ -214,12 +321,15 @@ function handlePrimitive(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): JsonArgumentValue {
+  const placeholderPath = resolvePlaceholderPath(path, upsertAliasMap)
+
   if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.e !== undefined && typeof value === 'string') {
     const enumValues = view.enumValues(edge)
     if (enumValues?.includes(value)) {
-      placeholders.set(path, value)
-      return createPlaceholder(path, { type: 'Enum' })
+      placeholders.set(placeholderPath, value)
+      return createPlaceholder(placeholderPath, { type: 'Enum' })
     }
   }
 
@@ -241,8 +351,8 @@ function handlePrimitive(
     value = JSON.stringify(value)
   }
 
-  placeholders.set(path, value)
-  return createPlaceholder(path, type)
+  placeholders.set(placeholderPath, value)
+  return createPlaceholder(placeholderPath, type)
 }
 
 /**
@@ -254,6 +364,7 @@ function handleTaggedScalar(
   edge: InputEdge,
   path: string,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): unknown {
   if (!hasFlag(edge, EdgeFlag.ParamScalar)) {
     return tagged
@@ -266,8 +377,9 @@ function handleTaggedScalar(
 
   const type = getTaggedPlaceholderType(tagged.$type)
   const decoded = decodeTaggedValue(tagged)
-  placeholders.set(path, decoded)
-  return createPlaceholder(path, type!)
+  const placeholderPath = resolvePlaceholderPath(path, upsertAliasMap)
+  placeholders.set(placeholderPath, decoded)
+  return createPlaceholder(placeholderPath, type!)
 }
 
 /**
@@ -280,17 +392,20 @@ function handleArray(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): unknown {
+  const placeholderPath = resolvePlaceholderPath(path, upsertAliasMap)
+
   if (hasFlag(edge, EdgeFlag.ParamScalar) && getScalarMask(edge) & ScalarMask.Json) {
-    placeholders.set(path, JSON.stringify(items))
-    return createPlaceholder(path, { type: 'Json' })
+    placeholders.set(placeholderPath, JSON.stringify(items))
+    return createPlaceholder(placeholderPath, { type: 'Json' })
   }
 
   if (hasFlag(edge, EdgeFlag.ParamEnum)) {
     const enumValues = view.enumValues(edge)
     if (enumValues && items.every((item) => typeof item === 'string' && enumValues.includes(item))) {
-      placeholders.set(path, items)
-      return createPlaceholder(path, { type: 'List', inner: { type: 'Enum' } })
+      placeholders.set(placeholderPath, items)
+      return createPlaceholder(placeholderPath, { type: 'List', inner: { type: 'Enum' } })
     }
   }
 
@@ -298,9 +413,9 @@ function handleArray(
     const allValid = items.every((item) => validateListElement(item, edge))
     if (allValid && items.length > 0) {
       const decodedItems = items.map((item) => decodeIfTagged(item))
-      placeholders.set(path, decodedItems)
+      placeholders.set(placeholderPath, decodedItems)
       const innerType = inferListElementType(items[0])
-      return createPlaceholder(path, { type: 'List', inner: innerType })
+      return createPlaceholder(placeholderPath, { type: 'List', inner: innerType })
     }
   }
 
@@ -309,7 +424,7 @@ function handleArray(
     if (childNode) {
       return items.map((item, i) => {
         if (isPlainObject(item)) {
-          return parameterizeObject(item, childNode, `${path}[${i}]`, view, placeholders)
+          return parameterizeObject(item, childNode, `${path}[${i}]`, view, placeholders, upsertAliasMap)
         }
         return item
       })
@@ -328,18 +443,20 @@ function handleObject(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): unknown {
   if (hasFlag(edge, EdgeFlag.Object)) {
     const childNode = view.inputNode(edge.c)
     if (childNode) {
-      return parameterizeObject(obj, childNode, path, view, placeholders)
+      return parameterizeObject(obj, childNode, path, view, placeholders, upsertAliasMap)
     }
   }
 
   const mask = getScalarMask(edge)
   if (mask & ScalarMask.Json) {
-    placeholders.set(path, JSON.stringify(obj))
-    return createPlaceholder(path, { type: 'Json' })
+    const placeholderPath = resolvePlaceholderPath(path, upsertAliasMap)
+    placeholders.set(placeholderPath, JSON.stringify(obj))
+    return createPlaceholder(placeholderPath, { type: 'Json' })
   }
 
   return obj
@@ -354,6 +471,7 @@ function parameterizeSelection(
   path: string,
   view: ParamGraphView,
   placeholders: Map<string, unknown>,
+  upsertAliasMap?: UpsertAliasMap,
 ): JsonSelectionSet {
   if (!selection || !node) {
     return selection
@@ -390,6 +508,7 @@ function parameterizeSelection(
           `${fieldPath}.arguments`,
           view,
           placeholders,
+          upsertAliasMap,
         )
       }
 

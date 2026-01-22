@@ -9,7 +9,22 @@ import { parameterizeBatch, parameterizeQuery } from './parameterize'
 describe('parameterizeQuery', () => {
   // Sample ParamGraph simulating a User model with common fields
   const sampleGraph: ParamGraph = {
-    s: ['where', 'id', 'email', 'name', 'equals', 'contains', 'in', 'data', 'selection', 'posts', 'title', 'status'],
+    s: [
+      'where',
+      'id',
+      'email',
+      'name',
+      'equals',
+      'contains',
+      'in',
+      'data',
+      'selection',
+      'posts',
+      'title',
+      'status',
+      'create',
+      'name_email',
+    ],
     e: ['Status'],
     i: [
       // Node 0: UserWhereInput
@@ -19,6 +34,7 @@ describe('parameterizeQuery', () => {
           2: { k: EdgeFlag.ParamScalar | EdgeFlag.Object, m: ScalarMask.String, c: 1 }, // email
           3: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // name
           11: { k: EdgeFlag.ParamEnum, e: 0 }, // status (enum)
+          13: { k: EdgeFlag.Object, c: 5 }, // name_email (compound unique)
         },
       },
       // Node 1: StringFilter
@@ -49,6 +65,20 @@ describe('parameterizeQuery', () => {
           7: { k: EdgeFlag.Object, c: 3 }, // data
         },
       },
+      // Node 5: UserCompoundUniqueInput
+      {
+        f: {
+          2: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // email
+          3: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // name
+        },
+      },
+      // Node 6: UpsertUserArgs
+      {
+        f: {
+          0: { k: EdgeFlag.Object, c: 0 }, // where
+          12: { k: EdgeFlag.Object, c: 3 }, // create
+        },
+      },
     ],
     o: [
       // Node 0: UserOutput
@@ -64,6 +94,7 @@ describe('parameterizeQuery', () => {
       'User.findMany': { a: 2, o: 0 },
       'User.findUnique': { a: 2, o: 0 },
       'User.createOne': { a: 4, o: 0 },
+      'User.upsertOne': { a: 6, o: 0 },
     },
   }
 
@@ -252,7 +283,7 @@ describe('parameterizeQuery', () => {
         ],
         r: {
           ...sampleGraph.r,
-          'User.findByDate': { a: 5 },
+          'User.findByDate': { a: 7 },
         },
       }
 
@@ -401,6 +432,94 @@ describe('parameterizeQuery', () => {
         'query.arguments.data.email': 'test@example.com',
         'query.arguments.data.id': '123',
         'query.arguments.data.name': 'John',
+      })
+    })
+  })
+
+  describe('upsert operations', () => {
+    it('reuses placeholders for matching unique values in where and create', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'upsertOne',
+        query: {
+          arguments: {
+            where: { email: 'test@example.com' },
+            create: { email: 'test@example.com', name: 'Alice' },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, view)
+
+      expect(result.placeholderValues).toEqual({
+        'query.arguments.create.name': 'Alice',
+        'query.arguments.where.email': 'test@example.com',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        where: { email: { $type: 'Param', value: { name: 'query.arguments.where.email', type: 'String' } } },
+        create: {
+          email: { $type: 'Param', value: { name: 'query.arguments.where.email', type: 'String' } },
+          name: { $type: 'Param', value: { name: 'query.arguments.create.name', type: 'String' } },
+        },
+      })
+    })
+
+    it('reuses placeholders for compound unique values', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'upsertOne',
+        query: {
+          arguments: {
+            where: { name_email: { name: 'Alice', email: 'alice@example.com' } },
+            create: { name: 'Alice', email: 'alice@example.com' },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, view)
+
+      expect(result.placeholderValues).toEqual({
+        'query.arguments.where.name_email.email': 'alice@example.com',
+        'query.arguments.where.name_email.name': 'Alice',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        where: {
+          name_email: {
+            name: { $type: 'Param', value: { name: 'query.arguments.where.name_email.name', type: 'String' } },
+            email: { $type: 'Param', value: { name: 'query.arguments.where.name_email.email', type: 'String' } },
+          },
+        },
+        create: {
+          name: { $type: 'Param', value: { name: 'query.arguments.where.name_email.name', type: 'String' } },
+          email: { $type: 'Param', value: { name: 'query.arguments.where.name_email.email', type: 'String' } },
+        },
+      })
+    })
+
+    it('keeps distinct placeholders when values differ', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'upsertOne',
+        query: {
+          arguments: {
+            where: { email: 'alice@example.com' },
+            create: { email: 'bob@example.com' },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, view)
+
+      expect(result.placeholderValues).toEqual({
+        'query.arguments.create.email': 'bob@example.com',
+        'query.arguments.where.email': 'alice@example.com',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        where: { email: { $type: 'Param', value: { name: 'query.arguments.where.email', type: 'String' } } },
+        create: { email: { $type: 'Param', value: { name: 'query.arguments.create.email', type: 'String' } } },
       })
     })
   })
