@@ -4,7 +4,7 @@ import {
   DriverAdapterError,
   IsolationLevel,
   SqlDriverAdapter,
-  SqlDriverAdapterFactory,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
@@ -119,6 +119,7 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   constructor(
     private pool: sql.ConnectionPool,
     private readonly options?: PrismaMssqlOptions,
+    private readonly release?: () => Promise<void>,
   ) {
     super(pool)
   }
@@ -158,7 +159,7 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   }
 
   async dispose(): Promise<void> {
-    await this.pool.close()
+    await this.release?.()
   }
 
   underlyingDriver(): sql.ConnectionPool {
@@ -166,7 +167,7 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   }
 }
 
-export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
+export class PrismaMssqlAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
@@ -196,7 +197,22 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
     })
 
     await pool.connect()
-    return new PrismaMssqlAdapter(pool, this.#options)
+    return new PrismaMssqlAdapter(pool, this.#options, async () => {
+      await pool.close()
+    })
+  }
+
+  async connectToShadowDb(): Promise<PrismaMssqlAdapter> {
+    const conn = await this.connect()
+    const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
+    await conn.executeScript(`CREATE DATABASE "${database}"`)
+
+    const pool = new sql.ConnectionPool(this.#config)
+    await pool.connect()
+    return new PrismaMssqlAdapter(pool, undefined, async () => {
+      await conn.executeScript(`DROP DATABASE "${database}"`)
+      await pool.close()
+    })
   }
 }
 
