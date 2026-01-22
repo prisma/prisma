@@ -144,7 +144,7 @@ testMatrix.setupTestSuite(
     //
     // See: https://github.com/prisma/prisma/issues/21802.
     // See: https://github.com/prisma/prisma/issues/21803.
-    describeIf(provider !== Providers.SQLITE)('chunking logic does not trigger with 2 IN filters', () => {
+    describeIf(provider !== Providers.SQLITE)('chunking logic triggers with 2 IN filters', () => {
       function selectWith2InFilters(ids: number[]) {
         return prisma.tag.findMany({
           where: {
@@ -160,23 +160,32 @@ testMatrix.setupTestSuite(
         })
       }
 
-      test('Selecting MAX ids at once in two inclusive disjunct filters results in error', async () => {
+      test('Selecting MAX ids at once in two inclusive disjunct filters succeeds', async () => {
         const ids = generatedIds(MAX_BIND_VALUES)
 
-        if (!usesJsDrivers || clientEngineExecutor === 'local') {
-          // When using MAX ids, it fails both with relationJoins and without because the amount of query params that's computed is not beyond the limit.
-          // To be clear: the root problem comes from the way the QE computes the amount of query params.
-          await expect(selectWith2InFilters(ids)).rejects.toThrow()
+        if (usingRelationJoins) {
+          if (provider === Providers.POSTGRESQL && driverAdapter !== undefined) {
+            await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
+          } else if (driverAdapter === 'js_pg' || driverAdapter === 'js_pg_cockroachdb') {
+            await expect(selectWith2InFilters(ids)).rejects.toThrow(
+              'The query parameter limit supported by your database is exceeded',
+            )
+          } else {
+            await expect(selectWith2InFilters(ids)).rejects.toThrow(RELATION_JOINS_NO_CHUNKING_ERROR_MSG)
+          }
         } else {
-          // It's unknown why this test doesn't fail with driver adapters.
           await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
         }
       })
 
-      test('Selecting EXCESS ids at once in two inclusive disjunct filters results in error', async () => {
+      test('Selecting EXCESS ids at once in two inclusive disjunct filters succeeds', async () => {
         const ids = generatedIds(EXCESS_BIND_VALUES)
 
-        if (usingRelationJoins) {
+        if (provider === Providers.POSTGRESQL && driverAdapter !== undefined) {
+          await expect(selectWith2InFilters(ids)).rejects.toThrow(
+            /bind message has \d+ parameter formats but 0 parameters/,
+          )
+        } else if (usingRelationJoins) {
           if (driverAdapter === 'js_pg' || driverAdapter === 'js_pg_cockroachdb') {
             await expect(selectWith2InFilters(ids)).rejects.toThrow(
               'The query parameter limit supported by your database is exceeded',
@@ -185,7 +194,7 @@ testMatrix.setupTestSuite(
             await expect(selectWith2InFilters(ids)).rejects.toThrow(RELATION_JOINS_NO_CHUNKING_ERROR_MSG)
           }
         } else {
-          await expect(selectWith2InFilters(ids)).rejects.toThrow()
+          await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
         }
       })
     })

@@ -1,4 +1,4 @@
-## Prisma Repository – Agent Field Notes
+# Prisma Repository – Agent Field Notes
 
 > **Meta note**: This is the primary agent knowledge base file. `CLAUDE.md` and `GEMINI.md` are symlinks to this file—always edit `AGENTS.md` directly. When learning something new about the codebase that would help with future tasks, update this file immediately.
 
@@ -129,3 +129,29 @@
     - **Query execution code is written in TypeScript in Prisma**
     - PSL parser and query compiler/planner is still written in Rust and compiled to WebAssembly. There are no native binaries or library addons in Prisma Client.
     - Schema engine for Prisma Migrate still exists and is still a native binary.
+
+## Debugging and making changes to Rust/WebAssembly code
+
+When you need to check the code or make some changes in Rust codebase, assume the repository is checked out in the `prisma-engines` directory above the root of this repo. Determine the absolute path to the current project on the filesystem (e.g. `/home/user/work/prisma`) and infer the directory of the `prisma-engines` repo (e.g. `/home/user/work/prisma-engines`, let's call it `$PRISMA_ENGINES_ROOT`).
+
+After you make some changes there, use these commands in the prisma-engines repo to build the Wasm modules:
+
+```sh
+make build-schema-wasm
+make build-qc-wasm
+```
+
+Then, back in `prisma` repo:
+
+```sh
+pnpm upgrade -r @prisma/prisma-schema-wasm@file:$PRISMA_ENGINES_ROOT/target/prisma-schema-wasm
+pnpm upgrade -r @prisma/query-compiler-wasm@file:$PRISMA_ENGINES_ROOT/query-compiler/query-compiler-wasm/pkg
+pnpm build
+```
+
+You may only need to build and update one of these modules if your changes are isolated in scope:
+
+1. Build only `prisma-schema-wasm` if your changes are isolated to schema and DMMF, and you are only going to run the CLI and generator tests, not Client.
+2. Build only `query-compiler-wasm` if your changes are related to query planning and execution but do not touch the schema or DMMF in any way.
+
+When in doubt, build both to avoid unexpected behavior. Time and cost of compilation is always less than of debugging.

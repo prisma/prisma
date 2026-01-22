@@ -296,10 +296,11 @@ testMatrix.setupTestSuite(
         children = isMongoDb ? undefined : [txRollback()]
       }
 
-      return {
-        name,
-        children,
+      const tree: Tree = { name }
+      if (children !== undefined) {
+        tree.children = children
       }
+      return tree
     }
 
     describe('tracing on crud methods', () => {
@@ -580,16 +581,8 @@ testMatrix.setupTestSuite(
             method: '$transaction',
           },
           children: [
-            operation('User', 'create', [
-              ...clientCompile('createOne', 'User'),
-              clientSerialize(),
-              ...engine([...createDbQueries(false)]),
-            ]),
-            operation('User', 'findMany', [
-              ...clientCompile('findMany', 'User'),
-              clientSerialize(),
-              ...engine([findManyDbQuery()]),
-            ]),
+            operation('User', 'create', [clientSerialize(), ...engine([...createDbQueries(false)])]),
+            operation('User', 'findMany', [clientSerialize(), ...engine([findManyDbQuery()])]),
             itxOperation('commit'),
             itxOperation('start'),
           ],
@@ -621,16 +614,8 @@ testMatrix.setupTestSuite(
             method: '$transaction',
           },
           children: [
-            operation('User', 'create', [
-              ...clientCompile('createOne', 'User'),
-              clientSerialize(),
-              ...engine([...createDbQueries(false)]),
-            ]),
-            operation('User', 'findMany', [
-              ...clientCompile('findMany', 'User'),
-              clientSerialize(),
-              ...engine([findManyDbQuery()]),
-            ]),
+            operation('User', 'create', [clientSerialize(), ...engine([...createDbQueries(false)])]),
+            operation('User', 'findMany', [clientSerialize(), ...engine([findManyDbQuery()])]),
             itxOperation('rollback'),
             itxOperation('start'),
           ],
@@ -680,13 +665,7 @@ testMatrix.setupTestSuite(
 
       await waitForSpanTree({
         name: 'create-user',
-        children: [
-          operation('User', 'create', [
-            ...clientCompile('createOne', 'User'),
-            clientSerialize(),
-            ...engine([...createDbQueries()]),
-          ]),
-        ],
+        children: [operation('User', 'create', [clientSerialize(), ...engine([...createDbQueries()])])],
       })
     })
 
