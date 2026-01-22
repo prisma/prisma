@@ -293,7 +293,10 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     // See https://github.com/prisma/prisma/issues/24660
     client.on('acquire', async (conn) => {
       if (this.options?.schema) {
-        await conn.query(`SET search_path = "${this.options.schema}", public`)
+        const schemaEscaped = this.options.schema.replace(/"/g, '""') // escape internal quotes
+        conn.query(`SET search_path = "${schemaEscaped}", public`).catch((err) => {
+          debug(`Failed to set search_path: ${err.message}`)
+        })
       }
     })
 
