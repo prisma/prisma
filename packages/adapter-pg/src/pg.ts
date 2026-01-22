@@ -287,6 +287,16 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     }
     client.on('error', onIdleClientError)
 
+    // Since we allow passing a custom DB schema through this.options, we need to set the search path,
+    // otherwise raw queries will fail when using the non-default search path for the current user,
+    // leading to diverging behavior between regular and raw queries.
+    // See https://github.com/prisma/prisma/issues/24660
+    client.on('acquire', async (conn) => {
+      if (this.options?.schema) {
+        await conn.query(`SET search_path = "${this.options.schema}", public`)
+      }
+    })
+
     return new PrismaPgAdapter(client, this.options, async () => {
       if (this.externalPool) {
         if (this.options?.disposeExternalPool) {
