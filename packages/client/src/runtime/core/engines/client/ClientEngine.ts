@@ -486,7 +486,7 @@ export class ClientEngine implements Engine {
           this.#queryPlanCache.setSingle(cacheKey, plan)
         }
       } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof PrismaClientKnownRequestError || error instanceof PrismaClientUnknownRequestError) {
           throw error
         }
         throw new PrismaClientUnknownRequestError(String(error), {
@@ -569,7 +569,7 @@ export class ClientEngine implements Engine {
           }
         }
       } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof PrismaClientKnownRequestError || error instanceof PrismaClientUnknownRequestError) {
           throw error
         }
         throw new PrismaClientUnknownRequestError(String(error), {
