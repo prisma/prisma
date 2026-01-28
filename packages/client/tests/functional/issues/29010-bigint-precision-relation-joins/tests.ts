@@ -62,9 +62,6 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skip: (skip, conf) => {
-      skip(!conf.previewFeatures?.includes('relationJoins'), 'this test is only for relation joins')
-    },
     optOut: {
       from: ['mongodb', 'sqlite', 'sqlserver'],
       reason: 'relationJoins not supported',
