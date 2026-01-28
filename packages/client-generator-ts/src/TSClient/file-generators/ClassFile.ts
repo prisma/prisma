@@ -50,6 +50,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     target,
     activeProvider,
     moduleFormat,
+    compilerBuild,
   } = options
 
   const config: GetPrismaClientConfig = {
@@ -64,7 +65,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
   return `
 const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
-${buildGetWasmModule({ runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
+${buildGetWasmModule({ runtimeBase, runtimeName, target, activeProvider, moduleFormat, compilerBuild })}
 ${buildDebugInitialization(edge)}
 `
 }
