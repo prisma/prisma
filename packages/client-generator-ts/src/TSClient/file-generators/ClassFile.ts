@@ -1,6 +1,6 @@
 import { GetPrismaClientConfig } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
-import { buildParamGraph } from '@prisma/param-graph-builder'
+import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 import * as ts from '@prisma/ts-builders'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
@@ -63,7 +63,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     activeProvider: options.activeProvider,
     inlineSchema,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
-    parameterizationSchema: { s: [], e: [], i: [], o: [], r: {} },
+    parameterizationSchema: { strings: [], graph: '' },
   }
 
   return `
@@ -76,7 +76,10 @@ ${buildDebugInitialization(edge)}
 }
 
 function buildParameterizationSchema(dmmf: DMMF.Document): string {
-  const paramGraph = buildParamGraph(dmmf)
-  const paramGraphJson = JSON.stringify(JSON.stringify(paramGraph))
-  return `config.parameterizationSchema = JSON.parse(${paramGraphJson})`
+  const serialized = buildAndSerializeParamGraph(dmmf)
+  const stringsJson = JSON.stringify(JSON.stringify(serialized.strings))
+  return `config.parameterizationSchema = {
+  strings: JSON.parse(${stringsJson}),
+  graph: "${serialized.graph}"
+}`
 }

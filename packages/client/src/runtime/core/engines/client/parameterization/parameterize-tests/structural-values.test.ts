@@ -1,7 +1,7 @@
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { parameterizeQuery } from '../parameterize'
-import { view } from './test-fixtures'
+import { paramGraph } from './test-fixtures'
 
 describe('parameterizeQuery structural values', () => {
   describe('top-level structural keys', () => {
@@ -15,7 +15,7 @@ describe('parameterizeQuery structural values', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result).toMatchInlineSnapshot(`
         {
@@ -61,7 +61,7 @@ describe('parameterizeQuery structural values', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -107,7 +107,7 @@ describe('parameterizeQuery structural values', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -151,7 +151,7 @@ describe('parameterizeQuery structural values', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -188,7 +188,7 @@ describe('parameterizeQuery structural values', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -224,7 +224,7 @@ describe('parameterizeQuery structural values', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {

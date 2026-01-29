@@ -3,7 +3,7 @@ import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import type { TracingHelper } from '@prisma/instrumentation-contract'
 import type { JsonQuery } from '@prisma/json-protocol'
-import type { ParamGraph } from '@prisma/param-graph'
+import type { SerializedParamGraph } from '@prisma/param-graph'
 import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 
 import type { LogEmitter } from './types/Events'
@@ -156,7 +156,7 @@ export interface EngineConfig {
    * Parameterization schema (ParamGraph) for schema-aware query parameterization.
    * Enables precise parameterization based on DMMF metadata.
    */
-  parameterizationSchema: ParamGraph
+  parameterizationSchema: SerializedParamGraph
 
   /**
    * Runtime data model for enum lookups during parameterization.
