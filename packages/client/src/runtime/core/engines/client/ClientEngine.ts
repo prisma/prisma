@@ -20,6 +20,7 @@ import type { ActiveConnectorType } from '@prisma/generator'
 import type { TracingHelper } from '@prisma/instrumentation-contract'
 import { assertNever } from '@prisma/internals'
 import type { JsonBatchQuery, JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
+import { ParamGraph } from '@prisma/param-graph'
 
 import { version as clientVersion } from '../../../../../package.json'
 import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
@@ -33,7 +34,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { createParamGraphView, ParamGraphView } from './parameterization/param-graph-view'
 import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
 import { QueryPlanCache } from './QueryPlanCache'
 import { RemoteExecutor } from './RemoteExecutor'
@@ -103,7 +103,7 @@ export class ClientEngine implements Engine {
   #executorKind: ExecutorKind
   #queryPlanCache: QueryPlanCache
   #queryPlanCacheEnabled: boolean
-  #paramGraphView: ParamGraphView
+  #paramGraph: ParamGraph
 
   config: EngineConfig
   datamodel: string
@@ -143,7 +143,12 @@ export class ClientEngine implements Engine {
     this.tracingHelper = config.tracingHelper
     this.#queryPlanCache = new QueryPlanCache()
     this.#queryPlanCacheEnabled = true
-    this.#paramGraphView = createParamGraphView(config.parameterizationSchema, config.runtimeDataModel)
+    this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
+      if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
+        return undefined
+      }
+      return config.runtimeDataModel.enums[enumName].values.map((v) => v.name)
+    })
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -468,7 +473,7 @@ export class ClientEngine implements Engine {
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
     } else if (this.#queryPlanCacheEnabled) {
-      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraphView)
+      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
       const cacheKey = JSON.stringify(parameterizedQuery)
       placeholderValues = extractedValues
 
@@ -537,7 +542,7 @@ export class ClientEngine implements Engine {
     if (this.#queryPlanCacheEnabled && !hasRawQueries) {
       const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
         batchPayload as JsonBatchQuery,
-        this.#paramGraphView,
+        this.#paramGraph,
       )
       const cacheKeyStr = JSON.stringify(parameterizedBatch)
       placeholderValues = extractedValues
