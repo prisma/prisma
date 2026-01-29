@@ -1,7 +1,7 @@
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { parameterizeQuery } from '../parameterize'
-import { view } from './test-fixtures'
+import { paramGraph } from './test-fixtures'
 
 describe('parameterizeQuery cache key consistency', () => {
   it('generates same cache key for same query structure', () => {
@@ -23,8 +23,8 @@ describe('parameterizeQuery cache key consistency', () => {
       },
     }
 
-    const result1 = parameterizeQuery(query1, view)
-    const result2 = parameterizeQuery(query2, view)
+    const result1 = parameterizeQuery(query1, paramGraph)
+    const result2 = parameterizeQuery(query2, paramGraph)
 
     expect(result1).toMatchInlineSnapshot(`
       {
@@ -104,8 +104,8 @@ describe('parameterizeQuery cache key consistency', () => {
       },
     }
 
-    const result1 = parameterizeQuery(query1, view)
-    const result2 = parameterizeQuery(query2, view)
+    const result1 = parameterizeQuery(query1, paramGraph)
+    const result2 = parameterizeQuery(query2, paramGraph)
 
     expect(result1).toMatchInlineSnapshot(`
       {

@@ -1,6 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
-import { buildParamGraph } from '@prisma/param-graph-builder'
+import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 import type { O } from 'ts-toolbelt'
@@ -49,9 +49,12 @@ export class TSClient implements Generable {
   }
 
   private buildParamGraphConfig(): string {
-    const paramGraph = buildParamGraph(this.options.dmmf)
-    const paramGraphJson = JSON.stringify(JSON.stringify(paramGraph))
-    return `config.parameterizationSchema = JSON.parse(${paramGraphJson})`
+    const serialized = buildAndSerializeParamGraph(this.options.dmmf)
+    const stringsJson = JSON.stringify(JSON.stringify(serialized.strings))
+    return `config.parameterizationSchema = {
+  strings: JSON.parse(${stringsJson}),
+  graph: "${serialized.graph}"
+}`
   }
 
   public toJS(): string {
