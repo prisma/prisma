@@ -1,5 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
+import { buildParamGraph } from '@prisma/param-graph-builder'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 import type { O } from 'ts-toolbelt'
@@ -47,6 +48,12 @@ export class TSClient implements Generable {
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
+  private buildParamGraphConfig(): string {
+    const paramGraph = buildParamGraph(this.options.dmmf)
+    const paramGraphJson = JSON.stringify(JSON.stringify(paramGraph))
+    return `config.parameterizationSchema = JSON.parse(${paramGraphJson})`
+  }
+
   public toJS(): string {
     const { edge, wasm, generator, datamodel: inlineSchema, runtimeName, reusedJs, compilerBuild } = this.options
 
@@ -54,7 +61,7 @@ export class TSClient implements Generable {
       return `module.exports = { ...require('${reusedJs}') }`
     }
 
-    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel'> = {
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'parameterizationSchema'> = {
       previewFeatures: generator.previewFeatures,
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
@@ -85,6 +92,7 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
+${this.buildParamGraphConfig()}
 ${buildQueryCompilerWasmModule(wasm, runtimeName, compilerBuild)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)

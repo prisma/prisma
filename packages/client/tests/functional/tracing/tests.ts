@@ -59,6 +59,10 @@ afterAll(() => {
   context.disable()
 })
 
+beforeEach(() => {
+  prisma = newPrismaClient()
+})
+
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter, relationMode, clientEngineExecutor }, _suiteMeta, clientMeta) => {
     const executorSpanInfix = clientEngineExecutor === 'remote' ? 'accelerate' : 'client'
