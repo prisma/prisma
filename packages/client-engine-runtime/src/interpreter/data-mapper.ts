@@ -68,7 +68,7 @@ function mapArrayOrObject(
   if (typeof data === 'string') {
     let decodedData: Value
     try {
-      decodedData = JSON.parse(data)
+      decodedData = JSON.parse(data) as Value
     } catch (error) {
       throw new DataMapperError(`Expected an array or object, got a string that is not valid JSON`, {
         cause: error,
