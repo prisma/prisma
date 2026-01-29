@@ -1,7 +1,7 @@
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { parameterizeQuery } from '../parameterize'
-import { view } from './test-fixtures'
+import { paramGraph } from './test-fixtures'
 
 describe('parameterizeQuery placeholder naming', () => {
   it('generates deterministic names for same structure', () => {
@@ -23,8 +23,8 @@ describe('parameterizeQuery placeholder naming', () => {
       },
     }
 
-    const result1 = parameterizeQuery(query1, view)
-    const result2 = parameterizeQuery(query2, view)
+    const result1 = parameterizeQuery(query1, paramGraph)
+    const result2 = parameterizeQuery(query2, paramGraph)
 
     expect(result1).toMatchInlineSnapshot(`
       {
@@ -97,7 +97,7 @@ describe('parameterizeQuery placeholder naming', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -155,7 +155,7 @@ describe('parameterizeQuery placeholder naming', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
