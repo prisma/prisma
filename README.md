@@ -8,7 +8,7 @@
   <a href="https://pris.ly/discord"><img alt="Discord" src="https://img.shields.io/discord/937751382725886062?label=Discord"></a>
   <br />
   <br />
-  <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
+  <a href="https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -37,7 +37,7 @@ Prisma ORM is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
+**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
 
 ## Getting started
 
@@ -45,14 +45,14 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 
 The fastest way to get started with Prisma is by following the quickstart guides. You can choose either of two databases:
 
-- [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres)
-- [SQLite](https://www.prisma.io/docs/getting-started/quickstart-sqlite)
+- [Prisma Postgres](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres)
+- [SQLite](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite)
 
 ### Bring your own database
 
 If you already have your own database, you can follow these guides:
 
-- [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project/relational-databases-typescript-postgresql)
+- [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/prisma-orm/add-to-existing-project/postgresql)
 - [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases-typescript-postgresql)
 
 ## How Prisma ORM works

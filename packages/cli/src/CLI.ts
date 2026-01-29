@@ -108,8 +108,7 @@ export class CLI implements Command {
     return CLI.help
   }
 
-  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate
-and capture real-time events from your database with Prisma Pulse.
+  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate.
 Learn more at ${link('https://pris.ly/cli/pdp')}`
 
   private static boxedTryPdpMessage = drawBox({
