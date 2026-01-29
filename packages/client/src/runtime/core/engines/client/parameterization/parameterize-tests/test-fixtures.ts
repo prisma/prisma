@@ -1,8 +1,7 @@
 import type { RuntimeDataModel } from '@prisma/client-common'
 import { getDMMF } from '@prisma/client-generator-js'
-import { buildParamGraph } from '@prisma/param-graph-builder'
-
-import { createParamGraphView, type ParamGraphView } from '../param-graph-view'
+import { ParamGraph } from '@prisma/param-graph'
+import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 
 /**
  * Prisma schema that simulates a User model with common fields and filters,
@@ -74,41 +73,44 @@ export const testRuntimeDataModel: RuntimeDataModel = {
   types: {},
 }
 
-let _view: ParamGraphView | undefined
+let _paramGraph: ParamGraph | undefined
 
 /**
  * Initializes the test fixtures by parsing the schema and building the ParamGraph.
- * This is called lazily on first access to the view.
+ * This is called lazily on first access.
  */
-async function initializeFixtures(): Promise<ParamGraphView> {
-  if (_view) {
-    return _view
+async function initializeFixtures(): Promise<ParamGraph> {
+  if (_paramGraph) {
+    return _paramGraph
   }
 
   const dmmf = await getDMMF({ datamodel: testSchema })
-  const paramGraph = buildParamGraph(dmmf)
-  _view = createParamGraphView(paramGraph, testRuntimeDataModel)
-  return _view
+  const serialized = buildAndSerializeParamGraph(dmmf)
+  _paramGraph = ParamGraph.deserialize(serialized, (enumName) => {
+    const enumDef = testRuntimeDataModel.enums[enumName]
+    return enumDef?.values.map((v) => v.name)
+  })
+  return _paramGraph
 }
 
 /**
- * Pre-initialized view for synchronous access in tests.
+ * Pre-initialized ParamGraph for synchronous access in tests.
  * Tests should call `await initializeTestFixtures()` in a `beforeAll` hook,
  * or the module will initialize lazily.
  */
-export let view: ParamGraphView
+export let paramGraph: ParamGraph
 
 /**
  * Initialize test fixtures. Call this in beforeAll if you need guaranteed
  * initialization before tests run.
  */
 export async function initializeTestFixtures(): Promise<void> {
-  view = await initializeFixtures()
+  paramGraph = await initializeFixtures()
 }
 
 // Eagerly initialize the fixtures when the module is loaded.
-const initPromise = initializeFixtures().then((v) => {
-  view = v
+const initPromise = initializeFixtures().then((pg) => {
+  paramGraph = pg
 })
 
 // Export the initialization promise for tests that need to await it explicitly

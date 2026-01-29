@@ -1,7 +1,7 @@
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { parameterizeQuery } from '../parameterize'
-import { view } from './test-fixtures'
+import { paramGraph } from './test-fixtures'
 
 describe('parameterizeQuery nested queries', () => {
   it('parameterizes relation filter values', () => {
@@ -20,7 +20,7 @@ describe('parameterizeQuery nested queries', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -73,7 +73,7 @@ describe('parameterizeQuery nested queries', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
