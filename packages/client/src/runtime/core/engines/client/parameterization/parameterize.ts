@@ -17,10 +17,9 @@ import type {
 } from '@prisma/json-protocol'
 import { PlaceholderType } from '@prisma/json-protocol'
 import type { InputEdge, InputNode } from '@prisma/param-graph'
-import { EdgeFlag, getScalarMask, hasFlag, ScalarMask } from '@prisma/param-graph'
+import { EdgeFlag, getScalarMask, hasFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 
 import { classifyValue, isPlainObject, isTaggedValue, ValueClass } from './classify'
-import type { ParamGraphView } from './param-graph-view'
 
 /**
  * Result of parameterizing a single query.
@@ -46,10 +45,10 @@ export interface ParameterizeBatchResult {
  * Parameterizes a single query using the schema-aware approach.
  *
  * @param query - The query to parameterize
- * @param view - The ParamGraphView for schema lookups
+ * @param view - The ParamGraph for schema lookups
  * @returns The parameterized query with extracted placeholder values
  */
-export function parameterizeQuery(query: JsonQuery, view: ParamGraphView): ParameterizeResult {
+export function parameterizeQuery(query: JsonQuery, view: ParamGraph): ParameterizeResult {
   const parameterizer = new Parameterizer(view)
 
   const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
@@ -57,7 +56,7 @@ export function parameterizeQuery(query: JsonQuery, view: ParamGraphView): Param
 
   const parameterizedQuery: JsonQuery = {
     ...query,
-    query: parameterizer.parameterizeFieldSelection(query.query, root?.a, root?.o),
+    query: parameterizer.parameterizeFieldSelection(query.query, root?.argsNodeId, root?.outputNodeId),
   }
 
   return {
@@ -70,10 +69,10 @@ export function parameterizeQuery(query: JsonQuery, view: ParamGraphView): Param
  * Parameterizes a batch of queries using the schema-aware approach.
  *
  * @param batch - The batch to parameterize
- * @param view - The ParamGraphView for schema lookups
+ * @param view - The ParamGraph for schema lookups
  * @returns The parameterized batch with extracted placeholder values
  */
-export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraphView): ParameterizeBatchResult {
+export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraph): ParameterizeBatchResult {
   const parameterizer = new Parameterizer(view)
   const parameterizedQueries: JsonQuery[] = []
 
@@ -85,7 +84,7 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraphView): 
 
     parameterizedQueries.push({
       ...query,
-      query: parameterizer.parameterizeFieldSelection(query.query, root?.a, root?.o),
+      query: parameterizer.parameterizeFieldSelection(query.query, root?.argsNodeId, root?.outputNodeId),
     })
   }
 
@@ -99,12 +98,12 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraphView): 
  * Encapsulates the state and logic for parameterizing queries.
  */
 class Parameterizer {
-  readonly #view: ParamGraphView
+  readonly #view: ParamGraph
   readonly #placeholders = new Map<string, unknown>()
   readonly #valueToPlaceholder = new Map<string, string>()
   #nextPlaceholderId = 1
 
-  constructor(view: ParamGraphView) {
+  constructor(view: ParamGraph) {
     this.#view = view
   }
 
@@ -222,7 +221,7 @@ class Parameterizer {
    * Handles parameterization of primitive values (string, number, boolean).
    */
   #handlePrimitive(value: string | number | boolean, edge: InputEdge): JsonArgumentValue {
-    if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.e !== undefined && typeof value === 'string') {
+    if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.enumNameIndex !== undefined && typeof value === 'string') {
       const enumValues = this.#view.enumValues(edge)
       if (enumValues?.includes(value)) {
         const type: PlaceholderType = { type: 'Enum' }
@@ -299,7 +298,7 @@ class Parameterizer {
     }
 
     if (hasFlag(edge, EdgeFlag.ListObject)) {
-      const childNode = this.#view.inputNode(edge.c)
+      const childNode = this.#view.inputNode(edge.childNodeId)
       if (childNode) {
         return items.map((item) => {
           if (isPlainObject(item)) {
@@ -318,7 +317,7 @@ class Parameterizer {
    */
   #handleObject(obj: Record<string, unknown>, edge: InputEdge): unknown {
     if (hasFlag(edge, EdgeFlag.Object)) {
-      const childNode = this.#view.inputNode(edge.c)
+      const childNode = this.#view.inputNode(edge.childNodeId)
       if (childNode) {
         return this.#parameterizeObject(obj, childNode)
       }
@@ -339,7 +338,7 @@ class Parameterizer {
    */
   #parameterizeSelection(
     selection: JsonSelectionSet,
-    node: ReturnType<ParamGraphView['outputNode']>,
+    node: ReturnType<ParamGraph['outputNode']>,
   ): JsonSelectionSet {
     if (!selection || !node) {
       return selection
@@ -359,8 +358,8 @@ class Parameterizer {
         // Nested selection with possible args
         const nested = value as { arguments?: Record<string, unknown>; selection?: JsonSelectionSet }
 
-        const argsNode = this.#view.inputNode(edge.a)
-        const childOutNode = this.#view.outputNode(edge.o)
+        const argsNode = this.#view.inputNode(edge.argsNodeId)
+        const childOutNode = this.#view.outputNode(edge.outputNodeId)
 
         const processedValue: JsonFieldSelection = {
           selection: nested.selection ? this.#parameterizeSelection(nested.selection, childOutNode) : {},
