@@ -1,7 +1,7 @@
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { parameterizeQuery } from '../parameterize'
-import { view } from './test-fixtures'
+import { paramGraph } from './test-fixtures'
 
 describe('parameterizeQuery filter operators', () => {
   it('parameterizes equals filter', () => {
@@ -14,7 +14,7 @@ describe('parameterizeQuery filter operators', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -57,7 +57,7 @@ describe('parameterizeQuery filter operators', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -112,7 +112,7 @@ describe('parameterizeQuery filter operators', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -186,7 +186,7 @@ describe('parameterizeQuery filter operators', () => {
       },
     }
 
-    const result = parameterizeQuery(query, view)
+    const result = parameterizeQuery(query, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {

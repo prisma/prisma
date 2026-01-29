@@ -1,7 +1,7 @@
 import type { JsonBatchQuery } from '@prisma/json-protocol'
 
 import { parameterizeBatch } from '../parameterize'
-import { view } from './test-fixtures'
+import { paramGraph } from './test-fixtures'
 
 describe('parameterizeBatch', () => {
   it('parameterizes all queries in a batch with unique placeholder names', () => {
@@ -26,7 +26,7 @@ describe('parameterizeBatch', () => {
       ],
     }
 
-    const result = parameterizeBatch(batch, view)
+    const result = parameterizeBatch(batch, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -97,7 +97,7 @@ describe('parameterizeBatch', () => {
       transaction: { isolationLevel: 'Serializable' },
     }
 
-    const result = parameterizeBatch(batch, view)
+    const result = parameterizeBatch(batch, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -178,8 +178,8 @@ describe('parameterizeBatch', () => {
       ],
     }
 
-    const result1 = parameterizeBatch(batch1, view)
-    const result2 = parameterizeBatch(batch2, view)
+    const result1 = parameterizeBatch(batch1, paramGraph)
+    const result2 = parameterizeBatch(batch2, paramGraph)
 
     expect(result1).toMatchInlineSnapshot(`
       {
@@ -317,8 +317,8 @@ describe('parameterizeBatch', () => {
       ],
     }
 
-    const result1 = parameterizeBatch(batch1, view)
-    const result2 = parameterizeBatch(batch2, view)
+    const result1 = parameterizeBatch(batch1, paramGraph)
+    const result2 = parameterizeBatch(batch2, paramGraph)
 
     expect(result1).toMatchInlineSnapshot(`
       {
@@ -392,7 +392,7 @@ describe('parameterizeBatch', () => {
       batch: [],
     }
 
-    const result = parameterizeBatch(batch, view)
+    const result = parameterizeBatch(batch, paramGraph)
 
     expect(result).toMatchInlineSnapshot(`
       {

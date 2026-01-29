@@ -1,69 +1,74 @@
 import type { RuntimeDataModel } from '@prisma/client-common'
 import type { JsonQuery } from '@prisma/json-protocol'
-import type { ParamGraph } from '@prisma/param-graph'
-import { EdgeFlag, ScalarMask } from '@prisma/param-graph'
+import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
+import type { ParamGraphData } from '@prisma/param-graph'
 
-import { createParamGraphView } from './param-graph-view'
 import { parameterizeBatch, parameterizeQuery } from './parameterize'
+
+function createEnumLookup(runtimeDataModel: RuntimeDataModel) {
+  return (enumName: string): readonly string[] | undefined => {
+    const enumDef = runtimeDataModel.enums[enumName]
+    return enumDef?.values.map((v) => v.name)
+  }
+}
 
 describe('parameterizeQuery', () => {
   // Sample ParamGraph simulating a User model with common fields
-  const sampleGraph: ParamGraph = {
-    s: ['where', 'id', 'email', 'name', 'equals', 'contains', 'in', 'data', 'selection', 'posts', 'title', 'status'],
-    e: ['Status'],
-    i: [
+  const sampleGraphData: ParamGraphData = {
+    strings: ['where', 'id', 'email', 'name', 'equals', 'contains', 'in', 'data', 'selection', 'posts', 'title', 'status', 'Status'],
+    inputNodes: [
       // Node 0: UserWhereInput
       {
-        f: {
-          1: { k: EdgeFlag.ParamScalar | EdgeFlag.Object, m: ScalarMask.String, c: 1 }, // id
-          2: { k: EdgeFlag.ParamScalar | EdgeFlag.Object, m: ScalarMask.String, c: 1 }, // email
-          3: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // name
-          11: { k: EdgeFlag.ParamEnum, e: 0 }, // status (enum)
+        edges: {
+          1: { flags: EdgeFlag.ParamScalar | EdgeFlag.Object, scalarMask: ScalarMask.String, childNodeId: 1 }, // id
+          2: { flags: EdgeFlag.ParamScalar | EdgeFlag.Object, scalarMask: ScalarMask.String, childNodeId: 1 }, // email
+          3: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // name
+          11: { flags: EdgeFlag.ParamEnum, enumNameIndex: 12 }, // status (enum)
         },
       },
       // Node 1: StringFilter
       {
-        f: {
-          4: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // equals
-          5: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // contains
-          6: { k: EdgeFlag.ParamListScalar, m: ScalarMask.String }, // in
+        edges: {
+          4: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // equals
+          5: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // contains
+          6: { flags: EdgeFlag.ParamListScalar, scalarMask: ScalarMask.String }, // in
         },
       },
       // Node 2: FindManyUserArgs
       {
-        f: {
-          0: { k: EdgeFlag.Object, c: 0 }, // where
+        edges: {
+          0: { flags: EdgeFlag.Object, childNodeId: 0 }, // where
         },
       },
       // Node 3: UserCreateInput
       {
-        f: {
-          1: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // id
-          2: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // email
-          3: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // name
+        edges: {
+          1: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // id
+          2: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // email
+          3: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // name
         },
       },
       // Node 4: CreateUserArgs
       {
-        f: {
-          7: { k: EdgeFlag.Object, c: 3 }, // data
+        edges: {
+          7: { flags: EdgeFlag.Object, childNodeId: 3 }, // data
         },
       },
     ],
-    o: [
+    outputNodes: [
       // Node 0: UserOutput
       {
-        f: {
-          9: { a: 5, o: 1 }, // posts
+        edges: {
+          9: { argsNodeId: 5, outputNodeId: 1 }, // posts
         },
       },
       // Node 1: PostOutput
-      {},
+      { edges: {} },
     ],
-    r: {
-      'User.findMany': { a: 2, o: 0 },
-      'User.findUnique': { a: 2, o: 0 },
-      'User.createOne': { a: 4, o: 0 },
+    roots: {
+      'User.findMany': { argsNodeId: 2, outputNodeId: 0 },
+      'User.findUnique': { argsNodeId: 2, outputNodeId: 0 },
+      'User.createOne': { argsNodeId: 4, outputNodeId: 0 },
     },
   }
 
@@ -81,7 +86,7 @@ describe('parameterizeQuery', () => {
     types: {},
   }
 
-  const view = createParamGraphView(sampleGraph, sampleRuntimeDataModel)
+  const paramGraph = ParamGraph.fromData(sampleGraphData, createEnumLookup(sampleRuntimeDataModel))
 
   describe('basic parameterization', () => {
     it('parameterizes scalar values in where clause', () => {
@@ -94,7 +99,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': 'John',
@@ -114,7 +119,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': '123',
@@ -135,7 +140,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': 'abc',
@@ -152,7 +157,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': 'example',
@@ -169,7 +174,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': ['a', 'b', 'c'],
@@ -188,7 +193,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({})
       expect(result.parameterizedQuery.query.arguments).toEqual({
@@ -209,7 +214,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({})
       expect(result.parameterizedQuery.query.arguments).toEqual({
@@ -228,7 +233,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({})
       expect(result.parameterizedQuery.query.arguments).toEqual({
@@ -240,23 +245,24 @@ describe('parameterizeQuery', () => {
   describe('tagged scalar values', () => {
     it('parameterizes DateTime tagged values', () => {
       // Create a graph that includes DateTime support
-      const graphWithDateTime: ParamGraph = {
-        ...sampleGraph,
-        i: [
-          ...sampleGraph.i,
+      const graphWithDateTimeData: ParamGraphData = {
+        strings: [...sampleGraphData.strings, 'createdAt'],
+        inputNodes: [
+          ...sampleGraphData.inputNodes,
           {
-            f: {
-              0: { k: EdgeFlag.ParamScalar, m: ScalarMask.DateTime }, // createdAt
+            edges: {
+              0: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.DateTime }, // createdAt
             },
           },
         ],
-        r: {
-          ...sampleGraph.r,
-          'User.findByDate': { a: 5 },
+        outputNodes: sampleGraphData.outputNodes,
+        roots: {
+          ...sampleGraphData.roots,
+          'User.findByDate': { argsNodeId: 5 },
         },
       }
 
-      const viewWithDateTime = createParamGraphView(graphWithDateTime, sampleRuntimeDataModel)
+      const graphWithDateTime = ParamGraph.fromData(graphWithDateTimeData, createEnumLookup(sampleRuntimeDataModel))
       const dateValue = { $type: 'DateTime' as const, value: '2024-01-01T00:00:00.000Z' }
 
       const query: JsonQuery = {
@@ -268,7 +274,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, viewWithDateTime)
+      const result = parameterizeQuery(query, graphWithDateTime)
 
       // DateTime should be parameterized with decoded value
       expect(result.placeholderValues['%1']).toBe('2024-01-01T00:00:00.000Z')
@@ -286,7 +292,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': 'ACTIVE',
@@ -303,7 +309,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({})
       expect(result.parameterizedQuery.query.arguments).toEqual({
@@ -323,7 +329,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.parameterizedQuery.query.selection).toEqual({ $scalars: true })
     })
@@ -338,7 +344,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.parameterizedQuery.query.selection).toEqual({ $scalars: true, $composites: true })
     })
@@ -353,7 +359,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.parameterizedQuery.query.selection).toEqual({
         id: true,
@@ -374,7 +380,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       // Unknown field should be preserved as-is
       expect(result.parameterizedQuery.query.arguments).toEqual({
@@ -395,7 +401,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       expect(result.placeholderValues).toEqual({
         '%1': '123',
@@ -425,8 +431,8 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result1 = parameterizeQuery(query1, view)
-      const result2 = parameterizeQuery(query2, view)
+      const result1 = parameterizeQuery(query1, paramGraph)
+      const result2 = parameterizeQuery(query2, paramGraph)
 
       const cacheKey1 = JSON.stringify(result1.parameterizedQuery)
       const cacheKey2 = JSON.stringify(result2.parameterizedQuery)
@@ -453,8 +459,8 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result1 = parameterizeQuery(query1, view)
-      const result2 = parameterizeQuery(query2, view)
+      const result1 = parameterizeQuery(query1, paramGraph)
+      const result2 = parameterizeQuery(query2, paramGraph)
 
       const cacheKey1 = JSON.stringify(result1.parameterizedQuery)
       const cacheKey2 = JSON.stringify(result2.parameterizedQuery)
@@ -474,7 +480,7 @@ describe('parameterizeQuery', () => {
         },
       }
 
-      const result = parameterizeQuery(query, view)
+      const result = parameterizeQuery(query, paramGraph)
 
       // Query should be unchanged (no parameterization possible)
       expect(result.parameterizedQuery.query.arguments).toEqual({
@@ -486,28 +492,27 @@ describe('parameterizeQuery', () => {
 })
 
 describe('parameterizeBatch', () => {
-  const sampleGraph: ParamGraph = {
-    s: ['where', 'id', 'email'],
-    e: [],
-    i: [
+  const sampleGraphData: ParamGraphData = {
+    strings: ['where', 'id', 'email'],
+    inputNodes: [
       // Node 0: UserWhereInput
       {
-        f: {
-          1: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // id
-          2: { k: EdgeFlag.ParamScalar, m: ScalarMask.String }, // email
+        edges: {
+          1: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // id
+          2: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // email
         },
       },
       // Node 1: FindUserArgs
       {
-        f: {
-          0: { k: EdgeFlag.Object, c: 0 }, // where
+        edges: {
+          0: { flags: EdgeFlag.Object, childNodeId: 0 }, // where
         },
       },
     ],
-    o: [],
-    r: {
-      'User.findUnique': { a: 1 },
-      'User.findMany': { a: 1 },
+    outputNodes: [],
+    roots: {
+      'User.findUnique': { argsNodeId: 1 },
+      'User.findMany': { argsNodeId: 1 },
     },
   }
 
@@ -517,7 +522,7 @@ describe('parameterizeBatch', () => {
     types: {},
   }
 
-  const view = createParamGraphView(sampleGraph, sampleRuntimeDataModel)
+  const paramGraph = ParamGraph.fromData(sampleGraphData, createEnumLookup(sampleRuntimeDataModel))
 
   it('parameterizes all queries in a batch with unique placeholder names', () => {
     const batch = {
@@ -541,7 +546,7 @@ describe('parameterizeBatch', () => {
       ],
     }
 
-    const result = parameterizeBatch(batch, view)
+    const result = parameterizeBatch(batch, paramGraph)
 
     expect(result.placeholderValues).toEqual({
       '%1': '123',
@@ -564,7 +569,7 @@ describe('parameterizeBatch', () => {
       transaction: { isolationLevel: 'Serializable' as const },
     }
 
-    const result = parameterizeBatch(batch, view)
+    const result = parameterizeBatch(batch, paramGraph)
 
     expect(result.parameterizedBatch.transaction).toEqual({ isolationLevel: 'Serializable' })
   })
@@ -612,8 +617,8 @@ describe('parameterizeBatch', () => {
       ],
     }
 
-    const result1 = parameterizeBatch(batch1, view)
-    const result2 = parameterizeBatch(batch2, view)
+    const result1 = parameterizeBatch(batch1, paramGraph)
+    const result2 = parameterizeBatch(batch2, paramGraph)
 
     const cacheKey1 = JSON.stringify(result1.parameterizedBatch)
     const cacheKey2 = JSON.stringify(result2.parameterizedBatch)
@@ -648,8 +653,8 @@ describe('parameterizeBatch', () => {
       ],
     }
 
-    const result1 = parameterizeBatch(batch1, view)
-    const result2 = parameterizeBatch(batch2, view)
+    const result1 = parameterizeBatch(batch1, paramGraph)
+    const result2 = parameterizeBatch(batch2, paramGraph)
 
     const cacheKey1 = JSON.stringify(result1.parameterizedBatch)
     const cacheKey2 = JSON.stringify(result2.parameterizedBatch)
@@ -660,7 +665,7 @@ describe('parameterizeBatch', () => {
   it('handles empty batch', () => {
     const batch = { batch: [] }
 
-    const result = parameterizeBatch(batch, view)
+    const result = parameterizeBatch(batch, paramGraph)
 
     expect(result.parameterizedBatch.batch).toEqual([])
     expect(result.placeholderValues).toEqual({})
