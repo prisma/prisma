@@ -1,132 +1,219 @@
 /**
- * ParamGraph: Compact schema for runtime parameterization.
+ * ParamGraph: Runtime class for schema-aware parameterization.
  *
- * This data structure is generated from DMMF at client generation time
- * and embedded in the generated client. It enables schema-aware
- * parameterization where values are only parameterized when both schema
- * rules and runtime value types agree.
+ * This class provides a readable API for navigating the param graph structure
+ * at runtime. It's created once per PrismaClient instance from the serialized
+ * format embedded in the generated client.
  */
+
+import type { SerializedParamGraph } from './serialization'
+import { deserializeParamGraph } from './serialization'
+import type { InputEdgeData, InputNodeData, OutputEdgeData, OutputNodeData, ParamGraphData, RootEntryData } from './types'
 
 /**
- * Compact schema embedded in the generated client.
+ * Function type for looking up enum values by name.
+ * This allows ParamGraph to remain decoupled from RuntimeDataModel.
  */
-export type ParamGraph = {
-  /**
-   * String table to avoid repeating field names.
-   * Field names are referenced by index throughout the graph.
-   */
-  s: string[]
+export type EnumLookup = (enumName: string) => readonly string[] | undefined
 
-  /**
-   * User enum names for runtime membership checks.
-   * Values are looked up via `runtimeDataModel.enums[enumName].values`.
-   */
-  e: string[]
-
-  /**
-   * Input nodes used for argument objects and input types.
-   * Each node describes which fields are parameterizable or lead to
-   * parameterizable descendants.
-   */
-  i: InputNode[]
-
-  /**
-   * Output nodes used for selection traversal.
-   * Each node describes which fields have arguments or lead to
-   * nested selections with arguments.
-   */
-  o: OutputNode[]
-
-  /**
-   * Root mapping: "Model.action" or "action" (for non-model ops).
-   * Points to the args node (input) and root output node.
-   */
-  r: Record<string, RootEntry>
+/**
+ * Readable view of root entry.
+ */
+export interface RootEntry {
+  readonly argsNodeId: number | undefined
+  readonly outputNodeId: number | undefined
 }
 
 /**
- * Entry point for a root operation.
+ * Readable view of input node.
  */
-export type RootEntry = {
-  /** Args node id (into `i` array) */
-  a?: NodeId
-  /** Output node id (into `o` array) */
-  o?: NodeId
+export interface InputNode {
+  readonly id: number
 }
 
 /**
- * Node ID is an index into `i` or `o` array.
+ * Readable view of output node.
  */
-export type NodeId = number
-
-/**
- * Input node: describes parameterizable fields in an input object.
- * Only fields that are parameterizable or lead to parameterizable
- * descendants are present.
- */
-export type InputNode = {
-  /**
-   * Map from string-table index to edge descriptor.
-   * Omitted if the node has no fields (shouldn't happen in practice).
-   */
-  f?: Record<number, InputEdge>
+export interface OutputNode {
+  readonly id: number
 }
 
 /**
- * Output node: describes fields in a selection set that have args
- * or nested selections that may contain parameterizable args.
+ * Readable view of input edge.
  */
-export type OutputNode = {
-  /**
-   * Map from string-table index to edge descriptor.
-   */
-  f?: Record<number, OutputEdge>
+export interface InputEdge {
+  readonly flags: number
+  readonly childNodeId: number | undefined
+  readonly scalarMask: number
+  readonly enumNameIndex: number | undefined
 }
 
 /**
- * Edge descriptor for input fields.
- * Encodes what kinds of values the field accepts and how to handle them.
+ * Readable view of output edge.
  */
-export type InputEdge = {
-  /**
-   * Bit flags describing field capabilities.
-   * See EdgeFlag enum below.
-   */
-  k: number
-
-  /**
-   * Child input node id (for object values or list of objects).
-   * Present when the field accepts input object types.
-   */
-  c?: NodeId
-
-  /**
-   * Scalar type mask for allowed scalar categories.
-   * Present when field accepts scalar values.
-   * See ScalarMask enum below.
-   */
-  m?: number
-
-  /**
-   * Enum name id (index into `en` array).
-   * Present when field accepts a user enum without a plain String scalar.
-   * Used for runtime membership validation.
-   */
-  e?: number
+export interface OutputEdge {
+  readonly argsNodeId: number | undefined
+  readonly outputNodeId: number | undefined
 }
 
 /**
- * Edge descriptor for output fields.
+ * ParamGraph provides runtime access to the schema information
+ * needed for parameterization decisions.
  */
-export type OutputEdge = {
-  /** Args node for this field (if it accepts arguments) */
-  a?: NodeId
-  /** Next output node for nested selection traversal */
-  o?: NodeId
+export class ParamGraph {
+  readonly #data: ParamGraphData
+  readonly #stringIndex: Map<string, number>
+  readonly #enumLookup: EnumLookup
+
+  private constructor(data: ParamGraphData, enumLookup: EnumLookup) {
+    this.#data = data
+    this.#enumLookup = enumLookup
+
+    // Build string-to-index map for O(1) lookups
+    this.#stringIndex = new Map<string, number>()
+    for (let i = 0; i < data.strings.length; i++) {
+      this.#stringIndex.set(data.strings[i], i)
+    }
+  }
+
+  /**
+   * Creates a ParamGraph from serialized format.
+   * This is the primary factory method for runtime use.
+   */
+  static deserialize(serialized: SerializedParamGraph, enumLookup: EnumLookup): ParamGraph {
+    const data = deserializeParamGraph(serialized)
+    return new ParamGraph(data, enumLookup)
+  }
+
+  /**
+   * Creates a ParamGraph from builder data.
+   * Used by the builder for testing and direct construction.
+   */
+  static fromData(data: ParamGraphData, enumLookup: EnumLookup): ParamGraph {
+    return new ParamGraph(data, enumLookup)
+  }
+
+  /**
+   * Look up a root entry by "Model.action" or "action".
+   */
+  root(key: string): RootEntry | undefined {
+    const entry = this.#data.roots[key]
+    if (!entry) {
+      return undefined
+    }
+    return {
+      argsNodeId: entry.argsNodeId,
+      outputNodeId: entry.outputNodeId,
+    }
+  }
+
+  /**
+   * Get an input node by ID.
+   */
+  inputNode(id: number | undefined): InputNode | undefined {
+    if (id === undefined || id < 0 || id >= this.#data.inputNodes.length) {
+      return undefined
+    }
+    return { id }
+  }
+
+  /**
+   * Get an output node by ID.
+   */
+  outputNode(id: number | undefined): OutputNode | undefined {
+    if (id === undefined || id < 0 || id >= this.#data.outputNodes.length) {
+      return undefined
+    }
+    return { id }
+  }
+
+  /**
+   * Get an input edge for a field name within a node.
+   */
+  inputEdge(node: InputNode | undefined, fieldName: string): InputEdge | undefined {
+    if (!node) {
+      return undefined
+    }
+
+    const nodeData = this.#data.inputNodes[node.id]
+    if (!nodeData) {
+      return undefined
+    }
+
+    const fieldIndex = this.#stringIndex.get(fieldName)
+    if (fieldIndex === undefined) {
+      return undefined
+    }
+
+    const edge = nodeData.edges[fieldIndex]
+    if (!edge) {
+      return undefined
+    }
+
+    return {
+      flags: edge.flags,
+      childNodeId: edge.childNodeId,
+      scalarMask: edge.scalarMask ?? 0,
+      enumNameIndex: edge.enumNameIndex,
+    }
+  }
+
+  /**
+   * Get an output edge for a field name within a node.
+   */
+  outputEdge(node: OutputNode | undefined, fieldName: string): OutputEdge | undefined {
+    if (!node) {
+      return undefined
+    }
+
+    const nodeData = this.#data.outputNodes[node.id]
+    if (!nodeData) {
+      return undefined
+    }
+
+    const fieldIndex = this.#stringIndex.get(fieldName)
+    if (fieldIndex === undefined) {
+      return undefined
+    }
+
+    const edge = nodeData.edges[fieldIndex]
+    if (!edge) {
+      return undefined
+    }
+
+    return {
+      argsNodeId: edge.argsNodeId,
+      outputNodeId: edge.outputNodeId,
+    }
+  }
+
+  /**
+   * Get enum values for an edge that references a user enum.
+   * Returns undefined if the edge doesn't reference an enum.
+   */
+  enumValues(edge: InputEdge | undefined): readonly string[] | undefined {
+    if (edge?.enumNameIndex === undefined) {
+      return undefined
+    }
+
+    const enumName = this.#data.strings[edge.enumNameIndex]
+    if (!enumName) {
+      return undefined
+    }
+
+    return this.#enumLookup(enumName)
+  }
+
+  /**
+   * Get a string from the string table by index.
+   */
+  getString(index: number): string | undefined {
+    return this.#data.strings[index]
+  }
 }
 
 /**
- * Bit flags for InputEdge.k describing what the field accepts.
+ * Bit flags for InputEdge.flags describing what the field accepts.
  */
 export const EdgeFlag = {
   /**
@@ -170,7 +257,7 @@ export type EdgeFlagValue = (typeof EdgeFlag)[keyof typeof EdgeFlag]
 
 /**
  * Bit mask for scalar type categories.
- * Used in InputEdge.m to validate runtime value types.
+ * Used in InputEdge.scalarMask to validate runtime value types.
  */
 export const ScalarMask = {
   String: 1,
@@ -190,14 +277,14 @@ export type ScalarMaskValue = (typeof ScalarMask)[keyof typeof ScalarMask]
  * Helper function to check if an edge has a specific flag.
  */
 export function hasFlag(edge: InputEdge, flag: number): boolean {
-  return (edge.k & flag) !== 0
+  return (edge.flags & flag) !== 0
 }
 
 /**
  * Helper function to get the scalar mask from an edge.
  */
 export function getScalarMask(edge: InputEdge): number {
-  return edge.m ?? 0
+  return edge.scalarMask
 }
 
 /**
@@ -228,3 +315,6 @@ export function scalarTypeToMask(typeName: string): number {
       return 0
   }
 }
+
+// Re-export data types for builder use
+export type { InputEdgeData, InputNodeData, OutputEdgeData, OutputNodeData, ParamGraphData, RootEntryData }
