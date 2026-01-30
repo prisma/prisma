@@ -1,7 +1,7 @@
 import type { RuntimeDataModel } from '@prisma/client-common'
 import type { JsonQuery } from '@prisma/json-protocol'
-import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 import type { ParamGraphData } from '@prisma/param-graph'
+import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 
 import { parameterizeBatch, parameterizeQuery } from './parameterize'
 
@@ -15,7 +15,21 @@ function createEnumLookup(runtimeDataModel: RuntimeDataModel) {
 describe('parameterizeQuery', () => {
   // Sample ParamGraph simulating a User model with common fields
   const sampleGraphData: ParamGraphData = {
-    strings: ['where', 'id', 'email', 'name', 'equals', 'contains', 'in', 'data', 'selection', 'posts', 'title', 'status', 'Status'],
+    strings: [
+      'where',
+      'id',
+      'email',
+      'name',
+      'equals',
+      'contains',
+      'in',
+      'data',
+      'selection',
+      'posts',
+      'title',
+      'status',
+      'Status',
+    ],
     inputNodes: [
       // Node 0: UserWhereInput
       {
