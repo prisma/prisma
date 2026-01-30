@@ -1,5 +1,8 @@
 import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime'
 
+// todo: store the query plan for the individual queries in a non-compacted batch
+// in the `#singleCache` so that it's possible to reuse them for compatible queries
+// outside of the batch in the future and avoid compiling them individually.
 export class QueryPlanCache {
   readonly #singleCache: Map<string, QueryPlanNode>
   readonly #batchCache: Map<string, BatchResponse>

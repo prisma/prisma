@@ -5,13 +5,10 @@ import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import { dmmfToRuntimeDataModel, type QueryCompiler, type QueryCompilerConstructor } from '@prisma/client-common'
 import { getDMMF } from '@prisma/client-generator-js'
 import type { JsonQuery } from '@prisma/json-protocol'
+import { ParamGraph } from '@prisma/param-graph'
 import { buildParamGraph } from '@prisma/param-graph-builder'
 import Benchmark from 'benchmark'
 
-import {
-  createParamGraphView,
-  ParamGraphView,
-} from '../../../runtime/core/engines/client/parameterization/param-graph-view'
 import { parameterizeQuery } from '../../../runtime/core/engines/client/parameterization/parameterize'
 import { loadQueryCompiler } from './qc-loader'
 
@@ -20,7 +17,7 @@ let queryCompiler: QueryCompiler
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
 
-let paramGraphView: ParamGraphView
+let paramGraph: ParamGraph
 
 type Param = { $type: 'Param'; value: string }
 type Parameterizable<T> = T | Param
@@ -125,9 +122,13 @@ async function setup(): Promise<void> {
   })
 
   const dmmf = await getDMMF({ datamodel: BENCHMARK_DATAMODEL })
-  const paramGraph = buildParamGraph(dmmf)
+  const paramGraphData = buildParamGraph(dmmf)
   const runtimeDataModel = dmmfToRuntimeDataModel(dmmf.datamodel)
-  paramGraphView = createParamGraphView(paramGraph, runtimeDataModel)
+
+  paramGraph = ParamGraph.fromData(paramGraphData, (enumName) => {
+    const enumDef = runtimeDataModel.enums[enumName]
+    return enumDef?.values.map((v) => v.name)
+  })
 }
 
 function syncBench(fn: () => void): Benchmark.Options {
@@ -163,21 +164,21 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'parameterize findUnique',
     syncBench(() => {
-      parameterizeQuery(createFindUniqueQuery(1), paramGraphView)
+      parameterizeQuery(createFindUniqueQuery(1), paramGraph)
     }),
   )
 
   suite.add(
     'parameterize findMany',
     syncBench(() => {
-      parameterizeQuery(createFindManyQuery(), paramGraphView)
+      parameterizeQuery(createFindManyQuery(), paramGraph)
     }),
   )
 
   suite.add(
     'parameterize blog post page query',
     syncBench(() => {
-      parameterizeQuery(createBlogPostPageQuery(1), paramGraphView)
+      parameterizeQuery(createBlogPostPageQuery(1), paramGraph)
     }),
   )
 
