@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { shouldWarnAboutGlobalInstallation, getLocalPrismaVersion } from '../utils/check-global-installation'
+import { getLocalPrismaVersion, shouldWarnAboutGlobalInstallation } from '../utils/check-global-installation'
 
 describe('shouldWarnAboutGlobalInstallation', () => {
   it('should return false when no local prisma is installed', () => {

@@ -2,6 +2,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 /**
+ * Normalize a path for comparison. On Windows, paths are case-insensitive,
+ * so we lowercase them for reliable comparison.
+ */
+function normalizeForComparison(p: string): string {
+  return process.platform === 'win32' ? p.toLowerCase() : p
+}
+
+/**
  * Check if the CLI is running from a global installation while a local version exists.
  * Returns true if we should show a warning.
  */
@@ -16,8 +24,8 @@ export function shouldWarnAboutGlobalInstallation(cwd: string = process.cwd()): 
 
     // Check if we're running from the global installation
     // Resolve symlinks to ensure consistent path comparison across platforms
-    const currentCliPath = fs.realpathSync(path.dirname(__dirname))
-    const localCliPath = fs.realpathSync(path.dirname(localPrismaPath))
+    const currentCliPath = normalizeForComparison(fs.realpathSync(path.dirname(__dirname)))
+    const localCliPath = normalizeForComparison(fs.realpathSync(path.dirname(localPrismaPath)))
 
     // If the current CLI path is not the same as or inside the local CLI path,
     // we're running from a different installation (likely global)
@@ -42,8 +50,8 @@ function getLocalPrismaPath(cwd: string): string | null {
     // Resolve symlinks to ensure consistent path comparison across platforms
     const realCwd = fs.realpathSync(cwd)
     const realResolvedPath = fs.realpathSync(resolvedPath)
-    const localNodeModules = path.join(realCwd, 'node_modules') + path.sep
-    if (realResolvedPath.startsWith(localNodeModules)) {
+    const localNodeModules = normalizeForComparison(path.join(realCwd, 'node_modules') + path.sep)
+    if (normalizeForComparison(realResolvedPath).startsWith(localNodeModules)) {
       return realResolvedPath
     }
 
