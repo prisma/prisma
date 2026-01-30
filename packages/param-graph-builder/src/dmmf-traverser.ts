@@ -248,9 +248,7 @@ export class DMMFTraverser {
             if (
               !inputObjectTypes.some(
                 (ot) =>
-                  ot.type === inputType.type &&
-                  ot.namespace === inputType.namespace &&
-                  ot.isList === inputType.isList,
+                  ot.type === inputType.type && ot.namespace === inputType.namespace && ot.isList === inputType.isList,
               )
             ) {
               inputObjectTypes.push(inputType)
@@ -301,13 +299,9 @@ export class DMMFTraverser {
       }
 
       if (inputObjectTypes.length === 1) {
-        childNodeId = this.buildInputTypeNode(
-          getTypeName(inputObjectTypes[0].type, inputObjectTypes[0].namespace),
-        )
+        childNodeId = this.buildInputTypeNode(getTypeName(inputObjectTypes[0].type, inputObjectTypes[0].namespace))
       } else {
-        childNodeId = this.buildUnionNode(
-          inputObjectTypes.map((iot) => getTypeName(iot.type, iot.namespace)),
-        )
+        childNodeId = this.buildUnionNode(inputObjectTypes.map((iot) => getTypeName(iot.type, iot.namespace)))
       }
     }
 
@@ -376,9 +370,7 @@ export class DMMFTraverser {
     }
 
     if (field.outputType.location === 'outputObjectTypes') {
-      outputNodeId = this.buildOutputTypeNode(
-        getTypeName(field.outputType.type, field.outputType.namespace),
-      )
+      outputNodeId = this.buildOutputTypeNode(getTypeName(field.outputType.type, field.outputType.namespace))
     }
 
     if (argsNodeId === undefined && outputNodeId === undefined) {

@@ -8,7 +8,14 @@
 
 import type { SerializedParamGraph } from './serialization'
 import { deserializeParamGraph } from './serialization'
-import type { InputEdgeData, InputNodeData, OutputEdgeData, OutputNodeData, ParamGraphData, RootEntryData } from './types'
+import type {
+  InputEdgeData,
+  InputNodeData,
+  OutputEdgeData,
+  OutputNodeData,
+  ParamGraphData,
+  RootEntryData,
+} from './types'
 
 /**
  * Function type for looking up enum values by name.
