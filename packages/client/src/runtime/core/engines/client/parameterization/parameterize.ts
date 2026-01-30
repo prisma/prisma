@@ -336,10 +336,7 @@ class Parameterizer {
   /**
    * Parameterizes a selection set using output nodes.
    */
-  #parameterizeSelection(
-    selection: JsonSelectionSet,
-    node: ReturnType<ParamGraph['outputNode']>,
-  ): JsonSelectionSet {
+  #parameterizeSelection(selection: JsonSelectionSet, node: ReturnType<ParamGraph['outputNode']>): JsonSelectionSet {
     if (!selection || !node) {
       return selection
     }
