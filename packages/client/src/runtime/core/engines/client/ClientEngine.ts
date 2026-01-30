@@ -102,6 +102,7 @@ export class ClientEngine implements Engine {
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
   #queryPlanCache: QueryPlanCache
+  // todo: remove this
   #queryPlanCacheEnabled: boolean
   #paramGraph: ParamGraph
 
