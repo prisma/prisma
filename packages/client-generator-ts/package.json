@@ -24,7 +24,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@antfu/ni": "0.21.12",
+    "@antfu/ni": "27.0.1",
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
