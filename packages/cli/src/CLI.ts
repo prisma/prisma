@@ -140,6 +140,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
              version   Displays Prisma version info
                debug   Displays Prisma debug info
                  mcp   Starts an MCP server to use with AI development tools
+            complete   Generate shell completion scripts
 
     ${bold('Flags')}
 
