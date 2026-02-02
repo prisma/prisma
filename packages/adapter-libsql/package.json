@@ -46,7 +46,7 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@libsql/client": "^0.8.1",
+    "@libsql/client": "^0.17.0",
     "@prisma/driver-adapter-utils": "workspace:*",
     "async-mutex": "0.5.0"
   }
