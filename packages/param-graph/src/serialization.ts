@@ -20,85 +20,69 @@
  * - **Structure goes binary**: Indices, flags, masks benefit from compact encoding
  * - **Best of both**: Fast parsing + compact size where it matters
  *
- * ## Format Selection
+ * ## Variable-Length Encoding
  *
- * Two binary formats based on data size (selected automatically at serialization):
+ * All integer values (except fixed-size fields like `scalarMask` and `flags`) use
+ * unsigned LEB128 (Little Endian Base 128) variable-length encoding:
  *
- * - **Compact (0x00)**: 16-bit indices, for graphs with ≤65534 items
- * - **Wide (0x01)**: 32-bit indices, for larger graphs
+ * - Values 0-127: 1 byte
+ * - Values 128-16383: 2 bytes
+ * - Values 16384-2097151: 3 bytes
+ * - And so on...
  *
- * Sentinel values for "none/undefined": 0xFFFF (compact) or 0xFFFFFFFF (wide)
+ * Optional values use value+1 encoding: 0 means "none/undefined", N+1 means actual value N.
  *
  * ## Binary Blob Layout
- *
- * All multi-byte integers are little-endian.
- *
- * TODO: do not use multiple formats, encode the integers with variable width instead.
  *
  * ```
  * ┌───────────────────────────────────────────────────────────────────┐
  * │ HEADER                                                            │
  * ├───────────────────────────────────────────────────────────────────┤
- * │ format: u8            │ 0x00 = compact (16-bit), 0x01 = wide      │
- * │ padding: 1|3 bytes    │ Alignment padding (1 compact, 3 wide)     │
- * │ inputNodeCount: word  │ Number of input nodes                     │
- * │ outputNodeCount: word │ Number of output nodes                    │
- * │ rootCount: word       │ Number of root entries                    │
+ * │ inputNodeCount: varuint                                           │
+ * │ outputNodeCount: varuint                                          │
+ * │ rootCount: varuint                                                │
  * └───────────────────────────────────────────────────────────────────┘
  *
  * ┌───────────────────────────────────────────────────────────────────┐
  * │ INPUT NODES (repeated inputNodeCount times)                       │
  * ├───────────────────────────────────────────────────────────────────┤
- * │ edgeCount: word       │ Number of edges in this node              │
- * │ edges[]               │ Edge data (see Input Edge below)          │
+ * │ edgeCount: varuint                                                │
+ * │ edges[]                                                           │
  * └───────────────────────────────────────────────────────────────────┘
  *
  * ┌───────────────────────────────────────────────────────────────────┐
- * │ INPUT EDGE (compact: 10 bytes, wide: 20 bytes)                    │
+ * │ INPUT EDGE                                                        │
  * ├───────────────────────────────────────────────────────────────────┤
- * │ fieldIndex: word      │ Index into string table                   │
- * │ scalarMask: u16       │ Scalar type bitmask (0 if none)           │
- * │ [padding: 2 bytes]    │ (wide format only, for alignment)         │
- * │ childNodeId: word     │ Child input node ID (sentinel=none)       │
- * │ enumNameIndex: word   │ Enum name in string table (sentinel=none) │
- * │ flags: u8             │ Edge capability flags                     │
- * │ padding: 1|3 bytes    │ Alignment padding (1 compact, 3 wide)     │
+ * │ fieldIndex: varuint                                               │
+ * │ scalarMask: u16                                                   │
+ * │ childNodeId: varuint (0=none, N+1=actual)                         │
+ * │ enumNameIndex: varuint (0=none, N+1=actual)                       │
+ * │ flags: u8                                                         │
  * └───────────────────────────────────────────────────────────────────┘
  *
  * ┌───────────────────────────────────────────────────────────────────┐
  * │ OUTPUT NODES (repeated outputNodeCount times)                     │
  * ├───────────────────────────────────────────────────────────────────┤
- * │ edgeCount: word       │ Number of edges in this node              │
- * │ edges[]               │ Edge data (see Output Edge below)         │
+ * │ edgeCount: varuint                                                │
+ * │ edges[]                                                           │
  * └───────────────────────────────────────────────────────────────────┘
  *
  * ┌───────────────────────────────────────────────────────────────────┐
- * │ OUTPUT EDGE (compact: 6 bytes, wide: 12 bytes)                    │
+ * │ OUTPUT EDGE                                                       │
  * ├───────────────────────────────────────────────────────────────────┤
- * │ fieldIndex: word      │ Index into string table                   │
- * │ argsNodeId: word      │ Args input node ID (sentinel=none)        │
- * │ outputNodeId: word    │ Child output node ID (sentinel=none)      │
+ * │ fieldIndex: varuint                                               │
+ * │ argsNodeId: varuint (0=none, N+1=actual)                          │
+ * │ outputNodeId: varuint (0=none, N+1=actual)                        │
  * └───────────────────────────────────────────────────────────────────┘
  *
  * ┌───────────────────────────────────────────────────────────────────┐
  * │ ROOTS (repeated rootCount times)                                  │
  * ├───────────────────────────────────────────────────────────────────┤
- * │ keyIndex: word        │ Root key index in string table            │
- * │ argsNodeId: word      │ Args input node ID (sentinel=none)        │
- * │ outputNodeId: word    │ Output node ID (sentinel=none)            │
+ * │ keyIndex: varuint                                                 │
+ * │ argsNodeId: varuint (0=none, N+1=actual)                          │
+ * │ outputNodeId: varuint (0=none, N+1=actual)                        │
  * └───────────────────────────────────────────────────────────────────┘
  * ```
- *
- * Where "word" is u16 (compact) or u32 (wide).
- *
- * ## Size Summary
- *
- * | Component      | Compact  | Wide     |
- * |----------------|----------|----------|
- * | Header         |  8 bytes | 16 bytes |
- * | Input Edge     | 10 bytes | 20 bytes |
- * | Output Edge    |  6 bytes | 12 bytes |
- * | Root Entry     |  6 bytes | 12 bytes |
  *
  * ## Embedding in Generated Client
  *
@@ -143,17 +127,6 @@ export function deserializeParamGraph(serialized: SerializedParamGraph): ParamGr
   return new Deserializer(serialized).deserialize()
 }
 
-// Format version bytes
-const FORMAT_COMPACT = 0x00
-const FORMAT_WIDE = 0x01
-
-// Sentinel values for "none/undefined"
-const NONE_16 = 0xffff
-const NONE_32 = 0xffffffff
-
-// Thresholds for format selection
-const MAX_COMPACT_INDEX = 0xfffe // Reserve 0xFFFF for sentinel
-
 function encodeBase64url(bytes: Uint8Array): string {
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64url')
 }
@@ -162,9 +135,20 @@ function decodeBase64url(str: string): Uint8Array {
   return Buffer.from(str, 'base64url')
 }
 
+/**
+ * Calculates the number of bytes needed to encode a value as an unsigned LEB128 varint.
+ */
+function varuintSize(value: number): number {
+  let size = 1
+  while (value >= 0x80) {
+    size++
+    value >>>= 7
+  }
+  return size
+}
+
 class Serializer {
   #data: ParamGraphData
-  #useWide: boolean
   #buffer: ArrayBuffer
   #view: DataView
   #offset: number = 0
@@ -173,15 +157,6 @@ class Serializer {
   constructor(data: ParamGraphData) {
     this.#data = data
     this.#rootKeys = Object.keys(data.roots)
-
-    const maxIndex = Math.max(
-      data.strings.length,
-      data.inputNodes.length,
-      data.outputNodes.length,
-      this.#rootKeys.length,
-    )
-
-    this.#useWide = maxIndex > MAX_COMPACT_INDEX
 
     const size = this.#calculateBufferSize()
     this.#buffer = new ArrayBuffer(size)
@@ -196,29 +171,20 @@ class Serializer {
 
     return {
       strings: this.#data.strings,
-      graph: encodeBase64url(new Uint8Array(this.#buffer)),
+      graph: encodeBase64url(new Uint8Array(this.#buffer, 0, this.#offset)),
     }
   }
 
-  get #wordSize(): number {
-    return this.#useWide ? 4 : 2
-  }
-
-  get #noneValue(): number {
-    return this.#useWide ? NONE_32 : NONE_16
-  }
-
-  #writeWord(value: number): void {
-    if (this.#useWide) {
-      this.#view.setUint32(this.#offset, value, true)
-    } else {
-      this.#view.setUint16(this.#offset, value, true)
+  #writeVaruint(value: number): void {
+    while (value >= 0x80) {
+      this.#view.setUint8(this.#offset++, (value & 0x7f) | 0x80)
+      value >>>= 7
     }
-    this.#offset += this.#wordSize
+    this.#view.setUint8(this.#offset++, value)
   }
 
-  #writeOptionalWord(value: number | undefined): void {
-    this.#writeWord(value ?? this.#noneValue)
+  #writeOptionalVaruint(value: number | undefined): void {
+    this.#writeVaruint(value === undefined ? 0 : value + 1)
   }
 
   #writeByte(value: number): void {
@@ -231,55 +197,70 @@ class Serializer {
     this.#offset += 2
   }
 
-  #skip(bytes: number): void {
-    this.#offset += bytes
-  }
-
   #calculateBufferSize(): number {
-    let size = this.#useWide ? 16 : 8 // header (format byte + padding + 3 words)
+    let size = 0
+
+    // Header: 3 varints
+    size += varuintSize(this.#data.inputNodes.length)
+    size += varuintSize(this.#data.outputNodes.length)
+    size += varuintSize(this.#rootKeys.length)
 
     for (const node of this.#data.inputNodes) {
-      size += this.#wordSize // edgeCount
-      const edgeCount = Object.keys(node.edges).length
-      size += edgeCount * (this.#useWide ? 20 : 10) // edges
+      const fieldIndices = Object.keys(node.edges).map(Number)
+      size += varuintSize(fieldIndices.length)
+
+      for (const fieldIndex of fieldIndices) {
+        const edge = node.edges[fieldIndex]
+        size += varuintSize(fieldIndex)
+        size += 2 // scalarMask: u16
+        size += varuintSize(edge.childNodeId === undefined ? 0 : edge.childNodeId + 1)
+        size += varuintSize(edge.enumNameIndex === undefined ? 0 : edge.enumNameIndex + 1)
+        size += 1 // flags: u8
+      }
     }
 
     for (const node of this.#data.outputNodes) {
-      size += this.#wordSize // edgeCount
-      const edgeCount = Object.keys(node.edges).length
-      size += edgeCount * (this.#useWide ? 12 : 6) // edges
+      const fieldIndices = Object.keys(node.edges).map(Number)
+      size += varuintSize(fieldIndices.length)
+
+      for (const fieldIndex of fieldIndices) {
+        const edge = node.edges[fieldIndex]
+        size += varuintSize(fieldIndex)
+        size += varuintSize(edge.argsNodeId === undefined ? 0 : edge.argsNodeId + 1)
+        size += varuintSize(edge.outputNodeId === undefined ? 0 : edge.outputNodeId + 1)
+      }
     }
 
-    size += this.#rootKeys.length * (this.#useWide ? 12 : 6)
+    for (const key of this.#rootKeys) {
+      const root = this.#data.roots[key]
+      const keyIndex = this.#data.strings.indexOf(key)
+      size += varuintSize(keyIndex)
+      size += varuintSize(root.argsNodeId === undefined ? 0 : root.argsNodeId + 1)
+      size += varuintSize(root.outputNodeId === undefined ? 0 : root.outputNodeId + 1)
+    }
 
     return size
   }
 
   #writeHeader(): void {
-    this.#writeByte(this.#useWide ? FORMAT_WIDE : FORMAT_COMPACT)
-    this.#skip(this.#useWide ? 3 : 1) // alignment padding
-    this.#writeWord(this.#data.inputNodes.length)
-    this.#writeWord(this.#data.outputNodes.length)
-    this.#writeWord(this.#rootKeys.length)
+    this.#writeVaruint(this.#data.inputNodes.length)
+    this.#writeVaruint(this.#data.outputNodes.length)
+    this.#writeVaruint(this.#rootKeys.length)
   }
 
   #writeInputNodes(): void {
     for (const node of this.#data.inputNodes) {
       const fieldIndices = Object.keys(node.edges).map(Number)
-      this.#writeWord(fieldIndices.length)
+      this.#writeVaruint(fieldIndices.length)
 
       for (const fieldIndex of fieldIndices) {
         const edge = node.edges[fieldIndex]
 
-        this.#writeWord(fieldIndex)
+        this.#writeVaruint(fieldIndex)
         this.#writeU16(edge.scalarMask ?? 0)
-        if (this.#useWide) {
-          this.#skip(2) // padding for alignment
-        }
-        this.#writeOptionalWord(edge.childNodeId)
-        this.#writeOptionalWord(edge.enumNameIndex)
+        this.#writeOptionalVaruint(edge.childNodeId)
+        this.#writeOptionalVaruint(edge.enumNameIndex)
         this.#writeByte(edge.flags)
-        this.#skip(this.#useWide ? 3 : 1) // padding for alignment
       }
     }
   }
@@ -287,14 +268,14 @@ class Serializer {
   #writeOutputNodes(): void {
     for (const node of this.#data.outputNodes) {
       const fieldIndices = Object.keys(node.edges).map(Number)
-      this.#writeWord(fieldIndices.length)
+      this.#writeVaruint(fieldIndices.length)
 
       for (const fieldIndex of fieldIndices) {
         const edge = node.edges[fieldIndex]
 
-        this.#writeWord(fieldIndex)
-        this.#writeOptionalWord(edge.argsNodeId)
-        this.#writeOptionalWord(edge.outputNodeId)
+        this.#writeVaruint(fieldIndex)
+        this.#writeOptionalVaruint(edge.argsNodeId)
+        this.#writeOptionalVaruint(edge.outputNodeId)
       }
     }
   }
@@ -307,9 +288,9 @@ class Serializer {
         throw new Error(`Root key "${key}" not found in strings table`)
       }
 
-      this.#writeWord(keyIndex)
-      this.#writeOptionalWord(root.argsNodeId)
-      this.#writeOptionalWord(root.outputNodeId)
+      this.#writeVaruint(keyIndex)
+      this.#writeOptionalVaruint(root.argsNodeId)
+      this.#writeOptionalVaruint(root.outputNodeId)
     }
   }
 }
@@ -318,7 +299,6 @@ class Deserializer {
   #serialized: SerializedParamGraph
   #view: DataView
   #offset: number = 0
-  #useWide: boolean = false
 
   constructor(serialized: SerializedParamGraph) {
     this.#serialized = serialized
@@ -340,28 +320,21 @@ class Deserializer {
     }
   }
 
-  get #wordSize(): number {
-    return this.#useWide ? 4 : 2
-  }
-
-  get #noneValue(): number {
-    return this.#useWide ? NONE_32 : NONE_16
-  }
-
-  #readWord(): number {
-    let value: number
-    if (this.#useWide) {
-      value = this.#view.getUint32(this.#offset, true)
-    } else {
-      value = this.#view.getUint16(this.#offset, true)
-    }
-    this.#offset += this.#wordSize
+  #readVaruint(): number {
+    let value = 0
+    let shift = 0
+    let byte: number
+    do {
+      byte = this.#view.getUint8(this.#offset++)
+      value |= (byte & 0x7f) << shift
+      shift += 7
+    } while (byte >= 0x80)
     return value
   }
 
-  #readOptionalWord(): number | undefined {
-    const value = this.#readWord()
-    return value === this.#noneValue ? undefined : value
+  #readOptionalVaruint(): number | undefined {
+    const value = this.#readVaruint()
+    return value === 0 ? undefined : value - 1
   }
 
   #readByte(): number {
@@ -376,21 +349,10 @@ class Deserializer {
     return value
   }
 
-  #skip(bytes: number): void {
-    this.#offset += bytes
-  }
-
   #readHeader(): { inputNodeCount: number; outputNodeCount: number; rootCount: number } {
-    const format = this.#readByte()
-    if (format !== FORMAT_COMPACT && format !== FORMAT_WIDE) {
-      throw new Error(`Unknown param graph format: 0x${format.toString(16).padStart(2, '0')}`)
-    }
-    this.#useWide = format === FORMAT_WIDE
-    this.#skip(this.#useWide ? 3 : 1) // alignment padding
-
-    const inputNodeCount = this.#readWord()
-    const outputNodeCount = this.#readWord()
-    const rootCount = this.#readWord()
+    const inputNodeCount = this.#readVaruint()
+    const outputNodeCount = this.#readVaruint()
+    const rootCount = this.#readVaruint()
 
     return { inputNodeCount, outputNodeCount, rootCount }
   }
@@ -399,19 +361,15 @@ class Deserializer {
     const inputNodes: InputNodeData[] = []
 
     for (let i = 0; i < count; i++) {
-      const edgeCount = this.#readWord()
+      const edgeCount = this.#readVaruint()
       const edges: Record<number, InputEdgeData> = {}
 
       for (let j = 0; j < edgeCount; j++) {
-        const fieldIndex = this.#readWord()
+        const fieldIndex = this.#readVaruint()
         const scalarMask = this.#readU16()
-        if (this.#useWide) {
-          this.#skip(2) // padding
-        }
-        const childNodeId = this.#readOptionalWord()
-        const enumNameIndex = this.#readOptionalWord()
+        const childNodeId = this.#readOptionalVaruint()
+        const enumNameIndex = this.#readOptionalVaruint()
         const flags = this.#readByte()
-        this.#skip(this.#useWide ? 3 : 1) // padding
 
         const edge: InputEdgeData = { flags }
         if (scalarMask !== 0) edge.scalarMask = scalarMask
@@ -431,13 +389,13 @@ class Deserializer {
     const outputNodes: OutputNodeData[] = []
 
     for (let i = 0; i < count; i++) {
-      const edgeCount = this.#readWord()
+      const edgeCount = this.#readVaruint()
       const edges: Record<number, OutputEdgeData> = {}
 
       for (let j = 0; j < edgeCount; j++) {
-        const fieldIndex = this.#readWord()
-        const argsNodeId = this.#readOptionalWord()
-        const outputNodeId = this.#readOptionalWord()
+        const fieldIndex = this.#readVaruint()
+        const argsNodeId = this.#readOptionalVaruint()
+        const outputNodeId = this.#readOptionalVaruint()
 
         const edge: OutputEdgeData = {}
         if (argsNodeId !== undefined) edge.argsNodeId = argsNodeId
@@ -456,9 +414,9 @@ class Deserializer {
     const roots: Record<string, RootEntryData> = {}
 
     for (let i = 0; i < count; i++) {
-      const keyIndex = this.#readWord()
-      const argsNodeId = this.#readOptionalWord()
-      const outputNodeId = this.#readOptionalWord()
+      const keyIndex = this.#readVaruint()
+      const argsNodeId = this.#readOptionalVaruint()
+      const outputNodeId = this.#readOptionalVaruint()
 
       const key = this.#serialized.strings[keyIndex]
       const root: RootEntryData = {}
