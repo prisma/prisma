@@ -53,7 +53,7 @@ jobs:
     # This avoids notifications to be sent to `alert-comment-cc-users`, see below
     if: github.repository == 'prisma/prisma'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -81,7 +81,7 @@ jobs:
           alert-comment-cc-users: '@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: Run benchmarks for Codspeed
-        uses: CodSpeedHQ/action@v3
+        uses: CodSpeedHQ/action@v4
         with:
           run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
