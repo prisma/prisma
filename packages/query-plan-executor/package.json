@@ -21,7 +21,7 @@
     "@prisma/adapter-mssql": "workspace:*",
     "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "hono": "4.10.6",
+    "hono": "4.11.7",
     "temporal-polyfill": "0.3.0",
     "vitest": "3.2.4",
     "zod": "4.1.3"
