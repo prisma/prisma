@@ -7,6 +7,7 @@ import {
   parseEnvValue,
   printConfigWarnings,
 } from '@prisma/internals'
+import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 
@@ -61,7 +62,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
       },
       importName: './query_compiler_fast_bg.js',
     },
-    parameterizationSchema: { strings: [], graph: '' },
+    parameterizationSchema: buildAndSerializeParamGraph(document),
   }
 
   return getPrismaClient(options)
