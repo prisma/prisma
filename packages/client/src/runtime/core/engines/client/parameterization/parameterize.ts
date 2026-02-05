@@ -555,8 +555,5 @@ function decodeIfTagged(value: unknown): unknown {
  * Decodes a tagged scalar value to its raw form.
  */
 function decodeTaggedValue(tagged: { $type: string; value: unknown }): unknown {
-  if (tagged.$type === 'Bytes') {
-    return Buffer.from(tagged.value as string, 'base64')
-  }
   return tagged.value
 }
