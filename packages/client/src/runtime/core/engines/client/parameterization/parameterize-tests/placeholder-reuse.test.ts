@@ -184,40 +184,42 @@ describe('parameterizeQuery placeholder reuse', () => {
 
     const result = parameterizeQuery(query, paramGraph)
 
-    expect(result.parameterizedQuery).toMatchInlineSnapshot(`
+    expect(result).toMatchInlineSnapshot(`
       {
-        "action": "findMany",
-        "modelName": "User",
-        "query": {
-          "arguments": {
-            "where": {
-              "avatar": {
-                "equals": {
-                  "$type": "Param",
-                  "value": {
-                    "name": "%1",
-                    "type": "Bytes",
+        "parameterizedQuery": {
+          "action": "findMany",
+          "modelName": "User",
+          "query": {
+            "arguments": {
+              "where": {
+                "avatar": {
+                  "equals": {
+                    "$type": "Param",
+                    "value": {
+                      "name": "%1",
+                      "type": "Bytes",
+                    },
                   },
-                },
-                "not": {
-                  "$type": "Param",
-                  "value": {
-                    "name": "%1",
-                    "type": "Bytes",
+                  "not": {
+                    "$type": "Param",
+                    "value": {
+                      "name": "%1",
+                      "type": "Bytes",
+                    },
                   },
                 },
               },
             },
+            "selection": {
+              "$scalars": true,
+            },
           },
-          "selection": {
-            "$scalars": true,
-          },
+        },
+        "placeholderValues": {
+          "%1": "SGVsbG8gV29ybGQ=",
         },
       }
     `)
-
-    expect(Object.keys(result.placeholderValues)).toEqual(['%1'])
-    expect(result.placeholderValues['%1']).toBeInstanceOf(Uint8Array)
   })
 
   it('reuses placeholder for identical array values', () => {
