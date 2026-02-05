@@ -13,6 +13,16 @@ import { EdgeFlag, scalarTypeToMask } from '@prisma/param-graph'
 
 import type { NodeId, ParamGraphBuilder } from './param-graph-builder'
 
+interface PendingInputNode {
+  nodeId: NodeId
+  fields: readonly DMMF.SchemaArg[]
+}
+
+interface PendingUnionNode {
+  nodeId: NodeId
+  typeNames: string[]
+}
+
 /**
  * Traverses DMMF and populates a ParamGraphBuilder.
  */
@@ -20,6 +30,9 @@ export class DMMFTraverser {
   readonly #builder: ParamGraphBuilder
   readonly #inputTypeMap: Map<string, DMMF.InputType>
   readonly #outputTypeMap: Map<string, DMMF.OutputType>
+
+  readonly #pendingInputNodes: PendingInputNode[] = []
+  readonly #pendingUnionNodes: PendingUnionNode[] = []
 
   constructor(builder: ParamGraphBuilder, dmmf: DMMF.Document) {
     this.#builder = builder
@@ -83,6 +96,29 @@ export class DMMFTraverser {
         })
       }
     }
+
+    // Process all queued work iteratively to avoid stack overflow
+    this.#drainPendingWork()
+  }
+
+  /**
+   * Iteratively processes all pending input and union nodes.
+   * This avoids deep recursion that can cause stack overflow on complex schemas.
+   */
+  #drainPendingWork(): void {
+    while (this.#pendingInputNodes.length > 0 || this.#pendingUnionNodes.length > 0) {
+      // Process pending input nodes
+      while (this.#pendingInputNodes.length > 0) {
+        const pending = this.#pendingInputNodes.pop()!
+        this.#processInputNodeFields(pending.nodeId, pending.fields)
+      }
+
+      // Process pending union nodes
+      while (this.#pendingUnionNodes.length > 0) {
+        const pending = this.#pendingUnionNodes.pop()!
+        this.#processUnionNodeFields(pending.nodeId, pending.typeNames)
+      }
+    }
   }
 
   #findRootField(fieldName: string): DMMF.SchemaField | undefined {
@@ -128,6 +164,8 @@ export class DMMFTraverser {
 
   /**
    * Builds an input node for a named input type.
+   * Node allocation happens immediately, but field processing is deferred
+   * to avoid deep recursion.
    */
   buildInputTypeNode(typeName: string): NodeId | undefined {
     if (this.#builder.hasInputTypeNode(typeName)) {
@@ -144,10 +182,20 @@ export class DMMFTraverser {
     const nodeId = this.#builder.allocateInputNode()
     this.#builder.setInputTypeNode(typeName, nodeId)
 
+    // Queue field processing for later to avoid deep recursion
+    this.#pendingInputNodes.push({ nodeId, fields: inputType.fields })
+
+    return nodeId
+  }
+
+  /**
+   * Process fields for an input node (called from drainPendingWork).
+   */
+  #processInputNodeFields(nodeId: NodeId, fields: readonly DMMF.SchemaArg[]): void {
     const edges: Record<number, InputEdgeData> = {}
     let hasAnyEdge = false
 
-    for (const field of inputType.fields) {
+    for (const field of fields) {
       const edge = this.#mergeFieldVariants([field])
       if (edge) {
         const stringIndex = this.#builder.internString(field.name)
@@ -159,12 +207,12 @@ export class DMMFTraverser {
     if (hasAnyEdge) {
       this.#builder.setInputNodeEdges(nodeId, edges)
     }
-
-    return nodeId
   }
 
   /**
    * Builds a union node for multiple input types.
+   * Node allocation happens immediately, but field processing is deferred
+   * to avoid deep recursion.
    */
   buildUnionNode(typeNames: string[]): NodeId | undefined {
     // Sort type names for stable cache key
@@ -179,6 +227,16 @@ export class DMMFTraverser {
     const nodeId = this.#builder.allocateInputNode()
     this.#builder.setUnionNode(cacheKey, nodeId)
 
+    // Queue field processing for later to avoid deep recursion
+    this.#pendingUnionNodes.push({ nodeId, typeNames })
+
+    return nodeId
+  }
+
+  /**
+   * Process fields for a union node (called from drainPendingWork).
+   */
+  #processUnionNodeFields(nodeId: NodeId, typeNames: string[]): void {
     // Collect all fields from all variants
     const fieldsByName = new Map<string, DMMF.SchemaArg[]>()
 
@@ -212,8 +270,6 @@ export class DMMFTraverser {
     if (hasAnyEdge) {
       this.#builder.setInputNodeEdges(nodeId, mergedEdges)
     }
-
-    return nodeId
   }
 
   /**
@@ -221,7 +277,7 @@ export class DMMFTraverser {
    * This is the most complex part of the traversal - it handles
    * union types and determines what kinds of values a field accepts.
    */
-  #mergeFieldVariants(variants: DMMF.SchemaArg[]): InputEdgeData | undefined {
+  #mergeFieldVariants(variants: readonly DMMF.SchemaArg[]): InputEdgeData | undefined {
     let flags = 0
     let scalarMask = 0
     let childNodeId: NodeId | undefined
