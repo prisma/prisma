@@ -83,6 +83,7 @@ jobs:
       - name: Run benchmarks for Codspeed
         uses: CodSpeedHQ/action@v4
         with:
+          mode: simulation
           run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
         env:
