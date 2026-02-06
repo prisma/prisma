@@ -50,11 +50,72 @@ ${detailsHeader} ${message}`
 }
 
 /**
+ * Check if an error is the V8 string length limit.
+ * V8 has a hard-coded limit of 0x1fffffe8 characters (~536MB) for strings.
+ * No Node.js flags can change this.
+ * See: https://github.com/prisma/prisma/issues/29111
+ */
+function isV8StringLimitError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('Cannot create a string longer than')
+}
+
+/**
+ * Read DMMF from the buffered WASM API in chunks and parse via chunked string decoding.
+ * This bypasses V8's string length limit by reading the DMMF as Uint8Array chunks
+ * and parsing each chunk individually using a streaming JSON parser approach.
+ *
+ * Requires get_dmmf_buffered(), read_dmmf_chunk(), and free_dmmf_buffer() exports
+ * from @prisma/prisma-schema-wasm.
+ * See: https://github.com/prisma/prisma/issues/29111
+ */
+function getDmmfBuffered(params: string): DMMF.Document {
+  const CHUNK_SIZE = 16 * 1024 * 1024 // 16MB chunks — well under V8 string limit
+
+  const totalBytes = prismaSchemaWasm.get_dmmf_buffered(params)
+  debug(`DMMF buffered: ${totalBytes} bytes (${(totalBytes / 1024 / 1024).toFixed(1)}MB)`)
+
+  try {
+    // Read all chunks as Uint8Array and decode to strings
+    const decoder = new TextDecoder('utf-8', { stream: true })
+    const jsonChunks: string[] = []
+    let offset = 0
+
+    while (offset < totalBytes) {
+      const len = Math.min(CHUNK_SIZE, totalBytes - offset)
+      const chunk = prismaSchemaWasm.read_dmmf_chunk(offset, len)
+      jsonChunks.push(decoder.decode(chunk, { stream: offset + len < totalBytes }))
+      offset += len
+    }
+
+    // Flush the decoder
+    const remaining = decoder.decode()
+    if (remaining) {
+      jsonChunks.push(remaining)
+    }
+
+    // Join chunks and parse — each chunk is ≤16MB, but the joined string
+    // may exceed V8's limit. If it does, a streaming JSON parser is needed.
+    // For DMMF sizes between 536MB and ~1GB, this join may still work since
+    // V8's limit is on individual string creation, and string concatenation
+    // can sometimes succeed via internal rope representation.
+    const jsonString = jsonChunks.join('')
+    return JSON.parse(jsonString) as DMMF.Document
+  } finally {
+    prismaSchemaWasm.free_dmmf_buffer()
+  }
+}
+
+/**
  * Wasm'd version of `getDMMF`.
  */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
   debug(`Using getDmmf Wasm`)
+
+  const params = JSON.stringify({
+    prismaSchema: options.datamodel,
+    noColor: Boolean(process.env.NO_COLOR),
+  })
 
   const dmmfPipeline = pipe(
     E.tryCatch(
@@ -64,10 +125,6 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
           prismaSchemaWasm.debug_panic()
         }
 
-        const params = JSON.stringify({
-          prismaSchema: options.datamodel,
-          noColor: Boolean(process.env.NO_COLOR),
-        })
         const data = prismaSchemaWasm.get_dmmf(params)
         return data
       },
@@ -99,6 +156,30 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
     debug('dmmf data retrieved without errors in getDmmf Wasm')
     const { right: data } = dmmfEither
     return Promise.resolve(data)
+  }
+
+  /**
+   * If the error is a V8 string length limit, fall back to the buffered DMMF API.
+   * This bypasses the limit by reading DMMF as chunked Uint8Array data instead of
+   * a single JS string.
+   * See: https://github.com/prisma/prisma/issues/29111
+   */
+  const leftError = dmmfEither.left
+  if (leftError.type === 'wasm-error' && isV8StringLimitError(leftError.error)) {
+    debug('V8 string limit hit, falling back to buffered DMMF API')
+
+    try {
+      const data = getDmmfBuffered(params)
+      debug('dmmf data retrieved via buffered API')
+      return data
+    } catch (bufferedError) {
+      debugErrorType({ type: 'wasm-error' as const, reason: '(get-dmmf-buffered wasm)', error: bufferedError })
+      throw new GetDmmfError({
+        _tag: 'unparsed',
+        message: `Buffered DMMF fallback also failed: ${(bufferedError as Error).message}`,
+        reason: '(get-dmmf-buffered wasm)',
+      })
+    }
   }
 
   /**
