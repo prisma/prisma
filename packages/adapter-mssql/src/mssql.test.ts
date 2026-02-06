@@ -60,7 +60,7 @@ describe('MssqlTransaction mutex serialization', () => {
     }
   })
 
-  function createTransaction(useMutexForCommitRollback: boolean) {
+  function createTransaction() {
     const mutex = new Mutex()
 
     return {
@@ -75,109 +75,96 @@ describe('MssqlTransaction mutex serialization', () => {
       },
 
       async commit() {
-        if (useMutexForCommitRollback) {
-          const release = await mutex.acquire()
-          try {
-            await mockTransaction.commit()
-          } finally {
-            release()
-          }
-        } else {
+        const release = await mutex.acquire()
+        try {
           await mockTransaction.commit()
+        } finally {
+          release()
         }
       },
 
       async rollback() {
-        if (useMutexForCommitRollback) {
-          const release = await mutex.acquire()
-          try {
-            await mockTransaction.rollback().catch((e: Error & { code?: string }) => {
-              if (e.code === 'EABORT') return
-              throw e
-            })
-          } finally {
-            release()
-          }
-        } else {
+        const release = await mutex.acquire()
+        try {
           await mockTransaction.rollback().catch((e: Error & { code?: string }) => {
             if (e.code === 'EABORT') return
             throw e
           })
+        } finally {
+          release()
         }
       },
     }
   }
 
-  describe('with mutex (the fix)', () => {
-    test('rollback waits for query to complete', async () => {
-      const tx = createTransaction(true)
+  test('rollback waits for query to complete', async () => {
+    const tx = createTransaction()
 
-      const queryPromise = tx.queryRaw({ sql: 'SELECT 1' })
-      await new Promise((resolve) => setTimeout(resolve, 10))
-      const rollbackPromise = tx.rollback()
+    const queryPromise = tx.queryRaw({ sql: 'SELECT 1' })
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const rollbackPromise = tx.rollback()
 
-      await expect(Promise.all([queryPromise, rollbackPromise])).resolves.toBeDefined()
+    await expect(Promise.all([queryPromise, rollbackPromise])).resolves.toBeDefined()
 
-      expect(events).toEqual(['query:start', 'query:end', 'rollback:called (queryRunning=false)', 'rollback:success'])
+    expect(events).toEqual(['query:start', 'query:end', 'rollback:called (queryRunning=false)', 'rollback:success'])
+  })
+
+  test('commit waits for query to complete', async () => {
+    const tx = createTransaction()
+
+    const queryPromise = tx.queryRaw({ sql: 'SELECT 1' })
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const commitPromise = tx.commit()
+
+    await expect(Promise.all([queryPromise, commitPromise])).resolves.toBeDefined()
+
+    expect(events).toEqual(['query:start', 'query:end', 'commit:called (queryRunning=false)', 'commit:success'])
+  })
+
+  test('rollback handles EABORT gracefully', async () => {
+    mockTransaction.rollback.mockImplementation(() => {
+      const error = new Error('Transaction has been aborted.')
+      ;(error as any).code = 'EABORT'
+      return Promise.reject(error)
     })
 
-    test('commit waits for query to complete', async () => {
-      const tx = createTransaction(true)
+    const tx = createTransaction()
+    await expect(tx.rollback()).resolves.toBeUndefined()
+  })
 
-      const queryPromise = tx.queryRaw({ sql: 'SELECT 1' })
-      await new Promise((resolve) => setTimeout(resolve, 10))
-      const commitPromise = tx.commit()
-
-      await expect(Promise.all([queryPromise, commitPromise])).resolves.toBeDefined()
-
-      expect(events).toEqual(['query:start', 'query:end', 'commit:called (queryRunning=false)', 'commit:success'])
+  test('rollback re-throws non-EABORT errors', async () => {
+    mockTransaction.rollback.mockImplementation(() => {
+      const error = new Error('Connection lost')
+      ;(error as any).code = 'ECONNCLOSED'
+      return Promise.reject(error)
     })
 
-    test('rollback handles EABORT gracefully', async () => {
-      mockTransaction.rollback.mockImplementation(() => {
-        const error = new Error('Transaction has been aborted.')
-        ;(error as any).code = 'EABORT'
-        return Promise.reject(error)
-      })
+    const tx = createTransaction()
+    await expect(tx.rollback()).rejects.toThrow('Connection lost')
+  })
 
-      const tx = createTransaction(true)
-      await expect(tx.rollback()).resolves.toBeUndefined()
+  test('commit re-throws errors', async () => {
+    mockTransaction.commit.mockImplementation(() => {
+      const error = new Error('Connection lost')
+      ;(error as any).code = 'ECONNCLOSED'
+      return Promise.reject(error)
     })
 
-    test('rollback re-throws non-EABORT errors', async () => {
-      mockTransaction.rollback.mockImplementation(() => {
-        const error = new Error('Connection lost')
-        ;(error as any).code = 'ECONNCLOSED'
-        return Promise.reject(error)
-      })
+    const tx = createTransaction()
+    await expect(tx.commit()).rejects.toThrow('Connection lost')
+  })
 
-      const tx = createTransaction(true)
-      await expect(tx.rollback()).rejects.toThrow('Connection lost')
-    })
+  test('serializes multiple concurrent queries followed by commit', async () => {
+    const tx = createTransaction()
 
-    test('commit re-throws errors', async () => {
-      mockTransaction.commit.mockImplementation(() => {
-        const error = new Error('Connection lost')
-        ;(error as any).code = 'ECONNCLOSED'
-        return Promise.reject(error)
-      })
+    const query1 = tx.queryRaw({ sql: 'SELECT 1' })
+    const query2 = tx.queryRaw({ sql: 'SELECT 2' })
+    const commitPromise = tx.commit()
 
-      const tx = createTransaction(true)
-      await expect(tx.commit()).rejects.toThrow('Connection lost')
-    })
+    await expect(Promise.all([query1, query2, commitPromise])).resolves.toBeDefined()
 
-    test('serializes multiple concurrent queries followed by commit', async () => {
-      const tx = createTransaction(true)
-
-      const query1 = tx.queryRaw({ sql: 'SELECT 1' })
-      const query2 = tx.queryRaw({ sql: 'SELECT 2' })
-      const commitPromise = tx.commit()
-
-      await expect(Promise.all([query1, query2, commitPromise])).resolves.toBeDefined()
-
-      const commitIndex = events.findIndex((e) => e.startsWith('commit:called'))
-      const lastQueryEndIndex = events.lastIndexOf('query:end')
-      expect(commitIndex).toBeGreaterThan(lastQueryEndIndex)
-    })
+    const commitIndex = events.findIndex((e) => e.startsWith('commit:called'))
+    const lastQueryEndIndex = events.lastIndexOf('query:end')
+    expect(commitIndex).toBeGreaterThan(lastQueryEndIndex)
   })
 })
