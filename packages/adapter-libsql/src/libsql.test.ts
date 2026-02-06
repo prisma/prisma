@@ -231,6 +231,8 @@ class PrismaLibSqlAdapterFactoryMock extends PrismaLibSqlAdapterFactoryBase {
     return {
       ...this.connection,
       transaction: () => Promise.resolve(this.transaction),
+      migrate: vi.fn().mockResolvedValue([]),
+      reconnect: vi.fn(),
     }
   }
 }
