@@ -50,7 +50,7 @@ jobs:
     outputs:
       engineHash: ${{ steps.engine-hash.outputs.engineHash }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: prisma/prisma-engines
           ref: ${{ needs.parseCommand.outputs.branchName }}
@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: echo "engineHash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         name: Artifacts cache
         id: artifacts-cache
         with:
@@ -75,7 +75,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         name: Dependencies cache
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         with:
@@ -120,7 +120,7 @@ jobs:
           fi
 
       - name: Install Binaryen (includes wasm-opt)
-        uses: jaxxstorm/action-install-gh-release@v1.14.0
+        uses: jaxxstorm/action-install-gh-release@v2
         with:
           repo: WebAssembly/binaryen
           tag: version_122
