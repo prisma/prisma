@@ -4,7 +4,7 @@ export default defineConfig({
   server: {
     watch: {
       // ignore generated files otherwise vitest will keep re-running tests in watch mode
-      ignored: [...defaultExclude, '**/dist/**', '**/tests/generated/**'],
+      ignored: [...defaultExclude, '**/tests/generated/**'],
     },
   },
   test: {
