@@ -20,14 +20,12 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "dotenv": "17.2.3",
-    "vitest": "3.2.4"
+    "dotenv": "17.2.3"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "vitest run"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"

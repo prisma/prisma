@@ -43,14 +43,12 @@
     "ts-pattern": "5.6.2"
   },
   "devDependencies": {
-    "@types/pluralize": "0.0.33",
-    "vitest": "3.2.4"
+    "@types/pluralize": "0.0.33"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "vitest run --testTimeout 30000"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"

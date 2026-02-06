@@ -17,8 +17,7 @@
     "@types/jest": "29.5.14",
     "@types/node": "~20.19.24",
     "execa": "5.1.1",
-    "typescript": "5.4.5",
-    "vitest": "3.2.4"
+    "typescript": "5.4.5"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
@@ -29,7 +28,6 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "vitest run",
     "prepublishOnly": "pnpm run build",
     "postinstall": "node scripts/postinstall.js"
   },
