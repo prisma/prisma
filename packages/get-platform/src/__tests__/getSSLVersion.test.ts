@@ -1,6 +1,6 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { computeLibSSLSpecificPaths, getArchFromUname, getSSLVersion } from '../../src/getPlatform'
+import { computeLibSSLSpecificPaths, getArchFromUname, getSSLVersion } from '../getPlatform'
 import { vitestContext } from '../test-utils/vitestContext'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
