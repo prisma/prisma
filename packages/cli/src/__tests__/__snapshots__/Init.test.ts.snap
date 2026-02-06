@@ -29,8 +29,7 @@ exports[`appends when .env present 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -115,8 +114,7 @@ exports[`is schema and env written on disk replace 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -178,8 +176,7 @@ exports[`warns when DATABASE_URL present in .env  2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -234,8 +231,7 @@ exports[`works with --with-model param cockroachdb 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -296,8 +292,7 @@ exports[`works with --with-model param mongodb 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -364,8 +359,7 @@ exports[`works with --with-model param postgresql 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -432,8 +426,7 @@ exports[`works with custom output 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -494,8 +487,7 @@ exports[`works with generator param - \`go run github.com/steebchen/prisma-clien
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "go run github.com/steebchen/prisma-client-go"
@@ -556,8 +548,7 @@ exports[`works with preview features - mock test 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -619,8 +610,7 @@ exports[`works with preview features - multiple 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -676,8 +666,7 @@ exports[`works with provider and url params - cockroachdb 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -732,8 +721,7 @@ exports[`works with provider param - MongoDB 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -788,6 +776,8 @@ exports[`works with provider param - SQLITE 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -841,8 +831,7 @@ exports[`works with provider param - SqlServer 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -897,8 +886,7 @@ exports[`works with provider param - cockroachdb 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -953,8 +941,7 @@ exports[`works with provider param - mysql 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -1015,8 +1002,7 @@ exports[`works with provider param - postgresql 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
@@ -1052,6 +1038,8 @@ Learn more: https://pris.ly/getting-started
 exports[`works with url param 2`] = `
 "// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
 
 generator client {
   provider = "prisma-client"
