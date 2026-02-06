@@ -56,7 +56,7 @@ ${detailsHeader} ${message}`
  * See: https://github.com/prisma/prisma/issues/29111
  */
 function isV8StringLimitError(error: unknown): boolean {
-  return error instanceof Error && error.message.includes('Cannot create a string longer than')
+  return error instanceof RangeError && error.message.includes('Cannot create a string longer than')
 }
 
 /**
@@ -70,13 +70,19 @@ function isV8StringLimitError(error: unknown): boolean {
  */
 function getDmmfBuffered(params: string): DMMF.Document {
   const CHUNK_SIZE = 16 * 1024 * 1024 // 16MB chunks — well under V8 string limit
+  const STRING_JOIN_LIMIT = 500 * 1024 * 1024 // stay well under V8's ~536MB string limit
+
+  if (typeof prismaSchemaWasm.get_dmmf_buffered !== 'function') {
+    throw new Error(
+      'Buffered DMMF API not available. Ensure @prisma/prisma-schema-wasm exports get_dmmf_buffered, read_dmmf_chunk, and free_dmmf_buffer.',
+    )
+  }
 
   const totalBytes = prismaSchemaWasm.get_dmmf_buffered(params)
   debug(`DMMF buffered: ${totalBytes} bytes (${(totalBytes / 1024 / 1024).toFixed(1)}MB)`)
 
   try {
-    // For DMMF under V8's string limit, use the simple join+parse path
-    if (totalBytes < 500 * 1024 * 1024) {
+    if (totalBytes < STRING_JOIN_LIMIT) {
       const decoder = new TextDecoder('utf-8', { stream: true })
       const jsonChunks: string[] = []
       let offset = 0
@@ -99,14 +105,14 @@ function getDmmfBuffered(params: string): DMMF.Document {
     // For DMMF >= 500MB, Array.join('') would also hit V8's string limit.
     // Use a streaming JSON parser that processes Uint8Array chunks directly,
     // never creating a single large string.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     const { JSONParser } = require('@streamparser/json') as typeof import('@streamparser/json')
     const parser = new JSONParser()
     let result: DMMF.Document | undefined
 
-    parser.onValue = ({ value, stack }: { value: unknown; stack: unknown[] }) => {
-      if (stack.length === 0) {
-        result = value as DMMF.Document
+    parser.onValue = ({ value, stack }) => {
+      if (stack.length === 0 && value !== undefined) {
+        result = value as unknown as DMMF.Document
       }
     }
 
@@ -197,7 +203,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
       debug('dmmf data retrieved via buffered API')
       return data
     } catch (bufferedError) {
-      debugErrorType({ type: 'wasm-error' as const, reason: '(get-dmmf-buffered wasm)', error: bufferedError })
+      debugErrorType({ type: 'wasm-error' as const, reason: '(get-dmmf-buffered wasm)', error: bufferedError as Error })
       throw new GetDmmfError({
         _tag: 'unparsed',
         message: `Buffered DMMF fallback also failed: ${(bufferedError as Error).message}`,

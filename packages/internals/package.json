@@ -84,6 +84,7 @@
     "@prisma/prisma-schema-wasm": "7.4.0-11.8583547702bad6d8e7de7d9812f7ec5c22e1c509",
     "@prisma/schema-engine-wasm": "7.4.0-11.8583547702bad6d8e7de7d9812f7ec5c22e1c509",
     "@prisma/schema-files-loader": "workspace:*",
+    "@streamparser/json": "0.0.22",
     "arg": "5.0.2",
     "prompts": "2.4.2"
   },
