@@ -114,6 +114,15 @@ async function getDmmfBinaryStreaming(params: string): Promise<DMMF.Document> {
     const parser = new JSONParser()
     let result: DMMF.Document | undefined
     let stderr = ''
+    let rejected = false
+
+    // Timeout: large schemas (1700+ models) may take 30-60s to serialize
+    const TIMEOUT_MS = 120_000
+    const timeoutId = setTimeout(() => {
+      rejected = true
+      child.kill('SIGTERM')
+      reject(new Error(`prisma-fmt timed out after ${TIMEOUT_MS / 1000}s`))
+    }, TIMEOUT_MS)
 
     parser.onValue = ({ value, stack }) => {
       if (stack.length === 0 && value !== undefined) {
@@ -129,9 +138,13 @@ async function getDmmfBinaryStreaming(params: string): Promise<DMMF.Document> {
       stderr += chunk.toString()
     })
 
-    child.on('close', (code: number) => {
+    child.on('close', (code: number | null, signal: string | null) => {
+      clearTimeout(timeoutId)
+      if (rejected) return
+
       if (code !== 0) {
-        reject(new Error(`prisma-fmt exited with code ${code}: ${stderr}`))
+        const msg = signal ? `killed by signal ${signal}` : `exited with code ${code}`
+        reject(new Error(`prisma-fmt ${msg}: ${stderr}`))
         return
       }
       if (result === undefined) {
@@ -143,12 +156,21 @@ async function getDmmfBinaryStreaming(params: string): Promise<DMMF.Document> {
     })
 
     child.on('error', (err: Error) => {
-      reject(new Error(`Failed to spawn prisma-fmt: ${err.message}`))
+      clearTimeout(timeoutId)
+      if (!rejected) {
+        rejected = true
+        reject(new Error(`Failed to spawn prisma-fmt: ${err.message}`))
+      }
     })
 
-    // Write params to stdin and close
-    child.stdin.write(params)
-    child.stdin.end()
+    // Handle stdin backpressure for large schemas
+    if (!child.stdin.write(params)) {
+      child.stdin.once('drain', () => {
+        child.stdin.end()
+      })
+    } else {
+      child.stdin.end()
+    }
   })
 }
 
