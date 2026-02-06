@@ -12,7 +12,6 @@ export default defineConfig({
       'packages/*',
       '!packages/cli',
       '!packages/client',
-      '!packages/client-engine-runtime',
       '!packages/config',
       '!packages/debug',
       '!packages/engine',
