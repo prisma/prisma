@@ -1,0 +1,8 @@
+// Payment model
+model Payment {
+        id        Int      @id @default(autoincrement())
+        amount    Decimal
+        userId    Int
+        user      User     @relation(fields: [userId], references: [id])
+        createdAt DateTime @default(now())
+}
