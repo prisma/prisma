@@ -1,12 +1,13 @@
+import { describe, it } from 'vitest'
+
 import { computeLibSSLSpecificPaths, getArchFromUname, getSSLVersion } from '../../src/getPlatform'
-import { jestContext } from '..'
+import { vitestContext } from '../test-utils/vitestContext'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = jestContext.new().assemble()
+const ctx = vitestContext.new().assemble()
 
 describeIf(process.platform === 'linux')('computeLibSSLSpecificPaths', () => {
-  // eslint-disable-next-line jest/no-identical-title
   it('should not return an error', () => {
     const arch = 'x64'
     const archFromUname = 'x86_64'
@@ -15,7 +16,6 @@ describeIf(process.platform === 'linux')('computeLibSSLSpecificPaths', () => {
 })
 
 describeIf(process.platform === 'linux')('getSSLVersion', () => {
-  // eslint-disable-next-line jest/no-identical-title
   it('should not return an error', async () => {
     const archFromUname = await getArchFromUname()
     await getSSLVersion([])

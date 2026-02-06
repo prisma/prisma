@@ -15,7 +15,6 @@ export default defineConfig({
       '!packages/config',
       '!packages/debug',
       '!packages/engine',
-      '!packages/get-platform',
       '!packages/integration-tests',
       '!packages/internals',
       '!packages/migrate',
