@@ -1,10 +1,10 @@
-import { defineConfig } from 'vitest/config'
+import { defaultExclude, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   server: {
     watch: {
       // ignore generated files otherwise vitest will keep re-running tests in watch mode
-      ignored: ['**/node_modules/**', '**/dist/**', '**/tests/generated/**'],
+      ignored: [...defaultExclude, '**/dist/**', '**/tests/generated/**'],
     },
   },
   test: {
