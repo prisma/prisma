@@ -638,7 +638,7 @@ jobs:
   # Vitest
   #
   vitest:
-    name: vitest [v${{ matrix.node }}]
+    name: Vitest [v${{ matrix.node }}]
     timeout-minutes: 30
     runs-on: ubuntu-latest
     if: |
