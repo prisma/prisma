@@ -75,31 +75,55 @@ function getDmmfBuffered(params: string): DMMF.Document {
   debug(`DMMF buffered: ${totalBytes} bytes (${(totalBytes / 1024 / 1024).toFixed(1)}MB)`)
 
   try {
-    // Read all chunks as Uint8Array and decode to strings
-    const decoder = new TextDecoder('utf-8', { stream: true })
-    const jsonChunks: string[] = []
-    let offset = 0
+    // For DMMF under V8's string limit, use the simple join+parse path
+    if (totalBytes < 500 * 1024 * 1024) {
+      const decoder = new TextDecoder('utf-8', { stream: true })
+      const jsonChunks: string[] = []
+      let offset = 0
 
+      while (offset < totalBytes) {
+        const len = Math.min(CHUNK_SIZE, totalBytes - offset)
+        const chunk = prismaSchemaWasm.read_dmmf_chunk(offset, len)
+        jsonChunks.push(decoder.decode(chunk, { stream: offset + len < totalBytes }))
+        offset += len
+      }
+
+      const remaining = decoder.decode()
+      if (remaining) {
+        jsonChunks.push(remaining)
+      }
+
+      return JSON.parse(jsonChunks.join('')) as DMMF.Document
+    }
+
+    // For DMMF >= 500MB, Array.join('') would also hit V8's string limit.
+    // Use a streaming JSON parser that processes Uint8Array chunks directly,
+    // never creating a single large string.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { JSONParser } = require('@streamparser/json') as typeof import('@streamparser/json')
+    const parser = new JSONParser()
+    let result: DMMF.Document | undefined
+
+    parser.onValue = ({ value, stack }: { value: unknown; stack: unknown[] }) => {
+      if (stack.length === 0) {
+        result = value as DMMF.Document
+      }
+    }
+
+    let offset = 0
     while (offset < totalBytes) {
       const len = Math.min(CHUNK_SIZE, totalBytes - offset)
       const chunk = prismaSchemaWasm.read_dmmf_chunk(offset, len)
-      jsonChunks.push(decoder.decode(chunk, { stream: offset + len < totalBytes }))
+      parser.write(chunk)
       offset += len
     }
 
-    // Flush the decoder
-    const remaining = decoder.decode()
-    if (remaining) {
-      jsonChunks.push(remaining)
+    if (result === undefined) {
+      throw new Error('Streaming JSON parse produced no result')
     }
 
-    // Join chunks and parse — each chunk is ≤16MB, but the joined string
-    // may exceed V8's limit. If it does, a streaming JSON parser is needed.
-    // For DMMF sizes between 536MB and ~1GB, this join may still work since
-    // V8's limit is on individual string creation, and string concatenation
-    // can sometimes succeed via internal rope representation.
-    const jsonString = jsonChunks.join('')
-    return JSON.parse(jsonString) as DMMF.Document
+    debug(`DMMF parsed via streaming parser (${(totalBytes / 1024 / 1024).toFixed(1)}MB)`)
+    return result
   } finally {
     prismaSchemaWasm.free_dmmf_buffer()
   }
