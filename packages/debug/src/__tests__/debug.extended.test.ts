@@ -5,6 +5,7 @@ import * as useDebugImport from '../index'
 let Debug: typeof useDebugImport.default
 
 const importDebug = async () => {
+  vi.resetModules()
   const mod = await import('../index')
   Debug = mod.default
 }
