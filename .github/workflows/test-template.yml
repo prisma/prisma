@@ -890,10 +890,6 @@ jobs:
         name: 'debug'
         working-directory: packages/debug
 
-      - run: pnpm run test
-        name: 'config'
-        working-directory: packages/config
-
   #
   # Run type performance benchmark tests
   #
@@ -1078,14 +1074,6 @@ jobs:
         working-directory: packages/debug
         env:
           JEST_JUNIT_SUITE_NAME: 'debug'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - name: Test packages/config
-        if: contains(inputs.jobsToRun, '-all-')
-        run: pnpm run test
-        working-directory: packages/config
-        env:
-          JEST_JUNIT_SUITE_NAME: 'config'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - name: Upload test results to BuildPulse for flaky test detection
