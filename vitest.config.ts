@@ -12,7 +12,6 @@ export default defineConfig({
       'packages/*',
       '!packages/cli',
       '!packages/client',
-      '!packages/debug',
       '!packages/engine',
       '!packages/integration-tests',
       '!packages/internals',

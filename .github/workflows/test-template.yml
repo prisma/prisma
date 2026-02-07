@@ -864,33 +864,6 @@ jobs:
         working-directory: packages/cli
 
   #
-  # All the other packages!
-  #
-  others:
-    name: Others [v${{ matrix.node }}]
-    timeout-minutes: 10
-    runs-on: ${{ matrix.os }}
-    if: contains(inputs.jobsToRun, '-all-')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        node: ['20.19.0', '22.12.0', '24']
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: true
-
-      - run: pnpm run test
-        name: 'debug'
-        working-directory: packages/debug
-
-  #
   # Run type performance benchmark tests
   #
   type-benchmark-tests:
@@ -1066,14 +1039,6 @@ jobs:
         working-directory: packages/cli
         env:
           JEST_JUNIT_SUITE_NAME: 'cli'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - name: Test packages/debug
-        if: contains(inputs.jobsToRun, '-all-')
-        run: pnpm run test
-        working-directory: packages/debug
-        env:
-          JEST_JUNIT_SUITE_NAME: 'debug'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - name: Upload test results to BuildPulse for flaky test detection
