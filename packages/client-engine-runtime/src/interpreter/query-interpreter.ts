@@ -2,7 +2,14 @@ import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/dr
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../query-plan'
+import {
+  FieldInitializer,
+  FieldOperation,
+  ImpureQueryPlanNode,
+  JoinExpression,
+  PureQueryPlanNode,
+  QueryPlanNode,
+} from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
@@ -90,10 +97,18 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode, options: QueryRuntimeOptions): Promise<unknown> {
-    const { value } = await this.interpretNode(queryPlan, {
-      ...options,
-      generators: this.#generators.snapshot(),
-    }).catch((e) => rethrowAsUserFacing(e))
+    const generators = this.#generators.snapshot()
+    const context: QueryRuntimeContext = { ...options, generators }
+
+    const purified = purifyQueryPlan(queryPlan, (node) => this.interpretNode(node, context))?.catch((e) =>
+      rethrowAsUserFacing(e),
+    )
+
+    if (purified) {
+      return this.interpretPureNode(await purified, context.scope, generators).value
+    }
+
+    const { value } = await this.interpretNode(queryPlan, context).catch((e) => rethrowAsUserFacing(e))
 
     return value
   }
@@ -103,6 +118,7 @@ export class QueryInterpreter {
       case 'value': {
         return {
           value: evaluateArg(node.args, context.scope, context.generators),
+          lastInsertId: node.lastInsertId,
         }
       }
 
@@ -114,10 +130,6 @@ export class QueryInterpreter {
         return result ?? { value: undefined }
       }
 
-      case 'get': {
-        return { value: context.scope[node.args.name] }
-      }
-
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node.args.bindings) {
@@ -125,16 +137,6 @@ export class QueryInterpreter {
           nestedScope[binding.name] = value
         }
         return this.interpretNode(node.args.expr, { ...context, scope: nestedScope })
-      }
-
-      case 'getFirstNonEmpty': {
-        for (const name of node.args.names) {
-          const value = context.scope[name]
-          if (!isEmpty(value)) {
-            return { value }
-          }
-        }
-        return { value: [] }
       }
 
       case 'concat': {
@@ -285,10 +287,6 @@ export class QueryInterpreter {
         }
       }
 
-      case 'unit': {
-        return { value: undefined }
-      }
-
       case 'diff': {
         const { value: from } = await this.interpretNode(node.args.from, context)
         const { value: to } = await this.interpretNode(node.args.to, context)
@@ -320,6 +318,172 @@ export class QueryInterpreter {
         const record = value === null ? {} : asRecord(value)
         for (const [key, entry] of Object.entries(node.args.fields)) {
           record[key] = evalFieldOperation(entry, record[key], context.scope, context.generators)
+        }
+        return { value: record, lastInsertId }
+      }
+
+      default:
+        return this.interpretPureNode(node, context.scope, context.generators)
+    }
+  }
+
+  private interpretPureNode(
+    node: PureQueryPlanNode,
+    scope: ScopeBindings,
+    generators: GeneratorRegistrySnapshot,
+  ): IntermediateValue {
+    switch (node.type) {
+      case 'value': {
+        return { value: evaluateArg(node.args, scope, generators), lastInsertId: node.lastInsertId }
+      }
+
+      case 'seq': {
+        let result: IntermediateValue | undefined
+        for (const arg of node.args) {
+          result = this.interpretPureNode(arg, scope, generators)
+        }
+        return result ?? { value: undefined }
+      }
+
+      case 'get': {
+        return { value: scope[node.args.name] }
+      }
+
+      case 'let': {
+        const nestedScope: ScopeBindings = Object.create(scope)
+        for (const binding of node.args.bindings) {
+          const { value } = this.interpretPureNode(binding.expr, nestedScope, generators)
+          nestedScope[binding.name] = value
+        }
+        return this.interpretPureNode(node.args.expr, nestedScope, generators)
+      }
+
+      case 'getFirstNonEmpty': {
+        for (const name of node.args.names) {
+          const value = scope[name]
+          if (!isEmpty(value)) {
+            return { value }
+          }
+        }
+        return { value: [] }
+      }
+
+      case 'concat': {
+        const parts = node.args.map((arg) => this.interpretPureNode(arg, scope, generators).value)
+
+        return {
+          value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
+        }
+      }
+
+      case 'sum': {
+        const parts = node.args.map((arg) => this.interpretPureNode(arg, scope, generators).value)
+
+        return {
+          value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
+        }
+      }
+
+      case 'reverse': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args, scope, generators)
+        return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
+      }
+
+      case 'unique': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args, scope, generators)
+        if (!Array.isArray(value)) {
+          return { value, lastInsertId }
+        }
+        if (value.length > 1) {
+          throw new Error(`Expected zero or one element, got ${value.length}`)
+        }
+        return { value: value[0] ?? null, lastInsertId }
+      }
+
+      case 'required': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args, scope, generators)
+        if (isEmpty(value)) {
+          throw new Error('Required value is empty')
+        }
+        return { value, lastInsertId }
+      }
+
+      case 'mapField': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args.records, scope, generators)
+        return { value: mapField(value, node.args.field), lastInsertId }
+      }
+
+      case 'join': {
+        const { value: parent, lastInsertId } = this.interpretPureNode(node.args.parent, scope, generators)
+
+        if (parent === null) {
+          return { value: null, lastInsertId }
+        }
+
+        const children = node.args.children.map((joinExpr) => ({
+          joinExpr,
+          childRecords: this.interpretPureNode(joinExpr.child, scope, generators).value,
+        })) satisfies JoinExpressionWithRecords[]
+
+        return { value: attachChildrenToParents(parent, children), lastInsertId }
+      }
+
+      case 'dataMap': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
+      }
+
+      case 'validate': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        performValidation(value, node.args.rules, node.args)
+
+        return { value, lastInsertId }
+      }
+
+      case 'if': {
+        const { value } = this.interpretPureNode(node.args.value, scope, generators)
+        if (doesSatisfyRule(value, node.args.rule)) {
+          return this.interpretPureNode(node.args.then, scope, generators)
+        } else {
+          return this.interpretPureNode(node.args.else, scope, generators)
+        }
+      }
+
+      case 'unit': {
+        return { value: undefined }
+      }
+
+      case 'diff': {
+        const { value: from } = this.interpretPureNode(node.args.from, scope, generators)
+        const { value: to } = this.interpretPureNode(node.args.to, scope, generators)
+
+        const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node.args.fields) : null)
+
+        const toSet = new Set(asList(to).map(keyGetter))
+        return { value: asList(from).filter((item) => !toSet.has(keyGetter(item))) }
+      }
+
+      case 'process': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        return { value: processRecords(value, node.args.operations), lastInsertId }
+      }
+
+      case 'initializeRecord': {
+        const { lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+
+        const record = {}
+        for (const [key, initializer] of Object.entries(node.args.fields)) {
+          record[key] = evalFieldInitializer(initializer, lastInsertId, scope, generators)
+        }
+        return { value: record, lastInsertId }
+      }
+
+      case 'mapRecord': {
+        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+
+        const record = value === null ? {} : asRecord(value)
+        for (const [key, entry] of Object.entries(node.args.fields)) {
+          record[key] = evalFieldOperation(entry, record[key], scope, generators)
         }
         return { value: record, lastInsertId }
       }
@@ -504,6 +668,67 @@ function evalFieldOperation(
     }
     default:
       assertNever(op, `Unexpected field operation type: ${op['type']}`)
+  }
+}
+
+export function purifyQueryPlan(
+  node: QueryPlanNode,
+  evalNode: (node: ImpureQueryPlanNode) => Promise<IntermediateValue>,
+): Promise<PureQueryPlanNode> | undefined {
+  const uniqueAsyncNode = findUniqueUnconditionalImpureNode(node)
+  if (uniqueAsyncNode) {
+    return evalNode(uniqueAsyncNode).then((result) => {
+      Object.assign(uniqueAsyncNode, { type: 'value', args: result.value, lastInsertId: result.lastInsertId })
+      return node as PureQueryPlanNode
+    })
+  }
+  return
+}
+
+function findUniqueUnconditionalImpureNode(node: QueryPlanNode): ImpureQueryPlanNode | null | undefined {
+  switch (node.type) {
+    case 'query':
+    case 'execute':
+      return node
+    case 'seq':
+    case 'sum':
+    case 'concat': {
+      let found: ImpureQueryPlanNode | undefined = undefined
+      for (const child of node.args) {
+        const childFound = findUniqueUnconditionalImpureNode(child)
+        if (childFound === null) {
+          // unsupported node found in child
+          return null
+        }
+        if (childFound) {
+          if (found) {
+            // more than one node found
+            return null
+          }
+          found = childFound
+        }
+      }
+      return found
+    }
+    case 'dataMap':
+    case 'validate':
+    case 'initializeRecord':
+    case 'mapRecord':
+    case 'process':
+      return findUniqueUnconditionalImpureNode(node.args.expr)
+    case 'mapField':
+      return findUniqueUnconditionalImpureNode(node.args.records)
+    case 'reverse':
+    case 'unique':
+    case 'required':
+      return findUniqueUnconditionalImpureNode(node.args)
+    case 'let':
+    case 'join':
+    case 'diff':
+    case 'if':
+      return null
+    default:
+      return
   }
 }
 
