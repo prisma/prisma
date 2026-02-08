@@ -213,7 +213,7 @@ export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.C
   }
 
   async startTransactionInner(conn: planetScale.Connection, options: TransactionOptions): Promise<Transaction> {
-    return new Promise<Transaction>((resolve, reject) => {
+    return new Promise<Transaction>((resolve, _reject) => {
       const txResultPromise = conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
@@ -226,7 +226,7 @@ export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.C
           // Rollback error is ignored (so that tx.rollback() won't crash)
           // any other error is legit and is re-thrown
           if (!(error instanceof RollbackError)) {
-            return reject(error)
+            throw error
           }
 
           return undefined
