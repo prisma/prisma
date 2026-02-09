@@ -287,6 +287,35 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).rejects.toThrow('Concurrent nested transactions are not supported')
+
+      // No partial writes should be visible after the outer transaction fails.
+      const users = await prisma.user.findMany()
+      expect(users).toHaveLength(0)
+    })
+
+    testIf(provider !== Providers.MONGODB)('sql: nested commit keeps outer transaction open', async () => {
+      const email1 = `user_${copycat.uuid(211)}@website.com`
+      const email2 = `user_${copycat.uuid(212)}@website.com`
+      const email3 = `user_${copycat.uuid(213)}@website.com`
+
+      const users = await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: email1 } })
+
+        await tx.$transaction(async (tx2) => {
+          await tx2.user.create({ data: { email: email2 } })
+        })
+
+        // If nested commit incorrectly closes the underlying transaction,
+        // this query or the final commit will fail.
+        await tx.user.create({ data: { email: email3 } })
+
+        return tx.user.findMany({
+          where: { email: { in: [email1, email2, email3] } },
+          orderBy: { email: 'asc' },
+        })
+      })
+
+      expect(users).toHaveLength(3)
     })
 
     testIf(provider !== Providers.MONGODB)('sql: enforce order for nested transactions', async () => {
@@ -301,6 +330,9 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).rejects.toThrow('Cannot close transaction while a nested transaction is still active.')
+
+      const users = await prisma.user.findMany()
+      expect(users).toHaveLength(0)
     })
 
     testIf(provider === Providers.MONGODB)('sql: disallow nested transactions in MongoDB', async () => {
