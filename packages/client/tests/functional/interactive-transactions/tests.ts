@@ -318,6 +318,80 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(3)
     })
 
+    testIf(provider !== Providers.MONGODB)('sql: sequential nested transactions work', async () => {
+      const email1 = `user_${copycat.uuid(221)}@website.com`
+      const email2 = `user_${copycat.uuid(222)}@website.com`
+      const email3 = `user_${copycat.uuid(223)}@website.com`
+
+      await prisma.$transaction(async (tx) => {
+        await tx.$transaction(async (tx2) => {
+          await tx2.user.create({ data: { email: email1 } })
+        })
+
+        await tx.$transaction(async (tx3) => {
+          await tx3.user.create({ data: { email: email2 } })
+        })
+
+        await tx.user.create({ data: { email: email3 } })
+      })
+
+      const users = await prisma.user.findMany({
+        where: { email: { in: [email1, email2, email3] } },
+      })
+      expect(users).toHaveLength(3)
+    })
+
+    testIf(provider !== Providers.MONGODB)('sql: deep nesting (3 levels) works', async () => {
+      const email1 = `user_${copycat.uuid(231)}@website.com`
+      const email2 = `user_${copycat.uuid(232)}@website.com`
+      const email3 = `user_${copycat.uuid(233)}@website.com`
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: email1 } })
+
+        await tx.$transaction(async (tx2) => {
+          await tx2.user.create({ data: { email: email2 } })
+
+          await tx2.$transaction(async (tx3) => {
+            await tx3.user.create({ data: { email: email3 } })
+          })
+        })
+      })
+
+      const users = await prisma.user.findMany({
+        where: { email: { in: [email1, email2, email3] } },
+      })
+      expect(users).toHaveLength(3)
+    })
+
+    testIf(provider !== Providers.MONGODB)('sql: nested rollback can be caught and outer can continue', async () => {
+      const outerEmail1 = `user_${copycat.uuid(241)}@website.com`
+      const innerEmail = `user_${copycat.uuid(242)}@website.com`
+      const outerEmail2 = `user_${copycat.uuid(243)}@website.com`
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: outerEmail1 } })
+
+        try {
+          await tx.$transaction(async (tx2) => {
+            await tx2.user.create({ data: { email: innerEmail } })
+            throw new Error('inner rollback')
+          })
+        } catch (e) {
+          expect(e).toMatchObject({ message: 'inner rollback' })
+        }
+
+        await tx.user.create({ data: { email: outerEmail2 } })
+      })
+
+      const users = await prisma.user.findMany({
+        where: { email: { in: [outerEmail1, innerEmail, outerEmail2] } },
+        orderBy: { email: 'asc' },
+      })
+
+      expect(users.map((u) => u.email)).toEqual([outerEmail1, outerEmail2].sort())
+    })
+
     testIf(provider !== Providers.MONGODB)('sql: enforce order for nested transactions', async () => {
       const result = prisma.$transaction(async (tx) => {
         const nested = tx.$transaction(async (tx2) => {
