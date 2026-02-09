@@ -29,6 +29,8 @@ type TransactionWrapper = {
   startedAt: number
   transaction?: Transaction
   depth: number
+  savepoints: string[]
+  savepointCounter: number
 } & TransactionState
 
 type TransactionState =
@@ -39,6 +41,45 @@ const debug = Debug('prisma:client:transactionManager')
 
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
+
+const SAVEPOINT_QUERY = (provider: Transaction['provider'], name: string): SqlQuery => {
+  switch (provider) {
+    case 'sqlserver':
+      return { sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] }
+    case 'mysql':
+    case 'postgres':
+    case 'sqlite':
+      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+    default:
+      assertNever(provider, 'Unknown provider.')
+  }
+}
+
+const RELEASE_SAVEPOINT_QUERY = (provider: Transaction['provider'], name: string): SqlQuery | undefined => {
+  switch (provider) {
+    case 'sqlserver':
+      return undefined
+    case 'mysql':
+    case 'postgres':
+    case 'sqlite':
+      return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
+    default:
+      assertNever(provider, 'Unknown provider.')
+  }
+}
+
+const ROLLBACK_TO_SAVEPOINT_QUERY = (provider: Transaction['provider'], name: string): SqlQuery => {
+  switch (provider) {
+    case 'sqlserver':
+      return { sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] }
+    case 'mysql':
+    case 'postgres':
+    case 'sqlite':
+      return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
+    default:
+      assertNever(provider, 'Unknown provider.')
+  }
+}
 
 const PHANTOM_COMMIT_QUERY = (): SqlQuery => ({
   sql: '-- Implicit "COMMIT" query via underlying driver',
@@ -104,11 +145,40 @@ export class TransactionManager {
 
   async #startTransactionImpl(options: Options): Promise<TransactionInfo> {
     if (options.newTxId) {
-      const existing = this.transactions.get(options.newTxId)
-      if (existing && ['waiting', 'running', 'closing'].includes(existing.status)) {
-        existing.depth += 1
-        return { id: existing.id }
+      let existing = this.#getActiveOrClosingTransaction(options.newTxId, 'start')
+      if (existing.status === 'closing') {
+        await existing.closing
+        // Fetch again to ensure proper error propagation after it's been closed.
+        existing = this.#getActiveOrClosingTransaction(options.newTxId, 'start')
       }
+
+      if (existing.status !== 'running') {
+        throw new TransactionInternalConsistencyError(
+          `Transaction in invalid state ${existing.status} when starting a nested transaction.`,
+        )
+      }
+      if (!existing.transaction) {
+        throw new TransactionInternalConsistencyError(
+          `Transaction missing underlying driver transaction when starting a nested transaction.`,
+        )
+      }
+
+      existing.depth += 1
+
+      const savepointName = `prisma_sp_${existing.savepointCounter++}`
+      existing.savepoints.push(savepointName)
+
+      const query = SAVEPOINT_QUERY(existing.transaction.provider, savepointName)
+      try {
+        await this.#withQuerySpanAndEvent(query, existing.transaction, () => existing.transaction!.executeRaw(query))
+      } catch (e) {
+        // Keep state consistent if creating the savepoint fails.
+        existing.depth -= 1
+        existing.savepoints.pop()
+        throw e
+      }
+
+      return { id: existing.id }
     }
 
     const transaction: TransactionWrapper = {
@@ -119,6 +189,8 @@ export class TransactionManager {
       startedAt: Date.now(),
       transaction: undefined,
       depth: 1,
+      savepoints: [],
+      savepointCounter: 0,
     }
 
     // Start timeout to wait for transaction to be started.
@@ -179,6 +251,18 @@ export class TransactionManager {
     return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
       const txw = this.#getActiveOrClosingTransaction(transactionId, 'commit')
       if (txw.depth > 1) {
+        if (!txw.transaction) throw new TransactionNotFoundError()
+        const savepointName = txw.savepoints.at(-1)
+        if (!savepointName) {
+          throw new TransactionInternalConsistencyError(
+            `Missing savepoint for nested commit. Depth: ${txw.depth}, transactionId: ${txw.id}`,
+          )
+        }
+        const query = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+        if (query) {
+          await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
+        }
+        txw.savepoints.pop()
         txw.depth -= 1
         return
       }
@@ -190,8 +274,25 @@ export class TransactionManager {
     return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
       const txw = this.#getActiveOrClosingTransaction(transactionId, 'rollback')
       if (txw.depth > 1) {
-        // Without savepoints, an inner rollback must abort the whole transaction.
-        txw.depth = 1
+        if (!txw.transaction) throw new TransactionNotFoundError()
+        const savepointName = txw.savepoints.at(-1)
+        if (!savepointName) {
+          throw new TransactionInternalConsistencyError(
+            `Missing savepoint for nested rollback. Depth: ${txw.depth}, transactionId: ${txw.id}`,
+          )
+        }
+
+        const rollbackQuery = ROLLBACK_TO_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+        await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () => txw.transaction!.executeRaw(rollbackQuery))
+
+        const releaseQuery = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+        if (releaseQuery) {
+          await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () => txw.transaction!.executeRaw(releaseQuery))
+        }
+
+        txw.savepoints.pop()
+        txw.depth -= 1
+        return
       }
       await this.#closeTransaction(txw, 'rolled_back')
     })

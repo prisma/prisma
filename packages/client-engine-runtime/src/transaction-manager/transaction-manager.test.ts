@@ -64,10 +64,11 @@ class MockDriverAdapter implements SqlDriverAdapter {
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
+    const provider = this.provider
 
     const mockTransaction: Transaction = {
       adapterName: 'mock-adapter',
-      provider: 'postgres',
+      provider,
       options: { usePhantomQuery },
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
@@ -133,13 +134,67 @@ test('nested commit only closes at the outermost level', async () => {
 
   expect(nested.id).toBe(id)
 
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
   // Inner commit should not close the underlying transaction.
   await transactionManager.commitTransaction(id)
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
 
   // Outer commit closes.
   await transactionManager.commitTransaction(id)
   expect(driverAdapter.commitMock).toHaveBeenCalledTimes(1)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
+})
+
+test('nested rollback uses a savepoint and keeps the outer transaction open', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  await transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  // Inner rollback should not close the underlying transaction.
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TO SAVEPOINT prisma_sp_\d+$/)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  // Outer commit still closes.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.commitMock).toHaveBeenCalledTimes(1)
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoints use sqlserver syntax', async () => {
+  const driverAdapter = new MockDriverAdapter({ provider: 'sqlserver' })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVE TRANSACTION prisma_sp_\d+$/)
+
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TRANSACTION prisma_sp_\d+$/)
+
+  // No release savepoint query on SQL Server.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
 })
 
 test('transaction is rolled back', async () => {
