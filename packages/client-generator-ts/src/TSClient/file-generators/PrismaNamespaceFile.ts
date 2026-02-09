@@ -31,6 +31,9 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
 
   const fieldRefs = context.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
+  const transactionClientDenyList =
+    context.provider === 'mongodb' ? "runtime.ITXClientDenyList | '$transaction'" : 'runtime.ITXClientDenyList'
+
   return `${jsDocHeader}
 ${imports.join('\n')}
 
@@ -136,7 +139,7 @@ export type PrismaAction =
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient = Omit<DefaultPrismaClient, ${transactionClientDenyList}>
 
 `
 }

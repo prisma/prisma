@@ -234,7 +234,7 @@ function interactiveTransactionDefinition(context: GenerateContext) {
   const callbackType = ts
     .functionType()
     .addParameter(
-      ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
+      ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), itxTransactionClientDenyList(context))),
     )
     .setReturnType(returnType)
 
@@ -246,6 +246,14 @@ function interactiveTransactionDefinition(context: GenerateContext) {
     .setReturnType(returnType)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
+function itxTransactionClientDenyList(context: GenerateContext) {
+  if (context.provider === 'mongodb') {
+    return ts.unionType([ts.namedType('runtime.ITXClientDenyList'), ts.stringLiteral('$transaction')])
+  }
+
+  return ts.namedType('runtime.ITXClientDenyList')
 }
 
 function queryRawDefinition(context: GenerateContext) {
@@ -476,6 +484,8 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
   }
   public toTS(): string {
     const clientOptions = this.buildClientOptions()
+    const transactionClientDenyList =
+      this.context.provider === 'mongodb' ? "runtime.ITXClientDenyList | '$transaction'" : 'runtime.ITXClientDenyList'
 
     return `${clientExtensionsDefinitions(this.context)}
 export type DefaultPrismaClient = PrismaClient
@@ -545,7 +555,7 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient = Omit<Prisma.DefaultPrismaClient, ${transactionClientDenyList}>
 `
   }
 
