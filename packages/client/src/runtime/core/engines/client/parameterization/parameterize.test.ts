@@ -29,6 +29,7 @@ describe('parameterizeQuery', () => {
       'title',
       'status',
       'Status',
+      'createdAt',
     ],
     inputNodes: [
       // Node 0: UserWhereInput
@@ -38,6 +39,7 @@ describe('parameterizeQuery', () => {
           2: { flags: EdgeFlag.ParamScalar | EdgeFlag.Object, scalarMask: ScalarMask.String, childNodeId: 1 }, // email
           3: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // name
           11: { flags: EdgeFlag.ParamEnum, enumNameIndex: 12 }, // status (enum)
+          13: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.DateTime }, // createdAt
         },
       },
       // Node 1: StringFilter
@@ -258,39 +260,19 @@ describe('parameterizeQuery', () => {
 
   describe('tagged scalar values', () => {
     it('parameterizes DateTime tagged values', () => {
-      // Create a graph that includes DateTime support
-      const graphWithDateTimeData: ParamGraphData = {
-        strings: [...sampleGraphData.strings, 'createdAt'],
-        inputNodes: [
-          ...sampleGraphData.inputNodes,
-          {
-            edges: {
-              0: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.DateTime }, // createdAt
-            },
-          },
-        ],
-        outputNodes: sampleGraphData.outputNodes,
-        roots: {
-          ...sampleGraphData.roots,
-          'User.findByDate': { argsNodeId: 5 },
-        },
-      }
-
-      const graphWithDateTime = ParamGraph.fromData(graphWithDateTimeData, createEnumLookup(sampleRuntimeDataModel))
       const dateValue = { $type: 'DateTime' as const, value: '2024-01-01T00:00:00.000Z' }
 
       const query: JsonQuery = {
         modelName: 'User',
-        action: 'findByDate' as any,
+        action: 'findMany',
         query: {
-          arguments: { where: dateValue },
+          arguments: { where: { createdAt: dateValue } },
           selection: { $scalars: true },
         },
       }
 
-      const result = parameterizeQuery(query, graphWithDateTime)
+      const result = parameterizeQuery(query, paramGraph)
 
-      // DateTime should be parameterized with decoded value
       expect(result.placeholderValues['%1']).toBe('2024-01-01T00:00:00.000Z')
     })
   })
