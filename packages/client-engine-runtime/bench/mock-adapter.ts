@@ -81,6 +81,10 @@ export class MockTransaction implements Transaction, SqlQueryable {
     return this.adapter.executeRaw(query)
   }
 
+  begin(): Promise<void> {
+    return Promise.resolve()
+  }
+
   commit(): Promise<void> {
     return Promise.resolve()
   }
