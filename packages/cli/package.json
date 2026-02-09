@@ -106,7 +106,7 @@
     }
   },
   "devDependencies": {
-    "@hono/node-server": "1.19.0",
+    "@hono/node-server": "1.19.9",
     "@inquirer/prompts": "7.3.3",
     "@libsql/client": "0.8.1",
     "@modelcontextprotocol/sdk": "1.13.2",
@@ -143,7 +143,7 @@
     "fs-extra": "11.3.0",
     "get-port-please": "3.2.0",
     "get-tsconfig": "4.10.0",
-    "hono": "4.10.6",
+    "hono": "4.11.7",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
@@ -181,9 +181,9 @@
   },
   "dependencies": {
     "@prisma/config": "workspace:*",
-    "@prisma/dev": "0.17.0",
+    "@prisma/dev": "0.20.0",
     "@prisma/engines": "workspace:*",
-    "@prisma/studio-core": "0.12.0",
+    "@prisma/studio-core": "0.13.1",
     "mysql2": "3.15.3",
     "postgres": "3.4.7"
   },

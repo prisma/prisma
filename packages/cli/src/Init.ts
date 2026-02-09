@@ -290,7 +290,7 @@ export class Init implements Command {
              -h, --help   Display this help message
                    --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
-   --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
+   --generator-provider   Define the generator provider to use. Default: \`prisma-client\`
       --preview-feature   Define a preview feature to use.
                --output   Define Prisma Client generator output path to use.
                   --url   Define a custom datasource url
@@ -307,8 +307,8 @@ export class Init implements Command {
   Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${dim('$')} prisma init --datasource-provider mysql
 
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`prisma-client-js\` as the generator provider to use
-    ${dim('$')} prisma init --generator-provider prisma-client-js
+  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`prisma-client\` as the generator provider to use
+    ${dim('$')} prisma init --generator-provider prisma-client
 
   Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`x\` and \`y\` as the preview features to use
     ${dim('$')} prisma init --preview-feature x --preview-feature y

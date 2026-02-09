@@ -3,7 +3,6 @@ import path from 'node:path'
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { Generate } from '../../Generate'
-import { promotions, renderPromotion } from '../../utils/handlePromotions'
 import { configContextContributor } from '../_utils/config-context'
 
 const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
@@ -27,21 +26,11 @@ describe('prisma.config.ts', () => {
 })
 
 describe('using cli', () => {
-  // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
-  function sanitiseStdout(stdout: string): string {
-    return Object.values(promotions)
-      .map((promotion) => renderPromotion(promotion))
-      .reduce((acc, curr) => {
-        return acc.replace(curr, 'Tip: MOCKED RANDOM TIP')
-      }, stdout)
-      .trimEnd()
-  }
-
   it('should work with a custom output dir', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate')
 
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -53,7 +42,7 @@ describe('using cli', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
@@ -65,7 +54,7 @@ describe('using cli', () => {
   it('should work with prisma schema folder', async () => {
     ctx.fixture('multi-schema-files/valid-custom-output')
     const data = await ctx.cli('generate', '--schema=./prisma/schema')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     expect(stdout).toMatchInlineSnapshot(`
       "
@@ -73,7 +62,7 @@ describe('using cli', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`"Prisma schema loaded from prisma/schema."`)
   })
@@ -81,7 +70,7 @@ describe('using cli', () => {
   it('should display the right yarn command for custom outputs', async () => {
     ctx.fixture('custom-output-yarn')
     const data = await ctx.cli('generate')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -93,7 +82,7 @@ describe('using cli', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
@@ -105,7 +94,7 @@ describe('using cli', () => {
   it('should display the right npm command for custom outputs', async () => {
     ctx.fixture('custom-output-npm')
     const data = await ctx.cli('generate')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -117,7 +106,7 @@ describe('using cli', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
@@ -129,7 +118,7 @@ describe('using cli', () => {
   it('should display the right pnpm command for custom outputs', async () => {
     ctx.fixture('custom-output-pnpm')
     const data = await ctx.cli('generate')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -141,7 +130,7 @@ describe('using cli', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
@@ -160,7 +149,7 @@ describe('using cli', () => {
 
     // use regex to extract the output location below with a dummy location
     const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
-    let stdout = sanitiseStdout(data.stdout)
+    let stdout = data.stdout
     stdout = stdout.replace(outputLocation!, '<output>')
 
     expect(stdout).toMatchInlineSnapshot(`
@@ -169,7 +158,7 @@ describe('using cli', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
@@ -346,7 +335,6 @@ describe('--schema from project directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -370,7 +358,6 @@ describe('--schema from project directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -423,7 +410,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -449,7 +435,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -479,7 +464,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -499,7 +483,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })

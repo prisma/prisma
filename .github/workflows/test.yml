@@ -45,7 +45,7 @@ jobs:
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - id: files
         uses: Ana06/get-changed-files@v2.3.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
@@ -65,7 +65,7 @@ jobs:
           echo "Pull Request Body contains /integration: ${{ contains(env.PR_BODY, '/integration') }}"
 
       - name: Find "ci test all" comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: findTestAllComment
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -107,14 +107,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Find past custom engine comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: findEngineComment
         if: ${{ github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: '<!-- custom-engine -->'
       - name: Create or update comment (block)
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         if: ${{ needs.build_custom_engine.outputs.engineHash != '' }}
         with:
           comment-id: ${{ steps.findEngineComment.outputs.comment-id }}
@@ -131,7 +131,7 @@ jobs:
           edit-mode: replace
 
       - name: Create or update comment (clear)
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         if: ${{ steps.findEngineComment.outputs.comment-id != '' && needs.build_custom_engine.outputs.engineHash == '' }}
         with:
           comment-id: ${{ steps.findEngineComment.outputs.comment-id }}
