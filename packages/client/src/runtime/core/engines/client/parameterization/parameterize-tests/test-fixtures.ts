@@ -56,9 +56,6 @@ const testSchema = /* prisma */ `
   }
 `
 
-/**
- * RuntimeDataModel containing enum information extracted from the schema.
- */
 export const testRuntimeDataModel: RuntimeDataModel = {
   models: {},
   enums: {
@@ -73,45 +70,21 @@ export const testRuntimeDataModel: RuntimeDataModel = {
   types: {},
 }
 
-let _paramGraph: ParamGraph | undefined
+let cached: ParamGraph | undefined
 
 /**
- * Initializes the test fixtures by parsing the schema and building the ParamGraph.
- * This is called lazily on first access.
+ * Returns the ParamGraph for the test schema, building it on first call.
  */
-async function initializeFixtures(): Promise<ParamGraph> {
-  if (_paramGraph) {
-    return _paramGraph
+export async function getParamGraph(): Promise<ParamGraph> {
+  if (cached) {
+    return cached
   }
 
   const dmmf = await getDMMF({ datamodel: testSchema })
   const serialized = buildAndSerializeParamGraph(dmmf)
-  _paramGraph = ParamGraph.deserialize(serialized, (enumName) => {
+  cached = ParamGraph.deserialize(serialized, (enumName) => {
     const enumDef = testRuntimeDataModel.enums[enumName]
     return enumDef?.values.map((v) => v.name)
   })
-  return _paramGraph
+  return cached
 }
-
-/**
- * Pre-initialized ParamGraph for synchronous access in tests.
- * Tests should call `await initializeTestFixtures()` in a `beforeAll` hook,
- * or the module will initialize lazily.
- */
-export let paramGraph: ParamGraph
-
-/**
- * Initialize test fixtures. Call this in beforeAll if you need guaranteed
- * initialization before tests run.
- */
-export async function initializeTestFixtures(): Promise<void> {
-  paramGraph = await initializeFixtures()
-}
-
-// Eagerly initialize the fixtures when the module is loaded.
-const initPromise = initializeFixtures().then((pg) => {
-  paramGraph = pg
-})
-
-// Export the initialization promise for tests that need to await it explicitly
-export { initPromise }

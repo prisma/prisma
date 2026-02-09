@@ -1,7 +1,15 @@
 import type { JsonQuery } from '@prisma/json-protocol'
 
+import type { ParamGraph } from '@prisma/param-graph'
+
 import { parameterizeQuery } from '../parameterize'
-import { paramGraph } from './test-fixtures'
+import { getParamGraph } from './test-fixtures'
+
+let paramGraph: ParamGraph
+
+beforeAll(async () => {
+  paramGraph = await getParamGraph()
+})
 
 describe('parameterizeQuery structural values', () => {
   describe('top-level structural keys', () => {

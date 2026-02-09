@@ -1,7 +1,15 @@
 import type { JsonBatchQuery } from '@prisma/json-protocol'
 
+import type { ParamGraph } from '@prisma/param-graph'
+
 import { parameterizeBatch } from '../parameterize'
-import { paramGraph } from './test-fixtures'
+import { getParamGraph } from './test-fixtures'
+
+let paramGraph: ParamGraph
+
+beforeAll(async () => {
+  paramGraph = await getParamGraph()
+})
 
 describe('parameterizeBatch', () => {
   it('parameterizes all queries in a batch with unique placeholder names', () => {
