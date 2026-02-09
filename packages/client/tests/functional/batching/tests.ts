@@ -28,6 +28,9 @@ testMatrix.setupTestSuite(
     let savepointCount = 0
     let releaseSavepointCount = 0
     let rollbackToSavepointCount = 0
+    let engineRequestCount = 0
+    let engineRequestBatchCount = 0
+    const engineRequestBatchSizes: number[] = []
 
     function resetQueryCounts() {
       queriesExecuted = 0
@@ -39,10 +42,39 @@ testMatrix.setupTestSuite(
       rollbackToSavepointCount = 0
     }
 
+    function resetEngineCounts() {
+      engineRequestCount = 0
+      engineRequestBatchCount = 0
+      engineRequestBatchSizes.length = 0
+    }
+
     beforeAll(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       })
+
+      // Count batching at the transport layer: this is what actually verifies that Prisma Client
+      // grouped multiple operations into a single engine roundtrip.
+
+      const engine = (prisma as any)._engine as any
+      if (!engine || typeof engine.request !== 'function' || typeof engine.requestBatch !== 'function') {
+        throw new Error('Expected PrismaClient to have an engine with request/requestBatch methods')
+      }
+
+      const originalRequest = engine.request.bind(engine) as (...args: any[]) => Promise<unknown>
+      const originalRequestBatch = engine.requestBatch.bind(engine) as (...args: any[]) => Promise<unknown>
+
+      engine.request = async (...args: any[]) => {
+        engineRequestCount++
+        return originalRequest(...args)
+      }
+
+      engine.requestBatch = async (...args: any[]) => {
+        engineRequestBatchCount++
+        const queries = args[0]
+        engineRequestBatchSizes.push(Array.isArray(queries) ? queries.length : 0)
+        return originalRequestBatch(...args)
+      }
 
       await prisma.user.create({ data: { posts: { create: {} }, ...user1 } })
       await prisma.user.create({ data: user2 })
@@ -78,6 +110,7 @@ testMatrix.setupTestSuite(
 
     beforeEach(() => {
       resetQueryCounts()
+      resetEngineCounts()
     })
 
     test('batches findUnique', async () => {
@@ -196,6 +229,7 @@ testMatrix.setupTestSuite(
     testIf(provider === Providers.POSTGRESQL)(
       'interactive transactions: batches findUnique for a single model',
       async () => {
+        const N = 10
         const u1 = await prisma.user.create({
           data: {
             email: `user1-${faker.string.uuid()}@example.com`,
@@ -207,12 +241,29 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const ids = [u1.id, u2.id]
+        const users = [u1, u2]
+        for (let i = 0; i < N - 2; i++) {
+          users.push(
+            await prisma.user.create({
+              data: {
+                email: `user-${i}-${faker.string.uuid()}@example.com`,
+              },
+            }),
+          )
+        }
+
+        // Create one related record per user so we can assert results are correct.
+        await prisma.post.createMany({
+          data: users.map((u) => ({ userId: u.id })),
+        })
+
+        const ids = users.map((u) => u.id)
 
         // Measure only what happens inside the interactive transaction.
         resetQueryCounts()
+        resetEngineCounts()
 
-        await prisma.$transaction((tx) => {
+        const res = await prisma.$transaction((tx) => {
           return Promise.all(ids.map((id) => tx.user.findUnique({ where: { id } }).posts()))
         })
 
@@ -226,9 +277,15 @@ testMatrix.setupTestSuite(
           expect(releaseSavepointCount).toBe(0)
           expect(rollbackToSavepointCount).toBe(0)
 
-          // Transaction work should not require more than one query per user for loading posts.
-          // (This allows for future optimizations that reduce query count further.)
-          expect(queriesExecuted).toBeLessThanOrEqual(2)
+          // This is the real batching assertion: N operations should be sent as a single engine batch.
+          expect(engineRequestCount).toBe(0)
+          expect(engineRequestBatchCount).toBe(1)
+          expect(engineRequestBatchSizes).toEqual([N])
+
+          expect(res).toHaveLength(N)
+          for (const posts of res) {
+            expect(posts).toHaveLength(1)
+          }
         })
       },
     )
@@ -236,6 +293,7 @@ testMatrix.setupTestSuite(
     testIf(provider === Providers.POSTGRESQL)(
       'interactive transactions: batches findUnique for multiple models',
       async () => {
+        const N = 10
         const u1 = await prisma.user.create({
           data: {
             email: `user1-${faker.string.uuid()}@example.com`,
@@ -247,12 +305,31 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const ids = [u1.id, u2.id]
+        const users = [u1, u2]
+        for (let i = 0; i < N - 2; i++) {
+          users.push(
+            await prisma.user.create({
+              data: {
+                email: `user-${i}-${faker.string.uuid()}@example.com`,
+              },
+            }),
+          )
+        }
+
+        await prisma.post.createMany({
+          data: users.map((u) => ({ userId: u.id })),
+        })
+        await prisma.comment.createMany({
+          data: users.map((u) => ({ userId: u.id })),
+        })
+
+        const ids = users.map((u) => u.id)
 
         // Measure only what happens inside the interactive transaction.
         resetQueryCounts()
+        resetEngineCounts()
 
-        await prisma.$transaction((tx) => {
+        const res = await prisma.$transaction((tx) => {
           return Promise.all([
             ...ids.map((id) => tx.user.findUnique({ where: { id } }).posts()),
             ...ids.map((id) => tx.user.findUnique({ where: { id } }).comments()),
@@ -268,8 +345,15 @@ testMatrix.setupTestSuite(
           expect(releaseSavepointCount).toBe(0)
           expect(rollbackToSavepointCount).toBe(0)
 
-          // Two users, two related models => should not require more than one query per user per model.
-          expect(queriesExecuted).toBeLessThanOrEqual(4)
+          // We expect one engine batch for posts and one for comments (same tx, same tick).
+          expect(engineRequestCount).toBe(0)
+          expect(engineRequestBatchCount).toBe(2)
+          expect(engineRequestBatchSizes.sort((a, b) => a - b)).toEqual([N, N])
+
+          expect(res).toHaveLength(N * 2)
+          for (const related of res) {
+            expect(related).toHaveLength(1)
+          }
         })
       },
     )
