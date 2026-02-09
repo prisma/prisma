@@ -102,8 +102,6 @@ export class ClientEngine implements Engine {
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
   #queryPlanCache: QueryPlanCache
-  // todo: remove this
-  #queryPlanCacheEnabled: boolean
   #paramGraph: ParamGraph
 
   config: EngineConfig
@@ -143,7 +141,6 @@ export class ClientEngine implements Engine {
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
     this.#queryPlanCache = new QueryPlanCache()
-    this.#queryPlanCacheEnabled = true
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
@@ -473,7 +470,7 @@ export class ClientEngine implements Engine {
 
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
-    } else if (this.#queryPlanCacheEnabled) {
+    } else {
       const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
       const cacheKey = JSON.stringify(parameterizedQuery)
       placeholderValues = extractedValues
@@ -487,8 +484,6 @@ export class ClientEngine implements Engine {
         plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
         this.#queryPlanCache.setSingle(cacheKey, plan)
       }
-    } else {
-      plan = this.#compileQuery(query, JSON.stringify(query), queryCompiler)
     }
 
     try {
@@ -540,7 +535,7 @@ export class ClientEngine implements Engine {
     let batchResponse: BatchResponse
     let placeholderValues: Record<string, unknown> = {}
 
-    if (this.#queryPlanCacheEnabled && !hasRawQueries) {
+    if (!hasRawQueries) {
       const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
         batchPayload as JsonBatchQuery,
         this.#paramGraph,
