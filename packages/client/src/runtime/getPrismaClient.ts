@@ -735,12 +735,12 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         result = await callback(this._createItxClient(transaction, scopeId))
 
-        // Don't allow closing a transaction if we are not the active scope (or if there is still a child scope).
-        if (this._itxScopeStack.at(-1) !== scopeId) {
-          throw new Error('Nested transactions must be closed in reverse order of creation.')
-        }
         if (!isNested && this._itxScopeStack.length !== 1) {
           throw new Error('Cannot close transaction while a nested transaction is still active.')
+        }
+        // Don't allow closing a transaction if we are not the active scope.
+        if (this._itxScopeStack.at(-1) !== scopeId) {
+          throw new Error('Nested transactions must be closed in reverse order of creation.')
         }
 
         await this._engine.transaction('commit', headers, info)
