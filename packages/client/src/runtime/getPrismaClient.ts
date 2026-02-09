@@ -217,6 +217,11 @@ type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 const TX_SCOPE_ID = Symbol.for('prisma.client.transaction.scope_id')
+const TX_SCOPE_STATE = Symbol.for('prisma.client.transaction.scope_state')
+
+type ItxScopeState = {
+  stack: string[]
+}
 
 const BatchTxIdCounter = {
   id: 0,
@@ -254,11 +259,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
-    /**
-     * Stack of active interactive transaction scopes for enforcing correct
-     * nesting. The top of the stack is the currently-active scope.
-     */
-    _itxScopeStack: string[] = []
 
     constructor(optionsArg: PrismaClientOptions) {
       if (!optionsArg) {
@@ -685,6 +685,12 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }) {
       const isNested = Boolean(this[TX_ID])
       const callerScopeId = isNested ? (this as any)[TX_SCOPE_ID] : undefined
+      const scopeState: ItxScopeState = isNested ? (this as any)[TX_SCOPE_STATE] : { stack: [] }
+      const scopeStack = scopeState?.stack
+
+      if (isNested && !scopeStack) {
+        throw new Error('Internal error: missing transaction scope state for nested transaction.')
+      }
 
       const scopeId =
         typeof globalThis.crypto?.randomUUID === 'function'
@@ -694,21 +700,16 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       if (isNested) {
         // Only the currently-active (innermost) scope can start another nested scope.
         // This prevents sibling nested transactions from running concurrently.
-        const activeScope = this._itxScopeStack.at(-1)
+        const activeScope = scopeStack.at(-1)
         if (activeScope !== callerScopeId) {
           throw new Error('Concurrent nested transactions are not supported')
         }
 
         // Re-use the underlying transaction in the engine by reusing the same transaction id.
         options.newTxId = this[TX_ID]
-        this._itxScopeStack.push(scopeId)
+        scopeStack.push(scopeId)
       } else {
-        // Starting a new top-level interactive transaction while we still have an active
-        // scope stack indicates an ordering bug (e.g. an un-awaited nested transaction).
-        if (this._itxScopeStack.length > 0) {
-          throw new Error('Nested transactions must be closed in reverse order of creation.')
-        }
-        this._itxScopeStack.push(scopeId)
+        scopeStack.push(scopeId)
       }
 
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
@@ -724,7 +725,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         info = await this._engine.transaction('start', headers, optionsWithDefaults)
       } catch (e) {
         // Ensure we don't leave the scope stack dirty if starting the transaction fails.
-        if (this._itxScopeStack.at(-1) === scopeId) this._itxScopeStack.pop()
+        if (scopeStack.at(-1) === scopeId) scopeStack.pop()
         throw e
       }
 
@@ -733,42 +734,54 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         // execute user logic with a proxied the client
         const transaction = { kind: 'itx', ...info } as const
 
-        result = await callback(this._createItxClient(transaction, scopeId))
+        result = await callback(this._createItxClient(transaction, scopeId, scopeState))
 
-        if (!isNested && this._itxScopeStack.length !== 1) {
+        if (!isNested && scopeStack.length !== 1) {
           throw new Error('Cannot close transaction while a nested transaction is still active.')
         }
         // Don't allow closing a transaction if we are not the active scope.
-        if (this._itxScopeStack.at(-1) !== scopeId) {
+        if (scopeStack.at(-1) !== scopeId) {
           throw new Error('Nested transactions must be closed in reverse order of creation.')
         }
 
         await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
-        // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => { })
+        // If we try to close out-of-order (e.g. un-awaited nested transaction),
+        // the TransactionManager depth will be > 1 and a single rollback would
+        // only roll back to the latest savepoint, leaving the top-level transaction
+        // open and leaking it. Force rollback to depth 0 in that case.
+        const isOrderViolation = scopeStack.at(-1) !== scopeId
+        const rollbackAttempts = isOrderViolation ? Math.max(1, scopeStack.length) : 1
+        for (let i = 0; i < rollbackAttempts; i++) {
+          await this._engine.transaction('rollback', headers, info).catch(() => { })
+        }
 
         throw e // silent rollback, throw original error
       } finally {
-        if (this._itxScopeStack.at(-1) === scopeId) {
-          this._itxScopeStack.pop()
+        if (scopeStack.at(-1) === scopeId) {
+          scopeStack.pop()
         } else {
-          // Reset to avoid poisoning the client instance after an ordering violation.
-          this._itxScopeStack = []
+          // Reset the scope stack to avoid poisoning this transaction context after an ordering violation.
+          scopeStack.splice(0, scopeStack.length)
         }
       }
 
       return result
     }
 
-    _createItxClient(transaction: PrismaPromiseInteractiveTransaction, scopeId: string): Client {
+    _createItxClient(
+      transaction: PrismaPromiseInteractiveTransaction,
+      scopeId: string,
+      scopeState: ItxScopeState,
+    ): Client {
       return createCompositeProxy(
         applyModelsAndClientExtensions(
           createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction, scopeId)),
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction, scopeId, scopeState)),
             addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
             addProperty(TX_ID, () => transaction.id),
             addProperty(TX_SCOPE_ID, () => scopeId),
+            addProperty(TX_SCOPE_STATE, () => scopeState),
           ]),
         ),
         [removeProperties(itxClientDenyList)],
