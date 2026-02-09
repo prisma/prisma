@@ -1,4 +1,4 @@
-import { QueryPlanCache } from './QueryPlanCache'
+import { QueryPlanCache } from './query-plan-cache'
 
 describe('QueryPlanCache', () => {
   describe('single cache', () => {

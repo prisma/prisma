@@ -14,12 +14,6 @@ import { JsonInputTaggedValue } from '@prisma/json-protocol'
 const SCALAR_TAGS = new Set(['DateTime', 'Decimal', 'BigInt', 'Bytes', 'Json', 'Raw'])
 
 /**
- * Tagged value types that are structural and should never be parameterized.
- * These represent special query constructs that must be preserved as-is.
- */
-const STRUCTURAL_TAGS = new Set(['FieldRef', 'Enum', 'Param'])
-
-/**
  * Classification result for a runtime value.
  * Used to determine how to handle the value during parameterization.
  */
@@ -59,7 +53,6 @@ export function classifyValue(value: unknown): ValueClass {
   if (typeof value === 'object') {
     const obj = value as Record<string, unknown>
 
-    // Check for tagged value
     if ('$type' in obj && typeof obj.$type === 'string') {
       const tag = obj.$type as JsonInputTaggedValue['$type']
 
@@ -67,9 +60,9 @@ export function classifyValue(value: unknown): ValueClass {
         return { kind: 'taggedScalar', tag, value: obj.value }
       }
 
-      if (STRUCTURAL_TAGS.has(tag)) {
-        return { kind: 'structural', value: obj.value }
-      }
+      // Known structural tags and any unknown $type tags are treated as structural
+      // to avoid parameterizing tagged payloads that we don't understand.
+      return { kind: 'structural', value: obj.value }
     }
 
     return { kind: 'object', entries: obj }

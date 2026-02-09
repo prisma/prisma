@@ -29,9 +29,6 @@
     "prepublishOnly": "pnpm run build",
     "test": "vitest run"
   },
-  "devDependencies": {
-    "vitest": "^2.1.8"
-  },
   "files": [
     "dist"
   ],

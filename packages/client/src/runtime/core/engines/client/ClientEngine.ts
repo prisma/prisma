@@ -35,7 +35,7 @@ import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../co
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
 import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
-import { QueryPlanCache } from './QueryPlanCache'
+import { QueryPlanCache } from './query-plan-cache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'

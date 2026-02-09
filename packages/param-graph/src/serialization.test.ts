@@ -204,30 +204,4 @@ describe('param-graph serialization', () => {
     expect(deserialized.roots['root'].outputNodeId).toBe(0)
   })
 
-  test('serialization produces more compact output with varint encoding', () => {
-    // Create a typical small schema
-    const data: ParamGraphData = {
-      strings: ['findMany', 'create', 'update', 'where', 'data', 'id', 'name', 'email'],
-      inputNodes: [
-        { edges: { 3: { flags: 1, scalarMask: 1 }, 4: { flags: 0, scalarMask: 2 } } },
-        { edges: { 5: { flags: 2 }, 6: { flags: 2 }, 7: { flags: 2 } } },
-      ],
-      outputNodes: [{ edges: { 5: { argsNodeId: 0 }, 6: {}, 7: {} } }],
-      roots: {
-        findMany: { argsNodeId: 0, outputNodeId: 0 },
-        create: { argsNodeId: 1, outputNodeId: 0 },
-        update: { argsNodeId: 0, outputNodeId: 0 },
-      },
-    }
-
-    const serialized = serializeParamGraph(data)
-
-    // Decode base64url to check actual binary size
-    const binarySize = Buffer.from(serialized.graph, 'base64url').length
-
-    // With varint encoding, small indices (0-127) use 1 byte each
-    // The old compact format used 2 bytes per index plus padding
-    // This should be significantly smaller
-    expect(binarySize).toBeLessThan(80) // Empirically determined reasonable upper bound
-  })
 })

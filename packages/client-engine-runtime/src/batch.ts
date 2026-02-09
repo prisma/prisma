@@ -30,20 +30,15 @@ function isPlaceholder(
     return false
   }
   const obj = value as Record<string, unknown>
-  // Check for JSON protocol format: { $type: 'Param', value: { name: '...' } }
   if ('$type' in obj && obj.$type === 'Param') {
     return true
   }
-  // Check for serialized ArgumentValue format: { prisma__type: 'param', prisma__value: { name: '...' } }
   if ('prisma__type' in obj && obj.prisma__type === 'param') {
     return true
   }
   return false
 }
 
-/**
- * Extracts the placeholder name from a placeholder value.
- */
 function getPlaceholderName(
   value: { $type: 'Param'; value: { name: string } } | { prisma__type: 'param'; prisma__value: { name: string } },
 ): string | undefined {
@@ -53,9 +48,6 @@ function getPlaceholderName(
   return (value as { value: { name: string } }).value.name
 }
 
-/**
- * Resolves placeholders in an argument object using the provided placeholder values.
- */
 function resolveArgPlaceholders(
   args: Record<string, {}>,
   placeholderValues: Record<string, unknown>,
@@ -94,7 +86,6 @@ export function convertCompactedRows(
   const selection = new Set(compiledBatch.nestedSelection)
 
   return compiledBatch.arguments.map((args) => {
-    // Resolve any placeholders in the args using the provided placeholder values
     const resolvedArgs = resolveArgPlaceholders(args, placeholderValues)
 
     // we find the index of the row that matches the input arguments - this is the row we want

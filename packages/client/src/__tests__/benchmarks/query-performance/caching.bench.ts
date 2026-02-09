@@ -12,7 +12,7 @@ import Benchmark from 'benchmark'
 import { parameterizeQuery } from '../../../runtime/core/engines/client/parameterization/parameterize'
 import { loadQueryCompiler } from './qc-loader'
 
-let QueryCompiler: QueryCompilerConstructor
+let QueryCompilerClass: QueryCompilerConstructor
 let queryCompiler: QueryCompiler
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
@@ -111,9 +111,9 @@ function createBlogPostPageQuery(id: Parameterizable<number>): JsonQuery {
 async function setup(): Promise<void> {
   const provider = 'sqlite'
 
-  QueryCompiler = await loadQueryCompiler(provider)
+  QueryCompilerClass = await loadQueryCompiler(provider)
 
-  queryCompiler = new QueryCompiler({
+  queryCompiler = new QueryCompilerClass({
     provider,
     connectionInfo: {
       supportsRelationJoins: false,

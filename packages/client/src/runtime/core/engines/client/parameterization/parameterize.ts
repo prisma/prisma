@@ -149,12 +149,10 @@ class Parameterizer {
 
     const result: JsonFieldSelection = { ...sel }
 
-    // Process arguments using input node
     if (sel.arguments && sel.arguments.$type !== 'Raw') {
       result.arguments = this.#parameterizeObject(sel.arguments as Record<string, unknown>, argsNode)
     }
 
-    // Process selection using output node
     if (sel.selection) {
       result.selection = this.#parameterizeSelection(sel.selection, outNode)
     }
