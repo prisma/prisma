@@ -289,7 +289,7 @@ class Parameterizer {
       const allValid = items.every((item) => validateListElement(item, edge))
       if (allValid && items.length > 0) {
         const decodedItems = items.map((item) => decodeIfTagged(item))
-        const innerType = inferListElementType(items[0])
+        const innerType = inferListElementType(items)
         const type: PlaceholderType = { type: 'List', inner: innerType }
         return this.#getOrCreatePlaceholder(decodedItems, type)
       }
@@ -472,22 +472,51 @@ function getTaggedPlaceholderType(tag: JsonInputTaggedValue['$type']): Placehold
 }
 
 /**
- * Infers the placeholder type for an element in a list.
- * Used to determine the inner type of list placeholders.
+ * Infers the widest placeholder type that accommodates all elements in a list.
+ * For example, a list containing both Int and Float values infers Float.
  */
-function inferListElementType(item: unknown): PlaceholderType {
-  const classified = classifyValue(item)
+function inferListElementType(items: unknown[]): PlaceholderType {
+  let widest: PlaceholderType = { type: 'Any' }
 
-  switch (classified.kind) {
-    case 'primitive':
-      return getPrimitivePlaceholderType(classified.value)
-    case 'taggedScalar': {
-      const type = getTaggedPlaceholderType(classified.tag)
-      return type ?? { type: 'Any' }
+  for (const item of items) {
+    const classified = classifyValue(item)
+    let itemType: PlaceholderType
+
+    switch (classified.kind) {
+      case 'primitive':
+        itemType = getPrimitivePlaceholderType(classified.value)
+        break
+      case 'taggedScalar':
+        itemType = getTaggedPlaceholderType(classified.tag) ?? { type: 'Any' }
+        break
+      default:
+        return { type: 'Any' }
     }
-    default:
-      return { type: 'Any' }
+
+    widest = widenType(widest, itemType)
   }
+
+  return widest
+}
+
+/**
+ * Returns the wider of two placeholder types, following numeric promotion rules:
+ * Int -> BigInt -> Float. Non-numeric types must match exactly or produce Any.
+ */
+function widenType(a: PlaceholderType, b: PlaceholderType): PlaceholderType {
+  if (a.type === 'Any') return b
+  if (b.type === 'Any') return a
+  if (a.type === b.type) return a
+
+  const NUMERIC_WIDTH: Partial<Record<string, number>> = { Int: 0, BigInt: 1, Float: 2 }
+  const aWidth = NUMERIC_WIDTH[a.type]
+  const bWidth = NUMERIC_WIDTH[b.type]
+
+  if (aWidth !== undefined && bWidth !== undefined) {
+    return aWidth >= bWidth ? a : b
+  }
+
+  return { type: 'Any' }
 }
 
 /**
