@@ -110,7 +110,6 @@ function unescapeValue(value: string): string {
 export function parseConnectionString(connectionString: string): sql.config {
   const withoutProtocol = connectionString.replace(/^sqlserver:\/\//, '')
 
-  // Split by semicolon while respecting curly brace escaping
   const parts = splitRespectingBraces(withoutProtocol)
   const [hostPart, ...paramParts] = parts
 
@@ -147,7 +146,6 @@ export function parseConnectionString(connectionString: string): sql.config {
     if (trimmedKey in parameters) {
       throw new Error(`Duplication configuration parameter: ${trimmedKey}`)
     }
-    // Join value parts back together (in case there were = signs in the value)
     const value = valueParts.join('=')
     parameters[trimmedKey] = unescapeValue(value)
     if (!handledParameters.includes(trimmedKey)) {
