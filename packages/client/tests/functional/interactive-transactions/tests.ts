@@ -221,11 +221,12 @@ testMatrix.setupTestSuite(
     })
 
     testIf(provider === Providers.MONGODB)('mongodb: nested transactions are not available in types', async () => {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction((tx) => {
         // For MongoDB, the transaction-bound client type should not expose `$transaction`.
         // We keep this as a type-only assertion: at runtime, this is just a property access.
         // @ts-test-if: provider !== Providers.MONGODB
         void tx.$transaction
+        return Promise.resolve()
       })
     })
 
@@ -268,59 +269,62 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(0)
     })
 
-    testIf(provider !== Providers.MONGODB)('sql: nested rollback restores parent state (savepoints, 3 levels)', async () => {
-      const emailA = `user_${copycat.uuid(151)}@website.com`
-      const emailB = `user_${copycat.uuid(152)}@website.com`
-      const emailC = `user_${copycat.uuid(153)}@website.com`
+    testIf(provider !== Providers.MONGODB)(
+      'sql: nested rollback restores parent state (savepoints, 3 levels)',
+      async () => {
+        const emailA = `user_${copycat.uuid(151)}@website.com`
+        const emailB = `user_${copycat.uuid(152)}@website.com`
+        const emailC = `user_${copycat.uuid(153)}@website.com`
 
-      const outerPromise = prisma.$transaction(async (tx) => {
-        await tx.user.create({ data: { email: emailA } })
+        const outerPromise = prisma.$transaction(async (tx) => {
+          await tx.user.create({ data: { email: emailA } })
 
-        const afterOuterInsert = await tx.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
-        expect(afterOuterInsert).toHaveLength(1)
+          const afterOuterInsert = await tx.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
+          expect(afterOuterInsert).toHaveLength(1)
 
-        try {
-          await tx.$transaction(async (tx2) => {
-            await tx2.user.create({ data: { email: emailB } })
+          try {
+            await tx.$transaction(async (tx2) => {
+              await tx2.user.create({ data: { email: emailB } })
 
-            const afterInnerInsert = await tx2.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
-            expect(afterInnerInsert).toHaveLength(2)
+              const afterInnerInsert = await tx2.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
+              expect(afterInnerInsert).toHaveLength(2)
 
-            try {
-              await tx2.$transaction(async (tx3) => {
-                await tx3.user.create({ data: { email: emailC } })
-                const afterGrandchildInsert = await tx3.user.findMany({
-                  where: { email: { in: [emailA, emailB, emailC] } },
+              try {
+                await tx2.$transaction(async (tx3) => {
+                  await tx3.user.create({ data: { email: emailC } })
+                  const afterGrandchildInsert = await tx3.user.findMany({
+                    where: { email: { in: [emailA, emailB, emailC] } },
+                  })
+                  expect(afterGrandchildInsert).toHaveLength(3)
+                  throw new Error('grandchild rollback')
                 })
-                expect(afterGrandchildInsert).toHaveLength(3)
-                throw new Error('grandchild rollback')
+              } catch (e) {
+                expect(e).toMatchObject({ message: 'grandchild rollback' })
+              }
+
+              const afterGrandchildRollback = await tx2.user.findMany({
+                where: { email: { in: [emailA, emailB, emailC] } },
               })
-            } catch (e) {
-              expect(e).toMatchObject({ message: 'grandchild rollback' })
-            }
+              expect(afterGrandchildRollback).toHaveLength(2)
 
-            const afterGrandchildRollback = await tx2.user.findMany({
-              where: { email: { in: [emailA, emailB, emailC] } },
+              throw new Error('child rollback')
             })
-            expect(afterGrandchildRollback).toHaveLength(2)
+          } catch (e) {
+            expect(e).toMatchObject({ message: 'child rollback' })
+          }
 
-            throw new Error('child rollback')
-          })
-        } catch (e) {
-          expect(e).toMatchObject({ message: 'child rollback' })
-        }
+          const afterChildRollback = await tx.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
+          expect(afterChildRollback).toHaveLength(1)
 
-        const afterChildRollback = await tx.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
-        expect(afterChildRollback).toHaveLength(1)
+          throw new Error('outer rollback')
+        })
 
-        throw new Error('outer rollback')
-      })
+        await expect(outerPromise).rejects.toThrow('outer rollback')
 
-      await expect(outerPromise).rejects.toThrow('outer rollback')
-
-      const users = await prisma.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
-      expect(users).toHaveLength(0)
-    })
+        const users = await prisma.user.findMany({ where: { email: { in: [emailA, emailB, emailC] } } })
+        expect(users).toHaveLength(0)
+      },
+    )
 
     testIf(provider !== Providers.MONGODB)('sql: nested commit keeps state (savepoints, 3 levels)', async () => {
       const emailA = `user_${copycat.uuid(161)}@website.com`
@@ -386,34 +390,37 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(0)
     })
 
-    testIf(provider !== Providers.MONGODB)('sql: allow nested transactions in concurrent top-level transactions', async () => {
-      const a1 = `user_${copycat.uuid(401)}@website.com`
-      const a2 = `user_${copycat.uuid(402)}@website.com`
-      const b1 = `user_${copycat.uuid(403)}@website.com`
-      const b2 = `user_${copycat.uuid(404)}@website.com`
+    testIf(provider !== Providers.MONGODB)(
+      'sql: allow nested transactions in concurrent top-level transactions',
+      async () => {
+        const a1 = `user_${copycat.uuid(401)}@website.com`
+        const a2 = `user_${copycat.uuid(402)}@website.com`
+        const b1 = `user_${copycat.uuid(403)}@website.com`
+        const b2 = `user_${copycat.uuid(404)}@website.com`
 
-      await Promise.all([
-        prisma.$transaction(async (tx) => {
-          await tx.user.create({ data: { email: a1 } })
-          await delay(25)
-          await tx.$transaction(async (tx2) => {
+        await Promise.all([
+          prisma.$transaction(async (tx) => {
+            await tx.user.create({ data: { email: a1 } })
             await delay(25)
-            await tx2.user.create({ data: { email: a2 } })
-          })
-        }),
-        prisma.$transaction(async (tx) => {
-          await tx.user.create({ data: { email: b1 } })
-          await delay(25)
-          await tx.$transaction(async (tx2) => {
+            await tx.$transaction(async (tx2) => {
+              await delay(25)
+              await tx2.user.create({ data: { email: a2 } })
+            })
+          }),
+          prisma.$transaction(async (tx) => {
+            await tx.user.create({ data: { email: b1 } })
             await delay(25)
-            await tx2.user.create({ data: { email: b2 } })
-          })
-        }),
-      ])
+            await tx.$transaction(async (tx2) => {
+              await delay(25)
+              await tx2.user.create({ data: { email: b2 } })
+            })
+          }),
+        ])
 
-      const users = await prisma.user.findMany({ where: { email: { in: [a1, a2, b1, b2] } } })
-      expect(users).toHaveLength(4)
-    })
+        const users = await prisma.user.findMany({ where: { email: { in: [a1, a2, b1, b2] } } })
+        expect(users).toHaveLength(4)
+      },
+    )
 
     testIf(provider !== Providers.MONGODB)('sql: nested commit keeps outer transaction open', async () => {
       const email1 = `user_${copycat.uuid(211)}@website.com`
@@ -531,41 +538,45 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(0)
     })
 
-    testIf(provider !== Providers.MONGODB)('sql: child fails if parent tries to commit before child finishes', async () => {
-      const email = `user_${copycat.uuid(521)}@website.com`
-      let child: Promise<unknown> | undefined
+    testIf(provider !== Providers.MONGODB)(
+      'sql: child fails if parent tries to commit before child finishes',
+      async () => {
+        const email = `user_${copycat.uuid(521)}@website.com`
+        let child: Promise<unknown> | undefined
 
-      const parent = prisma.$transaction(async (tx) => {
-        child = tx.$transaction(async (tx2) => {
-          await delay(50)
-          await tx2.user.create({ data: { email } })
+        const parent = prisma.$transaction((tx) => {
+          child = tx.$transaction(async (tx2) => {
+            await delay(50)
+            await tx2.user.create({ data: { email } })
+          })
+          child.catch(() => {}) // prevent unhandled rejection if parent fails fast
+
+          // Parent returns immediately (commit attempt) without awaiting the child.
+          return Promise.resolve()
         })
-        child.catch(() => {}) // prevent unhandled rejection if parent fails fast
 
-        // Parent returns immediately (commit attempt) without awaiting the child.
-      })
+        await expect(parent).rejects.toThrow('Cannot close transaction while a nested transaction is still active.')
+        await expect(child).rejects.toMatchObject({
+          code: 'P2028',
+        })
 
-      await expect(parent).rejects.toThrow('Cannot close transaction while a nested transaction is still active.')
-      await expect(child).rejects.toMatchObject({
-        code: 'P2028',
-      })
-
-      const users = await prisma.user.findMany({ where: { email } })
-      expect(users).toHaveLength(0)
-    })
+        const users = await prisma.user.findMany({ where: { email } })
+        expect(users).toHaveLength(0)
+      },
+    )
 
     testIf(provider !== Providers.MONGODB)('sql: child fails if parent rolls back before child finishes', async () => {
       const email = `user_${copycat.uuid(501)}@website.com`
       let child: Promise<unknown> | undefined
 
-      const parent = prisma.$transaction(async (tx) => {
+      const parent = prisma.$transaction((tx) => {
         child = tx.$transaction(async (tx2) => {
           await delay(50)
           await tx2.user.create({ data: { email } })
         })
         child.catch(() => {}) // prevent unhandled rejection if parent fails fast
 
-        throw new Error('parent rollback')
+        return Promise.reject(new Error('parent rollback'))
       })
 
       await expect(parent).rejects.toThrow('parent rollback')
@@ -577,31 +588,35 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(0)
     })
 
-    testIf(provider !== Providers.MONGODB)('sql: child fails if nested parent closes before grandchild finishes', async () => {
-      const email = `user_${copycat.uuid(511)}@website.com`
-      let grandchild: Promise<unknown> | undefined
+    testIf(provider !== Providers.MONGODB)(
+      'sql: child fails if nested parent closes before grandchild finishes',
+      async () => {
+        const email = `user_${copycat.uuid(511)}@website.com`
+        let grandchild: Promise<unknown> | undefined
 
-      const parent = prisma.$transaction(async (tx) => {
-        await tx.$transaction(async (tx2) => {
-          grandchild = tx2.$transaction(async (tx3) => {
-            await delay(50)
-            await tx3.user.create({ data: { email } })
+        const parent = prisma.$transaction(async (tx) => {
+          await tx.$transaction((tx2) => {
+            grandchild = tx2.$transaction(async (tx3) => {
+              await delay(50)
+              await tx3.user.create({ data: { email } })
+            })
+            grandchild.catch(() => {}) // prevent unhandled rejection if parent fails fast
+
+            // Intentionally don't await `grandchild` to simulate incorrect ordering.
+            // The parent nested transaction should fail to close and the whole top-level tx should rollback.
+            return Promise.resolve()
           })
-          grandchild.catch(() => {}) // prevent unhandled rejection if parent fails fast
-
-          // Intentionally don't await `grandchild` to simulate incorrect ordering.
-          // The parent nested transaction should fail to close and the whole top-level tx should rollback.
         })
-      })
 
-      await expect(parent).rejects.toThrow('Nested transactions must be closed in reverse order of creation.')
-      await expect(grandchild).rejects.toMatchObject({
-        code: 'P2028',
-      })
+        await expect(parent).rejects.toThrow('Nested transactions must be closed in reverse order of creation.')
+        await expect(grandchild).rejects.toMatchObject({
+          code: 'P2028',
+        })
 
-      const users = await prisma.user.findMany({ where: { email } })
-      expect(users).toHaveLength(0)
-    })
+        const users = await prisma.user.findMany({ where: { email } })
+        expect(users).toHaveLength(0)
+      },
+    )
 
     testIf(provider === Providers.MONGODB)('mongodb: disallow nested transactions at runtime', async () => {
       const result = prisma.$transaction(async (tx) => {
@@ -617,7 +632,6 @@ testMatrix.setupTestSuite(
       const users = await prisma.user.findMany()
       expect(users).toHaveLength(0)
     })
-
 
     /**
      * We don't allow certain methods to be called in a transaction
