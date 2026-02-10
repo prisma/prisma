@@ -68,7 +68,6 @@ function splitRespectingBraces(str: string): string[] {
       }
       current += char
     } else if (char === ';' && braceDepth === 0) {
-      // Only split on semicolon if we're not inside curly braces
       parts.push(current)
       current = ''
     } else {
@@ -76,9 +75,12 @@ function splitRespectingBraces(str: string): string[] {
     }
   }
 
-  // Add the last part
   if (current) {
     parts.push(current)
+  }
+
+  if (braceDepth !== 0) {
+    throw new Error(`Malformed connection string: unclosed '{' brace (braceDepth=${braceDepth})`)
   }
 
   return parts
@@ -93,9 +95,7 @@ function splitRespectingBraces(str: string): string[] {
  */
 function unescapeValue(value: string): string {
   const trimmed = value.trim()
-  // Check if value is wrapped in curly braces
-  if (trimmed.startsWith('{') && trimmed.endsWith('}') && trimmed.length > 2) {
-    // Remove the outer braces
+  if (trimmed.startsWith('{') && trimmed.endsWith('}') && trimmed.length >= 2) {
     return trimmed.slice(1, -1)
   }
   return trimmed

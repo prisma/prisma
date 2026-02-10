@@ -254,6 +254,35 @@ describe('parseConnectionString', () => {
       expect(config.password).toBe('P@ss;w=rd!123')
       expect(config.options?.encrypt).toBe(true)
     })
+
+    it('should handle empty braces as empty string', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('')
+    })
+
+    it('should not unescape braces that are not at value boundaries', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password=my{pass}word'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('my{pass}word')
+    })
+
+    it('should throw error on unclosed opening brace', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={unclosed;value'
+
+      expect(() => {
+        parseConnectionString(connectionString)
+      }).toThrow("Malformed connection string: unclosed '{' brace")
+    })
+
+    it('should not throw on unmatched closing brace (clamped)', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password=pass}word'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('pass}word')
+    })
   })
 
   describe('isolation level parameter', () => {
@@ -629,6 +658,20 @@ describe('extractSchemaFromConnectionString', () => {
       const schema = extractSchemaFromConnectionString(connectionString)
 
       expect(schema).toBe('my;schema')
+    })
+
+    it('should handle empty braces in schema as empty string', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;schema={}'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('')
+    })
+
+    it('should not unescape braces that are not at schema value boundaries', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;schema=my{sche}ma'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('my{sche}ma')
     })
   })
 })
