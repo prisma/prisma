@@ -262,11 +262,15 @@ export class TransactionManager {
           )
         }
         const query = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
-        if (query) {
-          await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
+        try {
+          if (query) {
+            await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
+          }
+        } finally {
+          // Keep internal state consistent even if releasing the savepoint fails.
+          txw.savepoints.pop()
+          txw.depth -= 1
         }
-        txw.savepoints.pop()
-        txw.depth -= 1
         return
       }
       await this.#closeTransaction(txw, 'committed')
@@ -291,14 +295,17 @@ export class TransactionManager {
         )
 
         const releaseQuery = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
-        if (releaseQuery) {
-          await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
-            txw.transaction!.executeRaw(releaseQuery),
-          )
+        try {
+          if (releaseQuery) {
+            await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
+              txw.transaction!.executeRaw(releaseQuery),
+            )
+          }
+        } finally {
+          // Keep internal state consistent even if releasing the savepoint fails.
+          txw.savepoints.pop()
+          txw.depth -= 1
         }
-
-        txw.savepoints.pop()
-        txw.depth -= 1
         return
       }
       await this.#closeTransaction(txw, 'rolled_back')

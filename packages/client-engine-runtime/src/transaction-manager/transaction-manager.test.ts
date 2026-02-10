@@ -190,6 +190,7 @@ test('nested savepoints use sqlserver syntax', async () => {
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TRANSACTION prisma_sp_\d+$/)
 
   // No release savepoint query on SQL Server.
+  expect(driverAdapter.executeRawMock.mock.calls).toHaveLength(2)
   await transactionManager.commitTransaction(id)
   expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
 })

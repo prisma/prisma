@@ -110,10 +110,15 @@ export class RequestHandler {
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
         if (interactiveTransaction) {
+          const existingPayload =
+            typeof interactiveTransaction.payload === 'object' && interactiveTransaction.payload !== null
+              ? interactiveTransaction.payload
+              : {}
+
           interactiveTransaction.payload = {
             // If the interactive transaction has a payload, we need to merge it with the new_tx_id
-            ...(interactiveTransaction.payload as any),
-            new_tx_id: interactiveTransaction?.id,
+            ...(existingPayload as any),
+            new_tx_id: interactiveTransaction.id,
           }
         }
 

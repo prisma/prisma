@@ -287,7 +287,7 @@ constructor() {
       validatePrismaClientOptions(optionsArg, config)
 
       // prevents unhandled error events when users do not explicitly listen to them
-      const logEmitter = new EventEmitter().on('error', () => { }) as LogEmitter
+      const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = config.previewFeatures
@@ -681,7 +681,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       options = {},
     }: {
       callback: (client: Client) => Promise<unknown>
-      options?: Options & { newTxId?: string }
+      options?: Options
     }) {
       const isNested = Boolean(this[TX_ID])
       const callerScopeId = isNested ? (this as any)[TX_SCOPE_ID] : undefined
@@ -753,7 +753,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         const isOrderViolation = scopeStack.at(-1) !== scopeId
         const rollbackAttempts = isOrderViolation ? Math.max(1, scopeStack.length) : 1
         for (let i = 0; i < rollbackAttempts; i++) {
-          await this._engine.transaction('rollback', headers, info).catch(() => { })
+          await this._engine.transaction('rollback', headers, info).catch(() => {})
         }
 
         throw e // silent rollback, throw original error
