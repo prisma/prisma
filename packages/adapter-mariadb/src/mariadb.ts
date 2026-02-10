@@ -251,17 +251,43 @@ export function inferCapabilities(version: unknown): Capabilities {
 /**
  * Rewrites mysql:// connection strings to mariadb:// format.
  * This allows users to use mysql:// connection strings with the MariaDB adapter.
+ * Also encodes special characters in username and password.
  */
 export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
   if (typeof config !== 'string') {
     return config
   }
 
-  if (!config.startsWith('mysql://')) {
-    return config
+  let connectionString = config
+
+  // Rewrite mysql:// to mariadb://
+  if (connectionString.startsWith('mysql://')) {
+    connectionString = connectionString.replace(/^mysql:\/\//, 'mariadb://')
   }
 
-  return config.replace(/^mysql:\/\//, 'mariadb://')
+  // Only process mariadb:// connection strings
+  if (!connectionString.startsWith('mariadb://')) {
+    return connectionString
+  }
+
+  // Parse the connection string to encode username and password
+  try {
+    const url = new URL(connectionString)
+
+    // Encode username and password if they contain special characters
+    if (url.username) {
+      url.username = encodeURIComponent(decodeURIComponent(url.username))
+    }
+    if (url.password) {
+      url.password = encodeURIComponent(decodeURIComponent(url.password))
+    }
+
+    return url.toString()
+  } catch (error) {
+    // If URL parsing fails, return the original string
+    // The mariadb driver will handle the error
+    return connectionString
+  }
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
