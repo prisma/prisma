@@ -465,6 +465,8 @@ function getTaggedPlaceholderType(tag: JsonInputTaggedValue['$type']): Placehold
     case 'Json':
       return { type: tag }
     case 'Decimal':
+      // PrismaValueType doesn't have a Decimal variant and treats both Floats
+      // and Decimal as decimals
       return { type: 'Float' }
     default:
       return undefined
