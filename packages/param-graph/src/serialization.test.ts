@@ -203,5 +203,4 @@ describe('param-graph serialization', () => {
     expect(deserialized.roots['root'].argsNodeId).toBe(0)
     expect(deserialized.roots['root'].outputNodeId).toBe(0)
   })
-
 })
