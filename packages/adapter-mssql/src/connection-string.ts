@@ -45,6 +45,61 @@ export function extractSchemaFromConnectionString(connectionString: string): str
 }
 
 /**
+ * Splits a connection string by semicolons while respecting curly brace escaping.
+ * Values wrapped in curly braces like {value} are treated as literals where
+ * semicolons and equals signs are not treated as delimiters.
+ * @param str The string to split
+ * @returns Array of parts split by semicolon (outside of curly braces)
+ */
+function splitRespectingBraces(str: string): string[] {
+  const parts: string[] = []
+  let current = ''
+  let braceDepth = 0
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i]
+
+    if (char === '{') {
+      braceDepth++
+      current += char
+    } else if (char === '}') {
+      braceDepth--
+      current += char
+    } else if (char === ';' && braceDepth === 0) {
+      // Only split on semicolon if we're not inside curly braces
+      parts.push(current)
+      current = ''
+    } else {
+      current += char
+    }
+  }
+
+  // Add the last part
+  if (current) {
+    parts.push(current)
+  }
+
+  return parts
+}
+
+/**
+ * Extracts the value from a parameter, removing curly braces if present.
+ * If the value is wrapped in curly braces like {value}, returns value.
+ * Otherwise returns the value as-is.
+ * @param value The value to process
+ * @returns The unescaped value
+ */
+function unescapeValue(value: string): string {
+  const trimmed = value.trim()
+  // Check if value is wrapped in curly braces
+  if (trimmed.startsWith('{') && trimmed.endsWith('}') && trimmed.length > 2) {
+    // Remove the outer braces
+    return trimmed.slice(1, -1)
+  }
+  return trimmed
+}
+
+/**
  * Parses a Prisma SQL Server connection string into a sql.config object.
  * As per https://www.prisma.io/docs/orm/overview/databases/sql-server#connection-details.
  * @param connectionString The connection string.
@@ -53,8 +108,9 @@ export function extractSchemaFromConnectionString(connectionString: string): str
 export function parseConnectionString(connectionString: string): sql.config {
   const withoutProtocol = connectionString.replace(/^sqlserver:\/\//, '')
 
-  // Split by semicolon to get key-value pairs
-  const [hostPart, ...paramParts] = withoutProtocol.split(';')
+  // Split by semicolon while respecting curly brace escaping
+  const parts = splitRespectingBraces(withoutProtocol)
+  const [hostPart, ...paramParts] = parts
 
   const config: sql.config = {
     server: '',
@@ -63,6 +119,10 @@ export function parseConnectionString(connectionString: string): sql.config {
   }
 
   // Parse the first part which contains host and port
+  if (!hostPart || hostPart.trim() === '') {
+    throw new Error('Server host is required in connection string')
+  }
+
   const [host, portStr] = hostPart.split(':')
   config.server = host.trim()
 
@@ -78,14 +138,16 @@ export function parseConnectionString(connectionString: string): sql.config {
   const parameters: Record<string, string> = {}
 
   for (const part of paramParts) {
-    const [key, value] = part.split('=', 2)
+    const [key, ...valueParts] = part.split('=')
     if (!key) continue
 
     const trimmedKey = key.trim()
     if (trimmedKey in parameters) {
       throw new Error(`Duplication configuration parameter: ${trimmedKey}`)
     }
-    parameters[trimmedKey] = value.trim()
+    // Join value parts back together (in case there were = signs in the value)
+    const value = valueParts.join('=')
+    parameters[trimmedKey] = unescapeValue(value)
     if (!handledParameters.includes(trimmedKey)) {
       debug(`Unknown connection string parameter: ${trimmedKey}`)
     }

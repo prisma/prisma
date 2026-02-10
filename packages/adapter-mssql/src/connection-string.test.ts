@@ -190,6 +190,72 @@ describe('parseConnectionString', () => {
     })
   })
 
+  describe('escaped values with curly braces', () => {
+    it('should parse password with curly braces correctly', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={mypassword}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('mypassword')
+    })
+
+    it('should handle password with semicolon when escaped', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={pass;word}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('pass;word')
+    })
+
+    it('should handle password with equals sign when escaped', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={pass=word}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('pass=word')
+    })
+
+    it('should handle password with both semicolon and equals when escaped', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={pass;word=123}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.password).toBe('pass;word=123')
+    })
+
+    it('should handle escaped database name', () => {
+      const connectionString = 'sqlserver://localhost;database={test;db};user=sa;password=mypassword'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.database).toBe('test;db')
+    })
+
+    it('should handle escaped user name', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user={domain\\user;name};password=mypassword'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.user).toBe('domain\\user;name')
+    })
+
+    it('should handle multiple escaped values', () => {
+      const connectionString = 'sqlserver://localhost;database={test;db};user={my;user};password={my;pass=word}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.database).toBe('test;db')
+      expect(config.user).toBe('my;user')
+      expect(config.password).toBe('my;pass=word')
+    })
+
+    it('should handle complex password with multiple special characters', () => {
+      const connectionString =
+        'sqlserver://localhost:1433;database=testdb;user=sa;password={P@ss;w=rd!123};encrypt=true'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.server).toBe('localhost')
+      expect(config.port).toBe(1433)
+      expect(config.database).toBe('testdb')
+      expect(config.user).toBe('sa')
+      expect(config.password).toBe('P@ss;w=rd!123')
+      expect(config.options?.encrypt).toBe(true)
+    })
+  })
+
   describe('isolation level parameter', () => {
     it('should parse isolationLevel parameter correctly', () => {
       const testCases = [
