@@ -53,6 +53,12 @@ describe('rewriteConnectionString', () => {
     expect(rewriteConnectionString(input)).toBe(expected)
   })
 
+  test('should not double-encode already percent-encoded credentials', () => {
+    const input = 'mariadb://user%40domain:p%40ss%3Aword@localhost:3306/db'
+    const expected = 'mariadb://user%40domain:p%40ss%3Aword@localhost:3306/db'
+    expect(rewriteConnectionString(input)).toBe(expected)
+  })
+
   test('should handle mysql:// with @ in username', () => {
     const input = 'mysql://user@example.com:password@localhost:3306/db'
     const expected = 'mariadb://user%40example.com:password@localhost:3306/db'

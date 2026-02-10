@@ -270,11 +270,9 @@ export function rewriteConnectionString(config: mariadb.PoolConfig | string): ma
     return connectionString
   }
 
-  // Parse the connection string to encode username and password
   try {
     const url = new URL(connectionString)
 
-    // Encode username and password if they contain special characters
     if (url.username) {
       url.username = encodeURIComponent(decodeURIComponent(url.username))
     }
