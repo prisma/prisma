@@ -85,10 +85,6 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
     super(conn)
   }
 
-  async begin(): Promise<void> {
-    debug(`[js::begin]`)
-  }
-
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 

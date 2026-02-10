@@ -73,8 +73,11 @@ const ROLLBACK_TO_SAVEPOINT_QUERY = (provider: Transaction['provider'], name: st
     case 'sqlserver':
       return { sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] }
     case 'mysql':
-    case 'postgres':
     case 'sqlite':
+      // MySQL and SQLite accept the shorter `ROLLBACK TO <savepoint-name>` form.
+      // We mirror the per-connector statements from prisma-engines/quaint for parity.
+      return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
+    case 'postgres':
       return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
     default:
       assertNever(provider, 'Unknown provider.')
@@ -283,11 +286,15 @@ export class TransactionManager {
         }
 
         const rollbackQuery = ROLLBACK_TO_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
-        await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () => txw.transaction!.executeRaw(rollbackQuery))
+        await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () =>
+          txw.transaction!.executeRaw(rollbackQuery),
+        )
 
         const releaseQuery = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
         if (releaseQuery) {
-          await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () => txw.transaction!.executeRaw(releaseQuery))
+          await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
+            txw.transaction!.executeRaw(releaseQuery),
+          )
         }
 
         txw.savepoints.pop()

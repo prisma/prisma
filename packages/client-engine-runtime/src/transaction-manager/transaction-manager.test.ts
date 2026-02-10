@@ -33,7 +33,6 @@ class MockDriverAdapter implements SqlDriverAdapter {
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
-  beginMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
@@ -60,7 +59,6 @@ class MockDriverAdapter implements SqlDriverAdapter {
 
   startTransaction(): Promise<Transaction> {
     const executeRawMock = this.executeRawMock
-    const beginMock = this.beginMock
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
@@ -72,7 +70,6 @@ class MockDriverAdapter implements SqlDriverAdapter {
       options: { usePhantomQuery },
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
-      begin: beginMock,
       commit: commitMock,
       rollback: rollbackMock,
     }
@@ -195,6 +192,48 @@ test('nested savepoints use sqlserver syntax', async () => {
   // No release savepoint query on SQL Server.
   await transactionManager.commitTransaction(id)
   expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoints use mysql syntax', async () => {
+  const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TO prisma_sp_\d+$/)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoints use sqlite syntax', async () => {
+  const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TO prisma_sp_\d+$/)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
 })
 
 test('transaction is rolled back', async () => {

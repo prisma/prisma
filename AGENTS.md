@@ -36,6 +36,7 @@
   - `QueryInterpreter` class in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` executes query plans against `SqlQueryable` (driver adapter interface).
   - Query flow: `PrismaClient` → `ClientEngine.request()` → query compiler → `executor.execute()` → `QueryInterpreter.run()` → driver adapter.
   - `ExecutePlanParams` interface in `packages/client/src/runtime/core/engines/client/Executor.ts` defines what's passed through the execution chain.
+  - `TransactionManager` in `packages/client-engine-runtime/src/transaction-manager/transaction-manager.ts` owns interactive transaction IDs and implements nested transactions using savepoints. Savepoint SQL is provider-specific (e.g. PostgreSQL uses `ROLLBACK TO SAVEPOINT <name>`, MySQL/SQLite use `ROLLBACK TO <name>`, SQL Server uses `SAVE TRANSACTION <name>` / `ROLLBACK TRANSACTION <name>` and has no release statement).
 
 - **Adding PrismaClient constructor options**:
   - Runtime types: `PrismaClientOptions` in `packages/client/src/runtime/getPrismaClient.ts`.

@@ -155,10 +155,6 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     super(client, pgOptions)
   }
 
-  async begin(): Promise<void> {
-    debug(`[js::begin]`)
-  }
-
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 

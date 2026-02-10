@@ -155,11 +155,6 @@ class PrismaPostgresTransaction implements Transaction {
     }
   }
 
-  async begin(): Promise<void> {
-    debug(`[js::begin]`)
-    await this.#ensureBegun()
-  }
-
   async commit(): Promise<void> {
     if (this.#finished) {
       throw new Error('Transaction already finished')
