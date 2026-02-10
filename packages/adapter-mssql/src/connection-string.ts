@@ -63,7 +63,9 @@ function splitRespectingBraces(str: string): string[] {
       braceDepth++
       current += char
     } else if (char === '}') {
-      braceDepth--
+      if (braceDepth > 0) {
+        braceDepth--
+      }
       current += char
     } else if (char === ';' && braceDepth === 0) {
       // Only split on semicolon if we're not inside curly braces
