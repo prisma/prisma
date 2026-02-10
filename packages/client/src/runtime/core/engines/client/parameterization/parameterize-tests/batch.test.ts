@@ -1,5 +1,4 @@
 import type { JsonBatchQuery } from '@prisma/json-protocol'
-
 import type { ParamGraph } from '@prisma/param-graph'
 
 import { parameterizeBatch } from '../parameterize'

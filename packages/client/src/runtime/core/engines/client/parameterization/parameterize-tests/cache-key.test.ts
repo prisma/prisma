@@ -1,5 +1,4 @@
 import type { JsonQuery } from '@prisma/json-protocol'
-
 import type { ParamGraph } from '@prisma/param-graph'
 
 import { parameterizeQuery } from '../parameterize'
