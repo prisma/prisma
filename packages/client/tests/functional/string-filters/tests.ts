@@ -159,37 +159,41 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(results.map((r) => r.value)).toEqual(['', 'bar', 'completely different', 'foo'])
   })
 
-  describeIf(
-    provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB,
-  )('mode: insensitive', () => {
-    beforeAll(async () => {
-      await prisma.testModel.createMany({
-        data: [{ value: 'FOO BAR BAZ' }, { value: 'Foo' }],
-      })
-    })
-
-    test('contains case-insensitive', async () => {
-      const results = await prisma.testModel.findMany({
-        where: { value: { contains: 'bar', mode: 'insensitive' } },
+  describeIf(provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB)(
+    'mode: insensitive',
+    () => {
+      beforeAll(async () => {
+        await prisma.testModel.createMany({
+          data: [{ value: 'FOO BAR BAZ' }, { value: 'Foo' }],
+        })
       })
 
-      expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'bar', 'foo bar baz'])
-    })
+      test('contains case-insensitive', async () => {
+        const results = await prisma.testModel.findMany({
+          // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+          where: { value: { contains: 'bar', mode: 'insensitive' } },
+        })
 
-    test('startsWith case-insensitive', async () => {
-      const results = await prisma.testModel.findMany({
-        where: { value: { startsWith: 'foo', mode: 'insensitive' } },
+        expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'bar', 'foo bar baz'])
       })
 
-      expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'Foo', 'foo', 'foo bar baz'])
-    })
+      test('startsWith case-insensitive', async () => {
+        const results = await prisma.testModel.findMany({
+          // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+          where: { value: { startsWith: 'foo', mode: 'insensitive' } },
+        })
 
-    test('endsWith case-insensitive', async () => {
-      const results = await prisma.testModel.findMany({
-        where: { value: { endsWith: 'baz', mode: 'insensitive' } },
+        expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'Foo', 'foo', 'foo bar baz'])
       })
 
-      expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'baz', 'foo bar baz'])
-    })
-  })
+      test('endsWith case-insensitive', async () => {
+        const results = await prisma.testModel.findMany({
+          // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+          where: { value: { endsWith: 'baz', mode: 'insensitive' } },
+        })
+
+        expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'baz', 'foo bar baz'])
+      })
+    },
+  )
 })
