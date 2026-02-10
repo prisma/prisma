@@ -463,6 +463,49 @@ describe('parseConnectionString', () => {
   })
 
   describe('edge cases', () => {
+    it('should handle brace escaping only when { is the first character (tedious compatibility)', () => {
+      // Edge case from jacek-prisma: https://github.com/prisma/prisma/pull/29158#discussion_r1943210520
+      // Tedious treats { as a quote character ONLY when it's the FIRST character of a value
+      const connectionString = 'sqlserver://localhost;database=testdb;user=u{s;password=}password;'
+      const config = parseConnectionString(connectionString)
+
+      // According to tedious behavior:
+      // user=u{s → user is "u{s" (the { is not the first char, so not treated as quote)
+      // password=}password → password is "}password" (no opening { to match)
+      expect(config.user).toBe('u{s')
+      expect(config.password).toBe('}password')
+      expect(config.database).toBe('testdb')
+    })
+
+    it('should handle braces in the middle of values correctly', () => {
+      const connectionString = 'sqlserver://localhost;database=test{db}name;user=my{user}name;password=pass{word}'
+      const config = parseConnectionString(connectionString)
+
+      // Braces in the middle should be treated as literal characters
+      expect(config.database).toBe('test{db}name')
+      expect(config.user).toBe('my{user}name')
+      expect(config.password).toBe('pass{word}')
+    })
+
+    it('should still escape when { is the first character', () => {
+      const connectionString = 'sqlserver://localhost;database={test;db};user={my;user};password={my;pass=word}'
+      const config = parseConnectionString(connectionString)
+
+      // When { is first character, it should escape the content
+      expect(config.database).toBe('test;db')
+      expect(config.user).toBe('my;user')
+      expect(config.password).toBe('my;pass=word')
+    })
+
+    it('should handle mixed scenarios with braces', () => {
+      const connectionString = 'sqlserver://localhost;database={db;1};user=prefix{middle};password={escaped;pwd}'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.database).toBe('db;1')
+      expect(config.user).toBe('prefix{middle}')
+      expect(config.password).toBe('escaped;pwd')
+    })
+
     it('should handle connection string with only server', () => {
       const connectionString = 'sqlserver://localhost'
       const config = parseConnectionString(connectionString)

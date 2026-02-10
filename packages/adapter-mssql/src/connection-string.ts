@@ -48,6 +48,10 @@ export function extractSchemaFromConnectionString(connectionString: string): str
  * Splits a connection string by semicolons while respecting curly brace escaping.
  * Values wrapped in curly braces like {value} are treated as literals where
  * semicolons and equals signs are not treated as delimiters.
+ *
+ * Important: Curly braces are only treated as quote characters when { is the
+ * FIRST character of a value (after the = sign). This matches tedious behavior.
+ *
  * @param str The string to split
  * @returns Array of parts split by semicolon (outside of curly braces)
  */
@@ -55,23 +59,38 @@ function splitRespectingBraces(str: string): string[] {
   const parts: string[] = []
   let current = ''
   let braceDepth = 0
+  let afterEquals = false
+  let valueStartIndex = -1
 
   for (let i = 0; i < str.length; i++) {
     const char = str[i]
 
-    if (char === '{') {
-      braceDepth++
+    if (char === '=') {
       current += char
+      afterEquals = true
+      valueStartIndex = i + 1
+    } else if (char === '{') {
+      // Only treat { as opening brace if it's the first character of a value
+      const isFirstCharOfValue = afterEquals && i === valueStartIndex
+      if (isFirstCharOfValue) {
+        braceDepth++
+      }
+      current += char
+      afterEquals = false
     } else if (char === '}') {
       if (braceDepth > 0) {
         braceDepth--
       }
       current += char
+      afterEquals = false
     } else if (char === ';' && braceDepth === 0) {
       parts.push(current)
       current = ''
+      afterEquals = false
+      valueStartIndex = -1
     } else {
       current += char
+      afterEquals = false
     }
   }
 
