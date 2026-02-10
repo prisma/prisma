@@ -594,4 +594,41 @@ describe('extractSchemaFromConnectionString', () => {
 
     expect(schema).toBe('')
   })
+
+  describe('escaped schema values with curly braces', () => {
+    it('should extract schema with curly braces correctly', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;schema={custom}'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('custom')
+    })
+
+    it('should handle schema with semicolon when escaped', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;schema={custom;schema}'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('custom;schema')
+    })
+
+    it('should handle schema with equals sign when escaped', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;schema={custom=schema}'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('custom=schema')
+    })
+
+    it('should handle schema with both semicolon and equals when escaped', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;schema={custom;schema=value}'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('custom;schema=value')
+    })
+
+    it('should handle schema with escaped value and other parameters', () => {
+      const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={pass;word};schema={my;schema}'
+      const schema = extractSchemaFromConnectionString(connectionString)
+
+      expect(schema).toBe('my;schema')
+    })
+  })
 })

@@ -33,12 +33,12 @@ const debug = Debug('prisma:driver-adapter:mssql:connection-string')
  */
 export function extractSchemaFromConnectionString(connectionString: string): string | undefined {
   const withoutProtocol = connectionString.replace(/^sqlserver:\/\//, '')
-  const parts = withoutProtocol.split(';')
+  const parts = splitRespectingBraces(withoutProtocol)
 
   for (const part of parts) {
-    const [key, value] = part.split('=', 2)
+    const [key, ...valueParts] = part.split('=')
     if (key?.trim() === 'schema') {
-      return value?.trim()
+      return unescapeValue(valueParts.join('='))
     }
   }
   return undefined
