@@ -129,37 +129,47 @@ describe('parseConnectionString', () => {
       const connectionString = 'sqlserver://localhost;database=testdb;connectTimeout=30'
       const config = parseConnectionString(connectionString)
 
-      expect(config.connectionTimeout).toBe(30)
+      expect(config.connectionTimeout).toBe(30000) // 30 seconds in milliseconds
     })
 
     it('should parse connectionTimeout parameter correctly', () => {
       const connectionString = 'sqlserver://localhost;database=testdb;connectionTimeout=30'
       const config = parseConnectionString(connectionString)
 
-      expect(config.connectionTimeout).toBe(30)
+      expect(config.connectionTimeout).toBe(30000) // 30 seconds in milliseconds
     })
 
     it('should parse loginTimeout parameter correctly', () => {
       const connectionString = 'sqlserver://localhost;database=testdb;loginTimeout=45'
       const config = parseConnectionString(connectionString)
 
-      expect(config.connectionTimeout).toBe(45)
+      expect(config.connectionTimeout).toBe(45000) // 45 seconds in milliseconds
     })
 
     it('should parse socketTimeout parameter correctly', () => {
       const connectionString = 'sqlserver://localhost;database=testdb;socketTimeout=60'
       const config = parseConnectionString(connectionString)
 
-      expect(config.requestTimeout).toBe(60)
+      expect(config.requestTimeout).toBe(60000) // 60 seconds in milliseconds
     })
 
     it('should handle multiple timeout parameters', () => {
       const connectionString = 'sqlserver://localhost;database=testdb;connectTimeout=30;socketTimeout=60;poolTimeout=10'
       const config = parseConnectionString(connectionString)
 
-      expect(config.connectionTimeout).toBe(30)
-      expect(config.requestTimeout).toBe(60)
-      expect(config.pool?.acquireTimeoutMillis).toBe(10000)
+      expect(config.connectionTimeout).toBe(30000) // 30 seconds in milliseconds
+      expect(config.requestTimeout).toBe(60000) // 60 seconds in milliseconds
+      expect(config.pool?.acquireTimeoutMillis).toBe(10000) // 10 seconds in milliseconds
+    })
+
+    it('should convert timeout values from seconds to milliseconds as documented', () => {
+      // Regression test for issue #29029: timeouts should be interpreted as seconds, not milliseconds
+      const connectionString = 'sqlserver://localhost;database=testdb;connectTimeout=1;socketTimeout=1;loginTimeout=1'
+      const config = parseConnectionString(connectionString)
+
+      // All timeout values should be converted from 1 second to 1000 milliseconds
+      expect(config.connectionTimeout).toBe(1000) // 1 second = 1000ms
+      expect(config.requestTimeout).toBe(1000) // 1 second = 1000ms
     })
   })
 

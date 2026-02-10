@@ -140,7 +140,7 @@ export function parseConnectionString(connectionString: string): sql.config {
     if (isNaN(timeout)) {
       throw new Error(`Invalid connection timeout: ${connectionTimeout}`)
     }
-    config.connectionTimeout = timeout
+    config.connectionTimeout = timeout * 1000
   }
 
   const loginTimeout = firstKey(parameters, 'loginTimeout')
@@ -149,7 +149,7 @@ export function parseConnectionString(connectionString: string): sql.config {
     if (isNaN(timeout)) {
       throw new Error(`Invalid login timeout: ${loginTimeout}`)
     }
-    config.connectionTimeout = timeout
+    config.connectionTimeout = timeout * 1000
   }
 
   const socketTimeout = firstKey(parameters, 'socketTimeout')
@@ -158,7 +158,7 @@ export function parseConnectionString(connectionString: string): sql.config {
     if (isNaN(timeout)) {
       throw new Error(`Invalid socket timeout: ${socketTimeout}`)
     }
-    config.requestTimeout = timeout
+    config.requestTimeout = timeout * 1000
   }
 
   const poolTimeout = firstKey(parameters, 'poolTimeout')
