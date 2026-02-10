@@ -59,7 +59,6 @@ function splitRespectingBraces(str: string): string[] {
   const parts: string[] = []
   let current = ''
   let braceDepth = 0
-  let afterEquals = false
   let valueStartIndex = -1
 
   for (let i = 0; i < str.length; i++) {
@@ -67,30 +66,25 @@ function splitRespectingBraces(str: string): string[] {
 
     if (char === '=') {
       current += char
-      afterEquals = true
       valueStartIndex = i + 1
     } else if (char === '{') {
       // Only treat { as opening brace if it's the first character of a value
-      const isFirstCharOfValue = afterEquals && i === valueStartIndex
+      const isFirstCharOfValue = i === valueStartIndex
       if (isFirstCharOfValue) {
         braceDepth++
       }
       current += char
-      afterEquals = false
     } else if (char === '}') {
       if (braceDepth > 0) {
         braceDepth--
       }
       current += char
-      afterEquals = false
     } else if (char === ';' && braceDepth === 0) {
       parts.push(current)
       current = ''
-      afterEquals = false
       valueStartIndex = -1
     } else {
       current += char
-      afterEquals = false
     }
   }
 
