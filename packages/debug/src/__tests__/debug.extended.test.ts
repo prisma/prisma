@@ -20,7 +20,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.resetModules()
   vi.restoreAllMocks()
 })
 
