@@ -261,12 +261,12 @@ export function rewriteConnectionString(config: mariadb.PoolConfig | string): ma
 
   let connectionString = config
 
-  // Rewrite mysql:// to mariadb://
+  // The mariadb driver only accepts mariadb:// scheme
   if (connectionString.startsWith('mysql://')) {
     connectionString = connectionString.replace(/^mysql:\/\//, 'mariadb://')
   }
 
-  // Only process mariadb:// connection strings
+  // Non-mariadb schemes should be returned as-is to avoid mangling unrelated config
   if (!connectionString.startsWith('mariadb://')) {
     return connectionString
   }
@@ -283,8 +283,8 @@ export function rewriteConnectionString(config: mariadb.PoolConfig | string): ma
 
     return url.toString()
   } catch (error) {
-    // If URL parsing fails, return the original string
-    // The mariadb driver will handle the error
+    // If URL parsing fails, return the connection string without credential normalization.
+    // The mariadb driver will surface its own parsing error.
     return connectionString
   }
 }
