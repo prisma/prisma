@@ -251,7 +251,8 @@ export function inferCapabilities(version: unknown): Capabilities {
 /**
  * Rewrites mysql:// connection strings to mariadb:// format.
  * This allows users to use mysql:// connection strings with the MariaDB adapter.
- * Also encodes special characters in username and password.
+ * Decodes and re-assigns username/password to normalize encoding.
+ * The WHATWG URL setter automatically percent-encodes characters in the userinfo set (@ : etc.).
  */
 export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
   if (typeof config !== 'string') {
@@ -274,10 +275,10 @@ export function rewriteConnectionString(config: mariadb.PoolConfig | string): ma
     const url = new URL(connectionString)
 
     if (url.username) {
-      url.username = encodeURIComponent(decodeURIComponent(url.username))
+      url.username = decodeURIComponent(url.username)
     }
     if (url.password) {
-      url.password = encodeURIComponent(decodeURIComponent(url.password))
+      url.password = decodeURIComponent(url.password)
     }
 
     return url.toString()
