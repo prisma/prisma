@@ -510,7 +510,7 @@ function widenType(a: PlaceholderType, b: PlaceholderType): PlaceholderType {
   if (b.type === 'Any') return a
   if (a.type === b.type) return a
 
-  const NUMERIC_WIDTH: Partial<Record<string, number>> = { Int: 0, BigInt: 1, Float: 2 }
+  const NUMERIC_WIDTH: Partial<Record<PlaceholderType['type'], number>> = { Int: 0, BigInt: 1, Float: 2 }
   const aWidth = NUMERIC_WIDTH[a.type]
   const bWidth = NUMERIC_WIDTH[b.type]
 
