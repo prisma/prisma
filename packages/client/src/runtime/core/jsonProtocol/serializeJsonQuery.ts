@@ -75,6 +75,7 @@ export type SerializeParams = {
   errorFormat: ErrorFormat
   previewFeatures: string[]
   globalOmit?: GlobalOmitOptions
+  wrapRawValues?: boolean
 }
 
 const STRICT_UNDEFINED_ERROR_MESSAGE = 'explicitly `undefined` values are not allowed'
@@ -91,6 +92,7 @@ export function serializeJsonQuery({
   clientVersion,
   previewFeatures,
   globalOmit,
+  wrapRawValues,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
     runtimeDataModel,
@@ -106,6 +108,7 @@ export function serializeJsonQuery({
     clientVersion,
     previewFeatures,
     globalOmit,
+    wrapRawValues,
   })
   return {
     modelName,
@@ -309,6 +312,7 @@ function serializeArgumentsValue(
 
   if (ArrayBuffer.isView(jsValue)) {
     const { buffer, byteOffset, byteLength } = jsValue
+    // TODO(perf): get rid of this conversion
     return { $type: 'Bytes', value: Buffer.from(buffer, byteOffset, byteLength).toString('base64') }
   }
 
@@ -353,8 +357,10 @@ function serializeArgumentsObject(
   object: Record<string, JsInputValue>,
   context: SerializeContext,
 ): Record<string, JsonArgumentValue> | RawTaggedValue {
-  if (object['$type']) {
-    return { $type: 'Raw', value: object }
+  if (context.shouldWrapRawValues()) {
+    if (object['$type']) {
+      return { $type: 'Raw', value: object }
+    }
   }
   const result: Record<string, JsonArgumentValue> = {}
   for (const key in object) {
@@ -433,6 +439,7 @@ type ContextParams = {
   clientVersion: string
   previewFeatures: string[]
   globalOmit?: GlobalOmitOptions
+  wrapRawValues?: boolean
 }
 
 class SerializeContext {
@@ -490,6 +497,10 @@ class SerializeContext {
 
   isPreviewFeatureOn(previewFeature: string) {
     return this.params.previewFeatures.includes(previewFeature)
+  }
+
+  shouldWrapRawValues(): boolean {
+    return this.params.wrapRawValues ?? false
   }
 
   getComputedFields() {
