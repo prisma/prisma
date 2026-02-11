@@ -313,7 +313,7 @@ export class DMMFTraverser {
           case 'fieldRefTypes':
             break
           default:
-            inputType.location satisfies never
+            throw new Error(`Invalid location ${inputType.location satisfies never}`)
         }
       }
     }
