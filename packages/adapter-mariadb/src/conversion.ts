@@ -140,9 +140,11 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
   return arg
 }
 
-export function mapRow<A>(row: A[], fields?: mariadb.FieldInfo[]): (A | ResultValue)[] {
-  return row.map((value, i) => {
-    const type = fields?.[i].type as unknown as MariaDbColumnType
+export function mapRow<A>(row: A[] | Record<string, A>, fields?: mariadb.FieldInfo[]): (A | ResultValue)[] {
+  const values = Array.isArray(row) ? row : Object.values(row)
+
+  return values.map((value, i) => {
+    const type = fields?.[i]?.type as unknown as MariaDbColumnType
 
     if (value === null) {
       return null
