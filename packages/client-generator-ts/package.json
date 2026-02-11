@@ -33,6 +33,7 @@
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
+    "@prisma/param-graph-builder": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
     "fast-glob": "3.3.3",
     "get-tsconfig": "4.10.0",
