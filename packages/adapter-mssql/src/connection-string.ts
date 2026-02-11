@@ -74,6 +74,8 @@ function splitRespectingBraces(str: string): string[] {
       const isFirstCharOfValue = i === valueStartIndex
       if (isFirstCharOfValue) {
         braceDepth++
+      } else if (braceDepth > 0) {
+        throw new Error(`Malformed connection string: nested '{' braces are not supported`)
       }
       current += char
     } else if (char === '}') {

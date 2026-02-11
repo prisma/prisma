@@ -212,11 +212,11 @@ describe('parseConnectionString', () => {
       expect(config.password).toBe('pass=word')
     })
 
-    it('should handle equals signs inside braced values without affecting subsequent brace detection', () => {
+    it('should throw error for nested braces inside braced values', () => {
       const connectionString = 'sqlserver://localhost;password={my=pass{nested}};database=testdb'
-      const config = parseConnectionString(connectionString)
-      expect(config.password).toBe('my=pass{nested}')
-      expect(config.database).toBe('testdb')
+      expect(() => parseConnectionString(connectionString)).toThrow(
+        "Malformed connection string: nested '{' braces are not supported",
+      )
     })
 
     it('should handle password with both semicolon and equals when escaped', () => {
