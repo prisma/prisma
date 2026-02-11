@@ -66,7 +66,9 @@ function splitRespectingBraces(str: string): string[] {
 
     if (char === '=') {
       current += char
-      valueStartIndex = i + 1
+      if (braceDepth === 0) {
+        valueStartIndex = i + 1
+      }
     } else if (char === '{') {
       // Only treat { as opening brace if it's the first character of a value
       const isFirstCharOfValue = i === valueStartIndex

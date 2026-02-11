@@ -212,6 +212,13 @@ describe('parseConnectionString', () => {
       expect(config.password).toBe('pass=word')
     })
 
+    it('should handle equals signs inside braced values without affecting subsequent brace detection', () => {
+      const connectionString = 'sqlserver://localhost;password={my=pass{nested}};database=testdb'
+      const config = parseConnectionString(connectionString)
+      expect(config.password).toBe('my=pass{nested}')
+      expect(config.database).toBe('testdb')
+    })
+
     it('should handle password with both semicolon and equals when escaped', () => {
       const connectionString = 'sqlserver://localhost;database=testdb;user=sa;password={pass;word=123}'
       const config = parseConnectionString(connectionString)
