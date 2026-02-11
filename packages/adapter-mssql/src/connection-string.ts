@@ -27,24 +27,6 @@ function mapIsolationLevelFromString(level: string): number {
 const debug = Debug('prisma:driver-adapter:mssql:connection-string')
 
 /**
- * Extracts the schema parameter from a connection string.
- * @param connectionString The connection string.
- * @returns The schema value or undefined if not found.
- */
-export function extractSchemaFromConnectionString(connectionString: string): string | undefined {
-  const withoutProtocol = connectionString.replace(/^sqlserver:\/\//, '')
-  const parts = splitRespectingBraces(withoutProtocol)
-
-  for (const part of parts) {
-    const [key, ...valueParts] = part.split('=')
-    if (key?.trim() === 'schema') {
-      return unescapeValue(valueParts.join('='))
-    }
-  }
-  return undefined
-}
-
-/**
  * Splits a connection string by semicolons while respecting curly brace escaping.
  * Values wrapped in curly braces like {value} are treated as literals where
  * semicolons and equals signs are not treated as delimiters.
@@ -124,7 +106,7 @@ function unescapeValue(value: string): string {
  * @param connectionString The connection string.
  * @returns A sql.config object
  */
-export function parseConnectionString(connectionString: string): sql.config {
+export function parseConnectionString(connectionString: string): { config: sql.config; schema?: string } {
   const withoutProtocol = connectionString.replace(/^sqlserver:\/\//, '')
 
   const parts = splitRespectingBraces(withoutProtocol)
@@ -271,7 +253,9 @@ export function parseConnectionString(connectionString: string): sql.config {
     throw new Error('Server host is required in connection string')
   }
 
-  return config
+  const schema = firstKey(parameters, 'schema') ?? undefined
+
+  return { config, schema }
 }
 
 /**
@@ -382,6 +366,7 @@ const handledParameters = [
   'password',
   'poolTimeout',
   'pwd',
+  'schema',
   'socketTimeout',
   'trustServerCertificate',
   'uid',
