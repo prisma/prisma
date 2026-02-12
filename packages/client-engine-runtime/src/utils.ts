@@ -5,6 +5,14 @@ import { Decimal } from '@prisma/client-runtime-utils'
 // implementations outside of Prisma Client (e.g. test executor for query
 // engine tests and query plan executor for Accelerate) that also depend on
 // `@prisma/client-engine-runtime`.
+/**
+ * Cross-realm safe check for Uint8Array. `instanceof Uint8Array` fails when the value
+ * was created in a different realm (e.g. jsdom, iframes, vm contexts).
+ */
+export function isUint8Array(value: unknown): value is Uint8Array {
+  return ArrayBuffer.isView(value) && Object.prototype.toString.call(value) === '[object Uint8Array]'
+}
+
 export function assertNever(_: never, message: string): never {
   throw new Error(message)
 }
@@ -44,7 +52,7 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
       const lhsDecimal = asDecimal(lhs[key])
       const rhsDecimal = asDecimal(rhs[key])
       return lhsDecimal && rhsDecimal && lhsDecimal.equals(rhsDecimal)
-    } else if (lhs[key] instanceof Uint8Array || rhs[key] instanceof Uint8Array) {
+    } else if (isUint8Array(lhs[key]) || isUint8Array(rhs[key])) {
       const lhsBuffer = asBuffer(lhs[key])
       const rhsBuffer = asBuffer(rhs[key])
       return lhsBuffer && rhsBuffer && lhsBuffer.equals(rhsBuffer)
@@ -73,7 +81,7 @@ function asDecimal(value: unknown): Decimal | undefined {
 function asBuffer(value: unknown): Buffer | undefined {
   if (Buffer.isBuffer(value)) {
     return value
-  } else if (value instanceof Uint8Array) {
+  } else if (isUint8Array(value)) {
     return Buffer.from(value.buffer, value.byteOffset, value.byteLength)
   } else if (typeof value === 'string') {
     return Buffer.from(value, 'base64')
