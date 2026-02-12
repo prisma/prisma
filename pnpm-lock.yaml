@@ -421,6 +421,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@bomb.sh/tab':
+        specifier: 0.0.9
+        version: 0.0.9(cac@6.7.14)(citty@0.1.6)(commander@13.1.0)
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
@@ -2224,6 +2227,21 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
+
+  '@bomb.sh/tab@0.0.9':
+    resolution: {integrity: sha512-HUJ0b+LkZpLsyn0u7G/H5aJioAdSLqWMWX5ryuFS6n70MOEFu+SGrF8d8u6HzI1gINVQTvsfoxDLcjWkmI0AWg==}
+    hasBin: true
+    peerDependencies:
+      cac: ^6.7.14
+      citty: ^0.1.6
+      commander: ^13.1.0
+    peerDependenciesMeta:
+      cac:
+        optional: true
+      citty:
+        optional: true
+      commander:
+        optional: true
 
   '@bugsnag/cuid@3.2.1':
     resolution: {integrity: sha512-zpvN8xQ5rdRWakMd/BcVkdn2F8HKlDSbM3l7duueK590WmI1T0ObTLc1V/1e55r14WNjPd5AJTYX4yPEAFVi+Q==}
@@ -8999,6 +9017,12 @@ snapshots:
   '@bcoe/v8-coverage@0.2.3': {}
 
   '@bcoe/v8-coverage@1.0.2': {}
+
+  '@bomb.sh/tab@0.0.9(cac@6.7.14)(citty@0.1.6)(commander@13.1.0)':
+    optionalDependencies:
+      cac: 6.7.14
+      citty: 0.1.6
+      commander: 13.1.0
 
   '@bugsnag/cuid@3.2.1': {}
 

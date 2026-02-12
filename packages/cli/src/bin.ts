@@ -29,6 +29,7 @@ import {
 import { bold, dim, red, yellow } from 'kleur/colors'
 
 import { CLI } from './CLI'
+import { Completions } from './completions'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
@@ -154,6 +155,7 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
+      complete: Completions.new(),
       // TODO: add rules subcommand to --help after EA
       rules: new SubCommand('@prisma/cli-security-rules'),
       dev: new SubCommand('@prisma/cli-dev'),
