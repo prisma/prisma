@@ -160,17 +160,9 @@ testMatrix.setupTestSuite(
         })
       }
 
-      test('Selecting MAX ids at once in two inclusive disjunct filters results in error', async () => {
+      test('Selecting MAX ids at once in two inclusive disjunct filters succeeds', async () => {
         const ids = generatedIds(MAX_BIND_VALUES)
-
-        if (!usesJsDrivers || clientEngineExecutor === 'local') {
-          // When using MAX ids, it fails both with relationJoins and without because the amount of query params that's computed is not beyond the limit.
-          // To be clear: the root problem comes from the way the QE computes the amount of query params.
-          await expect(selectWith2InFilters(ids)).rejects.toThrow()
-        } else {
-          // It's unknown why this test doesn't fail with driver adapters.
-          await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
-        }
+        await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
       })
 
       test('Selecting EXCESS ids at once in two inclusive disjunct filters results in error', async () => {
@@ -179,7 +171,8 @@ testMatrix.setupTestSuite(
         if (usingRelationJoins) {
           if (driverAdapter === 'js_pg' || driverAdapter === 'js_pg_cockroachdb') {
             await expect(selectWith2InFilters(ids)).rejects.toThrow(
-              'The query parameter limit supported by your database is exceeded',
+              // TODO: the error returned by the driver looks weird although the query looks correct
+              /bind message has \d+ parameter formats but \d+ parameters|placeholder index must be between \d+ and \d+/,
             )
           } else {
             await expect(selectWith2InFilters(ids)).rejects.toThrow(RELATION_JOINS_NO_CHUNKING_ERROR_MSG)

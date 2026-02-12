@@ -15,7 +15,7 @@ import { Mutex } from 'async-mutex'
 import sql from 'mssql'
 
 import { name as packageName } from '../package.json'
-import { extractSchemaFromConnectionString, parseConnectionString } from './connection-string'
+import { parseConnectionString } from './connection-string'
 import { mapArg, mapColumnType, mapIsolationLevel, mapRow } from './conversion'
 import { convertDriverError } from './errors'
 
@@ -92,20 +92,30 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    await this.transaction.commit()
+    const release = await this.#mutex.acquire()
+    try {
+      await this.transaction.commit()
+    } finally {
+      release()
+    }
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    await this.transaction.rollback().catch((e) => {
-      if (e.code === 'EABORT') {
-        debug(`[js::rollback] Transaction already aborted`)
-        return
-      }
+    const release = await this.#mutex.acquire()
+    try {
+      await this.transaction.rollback().catch((e) => {
+        if (e.code === 'EABORT') {
+          debug(`[js::rollback] Transaction already aborted`)
+          return
+        }
 
-      throw e
-    })
+        throw e
+      })
+    } finally {
+      release()
+    }
   }
 }
 
@@ -175,12 +185,12 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(configOrString: sql.config | string, options?: PrismaMssqlOptions) {
     if (typeof configOrString === 'string') {
-      this.#config = parseConnectionString(configOrString)
+      const { config, schema } = parseConnectionString(configOrString)
+      this.#config = config
       // Extract schema from connection string and merge with provided options
-      const extractedSchema = extractSchemaFromConnectionString(configOrString)
       this.#options = {
         ...options,
-        schema: options?.schema ?? extractedSchema,
+        schema: options?.schema ?? schema,
       }
     } else {
       this.#config = configOrString
