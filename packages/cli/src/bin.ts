@@ -34,7 +34,6 @@ import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
 import { Mcp } from './mcp/MCP'
-import { Platform } from './platform/_Platform'
 import { Studio } from './Studio'
 /*
   When running bin.ts with ts-node with DEBUG="*"
@@ -93,45 +92,6 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      platform: Platform.$.new({
-        workspace: Platform.Workspace.$.new({
-          show: Platform.Workspace.Show.new(),
-        }),
-        auth: Platform.Auth.$.new({
-          login: Platform.Auth.Login.new(),
-          logout: Platform.Auth.Logout.new(),
-          show: Platform.Auth.Show.new(),
-        }),
-        environment: Platform.Environment.$.new({
-          create: Platform.Environment.Create.new(),
-          delete: Platform.Environment.Delete.new(),
-          show: Platform.Environment.Show.new(),
-        }),
-        project: Platform.Project.$.new({
-          create: Platform.Project.Create.new(),
-          delete: Platform.Project.Delete.new(),
-          show: Platform.Project.Show.new(),
-        }),
-        pulse: Platform.Pulse.$.new({
-          enable: Platform.Pulse.Enable.new(),
-          disable: Platform.Pulse.Disable.new(),
-        }),
-        accelerate: Platform.Accelerate.$.new({
-          enable: Platform.Accelerate.Enable.new(),
-          disable: Platform.Accelerate.Disable.new(),
-        }),
-        serviceToken: Platform.ServiceToken.$.new({
-          create: Platform.ServiceToken.Create.new(),
-          delete: Platform.ServiceToken.Delete.new(),
-          show: Platform.ServiceToken.Show.new(),
-        }),
-        // Alias to "serviceToken". This will be removed in a future ORM release.
-        apikey: Platform.ServiceToken.$.new({
-          create: Platform.ServiceToken.Create.new(true),
-          delete: Platform.ServiceToken.Delete.new(true),
-          show: Platform.ServiceToken.Show.new(true),
-        }),
-      }),
       mcp: Mcp.new(),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
