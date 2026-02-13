@@ -23,14 +23,10 @@
     "directory": "packages/dmmf"
   },
   "license": "Apache-2.0",
-  "devDependencies": {
-    "vitest": "3.2.4"
-  },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "vitest run"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"
