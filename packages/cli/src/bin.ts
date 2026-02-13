@@ -154,13 +154,7 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
-      // TODO: add rules subcommand to --help after EA
-      rules: new SubCommand('@prisma/cli-security-rules'),
       dev: new SubCommand('@prisma/cli-dev'),
-      // TODO: add deploy subcommand to --help after it works.
-      deploy: new SubCommand('@prisma/cli-deploy'),
-      // TODO: add login subcommand to --help after it works.
-      login: new SubCommand('@prisma/cli-login'),
       studio: Studio.new(),
     },
     ['version', 'init', 'migrate', 'db', 'generate', 'validate', 'format', 'telemetry'],
