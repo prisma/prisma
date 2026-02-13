@@ -113,13 +113,13 @@ function mapObjectValues<K extends PropertyKey, T, U>(
   return result
 }
 
-export function deserializeJsonResponse(result: unknown): unknown {
+export function deserializeJsonObject(result: unknown): unknown {
   if (result === null) {
     return result
   }
 
   if (Array.isArray(result)) {
-    return result.map(deserializeJsonResponse)
+    return result.map(deserializeJsonObject)
   }
 
   if (typeof result === 'object') {
@@ -132,7 +132,7 @@ export function deserializeJsonResponse(result: unknown): unknown {
       return result
     }
 
-    return mapObjectValues(result, deserializeJsonResponse)
+    return mapObjectValues(result, deserializeJsonObject)
   }
 
   return result

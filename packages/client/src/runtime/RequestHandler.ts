@@ -1,5 +1,5 @@
 import { Context } from '@opentelemetry/api'
-import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
+import { deserializeJsonObject } from '@prisma/client-engine-runtime'
 import { hasBatchIndex } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
@@ -274,7 +274,7 @@ export class RequestHandler {
     const deserializedResponse =
       operation === 'queryRaw'
         ? deserializeRawResult(extractedResponse as RawResponse)
-        : (deserializeJsonResponse(extractedResponse) as unknown)
+        : (deserializeJsonObject(extractedResponse) as unknown)
 
     return unpacker ? unpacker(deserializedResponse) : deserializedResponse
   }
