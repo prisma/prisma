@@ -21,6 +21,25 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
+  test('correctly deserializes Date array objects in JSON fields', async () => {
+    const user = await prisma.user.create({
+      data: {
+        properties: {
+          dateArrayField: [new Date(), new Date()],
+        },
+      },
+    })
+
+    expect(user).toMatchObject({
+      properties: {
+        dateArrayField: [
+          expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+          expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+        ],
+      },
+    })
+  })
+
   test('correctly deserializes Date objects in JSON fields with $type', async () => {
     const user = await prisma.user.create({
       data: {

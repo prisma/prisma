@@ -273,7 +273,7 @@ class Parameterizer {
    */
   #handleArray(items: unknown[], originalValue: unknown, edge: InputEdge): unknown {
     if (hasFlag(edge, EdgeFlag.ParamScalar) && getScalarMask(edge) & ScalarMask.Json) {
-      const jsonValue = JSON.stringify(items)
+      const jsonValue = JSON.stringify(deserializeJsonObject(items))
       const type: PlaceholderType = { type: 'Json' }
       return this.#getOrCreatePlaceholder(jsonValue, type)
     }
