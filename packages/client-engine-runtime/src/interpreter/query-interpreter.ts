@@ -2,7 +2,7 @@ import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/dr
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../query-plan'
+import { FieldInitializer, FieldOperation, InMemoryOps, JoinExpression, QueryPlanNode } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
@@ -301,6 +301,7 @@ export class QueryInterpreter {
 
       case 'process': {
         const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
+        evaluateProcessingParameters(node.args.operations, context.scope, context.generators)
         return { value: processRecords(value, node.args.operations), lastInsertId }
       }
 
@@ -524,5 +525,21 @@ function applyComments(query: SqlQuery, sqlCommenter?: QueryInterpreterSqlCommen
   return {
     ...query,
     sql: appendSqlComment(query.sql, comment),
+  }
+}
+
+function evaluateProcessingParameters(
+  ops: InMemoryOps,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): void {
+  const cursor = ops.pagination?.cursor
+  if (cursor) {
+    for (const [key, value] of Object.entries(cursor)) {
+      cursor[key] = evaluateArg(value, scope, generators)
+    }
+  }
+  for (const nested of Object.values(ops.nested)) {
+    evaluateProcessingParameters(nested, scope, generators)
   }
 }

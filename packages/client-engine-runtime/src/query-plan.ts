@@ -229,7 +229,7 @@ export type FieldOperation =
   | { type: 'divide'; value: PrismaValue }
 
 export type Pagination = {
-  cursor: Record<string, PrismaValue> | null
+  cursor: Record<string, unknown> | null
   take: number | null
   skip: number | null
 }
