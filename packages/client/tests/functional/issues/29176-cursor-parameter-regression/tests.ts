@@ -7,7 +7,7 @@ import type { PrismaClient } from './generated/prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
-  test('correctly handles a cursor with paremeterised values', async () => {
+  test('correctly handles a cursor with parameterised values', async () => {
     const connection_uuid = randomUUID()
     const query_ref = 'asdf'
 
