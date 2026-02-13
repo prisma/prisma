@@ -1,4 +1,4 @@
-import { deserializeJsonResponse } from './json-protocol'
+import { deserializeJsonObject } from './json-protocol'
 import { QueryPlanNode } from './query-plan'
 import { UserFacingError } from './user-facing-error'
 import { doKeysMatch } from './utils'
@@ -77,7 +77,7 @@ export function convertCompactedRows(
   // a list of objects that contain the keys of every row
   const keysPerRow = rows.map((item) =>
     compiledBatch.keys.reduce((acc, key) => {
-      acc[key] = deserializeJsonResponse(item[key])
+      acc[key] = deserializeJsonObject(item[key])
       return acc
     }, {}),
   )

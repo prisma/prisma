@@ -9,6 +9,7 @@ export type BigIntTaggedValue = { $type: 'BigInt'; value: string }
 export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string } }
 export type EnumTaggedValue = { $type: 'Enum'; value: string }
 export type JsonTaggedValue = { $type: 'Json'; value: string }
+export type RawTaggedValue = { $type: 'Raw'; value: unknown }
 
 export type JsonInputTaggedValue =
   | DateTaggedValue
@@ -18,6 +19,7 @@ export type JsonInputTaggedValue =
   | FieldRefTaggedValue
   | JsonTaggedValue
   | EnumTaggedValue
+  | RawTaggedValue
 
 export type JsonOutputTaggedValue =
   | DateTaggedValue
@@ -25,6 +27,7 @@ export type JsonOutputTaggedValue =
   | BytesTaggedValue
   | BigIntTaggedValue
   | JsonTaggedValue
+  | RawTaggedValue
 
 export type JsOutputValue =
   | null
@@ -95,6 +98,8 @@ function normalizeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsonOutp
       return { $type, value: String(new Decimal(value)) }
     case 'Json':
       return { $type, value: JSON.stringify(JSON.parse(value)) }
+    case 'Raw':
+      return { $type, value }
     default:
       assertNever(value, 'Unknown tagged value')
   }
@@ -113,13 +118,13 @@ function mapObjectValues<K extends PropertyKey, T, U>(
   return result
 }
 
-export function deserializeJsonResponse(result: unknown): unknown {
+export function deserializeJsonObject(result: unknown): unknown {
   if (result === null) {
     return result
   }
 
   if (Array.isArray(result)) {
-    return result.map(deserializeJsonResponse)
+    return result.map(deserializeJsonObject)
   }
 
   if (typeof result === 'object') {
@@ -132,7 +137,7 @@ export function deserializeJsonResponse(result: unknown): unknown {
       return result
     }
 
-    return mapObjectValues(result, deserializeJsonResponse)
+    return mapObjectValues(result, deserializeJsonObject)
   }
 
   return result
@@ -152,6 +157,8 @@ function deserializeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsOutp
       return new Decimal(value)
     case 'Json':
       return JSON.parse(value)
+    case 'Raw':
+      return value as JsOutputValue
     default:
       assertNever(value, 'Unknown tagged value')
   }
