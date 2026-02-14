@@ -72,15 +72,15 @@ testMatrix.setupTestSuite(
         expect(Prisma.AnyNull).toBeInstanceOf(Prisma.NullTypes.AnyNull)
       })
 
-      test('custom instances are not allowed', async () => {
-        await expect(
-          prisma.requiredJsonField.create({
-            data: {
-              // @ts-expect-error
-              json: new Prisma.NullTypes.JsonNull(),
-            },
-          }),
-        ).rejects.toMatchPrismaErrorInlineSnapshot(`"Invalid ObjectEnumValue"`)
+      // Custom instances are now accepted for HMR compatibility
+      // See: https://github.com/prisma/prisma/issues/28947
+      test('custom instances are allowed for HMR compatibility', async () => {
+        const data = await prisma.requiredJsonField.create({
+          data: {
+            json: new Prisma.NullTypes.JsonNull(),
+          },
+        })
+        expect(data.json).toBe(null)
       })
     })
   },
