@@ -339,11 +339,13 @@ function normalize_date(date: string): string {
  * ex: 1996-12-19T16:39:57-08:00
  */
 
-function normalize_timestamp(time: string): string {
+function normalize_timestamp(time: string): string | null {
+  if (time === null) return null
   return `${time.replace(' ', 'T')}+00:00`
 }
 
-function normalize_timestamptz(time: string): string {
+function normalize_timestamptz(time: string): string | null {
+  if (time === null) return null
   return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
@@ -355,7 +357,8 @@ function normalize_time(time: string): string {
   return time
 }
 
-function normalize_timez(time: string): string {
+function normalize_timez(time: string): string | null {
+  if (time === null) return null
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
   return time.replace(/[+-]\d{2}(:\d{2})?$/, '')
@@ -365,7 +368,8 @@ function normalize_timez(time: string): string {
 /* Money handling */
 /******************/
 
-function normalize_money(money: string): string {
+function normalize_money(money: string): string | null {
+  if (money === null) return null
   return money.slice(1)
 }
 
@@ -409,7 +413,8 @@ function normalizeByteaArray(x: string) {
   return parseArray(x).map(builtInByteParser)
 }
 
-function convertBytes(serializedBytes: string): Buffer {
+function convertBytes(serializedBytes: string): Buffer | null {
+  if (serializedBytes === null) return null
   return parsePgBytes(serializedBytes)
 }
 
