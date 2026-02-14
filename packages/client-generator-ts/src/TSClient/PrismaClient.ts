@@ -87,7 +87,7 @@ function interactiveTransactionDefinition(context: GenerateContext) {
 }
 
 function itxTransactionClientDenyList(context: GenerateContext) {
-  if (context.provider === 'mongodb') {
+  if (!context.isSqlProvider()) {
     return ts.unionType([ts.namedType('runtime.ITXClientDenyList'), ts.stringLiteral('$transaction')])
   }
 

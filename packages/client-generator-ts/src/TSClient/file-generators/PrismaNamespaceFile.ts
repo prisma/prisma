@@ -31,8 +31,9 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
 
   const fieldRefs = context.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
-  const transactionClientDenyList =
-    context.provider === 'mongodb' ? "runtime.ITXClientDenyList | '$transaction'" : 'runtime.ITXClientDenyList'
+  const transactionClientDenyList = context.isSqlProvider()
+    ? 'runtime.ITXClientDenyList'
+    : "runtime.ITXClientDenyList | '$transaction'"
 
   return `${jsDocHeader}
 ${imports.join('\n')}
