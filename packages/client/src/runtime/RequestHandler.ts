@@ -109,19 +109,6 @@ export class RequestHandler {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        if (interactiveTransaction) {
-          const existingPayload =
-            typeof interactiveTransaction.payload === 'object' && interactiveTransaction.payload !== null
-              ? interactiveTransaction.payload
-              : {}
-
-          interactiveTransaction.payload = {
-            // If the interactive transaction has a payload, we need to merge it with the new_tx_id
-            ...(existingPayload as any),
-            new_tx_id: interactiveTransaction.id,
-          }
-        }
-
         const response = await this.client._engine.request(request.protocolQuery, {
           traceparent: this.client._tracingHelper.getTraceParent(),
           interactiveTransaction,

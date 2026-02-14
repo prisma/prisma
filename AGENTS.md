@@ -31,7 +31,7 @@
 - **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer.
 
 - **Client architecture (Prisma 7)**:
-  - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using WASM query compiler.
+  - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using Wasm query compiler.
   - Two executor implementations: `LocalExecutor` (driver adapters, direct DB) and `RemoteExecutor` (Accelerate/Data Proxy).
   - `QueryInterpreter` class in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` executes query plans against `SqlQueryable` (driver adapter interface).
   - Query flow: `PrismaClient` → `ClientEngine.request()` → query compiler → `executor.execute()` → `QueryInterpreter.run()` → driver adapter.

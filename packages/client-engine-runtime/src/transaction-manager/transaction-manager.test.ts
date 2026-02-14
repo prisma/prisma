@@ -173,6 +173,72 @@ test('nested rollback uses a savepoint and keeps the outer transaction open', as
   expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
 })
 
+test('nested starts are serialized when the first savepoint fails', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  let savepointCallCount = 0
+  let rejectFirstSavepoint: ((error: Error) => void) | undefined
+  let resolveFirstSavepointStarted: () => void
+  const firstSavepointStarted = new Promise<void>((resolve) => {
+    resolveFirstSavepointStarted = resolve
+  })
+
+  driverAdapter.executeRawMock.mockImplementation((query) => {
+    if (query.sql.startsWith('SAVEPOINT ')) {
+      savepointCallCount += 1
+      if (savepointCallCount === 1) {
+        resolveFirstSavepointStarted()
+        return new Promise<number>((_, reject) => {
+          rejectFirstSavepoint = reject
+        })
+      }
+    }
+
+    return Promise.resolve(1)
+  })
+
+  const nested1 = transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+  const nested2 = transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+
+  await firstSavepointStarted
+  await Promise.resolve()
+  expect(savepointCallCount).toBe(1)
+
+  rejectFirstSavepoint?.(new Error('savepoint failed'))
+  await expect(nested1).rejects.toThrow('savepoint failed')
+
+  await expect(nested2).resolves.toEqual({ id })
+
+  const savepointQueries = driverAdapter.executeRawMock.mock.calls
+    .map((call) => call[0].sql)
+    .filter((sql) => sql.startsWith('SAVEPOINT '))
+  const successfulSavepointName = savepointQueries[1].slice('SAVEPOINT '.length)
+
+  await transactionManager.rollbackTransaction(id)
+
+  const rollbackToSavepointQuery = driverAdapter.executeRawMock.mock.calls
+    .map((call) => call[0].sql)
+    .find((sql) => sql.startsWith('ROLLBACK TO SAVEPOINT '))
+
+  expect(rollbackToSavepointQuery).toEqual(`ROLLBACK TO SAVEPOINT ${successfulSavepointName}`)
+
+  // Close top-level transaction.
+  await transactionManager.rollbackTransaction(id)
+})
+
 test('nested savepoints use sqlserver syntax', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'sqlserver' })
   const transactionManager = new TransactionManager({

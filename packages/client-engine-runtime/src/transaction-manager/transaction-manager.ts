@@ -28,6 +28,7 @@ type TransactionWrapper = {
   timeout: number | undefined
   startedAt: number
   transaction?: Transaction
+  operationQueue: Promise<void>
   depth: number
   savepoints: string[]
   savepointCounter: number
@@ -148,49 +149,45 @@ export class TransactionManager {
 
   async #startTransactionImpl(options: Options): Promise<TransactionInfo> {
     if (options.newTxId) {
-      let existing = this.#getActiveOrClosingTransaction(options.newTxId, 'start')
-      if (existing.status === 'closing') {
-        await existing.closing
-        // Fetch again to ensure proper error propagation after it's been closed.
-        existing = this.#getActiveOrClosingTransaction(options.newTxId, 'start')
-      }
+      return await this.#withActiveTransactionLock(options.newTxId, 'start', async (existing) => {
+        if (existing.status !== 'running') {
+          throw new TransactionInternalConsistencyError(
+            `Transaction in invalid state ${existing.status} when starting a nested transaction.`,
+          )
+        }
+        if (!existing.transaction) {
+          throw new TransactionInternalConsistencyError(
+            `Transaction missing underlying driver transaction when starting a nested transaction.`,
+          )
+        }
 
-      if (existing.status !== 'running') {
-        throw new TransactionInternalConsistencyError(
-          `Transaction in invalid state ${existing.status} when starting a nested transaction.`,
-        )
-      }
-      if (!existing.transaction) {
-        throw new TransactionInternalConsistencyError(
-          `Transaction missing underlying driver transaction when starting a nested transaction.`,
-        )
-      }
+        existing.depth += 1
 
-      existing.depth += 1
+        const savepointName = `prisma_sp_${existing.savepointCounter++}`
+        existing.savepoints.push(savepointName)
 
-      const savepointName = `prisma_sp_${existing.savepointCounter++}`
-      existing.savepoints.push(savepointName)
+        const query = SAVEPOINT_QUERY(existing.transaction.provider, savepointName)
+        try {
+          await this.#withQuerySpanAndEvent(query, existing.transaction, () => existing.transaction!.executeRaw(query))
+        } catch (e) {
+          // Keep state consistent if creating the savepoint fails.
+          existing.depth -= 1
+          existing.savepoints.pop()
+          throw e
+        }
 
-      const query = SAVEPOINT_QUERY(existing.transaction.provider, savepointName)
-      try {
-        await this.#withQuerySpanAndEvent(query, existing.transaction, () => existing.transaction!.executeRaw(query))
-      } catch (e) {
-        // Keep state consistent if creating the savepoint fails.
-        existing.depth -= 1
-        existing.savepoints.pop()
-        throw e
-      }
-
-      return { id: existing.id }
+        return { id: existing.id }
+      })
     }
 
     const transaction: TransactionWrapper = {
-      id: options.newTxId ?? (await randomUUID()),
+      id: await randomUUID(),
       status: 'waiting',
       timer: undefined,
       timeout: options.timeout,
       startedAt: Date.now(),
       transaction: undefined,
+      operationQueue: Promise.resolve(),
       depth: 1,
       savepoints: [],
       savepointCounter: 0,
@@ -252,63 +249,65 @@ export class TransactionManager {
 
   async commitTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
-      const txw = this.#getActiveOrClosingTransaction(transactionId, 'commit')
-      if (txw.depth > 1) {
-        if (!txw.transaction) throw new TransactionNotFoundError()
-        const savepointName = txw.savepoints.at(-1)
-        if (!savepointName) {
-          throw new TransactionInternalConsistencyError(
-            `Missing savepoint for nested commit. Depth: ${txw.depth}, transactionId: ${txw.id}`,
-          )
-        }
-        const query = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
-        try {
-          if (query) {
-            await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
+      await this.#withActiveTransactionLock(transactionId, 'commit', async (txw) => {
+        if (txw.depth > 1) {
+          if (!txw.transaction) throw new TransactionNotFoundError()
+          const savepointName = txw.savepoints.at(-1)
+          if (!savepointName) {
+            throw new TransactionInternalConsistencyError(
+              `Missing savepoint for nested commit. Depth: ${txw.depth}, transactionId: ${txw.id}`,
+            )
           }
-        } finally {
-          // Keep internal state consistent even if releasing the savepoint fails.
-          txw.savepoints.pop()
-          txw.depth -= 1
+          const query = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+          try {
+            if (query) {
+              await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
+            }
+          } finally {
+            // Keep internal state consistent even if releasing the savepoint fails.
+            txw.savepoints.pop()
+            txw.depth -= 1
+          }
+          return
         }
-        return
-      }
-      await this.#closeTransaction(txw, 'committed')
+        await this.#closeTransaction(txw, 'committed')
+      })
     })
   }
 
   async rollbackTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
-      const txw = this.#getActiveOrClosingTransaction(transactionId, 'rollback')
-      if (txw.depth > 1) {
-        if (!txw.transaction) throw new TransactionNotFoundError()
-        const savepointName = txw.savepoints.at(-1)
-        if (!savepointName) {
-          throw new TransactionInternalConsistencyError(
-            `Missing savepoint for nested rollback. Depth: ${txw.depth}, transactionId: ${txw.id}`,
-          )
-        }
-
-        const rollbackQuery = ROLLBACK_TO_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
-        await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () =>
-          txw.transaction!.executeRaw(rollbackQuery),
-        )
-
-        const releaseQuery = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
-        try {
-          if (releaseQuery) {
-            await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
-              txw.transaction!.executeRaw(releaseQuery),
+      await this.#withActiveTransactionLock(transactionId, 'rollback', async (txw) => {
+        if (txw.depth > 1) {
+          if (!txw.transaction) throw new TransactionNotFoundError()
+          const savepointName = txw.savepoints.at(-1)
+          if (!savepointName) {
+            throw new TransactionInternalConsistencyError(
+              `Missing savepoint for nested rollback. Depth: ${txw.depth}, transactionId: ${txw.id}`,
             )
           }
-        } finally {
-          // Keep internal state consistent even if releasing the savepoint fails.
-          txw.savepoints.pop()
-          txw.depth -= 1
+
+          const rollbackQuery = ROLLBACK_TO_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+          try {
+            await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () =>
+              txw.transaction!.executeRaw(rollbackQuery),
+            )
+
+            const releaseQuery = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+            if (releaseQuery) {
+              await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
+                txw.transaction!.executeRaw(releaseQuery),
+              )
+            }
+          } finally {
+            // Keep internal state consistent even if rollback/release fails.
+            txw.savepoints.pop()
+            txw.depth -= 1
+          }
+          return
         }
-        return
-      }
-      await this.#closeTransaction(txw, 'rolled_back')
+        await this.#closeTransaction(txw, 'rolled_back')
+      })
     })
   }
 
@@ -361,7 +360,16 @@ export class TransactionManager {
   async cancelAllTransactions(): Promise<void> {
     // TODO: call `map` on the iterator directly without collecting it into an array first
     // once we drop support for Node.js 18 and 20.
-    await Promise.allSettled([...this.transactions.values()].map((tx) => this.#closeTransaction(tx, 'rolled_back')))
+    await Promise.allSettled(
+      [...this.transactions.values()].map((tx) =>
+        this.#runSerialized(tx, async () => {
+          const current = this.transactions.get(tx.id)
+          if (current) {
+            await this.#closeTransaction(current, 'rolled_back')
+          }
+        }),
+      ),
+    )
   }
 
   #startTransactionTimeout(transactionId: string, timeout: number | undefined): NodeJS.Timeout | undefined {
@@ -370,18 +378,56 @@ export class TransactionManager {
       debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
 
       const tx = this.transactions.get(transactionId)
-      if (tx && ['running', 'waiting'].includes(tx.status)) {
-        await this.#closeTransaction(tx, 'timed_out')
-      } else {
+      if (!tx) {
         // Transaction was already committed or rolled back when timeout happened.
         // Should normally not happen as timeout is cancelled when transaction is committed or rolled back.
         // No further action needed though.
         debug('Transaction already committed or rolled back when timeout happened.', transactionId)
+        return
       }
+
+      await this.#runSerialized(tx, async () => {
+        const current = this.transactions.get(transactionId)
+        if (current && ['running', 'waiting'].includes(current.status)) {
+          await this.#closeTransaction(current, 'timed_out')
+        } else {
+          // Transaction was already committed or rolled back when timeout happened.
+          // Should normally not happen as timeout is cancelled when transaction is committed or rolled back.
+          // No further action needed though.
+          debug('Transaction already committed or rolled back when timeout happened.', transactionId)
+        }
+      })
     }, timeout)
 
     timer?.unref?.()
     return timer
+  }
+
+  async #withActiveTransactionLock<T>(
+    transactionId: string,
+    operation: string,
+    callback: (tx: TransactionWrapper) => Promise<T>,
+  ): Promise<T> {
+    const tx = this.#getActiveOrClosingTransaction(transactionId, operation)
+    return await this.#runSerialized(tx, async () => {
+      const current = this.#getActiveOrClosingTransaction(transactionId, operation)
+      return await callback(current)
+    })
+  }
+
+  async #runSerialized<T>(tx: TransactionWrapper, callback: () => Promise<T>): Promise<T> {
+    const previousOperation = tx.operationQueue
+    let releaseOperationLock!: () => void
+    tx.operationQueue = new Promise<void>((resolve) => {
+      releaseOperationLock = resolve
+    })
+
+    await previousOperation
+    try {
+      return await callback()
+    } finally {
+      releaseOperationLock()
+    }
   }
 
   async #closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out'): Promise<void> {
