@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(
       // Count batching at the transport layer: this is what actually verifies that Prisma Client
       // grouped multiple operations into a single engine roundtrip.
 
-      const engine = (prisma as any)._engine as any
+      const engine = (client as InstanceType<ReturnType<typeof getPrismaClient>>)._engine
       if (!engine || typeof engine.request !== 'function' || typeof engine.requestBatch !== 'function') {
         throw new Error('Expected PrismaClient to have an engine with request/requestBatch methods')
       }
