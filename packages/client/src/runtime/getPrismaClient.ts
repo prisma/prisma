@@ -223,6 +223,21 @@ type ItxScopeState = {
   stack: string[]
 }
 
+type ItxScopeContext = {
+  txId: string | undefined
+  scopeId: string | undefined
+  scopeState: ItxScopeState | undefined
+}
+
+function getItxScopeContext(client: object): ItxScopeContext {
+  const symbolStorage = client as Record<symbol, unknown>
+  return {
+    txId: symbolStorage[TX_ID] as string | undefined,
+    scopeId: symbolStorage[TX_SCOPE_ID] as string | undefined,
+    scopeState: symbolStorage[TX_SCOPE_STATE] as ItxScopeState | undefined,
+  }
+}
+
 const BatchTxIdCounter = {
   id: 0,
   nextId() {
@@ -683,14 +698,16 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       callback: (client: Client) => Promise<unknown>
       options?: Options
     }) {
-      const isNested = Boolean(this[TX_ID])
-      const callerScopeId = isNested ? (this as any)[TX_SCOPE_ID] : undefined
-      const scopeState: ItxScopeState = isNested ? (this as any)[TX_SCOPE_STATE] : { stack: [] }
-      const scopeStack = scopeState?.stack
+      const itxContext = getItxScopeContext(this)
+      const parentTxId = itxContext.txId
+      const isNested = Boolean(parentTxId)
+      const callerScopeId = isNested ? itxContext.scopeId : undefined
+      const scopeState: ItxScopeState = itxContext.scopeState ?? { stack: [] }
 
-      if (isNested && !scopeStack) {
+      if (isNested && !itxContext.scopeState) {
         throw new Error('Internal error: missing transaction scope state for nested transaction.')
       }
+      const scopeStack = scopeState.stack
 
       const scopeId =
         typeof globalThis.crypto?.randomUUID === 'function'
@@ -706,11 +723,12 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         // Re-use the underlying transaction in the engine by reusing the same transaction id.
-        options.newTxId = this[TX_ID]
-        scopeStack.push(scopeId)
-      } else {
-        scopeStack.push(scopeId)
+        if (!parentTxId) {
+          throw new Error('Internal error: missing parent transaction id for nested transaction.')
+        }
+        options.newTxId = parentTxId
       }
+      scopeStack.push(scopeId)
 
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
 
@@ -720,7 +738,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         isolationLevel: options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel,
         newTxId: options.newTxId,
       }
-      let info: any
+      let info: Transaction.InteractiveTransactionInfo<unknown>
       try {
         info = await this._engine.transaction('start', headers, optionsWithDefaults)
       } catch (e) {
@@ -751,8 +769,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         // only roll back to the latest savepoint, leaving the top-level transaction
         // open and leaking it. Force rollback to depth 0 in that case.
         const isOrderViolation = scopeStack.at(-1) !== scopeId
-        const rollbackAttempts = isOrderViolation ? Math.max(1, scopeStack.length) : 1
-        for (let i = 0; i < rollbackAttempts; i++) {
+        const rollbackScopeCount = isOrderViolation ? Math.max(1, scopeStack.length) : 1
+        for (let i = 0; i < rollbackScopeCount; i++) {
           await this._engine.transaction('rollback', headers, info).catch(() => {})
         }
 
@@ -762,7 +780,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           scopeStack.pop()
         } else {
           // Reset the scope stack to avoid poisoning this transaction context after an ordering violation.
-          scopeStack.splice(0, scopeStack.length)
+          scopeStack.length = 0
         }
       }
 
@@ -805,7 +823,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
               'Cloudflare D1 does not support interactive transactions. We recommend you to refactor your queries with that limitation in mind, and use batch transactions with `prisma.$transactions([])` where applicable.',
             )
           }
-        } else if (config.activeProvider === 'mongodb' && this[TX_ID]) {
+        } else if (config.activeProvider === 'mongodb' && getItxScopeContext(this).txId) {
           callback = () => {
             throw new PrismaClientValidationError(
               `The ${config.activeProvider} provider does not support nested transactions`,
