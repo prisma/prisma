@@ -13,6 +13,14 @@ export function isUint8Array(value: unknown): value is Uint8Array {
   return ArrayBuffer.isView(value) && Object.prototype.toString.call(value) === '[object Uint8Array]'
 }
 
+/**
+ * Cross-realm safe check for Date. `instanceof Date` fails when the value
+ * was created in a different realm (e.g. jsdom, iframes, vm contexts).
+ */
+export function isDate(value: unknown): value is Date {
+  return Object.prototype.toString.call(value) === '[object Date]'
+}
+
 export function assertNever(_: never, message: string): never {
   throw new Error(message)
 }
@@ -56,7 +64,7 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
       const lhsBuffer = asBuffer(lhs[key])
       const rhsBuffer = asBuffer(rhs[key])
       return lhsBuffer && rhsBuffer && lhsBuffer.equals(rhsBuffer)
-    } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
+    } else if (isDate(lhs[key]) || isDate(rhs[key])) {
       return asDate(lhs[key])?.getTime() === asDate(rhs[key])?.getTime()
     } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
       return asBigInt(lhs[key]) === asBigInt(rhs[key])
