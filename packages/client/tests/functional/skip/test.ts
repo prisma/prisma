@@ -195,4 +195,98 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf(result).toHaveProperty('email')
     })
   })
+
+  describe('after query extension', () => {
+    test('skips fields in create with query extension', async () => {
+      const extended = prisma.$extends({
+        query: {
+          $allModels: {
+            $allOperations: (params) => params.query(params.args),
+          },
+        },
+      })
+
+      const result = await extended.user.create({
+        data: {
+          email: 'query-ext-test@example.com',
+          name: Prisma.skip,
+        },
+      })
+
+      expect(result.name).toBe('Test User')
+    })
+
+    test('skips input fields in findMany with query extension', async () => {
+      const extended = prisma.$extends({
+        query: {
+          $allModels: {
+            $allOperations: (params) => params.query(params.args),
+          },
+        },
+      })
+
+      const result = await extended.user.findMany({
+        where: {
+          name: Prisma.skip,
+        },
+        orderBy: { name: 'asc' },
+      })
+
+      expect(result.length).toBeGreaterThanOrEqual(2)
+    })
+
+    test('skips arguments in findMany with query extension', async () => {
+      const extended = prisma.$extends({
+        query: {
+          $allModels: {
+            $allOperations: (params) => params.query(params.args),
+          },
+        },
+      })
+
+      const result = await extended.user.findMany({
+        where: Prisma.skip,
+        orderBy: { name: 'asc' },
+      })
+
+      expect(result.length).toBeGreaterThanOrEqual(2)
+    })
+
+    test('skips relations in include with query extension', async () => {
+      const extended = prisma.$extends({
+        query: {
+          $allModels: {
+            $allOperations: (params) => params.query(params.args),
+          },
+        },
+      })
+
+      const result = await extended.user.findFirstOrThrow({
+        include: {
+          posts: Prisma.skip,
+        },
+      })
+
+      expect(result).not.toHaveProperty('posts')
+    })
+
+    test('skips relations in select with query extension', async () => {
+      const extended = prisma.$extends({
+        query: {
+          $allModels: {
+            $allOperations: (params) => params.query(params.args),
+          },
+        },
+      })
+
+      const result = await extended.user.findFirstOrThrow({
+        select: {
+          id: true,
+          posts: Prisma.skip,
+        },
+      })
+
+      expect(result).not.toHaveProperty('posts')
+    })
+  })
 })
