@@ -2,7 +2,7 @@ import { Decimal } from '@prisma/client-runtime-utils'
 
 import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
-import { assertNever, isUint8Array, safeJsonStringify } from '../utils'
+import { assertNever, isDate, isUint8Array, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
 export class DataMapperError extends UserFacingError {
@@ -240,7 +240,7 @@ function mapValue(
       if (typeof value === 'string') {
         return { $type: 'DateTime', value: normalizeDateTime(value) }
       }
-      if (typeof value === 'number' || value instanceof Date) {
+      if (typeof value === 'number' || isDate(value)) {
         return { $type: 'DateTime', value }
       }
       throw new DataMapperError(`Expected a date in column '${columnName}', got ${typeof value}: ${value}`)

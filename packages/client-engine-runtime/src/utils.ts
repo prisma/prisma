@@ -99,7 +99,7 @@ function asBuffer(value: unknown): Buffer | undefined {
 }
 
 function asDate(value: unknown): Date | undefined {
-  if (value instanceof Date) {
+  if (isDate(value)) {
     return value
   } else if (typeof value === 'string' || typeof value === 'number') {
     return new Date(value)
