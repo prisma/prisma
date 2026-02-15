@@ -403,6 +403,8 @@ export class TransactionManager {
     return timer
   }
 
+  // Any operation that mutates or closes a transaction must run through this lock so
+  // status/savepoint/depth checks and updates happen against a stable view of state.
   async #withActiveTransactionLock<T>(
     transactionId: string,
     operation: string,
@@ -415,6 +417,9 @@ export class TransactionManager {
     })
   }
 
+  // Serializes operations per transaction id to prevent interleaving across awaits.
+  // This avoids races where one operation mutates savepoint/depth state while another
+  // operation is suspended, which could otherwise corrupt cleanup logic.
   async #runSerialized<T>(tx: TransactionWrapper, callback: () => Promise<T>): Promise<T> {
     const previousOperation = tx.operationQueue
     let releaseOperationLock!: () => void
