@@ -261,7 +261,26 @@ ${breakingChangesStr}${versionsWarning}`
         }
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      if (hasJsClient && !this.hasGeneratorErrored && !hideHints && hint) {
+        try {
+          const clientName = prismaClientJSGenerator?.manifest?.prettyName ?? 'Prisma Client'
+          const generatedMarker = `✔ Generated ${clientName}`
+          const idx = this.logText.indexOf(generatedMarker)
+          if (idx !== -1) {
+            let afterLineIdx = this.logText.indexOf('\n', idx)
+            if (afterLineIdx === -1) {
+              afterLineIdx = this.logText.length
+            }
+            this.logText = this.logText.slice(0, afterLineIdx + 1) + '\n' + hint + this.logText.slice(afterLineIdx + 1)
+          } else {
+            this.logText += '\n' + hint
+          }
+        } catch (e) {
+          this.logText += '\n' + hint
+        }
+      }
+
+      const message = '\n' + this.logText
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
