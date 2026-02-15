@@ -178,6 +178,99 @@ function createImplicitSelection(
   return selectionSet
 }
 
+/**
+ * Processes whereUnique by converting it to a where clause with compound unique constraint
+ * and validating that where and whereUnique aren't used together
+ */
+function processWhereUnique(
+  value: any,
+  key: string,
+  field: RuntimeModel['fields'][number],
+  context: SerializeContext,
+  nestedContext: SerializeContext,
+): JsonFieldSelection | null {
+  // Validate that where and whereUnique aren't used together
+  if ('where' in value && 'whereUnique' in value) {
+    context.throwValidationError({
+      kind: 'InvalidArgumentValue',
+      selectionPath: context.getSelectionPath().concat(key),
+      argumentPath: [],
+      argument: { name: key, typeNames: [] },
+      underlyingError: 'Cannot use both `where` and `whereUnique` on the same relation',
+    })
+  }
+
+  if (!('whereUnique' in value) || value.whereUnique === undefined) {
+    return null
+  }
+
+  const whereUniqueValue = value.whereUnique
+  const targetModelName = field.type
+  const targetModel = context.runtimeDataModel.models[targetModelName]
+
+  if (!targetModel) {
+    // If we can't find the model, let the query engine handle the error
+    return null
+  }
+
+  // Find the relation field in the target model that points back
+  const relationField = Object.values(targetModel.fields).find((f) => {
+    return f.kind === 'object' && f.type === context.modelOrType && f.relationFromFields && f.relationFromFields.length > 0
+  })
+
+  if (!relationField || !relationField.relationFromFields || relationField.relationFromFields.length === 0) {
+    return null
+  }
+
+  // Find compound unique constraints
+  const uniqueIndexes = targetModel.uniqueIndexes || []
+  const matchingUnique = uniqueIndexes.find((uniqueIndex) => {
+    const relationFieldsSet = new Set(relationField.relationFromFields!)
+    return uniqueIndex.fields.some((f) => relationFieldsSet.has(f.fieldName))
+  })
+
+  if (!matchingUnique) {
+    // No matching compound unique constraint found
+    // Convert whereUnique to where as-is and let query engine handle it
+    const modifiedValue = { ...value }
+    modifiedValue.where = whereUniqueValue
+    delete modifiedValue.whereUnique
+    return serializeFieldSelection(modifiedValue, nestedContext)
+  }
+
+  // Construct the compound unique constraint name
+  // Format: field1_field2 (e.g., creatorId_formId)
+  const uniqueFields = matchingUnique.fields.map((f) => f.fieldName)
+  const compoundUniqueName = uniqueFields.join('_')
+
+  // Build the where clause using the compound unique constraint
+  const whereClause: any = {
+    [compoundUniqueName]: whereUniqueValue,
+  }
+
+  // Merge with any additional fields from whereUnique that aren't part of the relation
+  const relationFieldsSet = new Set(relationField.relationFromFields!)
+  for (const [k, v] of Object.entries(whereUniqueValue)) {
+    if (!relationFieldsSet.has(k)) {
+      // This field needs to be in the compound unique constraint
+      if (whereClause[compoundUniqueName]) {
+        whereClause[compoundUniqueName][k] = v
+      }
+    }
+  }
+
+  // Create modified value with where instead of whereUnique
+  const modifiedValue = { ...value }
+  modifiedValue.where = whereClause
+  delete modifiedValue.whereUnique
+
+  // Mark that this was a whereUnique query for result processing
+  // We'll use a special marker that can be used later
+  ;(modifiedValue as any).__whereUnique = true
+
+  return serializeFieldSelection(modifiedValue, nestedContext)
+}
+
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
     if (isSkip(value)) {
@@ -198,6 +291,16 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
         outputType: context.getOutputTypeDescription(),
       })
     }
+    
+    // Handle whereUnique
+    if (field && typeof value === 'object' && value !== null && 'whereUnique' in value) {
+      const processedValue = processWhereUnique(value, key, field, context, nestedContext)
+      if (processedValue) {
+        selectionSet[key] = processedValue
+        continue
+      }
+    }
+    
     if (field) {
       selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
       continue
@@ -260,6 +363,16 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       }
       continue
     }
+    
+    // Handle whereUnique
+    if (field && field.kind === 'object' && typeof value === 'object' && value !== null && 'whereUnique' in value) {
+      const processedValue = processWhereUnique(value, key, field, context, nestedContext)
+      if (processedValue) {
+        selectionSet[key] = processedValue
+        continue
+      }
+    }
+    
     selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
   return selectionSet
