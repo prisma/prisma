@@ -310,8 +310,13 @@ function normalize_bool(x: string | null) {
   return x === null ? null : x === 'f' ? 'false' : 'true'
 }
 
-function normalize_array(element_normalizer: (x: string) => string): (str: string) => string[] {
-  return (str) => parseArray(str, element_normalizer)
+function normalize_array(
+  element_normalizer: (x: string) => string | null,
+): (str: string | null) => (string | null)[] | null {
+  return (str) => {
+    if (str === null) return null
+    return parseArray(str, element_normalizer)
+  }
 }
 
 /****************************/
@@ -409,7 +414,8 @@ const builtInByteParser = getTypeParser(ScalarColumnType.BYTEA) as (_: string) =
 /*
  * BYTEA_ARRAY - arrays of arbitrary raw binary strings
  */
-function normalizeByteaArray(x: string) {
+function normalizeByteaArray(x: string | null) {
+  if (x === null) return null
   return parseArray(x).map(builtInByteParser)
 }
 
