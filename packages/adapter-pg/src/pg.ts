@@ -275,11 +275,11 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       this.config = poolOrConfig.options
     } else {
       this.externalPool = null
-      this.config = this.normalizeConfig(poolOrConfig)
+      this.config = this.#normalizeConfig(poolOrConfig)
     }
   }
 
-  private normalizeConfig(config: pg.PoolConfig): pg.PoolConfig {
+  #normalizeConfig(config: pg.PoolConfig): pg.PoolConfig {
     if (config.connectionString) {
       const normalized = toPostgresConnectionString(config.connectionString)
       if (normalized !== config.connectionString) {
