@@ -32,6 +32,16 @@ const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 ```
 
+## Prisma Postgres Support
+
+This adapter supports both standard PostgreSQL databases and **Prisma Postgres** instances:
+
+- **Standard PostgreSQL**: Use connection strings starting with `postgres://` or `postgresql://`
+- **Prisma Postgres (local dev)**: Use connection strings from `npx prisma dev` (format: `prisma+postgres://localhost:...`)
+- **Prisma Postgres (serverless)**: For remote Prisma Postgres instances, use [`@prisma/adapter-ppg`](https://www.npmjs.com/package/@prisma/adapter-ppg) instead
+
+When using a local Prisma Postgres development instance (`prisma dev`), this adapter automatically extracts the actual database URL from the connection string, so you can use it directly without any manual conversion.
+
 ## Feedback
 
 We encourage you to create an issue if you find something missing or run into a bug.
