@@ -169,8 +169,7 @@ testMatrix.setupTestSuite(() => {
       })
 
       expect(result).not.toHaveProperty('posts')
-      // TODO: Apparent issue with $extends + skip (TML-1913)
-      // expectTypeOf(result).not.toHaveProperty('posts')
+      expectTypeOf(result).not.toHaveProperty('posts')
     })
 
     test('skips relations in select', async () => {
@@ -182,8 +181,7 @@ testMatrix.setupTestSuite(() => {
       })
 
       expect(result).not.toHaveProperty('posts')
-      // TODO: Apparent issue with $extends + skip (TML-1913)
-      // expectTypeOf(result).not.toHaveProperty('posts')
+      expectTypeOf(result).not.toHaveProperty('posts')
     })
 
     test('skips fields in omit', async () => {
