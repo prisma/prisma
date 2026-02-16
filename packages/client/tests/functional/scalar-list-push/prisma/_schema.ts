@@ -13,6 +13,7 @@ export default testMatrix.setupSchema(({ provider }) => {
   
   model User {
     id ${idForProvider(provider)}
+    email String @unique
     content String[]
   }
   `

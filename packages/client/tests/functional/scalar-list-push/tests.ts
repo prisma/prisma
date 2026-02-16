@@ -1,19 +1,22 @@
+import { faker } from '@faker-js/faker'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
+const email = faker.internet.email()
 
 testMatrix.setupTestSuite(
   () => {
     beforeEach(async () => {
       await prisma.user.deleteMany()
-      await prisma.user.create({ data: { content: ["prisma1", "prisma2"] } })
+      await prisma.user.create({ data: { email, content: ["prisma1", "prisma2"] } })
     })
 
     test('push with single element', async () => {
       const result = await prisma.user.update({
-        where: { id: 1 },
+        where: { email },
         data: {
           content: {
             push: "prisma3",
@@ -26,7 +29,7 @@ testMatrix.setupTestSuite(
 
     test('push with array value', async () => {
       const result = await prisma.user.update({
-        where: { id: 1 },
+        where: { email },
         data: {
           content: {
             push: ["prisma4", "prisma5"],
