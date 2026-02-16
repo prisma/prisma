@@ -414,7 +414,7 @@ const builtInByteParser = getTypeParser(ScalarColumnType.BYTEA) as (_: string) =
 /*
  * BYTEA_ARRAY - arrays of arbitrary raw binary strings
  */
-function normalizeByteaArray(x: string | null) {
+function normalizeByteaArray(x: string | null): Buffer[] | null {
   if (x === null) return null
   return parseArray(x).map(builtInByteParser)
 }
