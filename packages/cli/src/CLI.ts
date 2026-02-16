@@ -139,6 +139,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
               format   Format your Prisma schema
              version   Displays Prisma version info
                debug   Displays Prisma debug info
+              status   Show Prisma Data Platform service status
                  mcp   Starts an MCP server to use with AI development tools
 
     ${bold('Flags')}
