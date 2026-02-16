@@ -5,6 +5,7 @@ import type {
   ColumnType,
   ConnectionInfo,
   IsolationLevel,
+  SavepointAction,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
   SqlQuery,
@@ -157,6 +158,16 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
 
     this.cleanup?.()
     this.client.release()
+  }
+
+  savepoint(action: SavepointAction, name: string): SqlQuery {
+    if (action === 'create') {
+      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+    }
+    if (action === 'rollback') {
+      return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
+    }
+    return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
   }
 }
 

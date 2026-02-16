@@ -3,6 +3,7 @@ import {
   Debug,
   DriverAdapterError,
   IsolationLevel,
+  SavepointAction,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
   SqlQuery,
@@ -116,6 +117,16 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
     } finally {
       release()
     }
+  }
+
+  savepoint(action: SavepointAction, name: string): SqlQuery | undefined {
+    if (action === 'create') {
+      return { sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] }
+    }
+    if (action === 'rollback') {
+      return { sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] }
+    }
+    return undefined
   }
 }
 

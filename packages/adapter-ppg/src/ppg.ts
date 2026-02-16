@@ -10,6 +10,7 @@
 import {
   type ConnectionInfo,
   type IsolationLevel,
+  type SavepointAction,
   type SqlDriverAdapter,
   type SqlDriverAdapterFactory,
   type SqlQuery,
@@ -186,6 +187,16 @@ class PrismaPostgresTransaction implements Transaction {
     } finally {
       this.#session.close()
     }
+  }
+
+  savepoint(action: SavepointAction, name: string): SqlQuery {
+    if (action === 'create') {
+      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+    }
+    if (action === 'rollback') {
+      return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
+    }
+    return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
   }
 
   async executeRaw(params: SqlQuery): Promise<number> {

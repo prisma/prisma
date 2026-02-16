@@ -1,5 +1,5 @@
 import { Debug } from '@prisma/debug'
-import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
+import { SavepointAction, SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
 import { QueryEvent } from '../events'
@@ -43,43 +43,47 @@ const debug = Debug('prisma:client:transactionManager')
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
 
-const SAVEPOINT_QUERY = (provider: Transaction['provider'], name: string): SqlQuery => {
+// TODO: Remove this provider-based fallback once all adapters implement `transaction.savepoint`.
+const FALLBACK_SAVEPOINT_QUERY = (
+  provider: Transaction['provider'],
+  action: SavepointAction,
+  name: string,
+): SqlQuery | undefined => {
   switch (provider) {
     case 'sqlserver':
-      return { sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] }
-    case 'mysql':
-    case 'postgres':
-    case 'sqlite':
-      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
-    default:
-      assertNever(provider, 'Unknown provider.')
-  }
-}
-
-const RELEASE_SAVEPOINT_QUERY = (provider: Transaction['provider'], name: string): SqlQuery | undefined => {
-  switch (provider) {
-    case 'sqlserver':
+      if (action === 'create') {
+        return { sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] }
+      }
+      if (action === 'rollback') {
+        return { sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] }
+      }
       return undefined
     case 'mysql':
-    case 'postgres':
-    case 'sqlite':
+      if (action === 'rollback') {
+        // MySQL accepts the shorter `ROLLBACK TO <savepoint-name>` form.
+        return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
+      }
+      if (action === 'create') {
+        return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+      }
       return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
-    default:
-      assertNever(provider, 'Unknown provider.')
-  }
-}
-
-const ROLLBACK_TO_SAVEPOINT_QUERY = (provider: Transaction['provider'], name: string): SqlQuery => {
-  switch (provider) {
-    case 'sqlserver':
-      return { sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] }
-    case 'mysql':
-    case 'sqlite':
-      // MySQL and SQLite accept the shorter `ROLLBACK TO <savepoint-name>` form.
-      // We mirror the per-connector statements from prisma-engines/quaint for parity.
-      return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
     case 'postgres':
-      return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
+      if (action === 'rollback') {
+        return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
+      }
+      if (action === 'create') {
+        return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+      }
+      return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
+    case 'sqlite':
+      // SQLite accepts the shorter `ROLLBACK TO <savepoint-name>` form.
+      if (action === 'rollback') {
+        return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
+      }
+      if (action === 'create') {
+        return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+      }
+      return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
     default:
       assertNever(provider, 'Unknown provider.')
   }
@@ -166,7 +170,7 @@ export class TransactionManager {
         const savepointName = `prisma_sp_${existing.savepointCounter++}`
         existing.savepoints.push(savepointName)
 
-        const query = SAVEPOINT_QUERY(existing.transaction.provider, savepointName)
+        const query = this.#requiredSavepointQuery(existing.transaction, 'create', savepointName)
         try {
           await this.#withQuerySpanAndEvent(query, existing.transaction, () => existing.transaction!.executeRaw(query))
         } catch (e) {
@@ -258,7 +262,7 @@ export class TransactionManager {
               `Missing savepoint for nested commit. Depth: ${txw.depth}, transactionId: ${txw.id}`,
             )
           }
-          const query = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+          const query = this.#savepointQuery(txw.transaction, 'release', savepointName)
           try {
             if (query) {
               await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
@@ -287,13 +291,13 @@ export class TransactionManager {
             )
           }
 
-          const rollbackQuery = ROLLBACK_TO_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+          const rollbackQuery = this.#requiredSavepointQuery(txw.transaction, 'rollback', savepointName)
           try {
             await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () =>
               txw.transaction!.executeRaw(rollbackQuery),
             )
 
-            const releaseQuery = RELEASE_SAVEPOINT_QUERY(txw.transaction.provider, savepointName)
+            const releaseQuery = this.#savepointQuery(txw.transaction, 'release', savepointName)
             if (releaseQuery) {
               await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
                 txw.transaction!.executeRaw(releaseQuery),
@@ -370,6 +374,23 @@ export class TransactionManager {
         }),
       ),
     )
+  }
+
+  #savepointQuery(tx: Transaction, action: SavepointAction, name: string): SqlQuery | undefined {
+    if (tx.savepoint) {
+      return tx.savepoint(action, name)
+    }
+    return FALLBACK_SAVEPOINT_QUERY(tx.provider, action, name)
+  }
+
+  #requiredSavepointQuery(tx: Transaction, action: 'create' | 'rollback', name: string): SqlQuery {
+    const query = this.#savepointQuery(tx, action, name)
+    if (!query) {
+      throw new TransactionInternalConsistencyError(
+        `Missing savepoint query for action ${action} in transaction ${tx.adapterName} (${tx.provider}).`,
+      )
+    }
+    return query
   }
 
   #startTransactionTimeout(transactionId: string, timeout: number | undefined): NodeJS.Timeout | undefined {

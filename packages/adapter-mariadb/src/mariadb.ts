@@ -1,6 +1,7 @@
 import type {
   ConnectionInfo,
   IsolationLevel,
+  SavepointAction,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
   SqlQuery,
@@ -97,6 +98,16 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 
     this.cleanup?.()
     await this.client.end()
+  }
+
+  savepoint(action: SavepointAction, name: string): SqlQuery {
+    if (action === 'create') {
+      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+    }
+    if (action === 'rollback') {
+      return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
+    }
+    return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
   }
 }
 

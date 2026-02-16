@@ -6,6 +6,7 @@ import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
   IsolationLevel,
+  SavepointAction,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
   SqlQuery,
@@ -176,6 +177,16 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
 
     this.txDeferred.reject(new RollbackError())
     return await this.txResultPromise
+  }
+
+  savepoint(action: SavepointAction, name: string): SqlQuery {
+    if (action === 'create') {
+      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
+    }
+    if (action === 'rollback') {
+      return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
+    }
+    return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
   }
 }
 

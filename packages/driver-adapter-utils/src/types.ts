@@ -276,6 +276,8 @@ export type TransactionOptions = {
   usePhantomQuery: boolean
 }
 
+export type SavepointAction = 'create' | 'rollback' | 'release'
+
 export interface Transaction extends AdapterInfo, SqlQueryable {
   /**
    * Transaction options.
@@ -289,6 +291,11 @@ export interface Transaction extends AdapterInfo, SqlQueryable {
    * Roll back the transaction.
    */
   rollback(): Promise<void>
+  /**
+   * Build a dialect-specific savepoint query.
+   * Returning `undefined` for `release` is valid for connectors that do not support it.
+   */
+  savepoint?(action: SavepointAction, name: string): SqlQuery | undefined
 }
 
 /**
