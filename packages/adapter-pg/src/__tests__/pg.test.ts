@@ -98,4 +98,34 @@ describe('PrismaPgAdapterFactory', () => {
 
     await adapter.dispose()
   })
+
+  it('should handle Prisma Postgres local dev URLs', () => {
+    const apiKey = Buffer.from(
+      JSON.stringify({
+        databaseUrl: 'postgres://postgres:postgres@localhost:51214/template1?sslmode=disable',
+        name: 'default',
+        shadowDatabaseUrl: 'postgres://postgres:postgres@localhost:51215/template1?sslmode=disable',
+      }),
+    ).toString('base64')
+
+    const config: pg.PoolConfig = {
+      connectionString: `prisma+postgres://localhost:51213/?api_key=${apiKey}`,
+    }
+
+    const factory = new PrismaPgAdapterFactory(config)
+
+    expect(factory['config'].connectionString).toBe(
+      'postgres://postgres:postgres@localhost:51214/template1?sslmode=disable',
+    )
+  })
+
+  it('should pass through regular postgres URLs unchanged', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'postgres://localhost:5432/mydb',
+    }
+
+    const factory = new PrismaPgAdapterFactory(config)
+
+    expect(factory['config'].connectionString).toBe('postgres://localhost:5432/mydb')
+  })
 })

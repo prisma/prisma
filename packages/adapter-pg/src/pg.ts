@@ -20,6 +20,7 @@ import { name as packageName } from '../package.json'
 import { FIRST_NORMAL_OBJECT_ID } from './constants'
 import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
+import { toPostgresConnectionString } from './prisma-postgres-local'
 
 const types = pg.types
 
@@ -274,8 +275,22 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       this.config = poolOrConfig.options
     } else {
       this.externalPool = null
-      this.config = poolOrConfig
+      this.config = this.normalizeConfig(poolOrConfig)
     }
+  }
+
+  private normalizeConfig(config: pg.PoolConfig): pg.PoolConfig {
+    if (config.connectionString) {
+      const normalized = toPostgresConnectionString(config.connectionString)
+      if (normalized !== config.connectionString) {
+        debug('Converted Prisma Postgres local dev URL to standard PostgreSQL URL')
+      }
+      return {
+        ...config,
+        connectionString: normalized,
+      }
+    }
+    return config
   }
 
   async connect(): Promise<PrismaPgAdapter> {
