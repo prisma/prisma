@@ -268,7 +268,7 @@ function isItxScopeState(value: unknown): value is ItxScopeState {
     return false
   }
 
-  return Array.isArray((value as Record<string, unknown>)['stack'])
+  return Array.isArray(value['stack'])
 }
 
 function createItxScopeId(): string {
