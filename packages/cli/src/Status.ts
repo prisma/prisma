@@ -124,6 +124,7 @@ function stripPrismaPrefix(name: string): string {
   return name.replace(/^Prisma\s+/, '')
 }
 
+/** $ prisma status */
 export class Status implements Command {
   static new(): Status {
     return new Status()
@@ -202,7 +203,6 @@ export class Status implements Command {
     lines.push(bold(formatOverallStatus(summary.status.indicator, summary.status.description)))
     lines.push('')
 
-    // services table
     const components = summary.components.filter((c) => !c.group).sort((a, b) => a.position - b.position)
 
     if (components.length > 0) {
@@ -214,7 +214,6 @@ export class Status implements Command {
       }
     }
 
-    // active incidents
     if (summary.incidents.length > 0) {
       lines.push('')
       lines.push(bold('Active Incidents'))
@@ -229,7 +228,6 @@ export class Status implements Command {
       }
     }
 
-    // scheduled maintenances (exclude completed)
     const activeMaint = summary.scheduled_maintenances.filter((m) => m.status !== 'completed')
     if (activeMaint.length > 0) {
       lines.push('')
@@ -247,7 +245,6 @@ export class Status implements Command {
           }
         }
 
-        // show time window
         if (maint.scheduled_for && maint.scheduled_until) {
           lines.push(`    ${formatTimeWindow(maint.scheduled_for, maint.scheduled_until)}`)
         }
