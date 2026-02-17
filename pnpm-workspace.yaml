@@ -1,3 +1,6 @@
+packages:
+  - packages/*
+
 onlyBuiltDependencies:
   - '@swc/core'
   - better-sqlite3
@@ -6,9 +9,6 @@ onlyBuiltDependencies:
   - sqlite3
   - workerd
   - yarn
-
-packages:
-  - 'packages/*'
 
 peerDependencyRules:
   allowedVersions:

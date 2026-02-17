@@ -74,11 +74,13 @@
     "globals": "16.0.0",
     "globby": "11.1.0",
     "graphviz-mit": "0.0.9",
+    "hono": "^4.11.7",
     "husky": "9.1.7",
     "is-ci": "4.1.0",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "lint-staged": "15.4.3",
+    "lodash": "^4.17.23",
     "p-map": "4.0.0",
     "p-reduce": "3.0.0",
     "p-retry": "4.6.2",
@@ -158,14 +160,5 @@
       "gzip": false,
       "brotli": false
     }
-  ],
-  "pnpm": {
-    "overrides": {
-      "form-data": ">=4.0.4",
-      "hono": ">=4.11.7",
-      "jws": ">=4.0.1",
-      "tar-fs": ">=2.1.4",
-      "lodash": ">=4.17.23"
-    }
-  }
+  ]
 }
