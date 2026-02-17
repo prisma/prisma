@@ -427,6 +427,8 @@ constructor() {
           adapter,
           accelerateUrl: options.accelerateUrl,
           sqlCommenters: options.comments,
+          parameterizationSchema: config.parameterizationSchema,
+          runtimeDataModel: config.runtimeDataModel,
         }
 
         // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>

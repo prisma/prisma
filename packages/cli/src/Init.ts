@@ -28,11 +28,10 @@ import ora from 'ora'
 import { match, P } from 'ts-pattern'
 
 import { FileWriter } from './init/file-writer'
+import { printPpgInitOutput, successMessage } from './init/ppg-output'
 import { login } from './management-api/auth'
 import { createAuthenticatedManagementAPI } from './management-api/auth-client'
 import { FileTokenStorage } from './management-api/token-storage'
-import { printPpgInitOutput } from './platform/_'
-import { successMessage } from './platform/_lib/messages'
 import { determineClientOutputPath } from './utils/client-output-path'
 import { printError } from './utils/prompt/utils/print'
 
