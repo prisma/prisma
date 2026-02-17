@@ -1,11 +1,12 @@
 import { copycat, faker } from '@snaplet/copycat'
 
+import { getPrismaClient } from '../../../src/runtime/getPrismaClient'
 import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './generated/prisma/client'
+import type { Prisma, PrismaClient } from './generated/prisma/client'
 
 const user1 = {
   id: faker.database.mongodbObjectId(),
@@ -55,25 +56,19 @@ testMatrix.setupTestSuite(
 
       // Count batching at the transport layer: this is what actually verifies that Prisma Client
       // grouped multiple operations into a single engine roundtrip.
+      const engine = (prisma as unknown as InstanceType<ReturnType<typeof getPrismaClient>>)._engine
+      const originalRequest = engine.request.bind(engine)
+      const originalRequestBatch = engine.requestBatch.bind(engine)
 
-      const engine = (client as InstanceType<ReturnType<typeof getPrismaClient>>)._engine
-      if (!engine || typeof engine.request !== 'function' || typeof engine.requestBatch !== 'function') {
-        throw new Error('Expected PrismaClient to have an engine with request/requestBatch methods')
-      }
-
-      const originalRequest = engine.request.bind(engine) as (...args: any[]) => Promise<unknown>
-      const originalRequestBatch = engine.requestBatch.bind(engine) as (...args: any[]) => Promise<unknown>
-
-      engine.request = async (...args: any[]) => {
+      engine.request = (query, options) => {
         engineRequestCount++
-        return originalRequest(...args)
+        return originalRequest(query, options)
       }
 
-      engine.requestBatch = async (...args: any[]) => {
+      engine.requestBatch = (queries, options) => {
         engineRequestBatchCount++
-        const queries = args[0]
         engineRequestBatchSizes.push(Array.isArray(queries) ? queries.length : 0)
-        return originalRequestBatch(...args)
+        return originalRequestBatch(queries, options)
       }
 
       await prisma.user.create({ data: { posts: { create: {} }, ...user1 } })
@@ -229,7 +224,7 @@ testMatrix.setupTestSuite(
     testIf(provider === Providers.POSTGRESQL)(
       'interactive transactions: batches findUnique for a single model',
       async () => {
-        const N = 10
+        const requestCount = 10
         const u1 = await prisma.user.create({
           data: {
             email: `user1-${faker.string.uuid()}@example.com`,
@@ -242,7 +237,7 @@ testMatrix.setupTestSuite(
         })
 
         const users = [u1, u2]
-        for (let i = 0; i < N - 2; i++) {
+        for (let i = 0; i < requestCount - 2; i++) {
           users.push(
             await prisma.user.create({
               data: {
@@ -280,9 +275,9 @@ testMatrix.setupTestSuite(
           // This is the real batching assertion: N operations should be sent as a single engine batch.
           expect(engineRequestCount).toBe(0)
           expect(engineRequestBatchCount).toBe(1)
-          expect(engineRequestBatchSizes).toEqual([N])
+          expect(engineRequestBatchSizes).toEqual([requestCount])
 
-          expect(res).toHaveLength(N)
+          expect(res).toHaveLength(requestCount)
           for (const posts of res) {
             expect(posts).toHaveLength(1)
           }
@@ -293,7 +288,7 @@ testMatrix.setupTestSuite(
     testIf(provider === Providers.POSTGRESQL)(
       'interactive transactions: batches findUnique for multiple models',
       async () => {
-        const N = 10
+        const requestCount = 10
         const u1 = await prisma.user.create({
           data: {
             email: `user1-${faker.string.uuid()}@example.com`,
@@ -306,7 +301,7 @@ testMatrix.setupTestSuite(
         })
 
         const users = [u1, u2]
-        for (let i = 0; i < N - 2; i++) {
+        for (let i = 0; i < requestCount - 2; i++) {
           users.push(
             await prisma.user.create({
               data: {
@@ -348,9 +343,9 @@ testMatrix.setupTestSuite(
           // We expect one engine batch for posts and one for comments (same tx, same tick).
           expect(engineRequestCount).toBe(0)
           expect(engineRequestBatchCount).toBe(2)
-          expect(engineRequestBatchSizes.sort((a, b) => a - b)).toEqual([N, N])
+          expect(engineRequestBatchSizes.sort((a, b) => a - b)).toEqual([requestCount, requestCount])
 
-          expect(res).toHaveLength(N * 2)
+          expect(res).toHaveLength(requestCount * 2)
           for (const related of res) {
             expect(related).toHaveLength(1)
           }
