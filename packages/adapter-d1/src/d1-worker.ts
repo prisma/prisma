@@ -119,6 +119,18 @@ class D1WorkerTransaction extends D1WorkerQueryable<StdClient> implements Transa
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export class PrismaD1WorkerAdapter extends D1WorkerQueryable<StdClient> implements SqlDriverAdapter {

@@ -215,9 +215,7 @@ type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
     ? (event: EngineEvent<E>) => void
     : never
 
-const TX_ID = Symbol.for('prisma.client.transaction.id')
-const TX_SCOPE_ID = Symbol.for('prisma.client.transaction.scope_id')
-const TX_SCOPE_STATE = Symbol.for('prisma.client.transaction.scope_state')
+const TX_SCOPE_CONTEXT = Symbol.for('prisma.client.transaction.scope_context')
 
 type ItxScopeState = {
   stack: string[]
@@ -238,19 +236,31 @@ type ItxScopeContext = TopLevelItxScopeContext | NestedItxScopeContext
 
 function getItxScopeContext(client: object): ItxScopeContext {
   const symbolStorage = client as Record<symbol, unknown>
-  const txId = symbolStorage[TX_ID]
-  const scopeId = symbolStorage[TX_SCOPE_ID]
-  const scopeState = symbolStorage[TX_SCOPE_STATE]
+  const context = symbolStorage[TX_SCOPE_CONTEXT]
 
-  if (txId === undefined && scopeId === undefined && scopeState === undefined) {
+  if (context === undefined) {
     return { kind: 'top-level' }
   }
 
-  if (typeof txId === 'string' && typeof scopeId === 'string' && isItxScopeState(scopeState)) {
-    return { kind: 'nested', txId, scopeId, scopeState }
+  if (isNestedItxScopeContext(context)) {
+    return context
   }
 
   throw new Error('Internal error: inconsistent transaction scope context.')
+}
+
+function isNestedItxScopeContext(value: unknown): value is NestedItxScopeContext {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const objectValue = value as Record<string, unknown>
+  return (
+    objectValue['kind'] === 'nested' &&
+    typeof objectValue['txId'] === 'string' &&
+    typeof objectValue['scopeId'] === 'string' &&
+    isItxScopeState(objectValue['scopeState'])
+  )
 }
 
 function isItxScopeState(value: unknown): value is ItxScopeState {
@@ -258,7 +268,7 @@ function isItxScopeState(value: unknown): value is ItxScopeState {
     return false
   }
 
-  return Array.isArray((value as Record<string, unknown>).stack)
+  return Array.isArray((value as Record<string, unknown>)['stack'])
 }
 
 function createItxScopeId(): string {
@@ -812,14 +822,19 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       scopeId: string,
       scopeState: ItxScopeState,
     ): Client {
+      const itxScopeContext: NestedItxScopeContext = {
+        kind: 'nested',
+        txId: transaction.id,
+        scopeId,
+        scopeState,
+      }
+
       return createCompositeProxy(
         applyModelsAndClientExtensions(
           createCompositeProxy(unApplyModelsAndClientExtensions(this), [
             addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction, scopeId, scopeState)),
             addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-            addProperty(TX_ID, () => transaction.id),
-            addProperty(TX_SCOPE_ID, () => scopeId),
-            addProperty(TX_SCOPE_STATE, () => scopeState),
+            addProperty(TX_SCOPE_CONTEXT, () => itxScopeContext),
           ]),
         ),
         [removeProperties(itxClientDenyList)],

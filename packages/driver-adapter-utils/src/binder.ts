@@ -123,8 +123,16 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
     rollback: wrapAsync(errorRegistry, transaction.rollback.bind(transaction)),
   }
 
-  if (transaction.savepoint) {
-    boundTransaction.savepoint = wrapSync(errorRegistry, transaction.savepoint.bind(transaction))
+  if (transaction.createSavepoint) {
+    boundTransaction.createSavepoint = wrapAsync(errorRegistry, transaction.createSavepoint.bind(transaction))
+  }
+
+  if (transaction.rollbackToSavepoint) {
+    boundTransaction.rollbackToSavepoint = wrapAsync(errorRegistry, transaction.rollbackToSavepoint.bind(transaction))
+  }
+
+  if (transaction.releaseSavepoint) {
+    boundTransaction.releaseSavepoint = wrapAsync(errorRegistry, transaction.releaseSavepoint.bind(transaction))
   }
 
   return boundTransaction

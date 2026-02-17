@@ -25,7 +25,6 @@ export type {
   Provider,
   Queryable,
   ResultValue,
-  SavepointAction,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
   SqlMigrationAwareDriverAdapterFactory,

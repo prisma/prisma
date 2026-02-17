@@ -1,7 +1,6 @@
 import timers from 'node:timers/promises'
 
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
-import { ok } from '@prisma/driver-adapter-utils'
 
 import { noopTracingHelper } from '../tracing'
 import { Options } from './transaction'
@@ -31,24 +30,51 @@ class MockDriverAdapter implements SqlDriverAdapter {
   adapterName = 'mock-adapter'
   provider: SqlDriverAdapter['provider']
   private readonly usePhantomQuery: boolean
-  private readonly savepoint: Transaction['savepoint']
+  private readonly createSavepoint: Transaction['createSavepoint']
+  private readonly rollbackToSavepoint: Transaction['rollbackToSavepoint']
+  private readonly releaseSavepoint: Transaction['releaseSavepoint']
 
-  executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
-  commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
-  rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
+  executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(1)
+  commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(undefined)
+  rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(undefined)
 
-  constructor({
-    provider = 'postgres' as SqlDriverAdapter['provider'],
-    usePhantomQuery = false,
-    savepoint,
-  }: {
-    provider?: SqlDriverAdapter['provider']
-    usePhantomQuery?: boolean
-    savepoint?: Transaction['savepoint']
-  } = {}) {
+  constructor(
+    options: {
+      provider?: SqlDriverAdapter['provider']
+      usePhantomQuery?: boolean
+      createSavepoint?: Transaction['createSavepoint']
+      rollbackToSavepoint?: Transaction['rollbackToSavepoint']
+      releaseSavepoint?: Transaction['releaseSavepoint']
+    } = {},
+  ) {
+    const { provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = options
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
-    this.savepoint = savepoint
+
+    this.createSavepoint = Object.hasOwn(options, 'createSavepoint')
+      ? options.createSavepoint
+      : async (name) => {
+          const sql = this.provider === 'sqlserver' ? `SAVE TRANSACTION ${name}` : `SAVEPOINT ${name}`
+          await this.executeRawMock({ sql, args: [], argTypes: [] })
+        }
+    this.rollbackToSavepoint = Object.hasOwn(options, 'rollbackToSavepoint')
+      ? options.rollbackToSavepoint
+      : async (name) => {
+          const sql =
+            this.provider === 'sqlserver'
+              ? `ROLLBACK TRANSACTION ${name}`
+              : this.provider === 'postgres'
+                ? `ROLLBACK TO SAVEPOINT ${name}`
+                : `ROLLBACK TO ${name}`
+          await this.executeRawMock({ sql, args: [], argTypes: [] })
+        }
+    this.releaseSavepoint = Object.hasOwn(options, 'releaseSavepoint')
+      ? options.releaseSavepoint
+      : this.provider === 'sqlserver'
+        ? undefined
+        : async (name) => {
+            await this.executeRawMock({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+          }
   }
 
   executeRaw(params: SqlQuery): Promise<number> {
@@ -82,7 +108,9 @@ class MockDriverAdapter implements SqlDriverAdapter {
       executeRaw: executeRawMock,
       commit: commitMock,
       rollback: rollbackMock,
-      savepoint: this.savepoint,
+      createSavepoint: this.createSavepoint,
+      rollbackToSavepoint: this.rollbackToSavepoint,
+      releaseSavepoint: this.releaseSavepoint,
     }
 
     return new Promise((resolve) =>
@@ -314,18 +342,19 @@ test('nested savepoints use sqlite syntax', async () => {
   expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
 })
 
-test('nested savepoints use adapter-provided savepoint queries when available', async () => {
-  const savepoint = jest.fn((action: 'create' | 'rollback' | 'release', name: string): SqlQuery | undefined => {
-    if (action === 'create') {
-      return { sql: `CREATE-SP ${name}`, args: [], argTypes: [] }
-    }
-    if (action === 'rollback') {
-      return { sql: `ROLLBACK-SP ${name}`, args: [], argTypes: [] }
-    }
-    return { sql: `RELEASE-SP ${name}`, args: [], argTypes: [] }
-  })
+test('nested savepoints use adapter-provided methods when available', async () => {
+  const createSavepoint = jest.fn<ReturnType<NonNullable<Transaction['createSavepoint']>>, [string]>(async () => {})
+  const rollbackToSavepoint = jest.fn<ReturnType<NonNullable<Transaction['rollbackToSavepoint']>>, [string]>(
+    async () => {},
+  )
+  const releaseSavepoint = jest.fn<ReturnType<NonNullable<Transaction['releaseSavepoint']>>, [string]>(async () => {})
 
-  const driverAdapter = new MockDriverAdapter({ provider: 'postgres', savepoint })
+  const driverAdapter = new MockDriverAdapter({
+    provider: 'postgres',
+    createSavepoint,
+    rollbackToSavepoint,
+    releaseSavepoint,
+  })
   const transactionManager = new TransactionManager({
     driverAdapter,
     transactionOptions: TRANSACTION_OPTIONS,
@@ -337,27 +366,24 @@ test('nested savepoints use adapter-provided savepoint queries when available', 
   await transactionManager.rollbackTransaction(id)
   await transactionManager.commitTransaction(id)
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^CREATE-SP prisma_sp_\d+$/)
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK-SP prisma_sp_\d+$/)
-  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE-SP prisma_sp_\d+$/)
-  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
+  expect(createSavepoint).toHaveBeenCalledTimes(1)
+  expect(rollbackToSavepoint).toHaveBeenCalledTimes(1)
+  expect(releaseSavepoint).toHaveBeenCalledTimes(1)
 
-  expect(savepoint.mock.calls[0][0]).toEqual('create')
-  expect(savepoint.mock.calls[1][0]).toEqual('rollback')
-  expect(savepoint.mock.calls[2][0]).toEqual('release')
-  expect(savepoint.mock.calls[1][1]).toEqual(savepoint.mock.calls[0][1])
-  expect(savepoint.mock.calls[2][1]).toEqual(savepoint.mock.calls[0][1])
+  const savepointName = createSavepoint.mock.calls[0][0]
+  expect(rollbackToSavepoint).toHaveBeenCalledWith(savepointName)
+  expect(releaseSavepoint).toHaveBeenCalledWith(savepointName)
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
 })
 
 test('nested savepoint release can be omitted by adapter', async () => {
-  const savepoint = jest.fn((action: 'create' | 'rollback' | 'release', name: string): SqlQuery | undefined => {
-    if (action === 'release') {
-      return undefined
-    }
-    return { sql: `${action.toUpperCase()}-SP ${name}`, args: [], argTypes: [] }
-  })
+  const createSavepoint = jest.fn<ReturnType<NonNullable<Transaction['createSavepoint']>>, [string]>(async () => {})
 
-  const driverAdapter = new MockDriverAdapter({ provider: 'postgres', savepoint })
+  const driverAdapter = new MockDriverAdapter({
+    provider: 'postgres',
+    createSavepoint,
+    releaseSavepoint: undefined,
+  })
   const transactionManager = new TransactionManager({
     driverAdapter,
     transactionOptions: TRANSACTION_OPTIONS,
@@ -369,12 +395,37 @@ test('nested savepoint release can be omitted by adapter', async () => {
   await transactionManager.commitTransaction(id)
   await transactionManager.commitTransaction(id)
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^CREATE-SP prisma_sp_\d+$/)
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('COMMIT')
+  expect(createSavepoint).toHaveBeenCalledTimes(1)
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
+})
 
-  expect(savepoint.mock.calls[0][0]).toEqual('create')
-  expect(savepoint.mock.calls[1][0]).toEqual('release')
-  expect(savepoint.mock.calls).toHaveLength(2)
+test('missing createSavepoint fails nested transaction start', async () => {
+  const driverAdapter = new MockDriverAdapter({ createSavepoint: undefined })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  await expect(transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })).rejects.toThrow(
+    'createSavepoint is not implemented',
+  )
+})
+
+test('missing rollbackToSavepoint fails nested rollback', async () => {
+  const driverAdapter = new MockDriverAdapter({ rollbackToSavepoint: undefined })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  await expect(transactionManager.rollbackTransaction(id)).rejects.toThrow('rollbackToSavepoint is not implemented')
 })
 
 test('transaction is rolled back', async () => {

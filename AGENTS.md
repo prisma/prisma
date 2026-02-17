@@ -37,6 +37,7 @@
   - Query flow: `PrismaClient` → `ClientEngine.request()` → query compiler → `executor.execute()` → `QueryInterpreter.run()` → driver adapter.
   - `ExecutePlanParams` interface in `packages/client/src/runtime/core/engines/client/Executor.ts` defines what's passed through the execution chain.
   - `TransactionManager` in `packages/client-engine-runtime/src/transaction-manager/transaction-manager.ts` owns interactive transaction IDs and implements nested transactions using savepoints. Savepoint SQL is provider-specific (e.g. PostgreSQL uses `ROLLBACK TO SAVEPOINT <name>`, MySQL/SQLite use `ROLLBACK TO <name>`, SQL Server uses `SAVE TRANSACTION <name>` / `ROLLBACK TRANSACTION <name>` and has no release statement).
+  - `Transaction` in `packages/driver-adapter-utils` models savepoint behavior as async methods (`createSavepoint`, `rollbackToSavepoint`, optional `releaseSavepoint`) instead of returning SQL via `savepoint(action, name)`. `TransactionManager` expects adapter methods for savepoints and does not synthesize provider fallback SQL.
 
 - **Adding PrismaClient constructor options**:
   - Runtime types: `PrismaClientOptions` in `packages/client/src/runtime/getPrismaClient.ts`.

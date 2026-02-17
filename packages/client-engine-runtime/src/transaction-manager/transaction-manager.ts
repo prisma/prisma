@@ -1,5 +1,5 @@
 import { Debug } from '@prisma/debug'
-import { SavepointAction, SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
+import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
 import { QueryEvent } from '../events'
@@ -42,52 +42,6 @@ const debug = Debug('prisma:client:transactionManager')
 
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
-
-// TODO: Remove this provider-based fallback once all adapters implement `transaction.savepoint`.
-const FALLBACK_SAVEPOINT_QUERY = (
-  provider: Transaction['provider'],
-  action: SavepointAction,
-  name: string,
-): SqlQuery | undefined => {
-  switch (provider) {
-    case 'sqlserver':
-      if (action === 'create') {
-        return { sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] }
-      }
-      if (action === 'rollback') {
-        return { sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] }
-      }
-      return undefined
-    case 'mysql':
-      if (action === 'rollback') {
-        // MySQL accepts the shorter `ROLLBACK TO <savepoint-name>` form.
-        return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
-      }
-      if (action === 'create') {
-        return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
-      }
-      return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
-    case 'postgres':
-      if (action === 'rollback') {
-        return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
-      }
-      if (action === 'create') {
-        return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
-      }
-      return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
-    case 'sqlite':
-      // SQLite accepts the shorter `ROLLBACK TO <savepoint-name>` form.
-      if (action === 'rollback') {
-        return { sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] }
-      }
-      if (action === 'create') {
-        return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
-      }
-      return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
-    default:
-      assertNever(provider, 'Unknown provider.')
-  }
-}
 
 const PHANTOM_COMMIT_QUERY = (): SqlQuery => ({
   sql: '-- Implicit "COMMIT" query via underlying driver',
@@ -167,12 +121,10 @@ export class TransactionManager {
 
         existing.depth += 1
 
-        const savepointName = `prisma_sp_${existing.savepointCounter++}`
+        const savepointName = this.#nextSavepointName(existing)
         existing.savepoints.push(savepointName)
-
-        const query = this.#requiredSavepointQuery(existing.transaction, 'create', savepointName)
         try {
-          await this.#withQuerySpanAndEvent(query, existing.transaction, () => existing.transaction!.executeRaw(query))
+          await this.#requiredCreateSavepoint(existing.transaction)(savepointName)
         } catch (e) {
           // Keep state consistent if creating the savepoint fails.
           existing.depth -= 1
@@ -262,11 +214,8 @@ export class TransactionManager {
               `Missing savepoint for nested commit. Depth: ${txw.depth}, transactionId: ${txw.id}`,
             )
           }
-          const query = this.#savepointQuery(txw.transaction, 'release', savepointName)
           try {
-            if (query) {
-              await this.#withQuerySpanAndEvent(query, txw.transaction, () => txw.transaction!.executeRaw(query))
-            }
+            await this.#releaseSavepoint(txw.transaction, savepointName)
           } finally {
             // Keep internal state consistent even if releasing the savepoint fails.
             txw.savepoints.pop()
@@ -291,18 +240,9 @@ export class TransactionManager {
             )
           }
 
-          const rollbackQuery = this.#requiredSavepointQuery(txw.transaction, 'rollback', savepointName)
           try {
-            await this.#withQuerySpanAndEvent(rollbackQuery, txw.transaction, () =>
-              txw.transaction!.executeRaw(rollbackQuery),
-            )
-
-            const releaseQuery = this.#savepointQuery(txw.transaction, 'release', savepointName)
-            if (releaseQuery) {
-              await this.#withQuerySpanAndEvent(releaseQuery, txw.transaction, () =>
-                txw.transaction!.executeRaw(releaseQuery),
-              )
-            }
+            await this.#requiredRollbackToSavepoint(txw.transaction)(savepointName)
+            await this.#releaseSavepoint(txw.transaction, savepointName)
           } finally {
             // Keep internal state consistent even if rollback/release fails.
             txw.savepoints.pop()
@@ -376,21 +316,41 @@ export class TransactionManager {
     )
   }
 
-  #savepointQuery(tx: Transaction, action: SavepointAction, name: string): SqlQuery | undefined {
-    if (tx.savepoint) {
-      return tx.savepoint(action, name)
-    }
-    return FALLBACK_SAVEPOINT_QUERY(tx.provider, action, name)
+  #nextSavepointName(transaction: TransactionWrapper): string {
+    return `prisma_sp_${transaction.savepointCounter++}`
   }
 
-  #requiredSavepointQuery(tx: Transaction, action: 'create' | 'rollback', name: string): SqlQuery {
-    const query = this.#savepointQuery(tx, action, name)
-    if (!query) {
-      throw new TransactionInternalConsistencyError(
-        `Missing savepoint query for action ${action} in transaction ${tx.adapterName} (${tx.provider}).`,
-      )
+  #requiredCreateSavepoint(transaction: Transaction): (name: string) => Promise<void> {
+    if (transaction.createSavepoint) {
+      return transaction.createSavepoint.bind(transaction)
     }
-    return query
+
+    throw new TransactionManagerError(
+      `Nested transactions are not supported by adapter "${transaction.adapterName}" (${transaction.provider}): createSavepoint is not implemented.`,
+    )
+  }
+
+  #requiredRollbackToSavepoint(transaction: Transaction): (name: string) => Promise<void> {
+    if (transaction.rollbackToSavepoint) {
+      return transaction.rollbackToSavepoint.bind(transaction)
+    }
+
+    throw new TransactionManagerError(
+      `Nested transactions are not supported by adapter "${transaction.adapterName}" (${transaction.provider}): rollbackToSavepoint is not implemented.`,
+    )
+  }
+
+  async #releaseSavepoint(transaction: Transaction, name: string): Promise<void> {
+    if (transaction.releaseSavepoint) {
+      await transaction.releaseSavepoint(name)
+    }
+  }
+
+  #debugTransactionAlreadyClosedOnTimeout(transactionId: string): void {
+    // Transaction was already committed or rolled back when timeout happened.
+    // Should normally not happen as timeout is cancelled when transaction is committed or rolled back.
+    // No further action needed though.
+    debug('Transaction already committed or rolled back when timeout happened.', transactionId)
   }
 
   #startTransactionTimeout(transactionId: string, timeout: number | undefined): NodeJS.Timeout | undefined {
@@ -400,10 +360,7 @@ export class TransactionManager {
 
       const tx = this.transactions.get(transactionId)
       if (!tx) {
-        // Transaction was already committed or rolled back when timeout happened.
-        // Should normally not happen as timeout is cancelled when transaction is committed or rolled back.
-        // No further action needed though.
-        debug('Transaction already committed or rolled back when timeout happened.', transactionId)
+        this.#debugTransactionAlreadyClosedOnTimeout(transactionId)
         return
       }
 
@@ -412,10 +369,7 @@ export class TransactionManager {
         if (current && ['running', 'waiting'].includes(current.status)) {
           await this.#closeTransaction(current, 'timed_out')
         } else {
-          // Transaction was already committed or rolled back when timeout happened.
-          // Should normally not happen as timeout is cancelled when transaction is committed or rolled back.
-          // No further action needed though.
-          debug('Transaction already committed or rolled back when timeout happened.', transactionId)
+          this.#debugTransactionAlreadyClosedOnTimeout(transactionId)
         }
       })
     }, timeout)

@@ -4,7 +4,6 @@ import type {
   ColumnType,
   ConnectionInfo,
   IsolationLevel,
-  SavepointAction,
   SqlDriverAdapter,
   SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
@@ -170,14 +169,16 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     this.client.release()
   }
 
-  savepoint(action: SavepointAction, name: string): SqlQuery {
-    if (action === 'create') {
-      return { sql: `SAVEPOINT ${name}`, args: [], argTypes: [] }
-    }
-    if (action === 'rollback') {
-      return { sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] }
-    }
-    return { sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] }
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
   }
 }
 
