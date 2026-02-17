@@ -74,6 +74,7 @@ const originalFetch = globalThis.fetch
 
 afterEach(() => {
   globalThis.fetch = originalFetch
+  process.exitCode = undefined
 })
 
 describe('status', () => {
@@ -146,6 +147,34 @@ describe('status', () => {
     expect(result).toContain('2h ago')
     expect(result).toContain('investigating:')
     expect(result).toContain('Looking into it.')
+  })
+
+  it('should show latest incident update when API returns oldest-first', async () => {
+    mockFetchSuccess(
+      makeSummary({
+        status: { indicator: 'minor', description: 'Minor Service Outage' },
+        incidents: [
+          {
+            id: 'inc1',
+            name: 'Elevated error rates',
+            status: 'monitoring',
+            impact: 'minor',
+            created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+            incident_updates: [
+              { status: 'investigating', body: 'Initial report.', created_at: '2026-02-17T10:00:00Z' },
+              { status: 'identified', body: 'Root cause found.', created_at: '2026-02-17T10:30:00Z' },
+              { status: 'monitoring', body: 'Fix deployed, monitoring.', created_at: '2026-02-17T11:00:00Z' },
+            ],
+          },
+        ],
+      }),
+    )
+
+    const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
+
+    expect(result).toContain('monitoring:')
+    expect(result).toContain('Fix deployed, monitoring.')
+    expect(result).not.toContain('Initial report.')
   })
 
   it('should display scheduled maintenances and hide completed ones', async () => {
@@ -261,13 +290,14 @@ describe('status', () => {
     expect(result).toContain('https://www.prisma-status.com')
   })
 
-  it('should return JSON error on network failure with --json', async () => {
+  it('should return JSON error on network failure with --json and set non-zero exit code', async () => {
     mockFetchNetworkError('timeout')
 
     const result = (await Status.new().parse(['--json'], defaultTestConfig())) as string
     const parsed = JSON.parse(result)
 
     expect(parsed.error).toBe('timeout')
+    expect(process.exitCode).toBe(1)
   })
 
   it('should handle HTTP errors gracefully', async () => {
@@ -279,13 +309,14 @@ describe('status', () => {
     expect(result).toContain('https://www.prisma-status.com')
   })
 
-  it('should return JSON error on HTTP failure with --json', async () => {
+  it('should return JSON error on HTTP failure with --json and set non-zero exit code', async () => {
     mockFetchHttpError(500)
 
     const result = (await Status.new().parse(['--json'], defaultTestConfig())) as string
     const parsed = JSON.parse(result)
 
     expect(parsed.error).toBe('Status API returned HTTP 500')
+    expect(process.exitCode).toBe(1)
   })
 
   it('should filter out group components', async () => {

@@ -120,6 +120,10 @@ function formatTimeWindow(start: string, end: string): string {
   return `${date} ${startTime}-${endTime} UTC`
 }
 
+function latestUpdate(updates: StatusPageIncidentUpdate[]): StatusPageIncidentUpdate | undefined {
+  return updates.toSorted((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0]
+}
+
 function stripPrismaPrefix(name: string): string {
   return name.replace(/^Prisma\s+/, '')
 }
@@ -178,6 +182,7 @@ export class Status implements Command {
       if (!response.ok) {
         const message = `Status API returned HTTP ${response.status}`
         if (isJson) {
+          process.exitCode = 1
           return JSON.stringify({ error: message })
         }
         return `${red(message)}\nCheck ${STATUS_PAGE_URL} directly.`
@@ -193,6 +198,7 @@ export class Status implements Command {
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
       if (isJson) {
+        process.exitCode = 1
         return JSON.stringify({ error: message })
       }
       return `${red('Could not reach status API')}: ${message}\nCheck ${STATUS_PAGE_URL} directly.`
@@ -221,9 +227,9 @@ export class Status implements Command {
         const impact =
           incident.impact === 'critical' || incident.impact === 'major' ? red(incident.impact) : yellow(incident.impact)
         lines.push(`  ${impact} ${incident.name} (${timeAgo(incident.created_at)})`)
-        const latestUpdate = incident.incident_updates[0]
-        if (latestUpdate) {
-          lines.push(`    ${dim(latestUpdate.status + ':')} ${latestUpdate.body}`)
+        const update = latestUpdate(incident.incident_updates)
+        if (update) {
+          lines.push(`    ${dim(update.status + ':')} ${update.body}`)
         }
       }
     }
@@ -238,7 +244,7 @@ export class Status implements Command {
 
         // prefer scheduled update (has details) over latest status update
         const scheduledUpdate = maint.incident_updates.find((u) => u.status === 'scheduled')
-        const updateToShow = scheduledUpdate ?? maint.incident_updates[0]
+        const updateToShow = scheduledUpdate ?? latestUpdate(maint.incident_updates)
         if (updateToShow?.body) {
           for (const line of updateToShow.body.split('\n')) {
             lines.push(`    ${line}`)
