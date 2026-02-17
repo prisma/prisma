@@ -14,7 +14,7 @@ type StatusPageStatus = {
 type StatusPageComponent = {
   id: string
   name: string
-  status: 'operational' | 'degraded_performance' | 'partial_outage' | 'major_outage'
+  status: 'operational' | 'degraded_performance' | 'partial_outage' | 'major_outage' | 'under_maintenance'
   description: string | null
   position: number
   group_id: string | null
@@ -41,6 +41,7 @@ type StatusPageMaintenance = {
   name: string
   status: 'scheduled' | 'in_progress' | 'verifying' | 'completed'
   scheduled_for: string
+  scheduled_until: string
   incident_updates: StatusPageIncidentUpdate[]
 }
 
@@ -61,6 +62,8 @@ function formatComponentStatus(status: StatusPageComponent['status']): string {
       return yellow('Partial Outage')
     case 'major_outage':
       return red('Major Outage')
+    case 'under_maintenance':
+      return yellow('Maintenance')
     default:
       return status
   }
@@ -89,6 +92,32 @@ function timeAgo(dateStr: string): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.floor(hours / 24)
   return `${days}d ago`
+}
+
+function formatMaintenanceStatus(status: StatusPageMaintenance['status']): string {
+  switch (status) {
+    case 'scheduled':
+      return 'Scheduled'
+    case 'in_progress':
+      return 'In Progress'
+    case 'verifying':
+      return 'Verifying'
+    case 'completed':
+      return 'Completed'
+    default:
+      return status
+  }
+}
+
+function formatTimeWindow(start: string, end: string): string {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
+  const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }
+  const date = startDate.toLocaleDateString('en-US', opts)
+  const startTime = startDate.toLocaleTimeString('en-US', timeOpts)
+  const endTime = endDate.toLocaleTimeString('en-US', timeOpts)
+  return `${date} ${startTime}-${endTime} UTC`
 }
 
 function stripPrismaPrefix(name: string): string {
@@ -174,9 +203,7 @@ export class Status implements Command {
     lines.push('')
 
     // services table
-    const components = summary.components
-      .filter((c) => !c.group)
-      .sort((a, b) => a.position - b.position)
+    const components = summary.components.filter((c) => !c.group).sort((a, b) => a.position - b.position)
 
     if (components.length > 0) {
       lines.push(bold('Services'))
@@ -192,7 +219,8 @@ export class Status implements Command {
       lines.push('')
       lines.push(bold('Active Incidents'))
       for (const incident of summary.incidents) {
-        const impact = incident.impact === 'critical' || incident.impact === 'major' ? red(incident.impact) : yellow(incident.impact)
+        const impact =
+          incident.impact === 'critical' || incident.impact === 'major' ? red(incident.impact) : yellow(incident.impact)
         lines.push(`  ${impact} ${incident.name} (${timeAgo(incident.created_at)})`)
         const latestUpdate = incident.incident_updates[0]
         if (latestUpdate) {
@@ -207,10 +235,21 @@ export class Status implements Command {
       lines.push('')
       lines.push(bold('Scheduled Maintenances'))
       for (const maint of activeMaint) {
-        lines.push(`  ${maint.name} (${maint.status}, ${timeAgo(maint.scheduled_for)})`)
-        const latestUpdate = maint.incident_updates[0]
-        if (latestUpdate) {
-          lines.push(`    ${dim(latestUpdate.status + ':')} ${latestUpdate.body}`)
+        const statusLabel = formatMaintenanceStatus(maint.status)
+        lines.push(`  ${maint.name} ${dim(`(${statusLabel})`)}`)
+
+        // prefer scheduled update (has details) over latest status update
+        const scheduledUpdate = maint.incident_updates.find((u) => u.status === 'scheduled')
+        const updateToShow = scheduledUpdate ?? maint.incident_updates[0]
+        if (updateToShow?.body) {
+          for (const line of updateToShow.body.split('\n')) {
+            lines.push(`    ${line}`)
+          }
+        }
+
+        // show time window
+        if (maint.scheduled_for && maint.scheduled_until) {
+          lines.push(`    ${formatTimeWindow(maint.scheduled_for, maint.scheduled_until)}`)
         }
       }
     }

@@ -8,10 +8,42 @@ function makeSummary(overrides: Record<string, unknown> = {}) {
   return {
     status: { indicator: 'none', description: 'All Systems Operational' },
     components: [
-      { id: '1', name: 'Prisma Accelerate', status: 'operational', position: 1, group: false, group_id: null, description: null },
-      { id: '2', name: 'Prisma Console', status: 'operational', position: 2, group: false, group_id: null, description: null },
-      { id: '3', name: 'Prisma Optimize', status: 'operational', position: 3, group: false, group_id: null, description: null },
-      { id: '4', name: 'Prisma Postgres', status: 'operational', position: 4, group: false, group_id: null, description: null },
+      {
+        id: '1',
+        name: 'Prisma Accelerate',
+        status: 'operational',
+        position: 1,
+        group: false,
+        group_id: null,
+        description: null,
+      },
+      {
+        id: '2',
+        name: 'Prisma Console',
+        status: 'operational',
+        position: 2,
+        group: false,
+        group_id: null,
+        description: null,
+      },
+      {
+        id: '3',
+        name: 'Prisma Optimize',
+        status: 'operational',
+        position: 3,
+        group: false,
+        group_id: null,
+        description: null,
+      },
+      {
+        id: '4',
+        name: 'Prisma Postgres',
+        status: 'operational',
+        position: 4,
+        group: false,
+        group_id: null,
+        description: null,
+      },
     ],
     incidents: [],
     scheduled_maintenances: [],
@@ -79,7 +111,15 @@ describe('status', () => {
       makeSummary({
         status: { indicator: 'major', description: 'Major System Outage' },
         components: [
-          { id: '1', name: 'Prisma Accelerate', status: 'degraded_performance', position: 1, group: false, group_id: null, description: null },
+          {
+            id: '1',
+            name: 'Prisma Accelerate',
+            status: 'degraded_performance',
+            position: 1,
+            group: false,
+            group_id: null,
+            description: null,
+          },
         ],
         incidents: [
           {
@@ -88,7 +128,9 @@ describe('status', () => {
             status: 'investigating',
             impact: 'major',
             created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            incident_updates: [{ status: 'investigating', body: 'Looking into it.', created_at: new Date().toISOString() }],
+            incident_updates: [
+              { status: 'investigating', body: 'Looking into it.', created_at: new Date().toISOString() },
+            ],
           },
         ],
       }),
@@ -114,14 +156,18 @@ describe('status', () => {
             id: 'm1',
             name: 'Database migration',
             status: 'scheduled',
-            scheduled_for: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            incident_updates: [{ status: 'scheduled', body: 'Planned downtime.', created_at: new Date().toISOString() }],
+            scheduled_for: '2026-02-17T09:30:00.000Z',
+            scheduled_until: '2026-02-17T10:30:00.000Z',
+            incident_updates: [
+              { status: 'scheduled', body: 'Planned downtime.', created_at: new Date().toISOString() },
+            ],
           },
           {
             id: 'm2',
             name: 'Old maintenance',
             status: 'completed',
-            scheduled_for: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+            scheduled_for: '2026-02-16T09:30:00.000Z',
+            scheduled_until: '2026-02-16T10:30:00.000Z',
             incident_updates: [],
           },
         ],
@@ -132,8 +178,66 @@ describe('status', () => {
 
     expect(result).toContain('Scheduled Maintenances')
     expect(result).toContain('Database migration')
+    expect(result).toContain('Scheduled')
     expect(result).toContain('Planned downtime.')
+    expect(result).toContain('09:30-10:30 UTC')
     expect(result).not.toContain('Old maintenance')
+  })
+
+  it('should show under_maintenance status as Maintenance', async () => {
+    mockFetchSuccess(
+      makeSummary({
+        components: [
+          {
+            id: '1',
+            name: 'Prisma Postgres',
+            status: 'under_maintenance',
+            position: 1,
+            group: false,
+            group_id: null,
+            description: null,
+          },
+        ],
+      }),
+    )
+
+    const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
+
+    expect(result).toContain('Maintenance')
+    expect(result).not.toContain('under_maintenance')
+  })
+
+  it('should display in_progress maintenance preferring scheduled update body', async () => {
+    mockFetchSuccess(
+      makeSummary({
+        scheduled_maintenances: [
+          {
+            id: 'm1',
+            name: 'Prisma Postgres Maintenance',
+            status: 'in_progress',
+            scheduled_for: '2026-02-17T09:30:00.000Z',
+            scheduled_until: '2026-02-17T10:30:00.000Z',
+            incident_updates: [
+              { status: 'in_progress', body: 'Maintenance in progress.', created_at: new Date().toISOString() },
+              {
+                status: 'scheduled',
+                body: 'Impact: Active connections may be disrupted.',
+                created_at: new Date().toISOString(),
+              },
+            ],
+          },
+        ],
+      }),
+    )
+
+    const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
+
+    expect(result).toContain('In Progress')
+    expect(result).not.toContain('in_progress')
+    // should show scheduled update body, not in_progress
+    expect(result).toContain('Impact: Active connections may be disrupted.')
+    expect(result).not.toContain('Maintenance in progress.')
+    expect(result).toContain('09:30-10:30 UTC')
   })
 
   it('should output raw JSON with --json', async () => {
@@ -188,8 +292,24 @@ describe('status', () => {
     mockFetchSuccess(
       makeSummary({
         components: [
-          { id: 'g1', name: 'Group', status: 'operational', position: 0, group: true, group_id: null, description: null },
-          { id: '1', name: 'Prisma Accelerate', status: 'operational', position: 1, group: false, group_id: 'g1', description: null },
+          {
+            id: 'g1',
+            name: 'Group',
+            status: 'operational',
+            position: 0,
+            group: true,
+            group_id: null,
+            description: null,
+          },
+          {
+            id: '1',
+            name: 'Prisma Accelerate',
+            status: 'operational',
+            position: 1,
+            group: false,
+            group_id: 'g1',
+            description: null,
+          },
         ],
       }),
     )
