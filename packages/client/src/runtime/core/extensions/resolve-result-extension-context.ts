@@ -83,23 +83,19 @@ function relationPathFromDataPath(dataPath: string[]): string[] | undefined {
 }
 
 function resolveNextArgs(args: JsArgs, relationFieldName: string): JsArgs {
-  const selectArgs = asNestedArgs(args.select?.[relationFieldName])
-  if (selectArgs) {
-    return selectArgs
+  const select = args.select?.[relationFieldName]
+  if (isNestedArgs(select)) {
+    return select
   }
 
-  const includeArgs = asNestedArgs(args.include?.[relationFieldName])
-  if (includeArgs) {
-    return includeArgs
+  const include = args.include?.[relationFieldName]
+  if (isNestedArgs(include)) {
+    return include
   }
 
   return {}
 }
 
-function asNestedArgs(value: unknown): JsArgs | undefined {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as JsArgs
-  }
-
-  return undefined
+function isNestedArgs(value: unknown): value is JsArgs {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
