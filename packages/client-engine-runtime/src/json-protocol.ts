@@ -27,7 +27,6 @@ export type JsonOutputTaggedValue =
   | BytesTaggedValue
   | BigIntTaggedValue
   | JsonTaggedValue
-  | RawTaggedValue
 
 export type JsOutputValue =
   | null
@@ -86,7 +85,10 @@ function isTaggedValue(value: unknown): value is JsonOutputTaggedValue {
  * patch and normalize them here to ensure they are consistent with the snapshots
  * in the query engine tests.
  */
-function normalizeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsonOutputTaggedValue {
+function normalizeTaggedValue({
+  $type,
+  value,
+}: JsonInputTaggedValue | JsonOutputTaggedValue): JsonInputTaggedValue | JsonOutputTaggedValue {
   switch ($type) {
     case 'BigInt':
       return { $type, value: String(value) }
@@ -99,6 +101,10 @@ function normalizeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsonOutp
     case 'Json':
       return { $type, value: JSON.stringify(JSON.parse(value)) }
     case 'Raw':
+      return { $type, value }
+    case 'FieldRef':
+      return { $type, value }
+    case 'Enum':
       return { $type, value }
     default:
       assertNever(value, 'Unknown tagged value')
@@ -143,7 +149,7 @@ export function deserializeJsonObject(result: unknown): unknown {
   return result
 }
 
-function deserializeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsOutputValue {
+function deserializeTaggedValue({ $type, value }: JsonInputTaggedValue | JsonOutputTaggedValue): JsOutputValue {
   switch ($type) {
     case 'BigInt':
       return BigInt(value)
@@ -159,6 +165,10 @@ function deserializeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsOutp
       return JSON.parse(value)
     case 'Raw':
       return value as JsOutputValue
+    case 'FieldRef':
+      throw new Error('FieldRef tagged values cannot be deserialized to JavaScript values')
+    case 'Enum':
+      return value
     default:
       assertNever(value, 'Unknown tagged value')
   }
