@@ -29,8 +29,8 @@ export function resolveResultExtensionContext({
     args: args ?? {},
   }
 
-  const relationPath = dataPath.filter((segment) => segment !== 'select' && segment !== 'include')
-  if (relationPath.length === 0) {
+  const relationPath = relationPathFromDataPath(dataPath)
+  if (!relationPath || relationPath.length === 0) {
     return rootContext
   }
 
@@ -56,6 +56,23 @@ export function resolveResultExtensionContext({
     modelName: currentModelName,
     args: currentArgs,
   }
+}
+
+function relationPathFromDataPath(dataPath: string[]): string[] | undefined {
+  const relationPath: string[] = []
+
+  for (let index = 0; index < dataPath.length; index += 2) {
+    const selector = dataPath[index]
+    const relationFieldName = dataPath[index + 1]
+
+    if ((selector !== 'select' && selector !== 'include') || relationFieldName === undefined) {
+      return undefined
+    }
+
+    relationPath.push(relationFieldName)
+  }
+
+  return relationPath
 }
 
 function resolveNextArgs(args: JsArgs, relationFieldName: string): JsArgs {

@@ -11,6 +11,25 @@ const datamodel = runtimeDataModel({
   models: [UserModel, PostModel],
 })
 
+const KeywordRelationSourceModel = model('KeywordRelationSource', [
+  field('object', 'select', 'KeywordSelectTarget', {
+    relationName: 'KeywordRelationSourceToKeywordSelectTarget',
+    isList: true,
+  }),
+  field('object', 'include', 'KeywordIncludeTarget', {
+    relationName: 'KeywordRelationSourceToKeywordIncludeTarget',
+    isList: true,
+  }),
+])
+
+const KeywordSelectTargetModel = model('KeywordSelectTarget', [])
+
+const KeywordIncludeTargetModel = model('KeywordIncludeTarget', [])
+
+const keywordRelationsDatamodel = runtimeDataModel({
+  models: [KeywordRelationSourceModel, KeywordSelectTargetModel, KeywordIncludeTargetModel],
+})
+
 test('returns root context if dataPath is empty', () => {
   const context = resolveResultExtensionContext({
     dataPath: [],
@@ -177,4 +196,76 @@ test('resolved context applies result extensions to fluent-style unwrapped resul
   })
 
   expect(result[0].postLabel).toBe('post-post-id')
+})
+
+test('resolved context applies result extensions when relation field is named "select"', () => {
+  const context = resolveResultExtensionContext({
+    dataPath: ['select', 'select'],
+    modelName: 'KeywordRelationSource',
+    args: {
+      select: {
+        select: true,
+      },
+    },
+    runtimeDataModel: keywordRelationsDatamodel,
+  })
+
+  const extensions = MergedExtensionsList.single({
+    result: {
+      keywordSelectTarget: {
+        selectLabel: {
+          needs: { id: true },
+          compute(model) {
+            return `select-${model.id}`
+          },
+        },
+      },
+    },
+  })
+
+  const result = applyAllResultExtensions({
+    result: [{ id: 'keyword-id' }] as Array<{ id: string; selectLabel?: string }>,
+    modelName: context.modelName,
+    args: context.args,
+    extensions,
+    runtimeDataModel: keywordRelationsDatamodel,
+  })
+
+  expect(result[0].selectLabel).toBe('select-keyword-id')
+})
+
+test('resolved context applies result extensions when relation field is named "include"', () => {
+  const context = resolveResultExtensionContext({
+    dataPath: ['include', 'include'],
+    modelName: 'KeywordRelationSource',
+    args: {
+      include: {
+        include: true,
+      },
+    },
+    runtimeDataModel: keywordRelationsDatamodel,
+  })
+
+  const extensions = MergedExtensionsList.single({
+    result: {
+      keywordIncludeTarget: {
+        includeLabel: {
+          needs: { id: true },
+          compute(model) {
+            return `include-${model.id}`
+          },
+        },
+      },
+    },
+  })
+
+  const result = applyAllResultExtensions({
+    result: [{ id: 'keyword-id' }] as Array<{ id: string; includeLabel?: string }>,
+    modelName: context.modelName,
+    args: context.args,
+    extensions,
+    runtimeDataModel: keywordRelationsDatamodel,
+  })
+
+  expect(result[0].includeLabel).toBe('include-keyword-id')
 })
