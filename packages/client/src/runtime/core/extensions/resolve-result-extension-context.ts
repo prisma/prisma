@@ -16,7 +16,9 @@ type ResultExtensionContext = {
 
 /**
  * Resolves the model/args context used for result extensions from a query dataPath.
- * Falls back to the root model context when the relation path can not be traversed.
+ * Falls back to the root model context when traversal can not continue because the model is
+ * missing, the segment is not a relation, or the path format is invalid.
+ * Throws when a relation field segment from dataPath does not exist on the current model.
  */
 export function resolveResultExtensionContext({
   dataPath,
