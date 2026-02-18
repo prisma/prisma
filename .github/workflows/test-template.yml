@@ -928,6 +928,10 @@ jobs:
         name: 'adapter-neon'
         working-directory: packages/adapter-neon
 
+      - run: pnpm run test
+        name: 'adapter-ppg'
+        working-directory: packages/adapter-ppg
+
   #
   # Query plan executor unit tests
   #
