@@ -188,7 +188,7 @@ test('resolved context applies result extensions to fluent-style unwrapped resul
     runtimeDataModel: datamodel,
   })
 
-  expect(result[0].postLabel).toBe('post-post-id')
+  expect(result?.[0]?.postLabel).toBe('post-post-id')
 })
 
 test('resolved context applies result extensions when relation field is named "select"', () => {
@@ -224,7 +224,7 @@ test('resolved context applies result extensions when relation field is named "s
     runtimeDataModel: keywordRelationsDatamodel,
   })
 
-  expect(result[0].selectLabel).toBe('select-keyword-id')
+  expect(result?.[0]?.selectLabel).toBe('select-keyword-id')
 })
 
 test('resolved context applies result extensions when relation field is named "include"', () => {
@@ -260,5 +260,5 @@ test('resolved context applies result extensions when relation field is named "i
     runtimeDataModel: keywordRelationsDatamodel,
   })
 
-  expect(result[0].includeLabel).toBe('include-keyword-id')
+  expect(result?.[0]?.includeLabel).toBe('include-keyword-id')
 })
