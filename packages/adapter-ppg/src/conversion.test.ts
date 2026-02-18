@@ -152,13 +152,12 @@ describe('conversion', () => {
     })
 
     test('supports arrays of bytea', () => {
-      const result = getParser(ArrayColumnType.BYTEA_ARRAY)('{aGVsbG8=,d29ybGQ=}')
+      const result = getParser(ArrayColumnType.BYTEA_ARRAY)('{aGVsbG8=,NULL}')
       expect(Array.isArray(result)).toBe(true)
       expect(result!.length).toBe(2)
       expect(Buffer.isBuffer(result![0])).toBe(true)
-      expect(Buffer.isBuffer(result![1])).toBe(true)
       expect(result![0]!.toString()).toBe('aGVsbG8=')
-      expect(result![1]!.toString()).toBe('d29ybGQ=')
+      expect(result![1]).toBeNull()
     })
   })
 })
