@@ -125,7 +125,7 @@ export type PrismaMssqlOptions = {
   onConnectionError?: (err: unknown) => void
 }
 
-class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
+export class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   constructor(
     private pool: sql.ConnectionPool,
     private readonly options?: PrismaMssqlOptions,
