@@ -500,7 +500,7 @@ class SerializeContext {
   }
 
   shouldWrapRawValues(): boolean {
-    return this.params.wrapRawValues ?? false
+    return this.params.wrapRawValues ?? true
   }
 
   getComputedFields() {
