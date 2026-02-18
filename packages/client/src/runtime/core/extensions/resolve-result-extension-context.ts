@@ -16,7 +16,7 @@ type ResultExtensionContext = {
 
 /**
  * Resolves the model/args context used for result extensions from a query dataPath.
- * Falls back to the root model context when the relation path can not be resolved.
+ * Falls back to the root model context when the relation path can not be traversed.
  */
 export function resolveResultExtensionContext({
   dataPath,
@@ -44,7 +44,12 @@ export function resolveResultExtensionContext({
     }
 
     const relationField = currentModel.fields.find((field) => field.name === relationFieldName)
-    if (!relationField || relationField.kind !== 'object' || !relationField.relationName) {
+    if (!relationField) {
+      throw new Error(
+        `Could not resolve relation field "${relationFieldName}" on model "${currentModelName}" from dataPath "${dataPath.join('.')}"`,
+      )
+    }
+    if (relationField.kind !== 'object' || !relationField.relationName) {
       return rootContext
     }
 

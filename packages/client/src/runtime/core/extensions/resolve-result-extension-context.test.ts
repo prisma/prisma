@@ -122,26 +122,19 @@ test('resolves model and args for multi-hop fluent path', () => {
   })
 })
 
-test('falls back to root context when path relation is invalid', () => {
-  const context = resolveResultExtensionContext({
-    dataPath: ['select', 'email'],
-    modelName: 'User',
-    args: {
-      select: {
-        email: true,
+test('throws a runtime error when a relation field from dataPath is missing', () => {
+  expect(() =>
+    resolveResultExtensionContext({
+      dataPath: ['select', 'email'],
+      modelName: 'User',
+      args: {
+        select: {
+          email: true,
+        },
       },
-    },
-    runtimeDataModel: datamodel,
-  })
-
-  expect(context).toEqual({
-    modelName: 'User',
-    args: {
-      select: {
-        email: true,
-      },
-    },
-  })
+      runtimeDataModel: datamodel,
+    }),
+  ).toThrow('Could not resolve relation field "email" on model "User" from dataPath "select.email"')
 })
 
 test('defaults nested args to empty object when selection is true', () => {
