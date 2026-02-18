@@ -2,6 +2,7 @@ import timers from 'node:timers/promises'
 
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
+import { afterAll, expect, test, vi } from 'vitest'
 
 import { noopTracingHelper } from '../tracing'
 import { Options } from './transaction'
@@ -16,7 +17,9 @@ import {
   TransactionStartTimeoutError,
 } from './transaction-manager-error'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
+
+afterAll(() => vi.useRealTimers())
 
 const START_TRANSACTION_TIME = 200
 const TRANSACTION_EXECUTION_TIMEOUT = 500
@@ -32,9 +35,9 @@ class MockDriverAdapter implements SqlDriverAdapter {
   provider: SqlDriverAdapter['provider']
   private readonly usePhantomQuery: boolean
 
-  executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
-  commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
-  rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
+  executeRawMock = vi.fn().mockResolvedValue(ok(1))
+  commitMock = vi.fn().mockResolvedValue(ok(undefined))
+  rollbackMock = vi.fn().mockResolvedValue(ok(undefined))
 
   constructor({ provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
@@ -67,7 +70,7 @@ class MockDriverAdapter implements SqlDriverAdapter {
       adapterName: 'mock-adapter',
       provider: 'postgres',
       options: { usePhantomQuery },
-      queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
+      queryRaw: vi.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
       commit: commitMock,
       rollback: rollbackMock,
@@ -88,7 +91,7 @@ async function startTransaction(transactionManager: TransactionManager, options:
       maxWait: START_TRANSACTION_TIME * 2,
       ...options,
     }),
-    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME + 100),
+    vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME + 100),
   ])
   return id
 }
@@ -159,7 +162,7 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
   const timeout = 200
   const rollbackDelay = 200
 
-  driverAdapter.rollbackMock = jest.fn().mockImplementation(() => timers.setTimeout(rollbackDelay))
+  driverAdapter.rollbackMock = vi.fn().mockImplementation(() => timers.setTimeout(rollbackDelay))
 
   const transactionManager = new TransactionManager({
     driverAdapter,
@@ -168,11 +171,11 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
   })
 
   const txPromise = transactionManager.startTransaction()
-  await jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME + timeout)
+  await vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME + timeout)
   const tx = await txPromise
   const commitPromise = transactionManager.commitTransaction(tx.id)
 
-  await expect(Promise.all([jest.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
+  await expect(Promise.all([vi.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
     new TransactionExecutionTimeoutError('commit', {
       timeout,
       timeTaken: START_TRANSACTION_TIME + timeout + rollbackDelay,
@@ -279,7 +282,7 @@ test('transaction times out during starting', async () => {
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
   // Now let the startTransaction promise resolve
-  await jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME)
+  await vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME)
 
   // The transaction that was started in the background should now be rolled back
   // to release the connection back to the pool.
@@ -295,16 +298,16 @@ test('transaction start timeout cleans up connection if transaction eventually s
   const TIME_PAST_MAX_WAIT = MAX_WAIT + 50
   const REMAINING_TIME_FOR_START = SLOW_START_TRANSACTION_TIME - TIME_PAST_MAX_WAIT
 
-  const rollbackMock = jest.fn().mockResolvedValue(undefined)
+  const rollbackMock = vi.fn().mockResolvedValue(undefined)
 
   const driverAdapter = {
     adapterName: 'slow-adapter',
     provider: 'postgres' as const,
-    executeRaw: jest.fn().mockResolvedValue(1),
-    queryRaw: jest.fn(),
-    executeScript: jest.fn(),
-    dispose: jest.fn(),
-    startTransaction: jest.fn().mockImplementation(
+    executeRaw: vi.fn().mockResolvedValue(1),
+    queryRaw: vi.fn(),
+    executeScript: vi.fn(),
+    dispose: vi.fn(),
+    startTransaction: vi.fn().mockImplementation(
       () =>
         new Promise((resolve) =>
           setTimeout(
@@ -313,9 +316,9 @@ test('transaction start timeout cleans up connection if transaction eventually s
                 adapterName: 'slow-adapter',
                 provider: 'postgres',
                 options: { usePhantomQuery: false },
-                queryRaw: jest.fn(),
-                executeRaw: jest.fn(),
-                commit: jest.fn(),
+                queryRaw: vi.fn(),
+                executeRaw: vi.fn(),
+                commit: vi.fn(),
                 rollback: rollbackMock,
               }),
             SLOW_START_TRANSACTION_TIME,
@@ -333,7 +336,7 @@ test('transaction start timeout cleans up connection if transaction eventually s
   // Start a transaction with a maxWait shorter than the actual connection time
   // Use Promise.all to advance timers and wait for the rejection simultaneously
   const [, txResult] = await Promise.all([
-    jest.advanceTimersByTimeAsync(TIME_PAST_MAX_WAIT),
+    vi.advanceTimersByTimeAsync(TIME_PAST_MAX_WAIT),
     transactionManager.startTransaction().catch((e) => e),
   ])
 
@@ -344,7 +347,7 @@ test('transaction start timeout cleans up connection if transaction eventually s
   expect(rollbackMock).not.toHaveBeenCalled()
 
   // Now advance time to let the startTransaction promise resolve
-  await jest.advanceTimersByTimeAsync(REMAINING_TIME_FOR_START)
+  await vi.advanceTimersByTimeAsync(REMAINING_TIME_FOR_START)
 
   // After the background startTransaction completes, rollback should be called
   // to release the connection and avoid pool exhaustion
@@ -361,7 +364,7 @@ test('transaction times out during execution', async () => {
 
   const id = await startTransaction(transactionManager)
 
-  await jest.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT + 100)
+  await vi.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT + 100)
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
@@ -377,7 +380,7 @@ test('internal transaction does not apply the default start timeout', async () =
 
   const [tx] = await Promise.all([
     transactionManager.startInternalTransaction(),
-    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
+    vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
   ])
   await transactionManager.commitTransaction(tx.id)
 
@@ -395,9 +398,9 @@ test('internal transaction does not apply the default execution timeout', async 
 
   const [tx] = await Promise.all([
     transactionManager.startInternalTransaction(),
-    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
+    vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
   ])
-  await jest.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT)
+  await vi.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT)
   await transactionManager.commitTransaction(tx.id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
@@ -430,7 +433,7 @@ test('TransactionManagerErrors have common structure', () => {
 
 test('startTransaction works when setTimeout returns a timer without unref (workerd environment)', async () => {
   const originalSetTimeout = global.setTimeout
-  const setTimeoutSpy = jest
+  const setTimeoutSpy = vi
     .spyOn(global, 'setTimeout')
     .mockImplementation((callback: (...args: any[]) => void, ms?: number, ...args: any[]) => {
       const timer = originalSetTimeout(callback, ms, ...args)
