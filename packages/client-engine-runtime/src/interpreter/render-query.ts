@@ -68,6 +68,26 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
   return arg
 }
 
+const LOWER_IN_PATTERN = /LOWER\s*\([^)]*\)\s+IN\s*$/
+
+function isCaseInsensitiveStringIn(
+  fragment: FragmentWithParams<DynamicArgType>,
+  precedingSql: string,
+): boolean {
+  if (fragment.type !== 'parameterTuple') return false
+  if (!LOWER_IN_PATTERN.test(precedingSql)) return false
+  const argType = fragment.argType
+  if (argType.arity === 'tuple') {
+    return argType.elements.every((el) => el.arity === 'scalar' && el.scalarType === 'string')
+  }
+  if (argType.arity === 'list' && argType.scalarType === 'string') return true
+  return argType.arity === 'scalar' && argType.scalarType === 'string'
+}
+
+function toLowerIfString(value: unknown): unknown {
+  return typeof value === 'string' ? value.toLowerCase() : value
+}
+
 function renderTemplateSql(
   fragments: Fragment[],
   placeholderFormat: PlaceholderFormat,
@@ -80,12 +100,18 @@ function renderTemplateSql(
   const flattenedArgTypes: ArgType[] = []
 
   for (const fragment of pairFragmentsWithParams(fragments, params, argTypes)) {
-    sql += renderFragment(fragment, placeholderFormat, ctx)
     if (fragment.type === 'stringChunk') {
+      sql += renderFragment(fragment, placeholderFormat, ctx)
       continue
     }
+    const paramsFromFragment = [...flattenedFragmentParams(fragment)]
+    const shouldLowercase =
+      isCaseInsensitiveStringIn(fragment, sql) &&
+      paramsFromFragment.every((p) => typeof p === 'string')
+    const paramsToAdd = shouldLowercase ? paramsFromFragment.map(toLowerIfString) : paramsFromFragment
     const length = flattenedParams.length
-    const added = flattenedParams.push(...flattenedFragmentParams(fragment)) - length
+    const added = flattenedParams.push(...paramsToAdd) - length
+    sql += renderFragment(fragment, placeholderFormat, ctx)
 
     if (fragment.argType.arity === 'tuple') {
       if (added % fragment.argType.elements.length !== 0) {

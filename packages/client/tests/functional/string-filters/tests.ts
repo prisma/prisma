@@ -194,6 +194,18 @@ testMatrix.setupTestSuite(({ provider }) => {
 
         expect(results.map((r) => r.value).sort()).toEqual(['FOO BAR BAZ', 'baz', 'foo bar baz'])
       })
+
+      test('in case-insensitive', async () => {
+        const results = await prisma.testModel.findMany({
+          // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB
+          where: {
+            value: { in: ['foo', 'BAR', 'baz'], mode: 'insensitive' },
+          },
+          orderBy: { value: 'asc' },
+        })
+
+        expect(results.map((r) => r.value)).toEqual(['bar', 'baz', 'foo', 'FOO BAR BAZ', 'Foo'])
+      })
     },
   )
 })
