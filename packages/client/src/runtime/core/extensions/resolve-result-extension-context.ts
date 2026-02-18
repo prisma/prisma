@@ -14,6 +14,10 @@ type ResultExtensionContext = {
   args: JsArgs
 }
 
+/**
+ * Resolves the model/args context used for result extensions from a query dataPath.
+ * Falls back to the root model context when the relation path can not be resolved.
+ */
 export function resolveResultExtensionContext({
   dataPath,
   modelName,

@@ -1,7 +1,7 @@
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { applyAllResultExtensions } from './applyAllResultExtensions'
 import { MergedExtensionsList } from './MergedExtensionsList'
-import { resolveResultExtensionContext } from './resolveResultExtensionContext'
+import { resolveResultExtensionContext } from './resolve-result-extension-context'
 
 const UserModel = model('User', [field('object', 'posts', 'Post', { relationName: 'UserToPost', isList: true })])
 

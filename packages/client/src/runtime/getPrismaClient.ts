@@ -20,7 +20,7 @@ import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { resolveResultExtensionContext } from './core/extensions/resolveResultExtensionContext'
+import { resolveResultExtensionContext } from './core/extensions/resolve-result-extension-context'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import {
