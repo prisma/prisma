@@ -149,7 +149,7 @@ export const ScalarColumnType = {
  * See the semantics of each of this code in:
  *   https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
  */
-const ArrayColumnType = {
+export const ArrayColumnType = {
   BIT_ARRAY: 1561,
   BOOL_ARRAY: 1000,
   BYTEA_ARRAY: 1001,
