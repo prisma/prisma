@@ -20,6 +20,7 @@ import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import { resolveResultExtensionContext } from './core/extensions/resolveResultExtensionContext'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import {
@@ -808,10 +809,18 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         if (!requestParams.model) {
           return result
         }
-        return applyAllResultExtensions({
-          result,
+
+        const extensionContext = resolveResultExtensionContext({
+          dataPath: requestParams.dataPath,
           modelName: requestParams.model,
           args: requestParams.args,
+          runtimeDataModel: this._runtimeDataModel,
+        })
+
+        return applyAllResultExtensions({
+          result,
+          modelName: extensionContext.modelName,
+          args: extensionContext.args,
           extensions: this._extensions,
           runtimeDataModel: this._runtimeDataModel,
           globalOmit: this._globalOmit,

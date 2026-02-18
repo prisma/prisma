@@ -69,6 +69,7 @@
   - Tests rely on fixtures under `packages/**/src/__tests__/fixtures`; many now contain `prisma.config.ts`.
   - Default Jest/Vitest runner is invoked via `pnpm --filter @prisma/<pkg> test <pattern>`; it wraps `dotenv` and expects `.db.env`.
     - Some packages already use Vitest, `packages/cli` uses both for different tests as it's in the process of transition, older packages still use Jest.
+  - Functional generated clients in `packages/client/tests/functional/**/.generated` import `packages/client/runtime/client.js` directly; runtime changes in `src/runtime` may need corresponding runtime bundle updates to be exercised by functional tests.
   - Inline snapshots can be sensitive to formatting; prefer concise expectations unless the exact message matters.
 
 - **Environment loading**: Prisma 7 removes automatic `.env` loading.
