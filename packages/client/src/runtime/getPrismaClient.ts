@@ -216,7 +216,67 @@ type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
     ? (event: EngineEvent<E>) => void
     : never
 
-const TX_ID = Symbol.for('prisma.client.transaction.id')
+const TX_SCOPE_CONTEXT = Symbol.for('prisma.client.transaction.scope_context')
+
+type ItxScopeState = {
+  stack: string[]
+}
+
+type TopLevelItxScopeContext = {
+  kind: 'top-level'
+}
+
+type NestedItxScopeContext = {
+  kind: 'nested'
+  txId: string
+  scopeId: string
+  scopeState: ItxScopeState
+}
+
+type ItxScopeContext = TopLevelItxScopeContext | NestedItxScopeContext
+
+function getItxScopeContext(client: object): ItxScopeContext {
+  const symbolStorage = client as Record<symbol, unknown>
+  const context = symbolStorage[TX_SCOPE_CONTEXT]
+
+  if (context === undefined) {
+    return { kind: 'top-level' }
+  }
+
+  if (isNestedItxScopeContext(context)) {
+    return context
+  }
+
+  throw new Error('Internal error: inconsistent transaction scope context.')
+}
+
+function isNestedItxScopeContext(value: unknown): value is NestedItxScopeContext {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const objectValue = value as Record<string, unknown>
+  return (
+    objectValue['kind'] === 'nested' &&
+    typeof objectValue['txId'] === 'string' &&
+    typeof objectValue['scopeId'] === 'string' &&
+    isItxScopeState(objectValue['scopeState'])
+  )
+}
+
+function isItxScopeState(value: unknown): value is ItxScopeState {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  return Array.isArray(value['stack'])
+}
+
+function createItxScopeId(): string {
+  return typeof globalThis.crypto?.randomUUID === 'function'
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
 
 const BatchTxIdCounter = {
   id: 0,
@@ -675,46 +735,109 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     async _transactionWithCallback({
       callback,
-      options,
+      options = {},
     }: {
       callback: (client: Client) => Promise<unknown>
       options?: Options
     }) {
+      const itxContext = getItxScopeContext(this)
+      const isNested = itxContext.kind === 'nested'
+      const scopeState: ItxScopeState = isNested ? itxContext.scopeState : { stack: [] }
+      const scopeStack = scopeState.stack
+
+      const scopeId = createItxScopeId()
+
+      if (isNested) {
+        // Only the currently-active (innermost) scope can start another nested scope.
+        // This prevents sibling nested transactions from running concurrently.
+        const activeScope = scopeStack.at(-1)
+        if (activeScope !== itxContext.scopeId) {
+          throw new Error('Concurrent nested transactions are not supported')
+        }
+
+        // Re-use the underlying transaction in the engine by reusing the same transaction id.
+        options.newTxId = itxContext.txId
+      }
+      scopeStack.push(scopeId)
+
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
 
       const optionsWithDefaults: Options = {
         maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
         timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
         isolationLevel: options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel,
+        newTxId: options.newTxId,
       }
-      const info = await this._engine.transaction('start', headers, optionsWithDefaults)
+      let info: Transaction.InteractiveTransactionInfo<unknown>
+      try {
+        info = await this._engine.transaction('start', headers, optionsWithDefaults)
+      } catch (e) {
+        // Ensure we don't leave the scope stack dirty if starting the transaction fails.
+        if (scopeStack.at(-1) === scopeId) scopeStack.pop()
+        throw e
+      }
 
       let result: unknown
       try {
         // execute user logic with a proxied the client
         const transaction = { kind: 'itx', ...info } as const
 
-        result = await callback(this._createItxClient(transaction))
+        result = await callback(this._createItxClient(transaction, scopeId, scopeState))
 
-        // it went well, then we commit the transaction
+        if (isNested) {
+          // Don't allow closing a transaction if we are not the active scope.
+          if (scopeStack.at(-1) !== scopeId) {
+            throw new Error('Nested transactions must be closed in reverse order of creation.')
+          }
+        } else if (scopeStack.length !== 1) {
+          throw new Error('Cannot close transaction while a nested transaction is still active.')
+        }
+
         await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
-        // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => {})
+        // If we try to close out-of-order (e.g. un-awaited nested transaction),
+        // the TransactionManager depth will be > 1 and a single rollback would
+        // only roll back to the latest savepoint, leaving the top-level transaction
+        // open and leaking it. Force rollback to depth 0 in that case.
+        const isOrderViolation = scopeStack.at(-1) !== scopeId
+        const rollbackScopeCount = isOrderViolation ? Math.max(1, scopeStack.length) : 1
+        for (let i = 0; i < rollbackScopeCount; i++) {
+          await this._engine.transaction('rollback', headers, info).catch((rollbackError) => {
+            debug('rollback attempt %d/%d failed: %O', i + 1, rollbackScopeCount, rollbackError)
+          })
+        }
 
         throw e // silent rollback, throw original error
+      } finally {
+        if (scopeStack.at(-1) === scopeId) {
+          scopeStack.pop()
+        } else {
+          // Reset the scope stack to avoid poisoning this transaction context after an ordering violation.
+          scopeStack.length = 0
+        }
       }
 
       return result
     }
 
-    _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
+    _createItxClient(
+      transaction: PrismaPromiseInteractiveTransaction,
+      scopeId: string,
+      scopeState: ItxScopeState,
+    ): Client {
+      const itxScopeContext: NestedItxScopeContext = {
+        kind: 'nested',
+        txId: transaction.id,
+        scopeId,
+        scopeState,
+      }
+
       return createCompositeProxy(
         applyModelsAndClientExtensions(
           createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction, scopeId, scopeState)),
             addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-            addProperty(TX_ID, () => transaction.id),
+            addProperty(TX_SCOPE_CONTEXT, () => itxScopeContext),
           ]),
         ),
         [removeProperties(itxClientDenyList)],
@@ -736,6 +859,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           callback = () => {
             throw new Error(
               'Cloudflare D1 does not support interactive transactions. We recommend you to refactor your queries with that limitation in mind, and use batch transactions with `prisma.$transactions([])` where applicable.',
+            )
+          }
+        } else if (config.activeProvider === 'mongodb' && getItxScopeContext(this).kind === 'nested') {
+          callback = () => {
+            throw new PrismaClientValidationError(
+              `The ${config.activeProvider} provider does not support nested transactions`,
+              { clientVersion: this._clientVersion },
             )
           }
         } else {
