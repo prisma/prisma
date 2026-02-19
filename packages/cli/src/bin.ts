@@ -34,6 +34,7 @@ import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
 import { Mcp } from './mcp/MCP'
+import { Platform } from './platform/_Platform'
 import { Status } from './Status'
 import { Studio } from './Studio'
 /*
@@ -117,7 +118,7 @@ async function main(): Promise<number> {
       debug: DebugInfo.new(),
       dev: new SubCommand('@prisma/cli-dev'),
       studio: Studio.new(),
-      status: Status.new(),
+      platform: Platform.$.new({ status: Status.new() }),
     },
     ['version', 'init', 'migrate', 'db', 'generate', 'validate', 'format', 'telemetry'],
     download,

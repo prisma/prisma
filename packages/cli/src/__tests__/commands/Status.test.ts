@@ -51,33 +51,37 @@ function makeSummary(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function mockFetchSuccess(data: unknown) {
-  globalThis.fetch = jest.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(data),
-  })
-}
-
-function mockFetchHttpError(status: number) {
-  globalThis.fetch = jest.fn().mockResolvedValue({
-    ok: false,
-    status,
-    json: () => Promise.resolve({}),
-  })
-}
-
-function mockFetchNetworkError(message: string) {
-  globalThis.fetch = jest.fn().mockRejectedValue(new Error(message))
-}
-
-const originalFetch = globalThis.fetch
-
-afterEach(() => {
-  globalThis.fetch = originalFetch
-  process.exitCode = undefined
-})
-
 describe('status', () => {
+  let fetchSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    fetchSpy = jest.spyOn(globalThis as any, 'fetch')
+  })
+
+  afterEach(() => {
+    fetchSpy.mockRestore()
+    process.exitCode = undefined
+  })
+
+  function mockFetchSuccess(data: unknown) {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(data),
+    })
+  }
+
+  function mockFetchHttpError(status: number) {
+    fetchSpy.mockResolvedValue({
+      ok: false,
+      status,
+      json: () => Promise.resolve({}),
+    })
+  }
+
+  function mockFetchNetworkError(message: string) {
+    fetchSpy.mockRejectedValue(new Error(message))
+  }
+
   it('should show help with --help', async () => {
     const result = await Status.new().parse(['--help'], defaultTestConfig())
     expect(result).toContain('Show Prisma Data Platform service status')
@@ -89,13 +93,17 @@ describe('status', () => {
 
     const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
 
-    expect(result).toContain('All Systems Operational')
-    expect(result).toContain('Services')
-    expect(result).toContain('Accelerate')
-    expect(result).toContain('Console')
-    expect(result).toContain('Operational')
-    expect(result).not.toContain('Active Incidents')
-    expect(result).toContain('https://www.prisma-status.com')
+    expect(result).toMatchInlineSnapshot(`
+      "All Systems Operational
+
+      Services
+        Accelerate   Operational
+        Console      Operational
+        Optimize     Operational
+        Postgres     Operational
+
+      Status page: https://www.prisma-status.com"
+    `)
   })
 
   it('should strip Prisma prefix from component names', async () => {
@@ -103,8 +111,17 @@ describe('status', () => {
 
     const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
 
-    expect(result).not.toMatch(/Prisma Accelerate/)
-    expect(result).toMatch(/Accelerate\s+Operational/)
+    expect(result).toMatchInlineSnapshot(`
+      "All Systems Operational
+
+      Services
+        Accelerate   Operational
+        Console      Operational
+        Optimize     Operational
+        Postgres     Operational
+
+      Status page: https://www.prisma-status.com"
+    `)
   })
 
   it('should display active incidents', async () => {
