@@ -177,6 +177,18 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     this.txDeferred.reject(new RollbackError())
     return await this.txResultPromise
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
