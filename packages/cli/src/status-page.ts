@@ -3,12 +3,12 @@ import { bold, dim, green, red, yellow } from 'kleur/colors'
 export const STATUS_PAGE_URL = 'https://www.prisma-status.com'
 const SUMMARY_API_URL = `${STATUS_PAGE_URL}/api/v2/summary.json`
 
-export type StatusPageStatus = {
+export interface StatusPageStatus {
   indicator: 'none' | 'minor' | 'major' | 'critical'
   description: string
 }
 
-export type StatusPageComponent = {
+export interface StatusPageComponent {
   id: string
   name: string
   status: 'operational' | 'degraded_performance' | 'partial_outage' | 'major_outage' | 'under_maintenance'
@@ -18,13 +18,13 @@ export type StatusPageComponent = {
   group: boolean
 }
 
-export type StatusPageIncidentUpdate = {
+export interface StatusPageIncidentUpdate {
   status: string
   body: string
   created_at: string
 }
 
-export type StatusPageIncident = {
+export interface StatusPageIncident {
   id: string
   name: string
   status: string
@@ -33,7 +33,7 @@ export type StatusPageIncident = {
   incident_updates: StatusPageIncidentUpdate[]
 }
 
-export type StatusPageMaintenance = {
+export interface StatusPageMaintenance {
   id: string
   name: string
   status: 'scheduled' | 'in_progress' | 'verifying' | 'completed'
@@ -42,7 +42,7 @@ export type StatusPageMaintenance = {
   incident_updates: StatusPageIncidentUpdate[]
 }
 
-export type StatusPageSummary = {
+export interface StatusPageSummary {
   status: StatusPageStatus
   components: StatusPageComponent[]
   incidents: StatusPageIncident[]
