@@ -1,53 +1,73 @@
 import { bold, dim, green, red, yellow } from 'kleur/colors'
+import { z } from 'zod'
 
 export const STATUS_PAGE_URL = 'https://www.prisma-status.com'
 const SUMMARY_API_URL = `${STATUS_PAGE_URL}/api/v2/summary.json`
 
-export interface StatusPageStatus {
-  indicator: 'none' | 'minor' | 'major' | 'critical'
-  description: string
-}
+const StatusPageStatusSchema = z
+  .object({
+    indicator: z.enum(['none', 'minor', 'major', 'critical']),
+    description: z.string(),
+  })
+  .passthrough()
 
-export interface StatusPageComponent {
-  id: string
-  name: string
-  status: 'operational' | 'degraded_performance' | 'partial_outage' | 'major_outage' | 'under_maintenance'
-  description: string | null
-  position: number
-  group_id: string | null
-  group: boolean
-}
+const StatusPageComponentSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    status: z.enum(['operational', 'degraded_performance', 'partial_outage', 'major_outage', 'under_maintenance']),
+    description: z.string().nullable(),
+    position: z.number(),
+    group_id: z.string().nullable(),
+    group: z.boolean(),
+  })
+  .passthrough()
 
-export interface StatusPageIncidentUpdate {
-  status: string
-  body: string
-  created_at: string
-}
+const StatusPageIncidentUpdateSchema = z
+  .object({
+    status: z.string(),
+    body: z.string(),
+    created_at: z.string(),
+  })
+  .passthrough()
 
-export interface StatusPageIncident {
-  id: string
-  name: string
-  status: string
-  impact: 'none' | 'minor' | 'major' | 'critical'
-  created_at: string
-  incident_updates: StatusPageIncidentUpdate[]
-}
+const StatusPageIncidentSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    status: z.string(),
+    impact: z.enum(['none', 'minor', 'major', 'critical']),
+    created_at: z.string(),
+    incident_updates: z.array(StatusPageIncidentUpdateSchema),
+  })
+  .passthrough()
 
-export interface StatusPageMaintenance {
-  id: string
-  name: string
-  status: 'scheduled' | 'in_progress' | 'verifying' | 'completed'
-  scheduled_for: string
-  scheduled_until: string
-  incident_updates: StatusPageIncidentUpdate[]
-}
+const StatusPageMaintenanceSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    status: z.enum(['scheduled', 'in_progress', 'verifying', 'completed']),
+    scheduled_for: z.string(),
+    scheduled_until: z.string(),
+    incident_updates: z.array(StatusPageIncidentUpdateSchema),
+  })
+  .passthrough()
 
-export interface StatusPageSummary {
-  status: StatusPageStatus
-  components: StatusPageComponent[]
-  incidents: StatusPageIncident[]
-  scheduled_maintenances: StatusPageMaintenance[]
-}
+const StatusPageSummarySchema = z
+  .object({
+    status: StatusPageStatusSchema,
+    components: z.array(StatusPageComponentSchema),
+    incidents: z.array(StatusPageIncidentSchema),
+    scheduled_maintenances: z.array(StatusPageMaintenanceSchema),
+  })
+  .passthrough()
+
+export type StatusPageStatus = z.infer<typeof StatusPageStatusSchema>
+export type StatusPageComponent = z.infer<typeof StatusPageComponentSchema>
+export type StatusPageIncidentUpdate = z.infer<typeof StatusPageIncidentUpdateSchema>
+export type StatusPageIncident = z.infer<typeof StatusPageIncidentSchema>
+export type StatusPageMaintenance = z.infer<typeof StatusPageMaintenanceSchema>
+export type StatusPageSummary = z.infer<typeof StatusPageSummarySchema>
 
 export function formatComponentStatus(status: StatusPageComponent['status']): string {
   switch (status) {
@@ -131,7 +151,9 @@ async function queryStatusAPI(): Promise<StatusResult> {
   try {
     const response = await fetch(SUMMARY_API_URL, { signal: AbortSignal.timeout(10_000) })
     if (!response.ok) return { httpError: response.status }
-    return { summary: (await response.json()) as StatusPageSummary }
+    const parsed = StatusPageSummarySchema.safeParse(await response.json())
+    if (!parsed.success) return { networkError: `unexpected API response: ${parsed.error.message}` }
+    return { summary: parsed.data }
   } catch (e) {
     return { networkError: e instanceof Error ? e.message : String(e) }
   }
