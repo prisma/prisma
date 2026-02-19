@@ -3,7 +3,7 @@ import type { Command, Commands } from '@prisma/internals'
 import { arg, HelpError, isError } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
 
-import { dispatchToSubCommand } from './_lib/cli/dispatchToSubCommand'
+import { dispatchToSubCommand } from './_lib/cli/dispatch-to-sub-command'
 import { createHelp } from './_lib/help'
 
 /** $ prisma platform */
