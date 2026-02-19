@@ -125,39 +125,42 @@ export function stripPrismaPrefix(name: string): string {
   return name.replace(/^Prisma\s+/, '')
 }
 
+type StatusResult = { summary: StatusPageSummary } | { httpError: number } | { networkError: string }
+
+async function queryStatusAPI(): Promise<StatusResult> {
+  try {
+    const response = await fetch(SUMMARY_API_URL, { signal: AbortSignal.timeout(10_000) })
+    if (!response.ok) return { httpError: response.status }
+    return { summary: (await response.json()) as StatusPageSummary }
+  } catch (e) {
+    return { networkError: e instanceof Error ? e.message : String(e) }
+  }
+}
+
 /** Fetches status from the Prisma status page API and returns formatted output. */
 export async function fetchStatus(isJson: boolean): Promise<string> {
-  let summary: StatusPageSummary
-  try {
-    const response = await fetch(SUMMARY_API_URL, {
-      signal: AbortSignal.timeout(10_000),
-    })
+  const result = await queryStatusAPI()
 
-    if (!response.ok) {
-      const message = `Status API returned HTTP ${response.status}`
-      if (isJson) {
-        process.exitCode = 1
-        return JSON.stringify({ error: message })
-      }
-      return `${red(message)}\nCheck ${STATUS_PAGE_URL} directly.`
-    }
-
-    const data = await response.json()
-
-    if (isJson) {
-      return JSON.stringify(data, null, 2)
-    }
-
-    summary = data as StatusPageSummary
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e)
-    if (isJson) {
+  if (isJson) {
+    if ('networkError' in result) {
       process.exitCode = 1
-      return JSON.stringify({ error: message })
+      return JSON.stringify({ error: result.networkError })
     }
-    return `${red('Could not reach status API')}: ${message}\nCheck ${STATUS_PAGE_URL} directly.`
+    if ('httpError' in result) {
+      process.exitCode = 1
+      return JSON.stringify({ error: `Status API returned HTTP ${result.httpError}` })
+    }
+    return JSON.stringify(result.summary, null, 2)
   }
 
+  if ('networkError' in result) {
+    return `${red('Could not reach status API')}: ${result.networkError}\nCheck ${STATUS_PAGE_URL} directly.`
+  }
+  if ('httpError' in result) {
+    return `${red(`Status API returned HTTP ${result.httpError}`)}\nCheck ${STATUS_PAGE_URL} directly.`
+  }
+
+  const { summary } = result
   const lines: string[] = []
 
   lines.push(bold(formatOverallStatus(summary.status.indicator, summary.status.description)))
