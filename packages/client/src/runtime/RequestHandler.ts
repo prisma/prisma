@@ -1,5 +1,5 @@
 import { Context } from '@opentelemetry/api'
-import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
+import { deserializeJsonObject } from '@prisma/client-engine-runtime'
 import { hasBatchIndex } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
@@ -119,6 +119,15 @@ export class RequestHandler {
       },
 
       batchBy: (request) => {
+        // If the request is part of an interactive transaction, we want to group all requests with the same
+        // protocolQuery together to take advantage of automatic batching in the engine.
+        // Note that we only do this for interactive transactions, not for batch transactions, as it can lead to queries
+        // being executed out of order in batch transactions.
+        if (request.transaction?.kind === 'itx') {
+          const batchId = getBatchId(request.protocolQuery)
+          return `itx-${request.transaction.id}${batchId ? `-${batchId}` : ''}`
+        }
+
         if (request.transaction?.id) {
           return `transaction-${request.transaction.id}`
         }
@@ -274,7 +283,7 @@ export class RequestHandler {
     const deserializedResponse =
       operation === 'queryRaw'
         ? deserializeRawResult(extractedResponse as RawResponse)
-        : (deserializeJsonResponse(extractedResponse) as unknown)
+        : (deserializeJsonObject(extractedResponse) as unknown)
 
     return unpacker ? unpacker(deserializedResponse) : deserializedResponse
   }
