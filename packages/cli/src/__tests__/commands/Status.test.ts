@@ -222,12 +222,22 @@ describe('status', () => {
 
     const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
 
-    expect(result).toContain('Scheduled Maintenances')
-    expect(result).toContain('Database migration')
-    expect(result).toContain('Scheduled')
-    expect(result).toContain('Planned downtime.')
-    expect(result).toContain('09:30-10:30 UTC')
-    expect(result).not.toContain('Old maintenance')
+    expect(result).toMatchInlineSnapshot(`
+      "All Systems Operational
+
+      Services
+        Accelerate   Operational
+        Console      Operational
+        Optimize     Operational
+        Postgres     Operational
+
+      Scheduled Maintenances
+        Database migration (Scheduled)
+          Planned downtime.
+          Feb 17, 2026 09:30-10:30 UTC
+
+      Status page: https://www.prisma-status.com"
+    `)
   })
 
   it('should show under_maintenance status as Maintenance', async () => {
@@ -249,8 +259,14 @@ describe('status', () => {
 
     const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
 
-    expect(result).toContain('Maintenance')
-    expect(result).not.toContain('under_maintenance')
+    expect(result).toMatchInlineSnapshot(`
+      "All Systems Operational
+
+      Services
+        Postgres   Maintenance
+
+      Status page: https://www.prisma-status.com"
+    `)
   })
 
   it('should display in_progress maintenance preferring scheduled update body', async () => {
@@ -278,12 +294,22 @@ describe('status', () => {
 
     const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
 
-    expect(result).toContain('In Progress')
-    expect(result).not.toContain('in_progress')
-    // should show scheduled update body, not in_progress
-    expect(result).toContain('Impact: Active connections may be disrupted.')
-    expect(result).not.toContain('Maintenance in progress.')
-    expect(result).toContain('09:30-10:30 UTC')
+    expect(result).toMatchInlineSnapshot(`
+      "All Systems Operational
+
+      Services
+        Accelerate   Operational
+        Console      Operational
+        Optimize     Operational
+        Postgres     Operational
+
+      Scheduled Maintenances
+        Prisma Postgres Maintenance (In Progress)
+          Impact: Active connections may be disrupted.
+          Feb 17, 2026 09:30-10:30 UTC
+
+      Status page: https://www.prisma-status.com"
+    `)
   })
 
   it('should output raw JSON with --json', async () => {
@@ -364,7 +390,13 @@ describe('status', () => {
 
     const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
 
-    expect(result).not.toMatch(/^\s*Group\s/m)
-    expect(result).toContain('Accelerate')
+    expect(result).toMatchInlineSnapshot(`
+      "All Systems Operational
+
+      Services
+        Accelerate   Operational
+
+      Status page: https://www.prisma-status.com"
+    `)
   })
 })
