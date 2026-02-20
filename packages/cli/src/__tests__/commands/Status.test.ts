@@ -82,6 +82,13 @@ describe('status', () => {
     fetchSpy.mockRejectedValue(new Error(message))
   }
 
+  function mockFetchParseError() {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ unexpected: 'response' }),
+    })
+  }
+
   it('should show help with --help', async () => {
     const result = await Status.new().parse(['--help'], defaultTestConfig())
     expect(result).toContain('Show Prisma Data Platform service status')
@@ -341,6 +348,26 @@ describe('status', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.error).toBe('Status API returned HTTP 500')
+    expect(process.exitCode).toBe(1)
+  })
+
+  it('should handle parse errors gracefully', async () => {
+    mockFetchParseError()
+
+    const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
+
+    expect(result).toContain('Could not parse status API response')
+    expect(result).toContain('unexpected API response')
+    expect(result).toContain('https://www.prisma-status.com')
+  })
+
+  it('should return JSON error on parse failure with --json and set non-zero exit code', async () => {
+    mockFetchParseError()
+
+    const result = (await Status.new().parse(['--json'], defaultTestConfig())) as string
+    const parsed = JSON.parse(result)
+
+    expect(parsed.error).toContain('unexpected API response')
     expect(process.exitCode).toBe(1)
   })
 

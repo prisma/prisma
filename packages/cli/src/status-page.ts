@@ -145,14 +145,18 @@ export function stripPrismaPrefix(name: string): string {
   return name.replace(/^Prisma\s+/, '')
 }
 
-type StatusResult = { summary: StatusPageSummary } | { httpError: number } | { networkError: string }
+type StatusResult =
+  | { summary: StatusPageSummary }
+  | { httpError: number }
+  | { networkError: string }
+  | { parseError: string }
 
 async function queryStatusAPI(): Promise<StatusResult> {
   try {
     const response = await fetch(SUMMARY_API_URL, { signal: AbortSignal.timeout(10_000) })
     if (!response.ok) return { httpError: response.status }
     const parsed = StatusPageSummarySchema.safeParse(await response.json())
-    if (!parsed.success) return { networkError: `unexpected API response: ${parsed.error.message}` }
+    if (!parsed.success) return { parseError: `unexpected API response: ${parsed.error.message}` }
     return { summary: parsed.data }
   } catch (e) {
     return { networkError: e instanceof Error ? e.message : String(e) }
@@ -168,6 +172,10 @@ export async function fetchStatus(isJson: boolean): Promise<string> {
       process.exitCode = 1
       return JSON.stringify({ error: result.networkError })
     }
+    if ('parseError' in result) {
+      process.exitCode = 1
+      return JSON.stringify({ error: result.parseError })
+    }
     if ('httpError' in result) {
       process.exitCode = 1
       return JSON.stringify({ error: `Status API returned HTTP ${result.httpError}` })
@@ -177,6 +185,9 @@ export async function fetchStatus(isJson: boolean): Promise<string> {
 
   if ('networkError' in result) {
     return `${red('Could not reach status API')}: ${result.networkError}\nCheck ${STATUS_PAGE_URL} directly.`
+  }
+  if ('parseError' in result) {
+    return `${red('Could not parse status API response')}: ${result.parseError}\nCheck ${STATUS_PAGE_URL} directly.`
   }
   if ('httpError' in result) {
     return `${red(`Status API returned HTTP ${result.httpError}`)}\nCheck ${STATUS_PAGE_URL} directly.`
