@@ -97,6 +97,45 @@ test('transforms IN template', () => {
   ])
 })
 
+test('lowercases string params for case-insensitive IN', () => {
+  expect(
+    renderQuery(
+      {
+        type: 'templateSql',
+        fragments: [
+          {
+            type: 'stringChunk',
+            chunk: 'SELECT * FROM t WHERE LOWER("col") IN ',
+          },
+          { type: 'parameterTuple' },
+          { type: 'stringChunk', chunk: ' OFFSET ' },
+          { type: 'parameter' },
+        ],
+        placeholderFormat: { prefix: '$', hasNumbering: true } satisfies PlaceholderFormat,
+        args: [['AbC.jpg', 'DEF.txt', 'gHi.png'], 0],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'string' },
+          { arity: 'scalar', scalarType: 'int' },
+        ],
+        chunkable: true,
+      } satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM t WHERE LOWER("col") IN ($1,$2,$3) OFFSET $4',
+      args: ['abc.jpg', 'def.txt', 'ghi.png', 0],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'string' },
+        { arity: 'scalar', scalarType: 'string' },
+        { arity: 'scalar', scalarType: 'string' },
+        { arity: 'scalar', scalarType: 'int' },
+      ],
+    },
+  ])
+})
+
 test('transforms IN template with empty list', () => {
   expect(
     renderQuery(
