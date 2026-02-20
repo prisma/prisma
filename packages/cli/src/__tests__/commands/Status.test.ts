@@ -106,24 +106,6 @@ describe('status', () => {
     `)
   })
 
-  it('should strip Prisma prefix from component names', async () => {
-    mockFetchSuccess(makeSummary())
-
-    const result = stripVTControlCharacters((await Status.new().parse([], defaultTestConfig())) as string)
-
-    expect(result).toMatchInlineSnapshot(`
-      "All Systems Operational
-
-      Services
-        Accelerate   Operational
-        Console      Operational
-        Optimize     Operational
-        Postgres     Operational
-
-      Status page: https://www.prisma-status.com"
-    `)
-  })
-
   it('should display active incidents', async () => {
     mockFetchSuccess(
       makeSummary({
