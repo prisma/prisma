@@ -40,8 +40,7 @@ ${buildPrismaSkipTs(generator.previewFeatures)}
 /**
  * Decimal.js
  */
-export const Decimal = runtime.Decimal
-export type Decimal = runtime.Decimal
+export import Decimal = runtime.Decimal
 
 export type DecimalJsLike = runtime.DecimalJsLike
 
