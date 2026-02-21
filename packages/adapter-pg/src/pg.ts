@@ -293,6 +293,15 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   async connect(): Promise<PrismaPgAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
 
+    try {
+      await this.validateConnection(client)
+    } catch (e) {
+      if (!this.externalPool) {
+        await client.end()
+      }
+      throw e
+    }
+
     const onIdleClientError = (err: Error) => {
       debug(`Error from idle pool client: ${err.message} %O`, err)
       this.options?.onPoolError?.(err)
@@ -323,5 +332,18 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       await conn.executeScript(`DROP DATABASE "${database}"`)
       await client.end()
     })
+  }
+
+  private async validateConnection(pool: pg.Pool): Promise<void> {
+    const tag = '[js::validateConnection]'
+
+    try {
+      // connection validation
+      await pool.query('SELECT 1')
+      debug(`${tag} Connection validated successfully`)
+    } catch (e) {
+      debug(`${tag} Connection failed: %O`, e)
+      throw new DriverAdapterError(convertDriverError(e))
+    }
   }
 }
