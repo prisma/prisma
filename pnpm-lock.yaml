@@ -73,7 +73,7 @@ importers:
         specifier: 7.15.0
         version: 7.15.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5)
       '@vitest/coverage-v8':
-        specifier: ^4.0.18
+        specifier: 4.0.18
         version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.25)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0))
       arg:
         specifier: 5.0.2
@@ -208,7 +208,7 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: ^4.0.18
+        specifier: 4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.25)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
       wrangler:
         specifier: 3.114.15
@@ -9769,7 +9769,7 @@ snapshots:
   '@jridgewell/trace-mapping@0.3.31':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
