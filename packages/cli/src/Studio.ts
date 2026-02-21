@@ -1,4 +1,4 @@
-import { access, constants, readFile } from 'node:fs/promises'
+import { access, constants, readFile, stat } from 'node:fs/promises'
 
 import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
@@ -63,8 +63,13 @@ const AccelerateAPIKeyPayloadSchema = z.object({
   tenant_id: z.string(),
 })
 
+interface CreateExecutorResult {
+  executor: Executor
+  usedStorageBytes?: number
+}
+
 interface StudioStuff {
-  createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
+  createExecutor(connectionString: string, relativeTo: string): Promise<CreateExecutorResult>
   reExportAdapterScript: string
 }
 
@@ -102,7 +107,21 @@ const POSTGRES_STUDIO_STUFF: StudioStuff = {
     process.once('SIGINT', () => postgres.end())
     process.once('SIGTERM', () => postgres.end())
 
-    return createPostgresJSExecutor(postgres)
+    let usedStorageBytes: number | undefined
+    try {
+      const rows = await postgres`SELECT pg_database_size(current_database()) AS size`
+      const value = rows[0]?.size != null ? Number(rows[0].size) : NaN
+      if (Number.isFinite(value) && value >= 0) {
+        usedStorageBytes = value
+      }
+    } catch {
+      usedStorageBytes = undefined
+    }
+
+    return {
+      executor: createPostgresJSExecutor(postgres),
+      usedStorageBytes,
+    }
   },
   reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
 }
@@ -178,7 +197,22 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
       process.once('SIGINT', () => database!.close())
       process.once('SIGTERM', () => database!.close())
 
-      return createNodeSQLiteExecutor(database)
+      let usedStorageBytes: number | undefined
+      if (!isInMemory) {
+        try {
+          const fileStat = await stat(resolvedPath)
+          if (fileStat.isFile() && Number.isFinite(fileStat.size)) {
+            usedStorageBytes = fileStat.size
+          }
+        } catch {
+          usedStorageBytes = undefined
+        }
+      }
+
+      return {
+        executor: createNodeSQLiteExecutor(database),
+        usedStorageBytes,
+      }
     },
     reExportAdapterScript: `export { createSQLiteAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/sqlite-core/index.js';`,
   },
@@ -236,7 +270,24 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
       process.once('SIGINT', () => pool.end())
       process.once('SIGTERM', () => pool.end())
 
-      return createMySQL2Executor(pool)
+      let usedStorageBytes: number | undefined
+      try {
+        const [rows] = await pool.execute(
+          'SELECT COALESCE(SUM(data_length + index_length), 0) AS size FROM information_schema.tables WHERE table_schema = DATABASE()',
+        )
+        const row = Array.isArray(rows) ? rows[0] : null
+        const value = row && typeof row === 'object' && 'size' in row ? Number((row as { size: unknown }).size) : NaN
+        if (Number.isFinite(value) && value >= 0) {
+          usedStorageBytes = value
+        }
+      } catch {
+        usedStorageBytes = undefined
+      }
+
+      return {
+        executor: createMySQL2Executor(pool),
+        usedStorageBytes,
+      }
     },
     reExportAdapterScript: `export { createMySQLAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/mysql-core/index.js';`,
   },
@@ -340,7 +391,7 @@ ${bold('Examples')}
       return new Error(`Prisma Studio is not supported for the "${protocol}" protocol.`)
     }
 
-    const executor = await studioStuff.createExecutor(
+    const { executor, usedStorageBytes } = await studioStuff.createExecutor(
       connectionString,
       getUrlBasePath(args['--url'], config.loadedFromFile),
     )
@@ -352,13 +403,19 @@ ${bold('Examples')}
     app.get('/', (ctx) => {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
 
-      return ctx.text(INDEX_HTML, 200, { 'Content-Type': contentType })
+      return ctx.text(getIndexHtml(usedStorageBytes ?? null), 200, { 'Content-Type': contentType })
     })
 
     app.get(`/${ADAPTER_FILE_NAME}`, (ctx) => {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(ctx.req.path)]
 
       return ctx.text(studioStuff.reExportAdapterScript, 200, { 'Content-Type': contentType })
+    })
+
+    app.get('/api/used-storage', (ctx) => {
+      return ctx.json({
+        usedStorageBytes: usedStorageBytes ?? null,
+      })
     })
 
     app.get('/*', async (ctx) => {
@@ -460,6 +517,9 @@ ${bold('Examples')}
       process.once('SIGTERM', () => server.close())
 
       console.log(bold(`\nPrisma Studio is running at:`), url)
+      if (usedStorageBytes !== undefined && usedStorageBytes !== null) {
+        console.log(bold('Used storage:'), formatUsedStorage(usedStorageBytes))
+      }
 
       const browser = args['--browser'] || process.env.BROWSER
 
@@ -476,9 +536,24 @@ function getUrlBasePath(url: string | undefined, configPath: string | null): str
   return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
 }
 
-// prettier-ignore
-const INDEX_HTML =
-`<!doctype html>
+function formatUsedStorage(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+}
+
+function getIndexHtml(usedStorageBytes: number | null): string {
+  const usedStorageScript =
+    usedStorageBytes !== null
+      ? `<script>window.__STUDIO_USED_STORAGE_BYTES__ = ${usedStorageBytes};</script>`
+      : ''
+  const usedStorageLabel =
+    usedStorageBytes !== null
+      ? `<div id="studio-used-storage" style="padding: 8px 12px; font-size: 13px; color: #374151; background: #f3f4f6; border-bottom: 1px solid #e5e7eb;">Used storage: ${formatUsedStorage(usedStorageBytes)}</div>`
+      : ''
+
+  return `<!doctype html>
 <html lang="en" style="height: 100%">
   <head>
     <meta charset="UTF-8" />
@@ -509,6 +584,8 @@ const INDEX_HTML =
     </script>
   </head>
   <body>
+    ${usedStorageScript}
+    ${usedStorageLabel}
     <div id="root"></div>
     <script type="module">
       'use strict';
@@ -539,3 +616,4 @@ const INDEX_HTML =
     </script>
   </body>
 </html>`
+}
