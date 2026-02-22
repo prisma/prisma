@@ -1,0 +1,8 @@
+// Base schema with datasource and generator
+datasource db {
+        provider = "postgresql"
+}
+
+generator client {
+        provider = "prisma-client-js"
+}

@@ -4,7 +4,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
-import { bold, red } from 'kleur/colors'
+import { bold, red, yellow } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -98,6 +98,21 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   if (E.isRight(dmmfEither)) {
     debug('dmmf data retrieved without errors in getDmmf Wasm')
     const { right: data } = dmmfEither
+
+    // Warn if the schema has no models, enums, or types
+    // This often happens when the schema path is incorrect in multi-file setups
+    const hasModels = data.datamodel.models.length > 0
+    const hasEnums = data.datamodel.enums.length > 0
+    const hasTypes = data.datamodel.types.length > 0
+
+    if (!hasModels && !hasEnums && !hasTypes) {
+      console.warn(
+        yellow(
+          'Warning: Your Prisma schema is empty (no models, enums, or types). \nIf you are using multi-file schemas, check that your `prisma.config.ts` points to the correct directory.',
+        ),
+      )
+    }
+
     return Promise.resolve(data)
   }
 
