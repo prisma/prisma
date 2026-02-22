@@ -7,6 +7,9 @@ import { Compute, Equals, PatchFlat, Select } from './Utils'
 
 export type Count<O> = { [K in keyof O]: Count<number> } & {}
 
+// Helper to safely index intersected select/include objects
+type SafeKeyAccess<S, I, K extends PropertyKey> = K extends keyof (S & I) ? (S & I)[K] : undefined
+
 // prettier-ignore
 export type GetFindResult<P extends OperationPayload, A, GlobalOmitOptions> =
   Equals<A, any> extends 1 ? DefaultSelection<P, A, GlobalOmitOptions> :
@@ -14,14 +17,14 @@ export type GetFindResult<P extends OperationPayload, A, GlobalOmitOptions> =
   | { select: infer S extends object } & Record<string, unknown>
   | { include: infer I extends object } & Record<string, unknown>
   ? {
-      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]:
-        (S & I)[K] extends object
+      [K in keyof P['scalars'] as SafeKeyAccess<S, I, K> extends false | undefined | Skip | null ? never : K]:
+        SafeKeyAccess<S, I, K> extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions>[] : never
+          ? O extends OperationPayload ? GetFindResult<O, SafeKeyAccess<S, I, K>, GlobalOmitOptions>[] : never
           : P extends SelectablePayloadFields<K, infer O | null>
-            ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmitOptions> | SelectField<P, K> & null : never
+            ? O extends OperationPayload ? GetFindResult<O, SafeKeyAccess<S, I, K>, GlobalOmitOptions> | SelectField<P, K> & null : never
             : K extends '_count'
-              ? Count<GetFindResult<P, (S & I)[K], GlobalOmitOptions>>
+              ? Count<GetFindResult<P, SafeKeyAccess<S, I, K>, GlobalOmitOptions>>
               : never
         : P extends SelectablePayloadFields<K, (infer O)[]>
           ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmitOptions>[] : never
