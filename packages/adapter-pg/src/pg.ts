@@ -25,6 +25,27 @@ const types = pg.types
 
 const debug = Debug('prisma:driver-adapter:pg')
 
+/**
+ * Fix incorrect enum array cast syntax in SQL.
+ * Converts: cast($1 as "schema"."Type[]")
+ * To:       cast($1 as "schema"."Type"[])
+ *
+ * This is a workaround for a bug in the Rust query compiler where enum array
+ * types are incorrectly cast with the brackets inside the quoted identifier.
+ */
+function fixEnumArrayCast(sql: string): string {
+  // Match: cast($N as "schema"."EnumName[]")
+  // Replace with: cast($N as "schema"."EnumName"[])
+  return sql.replace(
+    /cast\s*\(\s*\$(\d+)\s+as\s+"([^"]+)"\.("([^"]+)\[\]")\s*\)/gi,
+    (match, paramIndex, schema, quotedTypeWithBrackets, typeWithBrackets) => {
+      // Extract the type name without brackets
+      const typeName = typeWithBrackets.replace(/\[\]$/, '')
+      return `cast($${paramIndex} as "${schema}"."${typeName}"[])`
+    },
+  )
+}
+
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
@@ -99,7 +120,12 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
    * marked as unhealthy.
    */
   private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
-    const { sql, args } = query
+    let { sql } = query
+    const { args } = query
+
+    // Fix incorrect enum array cast syntax (workaround for Rust query compiler bug)
+    sql = fixEnumArrayCast(sql)
+
     const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
 
     try {
