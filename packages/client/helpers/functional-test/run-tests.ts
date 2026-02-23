@@ -8,6 +8,7 @@ import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
 const allAdapterProviders = new Set(Object.values(AdapterProviders))
+const allRuntimes = new Set(['node', 'bun'] as const)
 
 // See https://jestjs.io/docs/cli
 // Not all Jest params are defined below
@@ -105,6 +106,8 @@ const args = arg(
     '--preview-features': String,
     // Enable Node.js debugger
     '--inspect-brk': Boolean,
+    // Runtime used to execute the Jest process itself
+    '--runtime': String,
 
     //
     // Jest params
@@ -120,8 +123,13 @@ if (args instanceof Error) {
 }
 
 function main(): number | void {
+  const runtime = (args['--runtime'] ?? 'node') as 'node' | 'bun'
+  if (!allRuntimes.has(runtime)) {
+    throw new Error(`Unknown runtime: ${runtime}. Available options: node, bun`)
+  }
+
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
-  let jestCli = jestCliBase
+  let jestCli = jestCliBase.withRuntime(runtime).withEnv({ TEST_RUNTIME: runtime })
   // Pass all the Jest params to Jest CLI
   for (const cliArg of Object.keys(args)) {
     // If it's a boolean, we only need to pass the flag
@@ -134,6 +142,9 @@ function main(): number | void {
   }
 
   if (args['--inspect-brk']) {
+    if (runtime === 'bun') {
+      throw new Error('`--inspect-brk` is only supported with `--runtime node`.')
+    }
     jestCli = jestCli.withDebugger()
   }
 
@@ -162,6 +173,12 @@ function main(): number | void {
         .join('\n')
       throw new Error(
         `Unknown adapter providers: ${unknownAdapterProviders.join(', ')}. Available options:\n${allAdaptersStr}\n\n`,
+      )
+    }
+
+    if (adapterProviders.includes(AdapterProviders.JS_BUN_POSTGRES) && runtime !== 'bun') {
+      throw new Error(
+        'Adapter `js_bun_postgres` requires Bun runtime. Re-run with `--runtime bun` or use `test:functional:code:bun`.',
       )
     }
 

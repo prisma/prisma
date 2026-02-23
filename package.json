@@ -160,6 +160,9 @@
     }
   ],
   "pnpm": {
+    "patchedDependencies": {
+      "jest-runtime@29.7.0": "patches/jest-runtime@29.7.0.patch"
+    },
     "overrides": {
       "form-data": ">=4.0.4",
       "hono": ">=4.11.7",

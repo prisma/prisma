@@ -169,7 +169,11 @@ testMatrix.setupTestSuite(
         const ids = generatedIds(EXCESS_BIND_VALUES)
 
         if (usingRelationJoins) {
-          if (driverAdapter === 'js_pg' || driverAdapter === 'js_pg_cockroachdb') {
+          if (
+            driverAdapter === 'js_pg' ||
+            driverAdapter === 'js_bun_postgres' ||
+            driverAdapter === 'js_pg_cockroachdb'
+          ) {
             await expect(selectWith2InFilters(ids)).rejects.toThrow(
               // TODO: the error returned by the driver looks weird although the query looks correct
               /bind message has \d+ parameter formats but \d+ parameters|placeholder index must be between \d+ and \d+/,

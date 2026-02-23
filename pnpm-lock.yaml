@@ -11,6 +11,11 @@ overrides:
   tar-fs: '>=2.1.4'
   lodash: '>=4.17.23'
 
+patchedDependencies:
+  jest-runtime@29.7.0:
+    hash: 5984fbbff86b6d47410dd515d0becb9223016738dd77877cb82a0f873bd80e45
+    path: patches/jest-runtime@29.7.0.patch
+
 importers:
 
   .:
@@ -232,6 +237,16 @@ importers:
       async-mutex:
         specifier: 0.5.0
         version: 0.5.0
+
+  packages/adapter-bun-postgres:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+    devDependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
 
   packages/adapter-d1:
     dependencies:
@@ -681,6 +696,9 @@ importers:
       '@prisma/adapter-better-sqlite3':
         specifier: workspace:*
         version: link:../adapter-better-sqlite3
+      '@prisma/adapter-bun-postgres':
+        specifier: workspace:*
+        version: link:../adapter-bun-postgres
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -9690,7 +9708,7 @@ snapshots:
       jest-resolve: 29.7.0
       jest-resolve-dependencies: 29.7.0
       jest-runner: 29.7.0
-      jest-runtime: 29.7.0
+      jest-runtime: 29.7.0(patch_hash=5984fbbff86b6d47410dd515d0becb9223016738dd77877cb82a0f873bd80e45)
       jest-snapshot: 29.7.0
       jest-util: 29.7.0
       jest-validate: 29.7.0
@@ -9725,7 +9743,7 @@ snapshots:
       jest-resolve: 29.7.0
       jest-resolve-dependencies: 29.7.0
       jest-runner: 29.7.0
-      jest-runtime: 29.7.0
+      jest-runtime: 29.7.0(patch_hash=5984fbbff86b6d47410dd515d0becb9223016738dd77877cb82a0f873bd80e45)
       jest-snapshot: 29.7.0
       jest-util: 29.7.0
       jest-validate: 29.7.0
@@ -13023,7 +13041,7 @@ snapshots:
       jest-each: 29.7.0
       jest-matcher-utils: 29.7.0
       jest-message-util: 29.7.0
-      jest-runtime: 29.7.0
+      jest-runtime: 29.7.0(patch_hash=5984fbbff86b6d47410dd515d0becb9223016738dd77877cb82a0f873bd80e45)
       jest-snapshot: 29.7.0
       jest-util: 29.7.0
       p-limit: 3.1.0
@@ -13267,7 +13285,7 @@ snapshots:
       jest-leak-detector: 29.7.0
       jest-message-util: 29.7.0
       jest-resolve: 29.7.0
-      jest-runtime: 29.7.0
+      jest-runtime: 29.7.0(patch_hash=5984fbbff86b6d47410dd515d0becb9223016738dd77877cb82a0f873bd80e45)
       jest-util: 29.7.0
       jest-watcher: 29.7.0
       jest-worker: 29.7.0
@@ -13276,7 +13294,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jest-runtime@29.7.0:
+  jest-runtime@29.7.0(patch_hash=5984fbbff86b6d47410dd515d0becb9223016738dd77877cb82a0f873bd80e45):
     dependencies:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0

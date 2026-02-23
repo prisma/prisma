@@ -187,6 +187,17 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
+  if (driverAdapter === AdapterProviders.JS_BUN_POSTGRES) {
+    const { PrismaBunPostgres } =
+      require('@prisma/adapter-bun-postgres') as typeof import('@prisma/adapter-bun-postgres')
+
+    return {
+      adapter: new PrismaBunPostgres({
+        connectionString: datasourceInfo.databaseUrl,
+      }),
+    }
+  }
+
   if (driverAdapter === AdapterProviders.JS_NEON) {
     const { neonConfig } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
