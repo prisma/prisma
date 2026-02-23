@@ -141,8 +141,9 @@ describe('deserializeRawResult', () => {
   test('array', () => {
     expect(
       deserializeRawResult({
-        columns: ['bigints', 'bytes', 'decimals', 'datetimes', 'dates', 'times', 'empty'],
+        columns: ['ints', 'bigints', 'bytes', 'decimals', 'datetimes', 'dates', 'times', 'empty'],
         types: [
+          'int-array',
           'bigint-array',
           'bytes-array',
           'decimal-array',
@@ -153,6 +154,7 @@ describe('deserializeRawResult', () => {
         ],
         rows: [
           [
+            ['2024', '24'],
             ['1234', '123456789'],
             ['Ynl0ZXM=', 'Ym9uam91cg=='],
             ['1.2345678', '9999999.456789'],
@@ -165,6 +167,7 @@ describe('deserializeRawResult', () => {
       }),
     ).toEqual([
       {
+        ints: [Number(2024), Number(24)],
         bigints: [BigInt(1234), BigInt(123456789)],
         bytes: [new Uint8Array(Buffer.from('bytes')), new Uint8Array(Buffer.from('bonjour'))],
         decimals: [new Decimal('1.2345678'), new Decimal('9999999.456789')],
