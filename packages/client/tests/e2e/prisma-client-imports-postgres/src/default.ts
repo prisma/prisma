@@ -1,4 +1,5 @@
 import { neonConfig } from '@neondatabase/serverless'
+import { PrismaBunPostgres } from '@prisma/adapter-bun-postgres'
 import { PrismaNeon, PrismaNeonHttp } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
@@ -49,3 +50,8 @@ export const pgPrismaClient = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 })
 void pgPrismaClient.user.findMany()
+
+export const bunPgPrismaClient = new PrismaClient({
+  adapter: new PrismaBunPostgres({ connectionString }),
+})
+void bunPgPrismaClient.user.findMany()

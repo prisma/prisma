@@ -43,7 +43,9 @@ testMatrix.setupTestSuite(
       expect(data.plans).toEqual([Plan.FREE])
     })
 
-    testIf(driverAdapter === 'js_pg' && clientRuntime === 'client')(
+    // `userDefinedTypeParser` exists on `@prisma/adapter-pg` and is intentionally not shared by other Postgres adapters.
+    const supportsCustomPgTypeParser = driverAdapter === 'js_pg'
+    testIf(supportsCustomPgTypeParser && clientRuntime === 'client')(
       'can retrieve data with an enum array with a raw query and a custom parser',
       async () => {
         const { Plan } = loaded

@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
       reason: 'Test exercises specific bug with Postgres prepared statement caching.',
     },
     skipDriverAdapter: {
-      from: ['js_pg', 'js_pg_cockroachdb', 'js_neon'],
+      from: ['js_pg', 'js_bun_postgres', 'js_pg_cockroachdb', 'js_neon'],
       reason: 'https://github.com/prisma/team-orm/issues/1159',
     },
     skip(when, { clientEngineExecutor }) {

@@ -275,6 +275,64 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
+  # CLIENT (functional tests with Bun runtime and driver adapters)
+  #
+  client-driveradapters-bun:
+    name: DA js_bun_postgres bun ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4', '2/4', '3/4', '4/4']
+        node: ['20.19.0']
+        previewFeatures: ['', 'relationJoins']
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.9'
+
+      - run: pnpm run test:functional:code:bun ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter js_bun_postgres --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime client --preview-features "${{ matrix.previewFeatures }}" --runInBand
+        working-directory: packages/client
+        env:
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
   # CLIENT (functional tests with wasm-compiler-edge runtime and driver adapters)
   #
   client-wasm-compiler-edge:
@@ -900,6 +958,10 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.9'
+
       - run: pnpm run test
         name: 'adapter-libsql'
         working-directory: packages/adapter-libsql
@@ -931,6 +993,10 @@ jobs:
       - run: pnpm run test
         name: 'adapter-ppg'
         working-directory: packages/adapter-ppg
+
+      - run: pnpm run test
+        name: 'adapter-bun-postgres'
+        working-directory: packages/adapter-bun-postgres
 
   #
   # Query plan executor unit tests

@@ -8,6 +8,10 @@ export default defineMatrix(() => [
       provider: Providers.MYSQL,
     },
     {
+      driverAdapter: 'js_bun_postgres',
+      provider: Providers.MYSQL,
+    },
+    {
       driverAdapter: 'js_planetscale',
       provider: Providers.SQLITE,
     },
