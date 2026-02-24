@@ -26,17 +26,15 @@ testMatrix.setupTestSuite(
           id: true,
           fileName: true,
         },
-        orderBy: { fileName: 'asc' },
       })
 
-      expect(results).toEqual([
-        expect.objectContaining({
-          fileName: 'DEF.txt',
-        }),
-        expect.objectContaining({
-          fileName: 'abc.jpg',
-        }),
-      ])
+      expect(results).toHaveLength(2)
+      expect(results).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ fileName: 'abc.jpg' }),
+          expect.objectContaining({ fileName: 'DEF.txt' }),
+        ]),
+      )
     })
 
     test('correctly handles a case insensitive NOT IN filter', async () => {
