@@ -344,9 +344,9 @@ test('nested savepoints use sqlite syntax', async () => {
 })
 
 test('nested savepoints use adapter-provided methods when available', async () => {
-  const createSavepoint = vi.fn(async () => {})
-  const rollbackToSavepoint = vi.fn(async () => {})
-  const releaseSavepoint = vi.fn(async () => {})
+  const createSavepoint = vi.fn(async (_name: string) => {})
+  const rollbackToSavepoint = vi.fn(async (_name: string) => {})
+  const releaseSavepoint = vi.fn(async (_name: string) => {})
 
   const driverAdapter = new MockDriverAdapter({
     provider: 'postgres',
