@@ -120,7 +120,7 @@ jobs:
           fi
 
       - name: Install Binaryen (includes wasm-opt)
-        uses: jaxxstorm/action-install-gh-release@v2
+        uses: jaxxstorm/action-install-gh-release@v2.1.0
         with:
           repo: WebAssembly/binaryen
           tag: version_122
