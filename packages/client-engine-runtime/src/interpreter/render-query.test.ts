@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import type { PlaceholderFormat, QueryPlanDbQuery } from '../query-plan'
 import { GeneratorRegistry } from './generators'
 import { renderQuery } from './render-query'
