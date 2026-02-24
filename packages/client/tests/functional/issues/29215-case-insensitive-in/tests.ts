@@ -63,8 +63,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mysql', 'sqlite'],
-      reason: 'Case-insensitive filters are not supported in MySQL and SQLite',
+      from: ['mysql', 'sqlite', 'sqlserver'],
+      reason: 'Case-insensitive filters are not supported in MySQL, SQLite, and SQL Server',
     },
   },
 )
