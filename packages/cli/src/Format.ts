@@ -93,7 +93,10 @@ Or specify a Prisma schema path
           return new HelpError(`${bold(red(`!`))} The schema ${underline(filename)} is not found in the schema list.`)
         }
         const [, originalSchema] = originalSchemaTuple
-        if (originalSchema !== formattedSchema) {
+        // Normalize line endings before comparing to avoid false positives when
+        // the file on disk uses CRLF (Windows) but the formatter emits LF.
+        const normalizeNewlines = (s: string) => s.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+        if (normalizeNewlines(originalSchema) !== normalizeNewlines(formattedSchema)) {
           return new HelpError(
             `${bold(red(`!`))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
           )
@@ -103,7 +106,14 @@ Or specify a Prisma schema path
     }
 
     for (const [filename, data] of formattedDatamodel) {
-      await fs.writeFile(filename, data)
+      // Normalize line endings to LF (\n) before writing.
+      // On Windows, the Wasm formatter appends a trailing CRLF (\r\n) which
+      // causes spurious diffs in cross-platform CI pipelines where git is
+      // configured to use LF. Stripping all \r characters here ensures the
+      // written file always uses Unix-style LF endings, matching the behaviour
+      // on Linux and macOS.
+      const normalizedData = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+      await fs.writeFile(filename, normalizedData)
     }
 
     const after = Math.round(performance.now())
