@@ -67,7 +67,12 @@ export type DynamicArgType = ArgType | { arity: 'tuple'; elements: ArgType[] }
 export type Fragment =
   | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
-  | { type: 'parameterTuple' }
+  | {
+      type: 'parameterTuple'
+      itemPrefix: string
+      itemSeparator: string
+      itemSuffix: string
+    }
   | {
       type: 'parameterTupleList'
       itemPrefix: string
