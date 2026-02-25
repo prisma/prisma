@@ -397,97 +397,6 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (memory tests)
-  #
-  client-memory:
-    name: Client (memory tests) [v${{ matrix.node }}]
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        queryEngine: [client]
-        node: ['20.19.0', '22.12.0', '24']
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: true
-
-      - run: pnpm run test:memory
-        working-directory: packages/client
-
-      - uses: actions/github-script@v8
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        id: upload-report
-        env:
-          NODE_VERSION: ${{ matrix.node }}
-        with:
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const fs = require('fs')
-            const nodeVersion = process.env.NODE_VERSION
-            const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
-            const url = `https://prisma.github.io/ci-reports/${reportPath}`
-            const localReport = './packages/client/tests/memory/memory-report.html'
-            if (fs.existsSync(localReport)) {
-              await github.rest.repos.createOrUpdateFileContents({
-                owner: 'prisma',
-                repo: 'ci-reports',
-                branch: 'gh-pages',
-                path: reportPath,
-                message: `Add memory results for PR ${context.issue.number}`,
-                content: fs.readFileSync(localReport, 'base64'),
-              });
-              core.setOutput('url', url);
-            }
-      - name: Find report comment
-        uses: peter-evans/find-comment@v4
-        id: fc
-        if: ${{ always() && github.event_name == 'pull_request' }}
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
-
-      - name: Create or update remote comment (failure)
-        uses: peter-evans/create-or-update-comment@v5
-        if: ${{ failure() && steps.upload-report.outputs.url }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
-            ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
-          edit-mode: replace
-
-      - name: Create or update remote comment (success)
-        uses: peter-evans/create-or-update-comment@v5
-        if: ${{ success() && steps.fc.outputs.comment-id != '' }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
-            ✅ Success
-          edit-mode: replace
-
-  #
   # CLIENT test:e2e
   #
   client-e2e:
@@ -1018,6 +927,10 @@ jobs:
       - run: pnpm run test
         name: 'adapter-neon'
         working-directory: packages/adapter-neon
+
+      - run: pnpm run test
+        name: 'adapter-ppg'
+        working-directory: packages/adapter-ppg
 
   #
   # Query plan executor unit tests

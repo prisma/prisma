@@ -67,7 +67,12 @@ export type DynamicArgType = ArgType | { arity: 'tuple'; elements: ArgType[] }
 export type Fragment =
   | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
-  | { type: 'parameterTuple' }
+  | {
+      type: 'parameterTuple'
+      itemPrefix: string
+      itemSeparator: string
+      itemSuffix: string
+    }
   | {
       type: 'parameterTupleList'
       itemPrefix: string
@@ -229,7 +234,7 @@ export type FieldOperation =
   | { type: 'divide'; value: PrismaValue }
 
 export type Pagination = {
-  cursor: Record<string, PrismaValue> | null
+  cursor: Record<string, unknown> | null
   take: number | null
   skip: number | null
 }

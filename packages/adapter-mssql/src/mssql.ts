@@ -117,6 +117,14 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
       release()
     }
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export type PrismaMssqlOptions = {

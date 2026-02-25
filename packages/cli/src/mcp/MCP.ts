@@ -6,7 +6,7 @@ import execa from 'execa'
 import { z } from 'zod'
 
 import { version } from '../../package.json'
-import { createHelp } from '../platform/_lib/help'
+import { createHelp } from '../utils/help'
 
 // Only apply console redirection when running in MCP mode
 // This prevents stdout pollution that breaks MCP's JSON-RPC protocol
@@ -38,6 +38,7 @@ export class Mcp implements Command {
   private constructor() {}
 
   public help = createHelp({
+    usageLine: 'prisma mcp [options]',
     options: [['--early-access', '', 'Enable early access features']],
     examples: ['prisma mcp --early-access'],
     additionalContent: [

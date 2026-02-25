@@ -1,7 +1,7 @@
 import timers from 'node:timers/promises'
 
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
-import { ok } from '@prisma/driver-adapter-utils'
+import { expect, test, vi } from 'vitest'
 
 import { noopTracingHelper } from '../tracing'
 import { Options } from './transaction'
@@ -16,7 +16,7 @@ import {
   TransactionStartTimeoutError,
 } from './transaction-manager-error'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const START_TRANSACTION_TIME = 200
 const TRANSACTION_EXECUTION_TIMEOUT = 500
@@ -31,14 +31,51 @@ class MockDriverAdapter implements SqlDriverAdapter {
   adapterName = 'mock-adapter'
   provider: SqlDriverAdapter['provider']
   private readonly usePhantomQuery: boolean
+  private readonly createSavepoint: Transaction['createSavepoint']
+  private readonly rollbackToSavepoint: Transaction['rollbackToSavepoint']
+  private readonly releaseSavepoint: Transaction['releaseSavepoint']
 
-  executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
-  commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
-  rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
+  executeRawMock = vi.fn().mockResolvedValue(1)
+  commitMock = vi.fn().mockResolvedValue(undefined)
+  rollbackMock = vi.fn().mockResolvedValue(undefined)
 
-  constructor({ provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = {}) {
+  constructor(
+    options: {
+      provider?: SqlDriverAdapter['provider']
+      usePhantomQuery?: boolean
+      createSavepoint?: Transaction['createSavepoint']
+      rollbackToSavepoint?: Transaction['rollbackToSavepoint']
+      releaseSavepoint?: Transaction['releaseSavepoint']
+    } = {},
+  ) {
+    const { provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = options
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
+
+    this.createSavepoint = Object.hasOwn(options, 'createSavepoint')
+      ? options.createSavepoint
+      : async (name) => {
+          const sql = this.provider === 'sqlserver' ? `SAVE TRANSACTION ${name}` : `SAVEPOINT ${name}`
+          await this.executeRawMock({ sql, args: [], argTypes: [] })
+        }
+    this.rollbackToSavepoint = Object.hasOwn(options, 'rollbackToSavepoint')
+      ? options.rollbackToSavepoint
+      : async (name) => {
+          const sql =
+            this.provider === 'sqlserver'
+              ? `ROLLBACK TRANSACTION ${name}`
+              : this.provider === 'postgres'
+                ? `ROLLBACK TO SAVEPOINT ${name}`
+                : `ROLLBACK TO ${name}`
+          await this.executeRawMock({ sql, args: [], argTypes: [] })
+        }
+    this.releaseSavepoint = Object.hasOwn(options, 'releaseSavepoint')
+      ? options.releaseSavepoint
+      : this.provider === 'sqlserver'
+        ? undefined
+        : async (name) => {
+            await this.executeRawMock({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+          }
   }
 
   executeRaw(params: SqlQuery): Promise<number> {
@@ -62,15 +99,19 @@ class MockDriverAdapter implements SqlDriverAdapter {
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
+    const provider = this.provider
 
     const mockTransaction: Transaction = {
       adapterName: 'mock-adapter',
-      provider: 'postgres',
+      provider,
       options: { usePhantomQuery },
-      queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
+      queryRaw: vi.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
       commit: commitMock,
       rollback: rollbackMock,
+      createSavepoint: this.createSavepoint,
+      rollbackToSavepoint: this.rollbackToSavepoint,
+      releaseSavepoint: this.releaseSavepoint,
     }
 
     return new Promise((resolve) =>
@@ -88,7 +129,7 @@ async function startTransaction(transactionManager: TransactionManager, options:
       maxWait: START_TRANSACTION_TIME * 2,
       ...options,
     }),
-    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME + 100),
+    vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME + 100),
   ])
   return id
 }
@@ -111,6 +152,279 @@ test('transaction executes normally', async () => {
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
+})
+
+test('nested commit only closes at the outermost level', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  const nested = await transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+
+  expect(nested.id).toBe(id)
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  // Inner commit should not close the underlying transaction.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  // Outer commit closes.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.commitMock).toHaveBeenCalledTimes(1)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
+})
+
+test('nested rollback uses a savepoint and keeps the outer transaction open', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  await transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  // Inner rollback should not close the underlying transaction.
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TO SAVEPOINT prisma_sp_\d+$/)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  // Outer commit still closes.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.commitMock).toHaveBeenCalledTimes(1)
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
+})
+
+test('nested starts are serialized when the first savepoint fails', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  let savepointCallCount = 0
+  let rejectFirstSavepoint: ((error: Error) => void) | undefined
+  let resolveFirstSavepointStarted: () => void
+  const firstSavepointStarted = new Promise<void>((resolve) => {
+    resolveFirstSavepointStarted = resolve
+  })
+
+  driverAdapter.executeRawMock.mockImplementation((query) => {
+    if (query.sql.startsWith('SAVEPOINT ')) {
+      savepointCallCount += 1
+      if (savepointCallCount === 1) {
+        resolveFirstSavepointStarted()
+        return new Promise<number>((_, reject) => {
+          rejectFirstSavepoint = reject
+        })
+      }
+    }
+
+    return Promise.resolve(1)
+  })
+
+  const nested1 = transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+  const nested2 = transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+
+  await firstSavepointStarted
+  await Promise.resolve()
+  expect(savepointCallCount).toBe(1)
+
+  rejectFirstSavepoint?.(new Error('savepoint failed'))
+  await expect(nested1).rejects.toThrow('savepoint failed')
+
+  await expect(nested2).resolves.toEqual({ id })
+
+  const savepointQueries = driverAdapter.executeRawMock.mock.calls
+    .map((call) => call[0].sql)
+    .filter((sql) => sql.startsWith('SAVEPOINT '))
+  const successfulSavepointName = savepointQueries[1].slice('SAVEPOINT '.length)
+
+  await transactionManager.rollbackTransaction(id)
+
+  const rollbackToSavepointQuery = driverAdapter.executeRawMock.mock.calls
+    .map((call) => call[0].sql)
+    .find((sql) => sql.startsWith('ROLLBACK TO SAVEPOINT '))
+
+  expect(rollbackToSavepointQuery).toEqual(`ROLLBACK TO SAVEPOINT ${successfulSavepointName}`)
+
+  // Close top-level transaction.
+  await transactionManager.rollbackTransaction(id)
+})
+
+test('nested savepoints use sqlserver syntax', async () => {
+  const driverAdapter = new MockDriverAdapter({ provider: 'sqlserver' })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVE TRANSACTION prisma_sp_\d+$/)
+
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TRANSACTION prisma_sp_\d+$/)
+
+  // No release savepoint query on SQL Server.
+  expect(driverAdapter.executeRawMock.mock.calls).toHaveLength(2)
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoints use mysql syntax', async () => {
+  const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TO prisma_sp_\d+$/)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoints use sqlite syntax', async () => {
+  const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toMatch(/^SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.rollbackTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toMatch(/^ROLLBACK TO prisma_sp_\d+$/)
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toMatch(/^RELEASE SAVEPOINT prisma_sp_\d+$/)
+
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoints use adapter-provided methods when available', async () => {
+  const createSavepoint = vi.fn(async (_name: string) => {})
+  const rollbackToSavepoint = vi.fn(async (_name: string) => {})
+  const releaseSavepoint = vi.fn(async (_name: string) => {})
+
+  const driverAdapter = new MockDriverAdapter({
+    provider: 'postgres',
+    createSavepoint,
+    rollbackToSavepoint,
+    releaseSavepoint,
+  })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+  await transactionManager.rollbackTransaction(id)
+  await transactionManager.commitTransaction(id)
+
+  expect(createSavepoint).toHaveBeenCalledTimes(1)
+  expect(rollbackToSavepoint).toHaveBeenCalledTimes(1)
+  expect(releaseSavepoint).toHaveBeenCalledTimes(1)
+
+  const savepointName = createSavepoint.mock.calls[0][0]
+  expect(rollbackToSavepoint).toHaveBeenCalledWith(savepointName)
+  expect(releaseSavepoint).toHaveBeenCalledWith(savepointName)
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
+})
+
+test('nested savepoint release can be omitted by adapter', async () => {
+  const createSavepoint = vi.fn(async () => {})
+
+  const driverAdapter = new MockDriverAdapter({
+    provider: 'postgres',
+    createSavepoint,
+    releaseSavepoint: undefined,
+  })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+  await transactionManager.commitTransaction(id)
+  await transactionManager.commitTransaction(id)
+
+  expect(createSavepoint).toHaveBeenCalledTimes(1)
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
+})
+
+test('missing createSavepoint fails nested transaction start', async () => {
+  const driverAdapter = new MockDriverAdapter({ createSavepoint: undefined })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  await expect(transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })).rejects.toThrow(
+    'createSavepoint is not implemented',
+  )
+})
+
+test('missing rollbackToSavepoint fails nested rollback', async () => {
+  const driverAdapter = new MockDriverAdapter({ rollbackToSavepoint: undefined })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+  await transactionManager.startTransaction({ ...TRANSACTION_OPTIONS, newTxId: id })
+
+  await expect(transactionManager.rollbackTransaction(id)).rejects.toThrow('rollbackToSavepoint is not implemented')
 })
 
 test('transaction is rolled back', async () => {
@@ -159,7 +473,7 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
   const timeout = 200
   const rollbackDelay = 200
 
-  driverAdapter.rollbackMock = jest.fn().mockImplementation(() => timers.setTimeout(rollbackDelay))
+  driverAdapter.rollbackMock = vi.fn().mockImplementation(() => timers.setTimeout(rollbackDelay))
 
   const transactionManager = new TransactionManager({
     driverAdapter,
@@ -168,11 +482,11 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
   })
 
   const txPromise = transactionManager.startTransaction()
-  await jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME + timeout)
+  await vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME + timeout)
   const tx = await txPromise
   const commitPromise = transactionManager.commitTransaction(tx.id)
 
-  await expect(Promise.all([jest.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
+  await expect(Promise.all([vi.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
     new TransactionExecutionTimeoutError('commit', {
       timeout,
       timeTaken: START_TRANSACTION_TIME + timeout + rollbackDelay,
@@ -279,7 +593,7 @@ test('transaction times out during starting', async () => {
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
   // Now let the startTransaction promise resolve
-  await jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME)
+  await vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME)
 
   // The transaction that was started in the background should now be rolled back
   // to release the connection back to the pool.
@@ -295,16 +609,16 @@ test('transaction start timeout cleans up connection if transaction eventually s
   const TIME_PAST_MAX_WAIT = MAX_WAIT + 50
   const REMAINING_TIME_FOR_START = SLOW_START_TRANSACTION_TIME - TIME_PAST_MAX_WAIT
 
-  const rollbackMock = jest.fn().mockResolvedValue(undefined)
+  const rollbackMock = vi.fn().mockResolvedValue(undefined)
 
   const driverAdapter = {
     adapterName: 'slow-adapter',
     provider: 'postgres' as const,
-    executeRaw: jest.fn().mockResolvedValue(1),
-    queryRaw: jest.fn(),
-    executeScript: jest.fn(),
-    dispose: jest.fn(),
-    startTransaction: jest.fn().mockImplementation(
+    executeRaw: vi.fn().mockResolvedValue(1),
+    queryRaw: vi.fn(),
+    executeScript: vi.fn(),
+    dispose: vi.fn(),
+    startTransaction: vi.fn().mockImplementation(
       () =>
         new Promise((resolve) =>
           setTimeout(
@@ -313,9 +627,9 @@ test('transaction start timeout cleans up connection if transaction eventually s
                 adapterName: 'slow-adapter',
                 provider: 'postgres',
                 options: { usePhantomQuery: false },
-                queryRaw: jest.fn(),
-                executeRaw: jest.fn(),
-                commit: jest.fn(),
+                queryRaw: vi.fn(),
+                executeRaw: vi.fn(),
+                commit: vi.fn(),
                 rollback: rollbackMock,
               }),
             SLOW_START_TRANSACTION_TIME,
@@ -333,7 +647,7 @@ test('transaction start timeout cleans up connection if transaction eventually s
   // Start a transaction with a maxWait shorter than the actual connection time
   // Use Promise.all to advance timers and wait for the rejection simultaneously
   const [, txResult] = await Promise.all([
-    jest.advanceTimersByTimeAsync(TIME_PAST_MAX_WAIT),
+    vi.advanceTimersByTimeAsync(TIME_PAST_MAX_WAIT),
     transactionManager.startTransaction().catch((e) => e),
   ])
 
@@ -344,7 +658,7 @@ test('transaction start timeout cleans up connection if transaction eventually s
   expect(rollbackMock).not.toHaveBeenCalled()
 
   // Now advance time to let the startTransaction promise resolve
-  await jest.advanceTimersByTimeAsync(REMAINING_TIME_FOR_START)
+  await vi.advanceTimersByTimeAsync(REMAINING_TIME_FOR_START)
 
   // After the background startTransaction completes, rollback should be called
   // to release the connection and avoid pool exhaustion
@@ -361,7 +675,7 @@ test('transaction times out during execution', async () => {
 
   const id = await startTransaction(transactionManager)
 
-  await jest.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT + 100)
+  await vi.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT + 100)
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
@@ -377,7 +691,7 @@ test('internal transaction does not apply the default start timeout', async () =
 
   const [tx] = await Promise.all([
     transactionManager.startInternalTransaction(),
-    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
+    vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
   ])
   await transactionManager.commitTransaction(tx.id)
 
@@ -395,9 +709,9 @@ test('internal transaction does not apply the default execution timeout', async 
 
   const [tx] = await Promise.all([
     transactionManager.startInternalTransaction(),
-    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
+    vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
   ])
-  await jest.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT)
+  await vi.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT)
   await transactionManager.commitTransaction(tx.id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
@@ -430,7 +744,7 @@ test('TransactionManagerErrors have common structure', () => {
 
 test('startTransaction works when setTimeout returns a timer without unref (workerd environment)', async () => {
   const originalSetTimeout = global.setTimeout
-  const setTimeoutSpy = jest
+  const setTimeoutSpy = vi
     .spyOn(global, 'setTimeout')
     .mockImplementation((callback: (...args: any[]) => void, ms?: number, ...args: any[]) => {
       const timer = originalSetTimeout(callback, ms, ...args)
