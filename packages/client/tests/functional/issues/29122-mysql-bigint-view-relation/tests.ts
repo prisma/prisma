@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['postgresql', 'sqlite', 'cockroachdb', 'sqlserver', 'mysql', 'mongodb'],
+      from: ['postgresql', 'sqlite', 'cockroachdb', 'sqlserver', 'mongodb'],
       reason: 'This test is only relevant for MySQL, as it tests a MySQL specific regression.',
     },
   },
