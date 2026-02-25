@@ -1191,18 +1191,9 @@ importers:
 
   packages/debug:
     devDependencies:
-      '@types/jest':
-        specifier: 29.5.14
-        version: 29.5.14
       '@types/node':
         specifier: ~20.19.24
         version: 20.19.25
-      jest:
-        specifier: 29.7.0
-        version: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))
-      jest-junit:
-        specifier: 16.0.0
-        version: 16.0.0
       kleur:
         specifier: 4.1.5
         version: 4.1.5
@@ -7827,7 +7818,7 @@ packages:
   tar@6.1.14:
     resolution: {integrity: sha512-piERznXu0U7/pW7cdSn7hjqySIVTYT6F76icmFk7ptU7dDYlXTm5r9A6K04R2vU3olYgoKeo1Cg3eeu5nhftAw==}
     engines: {node: '>=10'}
-    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   tarn@3.0.2:
     resolution: {integrity: sha512-51LAVKUSZSVfI05vjPESNc5vwqqZpbXCsU+/+wxlOrUjk2SnFTt97v9ZgQrD4YmxYW1Px6w2KjaDitCfkvgxMQ==}
