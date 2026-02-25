@@ -20,8 +20,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "dotenv": "17.2.3",
-    "vitest": "3.2.4"
+    "dotenv": "17.2.3"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
