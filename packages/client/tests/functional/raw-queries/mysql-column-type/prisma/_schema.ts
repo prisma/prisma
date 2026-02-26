@@ -14,8 +14,9 @@ export default testMatrix.setupSchema(({ provider }) => {
       
       model User {
         id ${idForProvider(provider)}
-        str String
-        str_bin_collation String
+        char_bin_collation String @db.Char(191)
+        varchar_bin_collation String @db.VarChar(191)
+        text_bin_collation String @db.Text
       }
       `
 })
