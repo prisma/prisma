@@ -98,6 +98,18 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
     this.cleanup?.()
     await this.client.end()
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export type PrismaMariadbOptions = {
@@ -243,8 +255,8 @@ export function inferCapabilities(version: unknown): Capabilities {
 
   // No relation-joins support for mysql < 8.0.13 or mariadb.
   const isMariaDB = suffix?.toLowerCase()?.includes('mariadb') ?? false
-  const supportsRelationJoins = !isMariaDB && (major > 8 || (major === 8 && minor >= 0 && patch >= 13))
-
+  const supportsRelationJoins =
+    !isMariaDB && (major > 8 || (major === 8 && (minor > 0 || (minor === 0 && patch >= 13))))
   return { supportsRelationJoins }
 }
 

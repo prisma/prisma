@@ -129,7 +129,12 @@ function renderFragment<Type extends DynamicArgType | undefined>(
       const placeholders =
         fragment.value.length == 0
           ? 'NULL'
-          : fragment.value.map(() => formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)).join(',')
+          : fragment.value
+              .map(() => {
+                const item = formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+                return `${fragment.itemPrefix}${item}${fragment.itemSuffix}`
+              })
+              .join(fragment.itemSeparator)
       return `(${placeholders})`
     }
 

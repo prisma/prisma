@@ -1,4 +1,5 @@
 import type { SqlCommenterContext, SqlCommenterPlugin } from '@prisma/sqlcommenter'
+import { describe, expect, test, vi } from 'vitest'
 
 import { appendSqlComment, applySqlCommenters, buildSqlComment, formatSqlComment } from './sql-commenter'
 
@@ -90,7 +91,7 @@ describe('applySqlCommenters', () => {
   })
 
   test('calls plugin with context', () => {
-    const plugin = jest.fn(() => ({ key: 'value' }))
+    const plugin = vi.fn(() => ({ key: 'value' }))
     applySqlCommenters([plugin], mockSingleContext)
     expect(plugin).toHaveBeenCalledWith(mockSingleContext)
   })

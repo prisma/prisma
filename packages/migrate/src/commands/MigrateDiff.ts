@@ -88,7 +88,7 @@ ${bold('Examples')}
     --to-schema=next_datamodel.prisma \\
     --script
 
-  From a peisma datamodel to the configured database
+  From a Prisma datamodel to the configured database
     e.g. roll forward after a migration failed in the middle
   ${dim('$')} prisma migrate diff \\
     --from-schema=next_datamodel.prisma \\
