@@ -158,7 +158,11 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
   return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
-function renderRawSql(sql: string, args: unknown[], argTypes: DeepReadonly<ArgType[]>): DeepReadonly<SqlQuery> {
+function renderRawSql(
+  sql: string,
+  args: readonly unknown[],
+  argTypes: DeepReadonly<ArgType[]>,
+): DeepReadonly<SqlQuery> {
   return {
     sql,
     args,
