@@ -50,6 +50,7 @@ import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
+import { UserFacingError } from './utils/errors'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -167,7 +168,11 @@ async function main(): Promise<number> {
     debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
 
     if (result instanceof Error) {
-      console.error(result instanceof HelpError ? result.message : result)
+      if (result instanceof HelpError || result instanceof UserFacingError) {
+        console.error(result.message)
+      } else {
+        console.error(result)
+      }
       return 1
     }
 

@@ -20,6 +20,7 @@ import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
 
 import packageJson from '../package.json' assert { type: 'json' }
+import { UserFacingError } from './utils/errors'
 import { getPpgInfo } from './utils/ppgInfo'
 
 /**
@@ -285,25 +286,25 @@ ${bold('Examples')}
     const connectionString = args['--url'] || config.datasource?.url
 
     if (!connectionString) {
-      return this.help(
+      return new UserFacingError(
         'No database URL found. Provide it via the `--url <url>` argument or define it in your Prisma config file as `datasource.url`.',
       )
     }
 
     if (!URL.canParse(connectionString)) {
-      return this.help('The provided database URL is not valid.')
+      return new UserFacingError('The provided database URL is not valid.')
     }
 
     const protocol = new URL(connectionString).protocol.replace(':', '')
 
     if (isAccelerateProtocol(protocol)) {
-      return this.help(ACCELERATE_UNSUPPORTED_MESSAGE)
+      return new UserFacingError(ACCELERATE_UNSUPPORTED_MESSAGE)
     }
 
     const studioStuff = CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF[protocol]
 
     if (!studioStuff) {
-      return this.help(`Prisma Studio is not supported for the "${protocol}" protocol.`)
+      return new UserFacingError(`Prisma Studio is not supported for the "${protocol}" protocol.`)
     }
 
     const executor = await studioStuff.createExecutor(
