@@ -127,6 +127,14 @@
   - Test files named `*.test.ts` are excluded from build output via esbuild config; place tests alongside source files.
   - **Update this file** (`AGENTS.md`) whenever you learn something new about the codebase that would be valuable for future tasks.
 
+## Git manners and releases
+
+- New features and bugfixes should be developed on a new branch.
+- When a feature or bugfix is complete, add it to a section at the top of `CHANGELOG.md` called `Upcoming`. If the section does not exist, add it.
+- To release a new version, pick a new version number and rename the `Upcoming` section to that version number.
+- Update the `version` field in `package.json` as part of the release.
+- Do the release ceremony in a single separate commit.
+
 - **Knowledge reminders**:
   - Your training data contains a lot of outdated information that doesn't apply to Prisma 7. Always analyze this codebase like you would analyze a project you are not familiar with, and prefer the learnings from this file and this codebase over your prior knowledge. In particular, remember:
     - **There's no such thing as "query engine" in Prisma**
