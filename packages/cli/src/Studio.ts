@@ -82,6 +82,14 @@ const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
   'statement_cache_size',
 ] as const
 
+const PRISMA_ORM_SPECIFIC_MYSQL_QUERY_PARAMETERS = [
+  'connection_limit',
+  'pool_timeout',
+  'socket_timeout',
+  'sslaccept',
+  'sslidentity',
+] as const
+
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
   async createExecutor(connectionString) {
     const postgresModule = await import('postgres')
@@ -185,7 +193,7 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
 
-      const pool = createPool(connectionString)
+      const pool = createPool(normalizeMySQLConnectionString(connectionString))
 
       process.once('SIGINT', () => pool.end())
       process.once('SIGTERM', () => pool.end())
@@ -436,6 +444,41 @@ function getUrlBasePath(url: string | undefined, configPath: string | null): str
 
 function isAccelerateProtocol(protocol: string): boolean {
   return protocol === 'prisma' || protocol === 'prisma+postgres'
+}
+
+function normalizeMySQLConnectionString(connectionString: string): string {
+  const connectionURL = new URL(connectionString)
+
+  const connectionLimit = connectionURL.searchParams.get('connection_limit')
+
+  if (connectionLimit && !connectionURL.searchParams.has('connectionLimit')) {
+    connectionURL.searchParams.set('connectionLimit', connectionLimit)
+  }
+
+  const sslAccept = connectionURL.searchParams.get('sslaccept')
+
+  if (sslAccept && !connectionURL.searchParams.has('ssl')) {
+    connectionURL.searchParams.set('ssl', JSON.stringify(prismaSslAcceptToMySQL2Ssl(sslAccept)))
+  }
+
+  for (const queryParameter of PRISMA_ORM_SPECIFIC_MYSQL_QUERY_PARAMETERS) {
+    connectionURL.searchParams.delete(queryParameter)
+  }
+
+  return connectionURL.toString()
+}
+
+function prismaSslAcceptToMySQL2Ssl(sslAccept: string): { rejectUnauthorized: boolean } {
+  switch (sslAccept) {
+    case 'strict':
+      return { rejectUnauthorized: true }
+    case 'accept_invalid_certs':
+      return { rejectUnauthorized: false }
+    default:
+      throw new Error(
+        `Unknown Prisma MySQL sslaccept value "${sslAccept}". Supported values are "strict" and "accept_invalid_certs".`,
+      )
+  }
 }
 
 // prettier-ignore
