@@ -1,8 +1,8 @@
 import { DataRule, ValidationError } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
-import { assertNever } from '../utils'
+import { assertNever, DeepReadonly } from '../utils'
 
-export function performValidation(data: unknown, rules: DataRule[], error: ValidationError) {
+export function performValidation(data: unknown, rules: DeepReadonly<DataRule[]>, error: ValidationError) {
   if (!rules.every((rule) => doesSatisfyRule(data, rule))) {
     const message = renderMessage(data, error)
     const code = getErrorCode(error)

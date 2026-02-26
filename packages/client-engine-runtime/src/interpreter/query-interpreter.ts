@@ -1,5 +1,6 @@
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
+import { klona } from 'klona'
 
 import { QueryEvent } from '../events'
 import { FieldInitializer, FieldOperation, InMemoryOps, JoinExpression, QueryPlanNode } from '../query-plan'
@@ -8,7 +9,7 @@ import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
-import { assertNever } from '../utils'
+import { assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
 import { applyDataMap } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
@@ -89,7 +90,7 @@ export class QueryInterpreter {
     })
   }
 
-  async run(queryPlan: QueryPlanNode, options: QueryRuntimeOptions): Promise<unknown> {
+  async run(queryPlan: DeepReadonly<QueryPlanNode>, options: QueryRuntimeOptions): Promise<unknown> {
     const { value } = await this.interpretNode(queryPlan, {
       ...options,
       generators: this.#generators.snapshot(),
@@ -98,7 +99,10 @@ export class QueryInterpreter {
     return value
   }
 
-  private async interpretNode(node: QueryPlanNode, context: QueryRuntimeContext): Promise<IntermediateValue> {
+  private async interpretNode(
+    node: DeepReadonly<QueryPlanNode>,
+    context: QueryRuntimeContext,
+  ): Promise<IntermediateValue> {
     switch (node.type) {
       case 'value': {
         return {
@@ -163,7 +167,7 @@ export class QueryInterpreter {
           const commentedQuery = applyComments(query, context.sqlCommenter)
           sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
             context.queryable
-              .executeRaw(commentedQuery)
+              .executeRaw(cloneObject(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -181,7 +185,7 @@ export class QueryInterpreter {
           const commentedQuery = applyComments(query, context.sqlCommenter)
           const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
             context.queryable
-              .queryRaw(commentedQuery)
+              .queryRaw(cloneObject(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -236,12 +240,12 @@ export class QueryInterpreter {
           return { value: null, lastInsertId }
         }
 
-        const children = (await Promise.all(
+        const children = await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
             childRecords: (await this.interpretNode(joinExpr.child, context)).value,
           })),
-        )) satisfies JoinExpressionWithRecords[]
+        )
 
         return { value: attachChildrenToParents(parent, children), lastInsertId }
       }
@@ -301,8 +305,9 @@ export class QueryInterpreter {
 
       case 'process': {
         const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
-        evaluateProcessingParameters(node.args.operations, context.scope, context.generators)
-        return { value: processRecords(value, node.args.operations), lastInsertId }
+        const ops = cloneObject(node.args.operations)
+        evaluateProcessingParameters(ops, context.scope, context.generators)
+        return { value: processRecords(value, ops), lastInsertId }
       }
 
       case 'initializeRecord': {
@@ -360,7 +365,11 @@ export class QueryInterpreter {
     }
   }
 
-  #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
+  #withQuerySpanAndEvent<T>(
+    query: DeepReadonly<SqlQuery>,
+    queryable: SqlQueryable,
+    execute: () => Promise<T>,
+  ): Promise<T> {
     return withQuerySpanAndEvent({
       query,
       execute,
@@ -420,7 +429,7 @@ type JoinExpressionWithRecords = {
   childRecords: Value
 }
 
-function attachChildrenToParents(parentRecords: unknown, children: JoinExpressionWithRecords[]) {
+function attachChildrenToParents(parentRecords: unknown, children: DeepReadonly<JoinExpressionWithRecords[]>) {
   for (const { joinExpr, childRecords } of children) {
     const parentKeys = joinExpr.on.map(([k]) => k)
     const childKeys = joinExpr.on.map(([, k]) => k)
@@ -461,7 +470,7 @@ function attachChildrenToParents(parentRecords: unknown, children: JoinExpressio
 }
 
 function evalFieldInitializer(
-  initializer: FieldInitializer,
+  initializer: DeepReadonly<FieldInitializer>,
   lastInsertId: string | undefined,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
@@ -477,7 +486,7 @@ function evalFieldInitializer(
 }
 
 function evalFieldOperation(
-  op: FieldOperation,
+  op: DeepReadonly<FieldOperation>,
   value: Value,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
@@ -508,7 +517,10 @@ function evalFieldOperation(
   }
 }
 
-function applyComments(query: SqlQuery, sqlCommenter?: QueryInterpreterSqlCommenter): SqlQuery {
+function applyComments(
+  query: DeepReadonly<SqlQuery>,
+  sqlCommenter?: QueryInterpreterSqlCommenter,
+): DeepReadonly<SqlQuery> {
   if (!sqlCommenter || sqlCommenter.plugins.length === 0) {
     return query
   }
@@ -542,4 +554,8 @@ function evaluateProcessingParameters(
   for (const nested of Object.values(ops.nested)) {
     evaluateProcessingParameters(nested, scope, generators)
   }
+}
+
+function cloneObject<T>(value: T): DeepUnreadonly<T> {
+  return klona(value) as DeepUnreadonly<T>
 }
