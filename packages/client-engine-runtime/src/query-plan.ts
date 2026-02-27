@@ -154,6 +154,7 @@ export type QueryPlanNode =
       args: {
         parent: QueryPlanNode
         children: JoinExpression[]
+        canAssumeStrictEquality: boolean
       }
     }
   | {
