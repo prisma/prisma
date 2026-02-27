@@ -15,6 +15,7 @@ import type {
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
+import { parse as parseArray } from 'postgres-array'
 
 import { name as packageName } from '../package.json'
 import { FIRST_NORMAL_OBJECT_ID } from './constants'
@@ -28,12 +29,31 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
+type OidMetadata = {
+  /** If > 0, this type is an array and typelem is the OID of the element type */
+  typelem: number
+}
+
+/**
+ * Cache to avoid repeated pg_type catalog queries.
+ *
+ * Memory growth consideration: The cache grows as new extension types are encountered.
+ * For most applications this is negligible.
+ * If memory becomes a concern in the future, consider implementing an LRU eviction policy.
+ */
+type OidMetadataCache = Map<number, OidMetadata>
+
+function parseExtensionArray(arrayString: string): string[] {
+  return parseArray(arrayString, (s) => s)
+}
+
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
   constructor(
     protected readonly client: ClientT,
+    protected readonly oidMetadataCache: OidMetadataCache,
     protected readonly pgOptions?: PrismaPgOptions,
   ) {}
 
@@ -45,6 +65,39 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     debug(`${tag} %O`, query)
 
     const { fields, rows } = await this.performIO(query)
+
+    // Collect unknown extension OIDs that need metadata lookup
+    const unknownOids = new Set<number>()
+    for (const field of fields) {
+      if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID && !this.oidMetadataCache.has(field.dataTypeID)) {
+        unknownOids.add(field.dataTypeID)
+      }
+    }
+
+    // Fetch metadata for unknown OIDs from pg_type catalog
+    await this.ensureOidMetadata([...unknownOids])
+
+    // Find extension array columns that need post-processing (arrays returned as unparsed strings)
+    const extensionArrayColumnIndices: number[] = []
+    for (let i = 0; i < fields.length; i++) {
+      const field = fields[i]
+      if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID) {
+        const metadata = this.oidMetadataCache.get(field.dataTypeID)
+        if (metadata && metadata.typelem > 0) {
+          extensionArrayColumnIndices.push(i)
+        }
+      }
+    }
+
+    // Parse extension array columns that weren't handled during query execution
+    for (const index of extensionArrayColumnIndices) {
+      for (const row of rows) {
+        const value = row[index]
+        if (typeof value === 'string') {
+          row[index] = parseExtensionArray(value)
+        }
+      }
+    }
 
     const columnNames = fields.map((field) => field.name)
     let columnTypes: ColumnType[] = []
@@ -122,8 +175,20 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
             //
             // @ts-expect-error
             getTypeParser: (oid: number, format?) => {
-              if (format === 'text' && customParsers[oid]) {
-                return customParsers[oid]
+              if (format === 'text') {
+                if (customParsers[oid]) {
+                  return customParsers[oid]
+                }
+
+                // For extension types (OID >= 16384), check if this is an array type
+                // based on metadata cached from pg_type catalog.
+                if (oid >= FIRST_NORMAL_OBJECT_ID) {
+                  const metadata = this.oidMetadataCache.get(oid)
+                  if (metadata?.typelem) {
+                    // This is an array type, parse it
+                    return parseExtensionArray
+                  }
+                }
               }
 
               return types.getTypeParser(oid, format)
@@ -139,6 +204,29 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     }
   }
 
+  /**
+   * Query pg_type catalog to get metadata for custom type OIDs.
+   *
+   * Race condition note: Multiple concurrent queries may encounter the same unknown OID and both
+   * attempt to fetch metadata. The final cache state will be correct regardless.
+   */
+  private async ensureOidMetadata(oids: number[]): Promise<void> {
+    if (oids.length === 0) {
+      return
+    }
+
+    const catalogResult = await this.performIO({
+      sql: `SELECT oid, typelem FROM pg_type WHERE oid = ANY($1)`,
+      args: [oids],
+      argTypes: [{ arity: 'list', scalarType: 'int' }],
+    })
+
+    for (const row of catalogResult.rows) {
+      const [oid, typelem] = row as [number, number]
+      this.oidMetadataCache.set(oid, { typelem })
+    }
+  }
+
   protected onError(error: unknown): never {
     debug('Error in performIO: %O', error)
     throw new DriverAdapterError(convertDriverError(error))
@@ -149,10 +237,11 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   constructor(
     client: pg.PoolClient,
     readonly options: TransactionOptions,
+    readonly oidMetadataCache: OidMetadataCache,
     readonly pgOptions?: PrismaPgOptions,
     readonly cleanup?: () => void,
   ) {
-    super(client, pgOptions)
+    super(client, oidMetadataCache, pgOptions)
   }
 
   async commit(): Promise<void> {
@@ -193,12 +282,16 @@ export type PrismaPgOptions = {
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
+  private readonly adapterOidMetadataCache: OidMetadataCache
+
   constructor(
     client: StdClient,
     protected readonly pgOptions?: PrismaPgOptions,
     private readonly release?: () => Promise<void>,
   ) {
-    super(client)
+    const oidMetadataCache = new Map()
+    super(client, oidMetadataCache, pgOptions)
+    this.adapterOidMetadataCache = oidMetadataCache
   }
 
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
@@ -221,7 +314,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     }
 
     try {
-      const tx = new PgTransaction(conn, options, this.pgOptions, cleanup)
+      const tx = new PgTransaction(conn, options, this.adapterOidMetadataCache, this.pgOptions, cleanup)
       await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
