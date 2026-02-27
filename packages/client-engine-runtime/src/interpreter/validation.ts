@@ -42,7 +42,7 @@ export function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
 }
 
 function renderMessage(data: unknown, error: ValidationError): string {
-  switch (error.error_identifier) {
+  switch (error.errorIdentifier) {
     case 'RELATION_VIOLATION':
       return `The change you are trying to make would violate the required relation '${error.context.relation}' between the \`${error.context.modelA}\` and \`${error.context.modelB}\` models.`
     case 'MISSING_RECORD':
@@ -70,7 +70,7 @@ function renderMessage(data: unknown, error: ValidationError): string {
 }
 
 function getErrorCode(error: ValidationError): string {
-  switch (error.error_identifier) {
+  switch (error.errorIdentifier) {
     case 'RELATION_VIOLATION':
       return 'P2014'
     case 'RECORDS_NOT_CONNECTED':

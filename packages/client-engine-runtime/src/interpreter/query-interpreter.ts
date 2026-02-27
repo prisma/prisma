@@ -247,7 +247,7 @@ export class QueryInterpreter {
           })),
         )
 
-        return { value: attachChildrenToParents(parent, children), lastInsertId }
+        return { value: attachChildrenToParents(parent, children, node.args.canAssumeStrictEquality), lastInsertId }
       }
 
       case 'transaction': {
@@ -429,13 +429,20 @@ type JoinExpressionWithRecords = {
   childRecords: Value
 }
 
-function attachChildrenToParents(parentRecords: unknown, children: DeepReadonly<JoinExpressionWithRecords[]>) {
+type KeyCast = (value: Value) => Value
+
+function attachChildrenToParents(
+  parentRecords: unknown,
+  children: DeepReadonly<JoinExpressionWithRecords[]>,
+  canAssumeStrictEquality: boolean,
+) {
   for (const { joinExpr, childRecords } of children) {
     const parentKeys = joinExpr.on.map(([k]) => k)
     const childKeys = joinExpr.on.map(([, k]) => k)
     const parentMap = {}
 
-    for (const parent of Array.isArray(parentRecords) ? parentRecords : [parentRecords]) {
+    const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
+    for (const parent of parentArray) {
       const parentRecord = asRecord(parent)
       const key = getRecordKey(parentRecord, parentKeys)
       if (!parentMap[key]) {
@@ -450,12 +457,13 @@ function attachChildrenToParents(parentRecords: unknown, children: DeepReadonly<
       }
     }
 
+    const mappers = canAssumeStrictEquality ? undefined : inferKeyCasts(parentArray, parentKeys)
     for (const childRecord of Array.isArray(childRecords) ? childRecords : [childRecords]) {
       if (childRecord === null) {
         continue
       }
 
-      const key = getRecordKey(asRecord(childRecord), childKeys)
+      const key = getRecordKey(asRecord(childRecord), childKeys, mappers)
       for (const parentRecord of parentMap[key] ?? []) {
         if (joinExpr.isRelationUnique) {
           parentRecord[joinExpr.parentField] = childRecord
@@ -467,6 +475,43 @@ function attachChildrenToParents(parentRecords: unknown, children: DeepReadonly<
   }
 
   return parentRecords
+}
+
+function inferKeyCasts(rows: unknown[], keys: string[]): KeyCast[] {
+  function getKeyCast(type: string): KeyCast | undefined {
+    switch (type) {
+      case 'number':
+        return Number
+      case 'string':
+        return String
+      case 'boolean':
+        return Boolean
+      case 'bigint':
+        return BigInt as KeyCast
+      default:
+        return
+    }
+  }
+
+  const keyCasts: KeyCast[] = Array.from({ length: keys.length })
+  let keysFound = 0
+  for (const parent of rows) {
+    const parentRecord = asRecord(parent)
+    for (const [i, key] of keys.entries()) {
+      if (parentRecord[key] !== null && keyCasts[i] === undefined) {
+        const keyCast = getKeyCast(typeof parentRecord[key])
+        if (keyCast !== undefined) {
+          keyCasts[i] = keyCast
+        }
+        keysFound++
+      }
+    }
+    if (keysFound === keys.length) {
+      break
+    }
+  }
+
+  return keyCasts
 }
 
 function evalFieldInitializer(

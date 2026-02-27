@@ -111,6 +111,14 @@ function paginateSingleList(list: {}[], { cursor, skip, take }: Pagination): {}[
 /*
  * Generate a key string for a record based on the values of the specified fields.
  */
+<<<<<<< fix/fix-query-plan-mutation
 export function getRecordKey(record: {}, fields: readonly string[]): string {
   return JSON.stringify(fields.map((field) => record[field]))
+=======
+export function getRecordKey(record: {}, fields: string[], mappers?: ((value: unknown) => unknown)[]): string {
+  const array = fields.map((field, index) =>
+    mappers?.[index] ? (record[field] !== null ? mappers[index](record[field]) : null) : record[field],
+  )
+  return JSON.stringify(array)
+>>>>>>> main
 }
