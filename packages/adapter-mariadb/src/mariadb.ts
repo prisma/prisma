@@ -243,8 +243,8 @@ export function inferCapabilities(version: unknown): Capabilities {
 
   // No relation-joins support for mysql < 8.0.13 or mariadb.
   const isMariaDB = suffix?.toLowerCase()?.includes('mariadb') ?? false
-  const supportsRelationJoins = !isMariaDB && (major > 8 || (major === 8 && minor >= 0 && patch >= 13))
-
+  const supportsRelationJoins =
+    !isMariaDB && (major > 8 || (major === 8 && (minor > 0 || (minor === 0 && patch >= 13))))
   return { supportsRelationJoins }
 }
 
