@@ -401,7 +401,9 @@ export class PrismaClientClass implements Generable {
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
- * const prisma = new PrismaClient()
+ * const prisma = new PrismaClient({
+ *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+ * })
  * // Fetch zero or more ${capitalize(example.plural)}
  * const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
  * \`\`\`
