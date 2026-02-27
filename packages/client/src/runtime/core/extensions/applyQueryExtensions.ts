@@ -37,7 +37,7 @@ function iterateAndCallQueryCallbacks(
       // @ts-expect-error because not part of public API
       __internalParams: params,
       query: (args, operation, __internalParams = params) => {
-        if (operation) params.action = operation
+        if (operation) __internalParams.action = operation
         // we need to keep track of the current customDataProxyFetch
         // this is to cascade customDataProxyFetch like a middleware
         const currCustomFetch = __internalParams.customDataProxyFetch

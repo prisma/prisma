@@ -58,7 +58,7 @@ export type ModelQueryOptionsCbArgs = {
   query: (args: JsArgs, operation?: Action) => Promise<unknown>
 }
 
-export type QueryOptionsCb = (args: QueryOptionsCbArgs, operation?: Action) => Promise<any>
+export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
 export type ModelQueryOptionsCb = (args: ModelQueryOptionsCbArgs) => Promise<any>
 
 export type QueryOptions = {
