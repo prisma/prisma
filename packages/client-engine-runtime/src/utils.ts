@@ -1,6 +1,6 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 
-export type DeepReadonly<T> = T extends undefined | null | boolean | string | number | Function
+export type DeepReadonly<T> = T extends undefined | null | boolean | string | number | symbol | Function | Date
   ? T
   : T extends Array<infer U>
     ? ReadonlyArray<DeepReadonly<U>>
@@ -8,7 +8,7 @@ export type DeepReadonly<T> = T extends undefined | null | boolean | string | nu
       ? unknown
       : { readonly [K in keyof T]: DeepReadonly<T[K]> }
 
-export type DeepUnreadonly<T> = T extends undefined | null | boolean | string | number | Function
+export type DeepUnreadonly<T> = T extends undefined | null | boolean | string | number | symbol | Function | Date
   ? T
   : T extends ReadonlyArray<infer U>
     ? Array<DeepUnreadonly<U>>
