@@ -18,9 +18,9 @@ import { digest } from 'ohash'
 import open from 'open'
 import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
-import { z } from 'zod'
 
 import packageJson from '../package.json' assert { type: 'json' }
+import { UserFacingError } from './utils/errors'
 import { getPpgInfo } from './utils/ppgInfo'
 
 /**
@@ -56,12 +56,8 @@ const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 const ADAPTER_FILE_NAME = 'adapter.js'
 const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
 
-const ACCELERATE_API_KEY_QUERY_PARAMETER = 'api_key'
-
-const AccelerateAPIKeyPayloadSchema = z.object({
-  secure_key: z.string(),
-  tenant_id: z.string(),
-})
+const ACCELERATE_UNSUPPORTED_MESSAGE =
+  'Prisma Studio no longer supports Accelerate URLs (`prisma://` or `prisma+postgres://`). Use a direct database connection string instead.'
 
 interface StudioStuff {
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
@@ -85,6 +81,14 @@ const PRISMA_ORM_SPECIFIC_QUERY_PARAMETERS = [
   'socket_timeout',
   'pgbouncer',
   'statement_cache_size',
+] as const
+
+const PRISMA_ORM_SPECIFIC_MYSQL_QUERY_PARAMETERS = [
+  'connection_limit',
+  'pool_timeout',
+  'socket_timeout',
+  'sslaccept',
+  'sslidentity',
 ] as const
 
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
@@ -184,54 +188,13 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
   },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
-  'prisma+postgres': {
-    async createExecutor(connectionString, relativeTo) {
-      const connectionURL = new URL(connectionString)
-
-      if (['localhost', '127.0.0.1', '[::1]'].includes(connectionURL.hostname)) {
-        // TODO: support `prisma dev` accelerate URLs.
-
-        throw new Error('The "prisma+postgres" protocol with localhost is not supported in Prisma Studio yet.')
-      }
-
-      const apiKey = connectionURL.searchParams.get(ACCELERATE_API_KEY_QUERY_PARAMETER)
-
-      if (!apiKey) {
-        throw new Error(
-          `\`${ACCELERATE_API_KEY_QUERY_PARAMETER}\` query parameter is missing in the provided "prisma+postgres" connection string.`,
-        )
-      }
-
-      const [, payload] = apiKey.split('.')
-
-      try {
-        const decodedPayload = AccelerateAPIKeyPayloadSchema.parse(
-          JSON.parse(Buffer.from(payload, 'base64').toString('utf-8')),
-        )
-
-        connectionURL.password = decodedPayload.secure_key
-        connectionURL.username = decodedPayload.tenant_id
-      } catch {
-        throw new Error(
-          `Invalid/outdated \`${ACCELERATE_API_KEY_QUERY_PARAMETER}\` query parameter in the provided "prisma+postgres" connection string. Please create a new API key and use the new connection string OR use a direct TCP connection string instead.`,
-        )
-      }
-
-      connectionURL.host = 'db.prisma.io:5432'
-      connectionURL.pathname = '/postgres'
-      connectionURL.protocol = 'postgres:'
-      connectionURL.searchParams.delete(ACCELERATE_API_KEY_QUERY_PARAMETER)
-      connectionURL.searchParams.set('sslmode', 'require')
-
-      return await POSTGRES_STUDIO_STUFF.createExecutor(connectionURL.toString(), relativeTo)
-    },
-    reExportAdapterScript: POSTGRES_STUDIO_STUFF.reExportAdapterScript,
-  },
+  prisma: null,
+  'prisma+postgres': null,
   mysql: {
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
 
-      const pool = createPool(connectionString)
+      const pool = createPool(normalizeMySQLConnectionString(connectionString))
 
       process.once('SIGINT', () => pool.end())
       process.once('SIGTERM', () => pool.end())
@@ -323,21 +286,25 @@ ${bold('Examples')}
     const connectionString = args['--url'] || config.datasource?.url
 
     if (!connectionString) {
-      return new Error(
+      return new UserFacingError(
         'No database URL found. Provide it via the `--url <url>` argument or define it in your Prisma config file as `datasource.url`.',
       )
     }
 
     if (!URL.canParse(connectionString)) {
-      return new Error('The provided database URL is not valid.')
+      return new UserFacingError('The provided database URL is not valid.')
     }
 
     const protocol = new URL(connectionString).protocol.replace(':', '')
 
+    if (isAccelerateProtocol(protocol)) {
+      return new UserFacingError(ACCELERATE_UNSUPPORTED_MESSAGE)
+    }
+
     const studioStuff = CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF[protocol]
 
     if (!studioStuff) {
-      return new Error(`Prisma Studio is not supported for the "${protocol}" protocol.`)
+      return new UserFacingError(`Prisma Studio is not supported for the "${protocol}" protocol.`)
     }
 
     const executor = await studioStuff.createExecutor(
@@ -474,6 +441,45 @@ ${bold('Examples')}
 
 function getUrlBasePath(url: string | undefined, configPath: string | null): string {
   return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
+}
+
+function isAccelerateProtocol(protocol: string): boolean {
+  return protocol === 'prisma' || protocol === 'prisma+postgres'
+}
+
+function normalizeMySQLConnectionString(connectionString: string): string {
+  const connectionURL = new URL(connectionString)
+
+  const connectionLimit = connectionURL.searchParams.get('connection_limit')
+
+  if (connectionLimit && !connectionURL.searchParams.has('connectionLimit')) {
+    connectionURL.searchParams.set('connectionLimit', connectionLimit)
+  }
+
+  const sslAccept = connectionURL.searchParams.get('sslaccept')
+
+  if (sslAccept && !connectionURL.searchParams.has('ssl')) {
+    connectionURL.searchParams.set('ssl', JSON.stringify(prismaSslAcceptToMySQL2Ssl(sslAccept)))
+  }
+
+  for (const queryParameter of PRISMA_ORM_SPECIFIC_MYSQL_QUERY_PARAMETERS) {
+    connectionURL.searchParams.delete(queryParameter)
+  }
+
+  return connectionURL.toString()
+}
+
+function prismaSslAcceptToMySQL2Ssl(sslAccept: string): { rejectUnauthorized: boolean } {
+  switch (sslAccept) {
+    case 'strict':
+      return { rejectUnauthorized: true }
+    case 'accept_invalid_certs':
+      return { rejectUnauthorized: false }
+    default:
+      throw new Error(
+        `Unknown Prisma MySQL sslaccept value "${sslAccept}". Supported values are "strict" and "accept_invalid_certs".`,
+      )
+  }
 }
 
 // prettier-ignore
