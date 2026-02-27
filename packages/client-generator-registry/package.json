@@ -29,9 +29,6 @@
     "@prisma/generator": "workspace:*",
     "@prisma/internals": "workspace:*"
   },
-  "devDependencies": {
-    "vitest": "3.2.4"
-  },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",

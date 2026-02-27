@@ -13,7 +13,7 @@ import { createAdapter } from './adapter'
 
 vi.mock('@prisma/adapter-pg', () => {
   return {
-    PrismaPg: vi.fn().mockImplementation(() => {
+    PrismaPg: vi.fn().mockImplementation(function () {
       return { adapterName: '@prisma/adapter-pg' }
     }),
   }
