@@ -484,7 +484,7 @@ function inferKeyCasts(rows: unknown[], keys: string[]): KeyCast[] {
     }
   }
 
-  const keyCasts: KeyCast[] = []
+  const keyCasts: KeyCast[] = Array.from({ length: keys.length })
   let keysFound = 0
   for (const parent of rows) {
     const parentRecord = asRecord(parent)
