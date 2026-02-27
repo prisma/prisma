@@ -107,6 +107,52 @@ testMatrix.setupTestSuite(
       // These two queries are going to be compacted together and run as one.
       await expect(Promise.all([find(), find()])).resolves.toMatchObject([created, created])
     })
+
+    test('create() returns valid Date when createdAt is stored as unix millis directly', async () => {
+      const prisma = createClient(info, driverAdapter)
+
+      const uuid = randomUUID()
+      const nowMillis = Date.now()
+
+      await prisma.$executeRaw`
+        INSERT INTO Event (name, uuid, createdAt)
+        VALUES ('event', ${uuid}, ${nowMillis})
+      `
+
+      const found = await prisma.event.findUnique({
+        where: {
+          uuid_createdAt: {
+            uuid,
+            createdAt: new Date(nowMillis),
+          },
+        },
+      })
+
+      expect(found?.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(found!.createdAt.getTime())).toBe(false)
+    })
+
+    test('aggregate() returns valid Date when unix millis are stored directly', async () => {
+      const prisma = createClient(info, driverAdapter)
+
+      const uuid = randomUUID()
+      const nowMillis = Date.now()
+
+      await prisma.$executeRaw`
+        INSERT INTO Event (name, uuid, createdAt)
+        VALUES ('event', ${uuid}, ${nowMillis})
+      `
+
+      const agg = await prisma.event.aggregate({
+        _min: { createdAt: true },
+        _max: { createdAt: true },
+      })
+
+      expect(agg._min.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(agg._min.createdAt!.getTime())).toBe(false)
+      expect(agg._max.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(agg._max.createdAt!.getTime())).toBe(false)
+    })
   },
   {
     optOut: {
