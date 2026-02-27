@@ -92,7 +92,7 @@ export type DynamicQueryExtensionCb<
   _1 extends PropertyKey,
   _2 extends PropertyKey,
 > =
-  <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A, operation?: Action) =>
+  <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A) =>
     Promise<TypeMap[_0][_1][_2]['result']>
 
 // prettier-ignore
