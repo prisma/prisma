@@ -1524,6 +1524,9 @@ importers:
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
+      '@streamparser/json':
+        specifier: 0.0.22
+        version: 0.0.22
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -3797,6 +3800,9 @@ packages:
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+
+  '@streamparser/json@0.0.22':
+    resolution: {integrity: sha512-b6gTSBjJ8G8SuO3Gbbj+zXbVx8NSs1EbpbMKpzGLWMdkR+98McH9bEjSz3+0mPJf68c5nxa3CrJHp5EQNXM6zQ==}
 
   '@swc-node/core@1.13.3':
     resolution: {integrity: sha512-OGsvXIid2Go21kiNqeTIn79jcaX4l0G93X2rAnas4LFoDyA9wAwVK7xZdm+QsKoMn5Mus2yFLCc4OtX2dD/PWA==}
@@ -10274,6 +10280,8 @@ snapshots:
   '@speed-highlight/core@1.2.12': {}
 
   '@standard-schema/spec@1.0.0': {}
+
+  '@streamparser/json@0.0.22': {}
 
   '@swc-node/core@1.13.3(@swc/core@1.11.5)(@swc/types@0.1.19)':
     dependencies:
