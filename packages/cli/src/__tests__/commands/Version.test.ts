@@ -75,7 +75,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(/\.exe/g, '')
 
   // sanitize Prisma CLI Path
-  str = str.replace(new RegExp('(Prisma CLI Path\\s+:( ).*)', 'g'), '$1sanitized_path')
+  str = str.replace(new RegExp('(Prisma CLI Path\s+:) .*', 'g'), '$1 sanitized_path')
 
   return str
 }
