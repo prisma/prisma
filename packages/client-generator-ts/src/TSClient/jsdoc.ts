@@ -219,7 +219,9 @@ const ${uncapitalize(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}O
         : ''
 
       return `Find zero or more ${ctx.plural} that matches the filter.
+Returns all ${ctx.plural} if no filter is provided, or an empty array if no matches are found.
 ${undefinedNote}
+@see {@link https://www.prisma.io/docs/reference/client-reference/model-queries/findMany findMany API Reference} for detailed documentation.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter and select certain fields only.
 @example
 // Get all ${ctx.plural}
@@ -227,6 +229,18 @@ const ${ctx.mapping.plural} = await ${ctx.method}()
 
 // Get first 10 ${ctx.plural}
 const ${ctx.mapping.plural} = await ${ctx.method}({ take: 10 })
+
+// Get ${ctx.plural} with filtering and ordering
+const ${ctx.mapping.plural} = await ${ctx.method}({
+  where: {
+    // ... filter conditions
+  },
+  orderBy: {
+    // ... sorting order
+  },
+  skip: 0,  // pagination offset
+  take: 10, // pagination limit
+})
 ${onlySelect}
 `
     },
@@ -236,6 +250,7 @@ ${onlySelect}
       skip: JSDocFields.skip,
       cursor: (singular, plural) => addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
       take: JSDocFields.take,
+      distinct: JSDocFields.distinct,
     },
   },
   update: {
