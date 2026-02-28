@@ -22,7 +22,8 @@ describe('version', () => {
       PSL                  : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
       Schema Engine        : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
       Default Engines Hash : ENGINE_VERSION
-      Studio               : STUDIO_VERSION"
+      Studio               : STUDIO_VERSION
+      Prisma CLI Path      : sanitized_path"
     `)
     expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
@@ -72,6 +73,9 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
 
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
+
+  // sanitize Prisma CLI Path
+  str = str.replace(new RegExp('(Prisma CLI Path\s+:) .*', 'g'), '$1 sanitized_path')
 
   return str
 }
