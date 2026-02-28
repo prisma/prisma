@@ -328,30 +328,6 @@ List of types:
 - test: Adding missing or correcting existing tests
 - chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
 
-List of directories in the monorepo:
-
-- adapter-better-sqlite3
-- adapter-d1
-- adapter-libsql
-- adapter-mssql
-- adapter-neon
-- adapter-pg
-- adapter-planetscale
-- adapter-mariadb
-- cli
-- client
-- debug
-- driver-adapter-utils
-- engines
-- fetch-engine
-- generator-helper
-- get-platform
-- instrumentation
-- integration-tests
-- internals
-- migrate
-- nextjs-monorepo-workaround-plugin
-
 ## Legal
 
 Pull Request authors must sign the [Prisma CLA](https://cla-assistant.io/prisma/prisma), it will show up in an automated comment after you create a PR.
