@@ -263,17 +263,42 @@ export function inferCapabilities(version: unknown): Capabilities {
 /**
  * Rewrites mysql:// connection strings to mariadb:// format.
  * This allows users to use mysql:// connection strings with the MariaDB adapter.
+ * Decodes and re-assigns username/password to normalize encoding.
+ * The WHATWG URL setter automatically percent-encodes characters in the userinfo set (@ : etc.).
  */
 export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
   if (typeof config !== 'string') {
     return config
   }
 
-  if (!config.startsWith('mysql://')) {
-    return config
+  let connectionString = config
+
+  // The mariadb driver only accepts mariadb:// scheme
+  if (connectionString.startsWith('mysql://')) {
+    connectionString = connectionString.replace(/^mysql:\/\//, 'mariadb://')
   }
 
-  return config.replace(/^mysql:\/\//, 'mariadb://')
+  // Non-mariadb schemes should be returned as-is to avoid mangling unrelated config
+  if (!connectionString.startsWith('mariadb://')) {
+    return connectionString
+  }
+
+  try {
+    const url = new URL(connectionString)
+
+    if (url.username) {
+      url.username = decodeURIComponent(url.username)
+    }
+    if (url.password) {
+      url.password = decodeURIComponent(url.password)
+    }
+
+    return url.toString()
+  } catch (error) {
+    // If URL parsing fails, return the connection string without credential normalization.
+    // The mariadb driver will surface its own parsing error.
+    return connectionString
+  }
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
