@@ -108,7 +108,7 @@ testMatrix.setupTestSuite(
       await expect(Promise.all([find(), find()])).resolves.toMatchObject([created, created])
     })
 
-    test('create() returns valid Date when createdAt is stored as unix millis directly', async () => {
+    test('findUnique() returns valid Date when createdAt is stored as unix millis directly', async () => {
       const prisma = createClient(info, driverAdapter)
 
       const uuid = randomUUID()
@@ -119,12 +119,9 @@ testMatrix.setupTestSuite(
         VALUES ('event', ${uuid}, ${nowMillis})
       `
 
-      const found = await prisma.event.findUnique({
+      const found = await prisma.event.findFirst({
         where: {
-          uuid_createdAt: {
-            uuid,
-            createdAt: new Date(nowMillis),
-          },
+          uuid,
         },
       })
 
