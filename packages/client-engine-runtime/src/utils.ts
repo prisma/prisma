@@ -21,6 +21,22 @@ export type DeepUnreadonly<T> = T extends undefined | null | boolean | string | 
 // implementations outside of Prisma Client (e.g. test executor for query
 // engine tests and query plan executor for Accelerate) that also depend on
 // `@prisma/client-engine-runtime`.
+/**
+ * Cross-realm safe check for Uint8Array. `instanceof Uint8Array` fails when the value
+ * was created in a different realm (e.g. jsdom, iframes, vm contexts).
+ */
+export function isUint8Array(value: unknown): value is Uint8Array {
+  return ArrayBuffer.isView(value) && Object.prototype.toString.call(value) === '[object Uint8Array]'
+}
+
+/**
+ * Cross-realm safe check for Date. `instanceof Date` fails when the value
+ * was created in a different realm (e.g. jsdom, iframes, vm contexts).
+ */
+export function isDate(value: unknown): value is Date {
+  return Object.prototype.toString.call(value) === '[object Date]'
+}
+
 export function assertNever(_: never, message: string): never {
   throw new Error(message)
 }
@@ -60,11 +76,11 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
       const lhsDecimal = asDecimal(lhs[key])
       const rhsDecimal = asDecimal(rhs[key])
       return lhsDecimal && rhsDecimal && lhsDecimal.equals(rhsDecimal)
-    } else if (lhs[key] instanceof Uint8Array || rhs[key] instanceof Uint8Array) {
+    } else if (isUint8Array(lhs[key]) || isUint8Array(rhs[key])) {
       const lhsBuffer = asBuffer(lhs[key])
       const rhsBuffer = asBuffer(rhs[key])
       return lhsBuffer && rhsBuffer && lhsBuffer.equals(rhsBuffer)
-    } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
+    } else if (isDate(lhs[key]) || isDate(rhs[key])) {
       return asDate(lhs[key])?.getTime() === asDate(rhs[key])?.getTime()
     } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
       return asBigInt(lhs[key]) === asBigInt(rhs[key])
@@ -89,7 +105,7 @@ function asDecimal(value: unknown): Decimal | undefined {
 function asBuffer(value: unknown): Buffer | undefined {
   if (Buffer.isBuffer(value)) {
     return value
-  } else if (value instanceof Uint8Array) {
+  } else if (isUint8Array(value)) {
     return Buffer.from(value.buffer, value.byteOffset, value.byteLength)
   } else if (typeof value === 'string') {
     return Buffer.from(value, 'base64')
@@ -99,7 +115,7 @@ function asBuffer(value: unknown): Buffer | undefined {
 }
 
 function asDate(value: unknown): Date | undefined {
-  if (value instanceof Date) {
+  if (isDate(value)) {
     return value
   } else if (typeof value === 'string' || typeof value === 'number') {
     return new Date(value)
