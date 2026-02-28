@@ -196,7 +196,7 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   #options?: PrismaMariadbOptions
 
   constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
-    this.#config = rewriteConnectionString(config)
+    this.#config = parseConnectionString(config)
     this.#options = options
   }
 
@@ -263,17 +263,96 @@ export function inferCapabilities(version: unknown): Capabilities {
 /**
  * Rewrites mysql:// connection strings to mariadb:// format.
  * This allows users to use mysql:// connection strings with the MariaDB adapter.
+ *
+ * Additionally, if the connection string contains an IPv6 address, it converts
+ * the string to a configuration object since the mariadb library cannot parse
+ * IPv6 addresses in connection strings.
  */
-export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
+export function parseConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
   if (typeof config !== 'string') {
     return config
   }
 
-  if (!config.startsWith('mysql://')) {
-    return config
+  const normalizedConfig = config.startsWith('mysql://') ? config.replace(/^mysql:\/\//, 'mariadb://') : config
+  if (!normalizedConfig.startsWith('mariadb://')) {
+    return normalizedConfig
   }
 
-  return config.replace(/^mysql:\/\//, 'mariadb://')
+  let url: URL
+  try {
+    url = new URL(normalizedConfig)
+  } catch {
+    // If URL parsing fails, return the normalized string and let mariadb handle errors
+    return normalizedConfig
+  }
+
+  const isIPv6 = url.hostname.startsWith('[') && url.hostname.endsWith(']')
+  if (!isIPv6) {
+    return normalizedConfig
+  }
+
+  const hostname = url.hostname.slice(1, -1)
+
+  const poolConfig: mariadb.PoolConfig = {
+    host: hostname,
+  }
+
+  if (url.port) {
+    poolConfig.port = parseInt(url.port, 10)
+  }
+
+  if (url.username) {
+    poolConfig.user = decodeURIComponent(url.username)
+  }
+
+  if (url.password) {
+    poolConfig.password = decodeURIComponent(url.password)
+  }
+
+  const database = url.pathname.slice(1)
+  if (database) {
+    poolConfig.database = database
+  }
+
+  for (const [key, value] of url.searchParams) {
+    const decodedValue = decodeURIComponent(value)
+    ;(poolConfig as Record<string, unknown>)[key] = parseQueryParamValue(key, decodedValue)
+  }
+
+  return poolConfig
+}
+
+/**
+ * Parses a query parameter value with special handling for certain types.
+ * The mariadb driver handles numeric conversion via Number() in the constructor,
+ * but we need to handle booleans and JSON explicitly.
+ */
+function parseQueryParamValue(key: string, value: string): unknown {
+  if (value === 'true' || value === 'false') {
+    return value === 'true'
+  }
+
+  // connectAttributes must be parsed as JSON
+  if (key === 'connectAttributes') {
+    try {
+      return JSON.parse(value)
+    } catch {
+      // Driver throws on invalid JSON, but we'll let it handle that
+      return value
+    }
+  }
+
+  // sessionVariables is parsed as JSON if it looks like JSON
+  if (key === 'sessionVariables' && value.trim().startsWith('{')) {
+    try {
+      return JSON.parse(value)
+    } catch {
+      // If it fails to parse, keep it as a string (matching driver behavior)
+      return value
+    }
+  }
+
+  return value
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
