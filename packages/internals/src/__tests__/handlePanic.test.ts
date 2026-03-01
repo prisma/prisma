@@ -1,15 +1,16 @@
 import { stripVTControlCharacters } from 'node:util'
 
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import prompt from 'prompts'
 import tempy from 'tempy'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, vi } from 'vitest'
 
 import { ErrorArea, RustPanic } from '..'
 import { sendPanic } from '../sendPanic'
 import { wouldYouLikeToCreateANewIssue } from '../utils/getGitHubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
+import { test as it } from './__utils__/vitest'
 
 const keys = {
   up: '\x1B\x5B\x41',
@@ -32,17 +33,15 @@ const oldProcessCwd = process.cwd
 
 const sendPanicTag = 'send-panic-failed'
 
-jest.mock('../sendPanic', () => ({
-  ...jest.requireActual('../sendPanic'),
-  sendPanic: jest.fn().mockImplementation(() => Promise.reject(new Error(sendPanicTag))),
+vi.mock('../sendPanic', async () => ({
+  ...(await vi.importActual('../sendPanic')),
+  sendPanic: vi.fn().mockImplementation(() => Promise.reject(new Error(sendPanicTag))),
 }))
 
-jest.mock('../utils/getGitHubIssueUrl', () => ({
-  ...jest.requireActual('../utils/getGitHubIssueUrl'),
-  wouldYouLikeToCreateANewIssue: jest.fn().mockImplementation(() => Promise.resolve()),
+vi.mock('../utils/getGitHubIssueUrl', async () => ({
+  ...(await vi.importActual('../utils/getGitHubIssueUrl')),
+  wouldYouLikeToCreateANewIssue: vi.fn().mockImplementation(() => Promise.resolve()),
 }))
-
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
   for (const key of Object.keys(process.env)) {
@@ -68,8 +67,8 @@ describe('handlePanic', () => {
   const getDatabaseVersionSafe = () => Promise.resolve(undefined)
 
   beforeEach(async () => {
-    jest.resetModules() // most important - it clears the cache
-    jest.clearAllMocks()
+    vi.resetModules() // most important - it clears the cache
+    vi.clearAllMocks()
 
     restoreEnvSnapshot(OLD_ENV)
     process.env.GITHUB_ACTIONS = 'true' // simulate CI environment
@@ -138,13 +137,14 @@ describe('handlePanic', () => {
     }
   })
 
-  it('when sendPanic fails, the user should be alerted by a reportFailedMessage', async () => {
+  it('when sendPanic fails, the user should be alerted by a reportFailedMessage', async ({ consoleMock }) => {
     const cliVersion = 'test-cli-version'
     const enginesVersion = 'test-engine-version'
     const rustStackTrace = 'test-rustStack'
     const command = 'test-command'
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+    // @ts-expect-error
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {})
 
     const rustPanic = new RustPanic(
       'test-message',
@@ -165,8 +165,8 @@ describe('handlePanic', () => {
 
     expect(sendPanic).toHaveBeenCalledTimes(1)
     expect(wouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
-    expect(stripVTControlCharacters(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
-    expect(stripVTControlCharacters(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
+    expect(stripVTControlCharacters(consoleMock.log.mock.calls.join('\n'))).toMatchSnapshot()
+    expect(stripVTControlCharacters(consoleMock.error.mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
     expect(mockExit).toHaveBeenCalledWith(1)
