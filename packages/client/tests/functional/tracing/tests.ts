@@ -769,5 +769,6 @@ testMatrix.setupTestSuite(
       reason:
         'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
     },
+    skip() {},
   },
 )
