@@ -4,7 +4,7 @@ import * as path from 'node:path'
 
 import { describe, expect, test } from 'vitest'
 
-import { computeLibSSLSpecificPaths, getArchFromUname, getSSLVersion } from '../../src/getPlatform'
+import { computeLibSSLSpecificPaths, getArchFromUname, getSSLVersion } from '../getPlatform'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 

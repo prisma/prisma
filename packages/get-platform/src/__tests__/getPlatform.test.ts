@@ -19,7 +19,9 @@ const it = test.extend<{
       error: vi.spyOn(console, 'error').mockImplementation(() => {}),
     }
     await use(mocks)
-    Object.values(mocks).forEach((m) => m.mockRestore())
+    for (const m of Object.values(mocks)) {
+      m.mockRestore()
+    }
   },
 })
 
