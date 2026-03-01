@@ -1,4 +1,4 @@
-import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
+import { serialize } from '@prisma/get-platform/src/test-utils/vitestSnapshotSerializer'
 import tempy from 'tempy'
 import { describe, expect, test, vi } from 'vitest'
 

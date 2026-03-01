@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
+import { serialize } from '@prisma/get-platform/src/test-utils/vitestSnapshotSerializer'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { isRustPanic, validate } from '../..'
@@ -199,7 +199,7 @@ describe('validate', () => {
           validate({ schemas: [[true, true]] })
         } catch (e) {
           expect(isRustPanic(e)).toBe(true)
-          expect(e.message).toMatchInlineSnapshot(`
+          expect(serialize(e.message)).toMatchInlineSnapshot(`
             ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
             Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 29""
           `)
