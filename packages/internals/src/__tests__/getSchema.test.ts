@@ -57,7 +57,7 @@ it('throws error if schema is not found', async () => {
     You can either provide it with \`--schema\` argument,
     set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
     set it as \`prisma.schema\` in your package.json,
-    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
+    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`)
     Checked following paths:
 
     schema.prisma: file not found
@@ -131,7 +131,7 @@ it('fails with no schema in workspaces', async () => {
     You can either provide it with \`--schema\` argument,
     set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
     set it as \`prisma.schema\` in your package.json,
-    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
+    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`)
     Checked following paths:
 
     schema.prisma: file not found
@@ -139,4 +139,20 @@ it('fails with no schema in workspaces', async () => {
 
     See also https://pris.ly/d/prisma-schema-location]
   `)
+})
+
+it('loads multiple schema files when config points to directory', async () => {
+  const result = await getSchemaWithPath(undefined, path.resolve(FIXTURE_CWD, 'multi-file-demo', 'prisma'), {
+    cwd: path.resolve(FIXTURE_CWD, 'multi-file-demo'),
+  })
+
+  expect(result).toBeDefined()
+  expect(result.schemaPath).toBe(path.resolve(FIXTURE_CWD, 'multi-file-demo', 'prisma'))
+  expect(result.schemas).toHaveLength(3)
+
+  // Verify all three files are loaded
+  const filePaths = result.schemas.map(([filePath]) => path.basename(filePath))
+  expect(filePaths).toContain('schema.prisma')
+  expect(filePaths).toContain('user.prisma')
+  expect(filePaths).toContain('payment.prisma')
 })

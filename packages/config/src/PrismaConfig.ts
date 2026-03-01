@@ -366,7 +366,46 @@ export function parseDefaultExport(defaultExport: unknown) {
 
   // Failure case
   if (Either.isLeft(parseResultEither)) {
-    throw parseResultEither.left
+    const originalError = parseResultEither.left
+
+    // Enhance error message for unknown field errors
+    if (originalError.message.includes('is unexpected') || originalError.message.includes('excess property')) {
+      // Try to extract the unknown field name from the error message
+      const fieldMatch = originalError.message.match(/\["([^"]+)"\]|property "([^"]+)"/)
+      const unknownField = fieldMatch?.[1] || fieldMatch?.[2]
+
+      const validFields = [
+        'experimental',
+        'datasource',
+        'schema',
+        'migrations',
+        'tables',
+        'enums',
+        'views',
+        'typedSql',
+        'extensions',
+      ]
+
+      let enhancedMessage = `Invalid configuration in prisma.config.ts:\n\n${originalError.message}`
+
+      if (unknownField) {
+        enhancedMessage += `\n\nThe field '${unknownField}' is not a valid configuration option.`
+
+        if (unknownField === 'prismaSchemaFolder') {
+          enhancedMessage += `\nDid you mean to use 'schema' pointing to a directory?`
+        }
+      }
+
+      enhancedMessage += `\n\nValid configuration options are:\n  - ${validFields.join('\n  - ')}`
+      enhancedMessage += `\n\nSee https://www.prisma.io/docs/reference/config-reference for details.`
+
+      const enhancedError = new Error(enhancedMessage)
+      enhancedError.stack = originalError.stack
+      throw enhancedError
+    }
+
+    // For other errors, throw as-is
+    throw originalError
   }
 
   // Success case
