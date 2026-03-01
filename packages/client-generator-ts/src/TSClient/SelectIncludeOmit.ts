@@ -98,12 +98,100 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
       const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
       subSelectType.addGenericArgument(extArgsParam.toArgument())
 
-      fieldType.addVariant(subSelectType)
+      // Add whereUnique support for relations with compound unique constraints
+      const whereUniqueType = getWhereUniqueTypeForField(field, modelName, context)
+      if (whereUniqueType) {
+        // Create an intersection type that adds whereUnique to the existing type
+        const extendedType = ts
+          .intersectionType([subSelectType, whereUniqueType])
+        fieldType.addVariant(extendedType)
+      } else {
+        fieldType.addVariant(subSelectType)
+      }
     }
     objectType.add(ts.property(field.name, appendSkipType(context, fieldType)).optional())
   }
 
   return objectType
+}
+
+/**
+ * Returns a type for whereUnique if the relation target has compound unique constraints
+ * that can be partially specified from the parent model
+ */
+function getWhereUniqueTypeForField(
+  field: DMMF.SchemaField,
+  parentModelName: string,
+  context: GenerateContext,
+): ts.TypeBuilder | null {
+  const targetModelName = field.outputType.type
+  const targetModel = context.dmmf.datamodel.models.find((m) => m.name === targetModelName)
+  
+  if (!targetModel) {
+    return null
+  }
+
+  // Find the relation field in the target model that points back to the parent
+  const relationField = targetModel.fields.find((f) => {
+    if (f.kind !== 'object' || f.type !== parentModelName) {
+      return false
+    }
+    // Check if this relation uses fields from a compound unique constraint
+    return f.relationFromFields && f.relationFromFields.length > 0
+  })
+
+  if (!relationField || !relationField.relationFromFields || relationField.relationFromFields.length === 0) {
+    return null
+  }
+
+  // Find compound unique constraints that include the relation fields
+  const compoundUniques = targetModel.uniqueFields.filter((uniqueFields) => {
+    // Check if all relationFromFields are part of this unique constraint
+    const relationFieldsSet = new Set(relationField.relationFromFields!)
+    return uniqueFields.some((uf) => relationFieldsSet.has(uf))
+  })
+
+  if (compoundUniques.length === 0) {
+    return null
+  }
+
+  // Find the unique constraint that matches the relation fields
+  const matchingUnique = compoundUniques.find((uniqueFields) => {
+    const relationFieldsSet = new Set(relationField.relationFromFields!)
+    // Check if relation fields are a subset of unique fields
+    return relationField.relationFromFields!.every((rf) => uniqueFields.includes(rf))
+  })
+
+  if (!matchingUnique) {
+    return null
+  }
+
+  // Get the remaining fields needed for the unique constraint
+  const relationFieldsSet = new Set(relationField.relationFromFields!)
+  const remainingFields = matchingUnique.filter((f) => !relationFieldsSet.has(f))
+
+  if (remainingFields.length === 0) {
+    // All fields are provided by the relation, so we can't use whereUnique
+    return null
+  }
+
+  // Build a type that adds whereUnique property
+  // The whereUnique will accept the target model's WhereUniqueInput
+  const whereUniqueObjectType = ts.objectType()
+  const whereUniqueInputType = ts.namedType(`Prisma.${targetModelName}WhereUniqueInput`)
+  
+  whereUniqueObjectType.add(
+    ts
+      .property('whereUnique', whereUniqueInputType)
+      .optional()
+      .setDocComment(
+        ts.docComment(
+          `Filter by a compound unique constraint. Returns at most one result (or null) instead of an array. Cannot be used together with \`where\`.`,
+        ),
+      ),
+  )
+
+  return whereUniqueObjectType
 }
 
 function buildExport(typeName: string, type: ts.TypeBuilder) {
