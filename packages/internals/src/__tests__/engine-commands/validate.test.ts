@@ -1,14 +1,13 @@
+import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
-import path from 'path'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { isRustPanic, validate } from '../..'
 import { getCliProvidedSchemaFile } from '../../cli/getSchema'
 import type { MultipleSchemas, SchemaFileInput } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
-
-jest.setTimeout(10_000)
 
 function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
   for (const key of Object.keys(process.env)) {
@@ -26,10 +25,9 @@ function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
   }
 }
 
-if (process.env.CI) {
-  // 10s is not always enough for the "big schema" test on macOS CI.
-  jest.setTimeout(60_000)
-}
+vi.setConfig({
+  testTimeout: process.env.CI ? 60_000 : 10_000,
+})
 
 describe('validate', () => {
   // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
@@ -201,7 +199,7 @@ describe('validate', () => {
           validate({ schemas: [[true, true]] })
         } catch (e) {
           expect(isRustPanic(e)).toBe(true)
-          expect(serialize(e.message)).toMatchInlineSnapshot(`
+          expect(e.message).toMatchInlineSnapshot(`
             ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
             Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 29""
           `)

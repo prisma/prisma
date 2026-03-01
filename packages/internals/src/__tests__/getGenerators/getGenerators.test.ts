@@ -1,21 +1,18 @@
+import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import { loadSchemaContext } from '../../cli/schemaContext'
 import { GeneratorRegistry, getGenerators } from '../../get-generators/getGenerators'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
+import { test as it } from '../__utils__/vitest'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-
-if (process.env.CI) {
-  // 20s is often not enough on CI, especially on macOS.
-  jest.setTimeout(60_000)
-} else {
-  jest.setTimeout(20_000)
-}
+vi.setConfig({
+  testTimeout: process.env.CI ? 60_000 : 20_000,
+})
 
 let generatorPath = path.join(__dirname, 'generator')
 
@@ -128,7 +125,7 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  it('basic - binaryTargets - native string', async () => {
+  it('basic - binaryTargets - native string', async ({ consoleMock }) => {
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma') },
     })
@@ -201,15 +198,15 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
 
-  it('basic - binaryTargets as env var - native string', async () => {
+  it('basic - binaryTargets as env var - native string', async ({ consoleMock }) => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '"native"'
 
     const schemaContext = await loadSchemaContext({
@@ -284,15 +281,15 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
 
-  it('basic - binaryTargets as env var - native (in array)', async () => {
+  it('basic - binaryTargets as env var - native (in array)', async ({ consoleMock }) => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
 
     const schemaContext = await loadSchemaContext({
@@ -367,15 +364,15 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
 
-  it('basic - binaryTargets as env var - darwin, windows, debian', async () => {
+  it('basic - binaryTargets as env var - darwin, windows, debian', async ({ consoleMock }) => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST =
       '["darwin", "darwin-arm64", "windows", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]'
 
@@ -466,15 +463,15 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
 
-  it('basic - binaryTargets as env var - linux-musl (missing current platform)', async () => {
+  it('basic - binaryTargets as env var - linux-musl (missing current platform)', async ({ consoleMock }) => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '["linux-musl"]'
 
     const schemaContext = await loadSchemaContext({
@@ -548,12 +545,12 @@ describe('getGenerators', () => {
       }
     `)
 
-    const consoleLog = stripVTControlCharacters(ctx.mocked['console.log'].mock.calls.join('\n'))
+    const consoleLog = stripVTControlCharacters(consoleMock.log.mock.calls.join('\n'))
     expect(consoleLog).toContain('Warning: Your current platform')
     expect(consoleLog).toContain(`s not included in your generator's \`binaryTargets\` configuration`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
@@ -592,7 +589,7 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  test('fail on invalid binaryTarget', async () => {
+  it('fail on invalid binaryTarget', async ({ consoleMock }) => {
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'invalid-binary-target-schema.prisma') },
     })
@@ -604,13 +601,13 @@ describe('getGenerators', () => {
       }),
     ).rejects.toThrow('Unknown')
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if datasource is missing', async () => {
+  it('fail if datasource is missing', async ({ consoleMock }) => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-datasource-schema.prisma') },
@@ -637,13 +634,13 @@ describe('getGenerators', () => {
       `)
     }
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if no model(s) found and allow-no-models flag is false - sqlite', async () => {
+  it('fail if no model(s) found and allow-no-models flag is false - sqlite', async ({ consoleMock }) => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma') },
@@ -673,13 +670,13 @@ describe('getGenerators', () => {
       `)
     }
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if no model(s) found and allow-no-models flag is false - mongodb', async () => {
+  it('fail if no model(s) found and allow-no-models flag is false - mongodb', async ({ consoleMock }) => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma') },
@@ -709,10 +706,10 @@ describe('getGenerators', () => {
       `)
     }
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.info.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('fail if generator not found', async () => {

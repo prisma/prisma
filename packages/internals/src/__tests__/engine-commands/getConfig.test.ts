@@ -1,4 +1,5 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
+import { describe, expect, test } from 'vitest'
 
 import { getConfig, isRustPanic } from '../..'
 
@@ -32,7 +33,7 @@ describe('getConfig', () => {
     expect(config.datasources[0].provider).toEqual('sqlite')
     expect(config.generators).toHaveLength(0)
     expect(config.warnings).toHaveLength(0)
-    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
+    expect(JSON.stringify(config, null, 2)).toMatchSnapshot()
   })
 
   test('with generator and datasource', async () => {
@@ -56,7 +57,7 @@ describe('getConfig', () => {
     expect(config.datasources).toHaveLength(1)
     expect(config.generators).toHaveLength(1)
     expect(config.warnings).toHaveLength(0)
-    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
+    expect(JSON.stringify(config, null, 2)).toMatchSnapshot()
   })
 
   test('datasource with env var', async () => {
@@ -70,7 +71,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
+    expect(JSON.stringify(config, null, 2)).toMatchSnapshot()
   })
 
   test('with engineType="library"', async () => {

@@ -1,8 +1,9 @@
 import path from 'node:path'
 
 import { defineConfig, loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
-import { createSchemaPathInput, inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
+import { describe, expect, it } from 'vitest'
 
+import { createSchemaPathInput, inferDirectoryConfig, loadSchemaContext } from '..'
 import { fixturesPath } from './__utils__/fixtures'
 
 const FIXTURE_CWD = path.resolve(fixturesPath, 'directoryConfig')
