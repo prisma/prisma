@@ -33,7 +33,7 @@ describe('getConfig', () => {
     expect(config.datasources[0].provider).toEqual('sqlite')
     expect(config.generators).toHaveLength(0)
     expect(config.warnings).toHaveLength(0)
-    expect(JSON.stringify(config, null, 2)).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
   test('with generator and datasource', async () => {
@@ -57,7 +57,7 @@ describe('getConfig', () => {
     expect(config.datasources).toHaveLength(1)
     expect(config.generators).toHaveLength(1)
     expect(config.warnings).toHaveLength(0)
-    expect(JSON.stringify(config, null, 2)).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
   test('datasource with env var', async () => {
@@ -71,7 +71,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(JSON.stringify(config, null, 2)).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
   test('with engineType="library"', async () => {
