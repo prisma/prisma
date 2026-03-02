@@ -545,9 +545,7 @@ export class Init implements Command {
         }
 
         const connection = project.database.connections?.find(
-          (c) =>
-            Boolean(c.endpoints?.direct?.connectionString) ||
-            Boolean(c.endpoints?.pooled?.connectionString),
+          (c) => Boolean(c.endpoints?.direct?.connectionString) || Boolean(c.endpoints?.pooled?.connectionString),
         )
         const directEndpoint = connection?.endpoints?.direct
 
