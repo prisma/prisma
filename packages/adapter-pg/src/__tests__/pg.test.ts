@@ -37,9 +37,11 @@ describe('PrismaPgAdapterFactory', () => {
   it('should accept a connection string URL', async () => {
     const connectionString = 'postgresql://test:test@localhost:5432/test'
     const factory = new PrismaPgAdapterFactory(connectionString)
+
+    expect((factory as any).config).toEqual({ connectionString })
+
     const adapter = await factory.connect()
-    expect(adapter).toBeDefined()
-    expect(adapter.adapterName).toBeDefined()
+    expect(adapter.underlyingDriver().options.connectionString).toBe(connectionString)
     await adapter.dispose()
   })
 
