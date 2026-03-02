@@ -1,5 +1,5 @@
 import { uriToCredentials } from '@prisma/internals'
-import mariadb from 'mariadb'
+import * as mariadb from 'mariadb'
 
 import type { Context, Input } from '../../__helpers__/integrationTest'
 
