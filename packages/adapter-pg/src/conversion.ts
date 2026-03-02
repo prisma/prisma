@@ -426,6 +426,8 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
         return formatTime(arg)
       case 'DATE':
         return formatDate(arg)
+      case 'TIMESTAMPTZ':
+        return formatDateTimeZoned(arg)
       default:
         return formatDateTime(arg)
     }
@@ -441,6 +443,24 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
   }
 
   return arg
+}
+
+function formatDateTimeZoned(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const padMs = (n: number) => String(n).padStart(3, '0')
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+  const ms = padMs(date.getMilliseconds())
+  const offset = -date.getTimezoneOffset()
+  const sign = offset >= 0 ? '+' : '-'
+  const absOffset = Math.abs(offset)
+  const offsetHours = pad(Math.floor(absOffset / 60))
+  const offsetMinutes = pad(absOffset % 60)
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}${offsetMinutes}`
 }
 
 function formatDateTime(date: Date): string {
