@@ -1,16 +1,18 @@
 import { stripVTControlCharacters } from 'node:util'
 
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import prompt from 'prompts'
 import tempy from 'tempy'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ErrorArea, RustPanic } from '..'
 import { sendPanic } from '../sendPanic'
 import { wouldYouLikeToCreateANewIssue } from '../utils/getGitHubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
-import { test as it } from './__utils__/vitest'
+
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 const keys = {
   up: '\x1B\x5B\x41',
@@ -137,7 +139,7 @@ describe('handlePanic', () => {
     }
   })
 
-  it('when sendPanic fails, the user should be alerted by a reportFailedMessage', async ({ consoleMock }) => {
+  it('when sendPanic fails, the user should be alerted by a reportFailedMessage', async () => {
     const cliVersion = 'test-cli-version'
     const enginesVersion = 'test-engine-version'
     const rustStackTrace = 'test-rustStack'
@@ -165,8 +167,8 @@ describe('handlePanic', () => {
 
     expect(sendPanic).toHaveBeenCalledTimes(1)
     expect(wouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
-    expect(stripVTControlCharacters(consoleMock.log.mock.calls.join('\n'))).toMatchSnapshot()
-    expect(stripVTControlCharacters(consoleMock.error.mock.calls.join('\n'))).toMatch(
+    expect(stripVTControlCharacters(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(stripVTControlCharacters(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
     expect(mockExit).toHaveBeenCalledWith(1)

@@ -1,17 +1,18 @@
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { describe, expect, vi } from 'vitest'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
+import { describe, expect, test, vi } from 'vitest'
 
 import { getCliProvidedSchemaFile } from '../../cli/getSchema'
 import { formatSchema } from '../../engine-commands'
 import { extractSchemaContent, type MultipleSchemas } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
-import { test } from '../__utils__/vitest'
 
 if (process.env.CI) {
   vi.setConfig({ testTimeout: 20_000 })
 }
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 describe('schema wasm', () => {
   describe('diff', () => {
@@ -160,7 +161,7 @@ describe('format', () => {
     expect(formattedContent[0]).toMatchSnapshot()
   })
 
-  test('valid schema with 1 preview feature flag warning', async ({ consoleMock }) => {
+  test('valid schema with 1 preview feature flag warning', async () => {
     const schema = /* prisma */ `
       generator client {
         provider = "prisma-client-js"
@@ -182,16 +183,16 @@ describe('format', () => {
     expect(formattedContent.length).toBe(1)
     expect(formattedContent[0]).toMatchSnapshot()
 
-    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripVTControlCharacters(consoleMock.warn.mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       "
       Prisma schema warning:
       - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature."
     `)
-    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('valid schema with 3 preview feature flag warnings', async ({ consoleMock }) => {
+  test('valid schema with 3 preview feature flag warnings', async () => {
     const schema = /* prisma */ `
       generator client {
         provider = "prisma-client-js"
@@ -214,18 +215,18 @@ describe('format', () => {
     expect(formattedContent.length).toBe(1)
     expect(formattedContent[0]).toMatchSnapshot()
 
-    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripVTControlCharacters(consoleMock.warn.mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       "
       Prisma schema warnings:
       - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.
       - Preview feature "mongoDb" is deprecated. The functionality can be used without specifying it as a preview feature.
       - Preview feature "microsoftSqlServer" is deprecated. The functionality can be used without specifying it as a preview feature."
     `)
-    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('invalid schema', async ({ consoleMock }) => {
+  test('invalid schema', async () => {
     const schema = /* prisma */ `
       generator client {
         provider  = "prisma-client-js"
@@ -274,8 +275,8 @@ describe('format', () => {
       "
     `)
 
-    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripVTControlCharacters(consoleMock.warn.mock.calls.join('\n'))).toMatchInlineSnapshot(`""`)
-    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

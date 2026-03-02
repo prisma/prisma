@@ -1,9 +1,11 @@
-import { describe, expect } from 'vitest'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
+import { describe, expect, test } from 'vitest'
 
 import { lintSchema } from '../../engine-commands'
 import { getLintWarnings, LintError, LintWarning } from '../../engine-commands/lintSchema'
 import { type MultipleSchemas } from '../../utils/schemaFileInput'
-import { test } from '../__utils__/vitest'
+
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 describe('lint valid schema with a deprecated preview feature', () => {
   const schema = /* prisma */ `
@@ -29,12 +31,12 @@ describe('lint valid schema with a deprecated preview feature', () => {
     text: `Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.`,
   }
 
-  test('should return a deprecated preview feature warning', ({ consoleMock }) => {
+  test('should return a deprecated preview feature warning', () => {
     const lintDiagnostics = lintSchema({ schemas })
 
-    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     expect(lintDiagnostics).toMatchObject([expectedWarning])
 
@@ -83,12 +85,12 @@ Either choose another referential action, or make the referenced fields optional
 `,
   }
 
-  test('should return a parsing error and a deprecated preview feature warning', ({ consoleMock }) => {
+  test('should return a parsing error and a deprecated preview feature warning', () => {
     const lintDiagnostics = lintSchema({ schemas })
 
-    expect(consoleMock.log.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(consoleMock.warn.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(consoleMock.error.mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     expect(lintDiagnostics).toMatchObject([expectedError, expectedWarning])
 
