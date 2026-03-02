@@ -218,6 +218,24 @@ describe('mapRecord field operations', () => {
       expect((result as Record<string, unknown>).count).toBeNull()
     })
 
+    test('number value with string operand uses Decimal path', async () => {
+      const adapter = new MockDriverAdapter()
+      adapter.setQueryResult('SELECT', {
+        columnNames: ['id', 'count'],
+        columnTypes: [0, 0],
+        rows: [[1, 10]],
+      })
+
+      const plan = makeMapRecordPlan('SELECT id, count FROM Counter WHERE id = 1', {
+        count: { type: 'add', value: '5' },
+      })
+
+      const interpreter = QueryInterpreter.forSql(createInterpreterOptions())
+      const result = await interpreter.run(plan, createRuntimeOptions(adapter))
+
+      expect((result as Record<string, unknown>).count).toBe('15')
+    })
+
     test('float arithmetic still works', async () => {
       const adapter = new MockDriverAdapter()
       adapter.setQueryResult('SELECT', {
