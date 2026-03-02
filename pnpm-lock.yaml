@@ -1343,15 +1343,6 @@ importers:
       '@codspeed/benchmark.js-plugin':
         specifier: 4.0.0
         version: 4.0.0(benchmark@2.1.4)
-      '@swc/core':
-        specifier: 1.11.5
-        version: 1.11.5
-      '@swc/jest':
-        specifier: 0.2.37
-        version: 0.2.37(@swc/core@1.11.5)
-      '@types/jest':
-        specifier: 29.5.14
-        version: 29.5.14
       '@types/node':
         specifier: ~20.19.24
         version: 20.19.25
@@ -1367,12 +1358,6 @@ importers:
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
-      jest:
-        specifier: 29.7.0
-        version: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))
-      jest-junit:
-        specifier: 16.0.0
-        version: 16.0.0
       kleur:
         specifier: 4.1.5
         version: 4.1.5

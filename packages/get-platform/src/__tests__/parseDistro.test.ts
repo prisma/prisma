@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { parseDistro } from '../getPlatform'
 
 describe('parseDistro', () => {
