@@ -144,6 +144,24 @@ describe('mapRecord field operations', () => {
       expect((result as Record<string, unknown>).amount).toBeNull()
     })
 
+    test('add preserves precision beyond 20 significant digits', async () => {
+      const adapter = new MockDriverAdapter()
+      adapter.setQueryResult('SELECT', {
+        columnNames: ['id', 'amount'],
+        columnTypes: [0, 1],
+        rows: [[1, '1234567890123456789012345678']],
+      })
+
+      const plan = makeMapRecordPlan('SELECT id, amount FROM Account WHERE id = 1', {
+        amount: { type: 'add', value: '1' },
+      })
+
+      const interpreter = QueryInterpreter.forSql(createInterpreterOptions())
+      const result = await interpreter.run(plan, createRuntimeOptions(adapter))
+
+      expect((result as Record<string, unknown>).amount).toBe('1234567890123456789012345679')
+    })
+
     test('add with string value and number operand uses Decimal', async () => {
       const adapter = new MockDriverAdapter()
       adapter.setQueryResult('SELECT', {

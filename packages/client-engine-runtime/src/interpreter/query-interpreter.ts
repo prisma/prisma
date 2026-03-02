@@ -406,16 +406,22 @@ function asNumber(value: Value): number {
   throw new Error(`Expected number, got ${typeof value}`)
 }
 
+// Decimal.js defaults to 20 significant digits of precision, which silently
+// truncates larger values during arithmetic. We use a higher-precision clone
+// to support the full range of database decimal types (e.g. PostgreSQL NUMERIC
+// can store up to ~131000 digits, MySQL DECIMAL up to 65, SQL Server up to 38).
+// https://github.com/prisma/prisma/issues/29160
+const ArithmeticDecimal = Decimal.clone({ precision: 1000 })
+
 /**
  * Performs an arithmetic operation using Decimal when either operand is a string,
  * which happens for Decimal database columns. This avoids precision loss that
  * occurs when converting large decimal strings to JavaScript numbers.
- * See: https://github.com/prisma/prisma/issues/29160
  */
 function evalArithmetic(lhs: Value, rhs: Value, op: 'add' | 'sub' | 'mul' | 'div'): Value {
   if (typeof lhs === 'string' || typeof rhs === 'string') {
-    const left = new Decimal(lhs as string | number)
-    const right = new Decimal(rhs as string | number)
+    const left = new ArithmeticDecimal(lhs as string | number)
+    const right = new ArithmeticDecimal(rhs as string | number)
     switch (op) {
       case 'add':
         return left.plus(right).toFixed()
