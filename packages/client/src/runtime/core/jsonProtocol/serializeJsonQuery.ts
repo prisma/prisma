@@ -327,7 +327,7 @@ function serializeArgumentsValue(
   if (isObjectEnumValue(jsValue)) {
     const name = jsValue._getName()
     if (name !== 'DbNull' && name !== 'JsonNull' && name !== 'AnyNull') {
-      throw new Error('Invalid ObjectEnumValue')
+      throw new Error(`Invalid ObjectEnumValue: expected DbNull, JsonNull, or AnyNull, got ${name}`)
     }
     return { $type: 'Enum', value: name }
   }
