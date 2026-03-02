@@ -89,6 +89,22 @@ export const JsonNull = new JsonNullClass(secret)
 export const AnyNull = new AnyNullClass(secret)
 
 /**
+ * Check if a value is an ObjectEnumValue instance. Uses duck-typing instead
+ * of instanceof to work across bundle boundaries (e.g., when a Next.js app
+ * bundles browser and server code separately, creating duplicate module
+ * instances of @prisma/client-runtime-utils).
+ * See: https://github.com/prisma/prisma/issues/29257
+ */
+export function isObjectEnumValue(value: unknown): value is ObjectEnumValue {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as ObjectEnumValue)._getName === 'function' &&
+    typeof (value as ObjectEnumValue)._getNamespace === 'function'
+  )
+}
+
+/**
  * Check if a value is the DBNull singleton instance.
  */
 export function isDbNull(value: unknown): value is DbNullClass {
