@@ -591,7 +591,7 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  it('fail on invalid binaryTarget', async () => {
+  test('fail on invalid binaryTarget', async () => {
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'invalid-binary-target-schema.prisma') },
     })
@@ -609,7 +609,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  it('fail if datasource is missing', async () => {
+  test('fail if datasource is missing', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-datasource-schema.prisma') },
@@ -642,7 +642,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  it('fail if no model(s) found and allow-no-models flag is false - sqlite', async () => {
+  test('fail if no model(s) found and allow-no-models flag is false - sqlite', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma') },
@@ -678,7 +678,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  it('fail if no model(s) found and allow-no-models flag is false - mongodb', async () => {
+  test('fail if no model(s) found and allow-no-models flag is false - mongodb', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPath: { cliProvidedPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma') },

@@ -12,6 +12,7 @@ import { fixturesPath } from '../__utils__/fixtures'
 if (process.env.CI) {
   vi.setConfig({ testTimeout: 20_000 })
 }
+
 const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 describe('schema wasm', () => {
@@ -276,7 +277,7 @@ describe('format', () => {
     `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })
