@@ -544,11 +544,17 @@ export class Init implements Command {
           throw new Error('Missing database info in response')
         }
 
-        const connection = project.database.connections?.[0]
+        const connection = project.database.connections?.find(
+          (c) =>
+            Boolean(c.endpoints?.direct?.connectionString) ||
+            Boolean(c.endpoints?.pooled?.connectionString),
+        )
         const directEndpoint = connection?.endpoints?.direct
 
         if (directEndpoint?.connectionString) {
           prismaPostgresDatabaseUrl = directEndpoint.connectionString
+        } else if (connection?.endpoints?.pooled?.connectionString) {
+          prismaPostgresDatabaseUrl = connection.endpoints.pooled.connectionString
         } else if (project.database.directConnection) {
           const { host, user, pass } = project.database.directConnection
           prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
