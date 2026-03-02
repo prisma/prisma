@@ -544,15 +544,17 @@ export class Init implements Command {
           throw new Error('Missing database info in response')
         }
 
-        if (!project.database.directConnection) {
-          // This should never happen: OpenAPI types are not entirely correct,
-          // `directConnection` is not independently nullable and must always
-          // be present if `database` is in the response body.
+        const connection = project.database.connections?.[0]
+        const directEndpoint = connection?.endpoints?.direct
+
+        if (directEndpoint?.connectionString) {
+          prismaPostgresDatabaseUrl = directEndpoint.connectionString
+        } else if (project.database.directConnection) {
+          const { host, user, pass } = project.database.directConnection
+          prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
+        } else {
           throw new Error('Missing connection string in response')
         }
-
-        const { host, user, pass } = project.database.directConnection
-        prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
 
         workspaceId = project.workspace.id.replace(/^wksp_/, '')
         projectId = project.id.replace(/^proj_/, '')

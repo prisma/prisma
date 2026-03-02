@@ -495,8 +495,8 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@prisma/management-api-sdk':
-        specifier: 0.2.0
-        version: 0.2.0
+        specifier: 1.12.0
+        version: 1.12.0
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
@@ -3602,8 +3602,8 @@ packages:
   '@prisma/get-platform@7.2.0':
     resolution: {integrity: sha512-k1V0l0Td1732EHpAfi2eySTezyllok9dXb6UQanajkJQzPUGi3vO2z7jdkz67SypFTdmbnyGYxvEvYZdZsMAVA==}
 
-  '@prisma/management-api-sdk@0.2.0':
-    resolution: {integrity: sha512-ZFY5v3r2l4cx05zMNO4Wpu5ihW811xa9TytTS76Tal8oYHAPAUkSgNJZcRIPu5iYfs9LqOFegoonX1vIG0YVfw==}
+  '@prisma/management-api-sdk@1.12.0':
+    resolution: {integrity: sha512-fe9rOdWBx5u4N4q2brBWHZCMg+S8pHb6lBRWuINzwVAjyJqTdOhDG5RiGCPB0V8EQQ/HfQtIFrot9HDPfEJkOg==}
 
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
@@ -10094,7 +10094,7 @@ snapshots:
     dependencies:
       '@prisma/debug': 7.2.0
 
-  '@prisma/management-api-sdk@0.2.0':
+  '@prisma/management-api-sdk@1.12.0':
     dependencies:
       openapi-fetch: 0.14.0
 

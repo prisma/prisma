@@ -124,7 +124,7 @@
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
-    "@prisma/management-api-sdk": "0.2.0",
+    "@prisma/management-api-sdk": "1.12.0",
     "@prisma/migrate": "workspace:*",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
