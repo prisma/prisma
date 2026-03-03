@@ -762,7 +762,9 @@ describe('getGenerators', () => {
       allowNoModels: true,
     })
 
-    generators.forEach((g) => g.stop())
+    for (const generator of generators) {
+      generator.stop()
+    }
 
     return expect(generators.length).toBeGreaterThanOrEqual(1)
   })

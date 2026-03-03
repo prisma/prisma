@@ -69,7 +69,7 @@ describe('handlePanic', () => {
   const getDatabaseVersionSafe = () => Promise.resolve(undefined)
 
   beforeEach(async () => {
-    vi.resetModules() // most important - it clears the cache
+    vi.resetModules()
     vi.clearAllMocks()
 
     restoreEnvSnapshot(OLD_ENV)
@@ -172,5 +172,6 @@ describe('handlePanic', () => {
       new RegExp(`^Error report submission failed due to:?`),
     )
     expect(mockExit).toHaveBeenCalledWith(1)
+    mockExit.mockRestore()
   })
 })
