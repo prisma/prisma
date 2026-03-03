@@ -39,6 +39,17 @@ describe('deepCloneArgs', () => {
     expect(isSkip(cloned.data[0])).toBe(true)
   })
 
+  test('preserves cross-bundle ObjectEnumValue through cloning', () => {
+    const crossBundleDbNull = Object.create(null)
+    crossBundleDbNull._getName = () => 'DbNull'
+    crossBundleDbNull._getNamespace = () => 'NullTypes'
+
+    const args = { data: { field: crossBundleDbNull } }
+    const cloned = deepCloneArgs(args) as Record<string, any>
+
+    expect(cloned.data.field).toBe(crossBundleDbNull)
+  })
+
   test('still deep clones regular objects', () => {
     const inner = { foo: 'bar' }
     const args = { data: inner }
