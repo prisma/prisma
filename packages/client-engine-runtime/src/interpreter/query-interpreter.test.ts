@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
 import { MockDriverAdapter, mockTracingHelper } from '../../bench/mock-adapter'
-import type { QueryPlanNode } from '../query-plan'
+import type { FieldOperation, QueryPlanNode } from '../query-plan'
 import { QueryInterpreter, QueryInterpreterOptions } from './query-interpreter'
 import { serializeSql } from './serialize-sql'
 
@@ -47,7 +47,7 @@ function makeMapRecordPlan(
           },
         },
       },
-      fields,
+      fields: fields as Record<string, FieldOperation>,
     },
   }
 }
