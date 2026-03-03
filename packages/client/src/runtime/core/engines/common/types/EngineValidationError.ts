@@ -7,6 +7,7 @@ export type EngineValidationError =
   | RequiredArgumentMissingError
   | InvalidArgumentTypeError
   | InvalidArgumentValueError
+  | InvalidEnumValueError
   | ValueTooLargeError
   | SomeFieldsMissingError
   | TooManyFieldsGivenError
@@ -158,6 +159,23 @@ export type InvalidArgumentValueError = {
    * can not be accepted.
    */
   underlyingError: string | null
+}
+
+/**
+ * Invalid value is passed to an enum argument. Example:
+ *
+ * ```
+ * prisma.user.findMany({ where: { role: 'invalid' } })
+ * ```
+ */
+export type InvalidEnumValueError = {
+  kind: 'InvalidEnumValue'
+  selectionPath: string[]
+  argumentPath: string[]
+  argument: ArgumentDescription
+  providedValue: string
+  enumName: string
+  validValues: string[]
 }
 
 /**
