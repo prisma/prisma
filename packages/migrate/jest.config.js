@@ -2,7 +2,7 @@
 module.exports = {
   preset: '../../helpers/test/presets/withSnapshotSerializer.js',
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
-  testPathIgnorePatterns: ['\\.vitest.ts$'],
+  testPathIgnorePatterns: ['/node_modules/', '\\.vitest.ts$'],
   coveragePathIgnorePatterns: [
     'bin.ts',
     'setupMysql.ts',
