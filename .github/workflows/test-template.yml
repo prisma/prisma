@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -117,7 +117,7 @@ jobs:
       JEST_JUNIT_SUITE_NAME: 'client/functional'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -169,7 +169,7 @@ jobs:
         node: ['20.19.0', '22.12.0', '24']
         flavor: ['js_pg']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -237,7 +237,7 @@ jobs:
         node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -304,7 +304,7 @@ jobs:
         node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -359,7 +359,7 @@ jobs:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -397,97 +397,6 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (memory tests)
-  #
-  client-memory:
-    name: Client (memory tests) [v${{ matrix.node }}]
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        queryEngine: [client]
-        node: ['20.19.0', '22.12.0', '24']
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: true
-
-      - run: pnpm run test:memory
-        working-directory: packages/client
-
-      - uses: actions/github-script@v7
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        id: upload-report
-        env:
-          NODE_VERSION: ${{ matrix.node }}
-        with:
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const fs = require('fs')
-            const nodeVersion = process.env.NODE_VERSION
-            const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
-            const url = `https://prisma.github.io/ci-reports/${reportPath}`
-            const localReport = './packages/client/tests/memory/memory-report.html'
-            if (fs.existsSync(localReport)) {
-              await github.rest.repos.createOrUpdateFileContents({
-                owner: 'prisma',
-                repo: 'ci-reports',
-                branch: 'gh-pages',
-                path: reportPath,
-                message: `Add memory results for PR ${context.issue.number}`,
-                content: fs.readFileSync(localReport, 'base64'),
-              });
-              core.setOutput('url', url);
-            }
-      - name: Find report comment
-        uses: peter-evans/find-comment@v3
-        id: fc
-        if: ${{ always() && github.event_name == 'pull_request' }}
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
-
-      - name: Create or update remote comment (failure)
-        uses: peter-evans/create-or-update-comment@v4
-        if: ${{ failure() && steps.upload-report.outputs.url }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
-            ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
-          edit-mode: replace
-
-      - name: Create or update remote comment (success)
-        uses: peter-evans/create-or-update-comment@v4
-        if: ${{ success() && steps.fc.outputs.comment-id != '' }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
-            ✅ Success
-          edit-mode: replace
-
-  #
   # CLIENT test:e2e
   #
   client-e2e:
@@ -506,7 +415,7 @@ jobs:
         # ./packages/client/tests/e2e/_utils/standard.dockerfile
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Not currently needed, but we might need it in the future
       - name: Start Docker Compose Services
@@ -551,7 +460,7 @@ jobs:
       JEST_JUNIT_SUITE_NAME: 'client/functional'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set RELATION_MODE custom test env var
         run: |
@@ -621,7 +530,7 @@ jobs:
       matrix:
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -649,7 +558,7 @@ jobs:
       matrix:
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -694,7 +603,7 @@ jobs:
       matrix:
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -720,7 +629,7 @@ jobs:
       matrix:
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -756,7 +665,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -794,7 +703,7 @@ jobs:
         # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
         driverAdapter: ['']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -832,7 +741,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -873,7 +782,7 @@ jobs:
           - os: macos-latest
             version: 18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -899,7 +808,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -982,7 +891,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1019,6 +928,10 @@ jobs:
         name: 'adapter-neon'
         working-directory: packages/adapter-neon
 
+      - run: pnpm run test
+        name: 'adapter-ppg'
+        working-directory: packages/adapter-ppg
+
   #
   # Query plan executor unit tests
   #
@@ -1033,7 +946,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1057,7 +970,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1096,7 +1009,7 @@ jobs:
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prerequisites
         shell: bash
@@ -1159,7 +1072,7 @@ jobs:
         os: [macos-14, windows-latest]
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prerequisites
         shell: bash

@@ -164,6 +164,70 @@ describe('parameterizeQuery - tagged values', () => {
     })
   })
 
+  it('preserves pre-existing Param tagged values', () => {
+    const query = {
+      arguments: {
+        where: {
+          email: { contains: PARAM_PLACEHOLDER },
+          age: { gte: PARAM_PLACEHOLDER },
+        },
+      },
+      selection: { $scalars: true },
+    }
+
+    expect(parameterizeQuery(query)).toEqual({
+      arguments: {
+        where: {
+          email: { contains: PARAM_PLACEHOLDER },
+          age: { gte: PARAM_PLACEHOLDER },
+        },
+      },
+      selection: { $scalars: true },
+    })
+  })
+
+  it('preserves pre-existing Param tagged values in data context', () => {
+    const query = {
+      arguments: {
+        data: {
+          name: PARAM_PLACEHOLDER,
+          email: PARAM_PLACEHOLDER,
+        },
+      },
+      selection: { $scalars: true },
+    }
+
+    expect(parameterizeQuery(query)).toEqual({
+      arguments: {
+        data: {
+          name: PARAM_PLACEHOLDER,
+          email: PARAM_PLACEHOLDER,
+        },
+      },
+      selection: { $scalars: true },
+    })
+  })
+
+  it('preserves pre-existing Param tagged values in arrays', () => {
+    const query = {
+      arguments: {
+        where: {
+          id: { in: [PARAM_PLACEHOLDER, PARAM_PLACEHOLDER] },
+        },
+      },
+      selection: { $scalars: true },
+    }
+
+    expect(parameterizeQuery(query)).toEqual({
+      arguments: {
+        where: {
+          id: { in: [PARAM_PLACEHOLDER, PARAM_PLACEHOLDER] },
+        },
+      },
+      selection: { $scalars: true },
+    })
+  })
+
   it('parameterizes tagged values in data context', () => {
     const query = {
       arguments: {

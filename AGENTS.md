@@ -1,4 +1,4 @@
-## Prisma Repository – Agent Field Notes
+# Prisma Repository – Agent Field Notes
 
 > **Meta note**: This is the primary agent knowledge base file. `CLAUDE.md` and `GEMINI.md` are symlinks to this file—always edit `AGENTS.md` directly. When learning something new about the codebase that would help with future tasks, update this file immediately.
 
@@ -31,11 +31,15 @@
 - **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer.
 
 - **Client architecture (Prisma 7)**:
-  - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using WASM query compiler.
+  - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using Wasm query compiler.
   - Two executor implementations: `LocalExecutor` (driver adapters, direct DB) and `RemoteExecutor` (Accelerate/Data Proxy).
   - `QueryInterpreter` class in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` executes query plans against `SqlQueryable` (driver adapter interface).
   - Query flow: `PrismaClient` → `ClientEngine.request()` → query compiler → `executor.execute()` → `QueryInterpreter.run()` → driver adapter.
   - `ExecutePlanParams` interface in `packages/client/src/runtime/core/engines/client/Executor.ts` defines what's passed through the execution chain.
+  - `TransactionManager` in `packages/client-engine-runtime/src/transaction-manager/transaction-manager.ts` owns interactive transaction IDs and implements nested transactions using savepoints. Savepoint SQL is provider-specific (e.g. PostgreSQL uses `ROLLBACK TO SAVEPOINT <name>`, MySQL/SQLite use `ROLLBACK TO <name>`, SQL Server uses `SAVE TRANSACTION <name>` / `ROLLBACK TRANSACTION <name>` and has no release statement).
+  - `Transaction` in `packages/driver-adapter-utils` models savepoint behavior as async methods (`createSavepoint`, `rollbackToSavepoint`, optional `releaseSavepoint`) instead of returning SQL via `savepoint(action, name)`. `TransactionManager` expects adapter methods for savepoints and does not synthesize provider fallback SQL.
+  - Fluent API `dataPath` is built in `packages/client/src/runtime/core/model/applyFluent.ts` by appending `['select', <relationName>]` on each hop; runtime unpacking in `packages/client/src/runtime/RequestHandler.ts` currently strips `'select'`/`'include'` segments before `deepGet`.
+  - In extension context resolution, `dataPath` should be interpreted as selector/field pairs (`select|include`, relation field). Do not strip by raw string value or relation fields literally named `select`/`include` get dropped.
 
 - **Adding PrismaClient constructor options**:
   - Runtime types: `PrismaClientOptions` in `packages/client/src/runtime/getPrismaClient.ts`.
@@ -69,6 +73,7 @@
   - Tests rely on fixtures under `packages/**/src/__tests__/fixtures`; many now contain `prisma.config.ts`.
   - Default Jest/Vitest runner is invoked via `pnpm --filter @prisma/<pkg> test <pattern>`; it wraps `dotenv` and expects `.db.env`.
     - Some packages already use Vitest, `packages/cli` uses both for different tests as it's in the process of transition, older packages still use Jest.
+  - Functional generated clients in `packages/client/tests/functional/**/.generated` import `packages/client/runtime/client.js` directly; runtime changes in `src/runtime` may need corresponding runtime bundle updates to be exercised by functional tests.
   - Inline snapshots can be sensitive to formatting; prefer concise expectations unless the exact message matters.
 
 - **Environment loading**: Prisma 7 removes automatic `.env` loading.
@@ -111,6 +116,7 @@
     - _How does this code work?_ — these comments should be exceedingly rare and may indicate poorly written or confusing code. Prefer writing code in a way that makes such comments redundant, unless required for performance or other reasons, or when the complexity comes from outside systems or packages (in which case it's more of a "why" comment than a "how" comment anyway). For well known algorithms, prefer their names and references to papers, books or Wikipedia articles over long explanations.
   - Do write documentation comments, and mainly do so for exported items (although intra-module documentation may sometimes be useful as well).
   - The correct and official abbreviation of WebAssembly is "Wasm", not "WASM". There are instances of "WASM" in the codebase, but they are wrong and you should not repeat them. Fix the capitalization whenever you incidentally touch the corresponding lines or surrounding code for other reasons.
+  - Prefer native JavaScript private properties and methods (`#field`) over the `private` keyword in TypeScript.
 
 - **Workflow reminders**:
   - Respect existing structure: modifications often require updating both command implementation and tests/fixtures.
@@ -129,3 +135,29 @@
     - **Query execution code is written in TypeScript in Prisma**
     - PSL parser and query compiler/planner is still written in Rust and compiled to WebAssembly. There are no native binaries or library addons in Prisma Client.
     - Schema engine for Prisma Migrate still exists and is still a native binary.
+
+## Debugging and making changes to Rust/WebAssembly code
+
+When you need to check the code or make some changes in Rust codebase, assume the repository is checked out in the `prisma-engines` directory above the root of this repo. Determine the absolute path to the current project on the filesystem (e.g. `/home/user/work/prisma`) and infer the directory of the `prisma-engines` repo (e.g. `/home/user/work/prisma-engines`, let's call it `$PRISMA_ENGINES_ROOT`).
+
+After you make some changes there, use these commands in the prisma-engines repo to build the Wasm modules:
+
+```sh
+make build-schema-wasm
+make build-qc-wasm
+```
+
+Then, back in `prisma` repo:
+
+```sh
+pnpm upgrade -r @prisma/prisma-schema-wasm@file:$PRISMA_ENGINES_ROOT/target/prisma-schema-wasm
+pnpm upgrade -r @prisma/query-compiler-wasm@file:$PRISMA_ENGINES_ROOT/query-compiler/query-compiler-wasm/pkg
+pnpm build
+```
+
+You may only need to build and update one of these modules if your changes are isolated in scope:
+
+1. Build only `prisma-schema-wasm` if your changes are isolated to schema and DMMF, and you are only going to run the CLI and generator tests, not Client.
+2. Build only `query-compiler-wasm` if your changes are related to query planning and execution but do not touch the schema or DMMF in any way.
+
+When in doubt, build both to avoid unexpected behavior. Time and cost of compilation is always less than of debugging.
