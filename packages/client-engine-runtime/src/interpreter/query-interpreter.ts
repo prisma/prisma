@@ -161,7 +161,13 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize(), this.#provider)
+        const queries = renderQuery(
+          node.args,
+          context.scope,
+          context.generators,
+          this.#maxChunkSize(),
+          this.#provider ?? context.queryable.provider,
+        )
 
         let sum = 0
         for (const query of queries) {
@@ -179,7 +185,13 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize(), this.#provider)
+        const queries = renderQuery(
+          node.args,
+          context.scope,
+          context.generators,
+          this.#maxChunkSize(),
+          this.#provider ?? context.queryable.provider,
+        )
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
