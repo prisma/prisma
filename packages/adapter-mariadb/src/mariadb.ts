@@ -91,17 +91,27 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    await this.client.query({ sql: 'COMMIT' }).catch(this.onError.bind(this))
-    this.cleanup?.()
-    await this.client.end()
+    try {
+      await this.client.query({ sql: 'COMMIT' })
+    } catch (err) {
+      this.onError(err)
+    } finally {
+      this.cleanup?.()
+      await this.client.end()
+    }
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    await this.client.query({ sql: 'ROLLBACK' }).catch(this.onError.bind(this))
-    this.cleanup?.()
-    await this.client.end()
+    try {
+      await this.client.query({ sql: 'ROLLBACK' })
+    } catch (err) {
+      this.onError(err)
+    } finally {
+      this.cleanup?.()
+      await this.client.end()
+    }
   }
 
   async createSavepoint(name: string): Promise<void> {

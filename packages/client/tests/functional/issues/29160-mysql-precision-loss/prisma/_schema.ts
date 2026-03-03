@@ -13,7 +13,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 
     model AssetAccount {
       assetId ${idForProvider(provider)}
-      amount Decimal @default(0)
+      amount Decimal @default(0) @db.Decimal(30, 0)
     }
   `
 })
