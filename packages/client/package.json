@@ -134,7 +134,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "dotenv -e ../../.db.env -- jest --silent",
+    "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts",
     "test:e2e": "dotenv -e ../../.db.env -- tsx tests/e2e/_utils/run.ts",
     "test:functional": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts",
     "test:functional:client": "pnpm run test:functional --client-runtime client",

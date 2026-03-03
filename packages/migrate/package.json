@@ -64,7 +64,7 @@
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "run": "node dist/bin.js",
-    "test": "dotenv -e ../../.db.env -- jest --verbose",
+    "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [

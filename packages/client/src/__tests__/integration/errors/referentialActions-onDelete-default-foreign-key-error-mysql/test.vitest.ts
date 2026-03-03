@@ -2,7 +2,7 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { migrateDb } from '../../__helpers__/migrateDb.vitest'
 
 let prisma
 
