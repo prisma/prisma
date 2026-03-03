@@ -303,6 +303,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -313,9 +316,6 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
-      '@types/pg':
-        specifier: 8.11.11
-        version: 8.11.11
 
   packages/adapter-planetscale:
     dependencies:
