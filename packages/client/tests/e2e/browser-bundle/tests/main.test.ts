@@ -25,6 +25,19 @@ test('can use utility types', () => {
   expect(typeof Prisma.JsonNull).toEqual('object')
 })
 
+test('null types have duck-typing methods for cross-bundle detection', () => {
+  for (const [name, value] of [
+    ['DbNull', Prisma.DbNull],
+    ['JsonNull', Prisma.JsonNull],
+    ['AnyNull', Prisma.AnyNull],
+  ] as const) {
+    expect(typeof value._getName).toEqual('function')
+    expect(typeof value._getNamespace).toEqual('function')
+    expect(value._getName()).toEqual(name)
+    expect(value._getNamespace()).toEqual('NullTypes')
+  }
+})
+
 test('can access model names', () => {
   expect(Prisma.ModelName).toEqual({
     User: 'User',
