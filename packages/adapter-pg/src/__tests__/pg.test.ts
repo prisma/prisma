@@ -34,6 +34,17 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
+  it('should accept a connection string URL', async () => {
+    const connectionString = 'postgresql://test:test@localhost:5432/test'
+    const factory = new PrismaPgAdapterFactory(connectionString)
+
+    expect((factory as any).config).toEqual({ connectionString })
+
+    const adapter = await factory.connect()
+    expect(adapter.underlyingDriver().options.connectionString).toBe(connectionString)
+    await adapter.dispose()
+  })
+
   it('should add and remove error event listener when using an external Pool', async () => {
     const pool = new pg.Pool({ user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' })
     pool.on('error', () => {})

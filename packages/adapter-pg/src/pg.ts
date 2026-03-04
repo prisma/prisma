@@ -278,12 +278,15 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   private externalPool: pg.Pool | null
 
   constructor(
-    poolOrConfig: pg.Pool | pg.PoolConfig,
+    poolOrConfig: pg.Pool | pg.PoolConfig | string,
     private readonly options?: PrismaPgOptions,
   ) {
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
       this.config = poolOrConfig.options
+    } else if (typeof poolOrConfig === 'string') {
+      this.externalPool = null
+      this.config = { connectionString: poolOrConfig }
     } else {
       this.externalPool = null
       this.config = poolOrConfig
