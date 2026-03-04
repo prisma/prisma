@@ -17,6 +17,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@sindresorhus/slugify": "2.2.1",
+    "@types/jest": "29.5.14",
     "@types/mssql": "9.1.8",
     "@types/node": "~20.19.24",
     "@types/pg": "8.11.11",

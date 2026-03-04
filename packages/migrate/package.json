@@ -19,6 +19,7 @@
   "devDependencies": {
     "@prisma/adapter-libsql": "workspace:*",
     "@sindresorhus/slugify": "2.2.1",
+    "@types/jest": "29.5.14",
     "@types/node": "~20.19.24",
     "@types/pg": "8.11.11",
     "@types/prompts": "2.4.9",
