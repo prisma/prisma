@@ -1,6 +1,7 @@
 import { Writer } from '@prisma/ts-builders'
 import ansiEscapesSerializer from 'jest-serializer-ansi-escapes'
 import { $ as colors } from 'kleur/colors'
+import { describe, expect, test } from 'vitest'
 
 import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { JsArgs } from '../types/exported/JsApi'

@@ -1,7 +1,9 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { getDMMF } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
 import sortKeys from 'sort-keys'
+import { expect, test } from 'vitest'
 
 const blog = `datasource db {
   provider = "postgres"

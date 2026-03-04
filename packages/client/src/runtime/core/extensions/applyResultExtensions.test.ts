@@ -1,3 +1,5 @@
+import { expect, test, vi } from 'vitest'
+
 import { applyResultExtensions } from './applyResultExtensions'
 import { MergedExtensionsList } from './MergedExtensionsList'
 
@@ -6,7 +8,7 @@ test('does not add fields if some dependencies are not met', () => {
     firstName: 'John',
   }
 
-  const fullName = jest.fn()
+  const fullName = vi.fn()
   const extension = {
     result: {
       user: {
@@ -354,7 +356,7 @@ test('caches the result', () => {
     firstName: 'John',
   }
 
-  const compute = jest.fn()
+  const compute = vi.fn()
 
   const extension = {
     result: {

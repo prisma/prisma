@@ -1,4 +1,5 @@
 import type { RuntimeDataModel } from '@prisma/client-common'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import { PrismaClientOptions } from '../runtime'
 import { ClientConfig, validatePrismaClientOptions } from '../runtime/utils/validatePrismaClientOptions'
@@ -64,8 +65,8 @@ describe('valid options', () => {
 describe('invalid options', () => {
   test('empty', () => {
     expect(() => validatePrismaClientOptions({}, config)).toThrowErrorMatchingInlineSnapshot(`
-      "Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 
@@ -79,8 +80,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
+      Read more at https://pris.ly/d/client-constructor]
     `)
     expect(() =>
       validatePrismaClientOptions(
@@ -92,8 +93,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid property helo for "log" provided to PrismaClient constructor
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Invalid property helo for "log" provided to PrismaClient constructor
+      Read more at https://pris.ly/d/client-constructor]
     `)
     expect(() =>
       validatePrismaClientOptions(
@@ -105,8 +106,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid log level "muery" provided to PrismaClient constructor. Did you mean "query"?
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Invalid log level "muery" provided to PrismaClient constructor. Did you mean "query"?
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 
@@ -120,8 +121,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "The "adapter" and "accelerateUrl" options are mutually exclusive. Please provide only one of them.
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: The "adapter" and "accelerateUrl" options are mutually exclusive. Please provide only one of them.
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 })
@@ -170,8 +171,8 @@ describe('comments option', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value "not-an-array" for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Invalid value "not-an-array" for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 
@@ -185,8 +186,8 @@ describe('comments option', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value {} for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Invalid value {} for "comments" provided to PrismaClient constructor. Expected an array of SQL commenter plugins.
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 
@@ -200,8 +201,8 @@ describe('comments option', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value at index 1 for "comments" provided to PrismaClient constructor. Each plugin must be a function.
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Invalid value at index 1 for "comments" provided to PrismaClient constructor. Each plugin must be a function.
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 
@@ -215,8 +216,8 @@ describe('comments option', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value at index 0 for "comments" provided to PrismaClient constructor. Each plugin must be a function.
-      Read more at https://pris.ly/d/client-constructor"
+      [PrismaClientConstructorValidationError: Invalid value at index 0 for "comments" provided to PrismaClient constructor. Each plugin must be a function.
+      Read more at https://pris.ly/d/client-constructor]
     `)
   })
 })
