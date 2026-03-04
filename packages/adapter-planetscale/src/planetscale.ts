@@ -18,7 +18,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
-import { cast, fieldToColumnType, mapArg, type PlanetScaleColumnType } from './conversion'
+import { cast, fieldToColumnType, mapArg } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 import { convertDriverError } from './errors'
 
@@ -54,7 +54,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
     const columns = fields.map((field) => field.name)
     return {
       columnNames: columns,
-      columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
+      columnTypes: fields.map((field) => fieldToColumnType(field)),
       rows: rows as SqlResultSet['rows'],
       lastInsertId,
     }

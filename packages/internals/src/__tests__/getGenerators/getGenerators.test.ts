@@ -1,21 +1,20 @@
+import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
+import { afterEach, describe, expect, it, test, vi } from 'vitest'
 
 import { loadSchemaContext } from '../../cli/schemaContext'
 import { GeneratorRegistry, getGenerators } from '../../get-generators/getGenerators'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
-if (process.env.CI) {
-  // 20s is often not enough on CI, especially on macOS.
-  jest.setTimeout(60_000)
-} else {
-  jest.setTimeout(20_000)
-}
+vi.setConfig({
+  testTimeout: process.env.CI ? 60_000 : 20_000,
+})
 
 let generatorPath = path.join(__dirname, 'generator')
 
@@ -763,7 +762,9 @@ describe('getGenerators', () => {
       allowNoModels: true,
     })
 
-    generators.forEach((g) => g.stop())
+    for (const generator of generators) {
+      generator.stop()
+    }
 
     return expect(generators.length).toBeGreaterThanOrEqual(1)
   })

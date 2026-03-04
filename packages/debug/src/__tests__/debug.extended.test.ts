@@ -20,6 +20,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.resetModules()
+  vi.restoreAllMocks()
 })
 
 test('with a namespace', async () => {

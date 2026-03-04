@@ -6,7 +6,7 @@
  * both schema rules and runtime value types agree.
  */
 
-import { deserializeJsonObject } from '@prisma/client-engine-runtime'
+import { deserializeJsonObject, safeJsonStringify } from '@prisma/client-engine-runtime'
 import type {
   JsonArgumentValue,
   JsonBatchQuery,
@@ -273,7 +273,7 @@ class Parameterizer {
    */
   #handleArray(items: unknown[], originalValue: unknown, edge: InputEdge): unknown {
     if (hasFlag(edge, EdgeFlag.ParamScalar) && getScalarMask(edge) & ScalarMask.Json) {
-      const jsonValue = JSON.stringify(deserializeJsonObject(items))
+      const jsonValue = safeJsonStringify(deserializeJsonObject(items))
       const type: PlaceholderType = { type: 'Json' }
       return this.#getOrCreatePlaceholder(jsonValue, type)
     }
@@ -324,7 +324,7 @@ class Parameterizer {
 
     const mask = getScalarMask(edge)
     if (mask & ScalarMask.Json) {
-      const jsonValue = JSON.stringify(deserializeJsonObject(obj))
+      const jsonValue = safeJsonStringify(deserializeJsonObject(obj))
       const type: PlaceholderType = { type: 'Json' }
       return this.#getOrCreatePlaceholder(jsonValue, type)
     }
