@@ -1,4 +1,5 @@
 import { AnyNull, DbNull, Decimal, JsonNull } from '@prisma/client-runtime-utils'
+import { expect, test, vi } from 'vitest'
 
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
@@ -1042,7 +1043,7 @@ test('explicit selection with extension', () => {
           user: {
             fullName: {
               needs: { name: true },
-              compute: jest.fn(),
+              compute: vi.fn(),
             },
           },
         },
@@ -1074,7 +1075,7 @@ test('explicit selection shadowing a field', () => {
           user: {
             name: {
               needs: { name: true },
-              compute: jest.fn(),
+              compute: vi.fn(),
             },
           },
         },
@@ -1212,7 +1213,7 @@ test('exclusion with extension', () => {
           user: {
             fullName: {
               needs: { name: true },
-              compute: jest.fn(),
+              compute: vi.fn(),
             },
           },
         },
@@ -1244,7 +1245,7 @@ test('exclusion with extension while excluding computed field too', () => {
           user: {
             fullName: {
               needs: { name: true },
-              compute: jest.fn(),
+              compute: vi.fn(),
             },
           },
         },

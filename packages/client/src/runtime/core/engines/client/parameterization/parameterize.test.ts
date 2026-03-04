@@ -2,6 +2,7 @@ import type { RuntimeDataModel } from '@prisma/client-common'
 import type { JsonQuery } from '@prisma/json-protocol'
 import type { ParamGraphData } from '@prisma/param-graph'
 import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
+import { describe, expect, it } from 'vitest'
 
 import { parameterizeBatch, parameterizeQuery } from './parameterize'
 

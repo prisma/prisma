@@ -1,5 +1,7 @@
 import { stripVTControlCharacters } from 'node:util'
 
+import { expect, test } from 'vitest'
+
 import { getErrorMessageWithLink } from './getErrorMessageWithLink'
 
 test('basic serialization', () => {

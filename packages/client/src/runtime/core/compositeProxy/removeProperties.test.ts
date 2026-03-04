@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import { createCompositeProxy } from './createCompositeProxy'
 import { removeProperties } from './removeProperties'
 
