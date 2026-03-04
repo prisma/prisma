@@ -37,7 +37,7 @@ const dmmf: DMMF.Document = ${JSON.stringify(sortKeys(dmmf, { deep: true }), nul
   try {
     await import('./__helpers__/dmmf-types')
   } catch (e) {
-    // we need to do this, as jest can't print the errors
+    // we need to do this, as vitest can't print the errors
     // resulting from the dynamic import
     console.error(e)
     throw e

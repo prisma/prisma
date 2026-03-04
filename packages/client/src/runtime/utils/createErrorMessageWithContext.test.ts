@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest'
 import { CallSite } from './CallSite'
 import { createErrorMessageWithContext } from './createErrorMessageWithContext'
 
-vi.mock('fs', () => fs)
+vi.mock('fs', () => ({ default: fs }))
 
 function mockCallsite(fileName: string, lineNumber: number | null, columnNumber: number | null): CallSite {
   return {
