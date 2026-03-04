@@ -79,11 +79,16 @@ export async function checkVersionMismatch(
   }
 
   try {
-    const localClientVersion = await getClientVersion(cwd)
+    // Normalize global version (extract exact version from specifier)
+    const normalizedGlobalVersion = extractExactVersion(globalVersion) ?? globalVersion
+    
+    const localClientVersionRaw = await getClientVersion(cwd)
+    const localClientVersion = extractExactVersion(localClientVersionRaw) ?? localClientVersionRaw
+    
     const localPrismaVersion = await getLocalPrismaVersion(cwd)
 
     // Check @prisma/client version mismatch
-    if (localClientVersion && localClientVersion !== globalVersion) {
+    if (localClientVersion && localClientVersion !== normalizedGlobalVersion) {
       return {
         hasMismatch: true,
         globalVersion,
@@ -93,7 +98,7 @@ export async function checkVersionMismatch(
     }
 
     // Check local prisma version mismatch
-    if (localPrismaVersion && localPrismaVersion !== globalVersion) {
+    if (localPrismaVersion && localPrismaVersion !== normalizedGlobalVersion) {
       return {
         hasMismatch: true,
         globalVersion,

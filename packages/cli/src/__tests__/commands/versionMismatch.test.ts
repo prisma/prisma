@@ -195,21 +195,37 @@ describe('Generate with version mismatch', () => {
   })
 })
 
-describe('extractExactVersion', () => {
-  // Note: extractExactVersion is internal to version-mismatch-checker.ts
-  // We test it indirectly through getLocalPrismaVersion
-  
-  it('should handle caret version specifier', async () => {
-    // This test verifies that version specifiers like ^5.0.0 are properly handled
-    // The actual extraction logic is tested in version-mismatch-checker.test.ts
-    expect(true).toBe(true) // Placeholder - actual testing in module tests
+describe('version specifier normalization', () => {
+  const optionsFor = (clientVersion: string | null): VersionMismatchOptions => ({
+    isGlobalInstall: () => 'npm',
+    getClientVersion: () => Promise.resolve(clientVersion),
+    getLocalPrismaVersion: () => Promise.resolve(null),
   })
 
-  it('should handle tilde version specifier', async () => {
-    expect(true).toBe(true) // Placeholder - actual testing in module tests
+  it('treats caret specifier as matching the same global version', async () => {
+    const result = await checkVersionMismatch('5.0.0', optionsFor('^5.0.0'))
+    expect(result).toBeNull()
   })
 
-  it('should handle exact version specifier', async () => {
-    expect(true).toBe(true) // Placeholder - actual testing in module tests
+  it('treats tilde specifier as matching the same global version', async () => {
+    const result = await checkVersionMismatch('5.0.0', optionsFor('~5.0.0'))
+    expect(result).toBeNull()
+  })
+
+  it('still reports mismatch for different exact versions', async () => {
+    const result = await checkVersionMismatch('5.0.0', optionsFor('4.0.0'))
+    expect(result?.localPackageType).toBe('@prisma/client')
+    expect(result?.localVersion).toBe('4.0.0')
+  })
+
+  it('handles workspace:* specifier gracefully', async () => {
+    // workspace:* should be normalized to null and not cause false warnings
+    const result = await checkVersionMismatch('5.0.0', optionsFor('workspace:*'))
+    expect(result).toBeNull()
+  })
+
+  it('handles >= specifier', async () => {
+    const result = await checkVersionMismatch('5.0.0', optionsFor('>=5.0.0'))
+    expect(result).toBeNull()
   })
 })
