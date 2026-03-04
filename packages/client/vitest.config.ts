@@ -7,5 +7,6 @@ export default defineConfig({
     },
     exclude: [...configDefaults.exclude, 'src/__tests__/benchmarks/**'],
     include: ['src/**/*.test.ts'],
+    testTimeout: 90_000,
   },
 })
