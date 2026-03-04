@@ -20,6 +20,7 @@ export function renderQuery(
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
+  provider?: string,
 ): DeepReadonly<SqlQuery>[] {
   const args = dbQuery.args.map((arg) => evaluateArg(arg, scope, generators))
 
@@ -33,7 +34,7 @@ export function renderQuery(
           throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
         }
 
-        return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
+        return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes, provider)
       })
     }
     default:
@@ -73,6 +74,7 @@ function renderTemplateSql(
   placeholderFormat: PlaceholderFormat,
   params: unknown[],
   argTypes: DeepReadonly<DynamicArgType[]>,
+  provider?: string,
 ): SqlQuery {
   let sql = ''
   const ctx = { placeholderNumber: 1 }
@@ -80,7 +82,7 @@ function renderTemplateSql(
   const flattenedArgTypes: ArgType[] = []
 
   for (const fragment of pairFragmentsWithParams(fragments, params, argTypes)) {
-    sql += renderFragment(fragment, placeholderFormat, ctx)
+    sql += renderFragment(fragment, placeholderFormat, ctx, provider)
     if (fragment.type === 'stringChunk') {
       continue
     }
@@ -116,11 +118,21 @@ function renderFragment<Type extends DeepReadonly<DynamicArgType> | undefined>(
   fragment: FragmentWithParams<Type>,
   placeholderFormat: PlaceholderFormat,
   ctx: { placeholderNumber: number },
+  provider?: string,
 ): string {
   const fragmentType = fragment.type
   switch (fragmentType) {
-    case 'parameter':
-      return formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+    case 'parameter': {
+      const placeholder = formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+      // MySQL treats parameterized values as doubles in arithmetic expressions,
+      // losing precision for large decimals. Wrapping with CAST ensures MySQL
+      // interprets the value as DECIMAL with full precision.
+      // https://github.com/prisma/prisma/issues/29160
+      if (provider === 'mysql' && hasDecimalArgType(fragment)) {
+        return `CAST(${placeholder} AS DECIMAL(65,30))`
+      }
+      return placeholder
+    }
 
     case 'stringChunk':
       return fragment.chunk
@@ -365,4 +377,13 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     result.push(array.slice(i, i + chunkSize))
   }
   return result
+}
+
+function hasDecimalArgType(fragment: FragmentWithParams<DeepReadonly<DynamicArgType> | undefined>): boolean {
+  const argType = (fragment as { argType?: DeepReadonly<DynamicArgType> }).argType
+  if (argType === undefined) return false
+  if ('scalarType' in argType) {
+    return argType.scalarType === 'decimal'
+  }
+  return false
 }
