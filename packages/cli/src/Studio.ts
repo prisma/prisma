@@ -188,8 +188,6 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
   },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
-  prisma: null,
-  'prisma+postgres': null,
   mysql: {
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
