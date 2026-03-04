@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { serialize } from '@prisma/get-platform/src/test-utils/vitestSnapshotSerializer'
+import { serialize } from '@prisma/get-platform/src/test-utils/vitest-snapshot-serializer'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { isRustPanic, validate } from '../..'
