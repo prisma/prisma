@@ -27,6 +27,16 @@ export interface VersionMismatchOptions {
 }
 
 /**
+ * Extract exact version from npm version specifier
+ * Handles: ^1.2.3, ~1.2.3, 1.2.3, >=1.2.3, workspace:*, etc.
+ */
+function extractExactVersion(version: unknown): string | null {
+  if (typeof version !== 'string') return null
+  const match = version.match(/\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/)
+  return match?.[0] ?? null
+}
+
+/**
  * Get the local prisma version from package.json dependencies/devDependencies
  */
 export async function getLocalPrismaVersion(cwd: string = process.cwd()): Promise<string | null> {
@@ -39,13 +49,14 @@ export async function getLocalPrismaVersion(cwd: string = process.cwd()): Promis
 
     const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
-    const prismaVersion = pkgJson.dependencies?.['prisma'] ?? pkgJson.devDependencies?.['prisma']
+    const prismaVersionSpecifier = pkgJson.dependencies?.['prisma'] ?? pkgJson.devDependencies?.['prisma']
 
-    if (!prismaVersion) {
+    if (!prismaVersionSpecifier) {
       return null
     }
 
-    return prismaVersion
+    // Extract exact version from specifier (e.g., "^5.0.0" -> "5.0.0")
+    return extractExactVersion(prismaVersionSpecifier)
   } catch {
     return null
   }

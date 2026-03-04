@@ -38,7 +38,7 @@ import {
   formatVersionMismatchWarning,
   getLocalPrismaVersion,
   type VersionMismatchOptions,
-} from './utils/versionMismatchChecker'
+} from './utils/version-mismatch-checker'
 
 const pkg = eval(`require('../package.json')`)
 
@@ -288,7 +288,10 @@ ${breakingChangesStr}${versionsWarning}${globalLocalMismatchWarning}`
         hint = `\n\n${versionMismatchWarning}`
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      // Append hint when: no errors AND (has JS client OR should show version mismatch warning)
+      const shouldAppendHint =
+        !this.hasGeneratorErrored && (hasJsClient || Boolean(versionMismatchWarning && logger.should.warn()))
+      const message = '\n' + this.logText + (shouldAppendHint ? hint : '')
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
