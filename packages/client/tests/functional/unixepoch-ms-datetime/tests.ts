@@ -150,6 +150,54 @@ testMatrix.setupTestSuite(
       expect(agg._max.createdAt).toBeInstanceOf(Date)
       expect(isNaN(agg._max.createdAt!.getTime())).toBe(false)
     })
+
+    test('manually created INTEGER DateTime column returns valid Date values', async () => {
+      const prisma = createClient(info, driverAdapter)
+
+      await prisma.$executeRaw`
+        DROP TABLE IF EXISTS Event
+      `
+
+      await prisma.$executeRaw`
+        CREATE TABLE Event (
+          name TEXT NOT NULL,
+          uuid TEXT NOT NULL,
+          createdAt INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+          PRIMARY KEY (uuid, createdAt)
+        )
+      `
+
+      const created = await prisma.event.create({
+        data: {
+          name: 'event',
+        },
+      })
+
+      expect(created.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(created.createdAt.getTime())).toBe(false)
+
+      const found = await prisma.event.findUnique({
+        where: {
+          uuid_createdAt: {
+            uuid: created.uuid,
+            createdAt: created.createdAt,
+          },
+        },
+      })
+
+      expect(found?.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(found!.createdAt.getTime())).toBe(false)
+
+      const agg = await prisma.event.aggregate({
+        _min: { createdAt: true },
+        _max: { createdAt: true },
+      })
+
+      expect(agg._min.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(agg._min.createdAt!.getTime())).toBe(false)
+      expect(agg._max.createdAt).toBeInstanceOf(Date)
+      expect(isNaN(agg._max.createdAt!.getTime())).toBe(false)
+    })
   },
   {
     optOut: {
