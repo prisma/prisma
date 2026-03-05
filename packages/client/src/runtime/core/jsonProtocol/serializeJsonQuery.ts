@@ -199,7 +199,6 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
-      // Handle polymorphic relations with `on` parameter
       let processedValue = value === true ? {} : value
       if (
         field.isPolymorphic &&
@@ -207,13 +206,10 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
         processedValue !== null &&
         'on' in processedValue
       ) {
-        // Extract the `on` value for discriminator filtering
         const onValue = (processedValue as { on?: string }).on
         if (onValue !== undefined && field.relationDiscriminator) {
-          // Create a modified args object with the discriminator filter added to where
           processedValue = { ...processedValue }
           delete (processedValue as Record<string, unknown>).on
-          // Add discriminator filter to where clause
           const existingWhere = (processedValue as Record<string, unknown>).where
           ;(processedValue as Record<string, unknown>).where = {
             ...(existingWhere as Record<string, unknown>),

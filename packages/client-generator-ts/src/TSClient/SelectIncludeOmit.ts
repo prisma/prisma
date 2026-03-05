@@ -95,15 +95,10 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
   for (const field of fields) {
     const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType | ts.ObjectType>(ts.booleanType)
     if (field.outputType.location === 'outputObjectTypes') {
-      // Check if this is a polymorphic relation
       if (field.isPolymorphic && field.relationTypes) {
-        // For polymorphic relations, generate object type with `on` variant
-        // { on: 'Post' } | { on: 'Comment' } | boolean
         for (const variantType of field.relationTypes) {
           const variantObject = ts.objectType()
-          // `on` is required (no .optional() call makes it required)
           variantObject.add(ts.property('on', ts.unionType(ts.stringLiteral(variantType))))
-          // Add select and include as optional properties
           const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
           subSelectType.addGenericArgument(extArgsParam.toArgument())
           variantObject.add(ts.property('select', subSelectType).optional())

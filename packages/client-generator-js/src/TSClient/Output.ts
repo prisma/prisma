@@ -20,7 +20,6 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
   let fieldType: ts.TypeBuilder
   if (field.kind === 'object') {
     if (field.isPolymorphic && field.relationTypes) {
-      // Generate union type for polymorphic relations (e.g., Post | Comment)
       const unionTypes: ts.NamedType[] = []
       for (const relationType of field.relationTypes) {
         const payloadType = ts.namedType(getPayloadName(relationType))
