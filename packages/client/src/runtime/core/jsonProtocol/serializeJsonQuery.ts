@@ -199,7 +199,29 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
-      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
+      // Handle polymorphic relations with `on` parameter
+      let processedValue = value === true ? {} : value
+      if (
+        field.isPolymorphic &&
+        typeof processedValue === 'object' &&
+        processedValue !== null &&
+        'on' in processedValue
+      ) {
+        // Extract the `on` value for discriminator filtering
+        const onValue = (processedValue as { on?: string }).on
+        if (onValue !== undefined && field.relationDiscriminator) {
+          // Create a modified args object with the discriminator filter added to where
+          processedValue = { ...processedValue }
+          delete (processedValue as Record<string, unknown>).on
+          // Add discriminator filter to where clause
+          const existingWhere = (processedValue as Record<string, unknown>).where
+          ;(processedValue as Record<string, unknown>).where = {
+            ...(existingWhere as Record<string, unknown>),
+            [field.relationDiscriminator]: onValue,
+          }
+        }
+      }
+      selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
       continue
     }
 

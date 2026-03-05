@@ -16,11 +16,24 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
 
   let fieldType: ts.TypeBuilder
   if (field.kind === 'object') {
-    const payloadType = ts.namedType(getPayloadName(field.type))
-    if (!dmmf.isComposite(field.type)) {
-      payloadType.addGenericArgument(ts.namedType('ExtArgs'))
+    if (field.isPolymorphic && field.relationTypes) {
+      // Generate union type for polymorphic relations (e.g., Post | Comment)
+      const unionTypes: ts.NamedType[] = []
+      for (const relationType of field.relationTypes) {
+        const payloadType = ts.namedType(getPayloadName(relationType))
+        if (!dmmf.isComposite(relationType)) {
+          payloadType.addGenericArgument(ts.namedType('ExtArgs'))
+        }
+        unionTypes.push(payloadType)
+      }
+      fieldType = ts.unionType(unionTypes)
+    } else {
+      const payloadType = ts.namedType(getPayloadName(field.type))
+      if (!dmmf.isComposite(field.type)) {
+        payloadType.addGenericArgument(ts.namedType('ExtArgs'))
+      }
+      fieldType = payloadType
     }
-    fieldType = payloadType
   } else if (field.kind === 'enum') {
     fieldType = ts.namedType(`$Enums.${fieldTypeName}`)
   } else {
