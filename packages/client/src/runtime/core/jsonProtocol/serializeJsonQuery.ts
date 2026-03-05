@@ -178,6 +178,28 @@ function createImplicitSelection(
   return selectionSet
 }
 
+function transformPolymorphicOn(
+  value: Record<string, unknown>,
+  field: { isPolymorphic?: boolean; relationDiscriminator?: string },
+): Record<string, unknown> {
+  if (!field.isPolymorphic || !('on' in value)) {
+    return value
+  }
+  const onValue = value.on as string | undefined
+  if (onValue === undefined || !field.relationDiscriminator) {
+    return value
+  }
+  const result = { ...value }
+  delete result.on
+  const existingWhere = result.where as Record<string, unknown> | undefined
+  const discriminatorFilter = { [field.relationDiscriminator]: onValue }
+  // Use AND to safely compose with any existing where (including AND/OR/NOT)
+  result.where = existingWhere
+    ? { AND: [existingWhere, discriminatorFilter] }
+    : discriminatorFilter
+  return result
+}
+
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
     if (isSkip(value)) {
@@ -199,25 +221,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
-      let processedValue = value === true ? {} : value
-      if (
-        field.isPolymorphic &&
-        typeof processedValue === 'object' &&
-        processedValue !== null &&
-        'on' in processedValue
-      ) {
-        const onValue = (processedValue as { on?: string }).on
-        if (onValue !== undefined && field.relationDiscriminator) {
-          processedValue = { ...processedValue }
-          delete (processedValue as Record<string, unknown>).on
-          const existingWhere = (processedValue as Record<string, unknown>).where as Record<string, unknown> | undefined
-          const discriminatorFilter = { [field.relationDiscriminator]: onValue }
-          // Use AND to safely compose with any existing where (including AND/OR/NOT)
-          ;(processedValue as Record<string, unknown>).where = existingWhere
-            ? { AND: [existingWhere, discriminatorFilter] }
-            : discriminatorFilter
-        }
-      }
+      const processedValue = transformPolymorphicOn(value === true ? {} : value, field)
       selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
       continue
     }
@@ -279,7 +283,8 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       }
       continue
     }
-    selectionSet[key] = serializeFieldSelection(value, nestedContext)
+    const processedValue = field ? transformPolymorphicOn(value, field) : value
+    selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
   }
   return selectionSet
 }
