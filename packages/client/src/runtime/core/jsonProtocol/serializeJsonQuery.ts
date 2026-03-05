@@ -210,11 +210,12 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
         if (onValue !== undefined && field.relationDiscriminator) {
           processedValue = { ...processedValue }
           delete (processedValue as Record<string, unknown>).on
-          const existingWhere = (processedValue as Record<string, unknown>).where
-          ;(processedValue as Record<string, unknown>).where = {
-            ...(existingWhere as Record<string, unknown>),
-            [field.relationDiscriminator]: onValue,
-          }
+          const existingWhere = (processedValue as Record<string, unknown>).where as Record<string, unknown> | undefined
+          const discriminatorFilter = { [field.relationDiscriminator]: onValue }
+          // Use AND to safely compose with any existing where (including AND/OR/NOT)
+          ;(processedValue as Record<string, unknown>).where = existingWhere
+            ? { AND: [existingWhere, discriminatorFilter] }
+            : discriminatorFilter
         }
       }
       selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
