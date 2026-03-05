@@ -41,6 +41,7 @@ describe('deepCloneArgs', () => {
 
   test('preserves cross-bundle ObjectEnumValue through cloning', () => {
     const crossBundleDbNull = Object.create(null)
+    crossBundleDbNull[Symbol.for('prisma.objectEnumValue')] = true
     crossBundleDbNull._getName = () => 'DbNull'
     crossBundleDbNull._getNamespace = () => 'NullTypes'
 

@@ -786,6 +786,7 @@ test('args - AnyNull field', () => {
 
 function makeCrossBundleNullValue(name: string) {
   const value = Object.create(null)
+  value[Symbol.for('prisma.objectEnumValue')] = true
   value._getName = () => name
   value._getNamespace = () => 'NullTypes'
   return value

@@ -5,6 +5,15 @@
 const secret = Symbol()
 
 /**
+ * Global symbol used to identify ObjectEnumValue instances across bundle
+ * boundaries. `Symbol.for()` returns the same symbol globally, so it works
+ * even when multiple copies of this module are loaded (e.g., browser and
+ * server bundles in Next.js, or HMR reloads).
+ * See: https://github.com/prisma/prisma/issues/29257
+ */
+const PRISMA_OBJECT_ENUM_VALUE = Symbol.for('prisma.objectEnumValue')
+
+/**
  * Emulate a private property via a WeakMap manually. Using native private
  * properties is a breaking change for downstream users with minimal TypeScript
  * configs, because TypeScript uses ES3 as the default target.
@@ -18,6 +27,8 @@ const representations = new WeakMap<ObjectEnumValue, string>()
  * Base class for unique values of object-valued enums.
  */
 export abstract class ObjectEnumValue {
+  readonly [PRISMA_OBJECT_ENUM_VALUE] = true
+
   constructor(arg?: symbol) {
     if (arg === secret) {
       representations.set(this, `Prisma.${this._getName()}`)
@@ -89,18 +100,15 @@ export const JsonNull = new JsonNullClass(secret)
 export const AnyNull = new AnyNullClass(secret)
 
 /**
- * Check if a value is an ObjectEnumValue instance. Uses duck-typing instead
- * of instanceof to work across bundle boundaries (e.g., when a Next.js app
- * bundles browser and server code separately, creating duplicate module
- * instances of @prisma/client-runtime-utils).
+ * Check if a value is an ObjectEnumValue instance. Uses a global symbol
+ * instead of instanceof to work across bundle boundaries (e.g., when a
+ * Next.js app bundles browser and server code separately, creating duplicate
+ * module instances of @prisma/client-runtime-utils).
  * See: https://github.com/prisma/prisma/issues/29257
  */
 export function isObjectEnumValue(value: unknown): value is ObjectEnumValue {
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as ObjectEnumValue)._getName === 'function' &&
-    typeof (value as ObjectEnumValue)._getNamespace === 'function'
+    typeof value === 'object' && value !== null && (value as Record<symbol, unknown>)[PRISMA_OBJECT_ENUM_VALUE] === true
   )
 }
 
