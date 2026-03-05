@@ -38,10 +38,10 @@
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "pg": "^8.16.3",
-    "postgres-array": "3.0.4"
+    "postgres-array": "3.0.4",
+    "@types/pg": "8.11.11"
   },
   "devDependencies": {
-    "@prisma/debug": "workspace:*",
-    "@types/pg": "8.11.11"
+    "@prisma/debug": "workspace:*"
   }
 }
