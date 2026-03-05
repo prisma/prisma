@@ -126,7 +126,17 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle ColumnNotFound (42703)', () => {
+  it('should handle ColumnNotFound (42703) with unquoted column name', () => {
+    const error = { code: '42703', message: 'column foo does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'foo',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with quoted column name', () => {
     const error = { code: '42703', message: 'column "foo" does not exist', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'ColumnNotFound',
