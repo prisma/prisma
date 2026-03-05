@@ -29,9 +29,18 @@ export interface VersionMismatchOptions {
 /**
  * Extract exact version from npm version specifier
  * Handles: ^1.2.3, ~1.2.3, 1.2.3, >=1.2.3, workspace:*, etc.
+ * Returns null for unsupported specifiers (workspace:*, tags, ranges without exact version)
  */
-function extractExactVersion(version: unknown): string | null {
+export function extractExactVersion(version: unknown): string | null {
   if (typeof version !== 'string') return null
+  
+  // Handle unsupported specifiers
+  if (version.includes(':') || version.includes(' ') || version === '*' || version === 'latest') {
+    // workspace:*, file:, link:, git:, tags, etc.
+    return null
+  }
+  
+  // Extract exact version from specifier (e.g., "^5.0.0" -> "5.0.0")
   const match = version.match(/\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/)
   return match?.[0] ?? null
 }
@@ -80,14 +89,21 @@ export async function checkVersionMismatch(
 
   try {
     // Normalize global version (extract exact version from specifier)
-    const normalizedGlobalVersion = extractExactVersion(globalVersion) ?? globalVersion
+    const normalizedGlobalVersion = extractExactVersion(globalVersion)
+    
+    // If global version is unsupported specifier, skip check
+    if (!normalizedGlobalVersion) {
+      return null
+    }
     
     const localClientVersionRaw = await getClientVersion(cwd)
-    const localClientVersion = extractExactVersion(localClientVersionRaw) ?? localClientVersionRaw
+    const localClientVersion = extractExactVersion(localClientVersionRaw)
     
-    const localPrismaVersion = await getLocalPrismaVersion(cwd)
+    const localPrismaVersionSpecifier = await getLocalPrismaVersion(cwd)
+    const localPrismaVersion = extractExactVersion(localPrismaVersionSpecifier)
 
     // Check @prisma/client version mismatch
+    // Only check if we can extract exact versions from both sides
     if (localClientVersion && localClientVersion !== normalizedGlobalVersion) {
       return {
         hasMismatch: true,
@@ -98,6 +114,7 @@ export async function checkVersionMismatch(
     }
 
     // Check local prisma version mismatch
+    // Only check if we can extract exact versions from both sides
     if (localPrismaVersion && localPrismaVersion !== normalizedGlobalVersion) {
       return {
         hasMismatch: true,
@@ -107,6 +124,8 @@ export async function checkVersionMismatch(
       }
     }
 
+    // If we have unsupported specifiers (workspace:*, tags, etc.), treat as "unable to verify"
+    // Don't trigger false mismatch warnings
     return null
   } catch {
     return null

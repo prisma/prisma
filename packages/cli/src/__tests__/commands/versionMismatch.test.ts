@@ -228,4 +228,13 @@ describe('version specifier normalization', () => {
     const result = await checkVersionMismatch('5.0.0', optionsFor('>=5.0.0'))
     expect(result).toBeNull()
   })
+
+  it('handles projects without prisma-client-js generator', async () => {
+    // Regression test for issue #1911
+    // When schema has no prisma-client-js generator, warning should still be shown
+    const result = await checkVersionMismatch('5.0.0', optionsFor('5.0.0', '5.1.0'))
+    expect(result).toBeDefined()
+    expect(result?.hasMismatch).toBe(true)
+    expect(result?.localPackageType).toBe('prisma')
+  })
 })
