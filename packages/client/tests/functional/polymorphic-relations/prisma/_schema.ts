@@ -15,7 +15,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     model Vote {
       id        ${id}
       value     Int
-      item      Post | Comment @polymorphic(discriminator: itemType)
+      item      Post | Comment @polymorphic(discriminator: "itemType")
       itemId    String
       itemType  String
     }
@@ -23,13 +23,11 @@ export default testMatrix.setupSchema(({ provider }) => {
     model Post {
       id    ${id}
       title String
-      votes Vote[]
     }
 
     model Comment {
       id   ${id}
       body String
-      votes Vote[]
     }
   `
 })
