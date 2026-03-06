@@ -139,7 +139,7 @@ function mapDriverError(error: DatabaseError): MappedError {
     case '42703':
       return {
         kind: 'ColumnNotFound',
-        column: error.message.split(' ').at(1)?.split('"').at(1),
+        column: error.message.split(' ').at(1)?.replaceAll('"', ''),
       }
     case '42P04':
       return {
