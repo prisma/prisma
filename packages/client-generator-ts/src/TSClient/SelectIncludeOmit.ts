@@ -93,12 +93,24 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
   const objectType = ts.objectType()
 
   for (const field of fields) {
-    const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType>(ts.booleanType)
+    const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType | ts.ObjectType>(ts.booleanType)
     if (field.outputType.location === 'outputObjectTypes') {
-      const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
-      subSelectType.addGenericArgument(extArgsParam.toArgument())
+      if (field.isPolymorphic && field.relationTypes) {
+        for (const variantType of field.relationTypes) {
+          const variantObject = ts.objectType()
+          variantObject.add(ts.property('on', ts.unionType(ts.stringLiteral(variantType))))
+          const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
+          subSelectType.addGenericArgument(extArgsParam.toArgument())
+          variantObject.add(ts.property('select', subSelectType).optional())
+          variantObject.add(ts.property('include', subSelectType).optional())
+          fieldType.addVariant(variantObject)
+        }
+      } else {
+        const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
+        subSelectType.addGenericArgument(extArgsParam.toArgument())
 
-      fieldType.addVariant(subSelectType)
+        fieldType.addVariant(subSelectType)
+      }
     }
     objectType.add(ts.property(field.name, appendSkipType(context, fieldType)).optional())
   }

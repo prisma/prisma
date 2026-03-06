@@ -178,6 +178,28 @@ function createImplicitSelection(
   return selectionSet
 }
 
+function transformPolymorphicOn(
+  value: Record<string, unknown>,
+  field: { isPolymorphic?: boolean; relationDiscriminator?: string },
+): Record<string, unknown> {
+  if (!field.isPolymorphic || !('on' in value)) {
+    return value
+  }
+  const onValue = value.on as string | undefined
+  if (onValue === undefined || !field.relationDiscriminator) {
+    return value
+  }
+  const result = { ...value }
+  delete result.on
+  const existingWhere = result.where as Record<string, unknown> | undefined
+  const discriminatorFilter = { [field.relationDiscriminator]: onValue }
+  // Use AND to safely compose with any existing where (including AND/OR/NOT)
+  result.where = existingWhere
+    ? { AND: [existingWhere, discriminatorFilter] }
+    : discriminatorFilter
+  return result
+}
+
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
     if (isSkip(value)) {
@@ -199,7 +221,8 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
-      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
+      const processedValue = transformPolymorphicOn(value === true ? {} : value, field)
+      selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
       continue
     }
 
@@ -260,7 +283,8 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       }
       continue
     }
-    selectionSet[key] = serializeFieldSelection(value, nestedContext)
+    const processedValue = field ? transformPolymorphicOn(value, field) : value
+    selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
   }
   return selectionSet
 }
