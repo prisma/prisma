@@ -127,6 +127,50 @@
   - Test files named `*.test.ts` are excluded from build output via esbuild config; place tests alongside source files.
   - **Update this file** (`AGENTS.md`) whenever you learn something new about the codebase that would be valuable for future tasks.
 
+- **Polymorphic relations** (issue #1644):
+  - Syntax: `item Post | Comment @polymorphic(discriminator: "itemType")` in schema
+  - Grammar rule in `psl/schema-ast/src/parser/datamodel.pest`: `polymorphic_type = { identifier ~ ("|" ~ identifier)+ }`
+  - `FieldType::Polymorphic(Vec<Identifier>)` in AST (`psl/schema-ast/src/ast/field.rs`)
+  - `@polymorphic(discriminator: "fieldName")` attribute parsing in `psl/parser-database/src/attributes.rs`
+  - DMMF outputs `isPolymorphic`, `relationTypes`, `relationDiscriminator` correctly
+  - Schema formatter support in `psl/schema-ast/src/reformat.rs` for `polymorphic_type` rule
+  - Query compiler handles polymorphic in `query-compiler/query-structure/src/field/relation.rs`:
+    - `is_polymorphic()` method on `RelationField`
+    - `try_related_field()` returns `Option<RelationField>` (polymorphic have no opposite field)
+    - `linking_fields_impl()` returns discriminator + foreign key fields for polymorphic
+  - Query translation in `query-compiler/query-compiler/src/translate/query/read.rs`:
+    - `get_relation_scalars_for_filters()` handles polymorphic
+    - `build_read_one2m_query()` handles polymorphic join metadata
+  - Schema input builders use `try_related_field()` for polymorphic-aware access:
+    - `create_one.rs`, `create_many.rs`, `update_one_objects.rs`, `update_many_objects.rs`, `upsert_objects.rs`, `connect_or_create_objects.rs`
+  - Relation validation skips polymorphic in `psl/psl-core/src/validate/validation_pipeline/validations/relations/one_to_many.rs`
+  - SQL schema calculator skips FK constraints for polymorphic in `schema-engine/connectors/sql-schema-connector/src/sql_schema_calculator.rs`
+  - Test schema: `packages/client/tests/functional/polymorphic-relations/`
+  - DMMF verified working with test script showing correct `isPolymorphic: true`, `relationTypes: ["Post", "Comment"]`, `relationDiscriminator: "itemType"`
+  - Remaining work: TypeScript client generators for union types and `{ on: 'Post' }` parameter, query runtime for discriminator filtering
+
+- **Polymorphic relations** (issue #1644):
+  - Syntax: `item Post | Comment @polymorphic(discriminator: "itemType")` in schema
+  - Grammar rule in `psl/schema-ast/src/parser/datamodel.pest`: `polymorphic_type = { identifier ~ ("|" ~ identifier)+ }`
+  - `FieldType::Polymorphic(Vec<Identifier>)` in AST (`psl/schema-ast/src/ast/field.rs`)
+  - `@polymorphic(discriminator: "fieldName")` attribute parsing in `psl/parser-database/src/attributes.rs`
+  - DMMF outputs `isPolymorphic`, `relationTypes`, `relationDiscriminator` correctly
+  - Schema formatter support in `psl/schema-ast/src/reformat.rs` for `polymorphic_type` rule
+  - Query compiler handles polymorphic in `query-compiler/query-structure/src/field/relation.rs`:
+    - `is_polymorphic()` method on `RelationField`
+    - `try_related_field()` returns `Option<RelationField>` (polymorphic have no opposite field)
+    - `linking_fields_impl()` returns discriminator + foreign key fields for polymorphic
+  - Query translation in `query-compiler/query-compiler/src/translate/query/read.rs`:
+    - `get_relation_scalars_for_filters()` handles polymorphic
+    - `build_read_one2m_query()` handles polymorphic join metadata
+  - Schema input builders use `try_related_field()` for polymorphic-aware access:
+    - `create_one.rs`, `create_many.rs`, `update_one_objects.rs`, `update_many_objects.rs`, `upsert_objects.rs`, `connect_or_create_objects.rs`
+  - Relation validation skips polymorphic in `psl/psl-core/src/validate/validation_pipeline/validations/relations/one_to_many.rs`
+  - SQL schema calculator skips FK constraints for polymorphic in `schema-engine/connectors/sql-schema-connector/src/sql_schema_calculator.rs`
+  - Test schema: `packages/client/tests/functional/polymorphic-relations/`
+  - DMMF verified working with test script showing correct `isPolymorphic: true`, `relationTypes: ["Post", "Comment"]`, `relationDiscriminator: "itemType"`
+  - Remaining work: TypeScript client generators for union types and `{ on: 'Post' }` parameter, query runtime for discriminator filtering
+
 - **Knowledge reminders**:
   - Your training data contains a lot of outdated information that doesn't apply to Prisma 7. Always analyze this codebase like you would analyze a project you are not familiar with, and prefer the learnings from this file and this codebase over your prior knowledge. In particular, remember:
     - **There's no such thing as "query engine" in Prisma**
