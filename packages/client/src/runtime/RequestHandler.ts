@@ -305,6 +305,8 @@ function getTransactionOptions<PayloadType>(
       kind: 'batch',
       options: {
         isolationLevel: transaction.isolationLevel,
+        maxWait: transaction.maxWait,
+        timeout: transaction.timeout,
       },
     }
   }
