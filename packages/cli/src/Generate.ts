@@ -16,6 +16,7 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
+  PRISMA_CLIENT_JS_PROVIDER,
   type PrismaConfigWithDatasource,
   validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
@@ -179,7 +180,7 @@ ${bold('Examples')}
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
         const jsClient = generators.find(
-          (g) => g.options && parseEnvValue(g.options.generator.provider) === 'prisma-client-js',
+          (g) => g.options && parseEnvValue(g.options.generator.provider) === PRISMA_CLIENT_JS_PROVIDER,
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -230,7 +231,7 @@ Please run \`prisma generate\` manually.`
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
-          options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
+          options?.generator.provider && parseEnvValue(options?.generator.provider) === PRISMA_CLIENT_JS_PROVIDER,
       )
 
       let hint = ''

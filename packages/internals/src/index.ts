@@ -48,6 +48,7 @@ export { highlightDatamodel, highlightSql, highlightTS } from './highlight/highl
 export * as logger from './logger'
 export type { MigrateTypes } from './migrateTypes'
 export { ErrorArea, getWasmError, isRustPanic, isWasmPanic, RustPanic } from './panic'
+export { PRISMA_CLIENT_JS_PROVIDER } from './prisma-client-js-provider'
 export { BinaryType } from './resolveBinary'
 export { engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { resolvePkg } from './resolvePkg'
