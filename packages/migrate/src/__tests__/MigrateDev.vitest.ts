@@ -1,9 +1,9 @@
 // describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
-
 import fs from 'fs-jetpack'
 import path from 'path'
 import prompt from 'prompts'
+import { vi } from 'vitest'
 
 import { DbExecute } from '../commands/DbExecute'
 import { MigrateDev } from '../commands/MigrateDev'
@@ -19,12 +19,12 @@ import {
   postgresOnly,
   sqliteOnly,
   sqlServerOnly,
-} from './__helpers__/conditionalTests'
-import { createDefaultTestContext } from './__helpers__/context'
+} from './__helpers__/conditionalTests.vitest'
+import { createDefaultVitestContext } from './__helpers__/vitestContext'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = createDefaultTestContext()
+const ctx = createDefaultVitestContext()
 
 beforeEach(() => {
   clearPromptInjection('before')
@@ -126,7 +126,7 @@ describe('common', () => {
 
   it('wrong flag', async () => {
     const commandInstance = MigrateDev.new()
-    const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
     await commandInstance.parse(['--something'], await ctx.config(), ctx.configDir())
     expect(spy).toHaveBeenCalledTimes(1)
@@ -134,7 +134,7 @@ describe('common', () => {
   })
   it('help flag', async () => {
     const commandInstance = MigrateDev.new()
-    const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
     await commandInstance.parse(['--help'], await ctx.config(), ctx.configDir())
     expect(spy).toHaveBeenCalledTimes(1)
@@ -981,7 +981,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-postgresql')
-    jest.setTimeout(7_000)
+    vi.setConfig({ testTimeout: 7_000 })
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], await ctx.config(), ctx.configDir())
 
@@ -1358,7 +1358,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-cockroachdb')
-    jest.setTimeout(7_000)
+    vi.setConfig({ testTimeout: 7_000 })
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], await ctx.config(), ctx.configDir())
 
@@ -1545,7 +1545,7 @@ describeMatrix({ providers: { mysql: true } }, 'mysql', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-mysql')
-    jest.setTimeout(7_000)
+    vi.setConfig({ testTimeout: 7_000 })
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], await ctx.config(), ctx.configDir())
 
@@ -1600,9 +1600,9 @@ describeMatrix({ providers: { mysql: true } }, 'mysql', () => {
 describeMatrix(sqlServerOnly, 'SQL Server', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
-    jest.setTimeout(80_000)
+    vi.setConfig({ testTimeout: 80_000 })
   } else {
-    jest.setTimeout(20_000)
+    vi.setConfig({ testTimeout: 20_000 })
   }
 
   const databaseName = 'tests-migrate-dev'

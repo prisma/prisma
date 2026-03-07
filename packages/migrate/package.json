@@ -35,7 +35,7 @@
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "log-update": "6.1.0",
-    "mariadb": "3.4.5",
+    "mariadb": "3.5.2",
     "mock-stdin": "1.0.0",
     "mongoose": "8.15.0",
     "mssql": "11.0.1",
@@ -64,7 +64,7 @@
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "run": "node dist/bin.js",
-    "test": "dotenv -e ../../.db.env -- jest --verbose",
+    "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [

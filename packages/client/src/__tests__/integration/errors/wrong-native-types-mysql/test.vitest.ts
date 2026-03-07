@@ -2,7 +2,7 @@ import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { migrateDb } from '../../__helpers__/migrateDb.vitest'
 
 // We WANT to be able to do the async function without an await
 /* eslint-disable @typescript-eslint/require-await */
