@@ -263,8 +263,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       mariadb:
-        specifier: 3.5.1
-        version: 3.5.1(@types/node@20.19.25)
+        specifier: 3.5.2
+        version: 3.5.2
 
   packages/adapter-mssql:
     dependencies:
@@ -868,8 +868,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6
       mariadb:
-        specifier: 3.5.1
-        version: 3.5.1(@types/node@20.19.25)
+        specifier: 3.5.2
+        version: 3.5.2
       memfs:
         specifier: 4.17.2
         version: 4.17.2
@@ -1447,8 +1447,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       mariadb:
-        specifier: 3.5.1
-        version: 3.5.1(@types/node@20.19.25)
+        specifier: 3.5.2
+        version: 3.5.2
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -1730,8 +1730,8 @@ importers:
         specifier: 6.1.0
         version: 6.1.0
       mariadb:
-        specifier: 3.5.1
-        version: 3.5.1(@types/node@20.19.25)
+        specifier: 3.5.2
+        version: 3.5.2
       mock-stdin:
         specifier: 1.0.0
         version: 1.0.0
@@ -3973,6 +3973,9 @@ packages:
 
   '@types/fs-extra@11.0.4':
     resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
+
+  '@types/geojson@7946.0.16':
+    resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
 
   '@types/graceful-fs@4.1.5':
     resolution: {integrity: sha512-anKkLmZZ+xm4p8JWBf4hElkM4XR+EZeA2M9BAkkTldmcyDY4mbdIJnRghDJH3Ov5ooY7/UAoENtmdMSkaAd7Cw==}
@@ -6370,17 +6373,9 @@ packages:
     resolution: {integrity: sha512-hdN1wVrZbb29eBGiGjJbeP8JbKjq1urkHJ/LIP/NY48MZ1QVXUsQBV1G1zvYFHn1XE06cwjBsOI2K3Ulnj1YXQ==}
     engines: {node: '>=8'}
 
-  mariadb@3.5.1:
-    resolution: {integrity: sha512-ObKf/e7jU8pmwa5wTs1UwhLMrQYRBDwXPndej2Dv/rvbqsokJYlymubsNtpakVfjI+hd0bG3U6tiuVunDYoLtA==}
+  mariadb@3.5.2:
+    resolution: {integrity: sha512-9rztrI4nouxAY/82a+RlzzZ5ie2vxu2eYclkBvTy1ATXH1B9cnvZ0O71Pzsy/mlfDb5P3HhOg0JzQKkDRhctyA==}
     engines: {node: '>= 18'}
-    peerDependencies:
-      '@types/geojson': '>=7946.0.0'
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/geojson':
-        optional: true
-      '@types/node':
-        optional: true
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -10446,6 +10441,8 @@ snapshots:
       '@types/jsonfile': 6.1.4
       '@types/node': 20.19.25
 
+  '@types/geojson@7946.0.16': {}
+
   '@types/graceful-fs@4.1.5':
     dependencies:
       '@types/node': 20.19.25
@@ -13237,13 +13234,13 @@ snapshots:
 
   map-obj@4.3.0: {}
 
-  mariadb@3.5.1(@types/node@20.19.25):
+  mariadb@3.5.2:
     dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/node': 20.19.25
       denque: 2.1.0
       iconv-lite: 0.7.2
       lru-cache: 10.4.3
-    optionalDependencies:
-      '@types/node': 20.19.25
 
   math-intrinsics@1.1.0: {}
 
