@@ -6,6 +6,7 @@ import {
   getSchemaWithPath,
   parseEnvValue,
   printConfigWarnings,
+  PRISMA_CLIENT_JS_PROVIDER,
 } from '@prisma/internals'
 import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 import path from 'path'
@@ -34,7 +35,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     printConfigWarnings(config.warnings)
   }
 
-  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
+  const generator = config.generators.find((g) => parseEnvValue(g.provider) === PRISMA_CLIENT_JS_PROVIDER)
   const previewFeatures = extractPreviewFeatures(config.generators)
   ;(global as any).TARGET_BUILD_TYPE = 'client'
 

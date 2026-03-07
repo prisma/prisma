@@ -2,6 +2,7 @@ import { bold, dim } from 'kleur/colors'
 import path from 'path'
 
 import type { Generator } from '../Generator'
+import { PRISMA_CLIENT_JS_PROVIDER } from '../prisma-client-js-provider'
 import { formatms } from '../utils/formatms'
 import { parseEnvValue } from '../utils/parseEnvValue'
 
@@ -20,7 +21,7 @@ export function getGeneratorSuccessMessage(generator: Generator, time: number): 
 function formatVersion(generator: Generator): string | undefined {
   const version = generator.manifest?.version
 
-  if (generator.getProvider() === 'prisma-client-js') {
+  if (generator.getProvider() === PRISMA_CLIENT_JS_PROVIDER) {
     // version is always defined for prisma-client-js
     return `v${version ?? '?.?.?'}`
   }
