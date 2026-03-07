@@ -84,25 +84,43 @@ ${bold('Examples')}
   private logText = ''
   private hasGeneratorErrored = false
 
-  private runGenerate = simpleDebounce(async ({ generators }: { generators: Generator[] }) => {
-    const message: string[] = []
+  private runGenerate = simpleDebounce(
+    async ({ generators, usageHint }: { generators: Generator[]; usageHint?: string }) => {
+      const results: Array<{ message: string; isJsClient: boolean }> = []
 
-    for (const generator of generators) {
-      const before = Math.round(performance.now())
-      try {
-        await generator.generate()
-        const after = Math.round(performance.now())
-        message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
-        generator.stop()
-      } catch (err) {
-        this.hasGeneratorErrored = true
-        generator.stop()
-        message.push(`${err.message}\n\n`)
+      for (const generator of generators) {
+        const before = Math.round(performance.now())
+        try {
+          await generator.generate()
+          const after = Math.round(performance.now())
+          const provider = generator.options ? parseEnvValue(generator.options.generator.provider) : ''
+          results.push({
+            message: getGeneratorSuccessMessage(generator, after - before) + '\n',
+            isJsClient: provider === 'prisma-client-js',
+          })
+          generator.stop()
+        } catch (err) {
+          this.hasGeneratorErrored = true
+          generator.stop()
+          results.push({
+            message: `${err.message}\n\n`,
+            isJsClient: false,
+          })
+        }
       }
-    }
 
-    this.logText += message.join('\n')
-  })
+      let hintInserted = false
+      const messages = results.map(({ message, isJsClient }) => {
+        if (usageHint && !hintInserted && isJsClient && !this.hasGeneratorErrored) {
+          hintInserted = true
+          return message + usageHint
+        }
+        return message
+      })
+
+      this.logText += messages.join('\n')
+    },
+  )
 
   public async parse(
     argv: string[],
@@ -134,6 +152,7 @@ ${bold('Examples')}
     }
 
     const watchMode = args['--watch'] || false
+    const hideHints = args['--no-hints'] ?? false
 
     const schemaResult = await getSchemaWithPath({
       schemaPath: createSchemaPathInput({
@@ -186,8 +205,13 @@ ${bold('Examples')}
 
         hasJsClient = Boolean(jsClient)
 
+        const usageHint =
+          hasJsClient && !hideHints && !watchMode
+            ? '\nStart by importing your Prisma Client (See: https://pris.ly/d/importing-client)\n'
+            : undefined
+
         try {
-          await this.runGenerate({ generators })
+          await this.runGenerate({ generators, usageHint })
         } catch (errRunGenerate) {
           this.logText += `${errRunGenerate.message}\n\n`
         }
@@ -225,21 +249,15 @@ Please run \`prisma generate\` manually.`
 
     const watchingText = `\n${green('Watching...')} ${dim(schemaContext.schemaRootDir)}\n`
 
-    const hideHints = args['--no-hints'] ?? false
-
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
           options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
       )
 
-      let hint = ''
+      let globalWarnings = ''
       if (prismaClientJSGenerator) {
-        const breakingChangesStr = printBreakingChangesMessage
-          ? `
-
-${breakingChangesMessage}`
-          : ''
+        const breakingChangesStr = printBreakingChangesMessage ? `\n\n${breakingChangesMessage}` : ''
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
@@ -251,17 +269,10 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}`
-        } else {
-          hint = `
-Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-${breakingChangesStr}${versionsWarning}`
-        }
+        globalWarnings = `${breakingChangesStr}${versionsWarning}`
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? globalWarnings : '')
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
