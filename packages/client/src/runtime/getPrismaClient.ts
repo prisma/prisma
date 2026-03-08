@@ -725,8 +725,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           id,
           index,
           isolationLevel,
-          maxWait: options?.maxWait,
-          timeout: options?.timeout,
+          maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
+          timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
           lock,
         } as const
         return request.requestTransaction?.(transaction) ?? request
