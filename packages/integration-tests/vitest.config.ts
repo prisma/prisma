@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     include: ['**/*.vitest.ts'],
+    exclude: ['**/node_modules/**', '**/__helpers__/**'],
     globals: true,
-    snapshotSerializers: ['@prisma/get-platform/src/test-utils/vitest-snapshot-serializer'],
   },
 })
