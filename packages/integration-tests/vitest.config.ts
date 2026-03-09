@@ -4,6 +4,6 @@ export default defineConfig({
   test: {
     include: ['**/*.vitest.ts'],
     globals: true,
-    snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
+    snapshotSerializers: ['@prisma/get-platform/src/test-utils/vitest-snapshot-serializer'],
   },
 })
