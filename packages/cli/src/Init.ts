@@ -59,14 +59,11 @@ export const defaultSchema = (props?: {
     withModel = false,
   } = props ?? {}
 
-  const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
-
-  const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
-
   let schema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
+
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
+
 generator client {
   provider = "${generatorProvider}"
 ${
@@ -544,15 +541,18 @@ export class Init implements Command {
           throw new Error('Missing database info in response')
         }
 
-        if (!project.database.directConnection) {
-          // This should never happen: OpenAPI types are not entirely correct,
-          // `directConnection` is not independently nullable and must always
-          // be present if `database` is in the response body.
+        const connection = project.database.connections?.find(
+          (c) => Boolean(c.endpoints?.direct?.connectionString) || Boolean(c.endpoints?.pooled?.connectionString),
+        )
+
+        const connectionString =
+          connection?.endpoints?.direct?.connectionString ?? connection?.endpoints?.pooled?.connectionString
+
+        if (!connectionString) {
           throw new Error('Missing connection string in response')
         }
 
-        const { host, user, pass } = project.database.directConnection
-        prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
+        prismaPostgresDatabaseUrl = connectionString
 
         workspaceId = project.workspace.id.replace(/^wksp_/, '')
         projectId = project.id.replace(/^proj_/, '')
