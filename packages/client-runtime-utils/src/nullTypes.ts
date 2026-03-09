@@ -18,6 +18,7 @@ const PRISMA_OBJECT_ENUM_VALUE = Symbol.for('prisma.objectEnumValue')
  */
 export abstract class ObjectEnumValue {
   readonly [PRISMA_OBJECT_ENUM_VALUE] = true
+  #representation: string
 
   constructor(arg?: symbol) {
     if (arg === secret) {
