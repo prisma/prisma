@@ -4,7 +4,7 @@ import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
 import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
-import { serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
+import { type SerializedError, serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
 import { createNodeSQLiteExecutor } from '@prisma/studio-core/data/node-sqlite'
 import { createPostgresJSExecutor } from '@prisma/studio-core/data/postgresjs'
@@ -347,7 +347,7 @@ ${bold('Examples')}
         const [error, results] = await executor.execute(request.query)
 
         if (error) {
-          return ctx.json([serializeError(error)])
+          return ctx.json([serializeBffError(error)])
         }
 
         return ctx.json([null, results])
@@ -355,25 +355,42 @@ ${bold('Examples')}
 
       if (procedure === 'sequence') {
         if (!('executeSequence' in executor)) {
-          return ctx.json([[serializeError(new Error('Executor does not support sequences'))]])
+          return ctx.json([[serializeBffError(new Error('Executor does not support sequences'))]])
         }
 
         const [[error0, result0], maybeResult1] = await (executor as SequenceExecutor).executeSequence(request.sequence)
 
         if (error0) {
-          return ctx.json([[serializeError(error0)]])
+          return ctx.json([[serializeBffError(error0)]])
         }
 
         const [error1, result1] = maybeResult1 || []
 
         if (error1) {
-          return ctx.json([[null, result0], [serializeError(error1)]])
+          return ctx.json([[null, result0], [serializeBffError(error1)]])
         }
 
         return ctx.json([
           [null, result0],
           [null, result1],
         ])
+      }
+
+      if (procedure === 'sql-lint') {
+        if (!executor.lintSql) {
+          return ctx.json([serializeBffError(new Error('Executor does not support SQL lint'))])
+        }
+
+        const [error, result] = await executor.lintSql({
+          schemaVersion: request.schemaVersion,
+          sql: request.sql,
+        })
+
+        if (error) {
+          return ctx.json([serializeBffError(error)])
+        }
+
+        return ctx.json([null, result])
       }
 
       procedure satisfies undefined
@@ -439,6 +456,54 @@ ${bold('Examples')}
 
 function getUrlBasePath(url: string | undefined, configPath: string | null): string {
   return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
+}
+
+function serializeBffError(error: unknown): SerializedError {
+  return getSerializedBffError(error) ?? serializeError(error)
+}
+
+function getSerializedBffError(error: unknown): SerializedError | null {
+  if (isSerializedError(error)) {
+    return error
+  }
+
+  if (!isRecord(error)) {
+    return null
+  }
+
+  const nestedError = error.error
+
+  if (isSerializedError(nestedError)) {
+    return nestedError
+  }
+
+  const rpcSerializedError = error['@@error']
+
+  if (isSerializedError(rpcSerializedError)) {
+    return rpcSerializedError
+  }
+
+  return null
+}
+
+function isSerializedError(error: unknown): error is SerializedError {
+  if (!isRecord(error)) {
+    return false
+  }
+
+  if (typeof error.name !== 'string' || typeof error.message !== 'string') {
+    return false
+  }
+
+  if (error.errors === undefined) {
+    return true
+  }
+
+  return Array.isArray(error.errors) && error.errors.every(isSerializedError)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 function isAccelerateProtocol(protocol: string): boolean {
