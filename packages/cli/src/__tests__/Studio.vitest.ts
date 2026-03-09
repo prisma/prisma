@@ -6,10 +6,19 @@ const serveMock = vi.fn(() => ({ close: vi.fn() }))
 const createPostgresJSExecutorMock = vi.fn(() => ({
   execute: vi.fn(),
 }))
-const serializeErrorMock = vi.fn((error: Error) => ({
-  message: error.message,
-  name: error.name,
-}))
+const serializeErrorMock = vi.fn((error: unknown) => {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+    }
+  }
+
+  return {
+    message: JSON.stringify(error),
+    name: 'UnknownError',
+  }
+})
 
 vi.mock('mysql2/promise', () => {
   return {
@@ -150,17 +159,10 @@ describe('Studio BFF', () => {
       ]),
     )
 
-    createPostgresJSExecutorMock.mockReturnValueOnce({
+    await startStudioBff({
       execute: vi.fn(),
       lintSql: lintSqlMock,
     })
-
-    const { Studio } = await import('../Studio')
-
-    await Studio.new().parse(
-      ['--browser', 'none', '--port', '5555', '--url', 'postgresql://user:password@localhost:5432/db'],
-      defaultTestConfig(),
-    )
 
     const response = await getBffResponse({
       procedure: 'sql-lint',
@@ -182,7 +184,7 @@ describe('Studio BFF', () => {
   })
 
   test('unwraps RPC-serialized sql-lint errors', async () => {
-    createPostgresJSExecutorMock.mockReturnValueOnce({
+    await startStudioBff({
       execute: vi.fn(),
       lintSql: vi.fn(() =>
         Promise.resolve([
@@ -196,13 +198,6 @@ describe('Studio BFF', () => {
       ),
     })
 
-    const { Studio } = await import('../Studio')
-
-    await Studio.new().parse(
-      ['--browser', 'none', '--port', '5555', '--url', 'postgresql://user:password@localhost:5432/db'],
-      defaultTestConfig(),
-    )
-
     const response = await getBffResponse({
       procedure: 'sql-lint',
       schemaVersion: 'v1',
@@ -214,6 +209,91 @@ describe('Studio BFF', () => {
       {
         message: 'relation "missing_table" does not exist',
         name: 'PostgresError',
+      },
+    ])
+  })
+
+  test('passes through top-level serialized sql-lint errors', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+      lintSql: vi.fn(() =>
+        Promise.resolve([
+          {
+            message: 'syntax error at or near "from"',
+            name: 'PostgresError',
+          },
+        ]),
+      ),
+    })
+
+    const response = await getBffResponse({
+      procedure: 'sql-lint',
+      schemaVersion: 'v1',
+      sql: 'select from',
+    })
+
+    expect(serializeErrorMock).not.toHaveBeenCalled()
+    expect(await response.json()).toEqual([
+      {
+        message: 'syntax error at or near "from"',
+        name: 'PostgresError',
+      },
+    ])
+  })
+
+  test('unwraps nested serialized sql-lint errors', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+      lintSql: vi.fn(() =>
+        Promise.resolve([
+          {
+            error: {
+              message: 'relation "users" does not exist',
+              name: 'PostgresError',
+            },
+          },
+        ]),
+      ),
+    })
+
+    const response = await getBffResponse({
+      procedure: 'sql-lint',
+      schemaVersion: 'v1',
+      sql: 'select * from users',
+    })
+
+    expect(serializeErrorMock).not.toHaveBeenCalled()
+    expect(await response.json()).toEqual([
+      {
+        message: 'relation "users" does not exist',
+        name: 'PostgresError',
+      },
+    ])
+  })
+
+  test('falls back to serializeError for unknown sql-lint error shapes', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+      lintSql: vi.fn(() =>
+        Promise.resolve([
+          {
+            message: 'missing name field',
+          } as never,
+        ]),
+      ),
+    })
+
+    const response = await getBffResponse({
+      procedure: 'sql-lint',
+      schemaVersion: 'v1',
+      sql: 'select 1',
+    })
+
+    expect(serializeErrorMock).toHaveBeenCalledTimes(1)
+    expect(await response.json()).toEqual([
+      {
+        message: '{"message":"missing name field"}',
+        name: 'UnknownError',
       },
     ])
   })
@@ -234,5 +314,16 @@ async function getBffResponse(body: unknown): Promise<Response> {
       },
       method: 'POST',
     }),
+  )
+}
+
+async function startStudioBff(executor: { execute: ReturnType<typeof vi.fn>; lintSql?: ReturnType<typeof vi.fn> }) {
+  createPostgresJSExecutorMock.mockReturnValueOnce(executor)
+
+  const { Studio } = await import('../Studio')
+
+  await Studio.new().parse(
+    ['--browser', 'none', '--port', '5555', '--url', 'postgresql://user:password@localhost:5432/db'],
+    defaultTestConfig(),
   )
 }
