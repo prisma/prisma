@@ -11,7 +11,7 @@ testMatrix.setupTestSuite(
       for (let day = 1; day <= 10; day++) {
         rows.push({
           appId: 1,
-          createdAt: new Date(`2025-01-${String(day).padStart(2, '0')}`),
+          createdAt: new Date(`2025-01-${String(day).padStart(2, '0')}Z`),
           value: day * 100,
         })
       }
