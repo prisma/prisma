@@ -39,6 +39,39 @@ type BetterSQLite3Meta = {
   lastInsertRowid: number | bigint
 }
 
+function getUnquotedSql(sql: string): string {
+  return sql
+    .replace(/'[^']*'/g, '')
+    .replace(/"[^"]*"/g, '')
+    .replace(/`[^`]*`/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/--[^\n]*/g, '')
+}
+
+/**
+ * Transforms args into the correct format for better-sqlite3 based on the parameter binding style in the SQL query.
+ * Plain '?' -> array, positional '?N' -> numeric-keyed object, named ':param' -> named object.
+ */
+function bindArgs(sql: string, args: unknown[]): unknown[] | Record<string, unknown> {
+  const unquoted = getUnquotedSql(sql)
+
+  if (/\?\d+/.test(unquoted)) {
+    const obj: Record<string, unknown> = {}
+    args.forEach((val, i) => { obj[i + 1] = val })
+    return obj
+  }
+
+  if (/[:$@][a-zA-Z_][a-zA-Z0-9_]*/.test(unquoted)) {
+    const names = [...unquoted.matchAll(/[:$@]([a-zA-Z_][a-zA-Z0-9_]*)/g)].map(m => m[1])
+    const unique = [...new Set(names)]
+    const obj: Record<string, unknown> = {}
+    unique.forEach((name, i) => { obj[name] = args[i] })
+    return obj
+  }
+
+  return args
+}
+
 class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
@@ -46,7 +79,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   constructor(
     protected readonly client: ClientT,
     protected readonly adapterOptions?: PrismaBetterSqlite3Options,
-  ) {}
+  ) { }
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -87,7 +120,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   private executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
       const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions))
-      const stmt = this.client.prepare(query.sql).bind(args)
+      const stmt = this.client.prepare(query.sql).bind(bindArgs(query.sql, args))
       const result = stmt.run()
 
       return Promise.resolve(result)
@@ -104,7 +137,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   private performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
       const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions))
-      const stmt = this.client.prepare(query.sql).bind(args)
+      const stmt = this.client.prepare(query.sql).bind(bindArgs(query.sql, args))
 
       // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
       if (!stmt.reader) {
