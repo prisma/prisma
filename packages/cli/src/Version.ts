@@ -17,6 +17,7 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
+import path from 'node:path'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -79,6 +80,9 @@ export class Version implements Command {
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
 
+    // Get the Prisma CLI path from the current file location
+    const prismaCliPath = path.resolve(__dirname, '..')
+
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
@@ -92,6 +96,7 @@ export class Version implements Command {
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.dependencies['@prisma/studio-core']],
+      ['Prisma CLI Path', prismaCliPath],
     ]
 
     /**
