@@ -1,17 +1,18 @@
 import path from 'path'
+import { vi } from 'vitest'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMysql, tearDownMysql } from '../../utils/setupMysql'
 import { SetupParams } from '../../utils/setupPostgres'
-import { describeMatrix } from '../__helpers__/conditionalTests'
-import { createDefaultTestContext } from '../__helpers__/context'
+import { describeMatrix } from '../__helpers__/conditionalTests.vitest'
+import { createDefaultVitestContext } from '../__helpers__/vitestContext'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
-  jest.setTimeout(60_000)
+  vi.setConfig({ testTimeout: 60_000 })
 }
 
-const ctx = createDefaultTestContext()
+const ctx = createDefaultVitestContext()
 
 describeMatrix({ providers: { mysql: true } }, 'mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI!.replace('tests-migrate', 'tests-migrate-db-pull-mysql')

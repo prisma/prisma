@@ -134,7 +134,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "dotenv -e ../../.db.env -- jest --silent",
+    "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts",
     "test:e2e": "dotenv -e ../../.db.env -- tsx tests/e2e/_utils/run.ts",
     "test:functional": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts",
     "test:functional:client": "pnpm run test:functional --client-runtime client",
@@ -244,7 +244,7 @@
     "js-levenshtein": "1.1.6",
     "kleur": "4.1.5",
     "klona": "2.0.6",
-    "mariadb": "3.4.5",
+    "mariadb": "3.5.2",
     "memfs": "4.17.2",
     "mssql": "11.0.1",
     "new-github-issue-url": "0.2.1",

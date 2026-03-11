@@ -1,10 +1,11 @@
 // describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
-
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import util from 'node:util'
+
+import { vi } from 'vitest'
 
 import { DbExecute } from '../commands/DbExecute'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
@@ -21,12 +22,12 @@ import {
   postgresOnly,
   sqliteOnly,
   sqlServerOnly,
-} from './__helpers__/conditionalTests'
-import { createDefaultTestContext } from './__helpers__/context'
+} from './__helpers__/conditionalTests.vitest'
+import { createDefaultVitestContext } from './__helpers__/vitestContext'
 
 const exec = util.promisify(childProcess.exec)
 
-const ctx = createDefaultTestContext()
+const ctx = createDefaultVitestContext()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
@@ -376,7 +377,7 @@ COMMIT;`,
 
       // In CI, sometimes 5s is not enough
       if (process.env.CI) {
-        jest.setTimeout(10_000)
+        vi.setConfig({ testTimeout: 10_000 })
       }
 
       fs.writeFileSync('script.sql', '-- empty')

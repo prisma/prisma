@@ -2,7 +2,7 @@ import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { migrateDb } from '../../__helpers__/migrateDb.vitest'
 
 beforeAll(async () => {
   process.env.DATABASE_URL = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-mysql-binary-id')
