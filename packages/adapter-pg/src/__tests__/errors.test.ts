@@ -126,11 +126,81 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle ColumnNotFound (42703)', () => {
+  it('should handle ColumnNotFound (42703) with unquoted column name', () => {
+    const error = { code: '42703', message: 'column foo does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'foo',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with quoted column name', () => {
     const error = { code: '42703', message: 'column "foo" does not exist', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'ColumnNotFound',
       column: 'foo',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with unquoted qualified column name', () => {
+    const error = { code: '42703', message: 'column users.first_name does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'users.first_name',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with quoted qualified column name', () => {
+    const error = { code: '42703', message: 'column "users"."first name" does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'users.first name',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with partially quoted qualified column name (1)', () => {
+    const error = { code: '42703', message: 'column users."first name" does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'users.first name',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with partially quoted qualified column name (2)', () => {
+    const error = { code: '42703', message: 'column "users".first_name does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'users.first_name',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with quoted column name containing spaces', () => {
+    const error = { code: '42703', message: 'column "first name" does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'first name',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with quoted column name containing escaped quotes', () => {
+    const error = { code: '42703', message: 'column "a""b" does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'a"b',
       originalCode: error.code,
       originalMessage: error.message,
     })
