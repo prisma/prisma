@@ -271,6 +271,51 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   }
 }
 
+const PRISMA_POSTGRES_PROTOCOL = 'prisma+postgres:'
+
+/**
+ * Checks if the given connection string uses the `prisma+postgres://` protocol
+ * and points to a local development server (localhost, 127.0.0.1, or ::1).
+ */
+function isPrismaPostgresDevUrl(connectionString: string): boolean {
+  if (!connectionString.startsWith(`${PRISMA_POSTGRES_PROTOCOL}//`)) {
+    return false
+  }
+
+  try {
+    const url = new URL(connectionString)
+    const hostname = url.hostname
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Transforms a `prisma+postgres://` URL to a standard `postgres://` URL
+ * for direct TCP connection with the pg driver.
+ *
+ * Example: `prisma+postgres://localhost:51216/?api_key=xxx`
+ * becomes: `postgres://localhost:51216/postgres?api_key=xxx`
+ */
+function transformPrismaPostgresToPgUrl(connectionString: string): string {
+  const url = new URL(connectionString)
+
+  // Replace prisma+postgres: with postgres:
+  const transformedUrl = new URL(url.href.replace(PRISMA_POSTGRES_PROTOCOL, 'postgres:'))
+
+  // Ensure there's a database name (pg driver requires one)
+  // Default to 'postgres' if not specified
+  if (!transformedUrl.pathname || transformedUrl.pathname === '/') {
+    transformedUrl.pathname = '/postgres'
+  }
+
+  // Remove the api_key parameter as it's not used by the pg driver
+  transformedUrl.searchParams.delete('api_key')
+
+  return transformedUrl.href
+}
+
 export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
@@ -286,6 +331,22 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       this.config = poolOrConfig.options
     } else {
       this.externalPool = null
+      // Transform prisma+postgres:// URLs for local development to standard postgres:// URLs
+      if (typeof poolOrConfig.connectionString === 'string') {
+        if (isPrismaPostgresDevUrl(poolOrConfig.connectionString)) {
+          poolOrConfig = {
+            ...poolOrConfig,
+            connectionString: transformPrismaPostgresToPgUrl(poolOrConfig.connectionString),
+          }
+        } else if (poolOrConfig.connectionString.startsWith(`${PRISMA_POSTGRES_PROTOCOL}//`)) {
+          // Remote prisma+postgres:// URLs (Accelerate) are not supported by adapter-pg
+          throw new Error(
+            `The "prisma+postgres://" protocol is not supported by @prisma/adapter-pg. ` +
+              `For remote Prisma Postgres (Accelerate), use @prisma/adapter-ppg or configure accelerateUrl in PrismaClient options. ` +
+              `For local development with "prisma dev", use the DATABASE_URL with a direct postgres:// connection string.`,
+          )
+        }
+      }
       this.config = poolOrConfig
     }
   }

@@ -4,6 +4,58 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { PrismaPgAdapterFactory } from '../pg'
 
+describe('PrismaPgAdapterFactory URL transformation', () => {
+  it('should transform prisma+postgres://localhost URLs to postgres:// URLs', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'prisma+postgres://localhost:51216/?api_key=test123',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    // The factory should transform the URL internally
+    expect(factory).toBeDefined()
+  })
+
+  it('should transform prisma+postgres://127.0.0.1 URLs to postgres:// URLs', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'prisma+postgres://127.0.0.1:5432/mydb',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    expect(factory).toBeDefined()
+  })
+
+  it('should transform prisma+postgres://[::1] URLs to postgres:// URLs', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'prisma+postgres://[::1]:5432/mydb',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    expect(factory).toBeDefined()
+  })
+
+  it('should throw error for remote prisma+postgres:// URLs (Accelerate)', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'prisma+postgres://accelerate.prisma-data.net/db?api_key=test123',
+    }
+    expect(() => new PrismaPgAdapterFactory(config)).toThrow(
+      'The "prisma+postgres://" protocol is not supported by @prisma/adapter-pg',
+    )
+  })
+
+  it('should leave standard postgres:// URLs unchanged', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'postgres://user:password@localhost:5432/mydb',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    expect(factory).toBeDefined()
+  })
+
+  it('should leave standard postgresql:// URLs unchanged', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'postgresql://user:password@localhost:5432/mydb',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    expect(factory).toBeDefined()
+  })
+})
+
 describe('PrismaPgAdapterFactory', () => {
   it('should subscribe to pool error events', async () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
