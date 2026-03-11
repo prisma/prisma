@@ -1,10 +1,15 @@
 import Debug from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
+import { getEnginesPath } from '@prisma/engines'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { spawn } from 'child_process'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
+import fs from 'fs'
 import { bold, red } from 'kleur/colors'
+import path from 'path'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -47,6 +52,126 @@ ${detailsHeader} ${message}`
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
     this.name = 'GetDmmfError'
   }
+}
+
+/**
+ * Check if an error is the V8 string length limit.
+ * V8 has a hard-coded limit of 0x1fffffe8 characters (~536MB) for strings.
+ * No Node.js flags can change this.
+ * See: https://github.com/prisma/prisma/issues/29111
+ */
+function isV8StringLimitError(error: unknown): boolean {
+  return error instanceof RangeError && error.message.includes('Cannot create a string longer than')
+}
+
+/**
+ * Resolve the path to the prisma-fmt native binary.
+ * Checks: (1) PRISMA_FMT_BINARY env var, (2) alongside engines in standard path.
+ */
+async function resolvePrismaFmtBinary(): Promise<string> {
+  // Check explicit env var first
+  const envPath = process.env.PRISMA_FMT_BINARY
+  if (envPath && fs.existsSync(envPath)) {
+    return envPath
+  }
+
+  // Check alongside schema engine in engines path
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
+  const extension = binaryTarget === 'windows' ? '.exe' : ''
+  const binaryName = `prisma-fmt-${binaryTarget}${extension}`
+  const enginesPath = path.join(getEnginesPath(), binaryName)
+  if (fs.existsSync(enginesPath)) {
+    return enginesPath
+  }
+
+  throw new Error(
+    `prisma-fmt binary not found. Set PRISMA_FMT_BINARY env var or ensure it is installed alongside @prisma/engines.\n` +
+      `Searched: ${enginesPath}`,
+  )
+}
+
+/**
+ * Spawn the prisma-fmt native binary to generate DMMF, streaming the output
+ * through a JSON parser. This has no memory ceiling (unlike WASM) because
+ * serde_json::to_writer() streams directly to stdout.
+ * See: https://github.com/prisma/prisma/issues/29111
+ */
+async function getDmmfBinaryStreaming(params: string): Promise<DMMF.Document> {
+  const binaryPath = await resolvePrismaFmtBinary()
+  debug(`Using prisma-fmt binary at: ${binaryPath}`)
+
+  const { JSONParser } = require('@streamparser/json') as typeof import('@streamparser/json')
+
+  return new Promise<DMMF.Document>((resolve, reject) => {
+    const child = spawn(binaryPath, ['get-dmmf'], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
+      },
+    })
+
+    const parser = new JSONParser()
+    let result: DMMF.Document | undefined
+    let stderr = ''
+    let rejected = false
+
+    // Timeout: large schemas (1700+ models) may take 30-60s to serialize
+    const TIMEOUT_MS = 120_000
+    const timeoutId = setTimeout(() => {
+      rejected = true
+      child.kill('SIGTERM')
+      reject(new Error(`prisma-fmt timed out after ${TIMEOUT_MS / 1000}s`))
+    }, TIMEOUT_MS)
+
+    parser.onValue = ({ value, stack }) => {
+      if (stack.length === 0 && value !== undefined) {
+        result = value as unknown as DMMF.Document
+      }
+    }
+
+    child.stdout.on('data', (chunk: Buffer) => {
+      parser.write(chunk)
+    })
+
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderr += chunk.toString()
+    })
+
+    child.on('close', (code: number | null, signal: string | null) => {
+      clearTimeout(timeoutId)
+      if (rejected) return
+
+      if (code !== 0) {
+        const msg = signal ? `killed by signal ${signal}` : `exited with code ${code}`
+        reject(new Error(`prisma-fmt ${msg}: ${stderr}`))
+        return
+      }
+      if (result === undefined) {
+        reject(new Error('prisma-fmt produced no DMMF output'))
+        return
+      }
+      debug(`DMMF retrieved via binary streaming`)
+      resolve(result)
+    })
+
+    child.on('error', (err: Error) => {
+      clearTimeout(timeoutId)
+      if (!rejected) {
+        rejected = true
+        reject(new Error(`Failed to spawn prisma-fmt: ${err.message}`))
+      }
+    })
+
+    // Handle stdin backpressure for large schemas
+    if (!child.stdin.write(params)) {
+      child.stdin.once('drain', () => {
+        child.stdin.end()
+      })
+    } else {
+      child.stdin.end()
+    }
+  })
 }
 
 /**
@@ -99,6 +224,38 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
     debug('dmmf data retrieved without errors in getDmmf Wasm')
     const { right: data } = dmmfEither
     return Promise.resolve(data)
+  }
+
+  /**
+   * If the error is a V8 string length limit, fall back to the binary streaming API.
+   * This bypasses the limit by spawning the prisma-fmt native binary, which uses
+   * serde_json::to_writer() to stream DMMF JSON to stdout with no memory ceiling.
+   * See: https://github.com/prisma/prisma/issues/29111
+   */
+  const leftError = dmmfEither.left
+  if (leftError.type === 'wasm-error' && isV8StringLimitError(leftError.error)) {
+    debug('V8 string limit hit, falling back to binary streaming')
+
+    try {
+      const params = JSON.stringify({
+        prismaSchema: options.datamodel,
+        noColor: Boolean(process.env.NO_COLOR),
+      })
+      const data = await getDmmfBinaryStreaming(params)
+      debug('dmmf data retrieved via binary streaming')
+      return data
+    } catch (binaryError) {
+      debugErrorType({
+        type: 'wasm-error' as const,
+        reason: '(get-dmmf-binary)',
+        error: binaryError as Error,
+      })
+      throw new GetDmmfError({
+        _tag: 'unparsed',
+        message: `Binary streaming fallback failed: ${(binaryError as Error).message}`,
+        reason: '(get-dmmf-binary)',
+      })
+    }
   }
 
   /**
