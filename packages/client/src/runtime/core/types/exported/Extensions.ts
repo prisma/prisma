@@ -3,6 +3,7 @@ import { Sql } from '@prisma/client-runtime-utils'
 
 import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
 import { ITXClientDenyList } from './itxClientDenyList'
+import { Action } from './JsApi'
 import { InputJsonObject, JsonObject } from './Json'
 import { OperationPayload } from './Payload'
 import { PrismaPromise } from './Public'
@@ -106,11 +107,11 @@ export type DynamicQueryExtensionCbArgs<
       args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>,
       model: _0 extends 0 ? undefined : _1,
       operation: _2,
-      query: <A extends DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>>(args: A) =>
+      query: <A extends DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>>(args: A, operation?: Action) =>
         PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
     } : never : never
   ) & { // but we don't distribute for query so that the input types stay union
-    query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
+    query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>, operation?: Action) =>
       PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
   }
 

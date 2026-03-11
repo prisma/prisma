@@ -1,4 +1,4 @@
-import { JsArgs } from './JsApi'
+import { Action, JsArgs } from './JsApi'
 import { RawQueryArgs } from './RawQueryArgs'
 import { Optional } from './Utils'
 
@@ -48,14 +48,14 @@ export type QueryOptionsCbArgs = {
   model?: string
   operation: string
   args: JsArgs | RawQueryArgs
-  query: (args: JsArgs | RawQueryArgs) => Promise<unknown>
+  query: (args: JsArgs | RawQueryArgs, operation?: Action) => Promise<unknown>
 }
 
 export type ModelQueryOptionsCbArgs = {
   model: string
   operation: string
   args: JsArgs
-  query: (args: JsArgs) => Promise<unknown>
+  query: (args: JsArgs, operation?: Action) => Promise<unknown>
 }
 
 export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>

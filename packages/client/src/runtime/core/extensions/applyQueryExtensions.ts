@@ -36,7 +36,8 @@ function iterateAndCallQueryCallbacks(
       args: deepCloneArgs(params.args ?? {}),
       // @ts-expect-error because not part of public API
       __internalParams: params,
-      query: (args, __internalParams = params) => {
+      query: (args, operation, __internalParams = params) => {
+        if (operation) __internalParams.action = operation
         // we need to keep track of the current customDataProxyFetch
         // this is to cascade customDataProxyFetch like a middleware
         const currCustomFetch = __internalParams.customDataProxyFetch
