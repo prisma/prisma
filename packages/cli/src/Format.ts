@@ -93,7 +93,10 @@ Or specify a Prisma schema path
           return new HelpError(`${bold(red(`!`))} The schema ${underline(filename)} is not found in the schema list.`)
         }
         const [, originalSchema] = originalSchemaTuple
-        if (originalSchema !== formattedSchema) {
+        // Normalize line endings before comparing to handle cross-platform differences
+        const normalizedOriginal = originalSchema.replace(/\r\n/g, '\n')
+        const normalizedFormatted = formattedSchema.replace(/\r\n/g, '\n')
+        if (normalizedOriginal !== normalizedFormatted) {
           return new HelpError(
             `${bold(red(`!`))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
           )
@@ -103,7 +106,9 @@ Or specify a Prisma schema path
     }
 
     for (const [filename, data] of formattedDatamodel) {
-      await fs.writeFile(filename, data)
+      // Normalize line endings to LF to ensure consistent formatting across platforms
+      const normalizedData = data.replace(/\r\n/g, '\n')
+      await fs.writeFile(filename, normalizedData)
     }
 
     const after = Math.round(performance.now())
