@@ -109,6 +109,10 @@ export class Version implements Command {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
 
+    // Add schema path information
+    const schemaPath = config.schema || 'Not specified'
+    rows.push(['Schema Path', schemaPath])
+
     // @ts-ignore TODO @jkomyno, as affects the type of rows
     return formatTable(rows, { json: args['--json'] })
   }
