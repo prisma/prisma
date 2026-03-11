@@ -50,14 +50,16 @@ function getUnquotedSql(sql: string): string {
 
 /**
  * Transforms args into the correct format for better-sqlite3 based on the parameter binding style in the SQL query.
- * Plain '?' -> array, positional '?N' -> numeric-keyed object, named ':param' -> named object.
+ * Plain '?' -> array, positional '?N' -> numeric-keyed object, named ':param'/'$param'/'@param' -> named object.
  */
 function bindArgs(sql: string, args: unknown[]): unknown[] | Record<string, unknown> {
   const unquoted = getUnquotedSql(sql)
 
   if (/\?\d+/.test(unquoted)) {
+    const indexes = [...unquoted.matchAll(/\?(\d+)/g)].map((match) => match[1])
+    const uniqueIndexes = [...new Set(indexes)]
     const obj: Record<string, unknown> = {}
-    args.forEach((val, i) => { obj[i + 1] = val })
+    uniqueIndexes.forEach((index, i) => { obj[index] = args[i] })
     return obj
   }
 
