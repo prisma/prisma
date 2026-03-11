@@ -140,10 +140,7 @@ function mapDriverError(error: DatabaseError): MappedError {
       const rawColumn = error.message.match(/^column (.+) does not exist$/)?.at(1)
       return {
         kind: 'ColumnNotFound',
-        column: rawColumn
-          ?.split('.')
-          .map((s) => (s.startsWith('"') ? s.replace(/^"|"$/g, '').replaceAll('""', '"') : s))
-          .join('.'),
+        column: rawColumn?.replace(/"((?:""|[^"])*)"/g, (_, id) => id.replaceAll('""', '"')),
       }
     }
     case '42P04':
