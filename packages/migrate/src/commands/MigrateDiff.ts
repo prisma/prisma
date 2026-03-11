@@ -22,6 +22,7 @@ import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
 import { CaptureStdout } from '../utils/captureStdout'
 import { listMigrations } from '../utils/listMigrations'
+import { transformPostgresMnPrimaryKeyUpgrade } from '../utils/transformMigrationScript'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -295,12 +296,17 @@ ${bold('Examples')}
       await migrate.stop()
     }
 
-    // Write output to file if --output is defined
     if (isOutputDefined) {
       captureStdout.stopCapture()
-      const diffOutput = captureStdout.getCapturedText()
+      let output = captureStdout.getCapturedText().join('')
       captureStdout.clearCaptureText()
-      await fs.writeAsync(outputPath!, diffOutput.join('\n'))
+      if (args['--script']) {
+        const url = config.datasource?.url ?? ''
+        if (url.startsWith('postgresql://') || url.startsWith('postgres://')) {
+          output = transformPostgresMnPrimaryKeyUpgrade(output)
+        }
+      }
+      await fs.writeAsync(outputPath!, output)
     }
 
     // Note: only contains the exitCode
