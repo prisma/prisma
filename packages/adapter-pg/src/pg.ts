@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 
+import crypto from 'node:crypto'
+
 import type {
   ColumnType,
   ConnectionInfo,
@@ -24,6 +26,24 @@ import { convertDriverError } from './errors'
 const types = pg.types
 
 const debug = Debug('prisma:driver-adapter:pg')
+
+/**
+ * Derive a stable prepared statement name from the SQL text and argument types.
+ *
+ * Passing a `name` makes `pg` use PostgreSQL named prepared statements, so repeated
+ * query shapes can reuse server-side plans on the same connection. We key the name
+ * by SQL text and parameter types, mirroring the Rust implementation.
+ *
+ * Named statements live for the lifetime of the connection, which is likely acceptable for
+ * Prisma workloads because the set of query shapes is typically bounded.
+ */
+export function getStatementName(query: SqlQuery): string {
+  const hashInput =
+    query.argTypes.length > 0
+      ? query.sql + '\0' + query.argTypes.map((t) => `${t.scalarType}:${t.arity}`).join(',')
+      : query.sql
+  return 'p_' + crypto.hash('sha1', hashInput, 'hex').slice(0, 16)
+}
 
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
@@ -107,6 +127,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         {
           text: sql,
           values,
+          name: getStatementName(query),
           rowMode: 'array',
           types: {
             // This is the error expected:
