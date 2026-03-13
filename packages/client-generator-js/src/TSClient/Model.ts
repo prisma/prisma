@@ -665,12 +665,7 @@ function getNonAggregateMethodArgs(
     return makeParameter(ts.namedType(getModelArgName(modelName, actionName))).optional()
   }
 
-  const type = ts
-    .namedType('SelectSubset')
-    .addGenericArgument(ts.namedType('T'))
-    .addGenericArgument(
-      ts.namedType(getModelArgName(modelName, actionName)).addGenericArgument(extArgsParam.toArgument()),
-    )
+  const type = ts.namedType(getModelArgName(modelName, actionName)).addGenericArgument(extArgsParam.toArgument())
   const param = makeParameter(type)
 
   if (
