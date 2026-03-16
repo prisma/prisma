@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import type { PlaceholderFormat, QueryPlanDbQuery } from '../query-plan'
 import { GeneratorRegistry } from './generators'
 import { renderQuery } from './render-query'
@@ -70,7 +72,7 @@ test('transforms IN template', () => {
         type: 'templateSql',
         fragments: [
           { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
@@ -104,7 +106,7 @@ test('transforms IN template with empty list', () => {
         type: 'templateSql',
         fragments: [
           { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
@@ -138,7 +140,7 @@ test('handles singleton list in IN template', () => {
         type: 'templateSql',
         fragments: [
           { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
@@ -169,7 +171,7 @@ test('treats non-array element as a singleton list in IN template', () => {
         type: 'templateSql',
         fragments: [
           { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
@@ -200,7 +202,7 @@ test("transforms IN template, doesn't touch scalar list", () => {
         type: 'templateSql',
         fragments: [
           { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' AND numbers = ' },
           { type: 'parameter' },
           { type: 'stringChunk', chunk: ' OFFSET ' },
@@ -404,7 +406,7 @@ test('chunking a SELECT..IN with a large parameterTuple', () => {
           { type: 'stringChunk', chunk: 'SELECT FROM "public"."User" WHERE "banned" = ' },
           { type: 'parameter' },
           { type: 'stringChunk', chunk: ' AND "id" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' AND "name" = ' },
           { type: 'parameter' },
         ],
@@ -457,11 +459,9 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
         type: 'templateSql',
         fragments: [
           { type: 'stringChunk', chunk: 'SELECT FROM "public"."User" WHERE "id" IN ' },
-          {
-            type: 'parameterTuple',
-          },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' AND "age" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
         ],
         placeholderFormat: {
           prefix: '$',
@@ -506,7 +506,7 @@ test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
           { type: 'stringChunk', chunk: 'SELECT FROM "public"."User" WHERE "banned" = ' },
           { type: 'parameter' },
           { type: 'stringChunk', chunk: ' AND "id" IN ' },
-          { type: 'parameterTuple' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
           { type: 'stringChunk', chunk: ' AND "name" = ' },
           { type: 'parameter' },
         ],

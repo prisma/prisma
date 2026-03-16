@@ -1,3 +1,7 @@
+import { type IsolationLevel } from '@prisma/json-protocol'
+
+export { type IsolationLevel }
+
 export type Options = {
   /** Timeout for starting the transaction */
   maxWait?: number
@@ -7,9 +11,13 @@ export type Options = {
 
   /** Transaction isolation level */
   isolationLevel?: IsolationLevel
-}
 
-export type IsolationLevel = 'ReadUncommitted' | 'ReadCommitted' | 'RepeatableRead' | 'Snapshot' | 'Serializable'
+  /**
+   * Used for nested interactive transactions. When provided, the engine may
+   * re-use an existing open transaction instead of opening a new one.
+   */
+  newTxId?: string
+}
 
 export type InteractiveTransactionInfo<Payload = unknown> = {
   /**

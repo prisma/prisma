@@ -5,11 +5,11 @@ import { SqlQueryOutput } from '@prisma/generator'
 import {
   arg,
   Command,
+  createSchemaPathInput,
   format,
   Generator,
   getGenerators,
   getGeneratorSuccessMessage,
-  GetSchemaResult,
   getSchemaWithPath,
   HelpError,
   isError,
@@ -29,7 +29,6 @@ import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -105,7 +104,11 @@ ${bold('Examples')}
     this.logText += message.join('\n')
   })
 
-  public async parse(argv: string[], config: PrismaConfigInternal, configDir: string): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    baseDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -132,8 +135,14 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
-    const promotion = getRandomPromotion()
+    const schemaResult = await getSchemaWithPath({
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
+      cwd,
+    })
 
     if (!schemaResult) return ''
 
@@ -147,7 +156,7 @@ ${bold('Examples')}
     let typedSqlData: { validatedConfig: PrismaConfigWithDatasource; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
       const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd: 'generate --sql' })
-      const typedSql = await introspectSql(validatedConfig, configDir, schemaContext)
+      const typedSql = await introspectSql(validatedConfig, baseDir, schemaContext)
       typedSqlData = {
         validatedConfig,
         typedSql,
@@ -248,7 +257,6 @@ Please make sure they have the same version.`
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${renderPromotion(promotion)}
 ${breakingChangesStr}${versionsWarning}`
         }
       }
@@ -275,7 +283,14 @@ ${breakingChangesStr}${versionsWarning}`
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
 
-        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
+        const schemaResult = await getSchemaWithPath({
+          schemaPath: createSchemaPathInput({
+            schemaPathFromArgs: args['--schema'],
+            schemaPathFromConfig: config.schema,
+            baseDir,
+          }),
+          cwd,
+        })
         if (!schemaResult) return ''
 
         const schemaContext = await processSchemaResult({ schemaResult })
@@ -283,7 +298,7 @@ ${breakingChangesStr}${versionsWarning}`
         let generatorsWatch: Generator[] | undefined
         try {
           if (typedSqlData !== undefined) {
-            typedSqlData.typedSql = await introspectSql(typedSqlData.validatedConfig, configDir, schemaContext)
+            typedSqlData.typedSql = await introspectSql(typedSqlData.validatedConfig, baseDir, schemaContext)
           }
 
           generatorsWatch = await getGenerators({
@@ -349,12 +364,4 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
-}
-
-async function getSchemaForGenerate(
-  schemaFromArgs: string | undefined,
-  schemaFromConfig: string | undefined,
-  cwd: string,
-): Promise<GetSchemaResult | null> {
-  return getSchemaWithPath(schemaFromArgs, schemaFromConfig, { cwd })
 }

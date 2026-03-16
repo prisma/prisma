@@ -1,5 +1,8 @@
 /* eslint-disable jest/no-identical-title */
 
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
+
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
@@ -295,6 +298,16 @@ describe('validate', () => {
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toEqual('')
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toEqual('')
+  })
+
+  it('should load and validate schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+    const configDir = path.join(process.cwd(), 'config')
+    await expect(
+      Validate.new()
+        .parse(['--config=./config/prisma.config.ts'], defaultTestConfig(), configDir)
+        .then((res) => (typeof res === 'string' ? stripVTControlCharacters(res) : res)),
+    ).resolves.toContain(`The schema at ${path.join('config', 'schema.prisma')} is valid`)
   })
 
   describe('referential actions', () => {

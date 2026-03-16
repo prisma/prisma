@@ -1,22 +1,35 @@
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { defineConfig } from '@prisma/config'
-import { createConnection } from 'mysql2/promise'
 import 'dotenv/config'
  
 const SQLITE_PATH = 'file:dev.db'
 
-if (process.env.PROVIDER === 'mysql') {
-  const connection = await createConnection(process.env.DATABASE_URL_MYSQL!)
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-  await connection.query(`DROP TABLE IF EXISTS User;`);
-  await connection.query(`
-    CREATE TABLE User (
-      id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      name VARCHAR(100) NOT NULL,
-      email VARCHAR(100) NOT NULL
-    );`);
-  await connection.query(`
-    INSERT INTO User (name, email) VALUES ('Alice', 'alice@example.com');
-  `);
+if (process.env.PROVIDER === 'postgres') {
+  const {default: postgres} = await import('postgres')
+
+  const sql = await readFile(join(__dirname, 'postgres.sql'), 'utf-8')
+  
+  const pool = postgres(process.env.DATABASE_URL_POSTGRES!, { max: 1 })
+
+  await pool.unsafe(sql).finally(() => pool.end())
+}
+
+if (process.env.PROVIDER === 'mysql') {
+  const { createConnection } = await import('mysql2/promise')
+
+  const sql = await readFile(join(__dirname, 'mysql.sql'), 'utf-8')
+
+  const connection = await createConnection({
+    multipleStatements: true,
+    uri: process.env.DATABASE_URL_MYSQL!,
+  })
+
+  await connection.query(sql).finally(() => connection.end())
 }
 
 if (process.env.PROVIDER === 'sqlite') {
@@ -41,25 +54,25 @@ if (process.env.PROVIDER === 'sqlite') {
     }
   }
 
-  database.exec(
-    `DROP TABLE IF EXISTS User;
-    CREATE TABLE User (
-      id INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE
-    );
-    insert into User (name, email) values ('Alice', 'alice@example.com');
-    `
-  )
-  database.close()
+  const sql = await readFile(join(__dirname, 'sqlite.sql'), 'utf-8')
+
+  try {
+    database.exec(sql)
+  } finally {
+    database.close()
+  }
 }
 
 export default defineConfig({
   datasource: {
     url: {
-      mysql: process.env.DATABASE_URL_MYSQL!,
-      postgres: process.env.DATABASE_URL_POSTGRES!,
-      sqlite: SQLITE_PATH,
-    }[process.env.PROVIDER!]!,
+      mysql: () => {
+        const url = new URL(process.env.DATABASE_URL_MYSQL!)
+        url.pathname = '/Northwind'
+        return url.toString()
+      },
+      postgres: () => process.env.DATABASE_URL_POSTGRES!,
+      sqlite: () => SQLITE_PATH,
+    }[process.env.PROVIDER || 'postgres'](),
   },
 })

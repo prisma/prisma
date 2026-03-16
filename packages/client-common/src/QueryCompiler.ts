@@ -25,6 +25,7 @@ export type CompilerWasmLoadingConfig = {
     __wbg_set_wasm(exports: unknown): void
     QueryCompiler: QueryCompilerConstructor
   }>
+
   /**
    * Loads the raw wasm module for the wasm compiler engine. This configuration is
    * generated specifically for each type of client, eg. Node.js client and Edge
@@ -33,4 +34,6 @@ export type CompilerWasmLoadingConfig = {
    * @remarks only used by ClientEngine
    */
   getQueryCompilerWasmModule: () => Promise<unknown>
+
+  importName: string
 }

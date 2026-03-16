@@ -38,12 +38,11 @@ describe('diagnostics related to prisma.config.ts should not influence structure
     const { stdout, stderr, exitCode } = await $`pnpm prisma version --json`
 
     expect(exitCode).toBe(0)
-    // TODO: uncomment when https://linear.app/prisma-company/issue/ORM-1257/fix-27005-which-is-similar-to-27638 is solved.
-    expect(() => JSON.parse(stdout)) /* .not */
-      .toThrow()
+    expect(() => JSON.parse(stdout)).not.toThrow()
     expect(stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
 
+      Prisma schema loaded from prisma/schema.prisma.
       "
     `)
   })

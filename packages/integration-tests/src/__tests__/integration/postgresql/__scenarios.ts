@@ -1385,16 +1385,14 @@ export const scenarios = [
     name: 'findMany where - case insensitive field',
     up: `
       drop extension if exists citext cascade;
-      create extension citext;
+      create extension citext schema public;
       create table users (
         id serial primary key not null,
-        email citext not null unique
+        email public.citext unique not null
       );
       insert into users ("email") values ('max@prisma.io');
     `,
-    do: (client) => {
-      return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
-    },
+    do: (client) => client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } }),
     expect: [
       {
         email: 'max@prisma.io',

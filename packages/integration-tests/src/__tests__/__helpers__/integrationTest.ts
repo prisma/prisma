@@ -6,7 +6,12 @@ import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 
+import { PrismaLibSql } from '../../../../adapter-libsql/src/index-node'
+import { PrismaMariaDb } from '../../../../adapter-mariadb/src'
+import { PrismaMssql } from '../../../../adapter-mssql/src'
+import { PrismaPg } from '../../../../adapter-pg/src'
 import { getTestClient } from '../../../../client/src/utils/getTestClient'
+import { SqlDriverAdapterFactory } from '../../../../driver-adapter-utils/src/types'
 
 process.setMaxListeners(200)
 
@@ -225,7 +230,31 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
 
       const PrismaClient = await getTestClient(ctx.fs.cwd())
 
-      state.prisma = new PrismaClient()
+      let adapter: SqlDriverAdapterFactory
+      const connectionString =
+        typeof input.database.datasource.url === 'function'
+          ? input.database.datasource.url(ctx)
+          : input.database.datasource.url
+
+      switch (input.database.name) {
+        case 'postgresql':
+          adapter = new PrismaPg({ connectionString }, { schema: ctx.id })
+          break
+        case 'mysql':
+        case 'mariadb':
+          adapter = new PrismaMariaDb(connectionString)
+          break
+        case 'sqlserver':
+          adapter = new PrismaMssql(connectionString)
+          break
+        case 'sqlite':
+          adapter = new PrismaLibSql({ url: connectionString })
+          break
+        default:
+          throw new Error(`Unsupported database: ${input.database.name}`)
+      }
+
+      state.prisma = new PrismaClient({ adapter })
       await state.prisma.$connect()
 
       const result = await scenario.do(state.prisma)
@@ -294,6 +323,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
             : input.database.datasource.url,
       },
     },
+    baseDir: ctx.fs.cwd(),
   })
   const engine = migrate.engine
   const introspectionResult = await engine.introspect({

@@ -19,9 +19,9 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v4.0.0
+    - uses: pnpm/action-setup@v4.2.0
     - name: Use Node.js ${{ inputs.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'pnpm'
@@ -38,7 +38,7 @@ runs:
 
     - name: Download custom engines
       id: custom-engine
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         key: ${{ runner.os }}-engine-${{ inputs.engine-hash }}-${{ github.event.number }}
         path: |

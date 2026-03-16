@@ -18,6 +18,9 @@ type DriverAdapterSupportedProvider = (typeof DRIVER_ADAPTER_SUPPORTED_PROVIDERS
 const MODULE_FORMATS = ['esm', 'cjs'] as const
 type ModuleFormat = (typeof MODULE_FORMATS)[number]
 
+const QUERY_COMPILER_BUILD_TYPES = ['fast', 'small'] as const
+type QueryCompilerBuildType = (typeof QUERY_COMPILER_BUILD_TYPES)[number]
+
 function getOutExtension(format: ModuleFormat): Record<string, string> {
   return {
     esm: { '.js': '.mjs' },
@@ -60,12 +63,16 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
   }
 }
 
-function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider, format: ModuleFormat): BuildOptions {
+function wasmBindgenRuntimeConfig(
+  provider: DriverAdapterSupportedProvider,
+  format: ModuleFormat,
+  buildType: QueryCompilerBuildType,
+): BuildOptions {
   return {
     format,
-    name: `query_compiler_bg.${provider}`,
-    entryPoints: [`@prisma/query-compiler-wasm/${provider}/query_compiler_bg.js`],
-    outfile: `runtime/query_compiler_bg.${provider}`,
+    name: `query_compiler_${buildType}_bg.${provider}`,
+    entryPoints: [`@prisma/query-compiler-wasm/${provider}/query_compiler_${buildType}_bg.js`],
+    outfile: `runtime/query_compiler_${buildType}_bg.${provider}`,
     outExtension: getOutExtension(format),
     minify: shouldMinify,
     plugins: [
@@ -159,21 +166,24 @@ function wasmEdgeRuntimeBuildConfig(format: ModuleFormat, name: string): BuildOp
         name: 'wasm-base64-encoder',
         setup(build) {
           build.onEnd(() => {
+            const extToModuleFormatMap = {
+              esm: 'mjs',
+              cjs: 'js',
+            } satisfies Record<ModuleFormat, string>
+
             for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
-              const wasmFilePath = path.join(wasmQueryCompilerDir, provider, `query_compiler_bg.wasm`)
-
-              const extToModuleFormatMap = {
-                esm: 'mjs',
-                cjs: 'js',
-              } satisfies Record<ModuleFormat, string>
-
-              for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
-                const base64FilePath = path.join(runtimeDir, `query_compiler_bg.${provider}.wasm-base64.${extension}`)
-
+              for (const buildType of QUERY_COMPILER_BUILD_TYPES) {
+                const wasmFilePath = path.join(wasmQueryCompilerDir, provider, `query_compiler_${buildType}_bg.wasm`)
                 try {
                   const wasmBuffer = fs.readFileSync(wasmFilePath)
-                  const base64Content = wasmFileToBase64(wasmBuffer, moduleFormat as ModuleFormat)
-                  fs.writeFileSync(base64FilePath, base64Content)
+                  for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
+                    const base64FilePath = path.join(
+                      runtimeDir,
+                      `query_compiler_${buildType}_bg.${provider}.wasm-base64.${extension}`,
+                    )
+                    const base64Content = wasmFileToBase64(wasmBuffer, moduleFormat as ModuleFormat)
+                    fs.writeFileSync(base64FilePath, base64Content)
+                  }
                 } catch (error) {
                   throw new Error(`Failed to create base64 encoded WASM file for ${provider}`, {
                     cause: error,
@@ -225,7 +235,9 @@ function* allWasmEdgeRuntimeConfigs(): Generator<BuildOptions> {
 function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
   for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
     for (const format of MODULE_FORMATS) {
-      yield wasmBindgenRuntimeConfig(provider, format)
+      for (const buildType of QUERY_COMPILER_BUILD_TYPES) {
+        yield wasmBindgenRuntimeConfig(provider, format, buildType)
+      }
     }
   }
 }

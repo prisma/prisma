@@ -1,10 +1,12 @@
-import { CompilerWasmLoadingConfig } from '@prisma/client-common'
+import { CompilerWasmLoadingConfig, RuntimeDataModel } from '@prisma/client-common'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
-import { TracingHelper } from '@prisma/internals'
+import type { TracingHelper } from '@prisma/instrumentation-contract'
+import type { JsonQuery } from '@prisma/json-protocol'
+import type { SerializedParamGraph } from '@prisma/param-graph'
+import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 
 import type { LogEmitter } from './types/Events'
-import { JsonQuery } from './types/JsonProtocol'
 import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 
@@ -143,6 +145,23 @@ export interface EngineConfig {
    * Web Assembly module loading configuration
    */
   compilerWasm?: CompilerWasmLoadingConfig
+
+  /**
+   * SQL commenter plugins that add metadata to SQL queries as comments.
+   * Each plugin receives query context and returns key-value pairs.
+   */
+  sqlCommenters?: SqlCommenterPlugin[]
+
+  /**
+   * Parameterization schema (ParamGraph) for schema-aware query parameterization.
+   * Enables precise parameterization based on DMMF metadata.
+   */
+  parameterizationSchema: SerializedParamGraph
+
+  /**
+   * Runtime data model for enum lookups during parameterization.
+   */
+  runtimeDataModel: RuntimeDataModel
 }
 
 /**

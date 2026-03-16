@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -117,7 +117,7 @@ jobs:
       JEST_JUNIT_SUITE_NAME: 'client/functional'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -169,7 +169,7 @@ jobs:
         node: ['20.19.0', '22.12.0', '24']
         flavor: ['js_pg']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -237,7 +237,7 @@ jobs:
         node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -304,7 +304,7 @@ jobs:
         node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -359,7 +359,7 @@ jobs:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -415,7 +415,7 @@ jobs:
         # ./packages/client/tests/e2e/_utils/standard.dockerfile
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Not currently needed, but we might need it in the future
       - name: Start Docker Compose Services
@@ -460,7 +460,7 @@ jobs:
       JEST_JUNIT_SUITE_NAME: 'client/functional'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set RELATION_MODE custom test env var
         run: |
@@ -530,7 +530,7 @@ jobs:
       matrix:
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -558,7 +558,7 @@ jobs:
       matrix:
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -603,7 +603,7 @@ jobs:
       matrix:
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -616,39 +616,38 @@ jobs:
 
   #
   # INTEGRATION-TESTS
-  # TODO: re-enable once they're ported to the Query Compiler architecture.
   #
-  # integration-tests:
-  #   name: Integration tests
-  #   timeout-minutes: 20
-  #   runs-on: ubuntu-latest
-  #   if: |
-  #     contains(inputs.jobsToRun, '-all-') ||
-  #     contains(inputs.jobsToRun, '-integration-tests-')
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       node: ['20.19.0']
-  #   steps:
-  #     - uses: actions/checkout@v4
+  integration-tests:
+    name: Integration tests
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-integration-tests-')
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19.0']
+    steps:
+      - uses: actions/checkout@v6
 
-  #     - name: Start Docker Compose Services
-  #       uses: nick-fields/retry@v3
-  #       with:
-  #         timeout_minutes: 10
-  #         max_attempts: 5
-  #         retry_wait_seconds: 120
-  #         command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
 
-  #     - name: Install & build
-  #       uses: ./.github/actions/setup
-  #       with:
-  #         node-version: ${{ matrix.node }}
-  #         engine-hash: ${{ inputs.engineHash }}
-  #         skip-tsc: true
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
 
-  #     - run: pnpm run test
-  #       working-directory: packages/integration-tests
+      - run: pnpm run test
+        working-directory: packages/integration-tests
 
   #
   # `@prisma/internals`
@@ -666,7 +665,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -704,7 +703,7 @@ jobs:
         # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
         driverAdapter: ['']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -742,7 +741,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -783,7 +782,7 @@ jobs:
           - os: macos-latest
             version: 18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -809,7 +808,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -843,6 +842,10 @@ jobs:
         working-directory: packages/instrumentation
 
       - run: pnpm run test
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
 
@@ -862,6 +865,18 @@ jobs:
         name: 'credentials-store'
         working-directory: packages/credentials-store
 
+      - run: pnpm run test
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
+
   #
   # Driver Adapter Unit Tests
   #
@@ -876,7 +891,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['20.19.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -913,6 +928,10 @@ jobs:
         name: 'adapter-neon'
         working-directory: packages/adapter-neon
 
+      - run: pnpm run test
+        name: 'adapter-ppg'
+        working-directory: packages/adapter-ppg
+
   #
   # Query plan executor unit tests
   #
@@ -927,7 +946,7 @@ jobs:
         os: [ubuntu-latest]
         node: ['24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -951,7 +970,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -990,7 +1009,7 @@ jobs:
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prerequisites
         shell: bash
@@ -1053,7 +1072,7 @@ jobs:
         os: [macos-14, windows-latest]
         node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prerequisites
         shell: bash
@@ -1225,6 +1244,26 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
         name: 'query-plan-executor'
         working-directory: packages/query-plan-executor
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

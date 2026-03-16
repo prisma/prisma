@@ -4,7 +4,7 @@ import { ActiveConnectorType, DataSource, GeneratorConfig } from '@prisma/genera
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
 
 import { getConfig } from '../engine-commands'
-import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
+import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage, SchemaPathInput } from './getSchema'
 
 export type SchemaContext = {
   /**
@@ -43,8 +43,7 @@ export type SchemaContext = {
 }
 
 type LoadSchemaContextOptions = {
-  schemaPathFromArg?: string
-  schemaPathFromConfig?: string
+  schemaPath: SchemaPathInput
   printLoadMessage?: boolean
   allowNull?: boolean
   schemaPathArgumentName?: string
@@ -55,27 +54,22 @@ export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
 export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
-export async function loadSchemaContext({
-  schemaPathFromArg,
-  schemaPathFromConfig,
-  printLoadMessage = true,
-  allowNull = false,
-  schemaPathArgumentName = '--schema',
-  cwd = process.cwd(),
-}: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
+export async function loadSchemaContext(
+  { schemaPath, printLoadMessage, allowNull, schemaPathArgumentName, cwd }: LoadSchemaContextOptions = {
+    schemaPath: { baseDir: process.cwd() },
+    printLoadMessage: true,
+    allowNull: false,
+    schemaPathArgumentName: '--schema',
+    cwd: process.cwd(),
+  },
+): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
-    schemaResult = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig, {
-      argumentName: schemaPathArgumentName,
-      cwd,
-    })
+    schemaResult = await getSchemaWithPathOptional({ schemaPath, cwd, argumentName: schemaPathArgumentName })
     if (!schemaResult) return null
   } else {
-    schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig, {
-      argumentName: schemaPathArgumentName,
-      cwd,
-    })
+    schemaResult = await getSchemaWithPath({ schemaPath, cwd, argumentName: schemaPathArgumentName })
   }
 
   return processSchemaResult({ schemaResult, printLoadMessage, cwd })

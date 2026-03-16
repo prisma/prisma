@@ -38,7 +38,7 @@ describe('db execute', () => {
 
       const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"The datasource property is required in your Prisma config file when using prisma db execute."`,
+        `"The datasource.url property is required in your Prisma config file when using prisma db execute."`,
       )
     })
   })

@@ -1,11 +1,10 @@
-import { createInterface } from 'node:readline/promises'
 import timers from 'node:timers/promises'
 
-import type { ProcessPromise } from 'zx'
 import { $ } from 'zx'
 
 import { executeSteps } from '../_utils/executeSteps'
 import { retry } from '../_utils/retry'
+import { stopProcess, waitForWranglerReady } from '../_utils/wrangler'
 
 void executeSteps({
   setup: async () => {
@@ -40,47 +39,3 @@ void executeSteps({
     await $`echo "done"`
   },
 })
-
-async function waitForWranglerReady(processPromise: ProcessPromise) {
-  const stdout = processPromise.stdout
-
-  if (!stdout) {
-    throw new Error('Wrangler stdout is not available; cannot detect readiness')
-  }
-
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => {
-    controller.abort(new Error('Timed out waiting for wrangler to report readiness'))
-  }, 30_000)
-
-  const rl = createInterface({ input: stdout, crlfDelay: Infinity })
-
-  try {
-    controller.signal.throwIfAborted()
-
-    for await (const line of rl) {
-      controller.signal.throwIfAborted()
-
-      if (line.includes('Ready')) {
-        return
-      }
-    }
-
-    throw new Error('Wrangler stdout closed before reporting readiness')
-  } catch (error) {
-    if (controller.signal.aborted) {
-      throw controller.signal.reason as Error
-    }
-
-    throw error
-  } finally {
-    clearTimeout(timeoutId)
-    rl.close()
-    stdout.resume()
-  }
-}
-
-async function stopProcess(processPromise: ProcessPromise) {
-  await processPromise.kill('SIGINT')
-  await processPromise
-}

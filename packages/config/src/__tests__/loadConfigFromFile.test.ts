@@ -706,6 +706,31 @@ describe('loadConfigFromFile', () => {
       expect(error).toBeUndefined()
     }
 
+    it('succeeds when a property is set to undefined via env var', async () => {
+      ctx.fixture('loadConfigFromFile/datasource-url-undefined')
+      const { config, error } = await loadConfigFromFile({})
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        datasource: {
+          url: undefined,
+        },
+      })
+    })
+
+    it('fails when a property is using the `env` helper with an undefined env var', async () => {
+      ctx.fixture('loadConfigFromFile/datasource-url-undefined-env')
+      const { config, error } = await loadConfigFromFile({})
+      expect(config).toBeUndefined()
+      assertErrorConfigLoadError(error)
+      expect(error).toMatchObject({
+        _tag: 'ConfigLoadError',
+        error: {
+          name: 'PrismaConfigEnvError',
+          message: 'Cannot resolve environment variable: UNDEFINED_VARIABLE.',
+        },
+      })
+    })
+
     test('if no custom env-var loading function is imported, it should skip loading any environment variables', async () => {
       vi.stubEnv('TEST_CONNECTION_STRING', undefined)
 

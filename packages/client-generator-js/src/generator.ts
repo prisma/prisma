@@ -85,6 +85,7 @@ export class PrismaClientJsGenerator implements Generator {
       clientVersion,
       activeProvider: options.datasources[0]?.activeProvider,
       typedSql: options.typedSql,
+      compilerBuild: parseCompilerBuildFromUnknown(options.generator.config.compilerBuild),
     })
   }
 
@@ -105,4 +106,14 @@ export class PrismaClientJsGenerator implements Generator {
     this.#runtimePath = path.join(await this.#getPrismaClientPath(config), 'runtime')
     return this.#runtimePath
   }
+}
+
+function parseCompilerBuildFromUnknown(value: unknown): 'fast' | 'small' {
+  if (value === undefined) {
+    return 'fast'
+  }
+  if (value === 'small' || value === 'fast') {
+    return value
+  }
+  throw new Error(`Invalid compiler build: ${JSON.stringify(value)}, expected one of: "fast", "small"`)
 }

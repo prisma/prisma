@@ -149,7 +149,7 @@ export const ScalarColumnType = {
  * See the semantics of each of this code in:
  *   https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
  */
-const ArrayColumnType = {
+export const ArrayColumnType = {
   BIT_ARRAY: 1561,
   BOOL_ARRAY: 1000,
   BYTEA_ARRAY: 1001,
@@ -306,12 +306,17 @@ export const builtinParsers = Object.entries({
   parse: v,
 }))
 
-function normalize_bool(x: string) {
+function normalize_bool(x: string | null) {
   return x === null ? null : x === 'f' ? 'false' : 'true'
 }
 
-function normalize_array(element_normalizer: (x: string) => string): (str: string) => string[] {
-  return (str) => parseArray(str, element_normalizer)
+function normalize_array(
+  element_normalizer: (x: string) => string | null,
+): (str: string | null) => (string | null)[] | null {
+  return (str) => {
+    if (str === null) return null
+    return parseArray(str, element_normalizer)
+  }
 }
 
 /****************************/
@@ -339,11 +344,13 @@ function normalize_date(date: string): string {
  * ex: 1996-12-19T16:39:57-08:00
  */
 
-function normalize_timestamp(time: string): string {
+function normalize_timestamp(time: string | null): string | null {
+  if (time === null) return null
   return `${time.replace(' ', 'T')}+00:00`
 }
 
-function normalize_timestamptz(time: string): string {
+function normalize_timestamptz(time: string | null): string | null {
+  if (time === null) return null
   return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
@@ -355,7 +362,8 @@ function normalize_time(time: string): string {
   return time
 }
 
-function normalize_timez(time: string): string {
+function normalize_timez(time: string | null): string | null {
+  if (time === null) return null
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
   return time.replace(/[+-]\d{2}(:\d{2})?$/, '')
@@ -365,7 +373,8 @@ function normalize_timez(time: string): string {
 /* Money handling */
 /******************/
 
-function normalize_money(money: string): string {
+function normalize_money(money: string | null): string | null {
+  if (money === null) return null
   return money.slice(1)
 }
 
@@ -393,17 +402,6 @@ function toJson(json: string): string {
 /* Binary data handling */
 /************************/
 
-/**
- * TODO:
- * 1. Check if using base64 would be more efficient than this encoding.
- * 2. Consider the possibility of eliminating re-encoding altogether
- *    and passing bytea hex format to the engine if that can be aligned
- *    with other adapters of the same database provider.
- */
-function encodeBuffer(buffer: Buffer) {
-  return Array.from(new Uint8Array(buffer))
-}
-
 /*
  * BYTEA - arbitrary raw binary strings
  * the PPG client uses base64 in this case. We do not convert the array of bytea, though (see below)
@@ -416,23 +414,14 @@ const builtInByteParser = getTypeParser(ScalarColumnType.BYTEA) as (_: string) =
 /*
  * BYTEA_ARRAY - arrays of arbitrary raw binary strings
  */
-function parseBytesArray(x: string) {
-  return parseArray(x).map(builtInByteParser)
+function normalizeByteaArray(x: string | null): (Buffer | null)[] | null {
+  if (x === null) return null
+  return parseArray(x).map((elem) => (elem === null ? null : builtInByteParser(elem)))
 }
 
-function normalizeByteaArray(serializedBytesArray) {
-  const buffers = parseBytesArray(serializedBytesArray)
-  return buffers.map((buf) => (buf ? encodeBuffer(buf) : null))
-}
-
-/**
- * Convert bytes to a JSON-encodable representation since we can't
- * currently send a parsed Buffer or ArrayBuffer across JS to Rust
- * boundary.
- */
-function convertBytes(serializedBytes: string): number[] {
-  const buffer = parsePgBytes(serializedBytes)
-  return encodeBuffer(buffer)
+function convertBytes(serializedBytes: string | null): Buffer | null {
+  if (serializedBytes === null) return null
+  return parsePgBytes(serializedBytes)
 }
 
 /* BIT_ARRAY, VARBIT_ARRAY */

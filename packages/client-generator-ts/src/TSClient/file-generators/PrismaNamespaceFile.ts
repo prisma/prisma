@@ -1,4 +1,3 @@
-import { datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
 import { commonCodeTS } from '../common'
@@ -27,11 +26,14 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
     ts.moduleImport(context.importFileName(`../models`)).asNamespace('Prisma').typeOnly(),
     ts.moduleImport(context.importFileName(`./class`)).named(ts.namedImport('PrismaClient').typeOnly()),
   ].map((i) => ts.stringify(i))
-  const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) =>
-    new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toTS(),
-  )
+
+  const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
   const fieldRefs = context.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
+
+  const transactionClientDenyList = context.isSqlProvider()
+    ? 'runtime.ITXClientDenyList'
+    : "runtime.ITXClientDenyList | '$transaction'"
 
   return `${jsDocHeader}
 ${imports.join('\n')}
@@ -42,10 +44,7 @@ ${commonCodeTS(options)}
 ${new Enum(
   {
     name: 'ModelName',
-    data: context.dmmf.mappings.modelOperations.map((m) => ({
-      key: m.model,
-      value: m.model,
-    })),
+    values: context.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
 ).toTS()}
@@ -141,7 +140,7 @@ export type PrismaAction =
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient = Omit<DefaultPrismaClient, ${transactionClientDenyList}>
 
 `
 }
@@ -262,6 +261,27 @@ function buildClientOptions(context: GenerateContext) {
         \`\`\`
       `),
   )
+
+  if (context.isSqlProvider()) {
+    otherOptions.add(
+      ts.property('comments', ts.array(ts.namedType('runtime.SqlCommenterPlugin'))).optional()
+        .setDocComment(ts.docComment`
+        SQL commenter plugins that add metadata to SQL queries as comments.
+        Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          adapter,
+          comments: [
+            traceContext(),
+            queryInsights(),
+          ],
+        })
+        \`\`\`
+      `),
+    )
+  }
 
   // Intersect the mutually exclusive options with the other options
   // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }

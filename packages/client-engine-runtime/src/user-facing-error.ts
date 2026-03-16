@@ -79,6 +79,8 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
       return 'P2002'
     case 'ForeignKeyConstraintViolation':
       return 'P2003'
+    case 'InvalidInputValue':
+      return 'P2007'
     case 'UnsupportedNativeDataType':
       return 'P2010'
     case 'NullConstraintViolation':
@@ -176,6 +178,8 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
       return `Error in external connector (id ${err.cause.id})`
     case 'TooManyConnections':
       return `Too many database connections opened: ${err.cause.cause}`
+    case 'InvalidInputValue':
+      return `Invalid input value: ${err.cause.message}`
     case 'sqlite':
     case 'postgres':
     case 'mysql':

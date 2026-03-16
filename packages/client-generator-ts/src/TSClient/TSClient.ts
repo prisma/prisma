@@ -43,6 +43,7 @@ export class TSClient {
       outputFileName: generatedFileNameMapper(this.options.generatedFileExtension),
       importFileName: importFileNameMapper(this.options.importFileExtension),
       generator: this.options.generator,
+      provider: this.options.activeProvider,
     })
 
     const modelNames = Object.values(context.dmmf.typeAndModelMap)

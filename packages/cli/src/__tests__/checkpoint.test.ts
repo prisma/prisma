@@ -102,7 +102,7 @@ it('should redact a name with for example --name', () => {
 it('should read data from Prisma schema', async () => {
   ctx.fixture('checkpoint-read-schema')
 
-  await expect(tryToReadDataFromSchema('./schema.prisma')).resolves.toMatchInlineSnapshot(`
+  await expect(tryToReadDataFromSchema({ cliProvidedPath: './schema.prisma' })).resolves.toMatchInlineSnapshot(`
     {
       "schemaGeneratorsProviders": [
         "prisma-client",

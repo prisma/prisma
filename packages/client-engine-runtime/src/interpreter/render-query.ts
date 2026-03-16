@@ -11,16 +11,16 @@ import {
   type QueryPlanDbQuery,
 } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
-import { assertNever } from '../utils'
+import { assertNever, DeepReadonly } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'
 
 export function renderQuery(
-  dbQuery: QueryPlanDbQuery,
+  dbQuery: DeepReadonly<QueryPlanDbQuery>,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
-): SqlQuery[] {
+): DeepReadonly<SqlQuery>[] {
   const args = dbQuery.args.map((arg) => evaluateArg(arg, scope, generators))
 
   switch (dbQuery.type) {
@@ -30,8 +30,6 @@ export function renderQuery(
       const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
       return chunks.map((params) => {
         if (maxChunkSize !== undefined && params.length > maxChunkSize) {
-          // TODO: this should probably say something along the lines of `Query parameter limit exceeded error`, like in
-          // https://github.com/prisma/prisma-engines/blob/9c30299f5a0ea26a96790e13f796dc6094db3173/libs/user-facing-errors/src/query_engine/mod.rs#L276.
           throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
         }
 
@@ -50,7 +48,17 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
       if (found === undefined) {
         throw new Error(`Missing value for query variable ${arg.prisma__value.name}`)
       }
-      arg = found
+      if (arg.prisma__value.type === 'DateTime' && typeof found === 'string') {
+        // Convert input datetime strings to Date objects. This is done to prevent issues that
+        // arise when query input values end up being directly compared to values retrieved from
+        // the database. One example of this is a query containing a DateTime cursor value being
+        // used against a DATE MySQL column. The pagination logic doesn't have parameter type
+        // information, therefore it ends up comparing the two datetimes as strings and would yield
+        // false even if the two date datetime strings represent the same Date.
+        arg = new Date(found)
+      } else {
+        arg = found
+      }
     } else if (isPrismaValueGenerator(arg)) {
       const { name, args } = arg.prisma__value
       const generator = generators[name]
@@ -71,10 +79,10 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
 }
 
 function renderTemplateSql(
-  fragments: Fragment[],
+  fragments: DeepReadonly<Fragment[]>,
   placeholderFormat: PlaceholderFormat,
   params: unknown[],
-  argTypes: DynamicArgType[],
+  argTypes: DeepReadonly<DynamicArgType[]>,
 ): SqlQuery {
   let sql = ''
   const ctx = { placeholderNumber: 1 }
@@ -114,7 +122,7 @@ function renderTemplateSql(
   }
 }
 
-function renderFragment<Type extends DynamicArgType | undefined>(
+function renderFragment<Type extends DeepReadonly<DynamicArgType> | undefined>(
   fragment: FragmentWithParams<Type>,
   placeholderFormat: PlaceholderFormat,
   ctx: { placeholderNumber: number },
@@ -131,7 +139,12 @@ function renderFragment<Type extends DynamicArgType | undefined>(
       const placeholders =
         fragment.value.length == 0
           ? 'NULL'
-          : fragment.value.map(() => formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)).join(',')
+          : fragment.value
+              .map(() => {
+                const item = formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+                return `${fragment.itemPrefix}${item}${fragment.itemSuffix}`
+              })
+              .join(fragment.itemSeparator)
       return `(${placeholders})`
     }
 
@@ -155,10 +168,14 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
   return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
-function renderRawSql(sql: string, args: unknown[], argTypes: ArgType[]): SqlQuery {
+function renderRawSql(
+  sql: string,
+  args: readonly unknown[],
+  argTypes: DeepReadonly<ArgType[]>,
+): DeepReadonly<SqlQuery> {
   return {
     sql,
-    args: args,
+    args,
     argTypes,
   }
 }
@@ -167,7 +184,7 @@ function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder 
   return isPrismaValuePlaceholder(param) || isPrismaValueGenerator(param)
 }
 
-type FragmentWithParams<Type extends DynamicArgType | undefined = undefined> = Fragment &
+type FragmentWithParams<Type extends DeepReadonly<DynamicArgType> | undefined = undefined> = Fragment &
   (
     | { type: 'stringChunk' }
     | { type: 'parameter'; value: unknown; argType: Type }
@@ -176,10 +193,12 @@ type FragmentWithParams<Type extends DynamicArgType | undefined = undefined> = F
   )
 
 function* pairFragmentsWithParams<Types>(
-  fragments: Fragment[],
+  fragments: DeepReadonly<Fragment[]>,
   params: unknown[],
   argTypes: Types,
-): Generator<FragmentWithParams<Types extends DynamicArgType[] ? DynamicArgType : undefined>> {
+): Generator<
+  FragmentWithParams<Types extends DeepReadonly<DynamicArgType[]> ? DeepReadonly<DynamicArgType> : undefined>
+> {
   let index = 0
 
   for (const fragment of fragments) {
@@ -236,7 +255,7 @@ function* pairFragmentsWithParams<Types>(
   }
 }
 
-function* flattenedFragmentParams<Type extends DynamicArgType | undefined>(
+function* flattenedFragmentParams<Type extends DeepReadonly<DynamicArgType> | undefined>(
   fragment: FragmentWithParams<Type>,
 ): Generator<unknown, undefined, undefined> {
   switch (fragment.type) {
@@ -256,7 +275,7 @@ function* flattenedFragmentParams<Type extends DynamicArgType | undefined>(
   }
 }
 
-function chunkParams(fragments: Fragment[], params: unknown[], maxChunkSize?: number): unknown[][] {
+function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], maxChunkSize?: number): unknown[][] {
   // Find out the total number of parameters once flattened and what the maximum number of
   // parameters in a single fragment is.
   let totalParamCount = 0

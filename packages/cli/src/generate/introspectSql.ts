@@ -7,14 +7,10 @@ import path from 'path'
 
 const SQL_DIR = 'sql'
 
-export async function introspectSql(
-  config: PrismaConfigWithDatasource,
-  configDir: string,
-  schemaContext: SchemaContext,
-) {
+export async function introspectSql(config: PrismaConfigWithDatasource, baseDir: string, schemaContext: SchemaContext) {
   const directoryConfig = inferDirectoryConfig(schemaContext, config)
   const sqlFiles = await readTypedSqlFiles(directoryConfig.typedSqlDirPath)
-  const introspectionResult = await migrateIntrospectSql(schemaContext, config, configDir, sqlFiles)
+  const introspectionResult = await migrateIntrospectSql(schemaContext, config, baseDir, sqlFiles)
   if (introspectionResult.ok) {
     return introspectionResult.queries
   }

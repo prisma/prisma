@@ -15,7 +15,8 @@ import pMap from 'p-map'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { getDMMF, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
+import { loadSchemaContext, SchemaContext } from '../cli/schemaContext'
+import { getDMMF, mergeSchemas } from '../engine-commands'
 import { Generator, InProcessGenerator, JsonRpcGenerator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -111,7 +112,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   // Fallback logic for prisma studio which still only passes a schema path
   const schemaContext =
     !options.schemaContext && schemaPath
-      ? await loadSchemaContext({ schemaPathFromArg: schemaPath })
+      ? await loadSchemaContext({ schemaPath: { cliProvidedPath: schemaPath } })
       : options.schemaContext
 
   if (!schemaContext) {

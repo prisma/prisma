@@ -1,13 +1,15 @@
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { getSchemaWithPath } from '../cli/getSchema'
+import { expect, it, vi } from 'vitest'
+
+import { createSchemaPathInput, getSchemaWithPath } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
 
 if (process.env.CI) {
   // 5s is often not enough for the "finds the schema path in the root
   // package.json of a yarn workspace from a child package" test on macOS CI.
-  jest.setTimeout(60_000)
+  vi.setConfig({ testTimeout: 60_000 })
 }
 
 process.env.npm_config_user_agent = 'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
@@ -32,12 +34,8 @@ async function testSchemaPath({
   let asyncResult: string | null | Error
 
   try {
-    asyncResult =
-      (
-        await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig, {
-          cwd,
-        })
-      )?.schemaPath ?? null
+    const schemaPath = createSchemaPathInput({ schemaPathFromArgs, schemaPathFromConfig, baseDir: cwd })
+    asyncResult = (await getSchemaWithPath({ schemaPath, cwd }))?.schemaPath ?? null
   } catch (e) {
     asyncResult = e as Error
   }

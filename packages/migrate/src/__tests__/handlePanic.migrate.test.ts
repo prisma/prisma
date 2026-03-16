@@ -20,7 +20,7 @@ describe('handlePanic migrate', () => {
     expect.assertions(isWindows ? 4 : 5)
 
     const schemaPath = join(ctx.tmpDir, 'schema.prisma')
-    const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+    const schemaContext = await loadSchemaContext({ schemaPath: { cliProvidedPath: schemaPath } })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     try {
@@ -28,7 +28,7 @@ describe('handlePanic migrate', () => {
         migrationsDirPath,
         schemaContext,
         schemaEngineConfig: await ctx.config(),
-        configDir: ctx.configDir(),
+        baseDir: ctx.configDir(),
       })
       await migrate.createMigration({
         migrationName: 'setup',

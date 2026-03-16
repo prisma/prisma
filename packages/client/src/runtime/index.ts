@@ -26,8 +26,9 @@ export {
   type Operation,
   type RuntimeDataModel,
 } from '@prisma/client-common'
-export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
+export { deserializeJsonObject } from '@prisma/client-engine-runtime'
 export type { RawValue, Value } from '@prisma/client-runtime-utils'
+export type { AnyNullClass, DbNullClass, JsonNullClass } from '@prisma/client-runtime-utils'
 export {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -42,6 +43,7 @@ export {
   isAnyNull,
   isDbNull,
   isJsonNull,
+  isObjectEnumValue,
   JsonNull,
   NullTypes,
   ObjectEnumValue,
@@ -51,3 +53,10 @@ export { Debug } from '@prisma/debug'
 export * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 export { warnOnce } from '@prisma/internals'
+export type {
+  SqlCommenterContext,
+  SqlCommenterPlugin,
+  SqlCommenterQueryInfo,
+  SqlCommenterSingleQueryInfo,
+  SqlCommenterTags,
+} from '@prisma/sqlcommenter'

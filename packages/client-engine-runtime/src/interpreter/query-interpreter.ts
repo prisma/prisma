@@ -1,12 +1,15 @@
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
+import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
+import { klona } from 'klona'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../query-plan'
+import { FieldInitializer, FieldOperation, InMemoryOps, JoinExpression, QueryPlanNode } from '../query-plan'
 import { type SchemaProvider } from '../schema'
+import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
-import { assertNever } from '../utils'
+import { assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
 import { applyDataMap } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
@@ -18,8 +21,6 @@ import { doesSatisfyRule, performValidation } from './validation'
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
 export type QueryInterpreterOptions = {
-  transactionManager: QueryInterpreterTransactionManager
-  placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
   tracingHelper: TracingHelper
   serializer: (results: SqlResultSet) => Value
@@ -28,20 +29,36 @@ export type QueryInterpreterOptions = {
   connectionInfo?: ConnectionInfo
 }
 
+export type QueryRuntimeOptions = {
+  queryable: SqlQueryable
+  transactionManager: QueryInterpreterTransactionManager
+  scope: Record<string, unknown>
+  sqlCommenter?: QueryInterpreterSqlCommenter
+}
+
+type QueryRuntimeContext = {
+  queryable: SqlQueryable
+  transactionManager: QueryInterpreterTransactionManager
+  scope: Record<string, unknown>
+  generators: GeneratorRegistrySnapshot
+  sqlCommenter?: QueryInterpreterSqlCommenter
+}
+
+export type QueryInterpreterSqlCommenter = {
+  plugins: SqlCommenterPlugin[]
+  queryInfo: SqlCommenterQueryInfo
+}
+
 export class QueryInterpreter {
-  readonly #transactionManager: QueryInterpreterTransactionManager
-  readonly #placeholderValues: Record<string, unknown>
   readonly #onQuery?: (event: QueryEvent) => void
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
   readonly #tracingHelper: TracingHelper
   readonly #serializer: (results: SqlResultSet) => Value
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
-  readonly #connectioInfo?: ConnectionInfo
+  readonly #connectionInfo?: ConnectionInfo
 
   constructor({
-    transactionManager,
-    placeholderValues,
     onQuery,
     tracingHelper,
     serializer,
@@ -49,27 +66,21 @@ export class QueryInterpreter {
     provider,
     connectionInfo,
   }: QueryInterpreterOptions) {
-    this.#transactionManager = transactionManager
-    this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
     this.#tracingHelper = tracingHelper
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
-    this.#connectioInfo = connectionInfo
+    this.#connectionInfo = connectionInfo
   }
 
   static forSql(options: {
-    transactionManager: QueryInterpreterTransactionManager
-    placeholderValues: Record<string, unknown>
     onQuery?: (event: QueryEvent) => void
     tracingHelper: TracingHelper
     provider?: SchemaProvider
     connectionInfo?: ConnectionInfo
   }): QueryInterpreter {
     return new QueryInterpreter({
-      transactionManager: options.transactionManager,
-      placeholderValues: options.placeholderValues,
       onQuery: options.onQuery,
       tracingHelper: options.tracingHelper,
       serializer: serializeSql,
@@ -79,52 +90,50 @@ export class QueryInterpreter {
     })
   }
 
-  async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
-    const { value } = await this.interpretNode(
-      queryPlan,
-      queryable,
-      this.#placeholderValues,
-      this.#generators.snapshot(),
-    ).catch((e) => rethrowAsUserFacing(e))
+  async run(queryPlan: DeepReadonly<QueryPlanNode>, options: QueryRuntimeOptions): Promise<unknown> {
+    const { value } = await this.interpretNode(queryPlan, {
+      ...options,
+      generators: this.#generators.snapshot(),
+    }).catch((e) => rethrowAsUserFacing(e))
 
     return value
   }
 
   private async interpretNode(
-    node: QueryPlanNode,
-    queryable: SqlQueryable,
-    scope: ScopeBindings,
-    generators: GeneratorRegistrySnapshot,
+    node: DeepReadonly<QueryPlanNode>,
+    context: QueryRuntimeContext,
   ): Promise<IntermediateValue> {
     switch (node.type) {
       case 'value': {
-        return { value: evaluateArg(node.args, scope, generators) }
+        return {
+          value: evaluateArg(node.args, context.scope, context.generators),
+        }
       }
 
       case 'seq': {
         let result: IntermediateValue | undefined
         for (const arg of node.args) {
-          result = await this.interpretNode(arg, queryable, scope, generators)
+          result = await this.interpretNode(arg, context)
         }
         return result ?? { value: undefined }
       }
 
       case 'get': {
-        return { value: scope[node.args.name] }
+        return { value: context.scope[node.args.name] }
       }
 
       case 'let': {
-        const nestedScope: ScopeBindings = Object.create(scope)
+        const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(binding.expr, queryable, nestedScope, generators)
+          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
           nestedScope[binding.name] = value
         }
-        return this.interpretNode(node.args.expr, queryable, nestedScope, generators)
+        return this.interpretNode(node.args.expr, { ...context, scope: nestedScope })
       }
 
       case 'getFirstNonEmpty': {
         for (const name of node.args.names) {
-          const value = scope[name]
+          const value = context.scope[name]
           if (!isEmpty(value)) {
             return { value }
           }
@@ -134,7 +143,7 @@ export class QueryInterpreter {
 
       case 'concat': {
         const parts = await Promise.all(
-          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+          node.args.map((arg) => this.interpretNode(arg, context).then((res) => res.value)),
         )
         return {
           value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
@@ -143,7 +152,7 @@ export class QueryInterpreter {
 
       case 'sum': {
         const parts = await Promise.all(
-          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+          node.args.map((arg) => this.interpretNode(arg, context).then((res) => res.value)),
         )
         return {
           value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
@@ -151,13 +160,14 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
         let sum = 0
         for (const query of queries) {
-          sum += await this.#withQuerySpanAndEvent(query, queryable, () =>
-            queryable
-              .executeRaw(query)
+          const commentedQuery = applyComments(query, context.sqlCommenter)
+          sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+            context.queryable
+              .executeRaw(cloneObject(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -168,13 +178,14 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const result = await this.#withQuerySpanAndEvent(query, queryable, () =>
-            queryable
-              .queryRaw(query)
+          const commentedQuery = applyComments(query, context.sqlCommenter)
+          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+            context.queryable
+              .queryRaw(cloneObject(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -194,12 +205,12 @@ export class QueryInterpreter {
       }
 
       case 'reverse': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, context)
         return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
       }
 
       case 'unique': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, context)
         if (!Array.isArray(value)) {
           return { value, lastInsertId }
         }
@@ -210,7 +221,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, context)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -218,37 +229,37 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.records, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.records, context)
         return { value: mapField(value, node.args.field), lastInsertId }
       }
 
       case 'join': {
-        const { value: parent, lastInsertId } = await this.interpretNode(node.args.parent, queryable, scope, generators)
+        const { value: parent, lastInsertId } = await this.interpretNode(node.args.parent, context)
 
         if (parent === null) {
           return { value: null, lastInsertId }
         }
 
-        const children = (await Promise.all(
+        const children = await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, queryable, scope, generators)).value,
+            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
           })),
-        )) satisfies JoinExpressionWithRecords[]
+        )
 
-        return { value: attachChildrenToParents(parent, children), lastInsertId }
+        return { value: attachChildrenToParents(parent, children, node.args.canAssumeStrictEquality), lastInsertId }
       }
 
       case 'transaction': {
-        if (!this.#transactionManager.enabled) {
-          return this.interpretNode(node.args, queryable, scope, generators)
+        if (!context.transactionManager.enabled) {
+          return this.interpretNode(node.args, context)
         }
 
-        const transactionManager = this.#transactionManager.manager
+        const transactionManager = context.transactionManager.manager
         const transactionInfo = await transactionManager.startInternalTransaction()
         const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
         try {
-          const value = await this.interpretNode(node.args, transaction, scope, generators)
+          const value = await this.interpretNode(node.args, { ...context, queryable: transaction })
           await transactionManager.commitTransaction(transactionInfo.id)
           return value
         } catch (e) {
@@ -258,23 +269,23 @@ export class QueryInterpreter {
       }
 
       case 'dataMap': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
         return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
       }
 
       case 'validate': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
         performValidation(value, node.args.rules, node.args)
 
         return { value, lastInsertId }
       }
 
       case 'if': {
-        const { value } = await this.interpretNode(node.args.value, queryable, scope, generators)
+        const { value } = await this.interpretNode(node.args.value, context)
         if (doesSatisfyRule(value, node.args.rule)) {
-          return await this.interpretNode(node.args.then, queryable, scope, generators)
+          return await this.interpretNode(node.args.then, context)
         } else {
-          return await this.interpretNode(node.args.else, queryable, scope, generators)
+          return await this.interpretNode(node.args.else, context)
         }
       }
 
@@ -283,8 +294,8 @@ export class QueryInterpreter {
       }
 
       case 'diff': {
-        const { value: from } = await this.interpretNode(node.args.from, queryable, scope, generators)
-        const { value: to } = await this.interpretNode(node.args.to, queryable, scope, generators)
+        const { value: from } = await this.interpretNode(node.args.from, context)
+        const { value: to } = await this.interpretNode(node.args.to, context)
 
         const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node.args.fields) : null)
 
@@ -293,26 +304,28 @@ export class QueryInterpreter {
       }
 
       case 'process': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        return { value: processRecords(value, node.args.operations), lastInsertId }
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
+        const ops = cloneObject(node.args.operations)
+        evaluateProcessingParameters(ops, context.scope, context.generators)
+        return { value: processRecords(value, ops), lastInsertId }
       }
 
       case 'initializeRecord': {
-        const { lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { lastInsertId } = await this.interpretNode(node.args.expr, context)
 
         const record = {}
         for (const [key, initializer] of Object.entries(node.args.fields)) {
-          record[key] = evalFieldInitializer(initializer, lastInsertId, scope, generators)
+          record[key] = evalFieldInitializer(initializer, lastInsertId, context.scope, context.generators)
         }
         return { value: record, lastInsertId }
       }
 
       case 'mapRecord': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
 
         const record = value === null ? {} : asRecord(value)
         for (const [key, entry] of Object.entries(node.args.fields)) {
-          record[key] = evalFieldOperation(entry, record[key], scope, generators)
+          record[key] = evalFieldOperation(entry, record[key], context.scope, context.generators)
         }
         return { value: record, lastInsertId }
       }
@@ -323,8 +336,8 @@ export class QueryInterpreter {
   }
 
   #maxChunkSize(): number | undefined {
-    if (this.#connectioInfo?.maxBindValues !== undefined) {
-      return this.#connectioInfo.maxBindValues
+    if (this.#connectionInfo?.maxBindValues !== undefined) {
+      return this.#connectionInfo.maxBindValues
     }
     return this.#providerMaxChunkSize()
   }
@@ -352,7 +365,11 @@ export class QueryInterpreter {
     }
   }
 
-  #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
+  #withQuerySpanAndEvent<T>(
+    query: DeepReadonly<SqlQuery>,
+    queryable: SqlQueryable,
+    execute: () => Promise<T>,
+  ): Promise<T> {
     return withQuerySpanAndEvent({
       query,
       execute,
@@ -412,13 +429,20 @@ type JoinExpressionWithRecords = {
   childRecords: Value
 }
 
-function attachChildrenToParents(parentRecords: unknown, children: JoinExpressionWithRecords[]) {
+type KeyCast = (value: Value) => Value
+
+function attachChildrenToParents(
+  parentRecords: unknown,
+  children: DeepReadonly<JoinExpressionWithRecords[]>,
+  canAssumeStrictEquality: boolean,
+) {
   for (const { joinExpr, childRecords } of children) {
     const parentKeys = joinExpr.on.map(([k]) => k)
     const childKeys = joinExpr.on.map(([, k]) => k)
     const parentMap = {}
 
-    for (const parent of Array.isArray(parentRecords) ? parentRecords : [parentRecords]) {
+    const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
+    for (const parent of parentArray) {
       const parentRecord = asRecord(parent)
       const key = getRecordKey(parentRecord, parentKeys)
       if (!parentMap[key]) {
@@ -433,12 +457,13 @@ function attachChildrenToParents(parentRecords: unknown, children: JoinExpressio
       }
     }
 
+    const mappers = canAssumeStrictEquality ? undefined : inferKeyCasts(parentArray, parentKeys)
     for (const childRecord of Array.isArray(childRecords) ? childRecords : [childRecords]) {
       if (childRecord === null) {
         continue
       }
 
-      const key = getRecordKey(asRecord(childRecord), childKeys)
+      const key = getRecordKey(asRecord(childRecord), childKeys, mappers)
       for (const parentRecord of parentMap[key] ?? []) {
         if (joinExpr.isRelationUnique) {
           parentRecord[joinExpr.parentField] = childRecord
@@ -452,8 +477,45 @@ function attachChildrenToParents(parentRecords: unknown, children: JoinExpressio
   return parentRecords
 }
 
+function inferKeyCasts(rows: unknown[], keys: string[]): KeyCast[] {
+  function getKeyCast(type: string): KeyCast | undefined {
+    switch (type) {
+      case 'number':
+        return Number
+      case 'string':
+        return String
+      case 'boolean':
+        return Boolean
+      case 'bigint':
+        return BigInt as KeyCast
+      default:
+        return
+    }
+  }
+
+  const keyCasts: KeyCast[] = Array.from({ length: keys.length })
+  let keysFound = 0
+  for (const parent of rows) {
+    const parentRecord = asRecord(parent)
+    for (const [i, key] of keys.entries()) {
+      if (parentRecord[key] !== null && keyCasts[i] === undefined) {
+        const keyCast = getKeyCast(typeof parentRecord[key])
+        if (keyCast !== undefined) {
+          keyCasts[i] = keyCast
+        }
+        keysFound++
+      }
+    }
+    if (keysFound === keys.length) {
+      break
+    }
+  }
+
+  return keyCasts
+}
+
 function evalFieldInitializer(
-  initializer: FieldInitializer,
+  initializer: DeepReadonly<FieldInitializer>,
   lastInsertId: string | undefined,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
@@ -469,7 +531,7 @@ function evalFieldInitializer(
 }
 
 function evalFieldOperation(
-  op: FieldOperation,
+  op: DeepReadonly<FieldOperation>,
   value: Value,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
@@ -498,4 +560,47 @@ function evalFieldOperation(
     default:
       assertNever(op, `Unexpected field operation type: ${op['type']}`)
   }
+}
+
+function applyComments(
+  query: DeepReadonly<SqlQuery>,
+  sqlCommenter?: QueryInterpreterSqlCommenter,
+): DeepReadonly<SqlQuery> {
+  if (!sqlCommenter || sqlCommenter.plugins.length === 0) {
+    return query
+  }
+
+  const comment = buildSqlComment(sqlCommenter.plugins, {
+    query: sqlCommenter.queryInfo,
+    sql: query.sql,
+  })
+
+  if (!comment) {
+    return query
+  }
+
+  return {
+    ...query,
+    sql: appendSqlComment(query.sql, comment),
+  }
+}
+
+function evaluateProcessingParameters(
+  ops: InMemoryOps,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): void {
+  const cursor = ops.pagination?.cursor
+  if (cursor) {
+    for (const [key, value] of Object.entries(cursor)) {
+      cursor[key] = evaluateArg(value, scope, generators)
+    }
+  }
+  for (const nested of Object.values(ops.nested)) {
+    evaluateProcessingParameters(nested, scope, generators)
+  }
+}
+
+function cloneObject<T>(value: T): DeepUnreadonly<T> {
+  return klona(value) as DeepUnreadonly<T>
 }

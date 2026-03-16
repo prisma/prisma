@@ -26,7 +26,7 @@ describe('env', () => {
   test('throws when the environment variable is missing', () => {
     expect(() => env(VAR_NAME)).toThrowError(PrismaConfigEnvError)
     expect(() => env(VAR_NAME)).toThrowErrorMatchingInlineSnapshot(
-      `[PrismaConfigEnvError: Missing required environment variable: PRISMA_CONFIG_ENV_TEST]`,
+      `[PrismaConfigEnvError: Cannot resolve environment variable: PRISMA_CONFIG_ENV_TEST.]`,
     )
   })
 
@@ -34,7 +34,7 @@ describe('env', () => {
     process.env[VAR_NAME] = ''
     expect(() => env(VAR_NAME)).toThrowError(PrismaConfigEnvError)
     expect(() => env(VAR_NAME)).toThrowErrorMatchingInlineSnapshot(
-      `[PrismaConfigEnvError: Missing required environment variable: PRISMA_CONFIG_ENV_TEST]`,
+      `[PrismaConfigEnvError: Cannot resolve environment variable: PRISMA_CONFIG_ENV_TEST.]`,
     )
   })
 })

@@ -1,3 +1,5 @@
+import readline from 'node:readline'
+
 import type { Datasource } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
@@ -19,7 +21,6 @@ import { bold, red } from 'kleur/colors'
 import { Extension, SchemaExtensionConfig } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
-import byline from './utils/byline'
 import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:schemaEngine:rpc')
@@ -45,7 +46,7 @@ interface SchemaEngineCLISetupInput {
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
   extensions?: Extension[]
-  configDir: string
+  baseDir: string
 }
 
 export type SchemaEngineCLIOptions = SchemaEngineCLISetupInput
@@ -64,7 +65,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
   private extensionConfig?: SchemaExtensionConfig
-  private configDir: string
+  private baseDir: string
 
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
@@ -75,7 +76,7 @@ export class SchemaEngineCLI implements SchemaEngine {
     datasource,
     enabledPreviewFeatures,
     extensions,
-    configDir,
+    baseDir,
   }: SchemaEngineCLIOptions) {
     this.schemaContext = schemaContext
     this.datasource = datasource
@@ -85,7 +86,7 @@ export class SchemaEngineCLI implements SchemaEngine {
     this.debug = debug
     this.enabledPreviewFeatures = enabledPreviewFeatures
     this.extensionConfig = extensions ? { types: extensions.flatMap((ext) => ext.types) } : undefined
-    this.configDir = configDir
+    this.baseDir = baseDir
   }
 
   static setup(input: SchemaEngineCLISetupInput): Promise<SchemaEngineCLI> {
@@ -402,7 +403,7 @@ export class SchemaEngineCLI implements SchemaEngine {
         }
 
         this.child = spawn(binaryPath, args, {
-          cwd: this.configDir,
+          cwd: this.baseDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
             // The following environment variables can be overridden by the user.
@@ -470,12 +471,16 @@ export class SchemaEngineCLI implements SchemaEngine {
 
         // logs (info, error)
         // error can be a panic
-        byline(this.child.stderr).on('data', (msg) => {
-          const data = String(msg)
-          debugStderr(data)
+        const stderrInterface = readline.createInterface({
+          input: this.child.stderr!,
+          crlfDelay: Infinity,
+        })
+
+        stderrInterface.on('line', (line: string) => {
+          debugStderr(line)
 
           try {
-            const json: SchemaEngineLogLine = JSON.parse(data)
+            const json: SchemaEngineLogLine = JSON.parse(line)
 
             this.messages.push(json.fields.message)
 
@@ -487,8 +492,13 @@ export class SchemaEngineCLI implements SchemaEngine {
           }
         })
 
-        byline(this.child.stdout).on('data', (line) => {
-          this.handleResponse(String(line))
+        const stdoutInterface = readline.createInterface({
+          input: this.child.stdout!,
+          crlfDelay: Infinity,
+        })
+
+        stdoutInterface.on('line', (line: string) => {
+          this.handleResponse(line)
         })
 
         setImmediate(() => {

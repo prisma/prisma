@@ -16,7 +16,7 @@ type MigrateSetupInput = {
   schemaFilter?: MigrateTypes.SchemaFilter
   shadowDbInitScript?: string
   extensions?: Extension[]
-  configDir: string
+  baseDir: string
 }
 
 interface MigrateOptions {

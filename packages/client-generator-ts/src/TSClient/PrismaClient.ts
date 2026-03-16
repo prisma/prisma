@@ -39,7 +39,7 @@ function batchingTransactionDefinition(context: GenerateContext) {
         ])
         \`\`\`
 
-        Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+        Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
       `,
     )
     .addGenericParameter(ts.genericParameter('P').extends(ts.array(tsx.prismaPromise(ts.anyType))))
@@ -73,9 +73,7 @@ function interactiveTransactionDefinition(context: GenerateContext) {
 
   const callbackType = ts
     .functionType()
-    .addParameter(
-      ts.parameter('prisma', tsx.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
-    )
+    .addParameter(ts.parameter('prisma', tsx.omit(ts.namedType('PrismaClient'), itxTransactionClientDenyList(context))))
     .setReturnType(returnType)
 
   const method = ts
@@ -86,6 +84,14 @@ function interactiveTransactionDefinition(context: GenerateContext) {
     .setReturnType(returnType)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
+function itxTransactionClientDenyList(context: GenerateContext) {
+  if (!context.isSqlProvider()) {
+    return ts.unionType([ts.namedType('runtime.ITXClientDenyList'), ts.stringLiteral('$transaction')])
+  }
+
+  return ts.namedType('runtime.ITXClientDenyList')
 }
 
 function queryRawDefinition(context: GenerateContext) {
@@ -231,7 +237,9 @@ export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.Do
     Type-safe database client for TypeScript
     @example
     \`\`\`
-    const prisma = new PrismaClient()
+    const prisma = new PrismaClient({
+      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+    })
     // Fetch zero or more ${capitalize(example.plural)}
     const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
     \`\`\`

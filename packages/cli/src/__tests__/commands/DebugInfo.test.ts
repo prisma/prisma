@@ -303,6 +303,16 @@ describe('debug', () => {
     expect(result).toContain(`Path: ${path.join(process.cwd(), 'schema.prisma')}`)
   })
 
+  it('should load schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+    const configDir = path.join(process.cwd(), 'config')
+    const result = stripVTControlCharacters(
+      (await DebugInfo.new().parse(['--config=./config/prisma.config.ts'], defaultTestConfig(), configDir)) as string,
+    )
+
+    expect(result).toContain(`Path: ${path.join(configDir, 'schema.prisma')}`)
+  })
+
   it('should succeed with incorrect --schema path', async () => {
     await expect(DebugInfo.new().parse(['--schema=does-not-exists.prisma'], defaultTestConfig())).resolves.toContain(
       'Could not load `--schema` from provided path `does-not-exists.prisma`: file or directory not found',

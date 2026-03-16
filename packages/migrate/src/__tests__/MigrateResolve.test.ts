@@ -13,7 +13,7 @@ describe('prisma.config.ts', () => {
 
     const result = MigrateResolve.new().parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma migrate resolve."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma migrate resolve."`,
     )
   })
 })
@@ -67,8 +67,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
       "
     `)
   })
@@ -119,8 +118,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as applied.
       "
@@ -134,8 +132,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     const result = MigrateResolve.new().parse(['--applied', '20240527130802_init'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_init marked as applied.
       "
@@ -181,8 +178,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as rolled back.
       "
@@ -207,11 +203,9 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     await expect(result2).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as rolled back.
-      Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as rolled back.
@@ -233,10 +227,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
       Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
 
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/invalid-url.prisma.
+      "
+    `)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/invalid-url.prisma
-      Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
+      "Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
       "
     `)
   })
@@ -254,10 +250,12 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       Please make sure your database server is running at \`cockroach.invalid:26257\`."
     `)
 
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/invalid-url.prisma.
+      "
+    `)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/invalid-url.prisma
-      Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" <location placeholder>
+      "Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" <location placeholder>
       "
     `)
   }, 10_000)
