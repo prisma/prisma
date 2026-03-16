@@ -56,6 +56,7 @@ function serialize(params: SimplifiedParams) {
       clientMethod: 'foo',
       errorFormat: 'colorless',
       clientVersion: '0.0.0',
+      wrapRawValues: true,
     }),
     null,
     2,
@@ -760,6 +761,101 @@ test('args - AnyNull field', () => {
       modelName: 'User',
       action: 'findMany',
       args: { where: { jsonColumn: AnyNull } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Enum",
+              "value": "AnyNull"
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+function makeCrossBundleNullValue(name: string) {
+  const value = Object.create(null)
+  value[Symbol.for('prisma.objectEnumValue')] = true
+  value._getName = () => name
+  value._getNamespace = () => 'NullTypes'
+  return value
+}
+
+test('args - cross-bundle DbNull serializes correctly', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { jsonColumn: makeCrossBundleNullValue('DbNull') } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Enum",
+              "value": "DbNull"
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('args - cross-bundle JsonNull serializes correctly', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { jsonColumn: makeCrossBundleNullValue('JsonNull') } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Enum",
+              "value": "JsonNull"
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('args - cross-bundle AnyNull serializes correctly', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { jsonColumn: makeCrossBundleNullValue('AnyNull') } },
     }),
   ).toMatchInlineSnapshot(`
     "{

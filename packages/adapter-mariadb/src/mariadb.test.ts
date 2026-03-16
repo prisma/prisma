@@ -5,6 +5,9 @@ import { inferCapabilities, PrismaMariaDbAdapterFactory, rewriteConnectionString
 describe.each([
   ['8.0.12', { supportsRelationJoins: false }],
   ['8.0.13', { supportsRelationJoins: true }],
+  ['8.1.0', { supportsRelationJoins: true }],
+  ['8.4.5', { supportsRelationJoins: true }],
+  ['8.4.13', { supportsRelationJoins: true }],
   ['11.4.7-MariaDB-ubu2404', { supportsRelationJoins: false }],
 ])('infer capabilities for %s', (version, capabilities) => {
   test(`inferCapabilities(${version})`, () => {

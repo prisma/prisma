@@ -199,7 +199,7 @@ function batchingTransactionDefinition(context: GenerateContext) {
         ])
         \`\`\`
 
-        Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+        Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
       `,
     )
     .addGenericParameter(ts.genericParameter('P').extends(ts.array(tsx.prismaPromise(ts.anyType))))
@@ -233,9 +233,7 @@ function interactiveTransactionDefinition(context: GenerateContext) {
 
   const callbackType = ts
     .functionType()
-    .addParameter(
-      ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
-    )
+    .addParameter(ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), itxTransactionClientDenyList(context))))
     .setReturnType(returnType)
 
   const method = ts
@@ -246,6 +244,14 @@ function interactiveTransactionDefinition(context: GenerateContext) {
     .setReturnType(returnType)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
+function itxTransactionClientDenyList(context: GenerateContext) {
+  if (context.provider === 'mongodb') {
+    return ts.unionType([ts.namedType('runtime.ITXClientDenyList'), ts.stringLiteral('$transaction')])
+  }
+
+  return ts.namedType('runtime.ITXClientDenyList')
 }
 
 function queryRawDefinition(context: GenerateContext) {
@@ -401,7 +407,9 @@ export class PrismaClientClass implements Generable {
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
- * const prisma = new PrismaClient()
+ * const prisma = new PrismaClient({
+ *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+ * })
  * // Fetch zero or more ${capitalize(example.plural)}
  * const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
  * \`\`\`
@@ -476,6 +484,8 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
   }
   public toTS(): string {
     const clientOptions = this.buildClientOptions()
+    const transactionClientDenyList =
+      this.context.provider === 'mongodb' ? "runtime.ITXClientDenyList | '$transaction'" : 'runtime.ITXClientDenyList'
 
     return `${clientExtensionsDefinitions(this.context)}
 export type DefaultPrismaClient = PrismaClient
@@ -545,7 +555,7 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient = Omit<Prisma.DefaultPrismaClient, ${transactionClientDenyList}>
 `
   }
 

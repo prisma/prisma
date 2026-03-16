@@ -28,11 +28,10 @@ import ora from 'ora'
 import { match, P } from 'ts-pattern'
 
 import { FileWriter } from './init/file-writer'
+import { printPpgInitOutput, successMessage } from './init/ppg-output'
 import { login } from './management-api/auth'
 import { createAuthenticatedManagementAPI } from './management-api/auth-client'
 import { FileTokenStorage } from './management-api/token-storage'
-import { printPpgInitOutput } from './platform/_'
-import { successMessage } from './platform/_lib/messages'
 import { determineClientOutputPath } from './utils/client-output-path'
 import { printError } from './utils/prompt/utils/print'
 
@@ -60,14 +59,11 @@ export const defaultSchema = (props?: {
     withModel = false,
   } = props ?? {}
 
-  const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
-
-  const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
-
   let schema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
+
+// Get a free hosted Postgres database in seconds: \`npx create-db\`
+
 generator client {
   provider = "${generatorProvider}"
 ${
@@ -290,7 +286,7 @@ export class Init implements Command {
              -h, --help   Display this help message
                    --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
-   --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
+   --generator-provider   Define the generator provider to use. Default: \`prisma-client\`
       --preview-feature   Define a preview feature to use.
                --output   Define Prisma Client generator output path to use.
                   --url   Define a custom datasource url
@@ -307,8 +303,8 @@ export class Init implements Command {
   Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${dim('$')} prisma init --datasource-provider mysql
 
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`prisma-client-js\` as the generator provider to use
-    ${dim('$')} prisma init --generator-provider prisma-client-js
+  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`prisma-client\` as the generator provider to use
+    ${dim('$')} prisma init --generator-provider prisma-client
 
   Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`x\` and \`y\` as the preview features to use
     ${dim('$')} prisma init --preview-feature x --preview-feature y
@@ -545,15 +541,18 @@ export class Init implements Command {
           throw new Error('Missing database info in response')
         }
 
-        if (!project.database.directConnection) {
-          // This should never happen: OpenAPI types are not entirely correct,
-          // `directConnection` is not independently nullable and must always
-          // be present if `database` is in the response body.
+        const connection = project.database.connections?.find(
+          (c) => Boolean(c.endpoints?.direct?.connectionString) || Boolean(c.endpoints?.pooled?.connectionString),
+        )
+
+        const connectionString =
+          connection?.endpoints?.direct?.connectionString ?? connection?.endpoints?.pooled?.connectionString
+
+        if (!connectionString) {
           throw new Error('Missing connection string in response')
         }
 
-        const { host, user, pass } = project.database.directConnection
-        prismaPostgresDatabaseUrl = `postgres://${user}:${pass}@${host}/postgres?sslmode=require`
+        prismaPostgresDatabaseUrl = connectionString
 
         workspaceId = project.workspace.id.replace(/^wksp_/, '')
         projectId = project.id.replace(/^proj_/, '')
