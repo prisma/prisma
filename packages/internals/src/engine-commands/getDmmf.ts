@@ -72,11 +72,10 @@ function isV8StringLimitError(error: unknown): boolean {
  */
 function getDmmfBuffered(params: string): DMMF.Document {
   const CHUNK_SIZE = 16 * 1024 * 1024 // 16MB chunks — well under V8 string limit
-  const STRING_JOIN_LIMIT = 500 * 1024 * 1024 // stay well under V8's ~536MB string limit
 
   if (typeof prismaSchemaWasm.get_dmmf_buffered !== 'function') {
     throw new Error(
-      'Buffered DMMF API not available. Ensure @prisma/prisma-schema-wasm exports get_dmmf_buffered (returning a DmmfBuffer handle).',
+      "Buffered DMMF API not available. It's required for schemas that do not fit within the default V8 memory limit. Ensure you are using latest @prisma/prisma-schema-wasm.",
     )
   }
 
@@ -85,36 +84,15 @@ function getDmmfBuffered(params: string): DMMF.Document {
   try {
     const totalBytes = buffer.len()
     debug(`DMMF buffered: ${totalBytes} bytes (${(totalBytes / 1024 / 1024).toFixed(1)}MB)`)
-    if (totalBytes < STRING_JOIN_LIMIT) {
-      const decoder = new TextDecoder('utf-8', { stream: true })
-      const jsonChunks: string[] = []
-      let offset = 0
 
-      while (offset < totalBytes) {
-        const len = Math.min(CHUNK_SIZE, totalBytes - offset)
-        const chunk = buffer.read_chunk(offset, len)
-        jsonChunks.push(decoder.decode(chunk, { stream: offset + len < totalBytes }))
-        offset += len
-      }
-
-      const remaining = decoder.decode()
-      if (remaining) {
-        jsonChunks.push(remaining)
-      }
-
-      return JSON.parse(jsonChunks.join('')) as DMMF.Document
-    }
-
-    // For DMMF >= 500MB, Array.join('') would also hit V8's string limit.
     // Use a streaming JSON parser that processes Uint8Array chunks directly,
     // never creating a single large string.
-
     let JSONParser: typeof import('@streamparser/json').JSONParser
     try {
       JSONParser = (require('@streamparser/json') as typeof import('@streamparser/json')).JSONParser
     } catch {
       throw new Error(
-        'Streaming JSON parser required for DMMF >= 500MB but @streamparser/json is not installed. Run: pnpm add @streamparser/json',
+        'Streaming JSON parser required for DMMF >= 500MB but @streamparser/json is not installed. Try adding it as a dependency.',
       )
     }
 
