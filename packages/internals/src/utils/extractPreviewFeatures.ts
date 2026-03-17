@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator'
 
-import { BuiltInProvider } from '../prisma-client-js-provider'
+import { BuiltInProvider } from '../built-in-provider'
 import { parseEnvValue } from './parseEnvValue'
 
 export function extractPreviewFeatures(generators: GeneratorConfig[]): string[] {

@@ -1,3 +1,4 @@
+export { BuiltInProvider } from './built-in-provider'
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
@@ -48,7 +49,6 @@ export { highlightDatamodel, highlightSql, highlightTS } from './highlight/highl
 export * as logger from './logger'
 export type { MigrateTypes } from './migrateTypes'
 export { ErrorArea, getWasmError, isRustPanic, isWasmPanic, RustPanic } from './panic'
-export { BuiltInProvider } from './prisma-client-js-provider'
 export { BinaryType } from './resolveBinary'
 export { engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { resolvePkg } from './resolvePkg'

@@ -1,8 +1,8 @@
 import { bold, dim } from 'kleur/colors'
 import path from 'path'
 
+import { BuiltInProvider } from '../built-in-provider'
 import type { Generator } from '../Generator'
-import { BuiltInProvider } from '../prisma-client-js-provider'
 import { formatms } from '../utils/formatms'
 import { parseEnvValue } from '../utils/parseEnvValue'
 
