@@ -135,7 +135,7 @@ export async function tryToReadDataFromSchema(schemaPath: SchemaPathInput) {
       .filter((generator) => generator && generator.provider)
       .map((generator) => parseEnvValue(generator.provider))
 
-    const clientGeneratorProviders = [BuiltInProvider.PrismaClientTs, BuiltInProvider.PrismaClientJs]
+    const clientGeneratorProviders: string[] = [BuiltInProvider.PrismaClientTs, BuiltInProvider.PrismaClientJs]
     const previewFeatures = schemaContext.generators
       .filter((generator) => {
         const provider = generator?.provider ? parseEnvValue(generator.provider) : undefined
