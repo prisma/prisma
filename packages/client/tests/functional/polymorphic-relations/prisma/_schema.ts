@@ -15,7 +15,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     model Vote {
       id        ${id}
       value     Int
-      item      Post | Comment @polymorphic(discriminator: "itemType")
+      item      Post | Comment @relation(fields: [itemId]) @polymorphic(discriminator: "itemType")
       itemId    String
       itemType  String
     }
