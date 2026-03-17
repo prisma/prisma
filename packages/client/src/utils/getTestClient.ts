@@ -1,6 +1,7 @@
 import { dmmfToRuntimeDataModel, GetPrismaClientConfig } from '@prisma/client-common'
 import { getDMMF } from '@prisma/client-generator-js'
 import {
+  BuiltInProvider,
   extractPreviewFeatures,
   getConfig,
   getSchemaWithPath,
@@ -34,7 +35,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     printConfigWarnings(config.warnings)
   }
 
-  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
+  const generator = config.generators.find((g) => parseEnvValue(g.provider) === BuiltInProvider.PrismaClientJs)
   const previewFeatures = extractPreviewFeatures(config.generators)
   ;(global as any).TARGET_BUILD_TYPE = 'client'
 
