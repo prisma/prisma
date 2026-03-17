@@ -292,25 +292,49 @@ function isPrismaPostgresDevUrl(connectionString: string): boolean {
 }
 
 /**
- * Transforms a `prisma+postgres://` URL to a standard `postgres://` URL
+ * The contents of the JSON payload in the `api_key` query string parameter
+ * in local Prisma Postgres connection strings. The `api_key` is a
+ * base64url-encoded JSON object.
+ */
+interface LocalPpgApiKey {
+  databaseUrl: string
+  shadowDatabaseUrl: string
+}
+
+/**
+ * Transforms a local `prisma+postgres://` URL to a standard `postgres://` URL
  * for direct TCP connection with the pg driver.
  *
- * Example: `prisma+postgres://localhost:51216/?api_key=xxx`
- * becomes: `postgres://localhost:51216/postgres?api_key=xxx`
+ * The `api_key` parameter contains a base64url-encoded JSON object with the
+ * actual database connection string. This function decodes it and returns the
+ * embedded `databaseUrl`.
+ *
+ * Example: `prisma+postgres://localhost:51216/?api_key=<base64url-encoded JSON>`
+ * becomes: the `databaseUrl` value from the decoded JSON payload
  */
 function transformPrismaPostgresToPgUrl(connectionString: string): string {
   const url = new URL(connectionString)
+  const apiKey = url.searchParams.get('api_key')
 
-  // Replace prisma+postgres: with postgres:
+  if (apiKey) {
+    try {
+      const json = Buffer.from(apiKey, 'base64url').toString('utf-8')
+      const payload: LocalPpgApiKey = JSON.parse(json)
+      if (payload.databaseUrl) {
+        return payload.databaseUrl
+      }
+    } catch {
+      // If decoding fails, fall through to simple URL transformation
+    }
+  }
+
+  // Fallback: simple protocol replacement for URLs without a valid api_key payload
   const transformedUrl = new URL(url.href.replace(PRISMA_POSTGRES_PROTOCOL, 'postgres:'))
 
-  // Ensure there's a database name (pg driver requires one)
-  // Default to 'postgres' if not specified
   if (!transformedUrl.pathname || transformedUrl.pathname === '/') {
     transformedUrl.pathname = '/postgres'
   }
 
-  // Remove the api_key parameter as it's not used by the pg driver
   transformedUrl.searchParams.delete('api_key')
 
   return transformedUrl.href

@@ -5,29 +5,44 @@ import { describe, expect, it, vi } from 'vitest'
 import { PrismaPgAdapterFactory } from '../pg'
 
 describe('PrismaPgAdapterFactory URL transformation', () => {
-  it('should transform prisma+postgres://localhost URLs to postgres:// URLs', () => {
+  // Helper to create a base64url-encoded api_key payload matching the local PPg format
+  function encodeApiKey(databaseUrl: string, shadowDatabaseUrl = databaseUrl): string {
+    return Buffer.from(JSON.stringify({ databaseUrl, shadowDatabaseUrl })).toString('base64url')
+  }
+
+  it('should extract databaseUrl from api_key for prisma+postgres://localhost URLs', () => {
+    const apiKey = encodeApiKey('postgres://localhost:51216/postgres')
     const config: pg.PoolConfig = {
-      connectionString: 'prisma+postgres://localhost:51216/?api_key=test123',
+      connectionString: `prisma+postgres://localhost:51216/?api_key=${apiKey}`,
     }
     const factory = new PrismaPgAdapterFactory(config)
-    // The factory should transform the URL internally
-    expect(factory).toBeDefined()
+    expect(factory['config'].connectionString).toBe('postgres://localhost:51216/postgres')
   })
 
-  it('should transform prisma+postgres://127.0.0.1 URLs to postgres:// URLs', () => {
+  it('should extract databaseUrl from api_key for prisma+postgres://127.0.0.1 URLs', () => {
+    const apiKey = encodeApiKey('postgres://127.0.0.1:5432/mydb')
     const config: pg.PoolConfig = {
-      connectionString: 'prisma+postgres://127.0.0.1:5432/mydb',
+      connectionString: `prisma+postgres://127.0.0.1:5432/mydb?api_key=${apiKey}`,
     }
     const factory = new PrismaPgAdapterFactory(config)
-    expect(factory).toBeDefined()
+    expect(factory['config'].connectionString).toBe('postgres://127.0.0.1:5432/mydb')
   })
 
-  it('should transform prisma+postgres://[::1] URLs to postgres:// URLs', () => {
+  it('should extract databaseUrl from api_key for prisma+postgres://[::1] URLs', () => {
+    const apiKey = encodeApiKey('postgres://[::1]:5432/mydb')
     const config: pg.PoolConfig = {
-      connectionString: 'prisma+postgres://[::1]:5432/mydb',
+      connectionString: `prisma+postgres://[::1]:5432/mydb?api_key=${apiKey}`,
     }
     const factory = new PrismaPgAdapterFactory(config)
-    expect(factory).toBeDefined()
+    expect(factory['config'].connectionString).toBe('postgres://[::1]:5432/mydb')
+  })
+
+  it('should fall back to simple URL transformation when api_key is not a valid payload', () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'prisma+postgres://localhost:51216/?api_key=plain-text-key',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    expect(factory['config'].connectionString).toBe('postgres://localhost:51216/postgres')
   })
 
   it('should throw error for remote prisma+postgres:// URLs (Accelerate)', () => {
@@ -44,7 +59,7 @@ describe('PrismaPgAdapterFactory URL transformation', () => {
       connectionString: 'postgres://user:password@localhost:5432/mydb',
     }
     const factory = new PrismaPgAdapterFactory(config)
-    expect(factory).toBeDefined()
+    expect(factory['config'].connectionString).toBe('postgres://user:password@localhost:5432/mydb')
   })
 
   it('should leave standard postgresql:// URLs unchanged', () => {
@@ -52,7 +67,7 @@ describe('PrismaPgAdapterFactory URL transformation', () => {
       connectionString: 'postgresql://user:password@localhost:5432/mydb',
     }
     const factory = new PrismaPgAdapterFactory(config)
-    expect(factory).toBeDefined()
+    expect(factory['config'].connectionString).toBe('postgresql://user:password@localhost:5432/mydb')
   })
 })
 
