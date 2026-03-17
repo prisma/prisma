@@ -3,25 +3,25 @@ import type { SqlQuery } from '@prisma/driver-adapter-utils'
 import pg, { DatabaseError } from 'pg'
 import { describe, expect, it, vi } from 'vitest'
 
-import { getStatementName, PrismaPgAdapterFactory } from '../pg'
+import { defaultStatementNameGenerator, PrismaPgAdapterFactory } from '../pg'
 
-describe('getStatementName', () => {
+describe('defaultStatementNameGenerator', () => {
   it('returns a deterministic name for the same SQL', () => {
     const query: SqlQuery = { sql: 'SELECT $1', args: [], argTypes: [] }
-    const name1 = getStatementName(query)
-    const name2 = getStatementName(query)
+    const name1 = defaultStatementNameGenerator(query)
+    const name2 = defaultStatementNameGenerator(query)
     expect(name1).toBe(name2)
   })
 
   it('returns names prefixed with p_', () => {
     const query: SqlQuery = { sql: 'SELECT 1', args: [], argTypes: [] }
-    expect(getStatementName(query)).toMatch(/^p_[0-9a-f]{16}$/)
+    expect(defaultStatementNameGenerator(query)).toMatch(/^p_[0-9a-f]{24}$/)
   })
 
   it('returns different names for different SQL', () => {
     const q1: SqlQuery = { sql: 'SELECT 1', args: [], argTypes: [] }
     const q2: SqlQuery = { sql: 'SELECT 2', args: [], argTypes: [] }
-    expect(getStatementName(q1)).not.toBe(getStatementName(q2))
+    expect(defaultStatementNameGenerator(q1)).not.toBe(defaultStatementNameGenerator(q2))
   })
 
   it('includes argTypes in the hash', () => {
@@ -35,7 +35,7 @@ describe('getStatementName', () => {
       args: ['hello'],
       argTypes: [{ scalarType: 'string', arity: 'scalar' }],
     }
-    expect(getStatementName(q1)).not.toBe(getStatementName(q2))
+    expect(defaultStatementNameGenerator(q1)).not.toBe(defaultStatementNameGenerator(q2))
   })
 
   it('distinguishes scalar vs list arity', () => {
@@ -49,7 +49,7 @@ describe('getStatementName', () => {
       args: [[1, 2]],
       argTypes: [{ scalarType: 'int', arity: 'list' }],
     }
-    expect(getStatementName(q1)).not.toBe(getStatementName(q2))
+    expect(defaultStatementNameGenerator(q1)).not.toBe(defaultStatementNameGenerator(q2))
   })
 
   it('is stable for queries with multiple argTypes', () => {
@@ -62,8 +62,8 @@ describe('getStatementName', () => {
         { scalarType: 'boolean', arity: 'scalar' },
       ],
     }
-    const name1 = getStatementName(query)
-    const name2 = getStatementName(query)
+    const name1 = defaultStatementNameGenerator(query)
+    const name2 = defaultStatementNameGenerator(query)
     expect(name1).toBe(name2)
   })
 
@@ -78,10 +78,10 @@ describe('getStatementName', () => {
       args: [999],
       argTypes: [{ scalarType: 'int', arity: 'scalar' }],
     }
-    expect(getStatementName(q1)).toBe(getStatementName(q2))
+    expect(defaultStatementNameGenerator(q1)).toBe(defaultStatementNameGenerator(q2))
   })
 
-  it('ignores dbType (only scalarType and arity matter)', () => {
+  it('distinguishes different dbType values', () => {
     const q1: SqlQuery = {
       sql: 'SELECT $1',
       args: ['2026-01-01'],
@@ -92,13 +92,13 @@ describe('getStatementName', () => {
       args: ['2026-01-01T00:00:00Z'],
       argTypes: [{ scalarType: 'datetime', dbType: 'TIMESTAMPTZ', arity: 'scalar' }],
     }
-    expect(getStatementName(q1)).toBe(getStatementName(q2))
+    expect(defaultStatementNameGenerator(q1)).not.toBe(defaultStatementNameGenerator(q2))
   })
 
   it('produces different names for near-miss SQL (single character difference)', () => {
     const q1: SqlQuery = { sql: 'SELECT * FROM "User" WHERE id = $1', args: [], argTypes: [] }
     const q2: SqlQuery = { sql: 'SELECT * FROM "User" WHERE id = $2', args: [], argTypes: [] }
-    expect(getStatementName(q1)).not.toBe(getStatementName(q2))
+    expect(defaultStatementNameGenerator(q1)).not.toBe(defaultStatementNameGenerator(q2))
   })
 
   it('produces deterministic names for transaction control statements', () => {
@@ -106,18 +106,22 @@ describe('getStatementName', () => {
     const commit: SqlQuery = { sql: 'COMMIT', args: [], argTypes: [] }
     const rollback: SqlQuery = { sql: 'ROLLBACK', args: [], argTypes: [] }
 
-    expect(getStatementName(begin)).toBe(getStatementName(begin))
-    expect(getStatementName(commit)).toBe(getStatementName(commit))
-    expect(getStatementName(rollback)).toBe(getStatementName(rollback))
+    expect(defaultStatementNameGenerator(begin)).toBe(defaultStatementNameGenerator(begin))
+    expect(defaultStatementNameGenerator(commit)).toBe(defaultStatementNameGenerator(commit))
+    expect(defaultStatementNameGenerator(rollback)).toBe(defaultStatementNameGenerator(rollback))
 
     // Each should be distinct from the others
-    const names = new Set([getStatementName(begin), getStatementName(commit), getStatementName(rollback)])
+    const names = new Set([
+      defaultStatementNameGenerator(begin),
+      defaultStatementNameGenerator(commit),
+      defaultStatementNameGenerator(rollback),
+    ])
     expect(names.size).toBe(3)
   })
 })
 
-describe('PrismaPgAdapter passes statement name to client.query', () => {
-  it('includes name property in the query config', async () => {
+describe('statementNameGenerator option', () => {
+  it('does not set name when statementNameGenerator is not provided', async () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
     const factory = new PrismaPgAdapterFactory(config)
     const adapter = await factory.connect()
@@ -134,11 +138,36 @@ describe('PrismaPgAdapter passes statement name to client.query', () => {
 
     const tx = await adapter.startTransaction()
 
-    // The BEGIN query should have been sent with a name
-    expect(mockConnection.query).toHaveBeenCalledTimes(1)
     const queryConfig = mockConnection.query.mock.calls[0][0]
-    expect(queryConfig).toHaveProperty('name')
-    expect(queryConfig.name).toMatch(/^p_[0-9a-f]{16}$/)
+    expect(queryConfig.name).toBeUndefined()
+    expect(queryConfig.text).toBe('BEGIN')
+
+    mockConnection.listenerCount.mockReturnValue(0)
+    await tx.rollback()
+    await adapter.dispose()
+  })
+
+  it('sets name when statementNameGenerator is provided', async () => {
+    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
+    const factory = new PrismaPgAdapterFactory(config, {
+      statementNameGenerator: defaultStatementNameGenerator,
+    })
+    const adapter = await factory.connect()
+
+    const mockConnection = {
+      on: vi.fn(),
+      removeListener: vi.fn(),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0, fields: [] }),
+      release: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(1),
+    }
+
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
+    const tx = await adapter.startTransaction()
+
+    const queryConfig = mockConnection.query.mock.calls[0][0]
+    expect(queryConfig.name).toMatch(/^p_[0-9a-f]{24}$/)
     expect(queryConfig.text).toBe('BEGIN')
 
     mockConnection.listenerCount.mockReturnValue(0)
@@ -148,7 +177,9 @@ describe('PrismaPgAdapter passes statement name to client.query', () => {
 
   it('passes name through queryRaw and returns results correctly', async () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const factory = new PrismaPgAdapterFactory(config)
+    const factory = new PrismaPgAdapterFactory(config, {
+      statementNameGenerator: defaultStatementNameGenerator,
+    })
     const adapter = await factory.connect()
 
     const mockConnection = {
@@ -193,7 +224,7 @@ describe('PrismaPgAdapter passes statement name to client.query', () => {
     // Verify name was passed
     const queryConfig = mockConnection.query.mock.calls[0][0]
     expect(queryConfig).toHaveProperty('name')
-    expect(queryConfig.name).toMatch(/^p_[0-9a-f]{16}$/)
+    expect(queryConfig.name).toMatch(/^p_[0-9a-f]{24}$/)
 
     // Verify results still parse correctly
     expect(result.columnNames).toEqual(['id', 'name'])
@@ -206,7 +237,9 @@ describe('PrismaPgAdapter passes statement name to client.query', () => {
 
   it('passes the same name for identical queries', async () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const factory = new PrismaPgAdapterFactory(config)
+    const factory = new PrismaPgAdapterFactory(config, {
+      statementNameGenerator: defaultStatementNameGenerator,
+    })
     const adapter = await factory.connect()
 
     const mockConnection = {
@@ -240,6 +273,35 @@ describe('PrismaPgAdapter passes statement name to client.query', () => {
     const name1 = mockConnection.query.mock.calls[0][0].name
     const name2 = mockConnection.query.mock.calls[1][0].name
     expect(name1).toBe(name2)
+
+    mockConnection.listenerCount.mockReturnValue(0)
+    await tx.rollback()
+    await adapter.dispose()
+  })
+
+  it('uses a custom statementNameGenerator', async () => {
+    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
+    const customGenerator = vi.fn().mockReturnValue('custom_name')
+    const factory = new PrismaPgAdapterFactory(config, {
+      statementNameGenerator: customGenerator,
+    })
+    const adapter = await factory.connect()
+
+    const mockConnection = {
+      on: vi.fn(),
+      removeListener: vi.fn(),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0, fields: [] }),
+      release: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(1),
+    }
+
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
+    const tx = await adapter.startTransaction()
+
+    const queryConfig = mockConnection.query.mock.calls[0][0]
+    expect(queryConfig.name).toBe('custom_name')
+    expect(customGenerator).toHaveBeenCalledWith({ sql: 'BEGIN', args: [], argTypes: [] })
 
     mockConnection.listenerCount.mockReturnValue(0)
     await tx.rollback()

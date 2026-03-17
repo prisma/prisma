@@ -37,12 +37,9 @@ const debug = Debug('prisma:driver-adapter:pg')
  * Named statements live for the lifetime of the connection, which is likely acceptable for
  * Prisma workloads because the set of query shapes is typically bounded.
  */
-export function getStatementName(query: SqlQuery): string {
-  const hashInput =
-    query.argTypes.length > 0
-      ? query.sql + '\0' + query.argTypes.map((t) => `${t.scalarType}:${t.arity}`).join(',')
-      : query.sql
-  return 'p_' + crypto.hash('sha1', hashInput, 'hex').slice(0, 16)
+export function defaultStatementNameGenerator(query: SqlQuery): string {
+  const hashInput = query.sql + '\0' + JSON.stringify(query.argTypes)
+  return 'p_' + crypto.hash('sha1', hashInput, 'hex').slice(0, 24)
 }
 
 type StdClient = pg.Pool
@@ -127,7 +124,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         {
           text: sql,
           values,
-          name: getStatementName(query),
+          name: this.pgOptions?.statementNameGenerator?.(query),
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -209,6 +206,15 @@ export type PrismaPgOptions = {
   onPoolError?: (err: Error) => void
   onConnectionError?: (err: Error) => void
   userDefinedTypeParser?: UserDefinedTypeParser
+  /**
+   * When provided, enables PostgreSQL named prepared statements for query plan caching.
+   * The function receives a {@link SqlQuery} and must return a stable name for queries
+   * with the same SQL text and parameter types.
+   *
+   * Use {@link defaultStatementNameGenerator} for hash-based naming, or provide a custom
+   * implementation.
+   */
+  statementNameGenerator?: (query: SqlQuery) => string
 }
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
