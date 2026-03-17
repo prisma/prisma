@@ -74,7 +74,7 @@
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "file:/Users/ian/Projects/01/opensource/prisma-engines/target/prisma-schema-wasm",
+    "@prisma/prisma-schema-wasm": "7.5.0-10.94a226be1cf2967af2541cca5529f0f7ba866919",
     "@prisma/schema-engine-wasm": "7.5.0-10.94a226be1cf2967af2541cca5529f0f7ba866919",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",

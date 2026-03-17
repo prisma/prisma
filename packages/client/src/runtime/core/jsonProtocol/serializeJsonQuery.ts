@@ -222,7 +222,11 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     }
     if (field) {
       const processedValue = transformPolymorphicOn(value === true ? {} : value, field)
-      selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
+      const polymorphicModel = field.isPolymorphic && typeof value === 'object' && value !== null && 'on' in value
+        ? (value as Record<string, unknown>).on as string
+        : undefined
+      const resolvedContext = polymorphicModel ? context.nestSelection(key, polymorphicModel) : nestedContext
+      selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, resolvedContext)
       continue
     }
 
@@ -284,7 +288,11 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       continue
     }
     const processedValue = field ? transformPolymorphicOn(value, field) : value
-    selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, nestedContext)
+    const polymorphicModel = field?.isPolymorphic && typeof value === 'object' && value !== null && 'on' in value
+      ? (value as Record<string, unknown>).on as string
+      : undefined
+    const resolvedContext = polymorphicModel ? context.nestSelection(key, polymorphicModel) : nestedContext
+    selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, resolvedContext)
   }
   return selectionSet
 }
@@ -539,9 +547,9 @@ class SerializeContext {
     return this.modelOrType?.fields.find((field) => field.name === name)
   }
 
-  nestSelection(fieldName: string) {
+  nestSelection(fieldName: string, modelNameOverride?: string) {
     const field = this.findField(fieldName)
-    const modelName = field?.kind === 'object' ? field.type : undefined
+    const modelName = modelNameOverride ?? (field?.kind === 'object' ? field.type : undefined)
 
     return new SerializeContext({
       ...this.params,
