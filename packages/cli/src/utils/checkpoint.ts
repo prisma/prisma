@@ -1,13 +1,13 @@
 import { Debug } from '@prisma/debug'
 import {
   arg,
+  BuiltInProvider,
   createSchemaPathInput,
   getCLIPathHash,
   getProjectHash,
   isCurrentBinInstalledGlobally,
   loadSchemaContext,
   parseEnvValue,
-  PRISMA_CLIENT_JS_PROVIDER,
   type SchemaPathInput,
 } from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
@@ -135,7 +135,7 @@ export async function tryToReadDataFromSchema(schemaPath: SchemaPathInput) {
       .filter((generator) => generator && generator.provider)
       .map((generator) => parseEnvValue(generator.provider))
 
-    const clientGeneratorProviders = ['prisma-client', PRISMA_CLIENT_JS_PROVIDER]
+    const clientGeneratorProviders = [BuiltInProvider.PrismaClientTs, BuiltInProvider.PrismaClientJs]
     const previewFeatures = schemaContext.generators
       .filter((generator) => {
         const provider = generator?.provider ? parseEnvValue(generator.provider) : undefined

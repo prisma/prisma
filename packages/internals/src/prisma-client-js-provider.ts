@@ -1,1 +1,4 @@
-export const PRISMA_CLIENT_JS_PROVIDER = 'prisma-client-js'
+export const enum BuiltInProvider {
+  PrismaClientJs = 'prisma-client-js',
+  PrismaClientTs = 'prisma-client',
+}
