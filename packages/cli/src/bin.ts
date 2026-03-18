@@ -33,8 +33,10 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+import { Link } from './link'
 import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
+import { PostgresCommand } from './postgres/PostgresCommand'
 import { Status } from './Status'
 import { Studio } from './Studio'
 /*
@@ -110,6 +112,9 @@ async function main(): Promise<number> {
         push: DbPush.new(),
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
+      }),
+      postgres: PostgresCommand.new({
+        link: Link.new(),
       }),
       generate: Generate.new(),
       version: Version.new(),
