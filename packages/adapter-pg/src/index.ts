@@ -1,1 +1,1 @@
-export { defaultStatementNameGenerator, PrismaPgAdapterFactory as PrismaPg } from './pg'
+export { PrismaPgAdapterFactory as PrismaPg } from './pg'

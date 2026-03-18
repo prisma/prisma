@@ -37,7 +37,7 @@ const debug = Debug('prisma:driver-adapter:pg')
  * Named statements live for the lifetime of the connection, which is likely acceptable for
  * Prisma workloads because the set of query shapes is typically bounded.
  */
-export function defaultStatementNameGenerator(query: SqlQuery): string {
+export function generateStatementName(query: SqlQuery): string {
   const hashInput = query.sql + '\0' + JSON.stringify(query.argTypes)
   return 'p_' + crypto.hash('sha1', hashInput, 'hex').slice(0, 24)
 }
@@ -124,7 +124,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         {
           text: sql,
           values,
-          name: this.pgOptions?.statementNameGenerator?.(query),
+          name: this.pgOptions?.enableStatementCaching ? generateStatementName(query) : undefined,
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -207,14 +207,13 @@ export type PrismaPgOptions = {
   onConnectionError?: (err: Error) => void
   userDefinedTypeParser?: UserDefinedTypeParser
   /**
-   * When provided, enables PostgreSQL named prepared statements for query plan caching.
-   * The function receives a {@link SqlQuery} and must return a stable name for queries
-   * with the same SQL text and parameter types.
+   * When enabled, uses PostgreSQL named prepared statements for query plan caching.
+   * Repeated query shapes will reuse server-side plans on the same connection.
    *
-   * Use {@link defaultStatementNameGenerator} for hash-based naming, or provide a custom
-   * implementation.
+   * Named statements live for the lifetime of the connection, which is typically
+   * acceptable for Prisma workloads because the set of query shapes is bounded.
    */
-  statementNameGenerator?: (query: SqlQuery) => string
+  enableStatementCaching?: boolean
 }
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
