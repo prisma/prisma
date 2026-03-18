@@ -36,7 +36,7 @@ export function rethrowAsUserFacing(error: any): never {
   if (!code || !message) {
     throw error
   }
-  throw new UserFacingError(message, code, { driverAdapterError: error })
+  throw new UserFacingError(message, code, getErrorMeta(error))
 }
 
 export function rethrowAsUserFacingRawError(error: any): never {
@@ -49,7 +49,7 @@ export function rethrowAsUserFacingRawError(error: any): never {
       error.cause.originalMessage ?? renderErrorMessage(error)
     }\``,
     'P2010',
-    { driverAdapterError: error },
+    getErrorMeta(error),
   )
 }
 
@@ -110,6 +110,30 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     default:
       assertNever(err.cause, `Unknown error: ${err.cause}`)
   }
+}
+
+function getErrorMeta(err: DriverAdapterError): Record<string, unknown> {
+  const meta: Record<string, unknown> = {
+    driverAdapterError: err,
+  }
+
+  if (err.cause.kind === 'UniqueConstraintViolation' || err.cause.kind === 'NullConstraintViolation') {
+    if (err.cause.constraint && 'fields' in err.cause.constraint) {
+      meta.target = err.cause.constraint.fields
+    } else if (err.cause.constraint && 'index' in err.cause.constraint) {
+      meta.target = [err.cause.constraint.index]
+    }
+  }
+
+  if (err.cause.kind === 'ForeignKeyConstraintViolation') {
+    if (err.cause.constraint && 'fields' in err.cause.constraint) {
+      meta.field_name = err.cause.constraint.fields.join(', ')
+    } else if (err.cause.constraint && 'index' in err.cause.constraint) {
+      meta.field_name = err.cause.constraint.index
+    }
+  }
+
+  return meta
 }
 
 function renderErrorMessage(err: DriverAdapterError): string | undefined {
