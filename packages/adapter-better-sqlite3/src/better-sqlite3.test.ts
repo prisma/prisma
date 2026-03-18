@@ -158,4 +158,107 @@ describe.each([
       })
     }
   })
+
+  test('ignores placeholders inside string literals', async () => {
+    const factory = new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' })
+    const conn = await connect(factory)
+
+    await expect(
+      conn.queryRaw({
+        sql: "SELECT '?' as a, ':name' as b, ? as real",
+        args: [42],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+      }),
+    ).resolves.toMatchObject({
+      rows: [['?', ':name', 42]],
+    })
+  })
+
+  test('ignores placeholders inside quoted identifiers', async () => {
+    const factory = new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' })
+    const conn = await connect(factory)
+
+    await expect(
+      conn.queryRaw({
+        sql: 'SELECT 1 as "col:name", 2 as `a?b`, 3 as [x:y], ? as real',
+        args: [99],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+      }),
+    ).resolves.toMatchObject({
+      rows: [[1, 2, 3, 99]],
+    })
+  })
+
+  test('ignores placeholders inside comments', async () => {
+    const factory = new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' })
+    const conn = await connect(factory)
+
+    await expect(
+      conn.queryRaw({
+        sql: `
+        -- ? should be ignored
+        /* :name should be ignored */
+        SELECT ? as real
+      `,
+        args: [7],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+      }),
+    ).resolves.toMatchObject({
+      rows: [[7]],
+    })
+  })
+
+  test('distinguishes between positional $1 and named $param', async () => {
+    const factory = new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' })
+    const conn = await connect(factory)
+
+    await conn.executeScript(`
+    CREATE TABLE test (id TEXT PRIMARY KEY);
+    INSERT INTO test VALUES ('a'), ('b');
+  `)
+
+    await expect(
+      conn.queryRaw({
+        sql: 'SELECT id FROM test WHERE id = $1',
+        args: ['a'],
+        argTypes: [{ arity: 'scalar', scalarType: 'string' }],
+      }),
+    ).resolves.toMatchObject({
+      rows: [['a']],
+    })
+  })
+
+  test('rejects mixing positional and named parameters', async () => {
+    const factory = new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' })
+    const conn = await connect(factory)
+
+    await expect(
+      conn.queryRaw({
+        sql: 'SELECT ?1, :name',
+        args: [1, 'test'],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'string' },
+        ],
+      }),
+    ).rejects.toThrow()
+  })
+
+  test('handles mixed ordering of positional parameters', async () => {
+  const factory = new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' })
+  const conn = await connect(factory)
+
+  await expect(
+    conn.queryRaw({
+      sql: 'SELECT ?2 as b, ?1 as a',
+      args: ['first', 'second'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'string' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
+    }),
+  ).resolves.toMatchObject({
+    rows: [['second', 'first']],
+  })
+})
 })
