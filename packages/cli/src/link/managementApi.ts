@@ -36,9 +36,11 @@ interface CreateConnectionResponse {
   data: {
     id: string
     name: string
+    connectionString?: string
     endpoints?: {
       direct?: { connectionString: string }
       pooled?: { connectionString: string }
+      accelerate?: { connectionString: string }
     }
   }
 }
@@ -84,8 +86,12 @@ export async function createDevConnection(opts: { apiKey: string; databaseId: st
   }
 
   const json = (await res.json()) as CreateConnectionResponse
+  const endpoints = json.data.endpoints
   const connectionString =
-    json.data.endpoints?.direct?.connectionString ?? json.data.endpoints?.pooled?.connectionString
+    endpoints?.direct?.connectionString ??
+    endpoints?.pooled?.connectionString ??
+    endpoints?.accelerate?.connectionString ??
+    json.data.connectionString
 
   if (!connectionString) {
     throw new LinkApiError('No connection string found in API response')

@@ -70,6 +70,51 @@ describe('createDevConnection', () => {
     expect(result.connectionString).toBe('postgres://pooled-url')
   })
 
+  test('falls back to accelerate endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            id: 'conn_123',
+            name: 'dev-test-machine',
+            endpoints: {
+              accelerate: { connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=abc' },
+            },
+          },
+        }),
+    })
+
+    const result = await createDevConnection({
+      apiKey: 'test_api_key',
+      databaseId: 'db_abc123',
+    })
+
+    expect(result.connectionString).toBe('prisma+postgres://accelerate.prisma-data.net/?api_key=abc')
+  })
+
+  test('falls back to deprecated connectionString field', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            id: 'conn_123',
+            name: 'dev-test-machine',
+            connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=abc',
+            endpoints: {},
+          },
+        }),
+    })
+
+    const result = await createDevConnection({
+      apiKey: 'test_api_key',
+      databaseId: 'db_abc123',
+    })
+
+    expect(result.connectionString).toBe('prisma+postgres://accelerate.prisma-data.net/?api_key=abc')
+  })
+
   test('throws LinkApiError when no connection string in response', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
