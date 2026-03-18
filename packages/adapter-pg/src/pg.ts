@@ -200,7 +200,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
-export type PrismaPgOptions = {
+export interface PrismaPgOptions {
   schema?: string
   disposeExternalPool?: boolean
   onPoolError?: (err: Error) => void

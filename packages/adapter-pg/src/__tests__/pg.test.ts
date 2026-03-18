@@ -110,7 +110,6 @@ describe('generateStatementName', () => {
     expect(generateStatementName(commit)).toBe(generateStatementName(commit))
     expect(generateStatementName(rollback)).toBe(generateStatementName(rollback))
 
-    // Each should be distinct from the others
     const names = new Set([
       generateStatementName(begin),
       generateStatementName(commit),
@@ -200,7 +199,6 @@ describe('enableStatementCaching option', () => {
     adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
 
     const tx = await adapter.startTransaction()
-    // Reset mock to clear the BEGIN call
     mockConnection.query.mockClear()
 
     mockConnection.query.mockResolvedValueOnce({
@@ -221,12 +219,10 @@ describe('enableStatementCaching option', () => {
       ],
     })
 
-    // Verify name was passed
     const queryConfig = mockConnection.query.mock.calls[0][0]
     expect(queryConfig).toHaveProperty('name')
     expect(queryConfig.name).toMatch(/^p_[0-9a-f]{24}$/)
 
-    // Verify results still parse correctly
     expect(result.columnNames).toEqual(['id', 'name'])
     expect(result.rows).toEqual([[1, 'alice']])
 
