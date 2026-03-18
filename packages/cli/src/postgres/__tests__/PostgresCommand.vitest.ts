@@ -1,5 +1,4 @@
 import { defaultTestConfig } from '@prisma/config'
-import { HelpError } from '@prisma/internals'
 import { describe, expect, test, vi } from 'vitest'
 
 import { PostgresCommand } from '../PostgresCommand'

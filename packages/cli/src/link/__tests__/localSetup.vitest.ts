@@ -138,7 +138,7 @@ describe('writeLocalFiles', () => {
       directConnectionString: null,
     }
 
-    const result = writeLocalFiles(tmpDir, connection)
+    writeLocalFiles(tmpDir, connection)
 
     const envContent = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
     expect(envContent).toContain('DATABASE_URL=')

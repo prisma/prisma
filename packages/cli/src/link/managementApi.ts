@@ -31,7 +31,6 @@ export function sanitizeErrorMessage(message: string): string {
     .replace(/prisma\+postgres:\/\/[^\s"']+/gi, '[REDACTED_URL]')
     .replace(/(--api-key\s+)"[^"]*"/g, '$1"[REDACTED]"')
     .replace(/(--api-key\s+)(\S+)/g, '$1[REDACTED]')
-    .replace(/eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g, '[REDACTED_TOKEN]')
 }
 
 interface ListConnectionsResponse {

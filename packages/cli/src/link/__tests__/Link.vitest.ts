@@ -30,20 +30,21 @@ function setupMockApiSuccess() {
   mockFetch
     .mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [] }),
+      json: () => Promise.resolve({ data: [] }),
     })
     .mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        data: {
-          id: 'conn_test',
-          name: `dev-${os.hostname()}`,
-          endpoints: {
-            pooled: { connectionString: 'prisma+postgres://pooled-url' },
-            direct: { connectionString: 'postgres://direct-url' },
+      json: () =>
+        Promise.resolve({
+          data: {
+            id: 'conn_test',
+            name: `dev-${os.hostname()}`,
+            endpoints: {
+              pooled: { connectionString: 'prisma+postgres://pooled-url' },
+              direct: { connectionString: 'postgres://direct-url' },
+            },
           },
-        },
-      }),
+        }),
     })
 }
 
@@ -152,12 +153,12 @@ model User {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: () => Promise.resolve({ data: [] }),
       })
       .mockResolvedValueOnce({
         ok: false,
         status: 401,
-        text: async () => 'Unauthorized',
+        text: () => Promise.resolve('Unauthorized'),
       })
 
     const result = await Link.new().parse(

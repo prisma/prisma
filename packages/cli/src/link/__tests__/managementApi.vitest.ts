@@ -21,20 +21,21 @@ describe('createDevConnection', () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: () => Promise.resolve({ data: [] }),
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
-          data: {
-            id: 'conn_123',
-            name: 'dev-test-machine',
-            endpoints: {
-              pooled: { connectionString: 'prisma+postgres://pooled-url' },
-              direct: { connectionString: 'postgres://direct-url' },
+        json: () =>
+          Promise.resolve({
+            data: {
+              id: 'conn_123',
+              name: 'dev-test-machine',
+              endpoints: {
+                pooled: { connectionString: 'prisma+postgres://pooled-url' },
+                direct: { connectionString: 'postgres://direct-url' },
+              },
             },
-          },
-        }),
+          }),
       })
 
     const result = await createDevConnection({
@@ -60,18 +61,19 @@ describe('createDevConnection', () => {
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        data: [
-          {
-            id: 'conn_existing',
-            name: `dev-${hostname}`,
-            endpoints: {
-              pooled: { connectionString: 'prisma+postgres://existing-pooled' },
-              direct: { connectionString: 'postgres://existing-direct' },
+      json: () =>
+        Promise.resolve({
+          data: [
+            {
+              id: 'conn_existing',
+              name: `dev-${hostname}`,
+              endpoints: {
+                pooled: { connectionString: 'prisma+postgres://existing-pooled' },
+                direct: { connectionString: 'postgres://existing-direct' },
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }),
     })
 
     const result = await createDevConnection({
@@ -88,12 +90,12 @@ describe('createDevConnection', () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: () => Promise.resolve({ data: [] }),
       })
       .mockResolvedValueOnce({
         ok: false,
         status: 401,
-        text: async () => 'Unauthorized',
+        text: () => Promise.resolve('Unauthorized'),
       })
 
     await expect(createDevConnection({ apiKey: 'bad_key', databaseId: 'db_abc123' })).rejects.toThrow(/Invalid API key/)
@@ -103,12 +105,12 @@ describe('createDevConnection', () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: () => Promise.resolve({ data: [] }),
       })
       .mockResolvedValueOnce({
         ok: false,
         status: 404,
-        text: async () => 'Not Found',
+        text: () => Promise.resolve('Not Found'),
       })
 
     await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_nonexistent' })).rejects.toThrow(
@@ -120,7 +122,7 @@ describe('createDevConnection', () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: () => Promise.resolve({ data: [] }),
       })
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
 
@@ -169,15 +171,6 @@ describe('sanitizeErrorMessage', () => {
   test('redacts prisma+postgres connection strings', () => {
     const message = 'URL: prisma+postgres://accelerate.prisma-data.net/?api_key=abc'
     expect(sanitizeErrorMessage(message)).toContain('[REDACTED_URL]')
-  })
-
-  test('redacts JWT tokens', () => {
-    const prefix = ['e', 'y', 'J'].join('')
-    const fakeJwt = `${prefix}FAKEHEADER.${prefix}FAKEPAYLOAD.FAKESIG`
-    const message = `Using ${fakeJwt}`
-    const sanitized = sanitizeErrorMessage(message)
-    expect(sanitized).toContain('[REDACTED_TOKEN]')
-    expect(sanitized).not.toContain('FAKEHEADER')
   })
 
   test('redacts unquoted --api-key values', () => {
