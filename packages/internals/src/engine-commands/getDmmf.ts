@@ -112,7 +112,6 @@ function getDmmfBuffered(params: string): DMMF.Document {
       parser.write(chunk)
       offset += len
     }
-    parser.end()
 
     if (result === undefined) {
       throw new Error('Streaming JSON parse produced no result')
