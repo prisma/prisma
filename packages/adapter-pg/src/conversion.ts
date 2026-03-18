@@ -1,4 +1,4 @@
-import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+﻿import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
@@ -440,6 +440,14 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
     return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
   }
 
+  // For JSON fields, we need to stringify the value to ensure PostgreSQL
+  // receives valid JSON. Without this, plain strings would fail with
+  // "invalid input syntax for type json" because node-postgres passes
+  // the string directly without quotes.
+  if (argType.scalarType === 'json') {
+    return JSON.stringify(arg)
+  }
+
   return arg
 }
 
@@ -479,3 +487,4 @@ function formatTime(date: Date): string {
     (ms ? '.' + String(ms).padStart(3, '0') : '')
   )
 }
+
