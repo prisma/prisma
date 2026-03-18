@@ -27,25 +27,20 @@ afterEach(() => {
 })
 
 function setupMockApiSuccess() {
-  mockFetch
-    .mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ data: [] }),
-    })
-    .mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            id: 'conn_test',
-            name: `dev-${os.hostname()}`,
-            endpoints: {
-              pooled: { connectionString: 'prisma+postgres://pooled-url' },
-              direct: { connectionString: 'postgres://direct-url' },
-            },
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: () =>
+      Promise.resolve({
+        data: {
+          id: 'conn_test',
+          name: `dev-${os.hostname()}`,
+          endpoints: {
+            pooled: { connectionString: 'postgres://user:pass@db-pool.prisma.io:5432/postgres' },
+            direct: { connectionString: 'postgres://user:pass@db.prisma.io:5432/postgres' },
           },
-        }),
-    })
+        },
+      }),
+  })
 }
 
 describe('Link command', () => {
@@ -77,7 +72,7 @@ describe('Link command', () => {
     expect((result as HelpError).message).toContain('db_')
   })
 
-  test('links successfully and creates .env', async () => {
+  test('links successfully and writes direct connection to DATABASE_URL', async () => {
     setupMockApiSuccess()
 
     const result = await Link.new().parse(
@@ -91,8 +86,8 @@ describe('Link command', () => {
     expect(output).toContain('linked successfully')
 
     const envContent = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
-    expect(envContent).toContain("DATABASE_URL='prisma+postgres://pooled-url'")
-    expect(envContent).toContain("DIRECT_URL='postgres://direct-url'")
+    expect(envContent).toContain("DATABASE_URL='postgres://user:pass@db.prisma.io:5432/postgres'")
+    expect(envContent).not.toContain('DIRECT_URL')
   })
 
   test('shows next steps for schema with models', async () => {
@@ -149,17 +144,12 @@ model User {
     expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe('Bearer env_api_key')
   })
 
-  test('returns error on API failure from POST', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ data: [] }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        text: () => Promise.resolve('Unauthorized'),
-      })
+  test('returns error on API failure', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      text: () => Promise.resolve('Unauthorized'),
+    })
 
     const result = await Link.new().parse(
       ['--api-key', 'bad_key', '--database', 'db_abc123'],
@@ -171,19 +161,41 @@ model User {
     expect((result as HelpError).message).toContain('Invalid API key')
   })
 
-  test('returns error on 401 from list connections', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-    })
+  test('skips API call when already linked', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, '.env'),
+      "DATABASE_URL='postgres://user:pass@db.prisma.io:5432/postgres'\n",
+      'utf-8',
+    )
 
     const result = await Link.new().parse(
-      ['--api-key', 'bad_key', '--database', 'db_abc123'],
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
     )
 
-    expect(result).toBeInstanceOf(HelpError)
-    expect((result as HelpError).message).toContain('Invalid API key')
+    expect(result).toContain('already linked')
+    expect(result).toContain('--force')
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  test('re-links when --force is used on already linked project', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, '.env'),
+      "DATABASE_URL='postgres://user:pass@db.prisma.io:5432/postgres'\n",
+      'utf-8',
+    )
+    setupMockApiSuccess()
+
+    const result = await Link.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123', '--force'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('linked successfully')
+    expect(mockFetch).toHaveBeenCalledTimes(1)
   })
 })

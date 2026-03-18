@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { createDevConnection, LinkApiError, sanitizeErrorMessage } from '../managementApi'
+import { createDevConnection, sanitizeErrorMessage } from '../managementApi'
 
 const mockFetch = vi.fn()
 const originalFetch = globalThis.fetch
@@ -17,62 +17,19 @@ afterEach(() => {
 })
 
 describe('createDevConnection', () => {
-  test('creates a new connection when none exists', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ data: [] }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              id: 'conn_123',
-              name: 'dev-test-machine',
-              endpoints: {
-                pooled: { connectionString: 'prisma+postgres://pooled-url' },
-                direct: { connectionString: 'postgres://direct-url' },
-              },
-            },
-          }),
-      })
-
-    const result = await createDevConnection({
-      apiKey: 'test_api_key',
-      databaseId: 'db_abc123',
-    })
-
-    expect(result.connectionString).toBe('prisma+postgres://pooled-url')
-    expect(result.directConnectionString).toBe('postgres://direct-url')
-
-    expect(mockFetch).toHaveBeenCalledTimes(2)
-    const [listUrl, listOpts] = mockFetch.mock.calls[0]
-    expect(listUrl).toContain('/v1/databases/db_abc123/connections')
-    expect(listOpts.headers.Authorization).toBe('Bearer test_api_key')
-
-    const [createUrl, createOpts] = mockFetch.mock.calls[1]
-    expect(createUrl).toContain('/v1/databases/db_abc123/connections')
-    expect(createOpts.method).toBe('POST')
-  })
-
-  test('reuses an existing connection with the same name', async () => {
-    const hostname = (await import('node:os')).hostname()
-
+  test('creates a connection and returns direct connection string', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
         Promise.resolve({
-          data: [
-            {
-              id: 'conn_existing',
-              name: `dev-${hostname}`,
-              endpoints: {
-                pooled: { connectionString: 'prisma+postgres://existing-pooled' },
-                direct: { connectionString: 'postgres://existing-direct' },
-              },
+          data: {
+            id: 'conn_123',
+            name: 'dev-test-machine',
+            endpoints: {
+              pooled: { connectionString: 'postgres://pooled-url' },
+              direct: { connectionString: 'postgres://direct-url' },
             },
-          ],
+          },
         }),
     })
 
@@ -81,37 +38,72 @@ describe('createDevConnection', () => {
       databaseId: 'db_abc123',
     })
 
-    expect(result.connectionString).toBe('prisma+postgres://existing-pooled')
-    expect(result.directConnectionString).toBe('postgres://existing-direct')
+    expect(result.connectionString).toBe('postgres://direct-url')
     expect(mockFetch).toHaveBeenCalledTimes(1)
+
+    const [url, opts] = mockFetch.mock.calls[0]
+    expect(url).toContain('/v1/databases/db_abc123/connections')
+    expect(opts.method).toBe('POST')
+    expect(opts.headers.Authorization).toBe('Bearer test_api_key')
+  })
+
+  test('falls back to pooled when direct is not available', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            id: 'conn_123',
+            name: 'dev-test-machine',
+            endpoints: {
+              pooled: { connectionString: 'postgres://pooled-url' },
+            },
+          },
+        }),
+    })
+
+    const result = await createDevConnection({
+      apiKey: 'test_api_key',
+      databaseId: 'db_abc123',
+    })
+
+    expect(result.connectionString).toBe('postgres://pooled-url')
+  })
+
+  test('throws LinkApiError when no connection string in response', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            id: 'conn_123',
+            name: 'dev-test-machine',
+            endpoints: {},
+          },
+        }),
+    })
+
+    await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_abc123' })).rejects.toThrow(
+      /No connection string found/,
+    )
   })
 
   test('throws LinkApiError on 401', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ data: [] }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        text: () => Promise.resolve('Unauthorized'),
-      })
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      text: () => Promise.resolve('Unauthorized'),
+    })
 
     await expect(createDevConnection({ apiKey: 'bad_key', databaseId: 'db_abc123' })).rejects.toThrow(/Invalid API key/)
   })
 
   test('throws LinkApiError on 404', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ data: [] }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        text: () => Promise.resolve('Not Found'),
-      })
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      text: () => Promise.resolve('Not Found'),
+    })
 
     await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_nonexistent' })).rejects.toThrow(
       /not found/,
@@ -119,45 +111,11 @@ describe('createDevConnection', () => {
   })
 
   test('throws LinkApiError on network failure', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ data: [] }),
-      })
-      .mockRejectedValueOnce(new Error('ECONNREFUSED'))
-
-    await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_abc123' })).rejects.toThrow(LinkApiError)
-  })
-
-  test('propagates 401 from list connections immediately', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-    })
-
-    await expect(createDevConnection({ apiKey: 'bad_key', databaseId: 'db_abc123' })).rejects.toThrow(/Invalid API key/)
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-  })
-
-  test('propagates 403 from list connections immediately', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 403,
-    })
-
-    await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_abc123' })).rejects.toThrow(
-      /Access denied/,
-    )
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-  })
-
-  test('throws on network failure during list connections', async () => {
     mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'))
 
     await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_abc123' })).rejects.toThrow(
       /Could not reach the Management API/,
     )
-    expect(mockFetch).toHaveBeenCalledTimes(1)
   })
 })
 

@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
-import { checkGitignore, formatEnvSummary, upsertEnvFile, writeLocalFiles } from '../localSetup'
+import { checkGitignore, formatEnvSummary, isAlreadyLinked, upsertEnvFile, writeLocalFiles } from '../localSetup'
 import type { ConnectionResult } from '../managementApi'
 
 let tmpDir: string
@@ -117,10 +117,9 @@ describe('checkGitignore', () => {
 })
 
 describe('writeLocalFiles', () => {
-  test('writes connection strings to .env', () => {
+  test('writes DATABASE_URL to .env', () => {
     const connection: ConnectionResult = {
-      connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=abc',
-      directConnectionString: 'postgres://aws-us-east-1.prisma-data.net:5432/db',
+      connectionString: 'postgres://user:pass@db.prisma.io:5432/postgres',
     }
 
     const result = writeLocalFiles(tmpDir, connection)
@@ -129,20 +128,41 @@ describe('writeLocalFiles', () => {
 
     const envContent = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
     expect(envContent).toContain('DATABASE_URL=')
-    expect(envContent).toContain('DIRECT_URL=')
+    expect(envContent).not.toContain('DIRECT_URL')
+  })
+})
+
+describe('isAlreadyLinked', () => {
+  test('returns false when no .env exists', () => {
+    expect(isAlreadyLinked(tmpDir)).toBe(false)
   })
 
-  test('writes only DATABASE_URL when no direct connection', () => {
-    const connection: ConnectionResult = {
-      connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=abc',
-      directConnectionString: null,
-    }
+  test('returns false when DATABASE_URL is not a Prisma Postgres URL', () => {
+    fs.writeFileSync(path.join(tmpDir, '.env'), "DATABASE_URL='postgres://localhost:5432/mydb'\n", 'utf-8')
+    expect(isAlreadyLinked(tmpDir)).toBe(false)
+  })
 
-    writeLocalFiles(tmpDir, connection)
+  test('returns true when DATABASE_URL points to db.prisma.io', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, '.env'),
+      "DATABASE_URL='postgres://user:pass@db.prisma.io:5432/postgres'\n",
+      'utf-8',
+    )
+    expect(isAlreadyLinked(tmpDir)).toBe(true)
+  })
 
-    const envContent = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
-    expect(envContent).toContain('DATABASE_URL=')
-    expect(envContent).not.toContain('DIRECT_URL=')
+  test('returns true when DATABASE_URL points to db-pool.prisma.io', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, '.env'),
+      "DATABASE_URL='postgres://user:pass@db-pool.prisma.io:5432/postgres'\n",
+      'utf-8',
+    )
+    expect(isAlreadyLinked(tmpDir)).toBe(true)
+  })
+
+  test('returns false when .env exists but has no DATABASE_URL', () => {
+    fs.writeFileSync(path.join(tmpDir, '.env'), "OTHER_VAR='value'\n", 'utf-8')
+    expect(isAlreadyLinked(tmpDir)).toBe(false)
   })
 })
 

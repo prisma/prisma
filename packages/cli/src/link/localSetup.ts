@@ -64,15 +64,24 @@ export interface WriteLocalFilesResult {
   gitignoreStatus: GitignoreStatus
 }
 
+const PRISMA_POSTGRES_URL_PATTERN = /^postgres(ql)?:\/\/[^@]*@db(-pool)?\.prisma\.io/
+
+export function isAlreadyLinked(projectDir: string): boolean {
+  const envPath = path.join(projectDir, '.env')
+
+  if (!fs.existsSync(envPath)) {
+    return false
+  }
+
+  const parsed = dotenv.parse(fs.readFileSync(envPath, 'utf-8'))
+  return PRISMA_POSTGRES_URL_PATTERN.test(parsed.DATABASE_URL ?? '')
+}
+
 export function writeLocalFiles(projectDir: string, connection: ConnectionResult): WriteLocalFilesResult {
   const envPath = path.join(projectDir, '.env')
 
   const envEntries: Record<string, string> = {
     DATABASE_URL: connection.connectionString,
-  }
-
-  if (connection.directConnectionString) {
-    envEntries.DIRECT_URL = connection.directConnectionString
   }
 
   const env = upsertEnvFile(envPath, envEntries)

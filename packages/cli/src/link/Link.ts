@@ -7,7 +7,7 @@ import { arg, format, HelpError, isError } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 
 import { formatCompletionOutput } from './completionOutput'
-import { writeLocalFiles } from './localSetup'
+import { isAlreadyLinked, writeLocalFiles } from './localSetup'
 import { createDevConnection, LinkApiError, sanitizeErrorMessage } from './managementApi'
 
 export class Link implements Command {
@@ -26,6 +26,7 @@ ${bold('Options')}
 
   --api-key      Workspace API key (from console.prisma.io)
   --database     Database ID to link to (e.g. db_abc123)
+  --force        Re-link even if already linked to Prisma Postgres
   -h, --help     Display this help message
 
 ${bold('Examples')}
@@ -41,6 +42,7 @@ ${bold('Examples')}
     const args = arg(argv, {
       '--api-key': String,
       '--database': String,
+      '--force': Boolean,
       '--help': Boolean,
       '-h': '--help',
       '--telemetry-information': String,
@@ -73,6 +75,10 @@ ${bold('Examples')}
       return new HelpError(
         `\n${bold(red('!'))} Invalid database ID "${databaseId}" — expected format: ${bold('db_<id>')}\n${Link.help}`,
       )
+    }
+
+    if (!args['--force'] && isAlreadyLinked(baseDir)) {
+      return `\nThis project is already linked to Prisma Postgres.\nRun with ${bold('--force')} to re-link.\n`
     }
 
     try {
