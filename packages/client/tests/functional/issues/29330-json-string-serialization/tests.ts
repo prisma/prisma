@@ -29,15 +29,15 @@ testMatrix.setupTestSuite(
 
     test('writes various JSON types correctly', async () => {
       const testCases = [
-        { content: 'string value', desc: 'string' },
-        { content: 42, desc: 'number' },
-        { content: true, desc: 'boolean' },
-        { content: null, desc: 'null' },
-        { content: { nested: 'object' }, desc: 'object' },
-        { content: [1, 2, 3], desc: 'array' },
+        { content: 'string value' },
+        { content: 42 },
+        { content: true },
+        { content: null },
+        { content: { nested: 'object' } },
+        { content: [1, 2, 3] },
       ]
 
-      for (const { content, desc } of testCases) {
+      for (const { content } of testCases) {
         const doc = await prisma.document.create({
           data: { content, metadata: null },
         })
