@@ -234,9 +234,43 @@ describe('Link command — idempotency', () => {
 })
 
 describe('Link command — interactive mode (no --api-key, no --database)', () => {
+  test('ignores PRISMA_API_KEY env var when --database is not provided', async () => {
+    const { select } = await import('@inquirer/prompts')
+    const mockSelect = vi.mocked(select)
+
+    mockSelect.mockResolvedValueOnce('proj_1')
+    mockSelect.mockResolvedValueOnce('db_abc123')
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 'proj_1', name: 'My Project', workspace: { id: 'wksp_1', name: 'My Workspace' } }],
+      },
+      error: undefined,
+    })
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [
+          { id: 'db_abc123', name: 'production', status: 'ready', region: { id: 'us-east-1', name: 'US East' } },
+        ],
+      },
+      error: undefined,
+    })
+
+    setupMockApiSuccess()
+
+    vi.stubEnv('PRISMA_API_KEY', 'some_permanent_key')
+    const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('linked successfully')
+  })
+
   test('uses browser auth and interactive selection', async () => {
     const { select } = await import('@inquirer/prompts')
     const mockSelect = vi.mocked(select)
+    mockSelect.mockClear()
 
     mockSelect.mockResolvedValueOnce('proj_1')
     mockSelect.mockResolvedValueOnce('db_abc123')

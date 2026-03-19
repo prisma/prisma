@@ -12,9 +12,9 @@ import { bold, dim, green, red } from 'kleur/colors'
 import { login } from '../management-api/auth'
 import { createAuthenticatedManagementAPI } from '../management-api/auth-client'
 import { FileTokenStorage } from '../management-api/token-storage'
-import { formatCompletionOutput } from './completionOutput'
-import { isAlreadyLinked, writeLocalFiles } from './localSetup'
-import { createDevConnection, LinkApiError, listDatabases, listProjects, sanitizeErrorMessage } from './managementApi'
+import { formatCompletionOutput } from './completion-output'
+import { isAlreadyLinked, writeLocalFiles } from './local-setup'
+import { createDevConnection, LinkApiError, listDatabases, listProjects, sanitizeErrorMessage } from './management-api'
 
 const DEFAULT_MANAGEMENT_API_URL = 'https://api.prisma.io'
 
@@ -130,10 +130,11 @@ ${bold('Examples')}
       return `\nThis project is already linked to Prisma Postgres.\nRun with ${bold('--force')} to re-link.\n`
     }
 
-    const apiKey = args['--api-key'] ?? process.env.PRISMA_API_KEY
+    const explicitApiKey = args['--api-key']
     const databaseId = args['--database']
+    const apiKey = explicitApiKey ?? (databaseId ? process.env.PRISMA_API_KEY : undefined)
 
-    if (apiKey && !databaseId) {
+    if (explicitApiKey && !databaseId) {
       return new HelpError(
         `\n${bold(red('!'))} Missing ${bold('--database')} flag.\n\nWhen using ${bold('--api-key')}, you must also provide ${bold('--database')}.\n${Link.help}`,
       )
@@ -181,7 +182,7 @@ ${bold('Examples')}
 
   private static formatError(err: unknown): HelpError {
     if (err instanceof LinkApiError) {
-      return new HelpError(`\n${bold(red('!'))} ${err.message}`)
+      return new HelpError(`\n${bold(red('!'))} ${sanitizeErrorMessage(err.message)}`)
     }
     const message = err instanceof Error ? err.message : String(err)
     return new HelpError(`\n${bold(red('!'))} ${sanitizeErrorMessage(message)}`)

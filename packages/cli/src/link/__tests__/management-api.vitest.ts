@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { createDevConnection, listDatabases, listProjects, sanitizeErrorMessage } from '../managementApi'
+import { createDevConnection, listDatabases, listProjects, sanitizeErrorMessage } from '../management-api'
 
 function mockClient(overrides: Record<string, unknown> = {}): any {
   return {

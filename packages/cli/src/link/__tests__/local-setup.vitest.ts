@@ -4,8 +4,8 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
-import { checkGitignore, formatEnvSummary, isAlreadyLinked, upsertEnvFile, writeLocalFiles } from '../localSetup'
-import type { ConnectionResult } from '../managementApi'
+import { checkGitignore, formatEnvSummary, isAlreadyLinked, upsertEnvFile, writeLocalFiles } from '../local-setup'
+import type { ConnectionResult } from '../management-api'
 
 let tmpDir: string
 

@@ -4,7 +4,7 @@ import path from 'node:path'
 import dotenv from 'dotenv'
 import { bold, yellow } from 'kleur/colors'
 
-import type { ConnectionResult } from './managementApi'
+import type { ConnectionResult } from './management-api'
 
 export interface EnvWriteResult {
   created: boolean

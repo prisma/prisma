@@ -1,7 +1,7 @@
 import { getCommandWithExecutor } from '@prisma/internals'
 import { bold, dim, green } from 'kleur/colors'
 
-import { formatEnvSummary, type WriteLocalFilesResult } from './localSetup'
+import { formatEnvSummary, type WriteLocalFilesResult } from './local-setup'
 
 export function formatCompletionOutput(opts: {
   databaseId: string
