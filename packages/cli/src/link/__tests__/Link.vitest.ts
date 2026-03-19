@@ -235,6 +235,11 @@ describe('Link command — idempotency', () => {
 
 describe('Link command — interactive mode (no --api-key, no --database)', () => {
   test('ignores PRISMA_API_KEY env var when --database is not provided', async () => {
+    const { createManagementApiClient } = await import('@prisma/management-api-sdk')
+    const { createAuthenticatedManagementAPI } = await import('../../management-api/auth-client')
+    vi.mocked(createManagementApiClient).mockClear()
+    vi.mocked(createAuthenticatedManagementAPI).mockClear()
+
     const { select } = await import('@inquirer/prompts')
     const mockSelect = vi.mocked(select)
 
@@ -261,6 +266,8 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
     const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
 
     expect(result).not.toBeInstanceOf(Error)
+    expect(createManagementApiClient).not.toHaveBeenCalled()
+    expect(createAuthenticatedManagementAPI).toHaveBeenCalled()
     const output = result as string
     expect(output).toContain('linked successfully')
   })

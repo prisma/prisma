@@ -6,12 +6,14 @@ import { bold, yellow } from 'kleur/colors'
 
 import type { ConnectionResult } from './management-api'
 
+/** Tracks which keys were created, updated, or added when writing an `.env` file. */
 export interface EnvWriteResult {
   created: boolean
   updated: string[]
   added: string[]
 }
 
+/** Creates or patches an `.env` file, inserting new keys and rewriting existing ones in place. */
 export function upsertEnvFile(envPath: string, entries: Record<string, string>): EnvWriteResult {
   const result: EnvWriteResult = { created: false, updated: [], added: [] }
 
@@ -28,9 +30,10 @@ export function upsertEnvFile(envPath: string, entries: Record<string, string>):
 
   for (const [key, value] of Object.entries(entries)) {
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const regex = new RegExp(`^(\\s*${escapedKey}\\s*=).*$`, 'm')
+    const regex = new RegExp(`^(\\s*${escapedKey}\\s*=).*$`, 'gm')
     if (regex.test(content)) {
-      content = content.replace(regex, `$1'${value}'`)
+      regex.lastIndex = 0
+      content = content.replace(regex, (_match, prefix) => `${prefix}'${value}'`)
       result.updated.push(key)
     } else if (key in existingVars) {
       result.updated.push(key)
@@ -44,8 +47,10 @@ export function upsertEnvFile(envPath: string, entries: Record<string, string>):
   return result
 }
 
+/** Whether `.gitignore` covers `.env` files: present and covering, missing the entry, or absent entirely. */
 export type GitignoreStatus = 'ok' | 'missing-entry' | 'no-file'
 
+/** Returns whether `.gitignore` in `projectDir` already ignores `.env` files. */
 export function checkGitignore(projectDir: string): GitignoreStatus {
   const gitignorePath = path.join(projectDir, '.gitignore')
 
@@ -56,10 +61,14 @@ export function checkGitignore(projectDir: string): GitignoreStatus {
   const content = fs.readFileSync(gitignorePath, 'utf-8')
   const lines = content.split('\n').map((l) => l.trim())
 
-  const hasEnvEntry = lines.some((line) => line === '.env' || line === '/.env' || line === '.env*')
+  const hasEnvEntry = lines.some((line) => {
+    const normalized = line.startsWith('/') ? line.slice(1) : line
+    return normalized === '.env' || normalized === '.env*'
+  })
   return hasEnvEntry ? 'ok' : 'missing-entry'
 }
 
+/** Combined result of writing `.env` and checking `.gitignore`. */
 export interface WriteLocalFilesResult {
   env: EnvWriteResult
   gitignoreStatus: GitignoreStatus
@@ -67,6 +76,7 @@ export interface WriteLocalFilesResult {
 
 const PRISMA_POSTGRES_URL_PATTERN = /^postgres(ql)?:\/\/[^@]*@db(-pool)?\.prisma\.io/
 
+/** Checks if `DATABASE_URL` in the project's `.env` already points to a Prisma Postgres instance. */
 export function isAlreadyLinked(projectDir: string): boolean {
   const envPath = path.join(projectDir, '.env')
 
@@ -78,6 +88,7 @@ export function isAlreadyLinked(projectDir: string): boolean {
   return PRISMA_POSTGRES_URL_PATTERN.test(parsed.DATABASE_URL ?? '')
 }
 
+/** Writes connection strings to `.env` and reports the `.gitignore` status. */
 export function writeLocalFiles(projectDir: string, connection: ConnectionResult): WriteLocalFilesResult {
   const envPath = path.join(projectDir, '.env')
 
@@ -91,6 +102,7 @@ export function writeLocalFiles(projectDir: string, connection: ConnectionResult
   return { env, gitignoreStatus }
 }
 
+/** Formats a human-readable summary of `.env` writes and `.gitignore` warnings. */
 export function formatEnvSummary(result: WriteLocalFilesResult): string {
   const lines: string[] = []
 
