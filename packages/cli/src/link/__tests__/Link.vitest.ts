@@ -250,9 +250,7 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
 
     mockSdkClient.GET.mockResolvedValueOnce({
       data: {
-        data: [
-          { id: 'db_abc123', name: 'production', status: 'ready', region: { id: 'us-east-1', name: 'US East' } },
-        ],
+        data: [{ id: 'db_abc123', name: 'production', status: 'ready', region: { id: 'us-east-1', name: 'US East' } }],
       },
       error: undefined,
     })

@@ -27,7 +27,8 @@ export function upsertEnvFile(envPath: string, entries: Record<string, string>):
   const existingVars = dotenv.parse(content)
 
   for (const [key, value] of Object.entries(entries)) {
-    const regex = new RegExp(`^(\\s*${key}\\s*=).*$`, 'm')
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`^(\\s*${escapedKey}\\s*=).*$`, 'm')
     if (regex.test(content)) {
       content = content.replace(regex, `$1'${value}'`)
       result.updated.push(key)
