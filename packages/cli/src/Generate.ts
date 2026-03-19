@@ -85,38 +85,26 @@ ${bold('Examples')}
   private hasGeneratorErrored = false
 
   private runGenerate = simpleDebounce(
-    async ({ generators, usageHint }: { generators: Generator[]; usageHint?: string }) => {
-      const results: Array<{ message: string; isJsClient: boolean }> = []
+    async ({ generators }: { generators: (Generator & { usageHint?: string })[] }) => {
+      const messages: string[] = []
 
       for (const generator of generators) {
         const before = Math.round(performance.now())
         try {
           await generator.generate()
           const after = Math.round(performance.now())
-          const provider = generator.options ? parseEnvValue(generator.options.generator.provider) : ''
-          results.push({
-            message: getGeneratorSuccessMessage(generator, after - before) + '\n',
-            isJsClient: provider === 'prisma-client-js',
-          })
+          let message = getGeneratorSuccessMessage(generator, after - before) + '\n'
+          if (generator.usageHint && !this.hasGeneratorErrored) {
+            message += generator.usageHint
+          }
+          messages.push(message)
           generator.stop()
         } catch (err) {
           this.hasGeneratorErrored = true
           generator.stop()
-          results.push({
-            message: `${err.message}\n\n`,
-            isJsClient: false,
-          })
+          messages.push(`${err.message}\n\n`)
         }
       }
-
-      let hintInserted = false
-      const messages = results.map(({ message, isJsClient }) => {
-        if (usageHint && !hintInserted && isJsClient && !this.hasGeneratorErrored) {
-          hintInserted = true
-          return message + usageHint
-        }
-        return message
-      })
 
       this.logText += messages.join('\n')
     },
@@ -205,13 +193,13 @@ ${bold('Examples')}
 
         hasJsClient = Boolean(jsClient)
 
-        const usageHint =
-          hasJsClient && !hideHints && !watchMode
-            ? '\nStart by importing your Prisma Client (See: https://pris.ly/d/importing-client)\n'
-            : undefined
+        if (jsClient && !hideHints && !watchMode) {
+          ;(jsClient as Generator & { usageHint?: string }).usageHint =
+            '\nStart by importing your Prisma Client (See: https://pris.ly/d/importing-client)\n'
+        }
 
         try {
-          await this.runGenerate({ generators, usageHint })
+          await this.runGenerate({ generators })
         } catch (errRunGenerate) {
           this.logText += `${errRunGenerate.message}\n\n`
         }
