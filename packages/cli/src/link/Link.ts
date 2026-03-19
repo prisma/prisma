@@ -6,7 +6,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { arg, format, HelpError, isError } from '@prisma/internals'
 import type { ManagementApiClient } from '@prisma/management-api-sdk'
-import { createManagementApiClient } from '@prisma/management-api-sdk'
+import { AuthError, createManagementApiClient } from '@prisma/management-api-sdk'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { login } from '../management-api/auth'
@@ -36,6 +36,10 @@ async function resolveApiClient(apiKey: string | undefined): Promise<ManagementA
   }
 
   return createAuthenticatedManagementAPI().client
+}
+
+function isExpiredSessionError(err: unknown): boolean {
+  return err instanceof AuthError && err.refreshTokenInvalid
 }
 
 async function resolveDatabase(client: ManagementApiClient): Promise<string> {
@@ -127,7 +131,7 @@ ${bold('Examples')}
     }
 
     const apiKey = args['--api-key'] ?? process.env.PRISMA_API_KEY
-    let databaseId = args['--database']
+    const databaseId = args['--database']
 
     if (apiKey && !databaseId) {
       return new HelpError(
@@ -142,24 +146,45 @@ ${bold('Examples')}
     }
 
     try {
-      const client = await resolveApiClient(apiKey)
-
-      if (!databaseId) {
-        databaseId = await resolveDatabase(client)
-      }
-
-      const connection = await createDevConnection(client, databaseId)
-      const localFilesResult = writeLocalFiles(baseDir, connection)
-      const hasModels = schemaHasModels(baseDir)
-
-      return formatCompletionOutput({ databaseId, localFilesResult, hasModels })
+      return await this.linkDatabase(apiKey, databaseId, baseDir)
     } catch (err) {
-      if (err instanceof LinkApiError) {
-        return new HelpError(`\n${bold(red('!'))} ${err.message}`)
+      if (!apiKey && isExpiredSessionError(err)) {
+        console.log(`Session expired. Re-authenticating via browser...`)
+        await login({ utmMedium: 'command-postgres-link' })
+        try {
+          return await this.linkDatabase(apiKey, databaseId, baseDir)
+        } catch (retryErr) {
+          return Link.formatError(retryErr)
+        }
       }
-      const message = err instanceof Error ? err.message : String(err)
-      return new HelpError(`\n${bold(red('!'))} ${sanitizeErrorMessage(message)}`)
+      return Link.formatError(err)
     }
+  }
+
+  private async linkDatabase(
+    apiKey: string | undefined,
+    databaseId: string | undefined,
+    baseDir: string,
+  ): Promise<string> {
+    const client = await resolveApiClient(apiKey)
+
+    if (!databaseId) {
+      databaseId = await resolveDatabase(client)
+    }
+
+    const connection = await createDevConnection(client, databaseId)
+    const localFilesResult = writeLocalFiles(baseDir, connection)
+    const hasModels = schemaHasModels(baseDir)
+
+    return formatCompletionOutput({ databaseId, localFilesResult, hasModels })
+  }
+
+  private static formatError(err: unknown): HelpError {
+    if (err instanceof LinkApiError) {
+      return new HelpError(`\n${bold(red('!'))} ${err.message}`)
+    }
+    const message = err instanceof Error ? err.message : String(err)
+    return new HelpError(`\n${bold(red('!'))} ${sanitizeErrorMessage(message)}`)
   }
 
   public help(error?: string): string | HelpError {

@@ -8,9 +8,21 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { Link } from '../Link'
 
-vi.mock('@prisma/management-api-sdk', () => ({
-  createManagementApiClient: vi.fn(() => mockSdkClient),
-}))
+vi.mock('@prisma/management-api-sdk', () => {
+  class AuthErrorMock extends Error {
+    name = 'AuthError'
+    constructor(
+      message: string,
+      public readonly refreshTokenInvalid = false,
+    ) {
+      super(message)
+    }
+  }
+  return {
+    createManagementApiClient: vi.fn(() => mockSdkClient),
+    AuthError: AuthErrorMock,
+  }
+})
 
 vi.mock('../../management-api/auth', () => ({
   login: vi.fn(() => Promise.resolve()),
@@ -327,5 +339,25 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
 
     expect(result).toBeInstanceOf(HelpError)
     expect((result as HelpError).message).toContain('No ready databases')
+  })
+})
+
+describe('Link command — expired session retry', () => {
+  test('retries with browser login when refresh token is invalid', async () => {
+    const { login } = await import('../../management-api/auth')
+    const mockLogin = vi.mocked(login)
+
+    const { AuthError } = await import('@prisma/management-api-sdk')
+    mockSdkClient.POST.mockRejectedValueOnce(new AuthError('invalid_grant: Invalid grant', true))
+
+    setupMockApiSuccess()
+
+    delete process.env.PRISMA_API_KEY
+    const result = await Link.new().parse(['--database', 'db_abc123'], defaultTestConfig(), tmpDir)
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('linked successfully')
+    expect(mockLogin).toHaveBeenCalledWith(expect.objectContaining({ utmMedium: 'command-postgres-link' }))
   })
 })
