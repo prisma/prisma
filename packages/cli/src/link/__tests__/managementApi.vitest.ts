@@ -1,166 +1,174 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
-import { createDevConnection, sanitizeErrorMessage } from '../managementApi'
+import { createDevConnection, listDatabases, listProjects, sanitizeErrorMessage } from '../managementApi'
 
-const mockFetch = vi.fn()
-const originalFetch = globalThis.fetch
-
-beforeEach(() => {
-  globalThis.fetch = mockFetch
-  vi.stubEnv('PRISMA_MANAGEMENT_API_URL', 'https://api.test.prisma.io')
-})
-
-afterEach(() => {
-  globalThis.fetch = originalFetch
-  vi.unstubAllEnvs()
-  mockFetch.mockReset()
-})
+function mockClient(overrides: Record<string, unknown> = {}): any {
+  return {
+    GET: (overrides.GET as any) ?? (() => ({ data: undefined, error: undefined })),
+    POST: (overrides.POST as any) ?? (() => ({ data: undefined, error: undefined })),
+  }
+}
 
 describe('createDevConnection', () => {
-  test('creates a connection and returns direct connection string', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
+  test('returns direct connection string', async () => {
+    const client = mockClient({
+      POST: () => ({
+        data: {
           data: {
             id: 'conn_123',
-            name: 'dev-test-machine',
             endpoints: {
-              pooled: { connectionString: 'postgres://pooled-url' },
               direct: { connectionString: 'postgres://direct-url' },
+              pooled: { connectionString: 'postgres://pooled-url' },
             },
           },
-        }),
+        },
+        error: undefined,
+      }),
     })
 
-    const result = await createDevConnection({
-      apiKey: 'test_api_key',
-      databaseId: 'db_abc123',
-    })
-
+    const result = await createDevConnection(client, 'db_abc123')
     expect(result.connectionString).toBe('postgres://direct-url')
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-
-    const [url, opts] = mockFetch.mock.calls[0]
-    expect(url).toContain('/v1/databases/db_abc123/connections')
-    expect(opts.method).toBe('POST')
-    expect(opts.headers.Authorization).toBe('Bearer test_api_key')
   })
 
   test('falls back to pooled when direct is not available', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
+    const client = mockClient({
+      POST: () => ({
+        data: {
           data: {
             id: 'conn_123',
-            name: 'dev-test-machine',
-            endpoints: {
-              pooled: { connectionString: 'postgres://pooled-url' },
-            },
+            endpoints: { pooled: { connectionString: 'postgres://pooled-url' } },
           },
-        }),
+        },
+        error: undefined,
+      }),
     })
 
-    const result = await createDevConnection({
-      apiKey: 'test_api_key',
-      databaseId: 'db_abc123',
-    })
-
+    const result = await createDevConnection(client, 'db_abc123')
     expect(result.connectionString).toBe('postgres://pooled-url')
   })
 
-  test('falls back to accelerate endpoint', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            id: 'conn_123',
-            name: 'dev-test-machine',
-            endpoints: {
-              accelerate: { connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=abc' },
-            },
-          },
-        }),
-    })
-
-    const result = await createDevConnection({
-      apiKey: 'test_api_key',
-      databaseId: 'db_abc123',
-    })
-
-    expect(result.connectionString).toBe('prisma+postgres://accelerate.prisma-data.net/?api_key=abc')
-  })
-
   test('falls back to deprecated connectionString field', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
+    const client = mockClient({
+      POST: () => ({
+        data: {
           data: {
             id: 'conn_123',
-            name: 'dev-test-machine',
-            connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=abc',
             endpoints: {},
+            connectionString: 'postgres://deprecated-url',
           },
-        }),
+        },
+        error: undefined,
+      }),
     })
 
-    const result = await createDevConnection({
-      apiKey: 'test_api_key',
-      databaseId: 'db_abc123',
-    })
-
-    expect(result.connectionString).toBe('prisma+postgres://accelerate.prisma-data.net/?api_key=abc')
+    const result = await createDevConnection(client, 'db_abc123')
+    expect(result.connectionString).toBe('postgres://deprecated-url')
   })
 
-  test('throws LinkApiError when no connection string in response', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            id: 'conn_123',
-            name: 'dev-test-machine',
-            endpoints: {},
-          },
-        }),
+  test('throws when no connection string in response', async () => {
+    const client = mockClient({
+      POST: () => ({
+        data: { data: { id: 'conn_123', endpoints: {} } },
+        error: undefined,
+      }),
     })
 
-    await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_abc123' })).rejects.toThrow(
-      /No connection string found/,
-    )
+    await expect(createDevConnection(client, 'db_abc123')).rejects.toThrow(/No connection string found/)
   })
 
-  test('throws LinkApiError on 401', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      text: () => Promise.resolve('Unauthorized'),
+  test('throws on unauthorized error', async () => {
+    const client = mockClient({
+      POST: () => ({
+        data: undefined,
+        error: { error: { code: 'unauthorized', message: 'Unauthorized' } },
+      }),
     })
 
-    await expect(createDevConnection({ apiKey: 'bad_key', databaseId: 'db_abc123' })).rejects.toThrow(/Invalid API key/)
+    await expect(createDevConnection(client, 'db_abc123')).rejects.toThrow(/Invalid credentials/)
   })
 
-  test('throws LinkApiError on 404', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      text: () => Promise.resolve('Not Found'),
+  test('throws on not found error', async () => {
+    const client = mockClient({
+      POST: () => ({
+        data: undefined,
+        error: { error: { code: 'not_found', message: 'Not found' } },
+      }),
     })
 
-    await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_nonexistent' })).rejects.toThrow(
-      /not found/,
-    )
+    await expect(createDevConnection(client, 'db_nonexistent')).rejects.toThrow(/not found/)
   })
 
-  test('throws LinkApiError on network failure', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'))
+  test('throws on generic API error', async () => {
+    const client = mockClient({
+      POST: () => ({
+        data: undefined,
+        error: { error: { code: 'internal', message: 'Something went wrong' } },
+      }),
+    })
 
-    await expect(createDevConnection({ apiKey: 'test_api_key', databaseId: 'db_abc123' })).rejects.toThrow(
-      /Could not reach the Management API/,
-    )
+    await expect(createDevConnection(client, 'db_abc123')).rejects.toThrow(/Something went wrong/)
+  })
+})
+
+describe('listProjects', () => {
+  test('returns projects from API', async () => {
+    const client = mockClient({
+      GET: () => ({
+        data: {
+          data: [
+            { id: 'proj_1', name: 'My Project', workspace: { id: 'wksp_1', name: 'My Workspace' } },
+            { id: 'proj_2', name: 'Other Project', workspace: { id: 'wksp_1', name: 'My Workspace' } },
+          ],
+        },
+        error: undefined,
+      }),
+    })
+
+    const projects = await listProjects(client)
+    expect(projects).toHaveLength(2)
+    expect(projects[0].name).toBe('My Project')
+  })
+
+  test('throws on API error', async () => {
+    const client = mockClient({
+      GET: () => ({
+        data: undefined,
+        error: { error: { message: 'Unauthorized' } },
+      }),
+    })
+
+    await expect(listProjects(client)).rejects.toThrow(/Unauthorized/)
+  })
+})
+
+describe('listDatabases', () => {
+  test('returns databases for a project', async () => {
+    const client = mockClient({
+      GET: () => ({
+        data: {
+          data: [
+            { id: 'db_1', name: 'production', status: 'ready', region: { id: 'us-east-1', name: 'US East' } },
+            { id: 'db_2', name: 'staging', status: 'ready', region: { id: 'eu-west-1', name: 'EU West' } },
+          ],
+        },
+        error: undefined,
+      }),
+    })
+
+    const databases = await listDatabases(client, 'proj_1')
+    expect(databases).toHaveLength(2)
+    expect(databases[0].name).toBe('production')
+  })
+
+  test('throws on API error', async () => {
+    const client = mockClient({
+      GET: () => ({
+        data: undefined,
+        error: { error: { message: 'Forbidden' } },
+      }),
+    })
+
+    await expect(listDatabases(client, 'proj_1')).rejects.toThrow(/Forbidden/)
   })
 })
 

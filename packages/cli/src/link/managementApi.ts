@@ -1,6 +1,6 @@
 import { hostname } from 'node:os'
 
-const DEFAULT_MANAGEMENT_API_URL = 'https://api.prisma.io'
+import type { ManagementApiClient } from '@prisma/management-api-sdk'
 
 export interface ConnectionResult {
   connectionString: string
@@ -16,14 +16,6 @@ export class LinkApiError extends Error {
   }
 }
 
-function getManagementApiUrl(): string {
-  return process.env.PRISMA_MANAGEMENT_API_URL ?? DEFAULT_MANAGEMENT_API_URL
-}
-
-function getConnectionName(): string {
-  return `dev-${hostname()}`
-}
-
 export function sanitizeErrorMessage(message: string): string {
   return message
     .replace(/postgres(ql)?:\/\/[^\s"']+/gi, '[REDACTED_URL]')
@@ -32,70 +24,61 @@ export function sanitizeErrorMessage(message: string): string {
     .replace(/(--api-key\s+)(\S+)/g, '$1[REDACTED]')
 }
 
-interface CreateConnectionResponse {
-  data: {
-    id: string
-    name: string
-    connectionString?: string
-    endpoints?: {
-      direct?: { connectionString: string }
-      pooled?: { connectionString: string }
-      accelerate?: { connectionString: string }
-    }
-  }
+function getConnectionName(): string {
+  return `dev-${hostname()}`
 }
 
-export async function createDevConnection(opts: { apiKey: string; databaseId: string }): Promise<ConnectionResult> {
-  const baseUrl = getManagementApiUrl()
-  const url = `${baseUrl}/v1/databases/${opts.databaseId}/connections`
+export async function createDevConnection(client: ManagementApiClient, databaseId: string): Promise<ConnectionResult> {
+  const { data, error } = await client.POST('/v1/databases/{databaseId}/connections', {
+    params: { path: { databaseId } },
+    body: { name: getConnectionName() },
+  })
 
-  let res: Response
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${opts.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: getConnectionName() }),
-    })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    throw new LinkApiError(`Could not reach the Management API at ${baseUrl}: ${sanitizeErrorMessage(message)}`)
-  }
+  if (error) {
+    const code = error.error?.code
+    const msg = typeof error.error?.message === 'string' ? error.error.message : 'Failed to create connection'
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-
-    switch (res.status) {
-      case 401:
-        throw new LinkApiError(
-          'Invalid API key — check your key or generate a new one at console.prisma.io.',
-          res.status,
-        )
-      case 404:
-        throw new LinkApiError(
-          `Database "${opts.databaseId}" not found — check the database ID in your console.`,
-          res.status,
-        )
-      case 429:
-        throw new LinkApiError('Rate limited — please try again in a moment.', res.status)
-      default:
-        throw new LinkApiError(`Management API error (${res.status}): ${sanitizeErrorMessage(body)}`, res.status)
+    if (code === 'unauthorized') {
+      throw new LinkApiError('Invalid credentials — check your API key or re-authenticate via browser.', 401)
     }
+    if (code === 'not_found') {
+      throw new LinkApiError(`Database "${databaseId}" not found — check the database ID in your console.`, 404)
+    }
+
+    throw new LinkApiError(msg)
   }
 
-  const json = (await res.json()) as CreateConnectionResponse
-  const endpoints = json.data.endpoints
+  const endpoints = data?.data?.endpoints
   const connectionString =
-    endpoints?.direct?.connectionString ??
-    endpoints?.pooled?.connectionString ??
-    endpoints?.accelerate?.connectionString ??
-    json.data.connectionString
+    endpoints?.direct?.connectionString ?? endpoints?.pooled?.connectionString ?? data?.data?.connectionString
 
   if (!connectionString) {
     throw new LinkApiError('No connection string found in API response')
   }
 
   return { connectionString }
+}
+
+export async function listProjects(client: ManagementApiClient) {
+  const { data, error } = await client.GET('/v1/projects')
+
+  if (error) {
+    const msg = typeof error.error?.message === 'string' ? error.error.message : 'Failed to list projects'
+    throw new LinkApiError(msg)
+  }
+
+  return data?.data ?? []
+}
+
+export async function listDatabases(client: ManagementApiClient, projectId: string) {
+  const { data, error } = await client.GET('/v1/databases', {
+    params: { query: { projectId } },
+  })
+
+  if (error) {
+    const msg = typeof error.error?.message === 'string' ? error.error.message : 'Failed to list databases'
+    throw new LinkApiError(msg)
+  }
+
+  return data?.data ?? []
 }

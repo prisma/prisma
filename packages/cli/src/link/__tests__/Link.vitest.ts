@@ -8,55 +8,72 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { Link } from '../Link'
 
-const mockFetch = vi.fn()
-const originalFetch = globalThis.fetch
+vi.mock('@prisma/management-api-sdk', () => ({
+  createManagementApiClient: vi.fn(() => mockSdkClient),
+}))
+
+vi.mock('../../management-api/auth', () => ({
+  login: vi.fn(() => Promise.resolve()),
+}))
+
+vi.mock('../../management-api/auth-client', () => ({
+  createAuthenticatedManagementAPI: vi.fn(() => ({ client: mockSdkClient })),
+}))
+
+vi.mock('../../management-api/token-storage', () => ({
+  FileTokenStorage: class {
+    getTokens() {
+      return Promise.resolve({ accessToken: 'stored_token', workspaceId: 'wksp_1' })
+    }
+  },
+}))
+
+vi.mock('@inquirer/prompts', () => ({
+  select: vi.fn(),
+}))
+
+const mockSdkClient = {
+  GET: vi.fn(),
+  POST: vi.fn(),
+}
 
 let tmpDir: string
 
 beforeEach(() => {
-  globalThis.fetch = mockFetch
-  vi.stubEnv('PRISMA_MANAGEMENT_API_URL', 'https://api.test.prisma.io')
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-link-integ-'))
+  mockSdkClient.GET.mockReset()
+  mockSdkClient.POST.mockReset()
 })
 
 afterEach(() => {
-  globalThis.fetch = originalFetch
+  vi.restoreAllMocks()
   vi.unstubAllEnvs()
-  mockFetch.mockReset()
   fs.rmSync(tmpDir, { recursive: true, force: true })
 })
 
 function setupMockApiSuccess() {
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: () =>
-      Promise.resolve({
-        data: {
-          id: 'conn_test',
-          name: `dev-${os.hostname()}`,
-          endpoints: {
-            pooled: { connectionString: 'postgres://user:pass@db-pool.prisma.io:5432/postgres' },
-            direct: { connectionString: 'postgres://user:pass@db.prisma.io:5432/postgres' },
-          },
+  mockSdkClient.POST.mockResolvedValueOnce({
+    data: {
+      data: {
+        id: 'conn_test',
+        name: `dev-${os.hostname()}`,
+        endpoints: {
+          pooled: { connectionString: 'postgres://user:pass@db-pool.prisma.io:5432/postgres' },
+          direct: { connectionString: 'postgres://user:pass@db.prisma.io:5432/postgres' },
         },
-      }),
+      },
+    },
+    error: undefined,
   })
 }
 
-describe('Link command', () => {
+describe('Link command — help and validation', () => {
   test('shows help with --help flag', async () => {
     const result = await Link.new().parse(['--help'], defaultTestConfig(), tmpDir)
     expect(result).toContain('prisma postgres link')
   })
 
-  test('returns error when --api-key is missing', async () => {
-    delete process.env.PRISMA_API_KEY
-    const result = await Link.new().parse(['--database', 'db_abc'], defaultTestConfig(), tmpDir)
-    expect(result).toBeInstanceOf(HelpError)
-    expect((result as HelpError).message).toContain('--api-key')
-  })
-
-  test('returns error when --database is missing', async () => {
+  test('returns error when --api-key is given without --database', async () => {
     const result = await Link.new().parse(['--api-key', 'test_key'], defaultTestConfig(), tmpDir)
     expect(result).toBeInstanceOf(HelpError)
     expect((result as HelpError).message).toContain('--database')
@@ -71,7 +88,9 @@ describe('Link command', () => {
     expect(result).toBeInstanceOf(HelpError)
     expect((result as HelpError).message).toContain('db_')
   })
+})
 
+describe('Link command — non-interactive mode (--api-key + --database)', () => {
   test('links successfully and writes direct connection to DATABASE_URL', async () => {
     setupMockApiSuccess()
 
@@ -87,7 +106,18 @@ describe('Link command', () => {
 
     const envContent = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
     expect(envContent).toContain("DATABASE_URL='postgres://user:pass@db.prisma.io:5432/postgres'")
-    expect(envContent).not.toContain('DIRECT_URL')
+  })
+
+  test('uses PRISMA_API_KEY env var when --api-key flag is omitted', async () => {
+    vi.stubEnv('PRISMA_API_KEY', 'env_api_key')
+    setupMockApiSuccess()
+
+    const result = await Link.new().parse(['--database', 'db_abc123'], defaultTestConfig(), tmpDir)
+
+    expect(result).not.toBeInstanceOf(Error)
+
+    const { createManagementApiClient } = await import('@prisma/management-api-sdk')
+    expect(createManagementApiClient).toHaveBeenCalledWith(expect.objectContaining({ token: 'env_api_key' }))
   })
 
   test('shows next steps for schema with models', async () => {
@@ -134,21 +164,10 @@ model User {
     expect(output).toContain('Define your data model')
   })
 
-  test('uses PRISMA_API_KEY env var when --api-key flag is omitted', async () => {
-    vi.stubEnv('PRISMA_API_KEY', 'env_api_key')
-    setupMockApiSuccess()
-
-    const result = await Link.new().parse(['--database', 'db_abc123'], defaultTestConfig(), tmpDir)
-
-    expect(result).not.toBeInstanceOf(Error)
-    expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe('Bearer env_api_key')
-  })
-
   test('returns error on API failure', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      text: () => Promise.resolve('Unauthorized'),
+    mockSdkClient.POST.mockResolvedValueOnce({
+      data: undefined,
+      error: { error: { code: 'unauthorized', message: 'Unauthorized' } },
     })
 
     const result = await Link.new().parse(
@@ -158,9 +177,11 @@ model User {
     )
 
     expect(result).toBeInstanceOf(HelpError)
-    expect((result as HelpError).message).toContain('Invalid API key')
+    expect((result as HelpError).message).toContain('Invalid credentials')
   })
+})
 
+describe('Link command — idempotency', () => {
   test('skips API call when already linked', async () => {
     fs.writeFileSync(
       path.join(tmpDir, '.env'),
@@ -176,7 +197,7 @@ model User {
 
     expect(result).toContain('already linked')
     expect(result).toContain('--force')
-    expect(mockFetch).not.toHaveBeenCalled()
+    expect(mockSdkClient.POST).not.toHaveBeenCalled()
   })
 
   test('re-links when --force is used on already linked project', async () => {
@@ -196,6 +217,115 @@ model User {
     expect(result).not.toBeInstanceOf(Error)
     const output = result as string
     expect(output).toContain('linked successfully')
-    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockSdkClient.POST).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Link command — interactive mode (no --api-key, no --database)', () => {
+  test('uses browser auth and interactive selection', async () => {
+    const { select } = await import('@inquirer/prompts')
+    const mockSelect = vi.mocked(select)
+
+    mockSelect.mockResolvedValueOnce('proj_1')
+    mockSelect.mockResolvedValueOnce('db_abc123')
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 'proj_1', name: 'My Project', workspace: { id: 'wksp_1', name: 'My Workspace' } }],
+      },
+      error: undefined,
+    })
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [
+          { id: 'db_abc123', name: 'production', status: 'ready', region: { id: 'us-east-1', name: 'US East' } },
+          { id: 'db_def456', name: 'staging', status: 'ready', region: { id: 'eu-west-1', name: 'EU West' } },
+        ],
+      },
+      error: undefined,
+    })
+
+    setupMockApiSuccess()
+
+    delete process.env.PRISMA_API_KEY
+    const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('linked successfully')
+
+    expect(mockSelect).toHaveBeenCalledTimes(2)
+    expect(mockSelect).toHaveBeenCalledWith(expect.objectContaining({ message: 'Select a project:' }))
+    expect(mockSelect).toHaveBeenCalledWith(expect.objectContaining({ message: 'Select a database:' }))
+  })
+
+  test('auto-selects when only one database exists', async () => {
+    const { select } = await import('@inquirer/prompts')
+    const mockSelect = vi.mocked(select)
+    mockSelect.mockClear()
+
+    mockSelect.mockResolvedValueOnce('proj_1')
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 'proj_1', name: 'My Project', workspace: { id: 'wksp_1', name: 'My Workspace' } }],
+      },
+      error: undefined,
+    })
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 'db_abc123', name: 'production', status: 'ready', region: { id: 'us-east-1', name: 'US East' } }],
+      },
+      error: undefined,
+    })
+
+    setupMockApiSuccess()
+
+    delete process.env.PRISMA_API_KEY
+    const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
+
+    expect(result).not.toBeInstanceOf(Error)
+    expect(mockSelect).toHaveBeenCalledTimes(1)
+  })
+
+  test('throws when no projects exist', async () => {
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: { data: [] },
+      error: undefined,
+    })
+
+    delete process.env.PRISMA_API_KEY
+    const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
+
+    expect(result).toBeInstanceOf(HelpError)
+    expect((result as HelpError).message).toContain('No projects found')
+  })
+
+  test('throws when no ready databases exist', async () => {
+    const { select } = await import('@inquirer/prompts')
+    const mockSelect = vi.mocked(select)
+    mockSelect.mockResolvedValueOnce('proj_1')
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 'proj_1', name: 'My Project', workspace: { id: 'wksp_1', name: 'My Workspace' } }],
+      },
+      error: undefined,
+    })
+
+    mockSdkClient.GET.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 'db_abc123', name: 'provisioning-db', status: 'provisioning', region: null }],
+      },
+      error: undefined,
+    })
+
+    delete process.env.PRISMA_API_KEY
+    const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
+
+    expect(result).toBeInstanceOf(HelpError)
+    expect((result as HelpError).message).toContain('No ready databases')
   })
 })

@@ -1,14 +1,80 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { arg, format, HelpError, isError } from '@prisma/internals'
-import { bold, dim, red } from 'kleur/colors'
+import type { ManagementApiClient } from '@prisma/management-api-sdk'
+import { createManagementApiClient } from '@prisma/management-api-sdk'
+import { bold, dim, green, red } from 'kleur/colors'
 
+import { login } from '../management-api/auth'
+import { createAuthenticatedManagementAPI } from '../management-api/auth-client'
+import { FileTokenStorage } from '../management-api/token-storage'
 import { formatCompletionOutput } from './completionOutput'
 import { isAlreadyLinked, writeLocalFiles } from './localSetup'
-import { createDevConnection, LinkApiError, sanitizeErrorMessage } from './managementApi'
+import { createDevConnection, LinkApiError, listDatabases, listProjects, sanitizeErrorMessage } from './managementApi'
+
+const DEFAULT_MANAGEMENT_API_URL = 'https://api.prisma.io'
+
+function getManagementApiUrl(): string {
+  return process.env.PRISMA_MANAGEMENT_API_URL ?? DEFAULT_MANAGEMENT_API_URL
+}
+
+async function resolveApiClient(apiKey: string | undefined): Promise<ManagementApiClient> {
+  if (apiKey) {
+    return createManagementApiClient({ baseUrl: getManagementApiUrl(), token: apiKey })
+  }
+
+  const tokenStorage = new FileTokenStorage()
+  const tokens = await tokenStorage.getTokens()
+
+  if (!tokens) {
+    console.log(`Opening browser to authenticate on ${dim('console.prisma.io')}...`)
+    await login({ utmMedium: 'command-postgres-link' })
+  }
+
+  return createAuthenticatedManagementAPI().client
+}
+
+async function resolveDatabase(client: ManagementApiClient): Promise<string> {
+  const projects = await listProjects(client)
+
+  if (projects.length === 0) {
+    throw new LinkApiError('No projects found in your workspace. Create one at console.prisma.io first.')
+  }
+
+  const projectId = await select({
+    message: 'Select a project:',
+    choices: projects.map((p) => ({
+      name: `${p.name}  ${dim(p.workspace.name)}`,
+      value: p.id,
+    })),
+    loop: true,
+  })
+
+  const databases = (await listDatabases(client, projectId)).filter((db) => db.status === 'ready')
+
+  if (databases.length === 0) {
+    throw new LinkApiError('No ready databases found in this project. Create one at console.prisma.io first.')
+  }
+
+  if (databases.length === 1) {
+    const db = databases[0]
+    console.log(`${green('✔')} Using database ${bold(db.name)}${db.region ? ` (${db.region.name})` : ''}`)
+    return db.id
+  }
+
+  return select({
+    message: 'Select a database:',
+    choices: databases.map((db) => ({
+      name: `${db.name}  ${dim(db.region?.name ?? 'unknown region')}`,
+      value: db.id,
+    })),
+    loop: true,
+  })
+}
 
 export class Link implements Command {
   public static new(): Link {
@@ -24,18 +90,18 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-  --api-key      Workspace API key (from console.prisma.io)
+  --api-key      Workspace API key (CI / non-interactive)
   --database     Database ID to link to (e.g. db_abc123)
   --force        Re-link even if already linked to Prisma Postgres
   -h, --help     Display this help message
 
 ${bold('Examples')}
 
-  Link to a database
-  ${dim('$')} prisma postgres link --api-key "<your-api-key>" --database "db_..."
+  Interactive (opens browser, lets you pick project & database)
+  ${dim('$')} prisma postgres link
 
-  Use environment variables
-  ${dim('$')} PRISMA_API_KEY="<your-api-key>" prisma postgres link --database "db_..."
+  Non-interactive with explicit credentials
+  ${dim('$')} prisma postgres link --api-key "<your-api-key>" --database "db_..."
 `)
 
   public async parse(argv: string[], _config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
@@ -56,43 +122,37 @@ ${bold('Examples')}
       return this.help()
     }
 
+    if (!args['--force'] && isAlreadyLinked(baseDir)) {
+      return `\nThis project is already linked to Prisma Postgres.\nRun with ${bold('--force')} to re-link.\n`
+    }
+
     const apiKey = args['--api-key'] ?? process.env.PRISMA_API_KEY
-    const databaseId = args['--database']
+    let databaseId = args['--database']
 
-    if (!apiKey) {
+    if (apiKey && !databaseId) {
       return new HelpError(
-        `\n${bold(red('!'))} Missing ${bold('--api-key')} flag or ${bold('PRISMA_API_KEY')} environment variable.\n\nGet your API key at ${dim('https://console.prisma.io')}\n${Link.help}`,
+        `\n${bold(red('!'))} Missing ${bold('--database')} flag.\n\nWhen using ${bold('--api-key')}, you must also provide ${bold('--database')}.\n${Link.help}`,
       )
     }
 
-    if (!databaseId) {
-      return new HelpError(
-        `\n${bold(red('!'))} Missing ${bold('--database')} flag.\n\nFind your database ID in the Prisma Console URL or dashboard.\n${Link.help}`,
-      )
-    }
-
-    if (!databaseId.startsWith('db_')) {
+    if (databaseId && !databaseId.startsWith('db_')) {
       return new HelpError(
         `\n${bold(red('!'))} Invalid database ID "${databaseId}" — expected format: ${bold('db_<id>')}\n${Link.help}`,
       )
     }
 
-    if (!args['--force'] && isAlreadyLinked(baseDir)) {
-      return `\nThis project is already linked to Prisma Postgres.\nRun with ${bold('--force')} to re-link.\n`
-    }
-
     try {
-      const connection = await createDevConnection({ apiKey, databaseId })
+      const client = await resolveApiClient(apiKey)
 
+      if (!databaseId) {
+        databaseId = await resolveDatabase(client)
+      }
+
+      const connection = await createDevConnection(client, databaseId)
       const localFilesResult = writeLocalFiles(baseDir, connection)
-
       const hasModels = schemaHasModels(baseDir)
 
-      return formatCompletionOutput({
-        databaseId,
-        localFilesResult,
-        hasModels,
-      })
+      return formatCompletionOutput({ databaseId, localFilesResult, hasModels })
     } catch (err) {
       if (err instanceof LinkApiError) {
         return new HelpError(`\n${bold(red('!'))} ${err.message}`)
