@@ -306,8 +306,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@types/pg':
-        specifier: 8.11.11
-        version: 8.11.11
+        specifier: ^8.18.0
+        version: 8.18.0
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -4008,6 +4008,9 @@ packages:
 
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
+
+  '@types/pg@8.18.0':
+    resolution: {integrity: sha512-gT+oueVQkqnj6ajGJXblFR4iavIXWsGAFCk3dP4Kki5+a9R4NMt0JARdk6s8cUKcfUoqP5dAtDSLU8xYUTFV+Q==}
 
   '@types/pluralize@0.0.33':
     resolution: {integrity: sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg==}
@@ -10484,6 +10487,12 @@ snapshots:
       '@types/node': 20.19.25
       pg-protocol: 1.6.1
       pg-types: 4.0.2
+
+  '@types/pg@8.18.0':
+    dependencies:
+      '@types/node': 20.19.25
+      pg-protocol: 1.10.3
+      pg-types: 2.2.0
 
   '@types/pluralize@0.0.33': {}
 
