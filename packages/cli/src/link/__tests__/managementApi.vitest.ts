@@ -80,7 +80,7 @@ describe('createDevConnection', () => {
     const client = mockClient({
       POST: () => ({
         data: undefined,
-        error: { error: { code: 'unauthorized', message: 'Unauthorized' } },
+        error: { error: { code: 'authentication-failed', message: 'Invalid authorization token' } },
       }),
     })
 

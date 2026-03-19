@@ -38,7 +38,7 @@ export async function createDevConnection(client: ManagementApiClient, databaseI
     const code = error.error?.code
     const msg = typeof error.error?.message === 'string' ? error.error.message : 'Failed to create connection'
 
-    if (code === 'unauthorized') {
+    if (code === 'unauthorized' || code === 'authentication-failed') {
       throw new LinkApiError('Invalid credentials — check your API key or re-authenticate via browser.', 401)
     }
     if (code === 'not_found') {
