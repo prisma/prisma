@@ -15,7 +15,7 @@ describe('generateStatementName', () => {
 
   it('returns names prefixed with p_', () => {
     const query: SqlQuery = { sql: 'SELECT 1', args: [], argTypes: [] }
-    expect(generateStatementName(query)).toMatch(/^p_[0-9a-f]{24}$/)
+    expect(generateStatementName(query)).toMatch(/^p_[A-Za-z0-9_-]{16}$/)
   })
 
   it('returns different names for different SQL', () => {
@@ -166,7 +166,7 @@ describe('enableStatementCaching option', () => {
     const tx = await adapter.startTransaction()
 
     const queryConfig = mockConnection.query.mock.calls[0][0]
-    expect(queryConfig.name).toMatch(/^p_[0-9a-f]{24}$/)
+    expect(queryConfig.name).toMatch(/^p_[A-Za-z0-9_-]{16}$/)
     expect(queryConfig.text).toBe('BEGIN')
 
     mockConnection.listenerCount.mockReturnValue(0)
@@ -221,7 +221,7 @@ describe('enableStatementCaching option', () => {
 
     const queryConfig = mockConnection.query.mock.calls[0][0]
     expect(queryConfig).toHaveProperty('name')
-    expect(queryConfig.name).toMatch(/^p_[0-9a-f]{24}$/)
+    expect(queryConfig.name).toMatch(/^p_[A-Za-z0-9_-]{16}$/)
 
     expect(result.columnNames).toEqual(['id', 'name'])
     expect(result.rows).toEqual([[1, 'alice']])

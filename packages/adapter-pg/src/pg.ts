@@ -39,7 +39,7 @@ const debug = Debug('prisma:driver-adapter:pg')
  */
 export function generateStatementName(query: SqlQuery): string {
   const hashInput = query.sql + '\0' + JSON.stringify(query.argTypes)
-  return 'p_' + crypto.hash('sha1', hashInput, 'hex').slice(0, 24)
+  return 'p_' + crypto.hash('sha1', hashInput, 'base64url').slice(0, 16)
 }
 
 type StdClient = pg.Pool
@@ -124,7 +124,9 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         {
           text: sql,
           values,
-          name: this.pgOptions?.enableStatementCaching ? generateStatementName(query) : undefined,
+          name: this.pgOptions?.enableStatementCaching
+            ? (this.pgOptions.getStatementName ?? generateStatementName)(query)
+            : undefined,
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -214,6 +216,16 @@ export interface PrismaPgOptions {
    * acceptable for Prisma workloads because the set of query shapes is bounded.
    */
   enableStatementCaching?: boolean
+  /**
+   * Overrides the default statement name generator used for PostgreSQL named
+   * prepared statements. The function receives a {@link SqlQuery} and must return
+   * a stable name for queries with the same SQL text and parameter types.
+   *
+   * Defaults to {@link generateStatementName} for hash-based naming.
+   *
+   * Requires {@link enableStatementCaching} to be set to `true`.
+   */
+  getStatementName?: (query: SqlQuery) => string
 }
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
