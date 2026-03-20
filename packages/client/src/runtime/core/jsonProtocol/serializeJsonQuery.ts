@@ -265,6 +265,17 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
   return selectionSet
 }
 
+function isGeometry(value: unknown): value is { type: string; coordinates: unknown; srid?: number } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    'coordinates' in value &&
+    typeof (value as { type: unknown }).type === 'string' &&
+    Array.isArray((value as { coordinates: unknown }).coordinates)
+  )
+}
+
 function serializeArgumentsValue(
   jsValue: Exclude<JsInputValue, undefined | Skip>,
   context: SerializeContext,
@@ -322,6 +333,10 @@ function serializeArgumentsValue(
 
   if (isDecimalJsLike(jsValue)) {
     return { $type: 'Decimal', value: jsValue.toFixed() }
+  }
+
+  if (isGeometry(jsValue)) {
+    return { $type: 'Geometry', value: jsValue }
   }
 
   if (isObjectEnumValue(jsValue)) {

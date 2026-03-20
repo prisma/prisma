@@ -3486,7 +3486,7 @@ test('Buffer read double (node.js repository test)', () => {
   buffer[0] = 1
   buffer[6] = 0
   buffer[7] = 0
-  // eslint-disable-next-line no-loss-of-precision
+
   assert.strictEqual(buffer.readDoubleBE(0), 7.291122019556398e-304)
   assert.strictEqual(buffer.readDoubleLE(0), 5e-324)
 
@@ -4130,7 +4130,6 @@ test('Buffer toJSON (node.js repository test)', () => {
 
     assert.strictEqual(string, '{"type":"Buffer","data":[116,101,115,116]}')
 
-    // eslint-disable-next-line no-inner-declarations
     function receiver(key, value) {
       return value && value.type === 'Buffer' ? Buffer.from(value.data) : value
     }

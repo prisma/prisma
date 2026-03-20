@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-
 import * as runtime from '@prisma/client/runtime/client'
 
 /**

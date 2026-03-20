@@ -9,6 +9,7 @@ export type BigIntTaggedValue = { $type: 'BigInt'; value: string }
 export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string } }
 export type EnumTaggedValue = { $type: 'Enum'; value: string }
 export type JsonTaggedValue = { $type: 'Json'; value: string }
+export type GeometryTaggedValue = { $type: 'Geometry'; value: object }
 export type RawTaggedValue = { $type: 'Raw'; value: unknown }
 
 export type JsonInputTaggedValue =
@@ -20,6 +21,7 @@ export type JsonInputTaggedValue =
   | JsonTaggedValue
   | EnumTaggedValue
   | RawTaggedValue
+  | GeometryTaggedValue
 
 export type JsonOutputTaggedValue =
   | DateTaggedValue
@@ -27,6 +29,7 @@ export type JsonOutputTaggedValue =
   | BytesTaggedValue
   | BigIntTaggedValue
   | JsonTaggedValue
+  | GeometryTaggedValue
 
 export type JsOutputValue =
   | null
@@ -106,8 +109,10 @@ function normalizeTaggedValue({
       return { $type, value }
     case 'Enum':
       return { $type, value }
+    case 'Geometry':
+      return { $type, value }
     default:
-      assertNever(value, 'Unknown tagged value')
+      assertNever($type, 'Unknown tagged value')
   }
 }
 
@@ -163,6 +168,8 @@ function deserializeTaggedValue({ $type, value }: JsonInputTaggedValue | JsonOut
       return new Decimal(value)
     case 'Json':
       return JSON.parse(value)
+    case 'Geometry':
+      return value as JsOutputValue
     case 'Raw':
       return value as JsOutputValue
     case 'FieldRef':
@@ -170,6 +177,6 @@ function deserializeTaggedValue({ $type, value }: JsonInputTaggedValue | JsonOut
     case 'Enum':
       return value
     default:
-      assertNever(value, 'Unknown tagged value')
+      assertNever($type, 'Unknown tagged value')
   }
 }

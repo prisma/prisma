@@ -1,0 +1,17 @@
+name: prisma-postgis-test
+
+services:
+  postgis:
+    image: postgis/postgis:15-3.3
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=prisma
+      - POSTGRES_USER=prisma
+      - POSTGRES_DB=tests
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'prisma', '-d', 'tests']
+      interval: 5s
+      timeout: 2s
+      retries: 20

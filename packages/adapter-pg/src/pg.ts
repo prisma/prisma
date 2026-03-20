@@ -12,13 +12,20 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
+import { ColumnTypeEnum, Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 
 import { name as packageName } from '../package.json'
 import { FIRST_NORMAL_OBJECT_ID } from './constants'
-import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
+import {
+  customParsers,
+  fieldToColumnType,
+  mapArg,
+  registerGeometryParser,
+  registerGeometryType,
+  UnsupportedNativeDataType,
+} from './conversion'
 import { convertDriverError } from './errors'
 
 const types = pg.types
@@ -192,13 +199,97 @@ export type PrismaPgOptions = {
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
 
+// Module-level singleton cache shared across all adapter instances.
+// PostGIS type OIDs are database-specific but stable within a single database.
+const GEOMETRY_OID_CACHE = new Map<string, boolean>()
+
+// Track ongoing initialization promises to avoid concurrent queries to same database.
+const CACHE_INIT_PROMISES = new Map<string, Promise<void>>()
+
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
+  #geometryOIDsInitialized = false
+
   constructor(
     client: StdClient,
     protected readonly pgOptions?: PrismaPgOptions,
     private readonly release?: () => Promise<void>,
   ) {
     super(client)
+  }
+
+  /**
+   * Get cache key for this database connection.
+   * Strips query parameters to group connections to same database.
+   */
+  get #cacheKey(): string {
+    const connString = this.client.options.connectionString || ''
+    return (
+      connString.split('?')[0] ||
+      `${this.client.options.host}:${this.client.options.port}/${this.client.options.database}`
+    )
+  }
+
+  async #initializeGeometryTypes(): Promise<void> {
+    if (this.#geometryOIDsInitialized) return
+
+    const cacheKey = this.#cacheKey
+
+    // Check global cache
+    if (GEOMETRY_OID_CACHE.has(cacheKey)) {
+      this.#geometryOIDsInitialized = true
+      return
+    }
+
+    // Check if another adapter is already initializing this database
+    const existingPromise = CACHE_INIT_PROMISES.get(cacheKey)
+    if (existingPromise) {
+      await existingPromise
+      this.#geometryOIDsInitialized = true
+      return
+    }
+
+    // Initialize once per database
+    const initPromise = this.#queryGeometryOIDs(cacheKey)
+    CACHE_INIT_PROMISES.set(cacheKey, initPromise)
+
+    try {
+      await initPromise
+      this.#geometryOIDsInitialized = true
+    } finally {
+      CACHE_INIT_PROMISES.delete(cacheKey)
+    }
+  }
+
+  async #queryGeometryOIDs(cacheKey: string): Promise<void> {
+    try {
+      const result = await super.queryRaw({
+        sql: `
+          SELECT typname, oid FROM pg_type 
+          WHERE typname = ANY($1::text[])
+            AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+        `,
+        args: [['geometry', 'geography', 'point', 'linestring', 'polygon']],
+        argTypes: [{ scalarType: 'unknown', arity: 'list' }],
+      })
+
+      for (const [typname, oid] of result.rows) {
+        const columnType = mapGeometryTypeName(typname as string)
+        registerGeometryType(oid as number, columnType)
+        registerGeometryParser(oid as number)
+      }
+
+      GEOMETRY_OID_CACHE.set(cacheKey, true)
+    } catch {
+      // PostGIS not installed or accessible - cache negative result
+      GEOMETRY_OID_CACHE.set(cacheKey, false)
+    }
+  }
+
+  override async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
+    if (!this.#geometryOIDsInitialized) {
+      await this.#initializeGeometryTypes()
+    }
+    return super.queryRaw(query)
   }
 
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
@@ -268,6 +359,21 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
 
   underlyingDriver(): pg.Pool {
     return this.client
+  }
+}
+
+function mapGeometryTypeName(typname: string): ColumnType {
+  switch (typname) {
+    case 'point':
+      return ColumnTypeEnum.Point
+    case 'linestring':
+      return ColumnTypeEnum.LineString
+    case 'polygon':
+      return ColumnTypeEnum.Polygon
+    case 'geometry':
+    case 'geography':
+    default:
+      return ColumnTypeEnum.Geometry
   }
 }
 

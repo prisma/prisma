@@ -23,7 +23,7 @@ import {
   getTestSuiteSchemaPath,
   testSuiteHasTypedSql,
 } from './getTestSuiteInfo'
-import { AdapterProviders, GeneratorTypes } from './providers'
+import { AdapterProviders, GeneratorTypes, Providers } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
 
@@ -43,6 +43,8 @@ export async function setupTestSuiteClient({
   datasourceInfo,
   clientMeta,
   skipDb,
+  beforeDbPushCallback,
+  afterForceResetCallback,
   alterStatementCallback,
   cfWorkerBindings,
 }: {
@@ -53,6 +55,8 @@ export async function setupTestSuiteClient({
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
   skipDb?: boolean
+  beforeDbPushCallback?: (provider: Providers, databaseUrl: string) => Promise<void>
+  afterForceResetCallback?: (provider: Providers, databaseUrl: string) => Promise<void>
   alterStatementCallback?: AlterStatementCallback
   cfWorkerBindings?: Record<string, unknown>
 }) {
@@ -76,9 +80,13 @@ export async function setupTestSuiteClient({
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
   if (skipDb !== true) {
+    if (beforeDbPushCallback) {
+      await beforeDbPushCallback(suiteConfig.matrixOptions.provider as Providers, datasourceInfo.databaseUrl)
+    }
     await setupTestSuiteDatabase({
       suiteMeta,
       suiteConfig,
+      afterForceResetCallback,
       alterStatementCallback,
       cfWorkerBindings,
       datasourceInfo,
@@ -177,7 +185,11 @@ export function setupTestSuiteClientDriverAdapter({
     throw new Error(`Missing Driver Adapter`)
   }
 
-  if (driverAdapter === AdapterProviders.JS_PG || driverAdapter === AdapterProviders.JS_PG_COCKROACHDB) {
+  if (
+    driverAdapter === AdapterProviders.JS_PG ||
+    driverAdapter === AdapterProviders.JS_PG_POSTGIS ||
+    driverAdapter === AdapterProviders.JS_PG_COCKROACHDB
+  ) {
     const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
     return {

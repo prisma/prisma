@@ -1,8 +1,10 @@
-import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import type { ArgType, type ColumnType, ColumnTypeEnum, Geometry } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
 import { FIRST_NORMAL_OBJECT_ID } from './constants'
+import { parseWKB } from './wkb-parser'
+import { serializeWKB } from './wkb-serializer'
 
 const { types } = pg
 const { builtins: ScalarColumnType, getTypeParser } = types
@@ -270,6 +272,9 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       // the serializer in QE because it has access to the query schema, while on
       // this level we would have to query the catalog to introspect the type.
       if (fieldTypeId >= FIRST_NORMAL_OBJECT_ID) {
+        const geometryType = getGeometryColumnType(fieldTypeId)
+        if (geometryType) return geometryType
+
         return ColumnTypeEnum.Text
       }
       throw new UnsupportedNativeDataType(fieldTypeId)
@@ -292,18 +297,9 @@ function normalize_numeric(numeric: string): string {
 /* Time-related data-types  */
 /****************************/
 
-/*
- * DATE, DATE_ARRAY - converts value (or value elements) to a string in the format YYYY-MM-DD
- */
-
 function normalize_date(date: string): string {
   return date
 }
-
-/*
- * TIMESTAMP, TIMESTAMP_ARRAY - converts value (or value elements) to a string in the rfc3339 format
- * ex: 1996-12-19T16:39:57-08:00
- */
 
 function normalize_timestamp(time: string): string {
   return `${time.replace(' ', 'T')}+00:00`
@@ -312,10 +308,6 @@ function normalize_timestamp(time: string): string {
 function normalize_timestamptz(time: string): string {
   return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
-
-/*
- * TIME, TIMETZ, TIME_ARRAY - converts value (or value elements) to a string in the format HH:mm:ss.f
- */
 
 function normalize_time(time: string): string {
   return time
@@ -359,23 +351,13 @@ function toJson(json: string): string {
 /* Binary data handling */
 /************************/
 
-/*
- * BYTEA - arbitrary raw binary strings
- */
-
 const parsePgBytes = getTypeParser(ScalarColumnType.BYTEA) as (_: string) => Buffer
-
-/*
- * BYTEA_ARRAY - arrays of arbitrary raw binary strings
- */
 
 const normalizeByteaArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
 
 function convertBytes(serializedBytes: string): Buffer {
   return parsePgBytes(serializedBytes)
 }
-
-/* BIT_ARRAY, VARBIT_ARRAY */
 
 function normalizeBit(bit: string): string {
   return bit
@@ -406,6 +388,87 @@ export const customParsers = {
   [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
+const geometryOIDMap = new Map<number, ColumnType>()
+
+export function registerGeometryType(oid: number, columnType: ColumnType): void {
+  geometryOIDMap.set(oid, columnType)
+}
+
+function getGeometryColumnType(oid: number): ColumnType | undefined {
+  return geometryOIDMap.get(oid)
+}
+
+export function registerGeometryParser(oid: number): void {
+  ;(customParsers as unknown as Record<number, (wkb: string) => Geometry>)[oid] = (wkb: string) => {
+    const buffer = Buffer.from(wkb, 'hex')
+    return parseWKB(new Uint8Array(buffer))
+  }
+}
+
+function isGeometryInput(value: unknown): value is Geometry {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    'coordinates' in value &&
+    typeof (value as { type: unknown }).type === 'string' &&
+    Array.isArray((value as { coordinates: unknown }).coordinates)
+  )
+}
+
+/** JSON protocol uses `{ $type: 'Geometry', value: GeoJSON }`; the query compiler still types the placeholder as bytes. */
+function unwrapGeometryBindingArg(arg: unknown): Geometry | null {
+  if (typeof arg !== 'object' || arg === null || ArrayBuffer.isView(arg)) {
+    return null
+  }
+  if (
+    '$type' in arg &&
+    (arg as { $type: string }).$type === 'Geometry' &&
+    'value' in arg &&
+    isGeometryInput((arg as { value: unknown }).value)
+  ) {
+    return (arg as { value: Geometry }).value
+  }
+  if (isGeometryInput(arg)) {
+    return arg
+  }
+  return null
+}
+
+/**
+ * Query compiler maps geometry to `OpaqueType::Bytes`; JSON protocol stores GeoJSON as UTF-8 bytes.
+ * Those must be converted to WKB before sending to PostGIS — raw JSON bytes trigger EWKB parse errors.
+ */
+function tryWkbFromUtf8JsonGeometryBytes(view: ArrayBufferView): Uint8Array | null {
+  if (view.byteLength === 0) {
+    return null
+  }
+  const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength)
+  const endian = bytes[0]
+  if (endian === 0 || endian === 1) {
+    return null
+  }
+  try {
+    const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes)
+    const trimmed = text.trimStart()
+    if (trimmed.length === 0 || (trimmed[0] !== '{' && trimmed[0] !== '[')) {
+      return null
+    }
+    const parsed: unknown = JSON.parse(text)
+    const geometry = unwrapGeometryBindingArg(parsed)
+    if (geometry !== null) {
+      return serializeWKB(geometry)
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+function isByteArrayPayload(values: unknown[]): values is number[] {
+  return values.every((b) => typeof b === 'number' && Number.isInteger(b) && b >= 0 && b <= 255)
+}
+
 export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | string | Uint8Array | A {
   if (arg === null) {
     return null
@@ -413,6 +476,20 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 
   if (Array.isArray(arg) && argType.arity === 'list') {
     return arg.map((value) => mapArg(value, argType))
+  }
+
+  if (
+    argType.arity === 'scalar' &&
+    (argType.scalarType === 'geometry' || argType.scalarType === 'bytes') &&
+    Array.isArray(arg) &&
+    isByteArrayPayload(arg)
+  ) {
+    const u8 = new Uint8Array(arg)
+    const wkb = tryWkbFromUtf8JsonGeometryBytes(u8)
+    if (wkb !== null) {
+      return wkb
+    }
+    return u8
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'datetime') {
@@ -432,11 +509,38 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
-    return Buffer.from(arg, 'base64')
+    const decoded = Buffer.from(arg, 'base64')
+    const wkbFromJson = tryWkbFromUtf8JsonGeometryBytes(decoded)
+    if (wkbFromJson !== null) {
+      return wkbFromJson
+    }
+    return decoded
+  }
+
+  if (argType.scalarType === 'geometry' && typeof arg === 'string') {
+    return arg
+  }
+
+  if (
+    (argType.scalarType === 'geometry' || argType.scalarType === 'bytes') &&
+    typeof arg === 'object' &&
+    arg !== null &&
+    !ArrayBuffer.isView(arg)
+  ) {
+    const geometry = unwrapGeometryBindingArg(arg)
+    if (geometry !== null) {
+      return serializeWKB(geometry)
+    }
   }
 
   // https://github.com/brianc/node-postgres/pull/2930
   if (ArrayBuffer.isView(arg)) {
+    if (argType.scalarType === 'geometry' || argType.scalarType === 'bytes') {
+      const wkb = tryWkbFromUtf8JsonGeometryBytes(arg)
+      if (wkb !== null) {
+        return wkb
+      }
+    }
     return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
   }
 

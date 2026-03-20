@@ -20,6 +20,10 @@ export const ColumnTypeEnum = {
   Bytes: 13,
   Set: 14,
   Uuid: 15,
+  Point: 16,
+  LineString: 17,
+  Polygon: 18,
+  Geometry: 19,
 
   // Arrays
   Int32Array: 64,
@@ -37,6 +41,10 @@ export const ColumnTypeEnum = {
   EnumArray: 76,
   BytesArray: 77,
   UuidArray: 78,
+  PointArray: 79,
+  LineStringArray: 80,
+  PolygonArray: 81,
+  GeometryArray: 82,
 
   // Custom
   UnknownNumber: 128,

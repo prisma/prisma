@@ -24,6 +24,7 @@
   - `_matrix.ts` defines provider/adapter combinations using `defineMatrix(() => [[{provider: Providers.POSTGRESQL}, ...]])`.
   - `prisma/_schema.ts` exports `testMatrix.setupSchema(({ provider }) => ...)` returning a Prisma schema string.
   - Test file uses `testMatrix.setupTestSuite(() => { test(...) }, { optOut: { from: [...], reason: '...' } })`.
+  - DB hooks in `setupTestSuite` options (`packages/client/tests/functional/_utils/types.ts`): `beforeDbPushCallback` runs before `db push`. With `TEST_REUSE_DATABASE=true`, the harness adds `--force-reset`, so anything done only in `beforeDbPushCallback` can be undone by the reset; use `afterForceResetCallback` for SQL/setup that must run after reset and before the schema push (e.g. `CREATE EXTENSION postgis`). `alterStatementCallback` supplies SQL executed via `db execute` only after a successful push—it cannot install types required during the push itself.
   - Run specific adapter: `pnpm --filter @prisma/client test:functional:code --adapter js_pg <pattern>` (adapters: `js_pg`, `js_neon`, `js_libsql`, `js_planetscale`, `js_d1`, `js_better_sqlite3`, `js_mssql`, `js_mariadb`, `js_pg_cockroachdb`).
   - For error assertions, use `result.name === 'PrismaClientKnownRequestError'` and `result.code` (not `instanceof`).
   - Use `idForProvider(provider)` from `_utils/idForProvider` for portable ID field definitions.

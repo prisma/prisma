@@ -58,3 +58,5 @@ export type QueryIntrospectionBuiltinType =
   | 'time-array'
   | 'null'
   | 'unknown'
+  | 'geometry'
+  | 'geometry-array'
