@@ -89,7 +89,7 @@ export class WKBReader {
    */
   readCoordinates(count: number): [number, number][] {
     if (count < 0) {
-      throw new WKBParseError('Invalid coordinate count', count, this.#offset)
+      throw new WKBParseError(`Invalid coordinate count: ${count}`, 0, this.#offset)
     }
 
     const coords: [number, number][] = []
@@ -105,7 +105,7 @@ export class WKBReader {
    */
   readRings(ringCount: number): [number, number][][] {
     if (ringCount < 0) {
-      throw new WKBParseError('Invalid ring count', ringCount, this.#offset)
+      throw new WKBParseError(`Invalid ring count: ${ringCount}`, 0, this.#offset)
     }
 
     const rings: [number, number][][] = []

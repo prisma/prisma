@@ -52,7 +52,7 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
   } else if (t.type === 'Null') {
     return ts.nullType
   } else if (t.location === 'scalar' && t.type.startsWith('geometry(')) {
-    type = namedInputType('runtime.Geometry')
+    type = namedInputType('runtime.InputGeometry')
   } else if (Array.isArray(scalarType)) {
     const union = ts.unionType(scalarType.map(namedInputType))
     if (t.isList) {

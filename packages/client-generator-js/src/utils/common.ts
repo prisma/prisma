@@ -20,15 +20,7 @@ export function needsNamespace(field: DMMF.Field): boolean {
   }
 
   if (field.kind === 'scalar') {
-    return (
-      field.type === 'Json' ||
-      field.type === 'Decimal' ||
-      field.type === 'Bytes' ||
-      field.type === 'Point' ||
-      field.type === 'LineString' ||
-      field.type === 'Polygon' ||
-      field.type === 'Geometry'
-    )
+    return Object.prototype.hasOwnProperty.call(needNamespace, field.type)
   }
   return false
 }

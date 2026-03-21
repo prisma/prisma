@@ -3,6 +3,10 @@ import type { Geometry, LineString, Point, Polygon } from '@prisma/driver-adapte
 import { InvalidGeometryError } from './errors'
 import { WKBWriter } from './wkb-primitives'
 
+function extractGeometryType(geometry: Geometry): string {
+  return (geometry as { type: string }).type
+}
+
 function getWKBType(geometry: Geometry): number {
   switch (geometry.type) {
     case 'Point':
@@ -11,10 +15,8 @@ function getWKBType(geometry: Geometry): number {
       return 2
     case 'Polygon':
       return 3
-    default: {
-      const geometryType = (geometry as { type: string }).type
-      throw new InvalidGeometryError(`Unsupported geometry type: ${geometryType}`, geometry)
-    }
+    default:
+      throw new InvalidGeometryError(`Unsupported geometry type: ${extractGeometryType(geometry)}`, geometry)
   }
 }
 
@@ -32,10 +34,8 @@ function calculateGeometrySize(geometry: Geometry): number {
       return (
         4 + geometry.coordinates.reduce((sum, ring) => sum + 4 + ring.reduce((s, c) => s + coordByteLength(c), 0), 0)
       )
-    default: {
-      const geometryType = (geometry as { type: string }).type
-      throw new InvalidGeometryError(`Unsupported geometry type: ${geometryType}`, geometry)
-    }
+    default:
+      throw new InvalidGeometryError(`Unsupported geometry type: ${extractGeometryType(geometry)}`, geometry)
   }
 }
 

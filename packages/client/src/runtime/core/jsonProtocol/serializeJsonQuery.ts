@@ -265,15 +265,35 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
   return selectionSet
 }
 
-function isGeometry(value: unknown): value is { type: string; coordinates: unknown; srid?: number } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'type' in value &&
-    'coordinates' in value &&
-    typeof (value as { type: unknown }).type === 'string' &&
-    Array.isArray((value as { coordinates: unknown }).coordinates)
-  )
+const GEOMETRY_TYPES_WITH_COORDINATES = new Set([
+  'Point',
+  'LineString',
+  'Polygon',
+  'MultiPoint',
+  'MultiLineString',
+  'MultiPolygon',
+  'Geometry',
+])
+
+function isGeometry(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const v = value as Record<string, unknown>
+  if (typeof v.type !== 'string') {
+    return false
+  }
+
+  if (v.srid !== undefined && typeof v.srid !== 'number') {
+    return false
+  }
+
+  if (v.type === 'GeometryCollection') {
+    return Array.isArray(v.geometries)
+  }
+
+  return GEOMETRY_TYPES_WITH_COORDINATES.has(v.type) && Array.isArray(v.coordinates)
 }
 
 function serializeArgumentsValue(

@@ -266,7 +266,12 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
         sql: `
           SELECT typname, oid FROM pg_type 
           WHERE typname = ANY($1::text[])
-            AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+            AND typnamespace IN (
+              SELECT oid FROM pg_namespace 
+              WHERE nspname = 'public' OR oid = (
+                SELECT extnamespace FROM pg_extension WHERE extname = 'postgis'
+              )
+            )
         `,
         args: [['geometry', 'geography', 'point', 'linestring', 'polygon']],
         argTypes: [{ scalarType: 'unknown', arity: 'list' }],

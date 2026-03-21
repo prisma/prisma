@@ -1,4 +1,5 @@
 import { Decimal } from '@prisma/client-runtime-utils'
+import type { Geometry } from '@prisma/driver-adapter-utils'
 
 import { assertNever } from './utils'
 
@@ -9,7 +10,7 @@ export type BigIntTaggedValue = { $type: 'BigInt'; value: string }
 export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string } }
 export type EnumTaggedValue = { $type: 'Enum'; value: string }
 export type JsonTaggedValue = { $type: 'Json'; value: string }
-export type GeometryTaggedValue = { $type: 'Geometry'; value: object }
+export type GeometryTaggedValue = { $type: 'Geometry'; value: Geometry }
 export type RawTaggedValue = { $type: 'Raw'; value: unknown }
 
 export type JsonInputTaggedValue =
@@ -40,6 +41,7 @@ export type JsOutputValue =
   | Uint8Array
   | Date
   | Decimal
+  | Geometry
   | JsOutputValue[]
   | { [key: string]: JsOutputValue }
 
