@@ -1,3 +1,4 @@
+export { BuiltInProvider } from './built-in-provider'
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'

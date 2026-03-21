@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { enginesVersion } from '@prisma/engines-version'
 import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
-import { parseEnvValue } from '@prisma/internals'
+import { BuiltInProvider, parseEnvValue } from '@prisma/internals'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
@@ -20,7 +20,7 @@ type PrismaClientJsGeneratorOptions = {
 // visit https://pris.ly/cli/output-path`
 
 export class PrismaClientJsGenerator implements Generator {
-  readonly name = 'prisma-client-js'
+  readonly name = BuiltInProvider.PrismaClientJs
 
   #shouldResolvePrismaClient: boolean
   #runtimePath?: string

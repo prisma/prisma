@@ -1,4 +1,4 @@
-import { Decimal, ObjectEnumValue, Sql } from '@prisma/client-runtime-utils'
+import { Decimal, isObjectEnumValue, Sql } from '@prisma/client-runtime-utils'
 import { assertNever } from '@prisma/internals'
 
 import { isFieldRef } from '../core/model/FieldRef'
@@ -44,7 +44,7 @@ function cloneTypedSql(rawParam: UnknownTypedSql): UnknownTypedSql {
 
 // based on https://github.com/lukeed/klona/blob/v2.0.6/src/index.js
 function deepCloneValue(x: JsInputValue): JsInputValue {
-  if (typeof x !== 'object' || x == null || x instanceof ObjectEnumValue || isFieldRef(x) || isSkip(x)) {
+  if (typeof x !== 'object' || x == null || isObjectEnumValue(x) || isFieldRef(x) || isSkip(x)) {
     return x
   }
 
