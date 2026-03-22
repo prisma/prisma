@@ -38,6 +38,7 @@ export function providerToOtelSystem(provider: SchemaProvider): string {
     case 'sqlite':
     case 'cockroachdb':
     case 'mongodb':
+    case 'surrealdb':
       return provider
     default:
       assertNever(provider, `Unknown provider: ${provider}`)

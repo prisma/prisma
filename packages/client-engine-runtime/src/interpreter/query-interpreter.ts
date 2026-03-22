@@ -359,6 +359,7 @@ export class QueryInterpreter {
       case 'sqlserver':
         return 2098
       case 'mongodb':
+      case 'surrealdb':
         return undefined
       default:
         assertNever(this.#provider, `Unexpected provider: ${this.#provider}`)

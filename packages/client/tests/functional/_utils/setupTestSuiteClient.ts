@@ -291,6 +291,17 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
+  if (driverAdapter === AdapterProviders.JS_SURREALDB) {
+    const { PrismaSurrealDb } = require('@prisma/adapter-surrealdb') as typeof import('@prisma/adapter-surrealdb')
+
+    return {
+      adapter: new PrismaSurrealDb(datasourceInfo.databaseUrl, {
+        namespace: 'test',
+        database: 'test',
+      }),
+    }
+  }
+
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
 }
 

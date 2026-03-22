@@ -106,6 +106,7 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'sqlite':
     case 'mysql':
     case 'mssql':
+    case 'surrealdb':
       return
     default:
       assertNever(err.cause, `Unknown error: ${err.cause}`)
@@ -184,6 +185,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'postgres':
     case 'mysql':
     case 'mssql':
+    case 'surrealdb':
       return
     default:
       assertNever(err.cause, `Unknown error: ${err.cause}`)

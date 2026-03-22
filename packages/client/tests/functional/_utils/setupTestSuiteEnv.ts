@@ -456,6 +456,8 @@ function getDbUrl(provider: Providers): string {
       return requireEnvVariable('TEST_FUNCTIONAL_COCKROACH_URI')
     case Providers.SQLSERVER:
       return requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI')
+    case Providers.SURREALDB:
+      return requireEnvVariable('TEST_FUNCTIONAL_SURREALDB_URI')
     default:
       return assertNever(provider, `No URL for provider ${provider} configured`)
   }
@@ -478,6 +480,7 @@ function getDbUrlFromFlavor(driverAdapterOrFlavor: `${AdapterProviders}` | undef
       .with(AdapterProviders.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       .with(AdapterProviders.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
       .with(AdapterProviders.JS_BETTER_SQLITE3, () => requireEnvVariable('TEST_FUNCTIONAL_BETTER_SQLITE3_FILE_URI'))
+      .with(AdapterProviders.JS_SURREALDB, () => requireEnvVariable('TEST_FUNCTIONAL_SURREALDB_URI'))
       .otherwise(() => getDbUrl(provider))
   )
 }

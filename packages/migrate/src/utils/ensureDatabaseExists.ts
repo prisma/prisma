@@ -17,6 +17,7 @@ export type PrettyProvider =
   | 'SQL Server'
   | 'CockroachDB'
   | 'MongoDB'
+  | 'SurrealDB'
 
 // TODO: extract functions in their own files?
 
@@ -209,5 +210,7 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider {
       return `SQL Server`
     case 'mongodb':
       return `MongoDB`
+    case 'surrealdb':
+      return `SurrealDB`
   }
 }

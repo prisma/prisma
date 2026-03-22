@@ -171,6 +171,8 @@ export const defaultPort = (datasourceProvider: ConnectorType) => {
       return 26257
     case PRISMA_POSTGRES_PROVIDER:
       return null
+    case 'surrealdb':
+      return 8000
   }
 
   return undefined
@@ -194,6 +196,8 @@ export const defaultURL = (
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':
       return 'file:./dev.db'
+    case 'surrealdb':
+      return `surrealdb://root:root@localhost:${port}/test/test`
     default:
       return undefined
   }
@@ -285,7 +289,7 @@ export class Init implements Command {
 
              -h, --help   Display this help message
                    --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
-  --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
+  --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb, cockroachdb or surrealdb
    --generator-provider   Define the generator provider to use. Default: \`prisma-client\`
       --preview-feature   Define a preview feature to use.
                --output   Define Prisma Client generator output path to use.
@@ -755,6 +759,7 @@ const DATASOURCE_PROVIDERS = [
   'sqlserver',
   'mongodb',
   'cockroachdb',
+  'surrealdb',
   'prismapostgres',
   'prisma+postgres',
 ] as const

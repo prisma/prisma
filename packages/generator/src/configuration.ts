@@ -45,6 +45,7 @@ export type ConnectorType =
   | 'prisma+postgres' // Note: used for Prisma Postgres, managed by PDP
   | 'sqlserver'
   | 'cockroachdb'
+  | 'surrealdb'
 
 export type ActiveConnectorType = Exclude<ConnectorType, 'postgres' | 'prisma+postgres'>
 

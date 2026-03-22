@@ -188,6 +188,11 @@ export type MappedError =
       code: number
       message: string
     }
+  | {
+      kind: 'surrealdb'
+      code: string
+      message: string
+    }
 
 export type ConnectionInfo = {
   schemaName?: string
@@ -195,7 +200,7 @@ export type ConnectionInfo = {
   supportsRelationJoins: boolean
 }
 
-export type Provider = 'mysql' | 'postgres' | 'sqlite' | 'sqlserver'
+export type Provider = 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'surrealdb'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
@@ -209,6 +214,7 @@ const officialPrismaAdapters = [
   '@prisma/adapter-pg',
   '@prisma/adapter-mssql',
   '@prisma/adapter-mariadb',
+  '@prisma/adapter-surrealdb',
 ] as const
 
 export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]

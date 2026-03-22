@@ -17,6 +17,7 @@ export const allProviders = {
   mongodb: true,
   cockroachdb: true,
   sqlserver: true,
+  surrealdb: true,
   d1: true,
 } satisfies Record<SupportedProviders, true>
 
