@@ -85,12 +85,11 @@ class SurrealDbQueryable implements SqlQueryable {
     const { sql, args, argTypes } = query
     const mappedArgs = args.map((arg, i) => mapArg(arg, argTypes[i]))
 
-    // SurrealDB uses named parameters ($1, $2, ...).
-    // The query compiler generates placeholders as $1, $2 etc., and we bind
-    // them here using numeric string keys that SurrealDB resolves from the SQL.
+    // SurrealDB parameters must start with a letter. The query compiler generates
+    // placeholders as $p1, $p2 etc., and we bind them here using matching keys.
     const bindings: Record<string, unknown> = {}
     for (let i = 0; i < mappedArgs.length; i++) {
-      bindings[String(i + 1)] = mappedArgs[i]
+      bindings[`p${i + 1}`] = mappedArgs[i]
     }
 
     try {
