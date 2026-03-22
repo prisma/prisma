@@ -66,14 +66,17 @@ const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+/** Check if a string matches ISO 8601 datetime format. */
 function isIsoDateTime(value: string): boolean {
   return ISO_DATETIME_RE.test(value)
 }
 
+/** Check if a string matches ISO 8601 date-only format (YYYY-MM-DD). */
 function isIsoDate(value: string): boolean {
   return ISO_DATE_RE.test(value)
 }
 
+/** Check if a string matches UUID v4 format. */
 function isUuid(value: string): boolean {
   return UUID_RE.test(value)
 }
@@ -93,6 +96,7 @@ export function objectToRow(obj: Record<string, unknown>, columnNames: string[])
  * Normalize a SurrealDB value for Prisma's SqlResultSet format.
  * Dates become ISO strings, objects/arrays become JSON strings.
  */
+/** Normalize a SurrealDB value for Prisma's SqlResultSet format. */
 function normalizeValue(value: unknown): unknown {
   if (value === null || value === undefined) {
     return null

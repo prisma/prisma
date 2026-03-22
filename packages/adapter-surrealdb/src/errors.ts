@@ -53,6 +53,7 @@ type SurrealDbError = Error & {
   message: string
 }
 
+/** Map a SurrealDB error message to a structured MappedError kind. */
 function mapSurrealDbError(error: SurrealDbError): MappedError {
   const message = error.message.toLowerCase()
 
@@ -122,14 +123,17 @@ function mapSurrealDbError(error: SurrealDbError): MappedError {
   }
 }
 
+/** Extract a quoted name from an error message string. */
 function extractName(message: string): string | undefined {
   // Try to extract a quoted name like 'name' or "name"
   const match = message.match(/['"]([^'"]+)['"]/)
   return match?.at(1)
 }
 
-// Intentionally matches any Error as a catch-all after
-// more specific checks (socket/TLS) have been exhausted.
+/**
+ * Catch-all type guard for SurrealDB errors. Intentionally matches any Error
+ * after more specific checks (socket/TLS) have been exhausted.
+ */
 function isSurrealDbError(error: unknown): error is SurrealDbError {
   return error instanceof Error
 }
@@ -143,6 +147,7 @@ type SocketError = Error & {
   hostname?: string
 }
 
+/** Map a Node.js socket error to a Prisma MappedError. */
 function mapSocketError(error: SocketError): MappedError {
   switch (error.code) {
     case 'ENOTFOUND':
@@ -169,6 +174,7 @@ function mapSocketError(error: SocketError): MappedError {
   }
 }
 
+/** Type guard for Node.js socket errors (ENOTFOUND, ECONNREFUSED, etc). */
 function isSocketError(error: unknown): error is SocketError {
   const err = error as Record<string, unknown>
   return (
@@ -179,6 +185,7 @@ function isSocketError(error: unknown): error is SocketError {
   )
 }
 
+/** Type guard for TLS certificate errors. */
 function isTlsError(error: unknown): error is Error & { code?: string } {
   const err = error as Record<string, unknown>
   if (typeof err?.code === 'string') {

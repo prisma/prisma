@@ -27,6 +27,7 @@ export interface PrismaSurrealDbOptions {
   database?: string
 }
 
+/** Base queryable class wrapping a SurrealDB client for executing queries. */
 class SurrealDbQueryable implements SqlQueryable {
   readonly provider = 'surrealdb' as const
   readonly adapterName = packageName
@@ -108,6 +109,7 @@ class SurrealDbQueryable implements SqlQueryable {
   }
 }
 
+/** Transaction wrapper for SurrealDB using BEGIN/COMMIT/CANCEL TRANSACTION. */
 class SurrealDbTransaction extends SurrealDbQueryable implements Transaction {
   constructor(
     client: Surreal,
