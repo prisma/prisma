@@ -1,4 +1,5 @@
-import type { ArgType, type ColumnType, ColumnTypeEnum, Geometry } from '@prisma/driver-adapter-utils'
+import type { ArgType, ColumnType, Geometry } from '@prisma/driver-adapter-utils'
+import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
