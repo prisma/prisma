@@ -106,7 +106,11 @@ function normalizeValue(value: unknown): unknown {
     return value.toString()
   }
 
-  if (Array.isArray(value) || (typeof value === 'object' && !(value instanceof Uint8Array))) {
+  if (value instanceof ArrayBuffer) {
+    return new Uint8Array(value)
+  }
+
+  if (Array.isArray(value) || (typeof value === 'object' && !(value instanceof Uint8Array) && !ArrayBuffer.isView(value))) {
     return JSON.stringify(value)
   }
 

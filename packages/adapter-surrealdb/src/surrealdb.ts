@@ -19,8 +19,11 @@ import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:surrealdb')
 
+/** Options for configuring the SurrealDB adapter connection. */
 export interface PrismaSurrealDbOptions {
+  /** SurrealDB namespace to use. */
   namespace?: string
+  /** SurrealDB database to use within the namespace. */
   database?: string
 }
 
@@ -134,13 +137,19 @@ class SurrealDbTransaction extends SurrealDbQueryable implements Transaction {
   // SurrealDB does not support savepoints
 }
 
+/** Prisma driver adapter for SurrealDB, implementing `SqlDriverAdapter`. */
 export class PrismaSurrealDbAdapter extends SurrealDbQueryable implements SqlDriverAdapter {
+  #options?: PrismaSurrealDbOptions
+  #release?: () => Promise<void>
+
   constructor(
     client: Surreal,
-    private readonly options?: PrismaSurrealDbOptions,
-    private readonly release?: () => Promise<void>,
+    options?: PrismaSurrealDbOptions,
+    release?: () => Promise<void>,
   ) {
     super(client)
+    this.#options = options
+    this.#release = release
   }
 
   async startTransaction(_isolationLevel?: IsolationLevel): Promise<Transaction> {
@@ -171,17 +180,18 @@ export class PrismaSurrealDbAdapter extends SurrealDbQueryable implements SqlDri
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      schemaName: this.options?.namespace,
+      schemaName: this.#options?.namespace,
       supportsRelationJoins: false,
     }
   }
 
   /* eslint-disable-next-line @typescript-eslint/require-await */
   async dispose(): Promise<void> {
-    return this.release?.()
+    return this.#release?.()
   }
 }
 
+/** Factory for creating Prisma SurrealDB driver adapter instances. */
 export class PrismaSurrealDbAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'surrealdb' as const
   readonly adapterName = packageName
@@ -208,9 +218,34 @@ export class PrismaSurrealDbAdapterFactory implements SqlDriverAdapterFactory {
       })
     }
 
+    // Parse credentials from the URL (e.g. surrealdb://user:pass@host:port/ns/db)
+    let connectUrl = this.#url
+    let username: string | undefined
+    let password: string | undefined
+
+    try {
+      // Replace surrealdb:// with http:// for URL parsing (URL class needs a known protocol)
+      const parseable = this.#url.replace(/^surrealdb:\/\//, 'http://')
+      const parsed = new URL(parseable)
+      if (parsed.username) {
+        username = decodeURIComponent(parsed.username)
+        password = decodeURIComponent(parsed.password)
+        // Reconstruct URL without credentials
+        parsed.username = ''
+        parsed.password = ''
+        connectUrl = parsed.toString().replace(/^http:\/\//, 'ws://')
+      }
+    } catch {
+      // If URL parsing fails, use the original URL as-is
+    }
+
     const client = new Surreal()
     try {
-      await client.connect(this.#url)
+      await client.connect(connectUrl)
+
+      if (username) {
+        await client.signin({ username, password: password ?? '' })
+      }
 
       if (this.#options?.namespace || this.#options?.database) {
         await client.use({

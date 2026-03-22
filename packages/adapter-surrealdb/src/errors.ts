@@ -11,6 +11,12 @@ const TLS_ERRORS = new Set([
   'HOSTNAME_MISMATCH',
 ])
 
+/**
+ * Translates a raw error from the SurrealDB driver into a Prisma `DriverAdapterErrorObject`.
+ *
+ * Checks are applied in order: socket errors, TLS errors, SurrealDB-specific errors,
+ * generic `Error` instances. Non-Error values are rethrown as-is.
+ */
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   if (isSocketError(error)) {
     return mapSocketError(error)

@@ -17,9 +17,13 @@ export const allProviders = {
   mongodb: true,
   cockroachdb: true,
   sqlserver: true,
-  surrealdb: true,
   d1: true,
-} satisfies Record<SupportedProviders, true>
+  // SurrealDB is opt-in until the prisma-engines side is fully merged
+} satisfies Matrix['providers']
+
+export const surrealdbOnly = {
+  providers: { surrealdb: true },
+} satisfies Matrix
 
 export const sqliteOnly = {
   providers: { sqlite: true },
