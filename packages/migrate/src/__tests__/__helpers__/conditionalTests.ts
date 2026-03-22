@@ -91,6 +91,7 @@ export function describeMatrix(matrix: Matrix, name: string, fn: jest.EmptyFunct
   if (matrix.providers.cockroachdb && process.env.TEST_SKIP_COCKROACHDB) return skip(name)
   if (matrix.providers.sqlserver && process.env.TEST_SKIP_MSSQL) return skip(name)
   if (matrix.providers.mongodb && process.env.TEST_SKIP_MONGODB) return skip(name)
+  if (matrix.providers.surrealdb && process.env.TEST_SKIP_SURREALDB) return skip(name)
 
   // eslint-disable-next-line jest/valid-describe-callback
   describe(name, fn)

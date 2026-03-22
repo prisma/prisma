@@ -7,6 +7,8 @@ import { type ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-ad
  */
 export function inferColumnType(value: unknown): ColumnType {
   if (value === null || value === undefined) {
+    // Fallback: null values provide no type information.
+    // This may cause type mismatches if the first row has nulls in certain columns.
     return ColumnTypeEnum.Text
   }
 
@@ -124,11 +126,19 @@ export function mapArg(arg: unknown, argType: ArgType): unknown {
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'datetime') {
-    return new Date(arg)
+    const date = new Date(arg)
+    if (Number.isNaN(date.getTime())) {
+      throw new Error(`Invalid datetime string: ${arg}`)
+    }
+    return date
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
-    return Uint8Array.from(atob(arg), (c) => c.charCodeAt(0))
+    try {
+      return Uint8Array.from(atob(arg), (c) => c.charCodeAt(0))
+    } catch {
+      throw new Error(`Invalid base64 bytes string: ${arg}`)
+    }
   }
 
   return arg

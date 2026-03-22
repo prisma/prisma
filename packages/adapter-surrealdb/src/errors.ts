@@ -122,8 +122,10 @@ function extractName(message: string): string | undefined {
   return match?.at(1)
 }
 
+// Intentionally matches any Error as a catch-all after
+// more specific checks (socket/TLS) have been exhausted.
 function isSurrealDbError(error: unknown): error is SurrealDbError {
-  return error instanceof Error && typeof (error as SurrealDbError).message === 'string'
+  return error instanceof Error
 }
 
 type SocketError = Error & {

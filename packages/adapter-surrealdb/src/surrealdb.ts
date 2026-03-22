@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
-
 import type {
   ColumnType,
   ConnectionInfo,
@@ -21,7 +19,7 @@ import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:surrealdb')
 
-export type PrismaSurrealDbOptions = {
+export interface PrismaSurrealDbOptions {
   namespace?: string
   database?: string
 }
@@ -87,7 +85,9 @@ class SurrealDbQueryable implements SqlQueryable {
     const { sql, args, argTypes } = query
     const mappedArgs = args.map((arg, i) => mapArg(arg, argTypes[i]))
 
-    // Build a bindings object from positional params: $1, $2, ... -> { '1': value, '2': value }
+    // SurrealDB uses named parameters ($1, $2, ...).
+    // The query compiler generates placeholders as $1, $2 etc., and we bind
+    // them here using numeric string keys that SurrealDB resolves from the SQL.
     const bindings: Record<string, unknown> = {}
     for (let i = 0; i < mappedArgs.length; i++) {
       bindings[String(i + 1)] = mappedArgs[i]
@@ -145,6 +145,8 @@ export class PrismaSurrealDbAdapter extends SurrealDbQueryable implements SqlDri
   }
 
   async startTransaction(_isolationLevel?: IsolationLevel): Promise<Transaction> {
+    // SurrealDB does not support configurable isolation levels.
+    // All transactions use the database's default isolation semantics.
     const txOptions: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -175,6 +177,7 @@ export class PrismaSurrealDbAdapter extends SurrealDbQueryable implements SqlDri
     }
   }
 
+  /* eslint-disable-next-line @typescript-eslint/require-await */
   async dispose(): Promise<void> {
     return this.release?.()
   }
@@ -200,19 +203,25 @@ export class PrismaSurrealDbAdapterFactory implements SqlDriverAdapterFactory {
 
   async connect(): Promise<PrismaSurrealDbAdapter> {
     if (this.#externalClient) {
+      /* eslint-disable-next-line @typescript-eslint/require-await */
       return new PrismaSurrealDbAdapter(this.#externalClient, this.#options, async () => {
         // Do not close externally provided clients
       })
     }
 
     const client = new Surreal()
-    await client.connect(this.#url)
+    try {
+      await client.connect(this.#url)
 
-    if (this.#options?.namespace || this.#options?.database) {
-      await client.use({
-        namespace: this.#options.namespace,
-        database: this.#options.database,
-      })
+      if (this.#options?.namespace || this.#options?.database) {
+        await client.use({
+          namespace: this.#options.namespace,
+          database: this.#options.database,
+        })
+      }
+    } catch (error) {
+      await client.close()
+      throw error
     }
 
     return new PrismaSurrealDbAdapter(client, this.#options, async () => {

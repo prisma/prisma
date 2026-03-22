@@ -243,7 +243,7 @@ services:
       retries: 20
 
   surrealdb:
-    image: surrealdb/surrealdb:latest
+    image: surrealdb/surrealdb:v3.0.4
     restart: unless-stopped
     command: start --user root --pass root
     ports:
