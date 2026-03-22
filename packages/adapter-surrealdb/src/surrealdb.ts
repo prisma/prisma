@@ -230,11 +230,11 @@ export class PrismaSurrealDbAdapterFactory implements SqlDriverAdapterFactory {
       if (parsed.username) {
         username = decodeURIComponent(parsed.username)
         password = decodeURIComponent(parsed.password)
-        // Reconstruct URL without credentials
         parsed.username = ''
         parsed.password = ''
-        connectUrl = parsed.toString().replace(/^http:\/\//, 'ws://')
       }
+      // Always normalize to ws:// for SurrealDB WebSocket connection
+      connectUrl = parsed.toString().replace(/^http:\/\//, 'ws://')
     } catch {
       // If URL parsing fails, use the original URL as-is
     }

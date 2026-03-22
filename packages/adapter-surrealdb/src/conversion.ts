@@ -126,7 +126,7 @@ export function mapArg(arg: unknown, argType: ArgType): unknown {
   }
 
   if (Array.isArray(arg) && argType.arity === 'list') {
-    return arg.map((value) => mapArg(value, argType))
+    return arg.map((value) => mapArg(value, { ...argType, arity: 'scalar' }))
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'datetime') {

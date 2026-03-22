@@ -21,6 +21,7 @@ export const allProviders = {
   // SurrealDB is opt-in until the prisma-engines side is fully merged
 } satisfies Matrix['providers']
 
+/** Runs a test matrix only for the SurrealDB provider. */
 export const surrealdbOnly = {
   providers: { surrealdb: true },
 } satisfies Matrix
