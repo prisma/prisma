@@ -6,9 +6,11 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    // ============================================================
-    // ALL SCALAR TYPES
-    // ============================================================
+    beforeEach(async () => {
+      await prisma.compoundId.deleteMany()
+      await prisma.uniqueTest.deleteMany()
+      await prisma.typeTest.deleteMany()
+    })
 
     test('create and read all scalar types', async () => {
       const record = await prisma.typeTest.create({
@@ -45,20 +47,13 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const fetched = await prisma.typeTest.findUnique({
-        where: { id: created.id },
-      })
-
+      const fetched = await prisma.typeTest.findUnique({ where: { id: created.id } })
       expect(fetched).not.toBeNull()
       expect(fetched!.boolVal).toBe(false)
       expect(fetched!.intVal).toBe(-100)
       expect(fetched!.floatVal).toBe(0.0)
       expect(fetched!.strVal).toBe('')
     })
-
-    // ============================================================
-    // SPECIAL STRING VALUES (injection prevention)
-    // ============================================================
 
     test('handles special characters in strings', async () => {
       const record = await prisma.typeTest.create({
@@ -73,70 +68,43 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const fetched = await prisma.typeTest.findUnique({
-        where: { id: record.id },
-      })
-
+      const fetched = await prisma.typeTest.findUnique({ where: { id: record.id } })
       expect(fetched!.strVal).toBe("O'Reilly's \"book\" with \\backslash and 日本語")
     })
 
-    // ============================================================
-    // UNIQUE CONSTRAINTS
-    // ============================================================
-
     test('unique constraint enforced', async () => {
-      await prisma.uniqueTest.create({
-        data: { code: 'ALPHA', value: 1 },
-      })
+      await prisma.uniqueTest.create({ data: { code: 'ALPHA', value: 1 } })
 
-      await expect(
-        prisma.uniqueTest.create({
-          data: { code: 'ALPHA', value: 2 },
-        }),
-      ).rejects.toThrow()
+      const result = await prisma.uniqueTest
+        .create({ data: { code: 'ALPHA', value: 2 } })
+        .catch((error) => error)
+
+      expect(result.name).toBe('PrismaClientKnownRequestError')
+      expect(result.code).toBe('P2002')
     })
 
     test('unique field findUnique', async () => {
-      const record = await prisma.uniqueTest.findUnique({
-        where: { code: 'ALPHA' },
-      })
+      await prisma.uniqueTest.create({ data: { code: 'BETA', value: 1 } })
 
+      const record = await prisma.uniqueTest.findUnique({ where: { code: 'BETA' } })
       expect(record).not.toBeNull()
       expect(record!.value).toBe(1)
     })
 
-    // ============================================================
-    // COMPOUND IDS
-    // ============================================================
-
     test('create and find with compound id', async () => {
       const record = await prisma.compoundId.create({
-        data: {
-          tenantId: 'tenant-1',
-          itemId: 'item-1',
-          data: 'compound id test',
-        },
+        data: { tenantId: 'tenant-1', itemId: 'item-1', data: 'compound id test' },
       })
 
       expect(record.tenantId).toBe('tenant-1')
       expect(record.itemId).toBe('item-1')
 
       const found = await prisma.compoundId.findUnique({
-        where: {
-          tenantId_itemId: {
-            tenantId: 'tenant-1',
-            itemId: 'item-1',
-          },
-        },
+        where: { tenantId_itemId: { tenantId: 'tenant-1', itemId: 'item-1' } },
       })
-
       expect(found).not.toBeNull()
       expect(found!.data).toBe('compound id test')
     })
-
-    // ============================================================
-    // BOUNDARY VALUES
-    // ============================================================
 
     test('max/min Int values', async () => {
       const record = await prisma.typeTest.create({
@@ -150,11 +118,10 @@ testMatrix.setupTestSuite(
           jsonVal: {},
         },
       })
-
       expect(record.intVal).toBe(2147483647)
     })
 
-    test('empty JSON object and array', async () => {
+    test('empty JSON object', async () => {
       const record = await prisma.typeTest.create({
         data: {
           boolVal: false,
@@ -166,18 +133,7 @@ testMatrix.setupTestSuite(
           jsonVal: {},
         },
       })
-
       expect(record.jsonVal).toEqual({})
-    })
-
-    // ============================================================
-    // CLEANUP
-    // ============================================================
-
-    afterAll(async () => {
-      await prisma.typeTest.deleteMany()
-      await prisma.uniqueTest.deleteMany()
-      await prisma.compoundId.deleteMany()
     })
   },
   {

@@ -10,7 +10,6 @@ describe('PrismaSurrealDbAdapterFactory', () => {
 
 describe('PrismaSurrealDbOptions interface', () => {
   test('accepts namespace and database', () => {
-    // Type-level test: ensure the interface shape is correct
     const options: import('../surrealdb').PrismaSurrealDbOptions = {
       namespace: 'test',
       database: 'prisma',
@@ -26,16 +25,15 @@ describe('PrismaSurrealDbOptions interface', () => {
 })
 
 describe('URL credential parsing', () => {
-  test('PrismaSurrealDbAdapterFactory can be constructed with URL string', () => {
-    // This test verifies the factory accepts a URL string without throwing
-    const { PrismaSurrealDb } = require('../index')
+  test('can be constructed with URL string', async () => {
+    const { PrismaSurrealDb } = await import('../index')
     const factory = new PrismaSurrealDb('surrealdb://root:root@localhost:8000/test/test')
     expect(factory.provider).toBe('surrealdb')
     expect(factory.adapterName).toBe('@prisma/adapter-surrealdb')
   })
 
-  test('PrismaSurrealDbAdapterFactory can be constructed with options', () => {
-    const { PrismaSurrealDb } = require('../index')
+  test('can be constructed with options', async () => {
+    const { PrismaSurrealDb } = await import('../index')
     const factory = new PrismaSurrealDb('surrealdb://localhost:8000', {
       namespace: 'myns',
       database: 'mydb',
@@ -45,14 +43,14 @@ describe('URL credential parsing', () => {
 })
 
 describe('Adapter provider and name', () => {
-  test('provider is surrealdb', () => {
-    const { PrismaSurrealDb } = require('../index')
+  test('provider is surrealdb', async () => {
+    const { PrismaSurrealDb } = await import('../index')
     const factory = new PrismaSurrealDb('surrealdb://localhost:8000')
     expect(factory.provider).toBe('surrealdb')
   })
 
-  test('adapterName is @prisma/adapter-surrealdb', () => {
-    const { PrismaSurrealDb } = require('../index')
+  test('adapterName is @prisma/adapter-surrealdb', async () => {
+    const { PrismaSurrealDb } = await import('../index')
     const factory = new PrismaSurrealDb('surrealdb://localhost:8000')
     expect(factory.adapterName).toBe('@prisma/adapter-surrealdb')
   })
