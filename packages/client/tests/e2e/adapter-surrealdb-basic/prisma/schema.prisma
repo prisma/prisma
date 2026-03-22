@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "surrealdb"
+}
+
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        String  @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean @default(false)
+  authorId  String
+  author    User    @relation(fields: [authorId], references: [id])
+}
