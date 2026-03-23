@@ -63,8 +63,10 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
         typeCast,
       }
       const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
-      // We intentionally use `execute` here, because it uses the binary protocol, unlike `query`.
-      return await this.client.execute(req, values)
+      // We use `query` here instead of `execute` because `execute` uses the binary protocol, which
+      // creates server-side prepared statements that are cached by the driver but not always closed,
+      // leading to a leak in Prisma because Prisma generates many distinct SQL strings.
+      return await this.client.query(req, values)
     } catch (e) {
       const error = e as Error
       this.onError(error)
