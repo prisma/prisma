@@ -315,6 +315,12 @@ function withNoPrepareCache(config: mariadb.PoolConfig | string): mariadb.PoolCo
     return { ...config, prepareCacheLength: 0 }
   }
 
-  const separator = config.includes('?') ? '&' : '?'
-  return `${config}${separator}prepareCacheLength=0`
+  try {
+    const url = new URL(config)
+    url.searchParams.set('prepareCacheLength', '0')
+    return url.toString()
+  } catch {
+    const separator = config.includes('?') ? '&' : '?'
+    return `${config}${separator}prepareCacheLength=0`
+  }
 }
