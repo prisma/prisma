@@ -28,6 +28,7 @@ import {
 } from '@prisma/migrate'
 import { bold, dim, red, yellow } from 'kleur/colors'
 
+import { Bootstrap } from './bootstrap/Bootstrap'
 import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
@@ -96,6 +97,7 @@ async function main(): Promise<number> {
 
   const cli = CLI.new(
     {
+      bootstrap: Bootstrap.new(),
       init: Init.new(),
       mcp: Mcp.new(),
       migrate: MigrateCommand.new({
