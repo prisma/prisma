@@ -22,7 +22,7 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(protected client: Connection) {}
+  constructor(protected client: Connection) { }
 
   async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
@@ -63,10 +63,11 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
         typeCast,
       }
       const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
-      // We use `query` here instead of `execute` because `execute` uses the binary protocol, which
-      // creates server-side prepared statements that are cached by the driver but not always closed,
-      // leading to a leak in Prisma because Prisma generates many distinct SQL strings.
-      return await this.client.query(req, values)
+      // We intentionally use `execute` here, because it uses the binary protocol, unlike `query`.
+      // The binary protocol avoids lossy conversions for large numbers (see PR #29285).
+      // The pool is created with `prepareCacheLength: 0` to ensure the driver sends COM_STMT_CLOSE
+      // after each query, preventing server-side prepared statement accumulation.
+      return await this.client.execute(req, values)
     } catch (e) {
       const error = e as Error
       this.onError(error)
@@ -79,8 +80,8 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
   }
 }
 
-// All transaction operations use `client.query` instead of `client.execute` to avoid using the
-// binary protocol, which does not support transactions in the MariaDB driver.
+// Transaction control statements (BEGIN/COMMIT/ROLLBACK/SAVEPOINTs) use `client.query` instead
+// of `client.execute` because the MariaDB driver does not support transactions via binary protocol.
 class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements Transaction {
   constructor(
     readonly conn: mariadb.Connection,
@@ -186,7 +187,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
           argTypes: [],
         })
       }
-      // Uses `query` instead of `execute` to avoid the binary protocol.
+      // Uses `query` instead of `execute` because the driver does not support transactions via binary protocol.
       await tx.conn.query({ sql: 'BEGIN' }).catch(this.onError.bind(this))
       return tx
     } catch (error) {
@@ -221,7 +222,14 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   async connect(): Promise<PrismaMariaDbAdapter> {
     let pool: mariadb.Pool
     try {
-      pool = mariadb.createPool(this.#config)
+      // We set `prepareCacheLength: 0` to prevent a server-side prepared statement leak.
+      // When using `execute()` (binary protocol), the driver caches prepared statements per
+      // connection. Since Prisma generates many distinct SQL strings (e.g. varying IN clause sizes),
+      // the cache fills and evicted statements are not reliably closed via COM_STMT_CLOSE.
+      // Setting `prepareCacheLength: 0` disables this cache, ensuring every statement is closed
+      // after use. Binary protocol is still used to avoid lossy conversions for large numbers (#29285).
+      const config: mariadb.PoolConfig | string = withNoPrepareCache(this.#config)
+      pool = mariadb.createPool(config)
     } catch (error) {
       // We match on an error which is known to leak the connection string and replace it with
       // a custom error message.
@@ -295,3 +303,18 @@ export function rewriteConnectionString(config: mariadb.PoolConfig | string): ma
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
+
+/**
+ * For connection strings, appends `prepareCacheLength=0` query parameter.
+ * For connection objects, sets `prepareCacheLength: 0`.
+ * This ensures that the MariaDB driver sends `COM_STMT_CLOSE` after each `execute()` call,
+ * preventing a server-side prepared statement leak.
+ */
+function withNoPrepareCache(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
+  if (typeof config !== 'string') {
+    return { ...config, prepareCacheLength: 0 }
+  }
+
+  const separator = config.includes('?') ? '&' : '?'
+  return `${config}${separator}prepareCacheLength=0`
+}
