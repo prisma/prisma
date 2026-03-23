@@ -1,36 +1,37 @@
 import { getCommandWithExecutor } from '@prisma/internals'
-import { bold, dim, green } from 'kleur/colors'
+import { bold, dim, green, red } from 'kleur/colors'
+
+type StepResult = 'completed' | 'skipped' | 'not-applicable' | 'failed'
 
 export interface BootstrapStepStatus {
   init: 'completed' | 'skipped'
   link: 'completed' | 'failed'
-  migrate: 'completed' | 'skipped' | 'not-applicable'
-  seed: 'completed' | 'skipped' | 'not-applicable'
+  migrate: StepResult
+  seed: StepResult
 }
 
-function statusIcon(status: 'completed' | 'skipped' | 'not-applicable' | 'failed'): string {
+function statusIcon(status: StepResult): string {
   switch (status) {
     case 'completed':
       return green('✔')
+    case 'failed':
+      return red('✗')
     case 'skipped':
-      return dim('–')
     case 'not-applicable':
       return dim('–')
-    case 'failed':
-      return '✗'
   }
 }
 
-function statusLabel(status: 'completed' | 'skipped' | 'not-applicable' | 'failed'): string {
+function statusLabel(status: StepResult): string {
   switch (status) {
     case 'completed':
       return 'done'
+    case 'failed':
+      return red('failed')
     case 'skipped':
       return 'skipped'
     case 'not-applicable':
       return 'n/a'
-    case 'failed':
-      return 'failed'
   }
 }
 
