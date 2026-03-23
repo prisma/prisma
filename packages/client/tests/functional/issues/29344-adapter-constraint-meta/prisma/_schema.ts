@@ -1,3 +1,4 @@
+import { foreignKeyForProvider, idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -11,14 +12,14 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model User {
-      id    Int    @id @default(autoincrement())
+      id    ${idForProvider(provider)}
       email String @unique
       posts Post[]
     }
 
     model Post {
-      id       Int  @id @default(autoincrement())
-      authorId Int
+      id       ${idForProvider(provider)}
+      authorId ${foreignKeyForProvider(provider)}
       author   User @relation(fields: [authorId], references: [id])
     }
   `

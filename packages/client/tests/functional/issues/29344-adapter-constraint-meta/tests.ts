@@ -27,7 +27,7 @@ testMatrix.setupTestSuite(
     test('P2003: ForeignKeyConstraintViolation has meta.field_name', async () => {
       try {
         await prisma.post.create({
-          data: { authorId: 99999 }, // Author doesn't exist
+          data: { authorId: '99999' }, // Author doesn't exist
         })
         expect(true).toBe(false) // Should not reach here
       } catch (e: any) {
