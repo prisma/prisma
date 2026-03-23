@@ -128,7 +128,7 @@ ${bold('Examples')}
 
       try {
         const init = Init.new()
-        const initResult = await init.parse(['--datasource-provider', 'prisma+postgres'], config)
+        const initResult = await init.parse(['--datasource-provider', 'postgresql'], config)
 
         if (initResult instanceof Error) {
           await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(initResult.message))
