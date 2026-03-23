@@ -1,3 +1,7 @@
+import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { confirm } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { loadConfigFromFile } from '@prisma/config'
@@ -13,6 +17,28 @@ import { LinkApiError, sanitizeErrorMessage } from '../link/management-api'
 import { formatBootstrapOutput, type BootstrapStepStatus } from './completion-output'
 import { detectProjectState } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
+
+/**
+ * Locates the user's locally installed `prisma` binary in node_modules.
+ * Returns the absolute path if found, null otherwise.
+ */
+function findLocalPrismaBin(baseDir: string): string | null {
+  const candidate = path.join(baseDir, 'node_modules', '.bin', 'prisma')
+  return fs.existsSync(candidate) ? candidate : null
+}
+
+/**
+ * Runs a Prisma CLI command using the user's locally installed binary.
+ * Uses execFileSync (no shell) to avoid shell injection risks.
+ * Inherits stdio so the user sees real-time output from migrate/seed.
+ */
+function runLocalPrismaCommand(bin: string, args: string[], baseDir: string): void {
+  execFileSync(bin, args, {
+    cwd: baseDir,
+    stdio: 'inherit',
+    env: { ...process.env },
+  })
+}
 
 export class Bootstrap implements Command {
   public static new(): Bootstrap {
@@ -187,6 +213,24 @@ ${bold('Examples')}
     }
 
     // --- Step 3: Migrate (if schema has models) ---
+    //
+    // `link` is a Prisma Postgres platform concern — it always runs in-process because
+    // it uses the Management API shipped with this CLI version.
+    //
+    // `migrate` and `seed` are ORM concerns that depend on the user's local Prisma setup.
+    // A user may run `npx prisma@latest bootstrap` on a project that has an older Prisma
+    // version installed locally (e.g., Prisma 6 with `url` in schema.prisma instead of
+    // prisma.config.ts). Running migrate in-process would force this CLI's engine version
+    // on their project, causing version mismatches or hard failures.
+    //
+    // When a local `prisma` binary exists in node_modules, we shell out to it so that
+    // migrate/seed run with the user's own Prisma version and configuration. We only fall
+    // back to in-process execution for fresh projects where `init` just scaffolded Prisma 7
+    // files and no local binary exists yet.
+    const localPrismaBin = findLocalPrismaBin(baseDir)
+    const useLocalBin = localPrismaBin !== null && initialState.hasSchemaFile
+    const localBin = localPrismaBin as string
+
     if (updatedState.hasModels) {
       const shouldMigrate = await confirm({
         message: 'Apply schema to database with prisma migrate dev?',
@@ -198,14 +242,20 @@ ${bold('Examples')}
         const migrateStart = performance.now()
 
         try {
-          const migrateDev = MigrateDev.new()
-          const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
-
-          if (migrateResult instanceof Error) {
-            steps.migrate = 'not-applicable'
-            console.log(`${yellow('warn')} Migration returned an error: ${sanitizeErrorMessage(migrateResult.message)}`)
-            await emitStepFailed(telemetryCtx, 'migrate', sanitizeErrorMessage(migrateResult.message))
+          if (useLocalBin) {
+            runLocalPrismaCommand(localBin, ['migrate', 'dev', '--name', 'init'], baseDir)
           } else {
+            const migrateDev = MigrateDev.new()
+            const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
+
+            if (migrateResult instanceof Error) {
+              steps.migrate = 'failed'
+              console.log(`${yellow('warn')} Migration failed: ${sanitizeErrorMessage(migrateResult.message)}`)
+              await emitStepFailed(telemetryCtx, 'migrate', sanitizeErrorMessage(migrateResult.message))
+            }
+          }
+
+          if (steps.migrate !== 'failed') {
             steps.migrate = 'completed'
             stepsCompleted.push('migrate')
             await emitStepCompleted(telemetryCtx, 'migrate', performance.now() - migrateStart)
@@ -213,7 +263,7 @@ ${bold('Examples')}
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
           console.log(`${yellow('warn')} Migration failed: ${sanitizeErrorMessage(msg)}`)
-          steps.migrate = 'not-applicable'
+          steps.migrate = 'failed'
           await emitStepFailed(telemetryCtx, 'migrate', sanitizeErrorMessage(msg))
         }
       } else {
@@ -235,14 +285,20 @@ ${bold('Examples')}
         const seedStart = performance.now()
 
         try {
-          const dbSeed = DbSeed.new()
-          const seedResult = await dbSeed.parse([], activeConfig)
-
-          if (seedResult instanceof Error) {
-            steps.seed = 'not-applicable'
-            console.log(`${yellow('warn')} Seed returned an error: ${sanitizeErrorMessage(seedResult.message)}`)
-            await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(seedResult.message))
+          if (useLocalBin) {
+            runLocalPrismaCommand(localBin, ['db', 'seed'], baseDir)
           } else {
+            const dbSeed = DbSeed.new()
+            const seedResult = await dbSeed.parse([], activeConfig)
+
+            if (seedResult instanceof Error) {
+              steps.seed = 'failed'
+              console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(seedResult.message)}`)
+              await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(seedResult.message))
+            }
+          }
+
+          if (steps.seed !== 'failed') {
             steps.seed = 'completed'
             stepsCompleted.push('seed')
             await emitStepCompleted(telemetryCtx, 'seed', performance.now() - seedStart)
@@ -250,7 +306,7 @@ ${bold('Examples')}
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
           console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(msg)}`)
-          steps.seed = 'not-applicable'
+          steps.seed = 'failed'
           await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(msg))
         }
       } else {
