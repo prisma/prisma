@@ -11,6 +11,7 @@ import { DbSeed, MigrateDev } from '@prisma/migrate'
 import * as checkpoint from 'checkpoint-client'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 
+import { Generate } from '../Generate'
 import { Init } from '../Init'
 import { Link, type LinkResult } from '../link/Link'
 import { LinkApiError, sanitizeErrorMessage } from '../link/management-api'
@@ -125,6 +126,7 @@ ${bold('Examples')}
     const steps: BootstrapStepStatus = {
       init: 'skipped',
       link: 'failed',
+      generate: 'not-applicable',
       migrate: 'not-applicable',
       seed: 'not-applicable',
     }
@@ -272,7 +274,45 @@ ${bold('Examples')}
       }
     }
 
-    // --- Step 4: Seed (if seed script exists) ---
+    // --- Step 4: Generate (unless migrate already ran it) ---
+    //
+    // `migrate dev` runs `generate` implicitly after applying migrations, so we
+    // only need an explicit generate when migrate was skipped or not applicable.
+    if (steps.migrate !== 'completed') {
+      console.log(`\n${bold('Generating Prisma Client...')}`)
+      const generateStart = performance.now()
+
+      try {
+        if (useLocalBin) {
+          runLocalPrismaCommand(localBin, ['generate'], baseDir)
+        } else {
+          const generate = Generate.new()
+          const generateResult = await generate.parse([], activeConfig)
+
+          if (generateResult instanceof Error) {
+            steps.generate = 'failed'
+            console.log(`${yellow('warn')} Generate failed: ${sanitizeErrorMessage(generateResult.message)}`)
+            await emitStepFailed(telemetryCtx, 'generate', sanitizeErrorMessage(generateResult.message))
+          }
+        }
+
+        if (steps.generate !== 'failed') {
+          steps.generate = 'completed'
+          stepsCompleted.push('generate')
+          await emitStepCompleted(telemetryCtx, 'generate', performance.now() - generateStart)
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.log(`${yellow('warn')} Generate failed: ${sanitizeErrorMessage(msg)}`)
+        steps.generate = 'failed'
+        await emitStepFailed(telemetryCtx, 'generate', sanitizeErrorMessage(msg))
+      }
+    } else {
+      steps.generate = 'completed'
+      stepsCompleted.push('generate')
+    }
+
+    // --- Step 5: Seed (if seed script exists) ---
     const finalState = detectProjectState(baseDir)
     if (finalState.hasSeedScript) {
       const shouldSeed = await confirm({
