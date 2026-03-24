@@ -10,6 +10,7 @@ import { arg, format, HelpError, isError } from '@prisma/internals'
 import { DbSeed, MigrateDev } from '@prisma/migrate'
 import * as checkpoint from 'checkpoint-client'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
+import ora from 'ora'
 
 import { Generate } from '../Generate'
 import { Init } from '../Init'
@@ -18,6 +19,12 @@ import { LinkApiError, sanitizeErrorMessage } from '../link/management-api'
 import { formatBootstrapOutput, type BootstrapStepStatus } from './completion-output'
 import { detectProjectState } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
+import {
+  downloadAndExtractTemplate,
+  installDependencies,
+  isValidTemplateName,
+  promptTemplateSelection,
+} from './template-scaffold'
 
 /**
  * Locates the user's locally installed `prisma` binary in node_modules.
@@ -57,6 +64,7 @@ ${bold('Options')}
 
   --api-key      Workspace API key (CI / non-interactive)
   --database     Database ID to link to (e.g. db_abc123)
+  --template     Starter template name (e.g. nextjs, express)
   --force        Re-link even if already linked to Prisma Postgres
   -h, --help     Display this help message
 
@@ -67,12 +75,16 @@ ${bold('Examples')}
 
   Non-interactive with explicit credentials
   ${dim('$')} prisma bootstrap --api-key "<your-api-key>" --database "db_..."
+
+  With a starter template
+  ${dim('$')} prisma bootstrap --template nextjs
 `)
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--api-key': String,
       '--database': String,
+      '--template': String,
       '--force': Boolean,
       '--help': Boolean,
       '-h': '--help',
@@ -89,6 +101,7 @@ ${bold('Examples')}
 
     const apiKey = args['--api-key']
     const databaseId = args['--database']
+    const templateName = args['--template']
     const force = args['--force'] ?? false
 
     if (apiKey && !databaseId) {
@@ -103,8 +116,14 @@ ${bold('Examples')}
       )
     }
 
+    if (templateName && !isValidTemplateName(templateName)) {
+      return new HelpError(
+        `\n${bold(red('!'))} Unknown template "${templateName}". Available templates: nextjs, express, hono, fastify, nuxt, sveltekit, remix, react-router-7, astro, nest\n${Bootstrap.help}`,
+      )
+    }
+
     try {
-      return await this.run(apiKey, databaseId, force, config, baseDir)
+      return await this.run(apiKey, databaseId, templateName, force, config, baseDir)
     } catch (err) {
       if (err instanceof LinkApiError) {
         return new HelpError(`\n${bold(red('!'))} ${sanitizeErrorMessage(err.message)}`)
@@ -117,6 +136,7 @@ ${bold('Examples')}
   private async run(
     apiKey: string | undefined,
     databaseId: string | undefined,
+    templateName: string | undefined,
     force: boolean,
     config: PrismaConfigInternal,
     baseDir: string,
@@ -125,6 +145,7 @@ ${bold('Examples')}
     const stepsCompleted: string[] = []
     const steps: BootstrapStepStatus = {
       init: 'skipped',
+      template: 'not-applicable',
       link: 'failed',
       generate: 'not-applicable',
       migrate: 'not-applicable',
@@ -149,31 +170,47 @@ ${bold('Examples')}
 
     await emitFlowStarted(telemetryCtx)
 
-    // --- Step 1: Init (if needed) ---
+    let templateScaffolded = false
+
+    // --- Step 1: Init or Template (mutually exclusive, only for from-scratch projects) ---
+    //
+    // When no schema exists, the user is starting from scratch. We either:
+    //   (a) scaffold a starter template from prisma-examples (replaces init), or
+    //   (b) run `prisma init` for a minimal empty setup
+    //
+    // The template decision comes first because the template provides its own
+    // schema.prisma, prisma.config.ts, package.json, and application code —
+    // running init before would create files that get immediately overwritten.
     if (!initialState.hasSchemaFile) {
-      console.log(`\n${bold('Setting up Prisma...')}`)
-      const stepStart = performance.now()
+      const useTemplate = templateName ?? (await this.askAboutTemplate())
 
-      try {
-        const init = Init.new()
-        const initResult = await init.parse(['--datasource-provider', 'postgresql'], config)
+      if (useTemplate) {
+        const spinner = ora(`Downloading ${bold(useTemplate)} template...`).start()
+        const stepStart = performance.now()
 
-        if (initResult instanceof Error) {
-          await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(initResult.message))
-          throw new LinkApiError(`Init failed: ${initResult.message}`)
+        try {
+          await downloadAndExtractTemplate(useTemplate, baseDir)
+          spinner.succeed(`Template ${bold(useTemplate)} scaffolded`)
+          steps.template = 'completed'
+          steps.init = 'skipped'
+          templateScaffolded = true
+          stepsCompleted.push('template')
+          await emitStepCompleted(telemetryCtx, 'template', performance.now() - stepStart)
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          spinner.fail(`Template download failed: ${sanitizeErrorMessage(msg)}`)
+          console.log(`${dim('  Falling back to prisma init...')}`)
+          steps.template = 'failed'
+          await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
+          await this.runInit(steps, stepsCompleted, telemetryCtx, config)
         }
-
-        steps.init = 'completed'
-        stepsCompleted.push('init')
-        await emitStepCompleted(telemetryCtx, 'init', performance.now() - stepStart)
-      } catch (err) {
-        if (err instanceof LinkApiError) throw err
-        const msg = err instanceof Error ? err.message : String(err)
-        await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(msg))
-        throw new LinkApiError(`Init failed: ${msg}`)
+      } else {
+        steps.template = 'not-applicable'
+        await this.runInit(steps, stepsCompleted, telemetryCtx, config)
       }
     } else {
       steps.init = 'skipped'
+      steps.template = 'not-applicable'
       await emitStepSkipped(telemetryCtx, 'init')
     }
 
@@ -198,10 +235,26 @@ ${bold('Examples')}
       throw err
     }
 
-    // Re-detect project state after init + link may have changed files
+    // --- Step 3: Install dependencies (after template scaffold) ---
+    //
+    // Template projects include a package.json with all dependencies.
+    // Installing here brings the local `prisma` binary into node_modules,
+    // which is required for the migrate/generate/seed steps below.
+    if (templateScaffolded) {
+      const installSpinner = ora('Installing dependencies...').start()
+      try {
+        await installDependencies(baseDir)
+        installSpinner.succeed('Dependencies installed')
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
+      }
+    }
+
+    // Re-detect project state after init/template + link may have changed files
     const updatedState = detectProjectState(baseDir)
 
-    // Reload config after init may have created prisma.config.ts
+    // Reload config after init/template may have created prisma.config.ts
     let activeConfig = config
     if (!initialState.hasPrismaConfig && updatedState.hasPrismaConfig) {
       try {
@@ -214,7 +267,7 @@ ${bold('Examples')}
       }
     }
 
-    // --- Step 3: Migrate (if schema has models) ---
+    // --- Step 4: Migrate (if schema has models) ---
     //
     // `link` is a Prisma Postgres platform concern — it always runs in-process because
     // it uses the Management API shipped with this CLI version.
@@ -230,7 +283,7 @@ ${bold('Examples')}
     // back to in-process execution for fresh projects where `init` just scaffolded Prisma 7
     // files and no local binary exists yet.
     const localPrismaBin = findLocalPrismaBin(baseDir)
-    const useLocalBin = localPrismaBin !== null && initialState.hasSchemaFile
+    const useLocalBin = localPrismaBin !== null && (initialState.hasSchemaFile || templateScaffolded)
     const localBin = localPrismaBin as string
 
     if (updatedState.hasModels) {
@@ -274,11 +327,14 @@ ${bold('Examples')}
       }
     }
 
-    // --- Step 4: Generate (unless migrate already ran it) ---
+    // --- Step 5: Generate ---
     //
-    // `migrate dev` runs `generate` implicitly after applying migrations, so we
-    // only need an explicit generate when migrate was skipped or not applicable.
-    if (steps.migrate !== 'completed') {
+    // Always run an explicit `generate` step. While `migrate dev` runs `generate`
+    // implicitly, when shelling out to the local binary the implicit generate may
+    // not produce output at the expected location (e.g., custom output paths in
+    // the schema). Running it explicitly ensures the Prisma Client is generated
+    // reliably regardless of how migrate was invoked.
+    {
       console.log(`\n${bold('Generating Prisma Client...')}`)
       const generateStart = performance.now()
 
@@ -307,12 +363,9 @@ ${bold('Examples')}
         steps.generate = 'failed'
         await emitStepFailed(telemetryCtx, 'generate', sanitizeErrorMessage(msg))
       }
-    } else {
-      steps.generate = 'completed'
-      stepsCompleted.push('generate')
     }
 
-    // --- Step 5: Seed (if seed script exists) ---
+    // --- Step 6: Seed (if seed script exists) ---
     const finalState = detectProjectState(baseDir)
     if (finalState.hasSeedScript) {
       const shouldSeed = await confirm({
@@ -363,6 +416,50 @@ ${bold('Examples')}
       steps,
       hasModels: finalState.hasModels,
     })
+  }
+
+  private async askAboutTemplate(): Promise<string | null> {
+    const wantsTemplate = await confirm({
+      message: 'Scaffold a starter app from a template?',
+      default: true,
+    })
+
+    if (!wantsTemplate) return null
+    return promptTemplateSelection()
+  }
+
+  private async runInit(
+    steps: BootstrapStepStatus,
+    stepsCompleted: string[],
+    telemetryCtx: {
+      distinctId: string
+      databaseId: string | undefined
+      linkResult: LinkResult | null
+      projectState: ReturnType<typeof detectProjectState>
+    },
+    config: PrismaConfigInternal,
+  ): Promise<void> {
+    console.log(`\n${bold('Setting up Prisma...')}`)
+    const stepStart = performance.now()
+
+    try {
+      const init = Init.new()
+      const initResult = await init.parse(['--datasource-provider', 'postgresql'], config)
+
+      if (initResult instanceof Error) {
+        await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(initResult.message))
+        throw new LinkApiError(`Init failed: ${initResult.message}`)
+      }
+
+      steps.init = 'completed'
+      stepsCompleted.push('init')
+      await emitStepCompleted(telemetryCtx, 'init', performance.now() - stepStart)
+    } catch (err) {
+      if (err instanceof LinkApiError) throw err
+      const msg = err instanceof Error ? err.message : String(err)
+      await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(msg))
+      throw new LinkApiError(`Init failed: ${msg}`)
+    }
   }
 
   public help(error?: string): string | HelpError {

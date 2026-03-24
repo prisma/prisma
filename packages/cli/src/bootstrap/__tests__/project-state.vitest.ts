@@ -113,4 +113,37 @@ model User {
 
     expect(state.hasSeedScript).toBe(false)
   })
+
+  test('detects seed script in prisma.config.ts', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'prisma.config.ts'),
+      `import { defineConfig } from 'prisma/config'\nexport default defineConfig({ migrations: { seed: 'tsx ./prisma/seed.ts' } })`,
+      'utf-8',
+    )
+    const state = detectProjectState(tmpDir)
+
+    expect(state.hasSeedScript).toBe(true)
+  })
+
+  test('detects seed script in prisma.config.ts with different formatting', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'prisma.config.ts'),
+      `export default defineConfig({\n  migrations: {\n    seed: "npx tsx prisma/seed.ts",\n  },\n})`,
+      'utf-8',
+    )
+    const state = detectProjectState(tmpDir)
+
+    expect(state.hasSeedScript).toBe(true)
+  })
+
+  test('returns false for seed when prisma.config.ts has no seed field', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'prisma.config.ts'),
+      `export default defineConfig({ migrations: { path: 'prisma/migrations' } })`,
+      'utf-8',
+    )
+    const state = detectProjectState(tmpDir)
+
+    expect(state.hasSeedScript).toBe(false)
+  })
 })
