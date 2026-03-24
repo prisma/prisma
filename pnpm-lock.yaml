@@ -433,8 +433,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/studio-core':
-        specifier: 0.21.1
-        version: 0.21.1
+        specifier: 0.27.3
+        version: 0.27.3
       mysql2:
         specifier: 3.15.3
         version: 3.15.3
@@ -3211,6 +3211,9 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@kurkle/color@0.3.4':
+    resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+
   '@libsql/client@0.17.0':
     resolution: {integrity: sha512-TLjSU9Otdpq0SpKHl1tD1Nc9MKhrsZbCFGot3EbCxRa8m1E5R1mMwoOjKMMM31IyF7fr+hPNHLpYfwbMKNusmg==}
 
@@ -3586,13 +3589,87 @@ packages:
   '@prisma/schema-engine-wasm@7.5.0-15.280c870be64f457428992c43c1f6d557fab6e29e':
     resolution: {integrity: sha512-dtTC5tVBTpOAXHEhoRYm/TQzC+kzzt6H8x1CUu99vVP6G7gN7tdO9FyykvY6+m5/P/qrrZZm9uHuXqJGV8l4UA==}
 
-  '@prisma/studio-core@0.21.1':
-    resolution: {integrity: sha512-bOGqG/eMQtKC0XVvcVLRmhWWzm/I+0QUWqAEhEBtetpuS3k3V4IWqKGUONkAIT223DNXJMxMtZp36b1FmcdPeg==}
-    engines: {node: ^20.19 || ^22.12 || ^24.0, pnpm: '8'}
+  '@prisma/studio-core@0.27.3':
+    resolution: {integrity: sha512-AADjNFPdsrglxHQVTmHFqv6DuKQZ5WY4p5/gVFY017twvNrSwpLJ9lqUbYYxEu2W7nbvVxTZA8deJ8LseNALsw==}
+    engines: {node: ^20.19 || ^22.12 || >=24.0, pnpm: '8'}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
+
+  '@radix-ui/primitive@1.1.3':
+    resolution: {integrity: sha512-JTF99U/6XIjCBo0wqkU5sK10glYe27MRRsfwoiq5zzOEZLHU3A3KCMa5X/azekYRCJ0HlwI0crAXS/5dEHTzDg==}
+
+  '@radix-ui/react-compose-refs@1.1.2':
+    resolution: {integrity: sha512-z4eqJvfiNnFMHIIvXP3CY57y2WJs5g2v3X0zm9mEJkrkNv4rDxu+sg9Jh8EkXyeqBkB7SOcboo9dMVqhyrACIg==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@radix-ui/react-primitive@2.1.3':
+    resolution: {integrity: sha512-m9gTwRkhy2lvCPe6QJp4d3G1TYEUHn/FzJUtq9MjH46an1wJU+GdoGC5VLof8RX8Ft/DlpshApkhswDLZzHIcQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
+  '@radix-ui/react-slot@1.2.3':
+    resolution: {integrity: sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@radix-ui/react-toggle@1.1.10':
+    resolution: {integrity: sha512-lS1odchhFTeZv3xwHH31YPObmJn8gOg7Lq12inrr0+BH/l3Tsq32VfjqH1oh80ARM3mlkfMic15n0kg4sD1poQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
+  '@radix-ui/react-use-controllable-state@1.2.2':
+    resolution: {integrity: sha512-BjasUjixPFdS+NKkypcyyN5Pmg83Olst0+c6vGov0diwTEo6mgdqVR6hxcEgFuh4QrAs7Rc+9KuGJ9TVCj0Zzg==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@radix-ui/react-use-effect-event@0.0.2':
+    resolution: {integrity: sha512-Qp8WbZOBe+blgpuUT+lw2xheLP8q0oatc9UpmiemEICxGvFLYmHm9QowVZGHtJlGbS6A6yJ3iViad/2cVjnOiA==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@radix-ui/react-use-layout-effect@1.1.1':
+    resolution: {integrity: sha512-RbJRS4UWQFkzHTTwVymMTUv8EqYhOp8dOOviLj2ugtTiXRaRQS7GLGxZTLL1jWhMeoSCf5zmcZkqTl9IiYfXcQ==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   '@redocly/ajv@8.17.1':
     resolution: {integrity: sha512-EDtsGZS964mf9zAUXAl9Ew16eYbeyAFWhsPr0fX6oaJxgd8rApYlPBf0joyhnUHz88WxrigyFtTaqqzXNzPgqw==}
@@ -4627,6 +4704,10 @@ packages:
 
   chardet@0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
+
+  chart.js@4.5.1:
+    resolution: {integrity: sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==}
+    engines: {pnpm: '>=8'}
 
   checkpoint-client@1.1.33:
     resolution: {integrity: sha512-kiG9G/2K2lDkwd5q7TrzxN4IVqBSdwItLWXw6H+7+2N5jopjHRjD434OWvg/anuRvAnRlr5tflOuwbetsHQoZQ==}
@@ -9640,6 +9721,8 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@kurkle/color@0.3.4': {}
+
   '@libsql/client@0.17.0(encoding@0.1.13)':
     dependencies:
       '@libsql/core': 0.17.0
@@ -10072,7 +10155,41 @@ snapshots:
 
   '@prisma/schema-engine-wasm@7.5.0-15.280c870be64f457428992c43c1f6d557fab6e29e': {}
 
-  '@prisma/studio-core@0.21.1': {}
+  '@prisma/studio-core@0.27.3':
+    dependencies:
+      '@radix-ui/react-toggle': 1.1.10
+      chart.js: 4.5.1
+    transitivePeerDependencies:
+      - '@types/react-dom'
+
+  '@radix-ui/primitive@1.1.3': {}
+
+  '@radix-ui/react-compose-refs@1.1.2': {}
+
+  '@radix-ui/react-primitive@2.1.3':
+    dependencies:
+      '@radix-ui/react-slot': 1.2.3
+
+  '@radix-ui/react-slot@1.2.3':
+    dependencies:
+      '@radix-ui/react-compose-refs': 1.1.2
+
+  '@radix-ui/react-toggle@1.1.10':
+    dependencies:
+      '@radix-ui/primitive': 1.1.3
+      '@radix-ui/react-primitive': 2.1.3
+      '@radix-ui/react-use-controllable-state': 1.2.2
+
+  '@radix-ui/react-use-controllable-state@1.2.2':
+    dependencies:
+      '@radix-ui/react-use-effect-event': 0.0.2
+      '@radix-ui/react-use-layout-effect': 1.1.1
+
+  '@radix-ui/react-use-effect-event@0.0.2':
+    dependencies:
+      '@radix-ui/react-use-layout-effect': 1.1.1
+
+  '@radix-ui/react-use-layout-effect@1.1.1': {}
 
   '@redocly/ajv@8.17.1':
     dependencies:
@@ -11265,6 +11382,10 @@ snapshots:
   char-regex@1.0.2: {}
 
   chardet@0.7.0: {}
+
+  chart.js@4.5.1:
+    dependencies:
+      '@kurkle/color': 0.3.4
 
   checkpoint-client@1.1.33(encoding@0.1.13):
     dependencies:

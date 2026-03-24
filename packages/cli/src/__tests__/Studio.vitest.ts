@@ -297,27 +297,82 @@ describe('Studio BFF', () => {
       },
     ])
   })
+
+  test('routes transaction requests to executor.executeTransaction', async () => {
+    const executeTransactionMock = vi.fn(() => Promise.resolve([null, [[{ id: 1 }], [{ id: 2 }]]]))
+
+    const queries = [
+      { parameters: [], sql: 'select 1 as id' },
+      { parameters: [], sql: 'select 2 as id' },
+    ]
+
+    await startStudioBff({
+      execute: vi.fn(),
+      executeTransaction: executeTransactionMock,
+    })
+
+    const response = await getBffResponse({
+      procedure: 'transaction',
+      queries,
+    })
+
+    expect(executeTransactionMock).toHaveBeenCalledWith(queries)
+    expect(await response.json()).toEqual([null, [[{ id: 1 }], [{ id: 2 }]]])
+  })
+
+  test('serves the Prisma logo as the favicon', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getServerResponse('http://localhost:5555/favicon.ico')
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toBe('image/svg+xml')
+    expect(await response.text()).toContain('<svg')
+  })
+
+  test('links the favicon from the Studio HTML shell', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getServerResponse('http://localhost:5555/')
+    const html = await response.text()
+
+    expect(response.status).toBe(200)
+    expect(html).toContain('<link rel="icon"')
+    expect(html).toContain(
+      '"@radix-ui/react-toggle": "https://esm.sh/@radix-ui/react-toggle@1.1.10?deps=react@19.2.0,react-dom@19.2.0"',
+    )
+  })
 })
 
 async function getBffResponse(body: unknown): Promise<Response> {
+  return getServerResponse('http://localhost:5555/bff', {
+    body: JSON.stringify(body),
+    headers: {
+      'content-type': 'application/json',
+    },
+    method: 'POST',
+  })
+}
+
+async function getServerResponse(input: string, init?: RequestInit): Promise<Response> {
   const fetchHandler = serveMock.mock.calls.at(-1)?.[0]?.fetch as ((request: Request) => Promise<Response>) | undefined
 
   if (!fetchHandler) {
     throw new Error('Studio server fetch handler was not registered')
   }
 
-  return fetchHandler(
-    new Request('http://localhost:5555/bff', {
-      body: JSON.stringify(body),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'POST',
-    }),
-  )
+  return fetchHandler(new Request(input, init))
 }
 
-async function startStudioBff(executor: { execute: ReturnType<typeof vi.fn>; lintSql?: ReturnType<typeof vi.fn> }) {
+async function startStudioBff(executor: {
+  execute: ReturnType<typeof vi.fn>
+  executeTransaction?: ReturnType<typeof vi.fn>
+  lintSql?: ReturnType<typeof vi.fn>
+}) {
   createPostgresJSExecutorMock.mockReturnValueOnce(executor)
 
   const { Studio } = await import('../Studio')
