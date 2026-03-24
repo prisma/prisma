@@ -3,8 +3,10 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
+    "ignoreDeprecations": "6.0",
     "strict": true,
-    "skipLibCheck": false
+    "skipLibCheck": false,
+    "types": ["node"]
   }
 }

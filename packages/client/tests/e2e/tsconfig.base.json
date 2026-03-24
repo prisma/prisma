@@ -6,6 +6,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": false
+    "skipLibCheck": false,
+    "types": ["jest", "node"]
   }
 }

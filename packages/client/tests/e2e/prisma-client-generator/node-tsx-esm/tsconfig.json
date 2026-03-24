@@ -5,6 +5,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
-    "skipLibCheck": false
+    "skipLibCheck": false,
+    "types": ["node"]
   }
 }
