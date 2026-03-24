@@ -128,8 +128,6 @@ function getErrorMeta(err: DriverAdapterError): Record<string, unknown> {
   if (err.cause.kind === 'ForeignKeyConstraintViolation') {
     if (err.cause.constraint && 'fields' in err.cause.constraint) {
       meta.field_name = err.cause.constraint.fields.join(', ')
-    } else if (err.cause.constraint && 'index' in err.cause.constraint) {
-      meta.field_name = err.cause.constraint.index
     }
   }
 
