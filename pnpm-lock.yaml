@@ -1511,9 +1511,6 @@ importers:
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
-      '@streamparser/json':
-        specifier: ^0.0.22
-        version: 0.0.22
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1527,6 +1524,9 @@ importers:
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
+      '@streamparser/json':
+        specifier: ^0.0.22
+        version: 0.0.22
       '@types/babel__helper-validator-identifier':
         specifier: 7.15.2
         version: 7.15.2

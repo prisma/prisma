@@ -8,7 +8,6 @@ import * as path from 'path'
 export function generateLargeSchema(): void {
   const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.prisma')
 
-  // Start with the basic schema configuration
   let schemaContent = `// Auto-generated large schema for testing
 // This schema is designed to generate 512MB of DMMF to test large schema handling
 
