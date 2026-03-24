@@ -82,10 +82,13 @@
   },
   "peerDependencies": {
     "typescript": ">=5.4.0",
-    "@streamparser/json": "0.0.22"
+    "@streamparser/json": "^0.0.22"
   },
   "peerDependenciesMeta": {
     "typescript": {
+      "optional": true
+    },
+    "@streamparser/json": {
       "optional": true
     }
   },

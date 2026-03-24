@@ -55,8 +55,8 @@ ${detailsHeader} ${message}`
  * No Node.js flags can change this.
  * See: https://github.com/prisma/prisma/issues/29111
  */
-function isV8StringLimitError(error: {}): boolean {
-  return error['code'] === 'ERR_STRING_TOO_LONG'
+function isV8StringLimitError(error: unknown): error is Error & { code: 'ERR_STRING_TOO_LONG' } {
+  return error instanceof Error && 'code' in error && error.code === 'ERR_STRING_TOO_LONG'
 }
 
 /**
@@ -70,7 +70,7 @@ function isV8StringLimitError(error: {}): boolean {
  *
  * See: https://github.com/prisma/prisma/issues/29111
  */
-function getDmmfBuffered(params: string): DMMF.Document {
+function getDMMFBuffered(params: string): DMMF.Document {
   const CHUNK_SIZE = 16 * 1024 * 1024 // 16MB chunks — well under V8 string limit
 
   if (typeof prismaSchemaWasm.get_dmmf_buffered !== 'function') {
@@ -188,7 +188,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
     debug('V8 string limit hit, falling back to buffered DMMF API')
 
     try {
-      const data = getDmmfBuffered(params)
+      const data = getDMMFBuffered(params)
       debug('dmmf data retrieved via buffered API')
       return data
     } catch (bufferedError) {

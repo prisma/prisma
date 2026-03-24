@@ -23,19 +23,14 @@ datasource db {
 
 `
 
-  // 8000 models is sufficient to generate a DMMF way larger than 512MB
-  const targetModelCount = 8000
+  // 7200 models is sufficient to generate a DMMF way larger than 512MB
+  const targetModelCount = 7200
 
-  const startIdx = 0
-  const endIdx = targetModelCount
-
-  let batchContent = ''
-
-  for (let i = startIdx; i < endIdx; i++) {
+  for (let i = 0; i < targetModelCount; i++) {
     const modelName = `TestModel${i.toString().padStart(8, '0')}`
 
     // Create a model with various field types to make it realistic
-    batchContent += `model ${modelName} {
+    schemaContent += `model ${modelName} {
   id                 Int      @id @default(autoincrement())
   stringField01      String
   stringField02      String?
@@ -70,7 +65,6 @@ datasource db {
 `
   }
 
-  schemaContent += batchContent
   fs.writeFileSync(schemaPath, schemaContent)
 
   console.log(`Schema generation complete!`)
