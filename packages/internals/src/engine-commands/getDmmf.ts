@@ -55,8 +55,8 @@ ${detailsHeader} ${message}`
  * No Node.js flags can change this.
  * See: https://github.com/prisma/prisma/issues/29111
  */
-function isV8StringLimitError(error: unknown): boolean {
-  return error instanceof RangeError && error.message.includes('Cannot create a string longer than')
+function isV8StringLimitError(error: {}): boolean {
+  return error['code'] === 'ERR_STRING_TOO_LONG'
 }
 
 /**
