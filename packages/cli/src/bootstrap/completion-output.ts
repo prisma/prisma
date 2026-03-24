@@ -76,6 +76,11 @@ export function formatBootstrapOutput(opts: {
   }
 
   lines.push('')
+  lines.push(dim('Enhance your development workflow:'))
+  lines.push(dim(`  Prisma in Cursor  cursor plugin install prisma-cursor-plugin`))
+  lines.push(dim(`  Prisma MCP        Add { "url": "https://mcp.prisma.io/mcp" } to .cursor/mcp.json`))
+  lines.push(dim(`  Prisma Skills     npx skills add prisma/skills`))
+  lines.push('')
 
   return lines.join('\n')
 }
