@@ -51,13 +51,21 @@ export async function formatSchema(
       const originalSchemaTuple = schemas.find((s) => s[0] === filename)
       if (originalSchemaTuple) {
         const [, originalSchema] = originalSchemaTuple
+
+        /**
+         * Detect the original line ending style (CRLF or LF).
+         */
         const isCrlf = originalSchema.includes('\r\n')
         const expectedLineEnding = isCrlf ? '\r\n' : '\n'
 
-        // Normalize line endings to match input
+        /**
+         * Normalize all line endings in the formatted output to match the original schema.
+         */
         let result = content.replace(/\r?\n/g, expectedLineEnding)
 
-        // Ensure single trailing newline
+        /**
+         * Ensure the file ends with exactly one trailing newline of the correct type.
+         */
         result = result.trimEnd() + expectedLineEnding
 
         return [filename, result] as [string, string]
