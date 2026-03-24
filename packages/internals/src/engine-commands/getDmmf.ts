@@ -14,6 +14,7 @@ import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
 const debug = Debug('prisma:getDMMF')
+const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
 
 export interface ConfigMetaFormat {
   datasources: DataSource[]
@@ -129,7 +130,6 @@ function getDMMFBuffered(params: string): DMMF.Document {
  * Wasm'd version of `getDMMF`.
  */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
-  const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
   debug(`Using getDmmf Wasm`)
 
   const params = JSON.stringify({
@@ -192,11 +192,15 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
       const data = getDMMFBuffered(params)
       debug('dmmf data retrieved via buffered API')
       return data
-    } catch (bufferedError) {
-      debugErrorType({ type: 'wasm-error' as const, reason: '(get-dmmf-buffered wasm)', error: bufferedError as Error })
+    } catch (error) {
+      if (error instanceof Error) {
+        debugErrorType({ type: 'wasm-error' as const, reason: '(get-dmmf-buffered wasm)', error })
+        throw mapWasmPanicToGetDmmfError(error, '(get-dmmf-buffered wasm)')
+      }
+
       throw new GetDmmfError({
         _tag: 'unparsed',
-        message: `Buffered DMMF fallback also failed: ${(bufferedError as Error).message}`,
+        message: `Unknown error during buffered DMMF retrieval: ${error}`,
         reason: '(get-dmmf-buffered wasm)',
       })
     }
@@ -208,27 +212,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   const error = match(dmmfEither.left)
     .with({ type: 'wasm-error' }, (e) => {
       debugErrorType(e)
-
-      /**
-       * Capture and propagate possible Wasm panics.
-       */
-      if (isWasmPanic(e.error)) {
-        const { message, stack } = getWasmError(e.error)
-
-        const panic = new RustPanic(
-          /* message */ message,
-          /* rustStack */ stack,
-          /* request */ '@prisma/prisma-schema-wasm get_dmmf',
-          ErrorArea.FMT_CLI,
-        )
-        return panic
-      }
-
-      /*
-       * Extract the actual error by attempting to JSON-parse the error message.
-       */
-      const errorOutput = e.error.message
-      return new GetDmmfError(parseQueryEngineError({ errorOutput, reason: e.reason }))
+      return mapWasmPanicToGetDmmfError(e.error, e.reason)
     })
     .with({ type: 'parse-json' }, (e) => {
       debugErrorType(e)
@@ -237,4 +221,27 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
     .exhaustive()
 
   throw error
+}
+
+function mapWasmPanicToGetDmmfError(error: Error | WasmPanic, reason: string): GetDmmfError {
+  /**
+   * Capture and propagate possible Wasm panics.
+   */
+  if (isWasmPanic(error)) {
+    const { message, stack } = getWasmError(error)
+
+    const panic = new RustPanic(
+      /* message */ message,
+      /* rustStack */ stack,
+      /* request */ '@prisma/prisma-schema-wasm get_dmmf',
+      ErrorArea.FMT_CLI,
+    )
+    return panic
+  }
+
+  /*
+   * Extract the actual error by attempting to JSON-parse the error message.
+   */
+  const errorOutput = error.message
+  return new GetDmmfError(parseQueryEngineError({ errorOutput, reason }))
 }
