@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
-import { detectProjectState } from '../project-state'
+import { detectProjectState, getModelNames, getSeedCommand } from '../project-state'
 
 let tmpDir: string
 
@@ -145,5 +145,87 @@ model User {
     const state = detectProjectState(tmpDir)
 
     expect(state.hasSeedScript).toBe(false)
+  })
+})
+
+describe('getModelNames', () => {
+  test('returns empty array when no schema exists', () => {
+    expect(getModelNames(tmpDir)).toEqual([])
+  })
+
+  test('extracts model names from schema', () => {
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir)
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      `
+datasource db { provider = "postgresql" }
+
+model User {
+  id   Int    @id
+  name String
+  posts Post[]
+}
+
+model Post {
+  id     Int    @id
+  title  String
+  author User   @relation(fields: [authorId], references: [id])
+  authorId Int
+}
+`,
+      'utf-8',
+    )
+
+    expect(getModelNames(tmpDir)).toEqual(['User', 'Post'])
+  })
+
+  test('returns empty array for schema without models', () => {
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir)
+    fs.writeFileSync(path.join(prismaDir, 'schema.prisma'), `datasource db { provider = "postgresql" }`, 'utf-8')
+
+    expect(getModelNames(tmpDir)).toEqual([])
+  })
+})
+
+describe('getSeedCommand', () => {
+  test('returns null when no seed config exists', () => {
+    expect(getSeedCommand(tmpDir)).toBeNull()
+  })
+
+  test('returns seed command from package.json', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({ prisma: { seed: 'ts-node prisma/seed.ts' } }),
+      'utf-8',
+    )
+
+    expect(getSeedCommand(tmpDir)).toBe('ts-node prisma/seed.ts')
+  })
+
+  test('returns seed command from prisma.config.ts', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'prisma.config.ts'),
+      `export default defineConfig({ migrations: { seed: 'npx tsx prisma/seed.ts' } })`,
+      'utf-8',
+    )
+
+    expect(getSeedCommand(tmpDir)).toBe('npx tsx prisma/seed.ts')
+  })
+
+  test('prefers package.json over prisma.config.ts', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({ prisma: { seed: 'ts-node prisma/seed.ts' } }),
+      'utf-8',
+    )
+    fs.writeFileSync(
+      path.join(tmpDir, 'prisma.config.ts'),
+      `export default defineConfig({ migrations: { seed: 'npx tsx prisma/seed.ts' } })`,
+      'utf-8',
+    )
+
+    expect(getSeedCommand(tmpDir)).toBe('ts-node prisma/seed.ts')
   })
 })
