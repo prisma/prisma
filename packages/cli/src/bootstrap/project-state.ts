@@ -52,6 +52,37 @@ function checkSeedInPrismaConfig(baseDir: string): boolean {
   }
 }
 
+export function getModelNames(baseDir: string): string[] {
+  const schemaPath = findSchemaPath(baseDir)
+  if (!schemaPath) return []
+  const content = fs.readFileSync(schemaPath, 'utf-8')
+  const matches = content.matchAll(/^\s*model\s+(\w+)/gm)
+  return Array.from(matches, (m) => m[1])
+}
+
+export function getSeedCommand(baseDir: string): string | null {
+  const packageJsonPath = path.join(baseDir, 'package.json')
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+      if (typeof pkg.prisma?.seed === 'string' && pkg.prisma.seed.length > 0) {
+        return pkg.prisma.seed
+      }
+    } catch {}
+  }
+
+  const configPath = path.join(baseDir, 'prisma.config.ts')
+  if (fs.existsSync(configPath)) {
+    try {
+      const content = fs.readFileSync(configPath, 'utf-8')
+      const match = content.match(/seed\s*[:=]\s*['"`]([^'"`]+)['"`]/)
+      if (match) return match[1]
+    } catch {}
+  }
+
+  return null
+}
+
 export function detectProjectState(baseDir: string): ProjectState {
   const schemaPath = findSchemaPath(baseDir)
   const hasSchemaFile = schemaPath !== null

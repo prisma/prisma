@@ -17,7 +17,7 @@ import { Init } from '../Init'
 import { Link, type LinkResult } from '../link/Link'
 import { LinkApiError, sanitizeErrorMessage } from '../link/management-api'
 import { formatBootstrapOutput, type BootstrapStepStatus } from './completion-output'
-import { detectProjectState } from './project-state'
+import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
 import {
   downloadAndExtractTemplate,
@@ -202,11 +202,11 @@ ${bold('Examples')}
           console.log(`${dim('  Falling back to prisma init...')}`)
           steps.template = 'failed'
           await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
-          await this.runInit(steps, stepsCompleted, telemetryCtx, config)
+          await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
         }
       } else {
         steps.template = 'not-applicable'
-        await this.runInit(steps, stepsCompleted, telemetryCtx, config)
+        await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
       }
     } else {
       steps.init = 'skipped'
@@ -287,8 +287,12 @@ ${bold('Examples')}
     const localBin = localPrismaBin as string
 
     if (updatedState.hasModels) {
+      const modelNames = getModelNames(baseDir)
+      const modelCount = modelNames.length
+      const modelSummary =
+        modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
       const shouldMigrate = await confirm({
-        message: 'Apply schema to database with prisma migrate dev?',
+        message: `Apply${modelSummary} to database with prisma migrate dev?`,
         default: true,
       })
 
@@ -368,8 +372,10 @@ ${bold('Examples')}
     // --- Step 6: Seed (if seed script exists) ---
     const finalState = detectProjectState(baseDir)
     if (finalState.hasSeedScript) {
+      const seedCmd = getSeedCommand(baseDir)
+      const seedHint = seedCmd ? dim(` → ${seedCmd}`) : ''
       const shouldSeed = await confirm({
-        message: 'Seed the database?',
+        message: `Seed the database?${seedHint}`,
         default: true,
       })
 
@@ -428,6 +434,13 @@ ${bold('Examples')}
     return promptTemplateSelection()
   }
 
+  private async askAboutSampleModel(): Promise<boolean> {
+    return confirm({
+      message: 'Add a sample User model to get started?',
+      default: true,
+    })
+  }
+
   private async runInit(
     steps: BootstrapStepStatus,
     stepsCompleted: string[],
@@ -438,13 +451,17 @@ ${bold('Examples')}
       projectState: ReturnType<typeof detectProjectState>
     },
     config: PrismaConfigInternal,
+    withModel: boolean,
   ): Promise<void> {
-    console.log(`\n${bold('Setting up Prisma...')}`)
+    const label = withModel ? 'Setting up Prisma with a sample User model...' : 'Setting up Prisma...'
+    console.log(`\n${bold(label)}`)
     const stepStart = performance.now()
 
     try {
       const init = Init.new()
-      const initResult = await init.parse(['--datasource-provider', 'postgresql'], config)
+      const initArgs = ['--datasource-provider', 'postgresql']
+      if (withModel) initArgs.push('--with-model')
+      const initResult = await init.parse(initArgs, config)
 
       if (initResult instanceof Error) {
         await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(initResult.message))
