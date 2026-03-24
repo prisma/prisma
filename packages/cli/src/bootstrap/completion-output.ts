@@ -5,6 +5,7 @@ type StepResult = 'completed' | 'skipped' | 'not-applicable' | 'failed'
 
 export interface BootstrapStepStatus {
   init: 'completed' | 'skipped'
+  template: StepResult
   link: 'completed' | 'failed'
   generate: StepResult
   migrate: StepResult
@@ -48,6 +49,7 @@ export function formatBootstrapOutput(opts: {
   lines.push(green('✔') + bold(' Bootstrap completed!'))
   lines.push('')
   lines.push(`  ${statusIcon(opts.steps.init)}  Init         ${statusLabel(opts.steps.init)}`)
+  lines.push(`  ${statusIcon(opts.steps.template)}  Template     ${statusLabel(opts.steps.template)}`)
   lines.push(`  ${statusIcon(opts.steps.link)}  Link         ${statusLabel(opts.steps.link)}`)
   lines.push(`  ${statusIcon(opts.steps.generate)}  Generate     ${statusLabel(opts.steps.generate)}`)
   lines.push(`  ${statusIcon(opts.steps.migrate)}  Migration    ${statusLabel(opts.steps.migrate)}`)

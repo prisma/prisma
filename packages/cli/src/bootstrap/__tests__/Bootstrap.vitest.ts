@@ -76,6 +76,13 @@ vi.mock('../../Init', () => ({
   },
 }))
 
+vi.mock('../template-scaffold', () => ({
+  downloadAndExtractTemplate: vi.fn(() => Promise.resolve()),
+  installDependencies: vi.fn(),
+  isValidTemplateName: vi.fn((name: string) => ['nextjs', 'express'].includes(name)),
+  promptTemplateSelection: vi.fn(() => Promise.resolve('nextjs')),
+}))
+
 const mockSdkClient = {
   GET: vi.fn(),
   POST: vi.fn(),
@@ -132,10 +139,20 @@ describe('Bootstrap command — help and validation', () => {
     expect(result).toBeInstanceOf(HelpError)
     expect((result as HelpError).message).toContain('db_')
   })
+
+  test('rejects unknown --template name', async () => {
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'unknown-framework'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+    expect(result).toBeInstanceOf(HelpError)
+    expect((result as HelpError).message).toContain('Unknown template')
+  })
 })
 
 describe('Bootstrap command — new project flow', () => {
-  test('runs init when no schema exists, then links', async () => {
+  test('runs init when user declines template, then links', async () => {
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
 
@@ -150,11 +167,58 @@ describe('Bootstrap command — new project flow', () => {
     expect(result).not.toBeInstanceOf(Error)
     const output = result as string
     expect(output).toContain('Bootstrap completed')
+    expect(output).toContain('Init')
+  })
+
+  test('scaffolds template when --template flag is provided', async () => {
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(false)
+
+    const { downloadAndExtractTemplate, installDependencies } = await import('../template-scaffold')
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'nextjs'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Bootstrap completed')
+    expect(output).toContain('Template')
+    expect(output).toContain('done')
+    expect(downloadAndExtractTemplate).toHaveBeenCalledWith('nextjs', tmpDir)
+    expect(installDependencies).toHaveBeenCalledWith(tmpDir)
+  })
+
+  test('falls back to init when template download fails', async () => {
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(false)
+
+    const { downloadAndExtractTemplate } = await import('../template-scaffold')
+    vi.mocked(downloadAndExtractTemplate).mockRejectedValueOnce(new Error('Network error'))
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'nextjs'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Bootstrap completed')
+    expect(output).toContain('Template')
+    expect(output).toContain('failed')
+    expect(output).toContain('Init')
   })
 })
 
 describe('Bootstrap command — existing project flow', () => {
-  test('skips init when schema already exists', async () => {
+  test('skips init and template when schema already exists', async () => {
     const prismaDir = path.join(tmpDir, 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
     fs.writeFileSync(path.join(prismaDir, 'schema.prisma'), 'datasource db { provider = "postgresql" }', 'utf-8')
