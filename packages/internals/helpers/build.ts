@@ -32,7 +32,7 @@ void build([
     emitTypes: true,
     splitting: true,
     format: 'esm',
-    external: ['@prisma/schema-engine-wasm', '@streamparser/json'],
+    external: ['@prisma/schema-engine-wasm'],
     plugins: [copySchemaEngineWasmPlugin, esmSplitCodeToCjs],
   },
 ])

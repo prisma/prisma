@@ -88,6 +88,7 @@ function getDMMFBuffered(params: string): DMMF.Document {
     // Use a streaming JSON parser that processes Uint8Array chunks directly,
     // never creating a single large string.
     let JSONParser: typeof import('@streamparser/json').JSONParser
+
     try {
       JSONParser = (require('@streamparser/json') as typeof import('@streamparser/json')).JSONParser
     } catch {
