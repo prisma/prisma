@@ -396,6 +396,22 @@ describe('Studio BFF', () => {
     expect(await cssResponse.text()).toBe('.ps { color: black; }')
   })
 
+  test('responds to OPTIONS requests with CORS preflight headers', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getServerResponse('http://localhost:5555/bff', {
+      method: 'OPTIONS',
+    })
+
+    expect(response.status).toBe(204)
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.get('access-control-allow-methods')).toBe('GET, HEAD, POST, OPTIONS')
+    expect(response.headers.get('access-control-allow-headers')).toBe('Content-Type')
+    expect(await response.text()).toBe('')
+  })
+
   test('no longer serves adapter.js', async () => {
     await startStudioBff({
       execute: vi.fn(),

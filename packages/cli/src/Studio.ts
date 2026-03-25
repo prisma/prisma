@@ -493,6 +493,10 @@ function createStudioRequestHandler({
   return async (request) => {
     const { pathname } = new URL(request.url)
 
+    if (request.method === 'OPTIONS') {
+      return optionsResponse()
+    }
+
     if (isGetOrHeadRequest(request.method) && pathname === '/') {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
 
@@ -676,8 +680,15 @@ function jsonResponse(payload: unknown): Response {
   return withCors(Response.json(payload))
 }
 
-function emptyResponse(status: number): Response {
-  return withCors(new Response(null, { status }))
+function emptyResponse(status: number, headers?: Record<string, string>): Response {
+  return withCors(new Response(null, { headers, status }))
+}
+
+function optionsResponse(): Response {
+  return emptyResponse(204, {
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
+  })
 }
 
 function textResponse(text: string, status: number, headers?: Record<string, string>): Response {
