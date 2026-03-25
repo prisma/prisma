@@ -82,14 +82,10 @@
     "prompts": "2.4.2"
   },
   "peerDependencies": {
-    "typescript": ">=5.4.0",
-    "@streamparser/json": "^0.0.22"
+    "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
-      "optional": true
-    },
-    "@streamparser/json": {
       "optional": true
     }
   },
