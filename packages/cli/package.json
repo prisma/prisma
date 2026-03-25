@@ -138,7 +138,7 @@
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",
     "dotenv": "17.2.3",
-    "effect": "3.18.4",
+    "effect": "3.20.0",
     "env-paths": "2.2.1",
     "execa": "5.1.1",
     "fs-extra": "11.3.0",
