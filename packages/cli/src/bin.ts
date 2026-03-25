@@ -35,6 +35,8 @@ import { Generate } from './Generate'
 import { Init } from './Init'
 import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
+import { Link as PostgresLink } from './postgres/link/Link'
+import { PostgresCommand } from './postgres/PostgresCommand'
 import { Status } from './Status'
 import { Studio } from './Studio'
 /*
@@ -110,6 +112,9 @@ async function main(): Promise<number> {
         push: DbPush.new(),
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
+      }),
+      postgres: PostgresCommand.new({
+        link: PostgresLink.new(),
       }),
       generate: Generate.new(),
       version: Version.new(),
