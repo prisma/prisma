@@ -22,7 +22,10 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(protected client: Connection) {}
+  constructor(
+    protected readonly client: Connection,
+    protected readonly mariadbOptions?: { useTextProtocol?: boolean },
+  ) {}
 
   async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
@@ -63,8 +66,10 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
         typeCast,
       }
       const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
-      // We intentionally use `execute` here, because it uses the binary protocol, unlike `query`.
-      return await this.client.execute(req, values)
+      const execute = this.mariadbOptions?.useTextProtocol
+        ? this.client.query.bind(this.client)
+        : this.client.execute.bind(this.client)
+      return await execute(req, values)
     } catch (e) {
       const error = e as Error
       this.onError(error)
@@ -82,10 +87,11 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
 class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements Transaction {
   constructor(
     readonly conn: mariadb.Connection,
+    mariadbOptions: PrismaMariadbOptions | undefined,
     readonly options: TransactionOptions,
-    readonly cleanup?: () => void,
+    protected readonly cleanup?: () => void,
   ) {
-    super(conn)
+    super(conn, mariadbOptions)
   }
 
   async commit(): Promise<void> {
@@ -129,6 +135,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 
 export type PrismaMariadbOptions = {
   database?: string
+  useTextProtocol?: boolean
   onConnectionError?: (err: mariadb.SqlError) => void
 }
 
@@ -140,9 +147,9 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
   constructor(
     client: mariadb.Pool,
     private readonly capabilities: Capabilities,
-    private readonly options?: PrismaMariadbOptions,
+    protected readonly mariadbOptions?: PrismaMariadbOptions,
   ) {
-    super(client)
+    super(client, mariadbOptions)
   }
 
   executeScript(_script: string): Promise<void> {
@@ -151,7 +158,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      schemaName: this.options?.database,
+      schemaName: this.mariadbOptions?.database,
       supportsRelationJoins: this.capabilities.supportsRelationJoins,
     }
   }
@@ -167,7 +174,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     const conn = await this.client.getConnection().catch((error) => this.onError(error))
     const onError = (err: mariadb.SqlError) => {
       debug(`Error from connection: ${err.message} %O`, err)
-      this.options?.onConnectionError?.(err)
+      this.mariadbOptions?.onConnectionError?.(err)
     }
     conn.on('error', onError)
 
@@ -176,7 +183,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     }
 
     try {
-      const tx = new MariaDbTransaction(conn, options, cleanup)
+      const tx = new MariaDbTransaction(conn, this.mariadbOptions, options, cleanup)
       if (isolationLevel) {
         await tx.executeRaw({
           sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,

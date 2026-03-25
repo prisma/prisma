@@ -1,6 +1,12 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
+import * as mariadb from 'mariadb'
 
-import { inferCapabilities, PrismaMariaDbAdapterFactory, rewriteConnectionString } from './mariadb'
+import {
+  inferCapabilities,
+  PrismaMariaDbAdapter,
+  PrismaMariaDbAdapterFactory,
+  rewriteConnectionString,
+} from './mariadb'
 
 describe.each([
   ['8.0.12', { supportsRelationJoins: false }],
@@ -55,4 +61,24 @@ describe('credential sanitization', () => {
       expect(errorMessage).not.toContain(secretPassword)
     }
   })
+})
+
+describe('useTextProtocol option', () => {
+  test.each([
+    { useTextProtocol: false, expectedMethod: 'execute' },
+    { useTextProtocol: undefined, expectedMethod: 'execute' },
+    { useTextProtocol: true, expectedMethod: 'query' },
+  ])(
+    'should use client.$expectedMethod when useTextProtocol is $useTextProtocol',
+    async ({ useTextProtocol, expectedMethod }) => {
+      const mockClient = {
+        execute: vi.fn().mockResolvedValue({ meta: [], affectedRows: 1 }),
+        query: vi.fn().mockResolvedValue({ meta: [], affectedRows: 1 }),
+      } as unknown as mariadb.Pool
+
+      const adapter = new PrismaMariaDbAdapter(mockClient, { supportsRelationJoins: true }, { useTextProtocol })
+      await adapter.executeRaw({ sql: 'SELECT 1', args: [], argTypes: [] })
+      expect(mockClient[expectedMethod]).toHaveBeenCalledWith(expect.objectContaining({ sql: 'SELECT 1' }), [])
+    },
+  )
 })
