@@ -15,7 +15,7 @@ const readFileMock = vi.fn((filePath: string) => {
   error.code = 'ENOENT'
   return Promise.reject(error)
 })
-const serveMock = vi.fn(() => ({ close: vi.fn() }))
+const startStudioServerMock = vi.fn(() => ({ close: vi.fn() }))
 const createPostgresJSExecutorMock = vi.fn(() => ({
   execute: vi.fn(),
 }))
@@ -48,9 +48,9 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   }
 })
 
-vi.mock('@hono/node-server', () => {
+vi.mock('../studio-server', () => {
   return {
-    serve: serveMock,
+    startStudioServer: startStudioServerMock,
   }
 })
 
@@ -88,7 +88,7 @@ describe('Studio MySQL URL compatibility', () => {
     createPoolMock.mockClear()
     createPostgresJSExecutorMock.mockClear()
     readFileMock.mockClear()
-    serveMock.mockClear()
+    startStudioServerMock.mockClear()
     serializeErrorMock.mockClear()
   })
 
@@ -168,7 +168,7 @@ describe('Studio BFF', () => {
     createPoolMock.mockClear()
     createPostgresJSExecutorMock.mockClear()
     readFileMock.mockClear()
-    serveMock.mockClear()
+    startStudioServerMock.mockClear()
     serializeErrorMock.mockClear()
   })
 
@@ -198,6 +198,7 @@ describe('Studio BFF', () => {
       schemaVersion: 'v1',
       sql: 'select 1',
     })
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
     expect(await response.json()).toEqual([
       null,
       {
@@ -365,6 +366,7 @@ describe('Studio BFF', () => {
     const html = await response.text()
 
     expect(response.status).toBe(200)
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
     expect(html).toContain('<link rel="icon"')
     expect(html).toContain('<link rel="stylesheet" href="/studio.css">')
     expect(html).toContain('<script type="module" src="/studio.js"></script>')
@@ -416,7 +418,9 @@ async function getBffResponse(body: unknown): Promise<Response> {
 }
 
 async function getServerResponse(input: string, init?: RequestInit): Promise<Response> {
-  const fetchHandler = serveMock.mock.calls.at(-1)?.[0]?.fetch as ((request: Request) => Promise<Response>) | undefined
+  const fetchHandler = startStudioServerMock.mock.calls.at(-1)?.[0]?.handler as
+    | ((request: Request) => Promise<Response>)
+    | undefined
 
   if (!fetchHandler) {
     throw new Error('Studio server fetch handler was not registered')

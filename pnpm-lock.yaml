@@ -442,9 +442,6 @@ importers:
         specifier: 3.4.7
         version: 3.4.7
     devDependencies:
-      '@hono/node-server':
-        specifier: '>=1.19.10'
-        version: 1.19.11(hono@4.12.7)
       '@inquirer/prompts':
         specifier: 7.3.3
         version: 7.3.3(@types/node@20.19.25)
@@ -559,9 +556,6 @@ importers:
       get-tsconfig:
         specifier: 4.10.0
         version: 4.10.0
-      hono:
-        specifier: '>=4.12.4'
-        version: 4.12.7
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.19.25)(typescript@5.4.5))

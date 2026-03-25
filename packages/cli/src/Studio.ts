@@ -1,6 +1,5 @@
 import { access, constants, readFile } from 'node:fs/promises'
 
-import { serve } from '@hono/node-server'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
 import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
@@ -11,8 +10,6 @@ import { createPostgresJSExecutor } from '@prisma/studio-core/data/postgresjs'
 import type { StudioProps } from '@prisma/studio-core/ui'
 import { type Check, check as sendEvent } from 'checkpoint-client'
 import { getPort } from 'get-port-please'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
 import { bold, dim, red, yellow } from 'kleur/colors'
 import { digest } from 'ohash'
 import open from 'open'
@@ -21,6 +18,7 @@ import { runtime } from 'std-env'
 
 import packageJson from '../package.json' assert { type: 'json' }
 import { STUDIO_CSS_FILE_NAME, STUDIO_JS_FILE_NAME, type StudioAdapterType } from './studio-frontend-shared'
+import { startStudioServer } from './studio-server'
 import { UserFacingError } from './utils/errors'
 import { getPpgInfo } from './utils/ppgInfo'
 
@@ -313,154 +311,36 @@ ${bold('Examples')}
       connectionString,
       getUrlBasePath(args['--url'], config.loadedFromFile),
     )
-
-    const app = new Hono()
-
-    app.use('*', cors())
-
-    app.get('/', (ctx) => {
-      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
-
-      return ctx.text(getIndexHtml(studioStuff.adapter), 200, { 'Content-Type': contentType })
-    })
-
-    app.get('/favicon.ico', (ctx) => {
-      return ctx.body(PRISMA_LOGO_SVG, 200, { 'Content-Type': 'image/svg+xml' })
-    })
-
-    app.get(`/${STUDIO_JS_FILE_NAME}`, async (ctx) => {
-      return serveStudioAsset(ctx.req.path)
-    })
-
-    app.get(`/${STUDIO_CSS_FILE_NAME}`, async (ctx) => {
-      return serveStudioAsset(ctx.req.path)
-    })
-
-    app.post('/bff', async (ctx) => {
-      const request = (await ctx.req.json()) as StudioBFFRequest
-
-      const { procedure } = request
-
-      if (procedure === 'query') {
-        const [error, results] = await executor.execute(request.query)
-
-        if (error) {
-          return ctx.json([serializeBffError(error)])
-        }
-
-        return ctx.json([null, results])
-      }
-
-      if (procedure === 'sequence') {
-        if (!('executeSequence' in executor)) {
-          return ctx.json([[serializeBffError(new Error('Executor does not support sequences'))]])
-        }
-
-        const [[error0, result0], maybeResult1] = await (executor as SequenceExecutor).executeSequence(request.sequence)
-
-        if (error0) {
-          return ctx.json([[serializeBffError(error0)]])
-        }
-
-        const [error1, result1] = maybeResult1 || []
-
-        if (error1) {
-          return ctx.json([[null, result0], [serializeBffError(error1)]])
-        }
-
-        return ctx.json([
-          [null, result0],
-          [null, result1],
-        ])
-      }
-
-      if (procedure === 'transaction') {
-        if (!executor.executeTransaction) {
-          return ctx.json([serializeBffError(new Error('Executor does not support transactions'))])
-        }
-
-        const [error, results] = await executor.executeTransaction(request.queries)
-
-        if (error) {
-          return ctx.json([serializeBffError(error)])
-        }
-
-        return ctx.json([null, results])
-      }
-
-      if (procedure === 'sql-lint') {
-        if (!executor.lintSql) {
-          return ctx.json([serializeBffError(new Error('Executor does not support SQL lint'))])
-        }
-
-        const [error, result] = await executor.lintSql({
-          schemaVersion: request.schemaVersion,
-          sql: request.sql,
-        })
-
-        if (error) {
-          return ctx.json([serializeBffError(error)])
-        }
-
-        return ctx.json([null, result])
-      }
-
-      procedure satisfies undefined
-
-      return ctx.text('Unknown procedure', { status: 500 })
-    })
-
-    let projectHash: string | null = null
     const version = packageJson.dependencies['@prisma/studio-core']
-
     const ppgDbInfo = await getPpgInfo(connectionString)
-
-    app.post('/telemetry', async (ctx) => {
-      const { eventId, name, payload, timestamp } =
-        await ctx.req.json<Parameters<NonNullable<StudioProps['onEvent']>>[0]>()
-
-      if (name !== 'studio_launched') {
-        return ctx.body(null, 200)
-      }
-
-      const input: Check.Input = {
-        check_if_update_available: false,
-        client_event_id: eventId,
-        command: name,
-        information: JSON.stringify({
-          eventPayload: payload,
-          protocol,
-          ...ppgDbInfo,
-        }),
-        local_timestamp: timestamp,
-        product: 'prisma-studio-cli',
-        project_hash: (projectHash ??= digest(process.cwd())),
-        version,
-      }
-
-      await sendEvent(input).catch(() => {
-        // noop
-      })
-
-      return ctx.body(null, 200)
+    const handler = createStudioRequestHandler({
+      adapter: studioStuff.adapter,
+      executor,
+      ppgDbInfo,
+      protocol,
+      version,
     })
 
     const port = args['--port'] || (await getPort({ port: DEFAULT_PORT, portRange: [MIN_PORT, DEFAULT_PORT - 1] }))
 
     const url = `http://localhost:${port}`
 
-    const server = serve({ fetch: app.fetch, overrideGlobalObjects: false, port }, () => {
-      process.once('SIGINT', () => server.close())
-      process.once('SIGTERM', () => server.close())
+    const server = startStudioServer({
+      handler,
+      onListen: () => {
+        console.log(bold(`\nPrisma Studio is running at:`), url)
 
-      console.log(bold(`\nPrisma Studio is running at:`), url)
+        const browser = args['--browser'] || process.env.BROWSER
 
-      const browser = args['--browser'] || process.env.BROWSER
-
-      if (browser?.toLowerCase() !== 'none') {
-        void open(url, { app: browser ? { name: browser } : undefined })
-      }
+        if (browser?.toLowerCase() !== 'none') {
+          void open(url, { app: browser ? { name: browser } : undefined })
+        }
+      },
+      port,
     })
+
+    process.once('SIGINT', () => server.close())
+    process.once('SIGTERM', () => server.close())
 
     return ''
   }
@@ -591,21 +471,170 @@ function getIndexHtml(adapter: StudioAdapterType): string {
 </html>`
 }
 
+function createStudioRequestHandler({
+  adapter,
+  executor,
+  ppgDbInfo,
+  protocol,
+  version,
+}: {
+  adapter: StudioAdapterType
+  executor: Executor
+  ppgDbInfo: Awaited<ReturnType<typeof getPpgInfo>>
+  protocol: string
+  version: string
+}): (request: Request) => Promise<Response> {
+  let projectHash: string | null = null
+
+  return async (request) => {
+    const { pathname } = new URL(request.url)
+
+    if (request.method === 'GET' && pathname === '/') {
+      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
+
+      return textResponse(getIndexHtml(adapter), 200, { 'Content-Type': contentType })
+    }
+
+    if (request.method === 'GET' && pathname === '/favicon.ico') {
+      return textResponse(PRISMA_LOGO_SVG, 200, { 'Content-Type': 'image/svg+xml' })
+    }
+
+    if (
+      request.method === 'GET' &&
+      (pathname === `/${STUDIO_JS_FILE_NAME}` || pathname === `/${STUDIO_CSS_FILE_NAME}`)
+    ) {
+      return serveStudioAsset(pathname)
+    }
+
+    if (request.method === 'POST' && pathname === '/bff') {
+      return handleStudioBffRequest(await request.json(), executor)
+    }
+
+    if (request.method === 'POST' && pathname === '/telemetry') {
+      const { eventId, name, payload, timestamp } = (await request.json()) as Parameters<
+        NonNullable<StudioProps['onEvent']>
+      >[0]
+
+      if (name !== 'studio_launched') {
+        return emptyResponse(200)
+      }
+
+      const input: Check.Input = {
+        check_if_update_available: false,
+        client_event_id: eventId,
+        command: name,
+        information: JSON.stringify({
+          eventPayload: payload,
+          protocol,
+          ...ppgDbInfo,
+        }),
+        local_timestamp: timestamp,
+        product: 'prisma-studio-cli',
+        project_hash: (projectHash ??= digest(process.cwd())),
+        version,
+      }
+
+      await sendEvent(input).catch(() => {
+        // noop
+      })
+
+      return emptyResponse(200)
+    }
+
+    return textResponse('Not Found', 404)
+  }
+}
+
+async function handleStudioBffRequest(payload: unknown, executor: Executor): Promise<Response> {
+  const request = payload as StudioBFFRequest
+  const { procedure } = request
+
+  if (procedure === 'query') {
+    const [error, results] = await executor.execute(request.query)
+
+    if (error) {
+      return jsonResponse([serializeBffError(error)])
+    }
+
+    return jsonResponse([null, results])
+  }
+
+  if (procedure === 'sequence') {
+    if (!('executeSequence' in executor)) {
+      return jsonResponse([[serializeBffError(new Error('Executor does not support sequences'))]])
+    }
+
+    const [[error0, result0], maybeResult1] = await (executor as SequenceExecutor).executeSequence(request.sequence)
+
+    if (error0) {
+      return jsonResponse([[serializeBffError(error0)]])
+    }
+
+    const [error1, result1] = maybeResult1 || []
+
+    if (error1) {
+      return jsonResponse([[null, result0], [serializeBffError(error1)]])
+    }
+
+    return jsonResponse([
+      [null, result0],
+      [null, result1],
+    ])
+  }
+
+  if (procedure === 'transaction') {
+    if (!executor.executeTransaction) {
+      return jsonResponse([serializeBffError(new Error('Executor does not support transactions'))])
+    }
+
+    const [error, results] = await executor.executeTransaction(request.queries)
+
+    if (error) {
+      return jsonResponse([serializeBffError(error)])
+    }
+
+    return jsonResponse([null, results])
+  }
+
+  if (procedure === 'sql-lint') {
+    if (!executor.lintSql) {
+      return jsonResponse([serializeBffError(new Error('Executor does not support SQL lint'))])
+    }
+
+    const [error, result] = await executor.lintSql({
+      schemaVersion: request.schemaVersion,
+      sql: request.sql,
+    })
+
+    if (error) {
+      return jsonResponse([serializeBffError(error)])
+    }
+
+    return jsonResponse([null, result])
+  }
+
+  procedure satisfies undefined
+
+  return textResponse('Unknown procedure', 500)
+}
+
 async function serveStudioAsset(requestPath: string): Promise<Response> {
   const fileName = requestPath.substring(1)
   const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(fileName)]
 
   try {
-    return new Response(await readStudioAsset(fileName), {
-      headers: { 'Content-Type': contentType },
-      status: 200,
-    })
+    return withCors(
+      new Response(await readStudioAsset(fileName), {
+        headers: { 'Content-Type': contentType },
+        status: 200,
+      }),
+    )
   } catch (error: unknown) {
     if (isNotFoundError(error)) {
-      return new Response('Not Found', { status: 404 })
+      return textResponse('Not Found', 404)
     }
 
-    return new Response('Internal Server Error', { status: 500 })
+    return textResponse('Internal Server Error', 500)
   }
 }
 
@@ -637,4 +666,32 @@ function getStudioAssetDirectories(): string[] {
 
 function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT'
+}
+
+function jsonResponse(payload: unknown): Response {
+  return withCors(Response.json(payload))
+}
+
+function emptyResponse(status: number): Response {
+  return withCors(new Response(null, { status }))
+}
+
+function textResponse(text: string, status: number, headers?: Record<string, string>): Response {
+  return withCors(
+    new Response(text, {
+      headers,
+      status,
+    }),
+  )
+}
+
+function withCors(response: Response): Response {
+  const headers = new Headers(response.headers)
+  headers.set('Access-Control-Allow-Origin', '*')
+
+  return new Response(response.body, {
+    headers,
+    status: response.status,
+    statusText: response.statusText,
+  })
 }
