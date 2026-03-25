@@ -35,10 +35,17 @@ function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOpt
       const request = createNodeRequest(nodeRequest, port)
       const response = await handler(request)
       await writeNodeResponse(nodeResponse, response, nodeRequest.method)
-    } catch {
+    } catch (error) {
+      console.error('[Prisma Studio]', error)
+
+      if (nodeResponse.headersSent || nodeResponse.writableEnded) {
+        nodeResponse.destroy()
+        return
+      }
+
       nodeResponse.statusCode = 500
       nodeResponse.setHeader('Access-Control-Allow-Origin', '*')
-      nodeResponse.end('Internal Server Error')
+      nodeResponse.end(error instanceof Error ? error.message : 'Internal Server Error')
     }
   })
 
