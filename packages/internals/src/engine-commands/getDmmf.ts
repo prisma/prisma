@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
+import { JSONParser } from '@streamparser/json'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
@@ -88,16 +89,6 @@ function getDMMFBuffered(params: string): DMMF.Document {
 
     // Use a streaming JSON parser that processes Uint8Array chunks directly,
     // never creating a single large string.
-    let JSONParser: typeof import('@streamparser/json').JSONParser
-
-    try {
-      JSONParser = (require('@streamparser/json') as typeof import('@streamparser/json')).JSONParser
-    } catch {
-      throw new Error(
-        'Streaming JSON parser required for DMMF >= 500MB but @streamparser/json is not installed. Try adding it as a dependency.',
-      )
-    }
-
     const parser = new JSONParser()
     let result: DMMF.Document | undefined
 
