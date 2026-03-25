@@ -13,7 +13,7 @@ import { login } from '../management-api/auth'
 import { createAuthenticatedManagementAPI } from '../management-api/auth-client'
 import { FileTokenStorage } from '../management-api/token-storage'
 import { formatCompletionOutput } from './completion-output'
-import { isAlreadyLinked, type WriteLocalFilesResult, writeLocalFiles } from './local-setup'
+import { isAlreadyLinked, writeLocalFiles, type WriteLocalFilesResult } from './local-setup'
 import { createDevConnection, LinkApiError, listDatabases, listProjects, sanitizeErrorMessage } from './management-api'
 
 export interface LinkResult {

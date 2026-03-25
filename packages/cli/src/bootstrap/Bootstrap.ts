@@ -16,7 +16,7 @@ import { Generate } from '../Generate'
 import { Init } from '../Init'
 import { Link, type LinkResult } from '../link/Link'
 import { LinkApiError, sanitizeErrorMessage } from '../link/management-api'
-import { formatBootstrapOutput, type BootstrapStepStatus } from './completion-output'
+import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
 import {
