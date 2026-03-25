@@ -134,19 +134,11 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 }
 
 export type PrismaMariadbOptions = {
-  /*
-   * The name of the database to connect to. If not provided, the adapter will attempt to infer
-   * it from the connection string.
-   */
+  /** The name of the database to connect to. */
   database?: string
-  /*
-   * Whether to use the text protocol for all queries. If false or not set, the adapter will use
-   * the binary protocol.
-   */
+  /** Use the driver's text protocol (`query`) instead of the binary protocol (`execute`). */
   useTextProtocol?: boolean
-  /*
-   * The callback to be attached to the connection's 'error' event.
-   */
+  /** Callback attached to transaction connection `error` events. */
   onConnectionError?: (err: mariadb.SqlError) => void
 }
 
