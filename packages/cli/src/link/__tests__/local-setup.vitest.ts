@@ -29,7 +29,7 @@ describe('upsertEnvFile', () => {
     expect(result.updated).toEqual([])
 
     const content = fs.readFileSync(envPath, 'utf-8')
-    expect(content).toContain("DATABASE_URL='postgres://localhost:5432/db'")
+    expect(content).toEqual("DATABASE_URL='postgres://localhost:5432/db'\n")
   })
 
   test('appends new keys to existing .env', () => {
@@ -45,8 +45,7 @@ describe('upsertEnvFile', () => {
     expect(result.updated).toEqual([])
 
     const content = fs.readFileSync(envPath, 'utf-8')
-    expect(content).toContain('EXISTING_VAR="hello"')
-    expect(content).toContain("DATABASE_URL='postgres://localhost:5432/db'")
+    expect(content).toEqual('EXISTING_VAR="hello"\nDATABASE_URL=\'postgres://localhost:5432/db\'\n')
   })
 
   test('updates existing keys in .env', () => {
@@ -62,8 +61,7 @@ describe('upsertEnvFile', () => {
     expect(result.added).toEqual([])
 
     const content = fs.readFileSync(envPath, 'utf-8')
-    expect(content).toContain("DATABASE_URL='postgres://localhost:5432/new-db'")
-    expect(content).not.toContain('old-value')
+    expect(content).toEqual("DATABASE_URL='postgres://localhost:5432/new-db'\n")
   })
 
   test('handles multiple entries (update + add)', () => {
@@ -79,8 +77,7 @@ describe('upsertEnvFile', () => {
     expect(result.added).toEqual(['DIRECT_URL'])
 
     const content = fs.readFileSync(envPath, 'utf-8')
-    expect(content).toContain("DATABASE_URL='new-pooled-url'")
-    expect(content).toContain("DIRECT_URL='new-direct-url'")
+    expect(content).toEqual("DATABASE_URL='new-pooled-url'\nDIRECT_URL='new-direct-url'\n")
   })
 
   test('does not expand $ in values when using single quotes', () => {
@@ -91,7 +88,7 @@ describe('upsertEnvFile', () => {
 
     expect(result.created).toBe(true)
     const content = fs.readFileSync(envPath, 'utf-8')
-    expect(content).toContain("DATABASE_URL='prisma+postgres://accelerate.prisma-data.net/?api_key=$ecret'")
+    expect(content).toEqual("DATABASE_URL='prisma+postgres://accelerate.prisma-data.net/?api_key=$ecret'\n")
   })
 })
 
@@ -127,8 +124,7 @@ describe('writeLocalFiles', () => {
     expect(result.env.created).toBe(true)
 
     const envContent = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
-    expect(envContent).toContain('DATABASE_URL=')
-    expect(envContent).not.toContain('DIRECT_URL')
+    expect(envContent).toEqual("DATABASE_URL='postgres://user:pass@db.prisma.io:5432/postgres'\n")
   })
 })
 
@@ -172,8 +168,7 @@ describe('formatEnvSummary', () => {
       env: { created: true, updated: [], added: ['DATABASE_URL'] },
       gitignoreStatus: 'ok',
     })
-    expect(summary).toContain('Created')
-    expect(summary).toContain('.env')
+    expect(summary).toMatchInlineSnapshot(`"  Created .env with connection strings"`)
   })
 
   test('includes gitignore warning when entry is missing', () => {
@@ -181,8 +176,10 @@ describe('formatEnvSummary', () => {
       env: { created: true, updated: [], added: ['DATABASE_URL'] },
       gitignoreStatus: 'missing-entry',
     })
-    expect(summary).toContain('.gitignore')
-    expect(summary).toContain('.env')
+    expect(summary).toMatchInlineSnapshot(`
+      "  Created .env with connection strings
+        warn Your .gitignore does not include .env — add it to avoid committing secrets"
+    `)
   })
 
   test('includes gitignore warning when no file exists', () => {
@@ -190,7 +187,9 @@ describe('formatEnvSummary', () => {
       env: { created: true, updated: [], added: ['DATABASE_URL'] },
       gitignoreStatus: 'no-file',
     })
-    expect(summary).toContain('No')
-    expect(summary).toContain('.gitignore')
+    expect(summary).toMatchInlineSnapshot(`
+      "  Created .env with connection strings
+        warn No .gitignore found — create one and add .env to avoid committing secrets"
+    `)
   })
 })
