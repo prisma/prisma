@@ -24,15 +24,15 @@ vi.mock('@prisma/management-api-sdk', () => {
   }
 })
 
-vi.mock('../../management-api/auth', () => ({
+vi.mock('../../../management-api/auth', () => ({
   login: vi.fn(() => Promise.resolve()),
 }))
 
-vi.mock('../../management-api/auth-client', () => ({
+vi.mock('../../../management-api/auth-client', () => ({
   createAuthenticatedManagementAPI: vi.fn(() => ({ client: mockSdkClient })),
 }))
 
-vi.mock('../../management-api/token-storage', () => ({
+vi.mock('../../../management-api/token-storage', () => ({
   FileTokenStorage: class {
     getTokens() {
       return Promise.resolve({ accessToken: 'stored_token', workspaceId: 'wksp_1' })
@@ -236,7 +236,7 @@ describe('Link command — idempotency', () => {
 describe('Link command — interactive mode (no --api-key, no --database)', () => {
   test('ignores PRISMA_API_KEY env var when --database is not provided', async () => {
     const { createManagementApiClient } = await import('@prisma/management-api-sdk')
-    const { createAuthenticatedManagementAPI } = await import('../../management-api/auth-client')
+    const { createAuthenticatedManagementAPI } = await import('../../../management-api/auth-client')
     vi.mocked(createManagementApiClient).mockClear()
     vi.mocked(createAuthenticatedManagementAPI).mockClear()
 
@@ -383,7 +383,7 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
 
 describe('Link command — expired session retry', () => {
   test('retries with browser login when refresh token is invalid', async () => {
-    const { login } = await import('../../management-api/auth')
+    const { login } = await import('../../../management-api/auth')
     const mockLogin = vi.mocked(login)
 
     const { AuthError } = await import('@prisma/management-api-sdk')
