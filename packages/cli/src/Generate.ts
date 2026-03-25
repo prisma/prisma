@@ -65,6 +65,7 @@ ${bold('Options')}
          --generator   Generator to use (may be provided multiple times)
           --no-hints   Hides the hint messages but still outputs errors and warnings
     --require-models   Do not allow generating a client without models
+    --allow-no-models  Allow generating a client without any models
 
 ${bold('Examples')}
 
@@ -120,10 +121,11 @@ ${bold('Examples')}
       '--generator': [String],
       '--telemetry-information': String,
       '--require-models': Boolean,
+      '--allow-no-models': Boolean,
       '--sql': Boolean,
     })
 
-    const allowNoModels = !args['--require-models']
+    const allowNoModels = args['--allow-no-models'] ?? !args['--require-models']
 
     const cwd = process.cwd()
     if (isError(args)) {
@@ -246,8 +248,8 @@ ${breakingChangesMessage}`
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
             ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
-                `@prisma/client@${clientGeneratorVersion}`,
-              )} don't match.
+              `@prisma/client@${clientGeneratorVersion}`,
+            )} don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''

@@ -203,6 +203,18 @@ describe('prisma-client-js should work with no models', () => {
     ctx.fixture('no-models-prisma-client-js/mongo')
     await generateWithNoModels(ctx)
   })
+
+  test('should error with --require-models and suggest --allow-no-models', async () => {
+    ctx.fixture('no-models-prisma-client-js/sqlite')
+    const result = Generate.new().parse(['--require-models'], await ctx.config())
+    await expect(result).rejects.toThrow()
+  })
+
+  test('should work with --allow-no-models', async () => {
+    ctx.fixture('no-models-prisma-client-js/sqlite')
+    const result = Generate.new().parse(['--allow-no-models'], await ctx.config())
+    await expect(result).resolves.toBeDefined()
+  })
 })
 
 describe('prisma-client should work with no models', () => {
