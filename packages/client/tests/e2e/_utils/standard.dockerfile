@@ -2,13 +2,13 @@ FROM node:20.19
 
 RUN npm -v
 
-# zx is pinned to v7 because v8 fails with: 
+# zx is pinned to v7 because v8 fails with:
 # [esbuild Error]: Top-level await is currently not supported with the "cjs" output format
 # at /usr/local/lib/node_modules/zx/build/vendor.js:2:17
 RUN npm i -g \
   zx@7 \
   pnpm \
-  typescript \
+  typescript@5.9.3 \
   ts-node \
   esbuild \
   tsx \

@@ -66,8 +66,7 @@
 
 - **CLI commands**: Most commands already accept `--config` for custom config paths. Upcoming work removes `--schema` / `--url` in favour of config-based resolution. When editing CLI help text, keep examples aligned with new config-first workflow.
   - For isolated Studio verification, you can run `packages/cli/src/Studio.ts` directly via `pnpm exec tsx` and pass a config object that preserves `loadedFromFile`; this keeps SQLite URLs resolving relative to the config file while avoiding unrelated `packages/cli/src/bin.ts` imports.
-  - Recent `@prisma/studio-core` bumps can require keeping the CLI's HTML import map in `packages/cli/src/Studio.ts` aligned with new bare browser imports (for example `@radix-ui/react-toggle` and `chart.js/auto`), and the CLI shell can serve `/favicon.ico` directly if the Studio UI starts requesting one.
-  - `esm.sh` may resolve React-based browser dependencies against a newer canary React by default. When the Studio shell imports such packages via the HTML import map, pin them with `?deps=react@<shell-version>,react-dom@<shell-version>` or the command palette can crash with invalid-hook-call style errors.
+  - Studio is now pre-bundled into `packages/cli/build/studio.js` and `packages/cli/build/studio.css`, served only through explicit routes in `packages/cli/src/Studio.ts` via the runtime-specific `packages/cli/src/studio-server.ts` bindings, and should keep listener-level coverage in `packages/cli/src/__tests__/studio-server.vitest.ts` because a past Node regression dropped `GET` bodies by treating them like `HEAD`.
   - If Enter or click does not open a cell editor in Studio, verify that the current table and column are writable before assuming a keyboard regression; views/system tables and read-only columns legitimately stay non-editable.
 
 - **Driver adapters datasource**:

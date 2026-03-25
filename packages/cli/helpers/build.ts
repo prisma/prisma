@@ -77,6 +77,24 @@ async function copyClientWasmRuntime() {
   }
 }
 
+async function buildStudioFrontend() {
+  const { build } = await import('esbuild')
+
+  await build({
+    bundle: true,
+    entryPoints: ['src/studio-entry.ts'],
+    format: 'esm',
+    logLevel: 'error',
+    minify: true,
+    outfile: 'build/studio.js',
+    platform: 'browser',
+    target: 'ES2022',
+    tsconfig: 'tsconfig.build.json',
+  })
+
+  await fs.promises.copyFile(require.resolve('@prisma/studio-core/ui/index.css'), './build/studio.css')
+}
+
 /**
  * Setup `import type { ... } from 'prisma'`.
  */
@@ -134,10 +152,12 @@ const preinstallBuildConfig: BuildOptions = {
 
 const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
 
-build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig]).catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
+build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig])
+  .then(buildStudioFrontend)
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 
