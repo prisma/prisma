@@ -299,7 +299,7 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
 
     setupMockApiSuccess()
 
-    delete process.env.PRISMA_API_KEY
+    vi.unstubAllEnvs()
     const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
 
     expect(result).not.toBeInstanceOf(Error)
@@ -334,7 +334,7 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
 
     setupMockApiSuccess()
 
-    delete process.env.PRISMA_API_KEY
+    vi.unstubAllEnvs()
     const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
 
     expect(result).not.toBeInstanceOf(Error)
@@ -347,7 +347,7 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
       error: undefined,
     })
 
-    delete process.env.PRISMA_API_KEY
+    vi.unstubAllEnvs()
     const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
 
     expect(result).toBeInstanceOf(HelpError)
@@ -373,7 +373,7 @@ describe('Link command — interactive mode (no --api-key, no --database)', () =
       error: undefined,
     })
 
-    delete process.env.PRISMA_API_KEY
+    vi.unstubAllEnvs()
     const result = await Link.new().parse([], defaultTestConfig(), tmpDir)
 
     expect(result).toBeInstanceOf(HelpError)
@@ -391,7 +391,7 @@ describe('Link command — expired session retry', () => {
 
     setupMockApiSuccess()
 
-    delete process.env.PRISMA_API_KEY
+    vi.unstubAllEnvs()
     const result = await Link.new().parse(['--database', 'db_abc123'], defaultTestConfig(), tmpDir)
 
     expect(result).not.toBeInstanceOf(Error)
