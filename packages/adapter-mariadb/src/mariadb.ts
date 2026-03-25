@@ -134,7 +134,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 }
 
 export type PrismaMariadbOptions = {
-  /** The name of the database to connect to. */
+  /** The name of the database to use in generated queries */
   database?: string
   /** Use the driver's text protocol (`query`) instead of the binary protocol (`execute`). */
   useTextProtocol?: boolean
@@ -223,11 +223,18 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
     if (typeof config === 'string') {
-      const url = new URL(config)
-      if (!url.searchParams.has('prepareCacheLength')) {
-        url.searchParams.set('prepareCacheLength', '0')
+      try {
+        const url = new URL(config)
+        if (!url.searchParams.has('prepareCacheLength')) {
+          url.searchParams.set('prepareCacheLength', '0')
+        }
+        this.#config = rewriteConnectionString(url).toString()
+      } catch (error) {
+        debug('Error parsing connection string: %O', error)
+        // If we can't parse the connection string, use it as-is and let the driver fail with
+        // its own error.
+        this.#config = config
       }
-      this.#config = rewriteConnectionString(url).toString()
     } else {
       if (config.prepareCacheLength === undefined) {
         this.#config = { ...config, prepareCacheLength: 0 }
