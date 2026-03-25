@@ -8,7 +8,7 @@ RUN npm -v
 RUN npm i -g \
   zx@7 \
   pnpm \
-  typescript@5.9.3 \
+  typescript@6.0.x \
   ts-node \
   esbuild \
   tsx \
