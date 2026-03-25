@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, test, vi, beforeAll, afterAll } from 'vitest'
 import * as mariadb from 'mariadb'
 
 import {
@@ -7,11 +7,6 @@ import {
   PrismaMariaDbAdapterFactory,
   rewriteConnectionString,
 } from './mariadb'
-
-// Mock the mariadb module
-vi.mock('mariadb', () => ({
-  createPool: vi.fn(),
-}))
 
 describe.each([
   ['8.0.12', { supportsRelationJoins: false }],
@@ -30,23 +25,12 @@ describe('rewriteConnectionString', () => {
   test('should rewrite mysql:// to mariadb://', () => {
     const input = 'mysql://user:password@localhost:3306/database?ssl=true&connectionLimit=10&charset=utf8mb4'
     const expected = 'mariadb://user:password@localhost:3306/database?ssl=true&connectionLimit=10&charset=utf8mb4'
-    expect(rewriteConnectionString(input)).toBe(expected)
+    expect(rewriteConnectionString(new URL(input)).toString()).toBe(expected)
   })
 
   test('should preserve mariadb:// connection strings', () => {
     const input = 'mariadb://user:pass@localhost:3306/db'
-    expect(rewriteConnectionString(input)).toBe(input)
-  })
-
-  test('should preserve configuration objects', () => {
-    const config = {
-      host: 'localhost',
-      port: 3306,
-      user: 'user',
-      password: 'pass',
-      database: 'db',
-    }
-    expect(rewriteConnectionString(config)).toBe(config)
+    expect(rewriteConnectionString(new URL(input)).toString()).toBe(input)
   })
 })
 
@@ -69,29 +53,43 @@ describe('credential sanitization', () => {
 })
 
 describe('useTextProtocol option', () => {
-  test.each([
-    { useTextProtocol: false, expectedMethod: 'execute' },
-    { useTextProtocol: undefined, expectedMethod: 'execute' },
-    { useTextProtocol: true, expectedMethod: 'query' },
-  ])(
-    'should use client.$expectedMethod when useTextProtocol is $useTextProtocol',
-    async ({ useTextProtocol, expectedMethod }) => {
+  const flagToMethod = {
+    true: 'query',
+    false: 'execute',
+  }
+
+  test.each([false, undefined, true].map((flag) => ({ flag, method: flagToMethod[String(!!flag)] })))(
+    'should use client.$method when useTextProtocol is $flag',
+    async ({ flag, method }) => {
       const mockClient = {
         execute: vi.fn().mockResolvedValue({ meta: [], affectedRows: 1 }),
         query: vi.fn().mockResolvedValue({ meta: [], affectedRows: 1 }),
       } as unknown as mariadb.Pool
 
-      const adapter = new PrismaMariaDbAdapter(mockClient, { supportsRelationJoins: true }, { useTextProtocol })
+      const adapter = new PrismaMariaDbAdapter(mockClient, { supportsRelationJoins: true }, { useTextProtocol: flag })
       await adapter.executeRaw({ sql: 'SELECT 1', args: [], argTypes: [] })
-      expect(mockClient[expectedMethod]).toHaveBeenCalledWith(expect.objectContaining({ sql: 'SELECT 1' }), [])
+      expect(mockClient[method]).toHaveBeenCalledWith(expect.objectContaining({ sql: 'SELECT 1' }), [])
+
+      expect(mockClient[flagToMethod[String(!flag)]]).not.toHaveBeenCalled()
     },
   )
 })
 
 describe('PrismaMariaDbAdapterFactory constructor', () => {
-  test('should create a config with prepareCacheLength set to 0 when config has no prepareCacheLength', async () => {
-    const config = {}
+  beforeAll(() => {
+    vi.mock('mariadb', () => ({
+      createPool: vi.fn(),
+    }))
+  })
 
+  afterAll(() => {
+    vi.doUnmock('mariadb')
+  })
+
+  test.each([
+    { config: {}, expected: expect.objectContaining({ prepareCacheLength: 0 }) },
+    { config: 'mariadb://user:pass@localhost:3306/db', expected: expect.stringContaining('prepareCacheLength=0') },
+  ])('should set prepareCacheLength to 0 when config has no prepareCacheLength', async ({ config, expected }) => {
     const mockCreatePool = vi.mocked(mariadb.createPool)
     mockCreatePool.mockReturnValue({
       query: vi.fn().mockResolvedValue([['8.0.13']]),
@@ -101,15 +99,17 @@ describe('PrismaMariaDbAdapterFactory constructor', () => {
     const factory = new PrismaMariaDbAdapterFactory(config)
     await factory.connect()
 
-    expect(mockCreatePool).toHaveBeenCalledWith(expect.objectContaining({ prepareCacheLength: 0 }))
+    expect(mockCreatePool).toHaveBeenCalledWith(expected)
     mockCreatePool.mockClear()
   })
 
-  test('should preserve existing prepareCacheLength when config is object and prepareCacheLength is set', async () => {
-    const config = {
-      prepareCacheLength: 10,
-    }
-
+  test.each([
+    { config: { prepareCacheLength: 10 }, expected: expect.objectContaining({ prepareCacheLength: 10 }) },
+    {
+      config: 'mariadb://user:pass@localhost:3306/db?prepareCacheLength=10',
+      expected: expect.stringContaining('prepareCacheLength=10'),
+    },
+  ])('set when is set', async ({ config, expected }) => {
     const mockCreatePool = vi.mocked(mariadb.createPool)
     mockCreatePool.mockReturnValue({
       query: vi.fn().mockResolvedValue([['8.0.13']]),
@@ -119,7 +119,7 @@ describe('PrismaMariaDbAdapterFactory constructor', () => {
     const factory = new PrismaMariaDbAdapterFactory(config)
     await factory.connect()
 
-    expect(mockCreatePool).toHaveBeenCalledWith(expect.objectContaining({ prepareCacheLength: 10 }))
+    expect(mockCreatePool).toHaveBeenCalledWith(expected)
     mockCreatePool.mockClear()
   })
 })

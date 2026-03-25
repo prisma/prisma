@@ -134,8 +134,19 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 }
 
 export type PrismaMariadbOptions = {
+  /*
+   * The name of the database to connect to. If not provided, the adapter will attempt to infer
+   * it from the connection string.
+   */
   database?: string
+  /*
+   * Whether to use the text protocol for all queries. If false or not set, the adapter will use
+   * the binary protocol.
+   */
   useTextProtocol?: boolean
+  /*
+   * The callback to be attached to the connection's 'error' event.
+   */
   onConnectionError?: (err: mariadb.SqlError) => void
 }
 
@@ -219,9 +230,18 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   #options?: PrismaMariadbOptions
 
   constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
-    this.#config = rewriteConnectionString(config)
-    if (typeof this.#config !== 'string' && this.#config.prepareCacheLength === undefined) {
-      this.#config = { ...this.#config, prepareCacheLength: 0 }
+    if (typeof config === 'string') {
+      const url = new URL(config)
+      if (!url.searchParams.has('prepareCacheLength')) {
+        url.searchParams.set('prepareCacheLength', '0')
+      }
+      this.#config = rewriteConnectionString(url).toString()
+    } else {
+      if (config.prepareCacheLength === undefined) {
+        this.#config = { ...config, prepareCacheLength: 0 }
+      } else {
+        this.#config = config
+      }
     }
     this.#options = options
   }
@@ -290,16 +310,11 @@ export function inferCapabilities(version: unknown): Capabilities {
  * Rewrites mysql:// connection strings to mariadb:// format.
  * This allows users to use mysql:// connection strings with the MariaDB adapter.
  */
-export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
-  if (typeof config !== 'string') {
-    return config
+export function rewriteConnectionString(url: URL): URL {
+  if (url.protocol === 'mysql:') {
+    url.protocol = 'mariadb:'
   }
-
-  if (!config.startsWith('mysql://')) {
-    return config
-  }
-
-  return config.replace(/^mysql:\/\//, 'mariadb://')
+  return url
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
