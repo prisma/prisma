@@ -66,8 +66,8 @@
 
 - **CLI commands**: Most commands already accept `--config` for custom config paths. Upcoming work removes `--schema` / `--url` in favour of config-based resolution. When editing CLI help text, keep examples aligned with new config-first workflow.
   - For isolated Studio verification, you can run `packages/cli/src/Studio.ts` directly via `pnpm exec tsx` and pass a config object that preserves `loadedFromFile`; this keeps SQLite URLs resolving relative to the config file while avoiding unrelated `packages/cli/src/bin.ts` imports.
-  - Recent `@prisma/studio-core` bumps can require keeping the CLI's HTML import map in `packages/cli/src/Studio.ts` aligned with new bare browser imports (for example `@radix-ui/react-toggle` and `chart.js/auto`), and the CLI shell can serve `/favicon.ico` directly if the Studio UI starts requesting one.
-  - `esm.sh` may resolve React-based browser dependencies against a newer canary React by default. When the Studio shell imports such packages via the HTML import map, pin them with `?deps=react@<shell-version>,react-dom@<shell-version>` or the command palette can crash with invalid-hook-call style errors.
+  - The CLI now pre-bundles Studio frontend assets at build time: `packages/cli/helpers/build.ts` bundles `packages/cli/src/studio-entry.ts` into `packages/cli/build/studio.js` and copies `@prisma/studio-core/ui/index.css` to `packages/cli/build/studio.css`. When touching that integration, remember `packages/cli` needs local `react` and `react-dom` devDependencies because `@prisma/studio-core` exposes them as peers rather than shipping them transitively.
+  - `packages/cli/src/Studio.ts` now serves only explicit Studio assets (`/`, `/favicon.ico`, `/studio.js`, `/studio.css`, `/bff`, `/telemetry`) instead of proxying arbitrary files out of `@prisma/studio-core`, so version bumps no longer require manual import-map maintenance.
   - If Enter or click does not open a cell editor in Studio, verify that the current table and column are writable before assuming a keyboard regression; views/system tables and read-only columns legitimately stay non-editable.
 
 - **Driver adapters datasource**:

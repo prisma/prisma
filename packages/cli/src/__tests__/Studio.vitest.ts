@@ -2,6 +2,19 @@ import { defaultTestConfig } from '@prisma/config'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const createPoolMock = vi.fn(() => ({ end: vi.fn() }))
+const readFileMock = vi.fn((filePath: string) => {
+  if (/[\\/]studio\.js$/.test(filePath)) {
+    return Promise.resolve('window.__studioBundle = true;')
+  }
+
+  if (/[\\/]studio\.css$/.test(filePath)) {
+    return Promise.resolve('.ps { color: black; }')
+  }
+
+  const error = new Error(`File not found: ${filePath}`) as Error & { code?: string }
+  error.code = 'ENOENT'
+  return Promise.reject(error)
+})
 const serveMock = vi.fn(() => ({ close: vi.fn() }))
 const createPostgresJSExecutorMock = vi.fn(() => ({
   execute: vi.fn(),
@@ -23,6 +36,15 @@ const serializeErrorMock = vi.fn((error: unknown) => {
 vi.mock('mysql2/promise', () => {
   return {
     createPool: createPoolMock,
+  }
+})
+
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs/promises')>()
+
+  return {
+    ...actual,
+    readFile: readFileMock,
   }
 })
 
@@ -65,6 +87,7 @@ describe('Studio MySQL URL compatibility', () => {
     vi.resetModules()
     createPoolMock.mockClear()
     createPostgresJSExecutorMock.mockClear()
+    readFileMock.mockClear()
     serveMock.mockClear()
     serializeErrorMock.mockClear()
   })
@@ -144,6 +167,7 @@ describe('Studio BFF', () => {
     vi.resetModules()
     createPoolMock.mockClear()
     createPostgresJSExecutorMock.mockClear()
+    readFileMock.mockClear()
     serveMock.mockClear()
     serializeErrorMock.mockClear()
   })
@@ -332,7 +356,7 @@ describe('Studio BFF', () => {
     expect(await response.text()).toContain('<svg')
   })
 
-  test('links the favicon from the Studio HTML shell', async () => {
+  test('serves the bundled Studio HTML shell without CDN dependencies', async () => {
     await startStudioBff({
       execute: vi.fn(),
     })
@@ -342,9 +366,42 @@ describe('Studio BFF', () => {
 
     expect(response.status).toBe(200)
     expect(html).toContain('<link rel="icon"')
-    expect(html).toContain(
-      '"@radix-ui/react-toggle": "https://esm.sh/@radix-ui/react-toggle@1.1.10?deps=react@19.2.0,react-dom@19.2.0"',
-    )
+    expect(html).toContain('<link rel="stylesheet" href="/studio.css">')
+    expect(html).toContain('<script type="module" src="/studio.js"></script>')
+    expect(html).toContain('window.__STUDIO_CONFIG__ = {"adapter":"postgres"};')
+    expect(html).not.toContain('importmap')
+    expect(html).not.toContain('esm.sh')
+    expect(html).not.toContain('cdn.jsdelivr.net')
+    expect(html).not.toContain('/adapter.js')
+  })
+
+  test('serves the bundled Studio JavaScript and CSS assets', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const [jsResponse, cssResponse] = await Promise.all([
+      getServerResponse('http://localhost:5555/studio.js'),
+      getServerResponse('http://localhost:5555/studio.css'),
+    ])
+
+    expect(jsResponse.status).toBe(200)
+    expect(jsResponse.headers.get('content-type')).toBe('application/javascript')
+    expect(await jsResponse.text()).toBe('window.__studioBundle = true;')
+
+    expect(cssResponse.status).toBe(200)
+    expect(cssResponse.headers.get('content-type')).toBe('text/css')
+    expect(await cssResponse.text()).toBe('.ps { color: black; }')
+  })
+
+  test('no longer serves adapter.js', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getServerResponse('http://localhost:5555/adapter.js')
+
+    expect(response.status).toBe(404)
   })
 })
 

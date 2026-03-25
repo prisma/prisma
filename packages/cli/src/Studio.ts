@@ -20,6 +20,7 @@ import { dirname, extname, join, resolve } from 'pathe'
 import { runtime } from 'std-env'
 
 import packageJson from '../package.json' assert { type: 'json' }
+import { STUDIO_CSS_FILE_NAME, STUDIO_JS_FILE_NAME, type StudioAdapterType } from './studio-frontend-shared'
 import { UserFacingError } from './utils/errors'
 import { getPpgInfo } from './utils/ppgInfo'
 
@@ -29,8 +30,6 @@ import { getPpgInfo } from './utils/ppgInfo'
 const DEFAULT_PORT = 51_212
 
 const MIN_PORT = 49_152
-
-const STATIC_ASSETS_DIR = join(require.resolve('@prisma/studio-core/data'), '../..')
 
 const FILE_EXTENSION_TO_CONTENT_TYPE: Record<string, string> = {
   '.css': 'text/css',
@@ -51,14 +50,6 @@ const FILE_EXTENSION_TO_CONTENT_TYPE: Record<string, string> = {
   '.eot': 'application/vnd.ms-fontobject',
 }
 
-const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
-
-const ADAPTER_FILE_NAME = 'adapter.js'
-const ADAPTER_FACTORY_FUNCTION_NAME = 'createAdapter'
-const REACT_VERSION = '19.2.0'
-const REACT_DOM_VERSION = REACT_VERSION
-const RADIX_REACT_TOGGLE_URL = `https://esm.sh/@radix-ui/react-toggle@1.1.10?deps=react@${REACT_VERSION},react-dom@${REACT_DOM_VERSION}`
-const CHART_JS_AUTO_URL = 'https://esm.sh/chart.js@4.5.1/auto'
 const PRISMA_LOGO_SVG = `<svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
     fill-rule="evenodd"
@@ -73,8 +64,8 @@ const ACCELERATE_UNSUPPORTED_MESSAGE =
   'Prisma Studio no longer supports Accelerate URLs (`prisma://` or `prisma+postgres://`). Use a direct database connection string instead.'
 
 interface StudioStuff {
+  adapter: StudioAdapterType
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
-  reExportAdapterScript: string
 }
 
 /**
@@ -105,6 +96,7 @@ const PRISMA_ORM_SPECIFIC_MYSQL_QUERY_PARAMETERS = [
 ] as const
 
 const POSTGRES_STUDIO_STUFF: StudioStuff = {
+  adapter: 'postgres',
   async createExecutor(connectionString) {
     const postgresModule = await import('postgres')
 
@@ -121,7 +113,6 @@ const POSTGRES_STUDIO_STUFF: StudioStuff = {
 
     return createPostgresJSExecutor(postgres)
   },
-  reExportAdapterScript: `export { createPostgresAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/postgres-core/index.js';`,
 }
 
 type Database = { new (path: string): import('better-sqlite3').Database }
@@ -129,6 +120,7 @@ type Database = { new (path: string): import('better-sqlite3').Database }
 const CONNECTION_STRING_PROTOCOL_TO_STUDIO_STUFF: Record<string, StudioStuff | null> = {
   // TODO: figure out PGLite support later.
   file: {
+    adapter: 'sqlite',
     async createExecutor(uri, relativeTo) {
       const path = uri.replace('file:', '')
 
@@ -197,11 +189,11 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
 
       return createNodeSQLiteExecutor(database)
     },
-    reExportAdapterScript: `export { createSQLiteAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/sqlite-core/index.js';`,
   },
   postgres: POSTGRES_STUDIO_STUFF,
   postgresql: POSTGRES_STUDIO_STUFF,
   mysql: {
+    adapter: 'mysql',
     async createExecutor(connectionString) {
       const { createPool } = await import('mysql2/promise')
 
@@ -212,7 +204,6 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
 
       return createMySQL2Executor(pool)
     },
-    reExportAdapterScript: `export { createMySQLAdapter as ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/data/mysql-core/index.js';`,
   },
   sqlserver: null,
 }
@@ -330,29 +321,19 @@ ${bold('Examples')}
     app.get('/', (ctx) => {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
 
-      return ctx.text(INDEX_HTML, 200, { 'Content-Type': contentType })
+      return ctx.text(getIndexHtml(studioStuff.adapter), 200, { 'Content-Type': contentType })
     })
 
     app.get('/favicon.ico', (ctx) => {
       return ctx.body(PRISMA_LOGO_SVG, 200, { 'Content-Type': 'image/svg+xml' })
     })
 
-    app.get(`/${ADAPTER_FILE_NAME}`, (ctx) => {
-      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(ctx.req.path)]
-
-      return ctx.text(studioStuff.reExportAdapterScript, 200, { 'Content-Type': contentType })
+    app.get(`/${STUDIO_JS_FILE_NAME}`, async (ctx) => {
+      return serveStudioAsset(ctx.req.path)
     })
 
-    app.get('/*', async (ctx) => {
-      const filePath = join(STATIC_ASSETS_DIR, ctx.req.path.substring(1))
-
-      const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(filePath)] || DEFAULT_CONTENT_TYPE
-
-      try {
-        return ctx.body(await readFile(filePath), 200, { 'Content-Type': contentType })
-      } catch {
-        return ctx.text('Not Found', 404)
-      }
+    app.get(`/${STUDIO_CSS_FILE_NAME}`, async (ctx) => {
+      return serveStudioAsset(ctx.req.path)
     })
 
     app.post('/bff', async (ctx) => {
@@ -577,16 +558,19 @@ function prismaSslAcceptToMySQL2Ssl(sslAccept: string): { rejectUnauthorized: bo
 }
 
 // prettier-ignore
-const INDEX_HTML =
-`<!doctype html>
+function getIndexHtml(adapter: StudioAdapterType): string {
+  return `<!doctype html>
 <html lang="en" style="height: 100%">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="${PRISMA_LOGO_SVG_DATA_URL}" type="image/svg+xml">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.17"></script>
-    <link rel="stylesheet" href="/ui/index.css">
+    <link rel="stylesheet" href="/${STUDIO_CSS_FILE_NAME}">
     <style>
+      html {
+        height: 100%;
+      }
+
       body {
         color: black;
         height: 100%;
@@ -598,47 +582,59 @@ const INDEX_HTML =
         height: 100%;
       }
     </style>
-    <script type="importmap">
-      {
-        "imports": {
-          "react": "https://esm.sh/react@${REACT_VERSION}",
-          "react/jsx-runtime": "https://esm.sh/react@${REACT_VERSION}/jsx-runtime",
-          "react-dom": "https://esm.sh/react-dom@${REACT_DOM_VERSION}",
-          "react-dom/client": "https://esm.sh/react-dom@${REACT_DOM_VERSION}/client",
-          "@radix-ui/react-toggle": "${RADIX_REACT_TOGGLE_URL}",
-          "chart.js/auto": "${CHART_JS_AUTO_URL}"
-        }
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module">
-      'use strict';
-      import React from 'react';
-      import ReactDOMClient from 'react-dom/client';
-
-      import { ${ADAPTER_FACTORY_FUNCTION_NAME} } from '/${ADAPTER_FILE_NAME}';
-      import { createStudioBFFClient } from '/data/bff/index.js';
-      import { Studio } from '/ui/index.js';
-
-      const adapter = ${ADAPTER_FACTORY_FUNCTION_NAME}({
-        executor: createStudioBFFClient({ url: '/bff' }),
-      });
-
-      const onEvent = (event) => {
-        fetch('/telemetry', {
-          body: JSON.stringify(event),
-          method: 'POST',
-        });
-      };
-
-      window.__PVCE__ = true;
-
-      const container = document.getElementById('root');
-      const root = ReactDOMClient.createRoot(container);
-
-      root.render(React.createElement(Studio, { adapter, onEvent }));
-    </script>
+    <script>window.__STUDIO_CONFIG__ = ${JSON.stringify({ adapter })};</script>
+    <script type="module" src="/${STUDIO_JS_FILE_NAME}"></script>
   </body>
 </html>`
+}
+
+async function serveStudioAsset(requestPath: string): Promise<Response> {
+  const fileName = requestPath.substring(1)
+  const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(fileName)]
+
+  try {
+    return new Response(await readStudioAsset(fileName), {
+      headers: { 'Content-Type': contentType },
+      status: 200,
+    })
+  } catch (error: unknown) {
+    if (isNotFoundError(error)) {
+      return new Response('Not Found', { status: 404 })
+    }
+
+    return new Response('Internal Server Error', { status: 500 })
+  }
+}
+
+async function readStudioAsset(fileName: string): Promise<Buffer | string> {
+  const triedPaths: string[] = []
+
+  for (const directory of getStudioAssetDirectories()) {
+    const filePath = join(directory, fileName)
+    triedPaths.push(filePath)
+
+    try {
+      return await readFile(filePath)
+    } catch (error: unknown) {
+      if (!isNotFoundError(error)) {
+        throw error
+      }
+    }
+  }
+
+  const error = new Error(`Prisma Studio asset "${fileName}" was not found.`) as Error & { code?: string }
+  error.code = 'ENOENT'
+  error.message = `${error.message}\nSearched in:\n${triedPaths.map((filePath) => `- ${filePath}`).join('\n')}`
+  throw error
+}
+
+function getStudioAssetDirectories(): string[] {
+  return [...new Set([__dirname, join(__dirname, '..', 'build')])]
+}
+
+function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT'
+}
