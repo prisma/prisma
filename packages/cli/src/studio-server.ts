@@ -71,7 +71,7 @@ function createNodeRequest(nodeRequest: IncomingMessage, port: number): Request 
     method: nodeRequest.method,
   }
 
-  if (!isRequestWithoutBody(nodeRequest.method)) {
+  if (methodHasRequestBody(nodeRequest.method)) {
     requestInit.body = Readable.toWeb(nodeRequest) as BodyInit
     requestInit.duplex = 'half'
   }
@@ -87,7 +87,7 @@ async function writeNodeResponse(nodeResponse: ServerResponse, response: Respons
     nodeResponse.setHeader(key, value)
   })
 
-  if (isRequestWithoutBody(method) || !response.body) {
+  if (isHeadRequest(method) || !response.body) {
     nodeResponse.end()
     return
   }
@@ -149,6 +149,10 @@ function startDenoStudioServer({ handler, onListen, port }: StartStudioServerOpt
   }
 }
 
-function isRequestWithoutBody(method: string | undefined): boolean {
-  return method === 'GET' || method === 'HEAD'
+function isHeadRequest(method: string | undefined): boolean {
+  return method === 'HEAD'
+}
+
+function methodHasRequestBody(method: string | undefined): boolean {
+  return method !== 'GET' && method !== 'HEAD'
 }

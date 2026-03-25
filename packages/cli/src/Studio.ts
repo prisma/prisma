@@ -471,6 +471,10 @@ function getIndexHtml(adapter: StudioAdapterType): string {
 </html>`
 }
 
+function isGetOrHeadRequest(method: string): boolean {
+  return method === 'GET' || method === 'HEAD'
+}
+
 function createStudioRequestHandler({
   adapter,
   executor,
@@ -489,18 +493,18 @@ function createStudioRequestHandler({
   return async (request) => {
     const { pathname } = new URL(request.url)
 
-    if (request.method === 'GET' && pathname === '/') {
+    if (isGetOrHeadRequest(request.method) && pathname === '/') {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
 
       return textResponse(getIndexHtml(adapter), 200, { 'Content-Type': contentType })
     }
 
-    if (request.method === 'GET' && pathname === '/favicon.ico') {
+    if (isGetOrHeadRequest(request.method) && pathname === '/favicon.ico') {
       return textResponse(PRISMA_LOGO_SVG, 200, { 'Content-Type': 'image/svg+xml' })
     }
 
     if (
-      request.method === 'GET' &&
+      isGetOrHeadRequest(request.method) &&
       (pathname === `/${STUDIO_JS_FILE_NAME}` || pathname === `/${STUDIO_CSS_FILE_NAME}`)
     ) {
       return serveStudioAsset(pathname)
