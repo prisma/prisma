@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 
+import crypto from 'node:crypto'
+
 import type {
   ColumnType,
   ConnectionInfo,
@@ -24,6 +26,21 @@ import { convertDriverError } from './errors'
 const types = pg.types
 
 const debug = Debug('prisma:driver-adapter:pg')
+
+/**
+ * Derive a stable prepared statement name from the SQL text and argument types.
+ *
+ * Passing a `name` makes `pg` use PostgreSQL named prepared statements, so repeated
+ * query shapes can reuse server-side plans on the same connection. We key the name
+ * by SQL text and parameter types, mirroring the Rust implementation.
+ *
+ * Named statements live for the lifetime of the connection, which is likely acceptable for
+ * Prisma workloads because the set of query shapes is typically bounded.
+ */
+export function generateStatementName(query: SqlQuery): string {
+  const hashInput = query.sql + '\0' + JSON.stringify(query.argTypes)
+  return 'p_' + crypto.hash('sha1', hashInput, 'base64url').slice(0, 16)
+}
 
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
@@ -107,6 +124,9 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         {
           text: sql,
           values,
+          name: this.pgOptions?.enableStatementCaching
+            ? (this.pgOptions.getStatementName ?? generateStatementName)(query)
+            : undefined,
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -182,12 +202,30 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
-export type PrismaPgOptions = {
+export interface PrismaPgOptions {
   schema?: string
   disposeExternalPool?: boolean
   onPoolError?: (err: Error) => void
   onConnectionError?: (err: Error) => void
   userDefinedTypeParser?: UserDefinedTypeParser
+  /**
+   * When enabled, uses PostgreSQL named prepared statements for query plan caching.
+   * Repeated query shapes will reuse server-side plans on the same connection.
+   *
+   * Named statements live for the lifetime of the connection, which is typically
+   * acceptable for Prisma workloads because the set of query shapes is bounded.
+   */
+  enableStatementCaching?: boolean
+  /**
+   * Overrides the default statement name generator used for PostgreSQL named
+   * prepared statements. The function receives a {@link SqlQuery} and must return
+   * a stable name for queries with the same SQL text and parameter types.
+   *
+   * Defaults to {@link generateStatementName} for hash-based naming.
+   *
+   * Requires {@link enableStatementCaching} to be set to `true`.
+   */
+  getStatementName?: (query: SqlQuery) => string
 }
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
