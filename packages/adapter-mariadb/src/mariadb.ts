@@ -220,6 +220,9 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
     this.#config = rewriteConnectionString(config)
+    if (typeof this.#config !== 'string' && this.#config.prepareCacheLength === undefined) {
+      this.#config = { ...this.#config, prepareCacheLength: 0 }
+    }
     this.#options = options
   }
 

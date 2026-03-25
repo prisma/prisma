@@ -8,6 +8,11 @@ import {
   rewriteConnectionString,
 } from './mariadb'
 
+// Mock the mariadb module
+vi.mock('mariadb', () => ({
+  createPool: vi.fn(),
+}))
+
 describe.each([
   ['8.0.12', { supportsRelationJoins: false }],
   ['8.0.13', { supportsRelationJoins: true }],
@@ -81,4 +86,40 @@ describe('useTextProtocol option', () => {
       expect(mockClient[expectedMethod]).toHaveBeenCalledWith(expect.objectContaining({ sql: 'SELECT 1' }), [])
     },
   )
+})
+
+describe('PrismaMariaDbAdapterFactory constructor', () => {
+  test('should create a config with prepareCacheLength set to 0 when config has no prepareCacheLength', async () => {
+    const config = {}
+
+    const mockCreatePool = vi.mocked(mariadb.createPool)
+    mockCreatePool.mockReturnValue({
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+      end: vi.fn(),
+    } as unknown as mariadb.Pool)
+
+    const factory = new PrismaMariaDbAdapterFactory(config)
+    await factory.connect()
+
+    expect(mockCreatePool).toHaveBeenCalledWith(expect.objectContaining({ prepareCacheLength: 0 }))
+    mockCreatePool.mockClear()
+  })
+
+  test('should preserve existing prepareCacheLength when config is object and prepareCacheLength is set', async () => {
+    const config = {
+      prepareCacheLength: 10,
+    }
+
+    const mockCreatePool = vi.mocked(mariadb.createPool)
+    mockCreatePool.mockReturnValue({
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+      end: vi.fn(),
+    } as unknown as mariadb.Pool)
+
+    const factory = new PrismaMariaDbAdapterFactory(config)
+    await factory.connect()
+
+    expect(mockCreatePool).toHaveBeenCalledWith(expect.objectContaining({ prepareCacheLength: 10 }))
+    mockCreatePool.mockClear()
+  })
 })
