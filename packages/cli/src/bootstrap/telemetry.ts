@@ -1,6 +1,5 @@
 import type { LinkResult } from '../link/Link'
 import { PosthogEventCapture } from '../utils/nps/capture'
-
 import type { ProjectState } from './project-state'
 
 const eventCapture = new PosthogEventCapture()
