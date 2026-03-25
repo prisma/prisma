@@ -105,6 +105,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     try {
       const result = await this.client.query(
         {
+          name: this.pgOptions?.statementNameGenerator?.(query),
           text: sql,
           values,
           rowMode: 'array',
@@ -171,14 +172,32 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 }
 
 export type PrismaPgOptions = {
+  /** The name of the schema to use in generated queries */
   schema?: string
+  /**
+   * Whether to call `pool.end()` on an externally provided pool when the adapter is disposed.
+   * Defaults to `false`.
+   */
   disposeExternalPool?: boolean
+  /** Callback attached to the pool's 'error' events. */
   onPoolError?: (err: Error) => void
+  /** Callback attached to connection's 'error' events. */
   onConnectionError?: (err: Error) => void
+  /**
+   * Optional parser for user-defined types. Called with the type's OID, the value to parse, and
+   * a queryable for performing additional queries if necessary.
+   */
   userDefinedTypeParser?: UserDefinedTypeParser
+  /**
+   * Optional function to generate names for prepared statements. The generated strings are passed
+   * as the `name` property in the query to `pg.Client#query()`, which uses them to cache the
+   * underlying statements. If not provided, prepared statements are not cached.
+   */
+  statementNameGenerator?: StatementNameGenerator
 }
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
+export type StatementNameGenerator = (query: SqlQuery) => string
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
   constructor(
