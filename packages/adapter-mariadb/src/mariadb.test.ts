@@ -1,5 +1,5 @@
-import { describe, expect, test, vi, beforeAll, afterAll } from 'vitest'
 import * as mariadb from 'mariadb'
+import { describe, expect, test, vi, beforeAll, afterAll } from 'vitest'
 
 import {
   inferCapabilities,
