@@ -475,6 +475,9 @@ export class ClientEngine implements Engine {
       const cacheKey = JSON.stringify(parameterizedQuery)
       placeholderValues = extractedValues
 
+      // We do not cache `createMany` and `createManyAndReturn` queries as they are very unlikely
+      // to benefit from caching due to their high variability in parameters, which leads to a very
+      // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
       const cached = isCacheable ? this.#queryPlanCache.getSingle(cacheKey) : undefined
       if (cached) {
