@@ -1,3 +1,4 @@
+import { getPort } from 'get-port-please'
 import { afterEach, expect, test } from 'vitest'
 
 import { startStudioServer, type StudioServer } from '../studio-server'
@@ -29,7 +30,7 @@ test('preserves HEAD semantics without dropping GET bodies', async () => {
 })
 
 async function startTestServer(handler: (request: Request) => Response | Promise<Response>): Promise<{ port: number }> {
-  const port = await getAvailablePort()
+  const port = await getPort({ host: '127.0.0.1' })
 
   await new Promise<void>((resolve) => {
     const server = startStudioServer({
@@ -42,30 +43,4 @@ async function startTestServer(handler: (request: Request) => Response | Promise
   })
 
   return { port }
-}
-
-async function getAvailablePort(): Promise<number> {
-  const probe = await import('node:net').then(({ createServer }) => createServer())
-
-  return await new Promise<number>((resolve, reject) => {
-    probe.once('error', reject)
-    probe.listen(0, '127.0.0.1', () => {
-      const address = probe.address()
-
-      if (!address || typeof address === 'string') {
-        reject(new Error('Failed to allocate a test port for the Studio server.'))
-        return
-      }
-
-      const { port } = address
-      probe.close((error) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
-        resolve(port)
-      })
-    })
-  })
 }
