@@ -171,6 +171,7 @@ ${bold('Examples')}
     await emitFlowStarted(telemetryCtx)
 
     let templateScaffolded = false
+    let autoMigrate = false
     const isEmptyProject = !initialState.hasSchemaFile && !initialState.hasPackageJson
 
     // --- Step 1: Init or Template (mutually exclusive, only for from-scratch projects) ---
@@ -216,7 +217,9 @@ ${bold('Examples')}
           console.log(`${dim('  Falling back to prisma init...')}`)
           steps.template = 'failed'
           await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
-          await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
+          const withModel = await this.askAboutSampleModel()
+          autoMigrate = withModel
+          await this.runInit(steps, stepsCompleted, telemetryCtx, config, withModel)
         }
       } else if (isEmptyProject) {
         return new HelpError(
@@ -224,7 +227,9 @@ ${bold('Examples')}
         )
       } else {
         steps.template = 'not-applicable'
-        await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
+        const withModel = await this.askAboutSampleModel()
+        autoMigrate = withModel
+        await this.runInit(steps, stepsCompleted, telemetryCtx, config, withModel)
       }
     } else {
       steps.init = 'skipped'
@@ -248,6 +253,11 @@ ${bold('Examples')}
 
       console.log(`${green('✔')} Linked to database ${bold(linkResult.databaseId)}`)
     } catch (err) {
+      if (err instanceof LinkApiError && err.message.includes('already linked')) {
+        return new HelpError(
+          `\n${yellow('!')} This project is already connected to Prisma Postgres.\n\nTo re-run bootstrap, use the ${bold('--force')} flag:\n  ${dim('$')} npx prisma bootstrap --force`,
+        )
+      }
       const msg = err instanceof Error ? err.message : String(err)
       await emitStepFailed(telemetryCtx, 'link', sanitizeErrorMessage(msg))
       throw err
@@ -305,14 +315,17 @@ ${bold('Examples')}
     const localBin = localPrismaBin as string
 
     if (updatedState.hasModels) {
-      const modelNames = getModelNames(baseDir)
-      const modelCount = modelNames.length
-      const modelSummary =
-        modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
-      const shouldMigrate = await confirm({
-        message: `Apply${modelSummary} to database with prisma migrate dev?`,
-        default: true,
-      })
+      let shouldMigrate = autoMigrate
+      if (!shouldMigrate) {
+        const modelNames = getModelNames(baseDir)
+        const modelCount = modelNames.length
+        const modelSummary =
+          modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
+        shouldMigrate = await confirm({
+          message: `Apply${modelSummary} to database with prisma migrate dev?`,
+          default: true,
+        })
+      }
 
       if (shouldMigrate) {
         console.log(`\n${bold('Running migration...')}`)
@@ -444,7 +457,7 @@ ${bold('Examples')}
 
   private async askAboutTemplate(): Promise<string | null> {
     const wantsTemplate = await confirm({
-      message: 'Scaffold a starter app from a template?',
+      message: 'Create a starter app from a template?',
       default: true,
     })
 
@@ -454,7 +467,7 @@ ${bold('Examples')}
 
   private async askAboutSampleModel(): Promise<boolean> {
     return confirm({
-      message: 'Add a sample User model to get started?',
+      message: 'Add a sample User model and apply it to your database?',
       default: true,
     })
   }
