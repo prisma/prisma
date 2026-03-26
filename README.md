@@ -41,6 +41,30 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 
 ## Getting started
 
+### Installation
+
+Install the Prisma CLI globally using your preferred package manager:
+
+**npm:**
+```bash
+npm install -g prisma
+```
+
+**yarn:**
+```bash
+yarn global add prisma
+```
+
+**pnpm:**
+```bash
+pnpm add -g prisma
+```
+
+You can also use the Prisma CLI without installing it globally by using `npx`:
+```bash
+npx prisma
+```
+
 ### Quickstart (5min)
 
 The fastest way to get started with Prisma is by following the quickstart guides. You can choose either of two databases:

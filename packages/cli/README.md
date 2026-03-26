@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Prisma</h1>
+  <h1>Prisma CLI</h1>
   <a href="https://www.npmjs.com/package/prisma"><img src="https://img.shields.io/npm/v/prisma.svg?style=flat" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
@@ -22,6 +22,30 @@
   <br />
   <hr />
 </div>
+
+## Installation
+
+Install the Prisma CLI globally using your preferred package manager:
+
+**npm:**
+```bash
+npm install -g prisma
+```
+
+**yarn:**
+```bash
+yarn global add prisma
+```
+
+**pnpm:**
+```bash
+pnpm add -g prisma
+```
+
+You can also use the Prisma CLI without installing it globally by using `npx`:
+```bash
+npx prisma
+```
 
 ## What is Prisma?
 
