@@ -209,7 +209,7 @@ ${bold('Examples')}
 
           if (isEmptyProject) {
             return new HelpError(
-              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y && npm install prisma\n  ${dim('$')} prisma bootstrap`,
+              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y\n  ${dim('$')} npx prisma bootstrap`,
             )
           }
 
@@ -220,7 +220,7 @@ ${bold('Examples')}
         }
       } else if (isEmptyProject) {
         return new HelpError(
-          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y && npm install prisma\n  ${dim('$')} prisma bootstrap`,
+          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y\n  ${dim('$')} npx prisma bootstrap`,
         )
       } else {
         steps.template = 'not-applicable'
