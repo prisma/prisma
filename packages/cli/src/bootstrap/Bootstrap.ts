@@ -172,7 +172,6 @@ ${bold('Examples')}
     await emitFlowStarted(telemetryCtx)
 
     let templateScaffolded = false
-    let initRan = false
     const isEmptyProject = !initialState.hasSchemaFile && !initialState.hasPackageJson
 
     // --- Step 1: Init or Template (mutually exclusive, only for from-scratch projects) ---
@@ -188,7 +187,8 @@ ${bold('Examples')}
     if (!initialState.hasSchemaFile) {
       if (isEmptyProject) {
         console.log(`\n${yellow('!')} No project found in this directory.`)
-        console.log(`  A ${bold('package.json')} is required for Prisma to work.\n`)
+        console.log(`  A ${bold('package.json')} is required for Prisma to work.`)
+        console.log(`  Initialize one with: ${dim('npm init -y')}, ${dim('pnpm init')}, or ${dim('yarn init')}\n`)
       }
 
       const useTemplate = templateName ?? (await this.askAboutTemplate())
@@ -211,23 +211,21 @@ ${bold('Examples')}
 
           if (isEmptyProject) {
             return new HelpError(
-              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y\n  ${dim('$')} npx prisma bootstrap`,
+              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init)')}\n  ${dim('$')} npx prisma bootstrap`,
             )
           }
 
           console.log(`${dim('  Falling back to prisma init...')}`)
           steps.template = 'failed'
           await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
-          initRan = true
           await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
         }
       } else if (isEmptyProject) {
         return new HelpError(
-          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y\n  ${dim('$')} npx prisma bootstrap`,
+          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init)')}\n  ${dim('$')} npx prisma bootstrap`,
         )
       } else {
         steps.template = 'not-applicable'
-        initRan = true
         await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
       }
     } else {
@@ -264,10 +262,13 @@ ${bold('Examples')}
 
     // --- Step 3: Install dependencies ---
     //
-    // Template projects include a package.json with all dependencies.
-    // After init, prisma.config.ts depends on `dotenv` which must be installed.
-    // In both cases, installing here brings dependencies into node_modules
-    // before the migrate/generate/seed steps below.
+    // Template path: run a full `<pm> install` since the template's package.json
+    // lists everything the project needs.
+    //
+    // Non-template path (init or existing project): ensure the minimal Prisma
+    // dependencies (`dotenv`, `prisma`) are present. These are required by the
+    // generated prisma.config.ts and for migrate/generate/studio to work.
+    // installInitDependencies skips packages already in node_modules.
     if (templateScaffolded) {
       const installSpinner = ora('Installing dependencies...').start()
       try {
@@ -277,11 +278,11 @@ ${bold('Examples')}
         const msg = err instanceof Error ? err.message : String(err)
         installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
       }
-    } else if (initRan && initialState.hasPackageJson) {
-      const installSpinner = ora('Installing dependencies...').start()
+    } else if (initialState.hasPackageJson) {
+      const installSpinner = ora('Installing Prisma dependencies...').start()
       try {
         await installInitDependencies(baseDir)
-        installSpinner.succeed('Dependencies installed')
+        installSpinner.succeed('Prisma dependencies installed')
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
