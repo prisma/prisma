@@ -62,17 +62,19 @@ export function formatBootstrapOutput(opts: {
 
   if (opts.hasModels && clientReady) {
     lines.push(
-      `  1. Start querying: ${dim('https://www.prisma.io/docs/getting-started/quickstart#4-explore-how-to-send-queries-to-your-database-with-prisma-client')}`,
+      `  1. Start querying: ${dim('https://www.prisma.io/docs/prisma-orm/quickstart/prisma-postgres#7-instantiate-prisma-client')}`,
     )
+    lines.push(`  2. Run ${green(getCommandWithExecutor('prisma studio'))} to view your data in the browser`)
   } else if (opts.hasModels) {
     lines.push(`  1. Run ${green(getCommandWithExecutor('prisma generate'))} to generate the Prisma Client`)
     lines.push(
-      `  2. Start querying: ${dim('https://www.prisma.io/docs/getting-started/quickstart#4-explore-how-to-send-queries-to-your-database-with-prisma-client')}`,
+      `  2. Start querying: ${dim('https://www.prisma.io/docs/prisma-orm/quickstart/prisma-postgres#7-instantiate-prisma-client')}`,
     )
+    lines.push(`  3. Run ${green(getCommandWithExecutor('prisma studio'))} to view your data in the browser`)
   } else {
     lines.push(`  1. Define your data model in ${green('prisma/schema.prisma')}`)
     lines.push(`  2. Run ${green(getCommandWithExecutor('prisma migrate dev'))} to create the database tables`)
-    lines.push(`  3. Start querying`)
+    lines.push(`  3. Run ${green(getCommandWithExecutor('prisma studio'))} to view your data in the browser`)
   }
 
   lines.push('')
