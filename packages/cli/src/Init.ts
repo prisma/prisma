@@ -3,8 +3,6 @@ import path from 'node:path'
 
 import { confirm, input, select } from '@inquirer/prompts'
 import { PrismaConfigInternal } from '@prisma/config'
-import { startPrismaDevServer } from '@prisma/dev'
-import { ServerState } from '@prisma/dev/internal/state'
 import type { ConnectorType } from '@prisma/generator'
 import {
   arg,
@@ -115,6 +113,12 @@ model User {
 
 export const defaultEnv = async (url: string | undefined, debug = false, comments = true) => {
   if (url === undefined) {
+    // TODO: bundle the CLI to ESM instead of CommonJS and make these module-level imports
+    const [{ startPrismaDevServer }, { ServerState }] = await Promise.all([
+      import('@prisma/dev'),
+      import('@prisma/dev/internal/state'),
+    ])
+
     let created = false
     const state =
       (await ServerState.fromServerDump({ debug })) ||
