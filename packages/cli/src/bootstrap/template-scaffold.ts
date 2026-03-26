@@ -156,10 +156,18 @@ export async function installDependencies(baseDir: string): Promise<void> {
 }
 
 export async function installInitDependencies(baseDir: string): Promise<void> {
+  const missing: string[] = []
+  for (const pkg of ['dotenv', 'prisma']) {
+    if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
+      missing.push(pkg)
+    }
+  }
+  if (missing.length === 0) return
+
   const pm = detectPackageManager(baseDir)
   const addCmd = pm === 'yarn' ? 'add' : 'install'
   const devFlag = pm === 'yarn' ? '--dev' : '--save-dev'
-  await execFileAsync(pm, [addCmd, devFlag, 'dotenv', 'prisma'], {
+  await execFileAsync(pm, [addCmd, devFlag, ...missing], {
     cwd: baseDir,
     env: { ...process.env },
   })
