@@ -5,6 +5,8 @@ import fs from 'fs-jetpack'
 import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
 import tempy from 'tempy'
 
+const jest = globalThis.jest ?? globalThis.vi
+
 /**
  * Base test context.
  */
