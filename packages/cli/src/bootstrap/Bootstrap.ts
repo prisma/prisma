@@ -140,7 +140,7 @@ ${bold('Examples')}
     force: boolean,
     config: PrismaConfigInternal,
     baseDir: string,
-  ): Promise<string> {
+  ): Promise<string | HelpError> {
     const flowStart = performance.now()
     const stepsCompleted: string[] = []
     const steps: BootstrapStepStatus = {
@@ -171,17 +171,24 @@ ${bold('Examples')}
     await emitFlowStarted(telemetryCtx)
 
     let templateScaffolded = false
+    const isEmptyProject = !initialState.hasSchemaFile && !initialState.hasPackageJson
 
     // --- Step 1: Init or Template (mutually exclusive, only for from-scratch projects) ---
     //
     // When no schema exists, the user is starting from scratch. We either:
     //   (a) scaffold a starter template from prisma-examples (replaces init), or
-    //   (b) run `prisma init` for a minimal empty setup
+    //   (b) run `prisma init` for a minimal empty setup (requires an existing package.json)
     //
-    // The template decision comes first because the template provides its own
-    // schema.prisma, prisma.config.ts, package.json, and application code —
-    // running init before would create files that get immediately overwritten.
+    // Empty directories without a package.json need special handling: prisma init creates
+    // a prisma.config.ts that depends on `dotenv`, which can't be installed without a
+    // Node.js project. We surface this clearly and require either a template (which
+    // provides its own package.json) or manual project initialization first.
     if (!initialState.hasSchemaFile) {
+      if (isEmptyProject) {
+        console.log(`\n${yellow('!')} No project found in this directory.`)
+        console.log(`  A ${bold('package.json')} is required for Prisma to work.\n`)
+      }
+
       const useTemplate = templateName ?? (await this.askAboutTemplate())
 
       if (useTemplate) {
@@ -199,11 +206,22 @@ ${bold('Examples')}
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
           spinner.fail(`Template download failed: ${sanitizeErrorMessage(msg)}`)
+
+          if (isEmptyProject) {
+            return new HelpError(
+              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y && npm install prisma\n  ${dim('$')} prisma bootstrap`,
+            )
+          }
+
           console.log(`${dim('  Falling back to prisma init...')}`)
           steps.template = 'failed'
           await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
           await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
         }
+      } else if (isEmptyProject) {
+        return new HelpError(
+          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y && npm install prisma\n  ${dim('$')} prisma bootstrap`,
+        )
       } else {
         steps.template = 'not-applicable'
         await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
