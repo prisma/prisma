@@ -154,3 +154,13 @@ export async function installDependencies(baseDir: string): Promise<void> {
     env: { ...process.env },
   })
 }
+
+export async function installInitDependencies(baseDir: string): Promise<void> {
+  const pm = detectPackageManager(baseDir)
+  const addCmd = pm === 'yarn' ? 'add' : 'install'
+  const devFlag = pm === 'yarn' ? '--dev' : '--save-dev'
+  await execFileAsync(pm, [addCmd, devFlag, 'dotenv', 'prisma'], {
+    cwd: baseDir,
+    env: { ...process.env },
+  })
+}
