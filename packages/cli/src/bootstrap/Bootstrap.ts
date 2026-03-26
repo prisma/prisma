@@ -188,7 +188,9 @@ ${bold('Examples')}
       if (isEmptyProject) {
         console.log(`\n${yellow('!')} No project found in this directory.`)
         console.log(`  A ${bold('package.json')} is required for Prisma to work.`)
-        console.log(`  Initialize one with: ${dim('npm init -y')}, ${dim('pnpm init')}, or ${dim('yarn init')}\n`)
+        console.log(
+          `  Initialize one with: ${dim('npm init -y')}, ${dim('pnpm init')}, ${dim('yarn init')}, or ${dim('bun init')}\n`,
+        )
       }
 
       const useTemplate = templateName ?? (await this.askAboutTemplate())
@@ -211,7 +213,7 @@ ${bold('Examples')}
 
           if (isEmptyProject) {
             return new HelpError(
-              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init)')}\n  ${dim('$')} npx prisma bootstrap`,
+              `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
             )
           }
 
@@ -222,7 +224,7 @@ ${bold('Examples')}
         }
       } else if (isEmptyProject) {
         return new HelpError(
-          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init)')}\n  ${dim('$')} npx prisma bootstrap`,
+          `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
         )
       } else {
         steps.template = 'not-applicable'

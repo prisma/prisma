@@ -137,11 +137,13 @@ function stripFirstComponent(filePath: string): string | null {
   return filePath.slice(idx + 1)
 }
 
-type PackageManager = 'npm' | 'pnpm' | 'yarn'
+type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun' | 'deno'
 
 export function detectPackageManager(baseDir: string): PackageManager {
   if (fs.existsSync(path.join(baseDir, 'pnpm-lock.yaml'))) return 'pnpm'
   if (fs.existsSync(path.join(baseDir, 'yarn.lock'))) return 'yarn'
+  if (fs.existsSync(path.join(baseDir, 'bun.lock')) || fs.existsSync(path.join(baseDir, 'bun.lockb'))) return 'bun'
+  if (fs.existsSync(path.join(baseDir, 'deno.lock'))) return 'deno'
   return 'npm'
 }
 
@@ -156,6 +158,10 @@ export async function installDependencies(baseDir: string): Promise<void> {
 }
 
 export async function installInitDependencies(baseDir: string): Promise<void> {
+  const pm = detectPackageManager(baseDir)
+
+  if (pm === 'bun' || pm === 'deno') return
+
   const missing: string[] = []
   for (const pkg of ['dotenv', 'prisma']) {
     if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
@@ -164,7 +170,6 @@ export async function installInitDependencies(baseDir: string): Promise<void> {
   }
   if (missing.length === 0) return
 
-  const pm = detectPackageManager(baseDir)
   const addCmd = pm === 'yarn' ? 'add' : 'install'
   const devFlag = pm === 'yarn' ? '--dev' : '--save-dev'
   await execFileAsync(pm, [addCmd, devFlag, ...missing], {
