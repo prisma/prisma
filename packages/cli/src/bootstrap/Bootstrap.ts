@@ -22,6 +22,7 @@ import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, 
 import {
   downloadAndExtractTemplate,
   installDependencies,
+  installInitDependencies,
   isValidTemplateName,
   promptTemplateSelection,
 } from './template-scaffold'
@@ -171,7 +172,7 @@ ${bold('Examples')}
     await emitFlowStarted(telemetryCtx)
 
     let templateScaffolded = false
-    let autoMigrate = false
+    let initRan = false
     const isEmptyProject = !initialState.hasSchemaFile && !initialState.hasPackageJson
 
     // --- Step 1: Init or Template (mutually exclusive, only for from-scratch projects) ---
@@ -217,9 +218,8 @@ ${bold('Examples')}
           console.log(`${dim('  Falling back to prisma init...')}`)
           steps.template = 'failed'
           await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
-          const withModel = await this.askAboutSampleModel()
-          autoMigrate = withModel
-          await this.runInit(steps, stepsCompleted, telemetryCtx, config, withModel)
+          initRan = true
+          await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
         }
       } else if (isEmptyProject) {
         return new HelpError(
@@ -227,9 +227,8 @@ ${bold('Examples')}
         )
       } else {
         steps.template = 'not-applicable'
-        const withModel = await this.askAboutSampleModel()
-        autoMigrate = withModel
-        await this.runInit(steps, stepsCompleted, telemetryCtx, config, withModel)
+        initRan = true
+        await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
       }
     } else {
       steps.init = 'skipped'
@@ -263,15 +262,25 @@ ${bold('Examples')}
       throw err
     }
 
-    // --- Step 3: Install dependencies (after template scaffold) ---
+    // --- Step 3: Install dependencies ---
     //
     // Template projects include a package.json with all dependencies.
-    // Installing here brings the local `prisma` binary into node_modules,
-    // which is required for the migrate/generate/seed steps below.
+    // After init, prisma.config.ts depends on `dotenv` which must be installed.
+    // In both cases, installing here brings dependencies into node_modules
+    // before the migrate/generate/seed steps below.
     if (templateScaffolded) {
       const installSpinner = ora('Installing dependencies...').start()
       try {
         await installDependencies(baseDir)
+        installSpinner.succeed('Dependencies installed')
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
+      }
+    } else if (initRan && initialState.hasPackageJson) {
+      const installSpinner = ora('Installing dependencies...').start()
+      try {
+        await installInitDependencies(baseDir)
         installSpinner.succeed('Dependencies installed')
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
@@ -315,17 +324,14 @@ ${bold('Examples')}
     const localBin = localPrismaBin as string
 
     if (updatedState.hasModels) {
-      let shouldMigrate = autoMigrate
-      if (!shouldMigrate) {
-        const modelNames = getModelNames(baseDir)
-        const modelCount = modelNames.length
-        const modelSummary =
-          modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
-        shouldMigrate = await confirm({
-          message: `Apply${modelSummary} to database with prisma migrate dev?`,
-          default: true,
-        })
-      }
+      const modelNames = getModelNames(baseDir)
+      const modelCount = modelNames.length
+      const modelSummary =
+        modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
+      const shouldMigrate = await confirm({
+        message: `Apply${modelSummary} to database with prisma migrate dev?`,
+        default: true,
+      })
 
       if (shouldMigrate) {
         console.log(`\n${bold('Running migration...')}`)
@@ -467,7 +473,7 @@ ${bold('Examples')}
 
   private async askAboutSampleModel(): Promise<boolean> {
     return confirm({
-      message: 'Add a sample User model and apply it to your database?',
+      message: 'Add a sample User model to get started?',
       default: true,
     })
   }
