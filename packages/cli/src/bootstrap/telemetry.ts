@@ -1,4 +1,4 @@
-import type { LinkResult } from '../link/Link'
+import type { LinkResult } from '../postgres/link/Link'
 import { PosthogEventCapture } from '../utils/nps/capture'
 import type { ProjectState } from './project-state'
 
