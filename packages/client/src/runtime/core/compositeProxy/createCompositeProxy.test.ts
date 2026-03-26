@@ -1,4 +1,6 @@
-import util from 'util'
+import util from 'node:util'
+
+import { expect, test, vi } from 'vitest'
 
 import { createCompositeProxy } from './createCompositeProxy'
 
@@ -127,7 +129,7 @@ test('allows to hide properties via layers', () => {
 })
 
 test('does not add layers for undeclared keys', () => {
-  const getPropertyValue = jest.fn()
+  const getPropertyValue = vi.fn()
   const proxy = createCompositeProxy({} as Record<string, unknown>, [
     {
       getKeys() {
