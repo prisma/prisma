@@ -286,7 +286,7 @@ ${bold('Examples')}
       const envPath = path.join(baseDir, '.env')
       if (fs.existsSync(envPath)) {
         const envContent = fs.readFileSync(envPath, 'utf-8')
-        const match = envContent.match(/^DATABASE_URL=['"']?([^'"'\n]+)/m)
+        const match = envContent.match(/^DATABASE_URL=["']?([^"'\n]+)["']?/m)
         if (match) databaseUrl = match[1]
       }
     }
@@ -360,7 +360,6 @@ ${bold('Examples')}
     // files and no local binary exists yet.
     const localPrismaBin = findLocalPrismaBin(baseDir)
     const useLocalBin = localPrismaBin !== null && (initialState.hasSchemaFile || templateScaffolded)
-    const localBin = localPrismaBin as string
 
     if (updatedState.hasModels) {
       const modelNames = getModelNames(baseDir)
@@ -378,7 +377,7 @@ ${bold('Examples')}
 
         try {
           if (useLocalBin) {
-            runLocalPrismaCommand(localBin, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
+            runLocalPrismaCommand(localPrismaBin!, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
           } else {
             const migrateDev = MigrateDev.new()
             const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
@@ -420,7 +419,7 @@ ${bold('Examples')}
 
       try {
         if (useLocalBin) {
-          runLocalPrismaCommand(localBin, ['generate'], baseDir, subprocessEnv)
+          runLocalPrismaCommand(localPrismaBin!, ['generate'], baseDir, subprocessEnv)
         } else {
           const generate = Generate.new()
           const generateResult = await generate.parse([], activeConfig)
@@ -461,7 +460,7 @@ ${bold('Examples')}
 
         try {
           if (useLocalBin) {
-            runLocalPrismaCommand(localBin, ['db', 'seed'], baseDir, subprocessEnv)
+            runLocalPrismaCommand(localPrismaBin!, ['db', 'seed'], baseDir, subprocessEnv)
           } else {
             const dbSeed = DbSeed.new()
             const seedResult = await dbSeed.parse([], activeConfig)

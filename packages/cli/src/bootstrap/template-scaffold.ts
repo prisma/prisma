@@ -54,6 +54,7 @@ export async function downloadAndExtractTemplate(templateName: string, targetDir
   const response = await fetch(PRISMA_EXAMPLES_TARBALL_URL, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'prisma-cli' },
     redirect: 'follow',
+    signal: AbortSignal.timeout(30_000),
   })
 
   if (!response.ok || !response.body) {
