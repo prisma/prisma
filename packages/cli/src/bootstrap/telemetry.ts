@@ -62,14 +62,26 @@ export async function emitStepSkipped(ctx: TelemetryContext, stepName: string): 
 export async function emitStepFailed(ctx: TelemetryContext, stepName: string, error: string): Promise<void> {
   if (isTelemetryDisabled()) return
   try {
+    const errorCode = error.match(/^[A-Z]\d+:|Error code: ([A-Z]\d+)/)?.[1] ?? extractErrorClass(error)
     await eventCapture.capture(ctx.distinctId, 'activation:cli_step_failed', {
       ...baseProperties(ctx),
       step_name: stepName,
-      error_message: error,
+      error_code: errorCode,
     })
   } catch {
     // telemetry should never block the command
   }
+}
+
+function extractErrorClass(msg: string): string {
+  const prismaCode = msg.match(/P\d{4}/)?.[0]
+  if (prismaCode) return prismaCode
+  if (msg.includes('ENOENT')) return 'ENOENT'
+  if (msg.includes('EACCES')) return 'EACCES'
+  if (msg.includes('ETIMEDOUT') || msg.includes('timeout')) return 'TIMEOUT'
+  if (msg.includes('datasource')) return 'DATASOURCE_CONFIG'
+  if (msg.includes('authenticate') || msg.includes('credentials')) return 'AUTH'
+  return 'UNKNOWN'
 }
 
 export async function emitFlowCompleted(
