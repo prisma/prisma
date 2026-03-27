@@ -77,7 +77,7 @@ export async function downloadAndExtractTemplate(templateName: string, targetDir
       const relPath = stripFirstComponent(header.name)
       if (relPath?.startsWith(templatePrefix)) {
         const destPath = path.resolve(targetDir, relPath.slice(templatePrefix.length))
-        if (!destPath.startsWith(path.resolve(targetDir))) continue
+        if (!destPath.startsWith(path.resolve(targetDir) + path.sep)) continue
         fs.mkdirSync(path.dirname(destPath), { recursive: true })
         fs.writeFileSync(destPath, tarBuffer.subarray(offset, offset + header.size))
         filesExtracted++
@@ -156,5 +156,6 @@ export async function installDependencies(baseDir: string): Promise<void> {
   await execFileAsync(pm, ['install'], {
     cwd: baseDir,
     env: { ...process.env },
+    shell: process.platform === 'win32',
   })
 }

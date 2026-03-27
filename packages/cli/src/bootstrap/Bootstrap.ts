@@ -376,8 +376,8 @@ ${bold('Examples')}
         const migrateStart = performance.now()
 
         try {
-          if (useLocalBin) {
-            runLocalPrismaCommand(localPrismaBin!, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
+          if (useLocalBin && localPrismaBin) {
+            runLocalPrismaCommand(localPrismaBin, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
           } else {
             const migrateDev = MigrateDev.new()
             const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
@@ -418,8 +418,8 @@ ${bold('Examples')}
       const generateStart = performance.now()
 
       try {
-        if (useLocalBin) {
-          runLocalPrismaCommand(localPrismaBin!, ['generate'], baseDir, subprocessEnv)
+        if (useLocalBin && localPrismaBin) {
+          runLocalPrismaCommand(localPrismaBin, ['generate'], baseDir, subprocessEnv)
         } else {
           const generate = Generate.new()
           const generateResult = await generate.parse([], activeConfig)
@@ -459,8 +459,8 @@ ${bold('Examples')}
         const seedStart = performance.now()
 
         try {
-          if (useLocalBin) {
-            runLocalPrismaCommand(localPrismaBin!, ['db', 'seed'], baseDir, subprocessEnv)
+          if (useLocalBin && localPrismaBin) {
+            runLocalPrismaCommand(localPrismaBin, ['db', 'seed'], baseDir, subprocessEnv)
           } else {
             const dbSeed = DbSeed.new()
             const seedResult = await dbSeed.parse([], activeConfig)
