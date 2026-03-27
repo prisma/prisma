@@ -139,6 +139,25 @@ describe('generator', () => {
     const clientDir = path.join(__dirname, 'generated')
     expect(fs.existsSync(clientDir)).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
+
+    generator.stop()
+  })
+
+  test('emits portable typed null singleton exports in the browser namespace', async () => {
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'schema.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    const clientDir = path.join(__dirname, 'generated')
+    const browserNamespace = fs.readFileSync(path.join(clientDir, 'internal', 'prismaNamespaceBrowser.ts'), 'utf8')
+    expect(browserNamespace).toContain('export const DbNull: typeof runtime.DbNull = runtime.DbNull')
+    expect(browserNamespace).toContain('export const JsonNull: typeof runtime.JsonNull = runtime.JsonNull')
+    expect(browserNamespace).toContain('export const AnyNull: typeof runtime.AnyNull = runtime.AnyNull')
+
     generator.stop()
   })
 
