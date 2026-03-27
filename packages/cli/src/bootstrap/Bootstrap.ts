@@ -15,6 +15,7 @@ import ora from 'ora'
 import { Generate } from '../Generate'
 import { Init } from '../Init'
 import { Link, type LinkResult } from '../postgres/link/Link'
+import { isAlreadyLinked } from '../postgres/link/local-setup'
 import { LinkApiError, sanitizeErrorMessage } from '../postgres/link/management-api'
 import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
@@ -22,7 +23,6 @@ import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, 
 import {
   downloadAndExtractTemplate,
   installDependencies,
-  installInitDependencies,
   isValidTemplateName,
   promptTemplateSelection,
 } from './template-scaffold'
@@ -237,40 +237,37 @@ ${bold('Examples')}
     }
 
     // --- Step 2: Link ---
-    console.log(`\n${bold('Linking to Prisma Postgres...')}`)
-    const linkStart = performance.now()
+    if (!force && isAlreadyLinked(baseDir)) {
+      console.log(`\n${green('✔')} Already linked to Prisma Postgres`)
+      steps.link = 'skipped'
+      await emitStepSkipped(telemetryCtx, 'link')
+    } else {
+      console.log(`\n${bold('Linking to Prisma Postgres...')}`)
+      const linkStart = performance.now()
 
-    try {
-      const link = Link.new()
-      const linkResult = await link.link(apiKey, databaseId, baseDir, { force })
+      try {
+        const link = Link.new()
+        const linkResult = await link.link(apiKey, databaseId, baseDir, { force })
 
-      steps.link = 'completed'
-      stepsCompleted.push('link')
-      telemetryCtx.linkResult = linkResult
-      telemetryCtx.databaseId = linkResult.databaseId
-      await emitStepCompleted(telemetryCtx, 'link', performance.now() - linkStart)
+        steps.link = 'completed'
+        stepsCompleted.push('link')
+        telemetryCtx.linkResult = linkResult
+        telemetryCtx.databaseId = linkResult.databaseId
+        await emitStepCompleted(telemetryCtx, 'link', performance.now() - linkStart)
 
-      console.log(`${green('✔')} Linked to database ${bold(linkResult.databaseId)}`)
-    } catch (err) {
-      if (err instanceof LinkApiError && err.message.includes('already linked')) {
-        return new HelpError(
-          `\n${yellow('!')} This project is already connected to Prisma Postgres.\n\nTo re-run bootstrap, use the ${bold('--force')} flag:\n  ${dim('$')} npx prisma bootstrap --force`,
-        )
+        console.log(`${green('✔')} Linked to database ${bold(linkResult.databaseId)}`)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        await emitStepFailed(telemetryCtx, 'link', sanitizeErrorMessage(msg))
+        throw err
       }
-      const msg = err instanceof Error ? err.message : String(err)
-      await emitStepFailed(telemetryCtx, 'link', sanitizeErrorMessage(msg))
-      throw err
     }
 
-    // --- Step 3: Install dependencies ---
+    // --- Step 3: Install dependencies (template path only) ---
     //
-    // Template path: run a full `<pm> install` since the template's package.json
-    // lists everything the project needs.
-    //
-    // Non-template path (init or existing project): ensure the minimal Prisma
-    // dependencies (`dotenv`, `prisma`) are present. These are required by the
-    // generated prisma.config.ts and for migrate/generate/studio to work.
-    // installInitDependencies skips packages already in node_modules.
+    // Template projects include a package.json with all dependencies.
+    // Installing here brings the local `prisma` binary into node_modules,
+    // which is required for the migrate/generate/seed steps below.
     if (templateScaffolded) {
       const installSpinner = ora('Installing dependencies...').start()
       try {
@@ -280,25 +277,19 @@ ${bold('Examples')}
         const msg = err instanceof Error ? err.message : String(err)
         installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
       }
-    } else if (initialState.hasPackageJson) {
-      const installSpinner = ora('Installing Prisma dependencies...').start()
-      try {
-        const installed = await installInitDependencies(baseDir)
-        if (installed) {
-          installSpinner.succeed('Prisma dependencies installed')
-        } else {
-          installSpinner.stop()
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
-      }
     }
 
     // Ensure DATABASE_URL is available for config loading and subprocesses.
-    // The link step wrote it to .env, but dotenv may not be imported (bun
-    // config) or not yet installed. Setting it directly is the reliable path.
-    const databaseUrl = telemetryCtx.linkResult?.connectionString
+    // Read from the link result if we just linked, or from .env if already linked.
+    let databaseUrl = telemetryCtx.linkResult?.connectionString
+    if (!databaseUrl) {
+      const envPath = path.join(baseDir, '.env')
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, 'utf-8')
+        const match = envContent.match(/^DATABASE_URL=['"']?([^'"'\n]+)/m)
+        if (match) databaseUrl = match[1]
+      }
+    }
     if (databaseUrl) {
       process.env.DATABASE_URL = databaseUrl
     }
@@ -317,6 +308,36 @@ ${bold('Examples')}
         }
       } catch {
         console.log(`${yellow('warn')} Could not reload config — using initial config for migrate/seed`)
+      }
+    }
+
+    // --- Deps gate: check if Prisma dependencies are available ---
+    //
+    // For non-template projects, bootstrap does not install dependencies — that's
+    // the user's responsibility. But migrate/generate/seed require `dotenv` and
+    // `prisma` to be installed. If they're missing, we stop here with instructions.
+    if (!templateScaffolded) {
+      const missingDeps: string[] = []
+      for (const pkg of ['dotenv', 'prisma']) {
+        if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
+          missingDeps.push(pkg)
+        }
+      }
+
+      if (missingDeps.length > 0) {
+        console.log(`\n${yellow('!')} Missing dependencies required by Prisma: ${bold(missingDeps.join(', '))}`)
+        console.log(
+          `  Install them as dev dependencies with your package manager, then re-run ${bold('prisma bootstrap')}.`,
+        )
+
+        await emitFlowCompleted(telemetryCtx, stepsCompleted, performance.now() - flowStart)
+
+        return formatBootstrapOutput({
+          databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
+          isNewProject: !initialState.hasPackageJson,
+          steps,
+          hasModels: updatedState.hasModels,
+        })
       }
     }
 
