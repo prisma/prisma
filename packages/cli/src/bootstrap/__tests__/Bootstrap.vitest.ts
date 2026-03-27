@@ -153,6 +153,8 @@ describe('Bootstrap command — help and validation', () => {
 
 describe('Bootstrap command — new project flow', () => {
   test('runs init when user declines template, then links', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
 
@@ -194,6 +196,8 @@ describe('Bootstrap command — new project flow', () => {
   })
 
   test('falls back to init when template download fails', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
 
@@ -273,6 +277,8 @@ model User { id Int @id }
 
 describe('Bootstrap command — error handling', () => {
   test('returns error on API failure', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+
     mockSdkClient.POST.mockResolvedValueOnce({
       data: undefined,
       error: { error: { code: 'unauthorized', message: 'Unauthorized' } },
