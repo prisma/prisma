@@ -283,8 +283,12 @@ ${bold('Examples')}
     } else if (initialState.hasPackageJson) {
       const installSpinner = ora('Installing Prisma dependencies...').start()
       try {
-        await installInitDependencies(baseDir)
-        installSpinner.succeed('Prisma dependencies installed')
+        const installed = await installInitDependencies(baseDir)
+        if (installed) {
+          installSpinner.succeed('Prisma dependencies installed')
+        } else {
+          installSpinner.stop()
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)

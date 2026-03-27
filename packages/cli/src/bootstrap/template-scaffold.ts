@@ -157,10 +157,10 @@ export async function installDependencies(baseDir: string): Promise<void> {
   })
 }
 
-export async function installInitDependencies(baseDir: string): Promise<void> {
+export async function installInitDependencies(baseDir: string): Promise<boolean> {
   const pm = detectPackageManager(baseDir)
 
-  if (pm === 'bun' || pm === 'deno') return
+  if (pm === 'deno') return false
 
   const missing: string[] = []
   for (const pkg of ['dotenv', 'prisma']) {
@@ -168,12 +168,14 @@ export async function installInitDependencies(baseDir: string): Promise<void> {
       missing.push(pkg)
     }
   }
-  if (missing.length === 0) return
+  if (missing.length === 0) return false
 
-  const addCmd = pm === 'yarn' ? 'add' : 'install'
-  const devFlag = pm === 'yarn' ? '--dev' : '--save-dev'
+  const useAdd = pm === 'yarn' || pm === 'bun' || pm === 'pnpm'
+  const addCmd = useAdd ? 'add' : 'install'
+  const devFlag = pm === 'yarn' || pm === 'bun' ? '--dev' : '--save-dev'
   await execFileAsync(pm, [addCmd, devFlag, ...missing], {
     cwd: baseDir,
     env: { ...process.env },
   })
+  return true
 }
