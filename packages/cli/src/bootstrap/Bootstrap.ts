@@ -313,32 +313,34 @@ ${bold('Examples')}
 
     // --- Deps gate: check if Prisma dependencies are available ---
     //
-    // For non-template projects, bootstrap does not install dependencies — that's
-    // the user's responsibility. But migrate/generate/seed require `dotenv` and
-    // `prisma` to be installed. If they're missing, we stop here with instructions.
+    // The generated prisma.config.ts imports dotenv/config, and migrate/generate
+    // shell out to the local prisma binary when a schema file exists. Both must
+    // be installed for subsequent steps to work.
+    // Bootstrap doesn't install deps — that's the user's responsibility.
+    const missingDeps: string[] = []
     if (!templateScaffolded) {
-      const missingDeps: string[] = []
       for (const pkg of ['dotenv', 'prisma']) {
         if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
           missingDeps.push(pkg)
         }
       }
+    }
+    const needsDepsInstall = missingDeps.length > 0
 
-      if (missingDeps.length > 0) {
-        console.log(`\n${yellow('!')} Missing dependencies required by Prisma: ${bold(missingDeps.join(', '))}`)
-        console.log(
-          `  Install them as dev dependencies with your package manager, then re-run ${bold('prisma bootstrap')}.`,
-        )
+    if (needsDepsInstall) {
+      console.log(`\n${yellow('!')} Missing dependencies required by Prisma: ${bold(missingDeps.join(', '))}`)
+      console.log(`  Install them as dev dependencies with your package manager, then re-run:`)
+      console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
 
-        await emitFlowCompleted(telemetryCtx, stepsCompleted, performance.now() - flowStart)
+      await emitFlowCompleted(telemetryCtx, stepsCompleted, performance.now() - flowStart)
 
-        return formatBootstrapOutput({
-          databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
-          isNewProject: !initialState.hasPackageJson,
-          steps,
-          hasModels: updatedState.hasModels,
-        })
-      }
+      return formatBootstrapOutput({
+        databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
+        isNewProject: !initialState.hasPackageJson,
+        steps,
+        hasModels: updatedState.hasModels,
+        pendingDepsInstall: true,
+      })
     }
 
     // --- Step 4: Migrate (if schema has models) ---

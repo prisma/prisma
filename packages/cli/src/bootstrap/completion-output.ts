@@ -42,6 +42,7 @@ export function formatBootstrapOutput(opts: {
   isNewProject: boolean
   steps: BootstrapStepStatus
   hasModels: boolean
+  pendingDepsInstall?: boolean
 }): string {
   const lines: string[] = []
 
@@ -55,6 +56,14 @@ export function formatBootstrapOutput(opts: {
   lines.push(`  ${statusIcon(opts.steps.migrate)}  Migration    ${statusLabel(opts.steps.migrate)}`)
   lines.push(`  ${statusIcon(opts.steps.seed)}  Seed         ${statusLabel(opts.steps.seed)}`)
   lines.push('')
+
+  if (opts.pendingDepsInstall) {
+    lines.push(bold('Next steps:'))
+    lines.push(`  1. Install ${bold('dotenv')} and ${bold('prisma')} as dev dependencies with your package manager`)
+    lines.push(`  2. Re-run ${green('npx prisma@latest bootstrap')} to finish setup`)
+    lines.push('')
+    return lines.join('\n')
+  }
 
   lines.push(bold('Next steps:'))
 
