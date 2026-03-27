@@ -156,26 +156,3 @@ export async function installDependencies(baseDir: string): Promise<void> {
     env: { ...process.env },
   })
 }
-
-export async function installInitDependencies(baseDir: string): Promise<boolean> {
-  const pm = detectPackageManager(baseDir)
-
-  if (pm === 'deno') return false
-
-  const missing: string[] = []
-  for (const pkg of ['dotenv', 'prisma']) {
-    if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
-      missing.push(pkg)
-    }
-  }
-  if (missing.length === 0) return false
-
-  const useAdd = pm === 'yarn' || pm === 'bun' || pm === 'pnpm'
-  const addCmd = useAdd ? 'add' : 'install'
-  const devFlag = pm === 'yarn' || pm === 'bun' ? '--dev' : '--save-dev'
-  await execFileAsync(pm, [addCmd, devFlag, ...missing], {
-    cwd: baseDir,
-    env: { ...process.env },
-  })
-  return true
-}

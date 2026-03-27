@@ -6,7 +6,7 @@ type StepResult = 'completed' | 'skipped' | 'not-applicable' | 'failed'
 export interface BootstrapStepStatus {
   init: 'completed' | 'skipped'
   template: StepResult
-  link: 'completed' | 'failed'
+  link: 'completed' | 'skipped' | 'failed'
   generate: StepResult
   migrate: StepResult
   seed: StepResult
