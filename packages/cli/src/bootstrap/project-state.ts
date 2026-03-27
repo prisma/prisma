@@ -55,9 +55,13 @@ function checkSeedInPrismaConfig(baseDir: string): boolean {
 export function getModelNames(baseDir: string): string[] {
   const schemaPath = findSchemaPath(baseDir)
   if (!schemaPath) return []
-  const content = fs.readFileSync(schemaPath, 'utf-8')
-  const matches = content.matchAll(/^\s*model\s+(\w+)/gm)
-  return Array.from(matches, (m) => m[1])
+  try {
+    const content = fs.readFileSync(schemaPath, 'utf-8')
+    const matches = content.matchAll(/^\s*model\s+(\w+)/gm)
+    return Array.from(matches, (m) => m[1])
+  } catch {
+    return []
+  }
 }
 
 export function getSeedCommand(baseDir: string): string | null {
@@ -89,8 +93,10 @@ export function detectProjectState(baseDir: string): ProjectState {
   let hasModels = false
 
   if (schemaPath) {
-    const content = fs.readFileSync(schemaPath, 'utf-8')
-    hasModels = MODEL_PATTERN.test(content)
+    try {
+      const content = fs.readFileSync(schemaPath, 'utf-8')
+      hasModels = MODEL_PATTERN.test(content)
+    } catch {}
   }
 
   return {
