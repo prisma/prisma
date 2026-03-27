@@ -76,7 +76,8 @@ export async function downloadAndExtractTemplate(templateName: string, targetDir
     if (header.type === '0' || header.type === '') {
       const relPath = stripFirstComponent(header.name)
       if (relPath?.startsWith(templatePrefix)) {
-        const destPath = path.join(targetDir, relPath.slice(templatePrefix.length))
+        const destPath = path.resolve(targetDir, relPath.slice(templatePrefix.length))
+        if (!destPath.startsWith(path.resolve(targetDir))) continue
         fs.mkdirSync(path.dirname(destPath), { recursive: true })
         fs.writeFileSync(destPath, tarBuffer.subarray(offset, offset + header.size))
         filesExtracted++

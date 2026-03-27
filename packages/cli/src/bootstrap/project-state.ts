@@ -32,7 +32,7 @@ function checkSeedInPackageJson(baseDir: string): boolean {
 
   try {
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-    return typeof pkg.prisma?.seed === 'string' && pkg.prisma.seed.length > 0
+    return typeof pkg.prisma?.seed === 'string' && pkg.prisma.seed.trim().length > 0
   } catch {
     return false
   }
@@ -65,8 +65,8 @@ export function getSeedCommand(baseDir: string): string | null {
   if (fs.existsSync(packageJsonPath)) {
     try {
       const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-      if (typeof pkg.prisma?.seed === 'string' && pkg.prisma.seed.length > 0) {
-        return pkg.prisma.seed
+      if (typeof pkg.prisma?.seed === 'string' && pkg.prisma.seed.trim().length > 0) {
+        return pkg.prisma.seed.trim()
       }
     } catch {}
   }

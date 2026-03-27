@@ -103,7 +103,10 @@ async function resolveDatabase(client: ManagementApiClient): Promise<DatabaseSel
 
 function extractWorkspaceIdFromToken(token: string): string | null {
   try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString())
+    const parts = token.split('.')
+    if (parts.length < 2 || !parts[1]) return null
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+    if (typeof payload !== 'object' || payload === null) return null
     return payload.workspace_id ?? payload.workspaceId ?? null
   } catch {
     return null

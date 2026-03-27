@@ -2,6 +2,10 @@ import type { LinkResult } from '../postgres/link/Link'
 import { PosthogEventCapture } from '../utils/nps/capture'
 import type { ProjectState } from './project-state'
 
+function isTelemetryDisabled(): boolean {
+  return Boolean(process.env.CHECKPOINT_DISABLE)
+}
+
 const eventCapture = new PosthogEventCapture()
 
 interface TelemetryContext {
@@ -22,6 +26,7 @@ function baseProperties(ctx: TelemetryContext): Record<string, unknown> {
 }
 
 export async function emitFlowStarted(ctx: TelemetryContext): Promise<void> {
+  if (isTelemetryDisabled()) return
   try {
     await eventCapture.capture(ctx.distinctId, 'activation:cli_flow_started', baseProperties(ctx))
   } catch {
@@ -30,6 +35,7 @@ export async function emitFlowStarted(ctx: TelemetryContext): Promise<void> {
 }
 
 export async function emitStepCompleted(ctx: TelemetryContext, stepName: string, durationMs: number): Promise<void> {
+  if (isTelemetryDisabled()) return
   try {
     await eventCapture.capture(ctx.distinctId, 'activation:cli_step_completed', {
       ...baseProperties(ctx),
@@ -42,6 +48,7 @@ export async function emitStepCompleted(ctx: TelemetryContext, stepName: string,
 }
 
 export async function emitStepSkipped(ctx: TelemetryContext, stepName: string): Promise<void> {
+  if (isTelemetryDisabled()) return
   try {
     await eventCapture.capture(ctx.distinctId, 'activation:cli_step_skipped', {
       ...baseProperties(ctx),
@@ -53,6 +60,7 @@ export async function emitStepSkipped(ctx: TelemetryContext, stepName: string): 
 }
 
 export async function emitStepFailed(ctx: TelemetryContext, stepName: string, error: string): Promise<void> {
+  if (isTelemetryDisabled()) return
   try {
     await eventCapture.capture(ctx.distinctId, 'activation:cli_step_failed', {
       ...baseProperties(ctx),
@@ -69,6 +77,7 @@ export async function emitFlowCompleted(
   stepsCompleted: string[],
   durationMs: number,
 ): Promise<void> {
+  if (isTelemetryDisabled()) return
   try {
     await eventCapture.capture(ctx.distinctId, 'activation:cli_flow_completed', {
       ...baseProperties(ctx),
