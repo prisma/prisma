@@ -41,11 +41,11 @@ function findLocalPrismaBin(baseDir: string): string | null {
  * Uses execFileSync (no shell) to avoid shell injection risks.
  * Inherits stdio so the user sees real-time output from migrate/seed.
  */
-function runLocalPrismaCommand(bin: string, args: string[], baseDir: string): void {
+function runLocalPrismaCommand(bin: string, args: string[], baseDir: string, extraEnv?: Record<string, string>): void {
   execFileSync(bin, args, {
     cwd: baseDir,
     stdio: 'inherit',
-    env: { ...process.env },
+    env: { ...process.env, ...extraEnv },
   })
 }
 
@@ -295,6 +295,15 @@ ${bold('Examples')}
       }
     }
 
+    // Ensure DATABASE_URL is available for config loading and subprocesses.
+    // The link step wrote it to .env, but dotenv may not be imported (bun
+    // config) or not yet installed. Setting it directly is the reliable path.
+    const databaseUrl = telemetryCtx.linkResult?.connectionString
+    if (databaseUrl) {
+      process.env.DATABASE_URL = databaseUrl
+    }
+    const subprocessEnv: Record<string, string> = databaseUrl ? { DATABASE_URL: databaseUrl } : {}
+
     // Re-detect project state after init/template + link may have changed files
     const updatedState = detectProjectState(baseDir)
 
@@ -346,7 +355,7 @@ ${bold('Examples')}
 
         try {
           if (useLocalBin) {
-            runLocalPrismaCommand(localBin, ['migrate', 'dev', '--name', 'init'], baseDir)
+            runLocalPrismaCommand(localBin, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
           } else {
             const migrateDev = MigrateDev.new()
             const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
@@ -388,7 +397,7 @@ ${bold('Examples')}
 
       try {
         if (useLocalBin) {
-          runLocalPrismaCommand(localBin, ['generate'], baseDir)
+          runLocalPrismaCommand(localBin, ['generate'], baseDir, subprocessEnv)
         } else {
           const generate = Generate.new()
           const generateResult = await generate.parse([], activeConfig)
@@ -429,7 +438,7 @@ ${bold('Examples')}
 
         try {
           if (useLocalBin) {
-            runLocalPrismaCommand(localBin, ['db', 'seed'], baseDir)
+            runLocalPrismaCommand(localBin, ['db', 'seed'], baseDir, subprocessEnv)
           } else {
             const dbSeed = DbSeed.new()
             const seedResult = await dbSeed.parse([], activeConfig)
