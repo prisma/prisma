@@ -436,6 +436,36 @@ describe('parameterizeQuery', () => {
       })
     })
 
+    it('serializes non-finite Decimal tagged values nested inside Json inputs as null', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                positiveInfinity: { $type: 'Decimal', value: 'Infinity' },
+                negativeInfinity: { $type: 'Decimal', value: '-Infinity' },
+                notANumber: { $type: 'Decimal', value: 'NaN' },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"positiveInfinity":null,"negativeInfinity":null,"notANumber":null}',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
+
     it('serializes sparse Json arrays with holes as null entries', () => {
       const properties: any[] = []
       properties[0] = 1

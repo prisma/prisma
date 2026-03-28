@@ -429,7 +429,7 @@ function serializeJsonValue(value: unknown, seen: Set<object>): string {
   }
 
   if (Decimal.isDecimal(value)) {
-    return value.toFixed()
+    return value.isFinite() ? value.toFixed() : 'null'
   }
 
   if (value instanceof Date) {
