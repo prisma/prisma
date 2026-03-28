@@ -88,23 +88,26 @@ const registry = {
 } satisfies GeneratorRegistry
 
 describe('generator', () => {
-  test('detects package-local deno config from the generated output directory', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-client-generator-'))
+  test.each(['deno.json', 'deno.jsonc'])(
+    'detects package-local %s from the generated output directory',
+    (configFileName) => {
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-client-generator-'))
 
-    try {
-      const packageDir = path.join(tempDir, 'packages', 'worker-app')
-      const outputDir = path.join(packageDir, 'generated')
+      try {
+        const packageDir = path.join(tempDir, 'packages', 'worker-app')
+        const outputDir = path.join(packageDir, 'generated')
 
-      fs.mkdirSync(outputDir, { recursive: true })
-      fs.writeFileSync(path.join(tempDir, 'tsconfig.json'), '{}')
-      fs.writeFileSync(path.join(packageDir, 'deno.json'), '{}')
+        fs.mkdirSync(outputDir, { recursive: true })
+        fs.writeFileSync(path.join(tempDir, 'tsconfig.json'), '{}')
+        fs.writeFileSync(path.join(packageDir, configFileName), '{}')
 
-      expect(findDenoConfigFromOutputDir(outputDir)).toBe(true)
-      expect(findDenoConfigFromOutputDir(path.dirname(path.join(tempDir, 'tsconfig.json')))).toBe(false)
-    } finally {
-      fs.rmSync(tempDir, { recursive: true, force: true })
-    }
-  })
+        expect(findDenoConfigFromOutputDir(outputDir)).toBe(true)
+        expect(findDenoConfigFromOutputDir(path.dirname(path.join(tempDir, 'tsconfig.json')))).toBe(false)
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true })
+      }
+    },
+  )
 
   test('minimal', async () => {
     const generator = await getGenerator({
