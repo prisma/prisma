@@ -1,6 +1,3 @@
-import fs from 'node:fs'
-import path from 'node:path'
-
 import { enginesVersion } from '@prisma/engines-version'
 import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { parseEnvValue } from '@prisma/internals'
@@ -8,6 +5,7 @@ import { getTsconfig } from 'get-tsconfig'
 import { bold, dim, green } from 'kleur/colors'
 
 import { version as clientVersion } from '../package.json'
+import { findDenoConfigFromOutputDir } from './deno-config'
 import { inferImportFileExtension, parseGeneratedFileExtension, parseImportFileExtension } from './file-extensions'
 import { generateClient } from './generateClient'
 import { inferModuleFormat, parseModuleFormatFromUnknown } from './module-format'
@@ -46,11 +44,10 @@ export class PrismaClientTsGenerator implements Generator {
   async generate(options: GeneratorOptions): Promise<void> {
     const { config } = options.generator
     const outputDir = getOutputPath(options.generator)
-    const tsconfigResult = getTsconfig(outputDir)
-    const tsconfig = tsconfigResult?.config
+    const tsconfig = getTsconfig(outputDir)?.config
 
     const target = config.runtime !== undefined ? parseRuntimeTargetFromUnknown(config.runtime) : 'nodejs'
-    const hasDenoConfig = target === 'workerd' ? findDenoConfig(path.dirname(tsconfigResult?.path ?? outputDir)) : false
+    const hasDenoConfig = target === 'workerd' ? findDenoConfigFromOutputDir(outputDir) : false
 
     const generatedFileExtension =
       config.generatedFileExtension !== undefined ? parseGeneratedFileExtension(config.generatedFileExtension) : 'ts'
@@ -94,26 +91,6 @@ export class PrismaClientTsGenerator implements Generator {
       tsNoCheckPreamble: true, // Set to false only during internal tests
       compilerBuild: parseCompilerBuildFromUnknown(options.generator.config.compilerBuild, target),
     })
-  }
-}
-
-/**
- * Walks upward from the generated output directory to detect native Deno
- * projects via a nearby `deno.json` or `deno.jsonc`.
- */
-function findDenoConfig(startDir: string): boolean {
-  let currentDir = path.resolve(startDir)
-
-  while (true) {
-    if (fs.existsSync(path.join(currentDir, 'deno.json')) || fs.existsSync(path.join(currentDir, 'deno.jsonc'))) {
-      return true
-    }
-
-    const parentDir = path.dirname(currentDir)
-    if (parentDir === currentDir) {
-      return false
-    }
-    currentDir = parentDir
   }
 }
 

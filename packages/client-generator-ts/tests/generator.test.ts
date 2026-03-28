@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
@@ -6,6 +7,7 @@ import { omit } from '@prisma/client-common'
 import { GeneratorRegistry, getGenerator, parseEnvValue } from '@prisma/internals'
 import { describe, expect, test } from 'vitest'
 
+import { findDenoConfigFromOutputDir } from '../src/deno-config'
 import { PrismaClientTsGenerator } from '../src/generator'
 
 function addSnapshotPathSanitizer({
@@ -86,6 +88,24 @@ const registry = {
 } satisfies GeneratorRegistry
 
 describe('generator', () => {
+  test('detects package-local deno config from the generated output directory', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-client-generator-'))
+
+    try {
+      const packageDir = path.join(tempDir, 'packages', 'worker-app')
+      const outputDir = path.join(packageDir, 'generated')
+
+      fs.mkdirSync(outputDir, { recursive: true })
+      fs.writeFileSync(path.join(tempDir, 'tsconfig.json'), '{}')
+      fs.writeFileSync(path.join(packageDir, 'deno.json'), '{}')
+
+      expect(findDenoConfigFromOutputDir(outputDir)).toBe(true)
+      expect(findDenoConfigFromOutputDir(path.dirname(path.join(tempDir, 'tsconfig.json')))).toBe(false)
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true })
+    }
+  })
+
   test('minimal', async () => {
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
