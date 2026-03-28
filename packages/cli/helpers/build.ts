@@ -6,7 +6,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { writeCliTypesStub } from './writeCliTypesStub'
+import { writeCliTypesStub } from './write-cli-types-stub'
 
 /**
  * Manages the extra actions that are needed for the CLI to work

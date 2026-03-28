@@ -3,7 +3,7 @@ import { createRequire } from 'module'
 import os from 'os'
 import path from 'path'
 
-import { cliTypesStubContents, writeCliTypesStub } from '../../helpers/writeCliTypesStub'
+import { cliTypesStubContents, writeCliTypesStub } from '../../helpers/write-cli-types-stub'
 
 const cliPackageJson = require('../../package.json')
 
