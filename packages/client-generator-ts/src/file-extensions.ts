@@ -61,14 +61,22 @@ type InferImportFileExtensionOptions = {
   tsconfig: TsConfigJsonResolved | undefined
   generatedFileExtension: GeneratedFileExtension
   target: RuntimeTargetInternal
+  hasDenoConfig?: boolean
 }
 
 export function inferImportFileExtension({
   tsconfig,
   generatedFileExtension,
   target,
+  hasDenoConfig,
 }: InferImportFileExtensionOptions): ImportFileExtension {
   if (target === 'deno') {
+    return generatedFileExtension
+  }
+
+  // Native Deno projects still require explicit relative TypeScript extensions
+  // even when using the Cloudflare runtime target.
+  if (target === 'workerd' && hasDenoConfig) {
     return generatedFileExtension
   }
 

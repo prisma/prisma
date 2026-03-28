@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { enginesVersion } from '@prisma/engines-version'
 import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { parseEnvValue } from '@prisma/internals'
@@ -43,9 +46,11 @@ export class PrismaClientTsGenerator implements Generator {
   async generate(options: GeneratorOptions): Promise<void> {
     const { config } = options.generator
     const outputDir = getOutputPath(options.generator)
-    const tsconfig = getTsconfig(outputDir)?.config
+    const tsconfigResult = getTsconfig(outputDir)
+    const tsconfig = tsconfigResult?.config
 
     const target = config.runtime !== undefined ? parseRuntimeTargetFromUnknown(config.runtime) : 'nodejs'
+    const hasDenoConfig = target === 'workerd' ? findDenoConfig(path.dirname(tsconfigResult?.path ?? outputDir)) : false
 
     const generatedFileExtension =
       config.generatedFileExtension !== undefined ? parseGeneratedFileExtension(config.generatedFileExtension) : 'ts'
@@ -57,6 +62,7 @@ export class PrismaClientTsGenerator implements Generator {
             tsconfig,
             generatedFileExtension,
             target,
+            hasDenoConfig,
           })
 
     const moduleFormat =
@@ -88,6 +94,22 @@ export class PrismaClientTsGenerator implements Generator {
       tsNoCheckPreamble: true, // Set to false only during internal tests
       compilerBuild: parseCompilerBuildFromUnknown(options.generator.config.compilerBuild, target),
     })
+  }
+}
+
+function findDenoConfig(startDir: string): boolean {
+  let currentDir = path.resolve(startDir)
+
+  while (true) {
+    if (fs.existsSync(path.join(currentDir, 'deno.json')) || fs.existsSync(path.join(currentDir, 'deno.jsonc'))) {
+      return true
+    }
+
+    const parentDir = path.dirname(currentDir)
+    if (parentDir === currentDir) {
+      return false
+    }
+    currentDir = parentDir
   }
 }
 
