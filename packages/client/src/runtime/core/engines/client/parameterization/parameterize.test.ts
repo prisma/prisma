@@ -30,6 +30,7 @@ describe('parameterizeQuery', () => {
       'status',
       'Status',
       'createdAt',
+      'properties',
     ],
     inputNodes: [
       // Node 0: UserWhereInput
@@ -62,6 +63,7 @@ describe('parameterizeQuery', () => {
           1: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // id
           2: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // email
           3: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // name
+          14: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.Json }, // properties
         },
       },
       // Node 4: CreateUserArgs
@@ -403,6 +405,34 @@ describe('parameterizeQuery', () => {
         '%1': '123',
         '%2': 'test@example.com',
         '%3': 'John',
+      })
+    })
+
+    it('serializes Decimal tagged values nested inside Json inputs as JSON numbers', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                someDecimal: { $type: 'Decimal', value: '-11000' },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"someDecimal":-11000}',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
       })
     })
   })
