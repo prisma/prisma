@@ -408,7 +408,7 @@ function stringifyJsonPlaceholderValue(value: unknown): string {
   return serializeJsonValue(value, new Set())
 }
 
-function serializeJsonValue(value: unknown, seen: Set<object>): string {
+function serializeJsonValue(value: unknown, seen: Set<object>, applyToJson = true): string {
   if (value === null) {
     return 'null'
   }
@@ -459,13 +459,13 @@ function serializeJsonValue(value: unknown, seen: Set<object>): string {
 
   const objectValue = value as Record<string, unknown> & { toJSON?: () => unknown }
 
-  if (typeof objectValue.toJSON === 'function') {
+  if (applyToJson && typeof objectValue.toJSON === 'function') {
     const jsonValue = objectValue.toJSON()
 
     // Match JSON.stringify: if toJSON returns the same object, serialize its
     // enumerable properties instead of recursing forever through toJSON().
     if (jsonValue !== objectValue) {
-      return serializeJsonValue(jsonValue, seen)
+      return serializeJsonValue(jsonValue, seen, false)
     }
   }
 

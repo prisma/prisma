@@ -1,3 +1,4 @@
+import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -11,7 +12,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model ModelWithJson {
-      id         String @id
+      id         ${idForProvider(provider)}
       properties Json
     }
   `
