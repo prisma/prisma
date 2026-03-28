@@ -6,7 +6,7 @@
  * both schema rules and runtime value types agree.
  */
 
-import { deserializeJsonObject, safeJsonStringify } from '@prisma/client-engine-runtime'
+import { deserializeJsonObject } from '@prisma/client-engine-runtime'
 import { Decimal } from '@prisma/client-runtime-utils'
 import type {
   JsonArgumentValue,
@@ -447,7 +447,11 @@ function serializeJsonValue(value: unknown, seen: Set<object>): string {
 
     seen.add(value)
     try {
-      return `[${value.map((item) => serializeJsonValue(item, seen)).join(',')}]`
+      const serializedItems = Array.from({ length: value.length }, (_, index) =>
+        index in value ? serializeJsonValue(value[index], seen) : 'null',
+      )
+
+      return `[${serializedItems.join(',')}]`
     } finally {
       seen.delete(value)
     }
@@ -456,7 +460,13 @@ function serializeJsonValue(value: unknown, seen: Set<object>): string {
   const objectValue = value as Record<string, unknown> & { toJSON?: () => unknown }
 
   if (typeof objectValue.toJSON === 'function') {
-    return serializeJsonValue(objectValue.toJSON(), seen)
+    const jsonValue = objectValue.toJSON()
+
+    // Match JSON.stringify: if toJSON returns the same object, serialize its
+    // enumerable properties instead of recursing forever through toJSON().
+    if (jsonValue !== objectValue) {
+      return serializeJsonValue(jsonValue, seen)
+    }
   }
 
   if (seen.has(objectValue)) {

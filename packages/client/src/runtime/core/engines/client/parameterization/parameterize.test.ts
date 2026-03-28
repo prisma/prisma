@@ -435,6 +435,67 @@ describe('parameterizeQuery', () => {
         },
       })
     })
+
+    it('serializes sparse Json arrays with holes as null entries', () => {
+      const properties: any[] = []
+      properties[0] = 1
+      properties[2] = { $type: 'Decimal', value: '3.5' }
+
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties,
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '[1,null,3.5]',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
+
+    it('serializes self-returning toJSON objects nested inside Json inputs', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                count: 1,
+                toJSON() {
+                  return this
+                },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"count":1}',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
   })
 
   describe('cache key consistency', () => {
