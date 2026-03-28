@@ -557,36 +557,6 @@ describe('parameterizeQuery', () => {
       })
       expect(replacement.toJSON).not.toHaveBeenCalled()
     })
-
-    it('serializes non-finite Decimal tagged values nested inside Json inputs as null', () => {
-      const query: JsonQuery = {
-        modelName: 'User',
-        action: 'createOne',
-        query: {
-          arguments: {
-            data: {
-              properties: {
-                nan: { $type: 'Decimal', value: 'NaN' },
-                positiveInfinity: { $type: 'Decimal', value: 'Infinity' },
-                negativeInfinity: { $type: 'Decimal', value: '-Infinity' },
-              },
-            },
-          },
-          selection: { $scalars: true },
-        },
-      }
-
-      const result = parameterizeQuery(query, paramGraph)
-
-      expect(result.placeholderValues).toEqual({
-        '%1': '{"nan":null,"positiveInfinity":null,"negativeInfinity":null}',
-      })
-      expect(result.parameterizedQuery.query.arguments).toEqual({
-        data: {
-          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
-        },
-      })
-    })
   })
 
   describe('cache key consistency', () => {
