@@ -97,6 +97,10 @@ export class PrismaClientTsGenerator implements Generator {
   }
 }
 
+/**
+ * Walks upward from the generated output directory to detect native Deno
+ * projects via a nearby `deno.json` or `deno.jsonc`.
+ */
 function findDenoConfig(startDir: string): boolean {
   let currentDir = path.resolve(startDir)
 

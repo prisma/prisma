@@ -61,9 +61,14 @@ type InferImportFileExtensionOptions = {
   tsconfig: TsConfigJsonResolved | undefined
   generatedFileExtension: GeneratedFileExtension
   target: RuntimeTargetInternal
+  /** Whether the generated client is being emitted into a native Deno project. */
   hasDenoConfig?: boolean
 }
 
+/**
+ * Determines which extension generated relative imports should use for the
+ * current runtime and surrounding project configuration.
+ */
 export function inferImportFileExtension({
   tsconfig,
   generatedFileExtension,
