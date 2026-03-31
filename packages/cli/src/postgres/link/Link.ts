@@ -1,6 +1,3 @@
-import fs from 'node:fs'
-import path from 'node:path'
-
 import { select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
@@ -12,9 +9,17 @@ import { bold, dim, green, red } from 'kleur/colors'
 import { login } from '../../management-api/auth'
 import { createAuthenticatedManagementAPI } from '../../management-api/auth-client'
 import { FileTokenStorage } from '../../management-api/token-storage'
+import { getModelNames } from '../../bootstrap/project-state'
 import { formatCompletionOutput } from './completion-output'
 import { isAlreadyLinked, writeLocalFiles, type WriteLocalFilesResult } from './local-setup'
-import { createDevConnection, LinkApiError, listDatabases, listProjects, sanitizeErrorMessage } from './management-api'
+import {
+  createDevConnection,
+  getDatabase,
+  LinkApiError,
+  listDatabases,
+  listProjects,
+  sanitizeErrorMessage,
+} from './management-api'
 
 export interface LinkResult {
   workspaceId: string
@@ -115,17 +120,11 @@ function extractWorkspaceIdFromToken(token: string): string | null {
 
 async function resolveProjectForDatabase(client: ManagementApiClient, databaseId: string): Promise<string | null> {
   try {
-    const projects = await listProjects(client)
-    for (const project of projects) {
-      const databases = await listDatabases(client, project.id)
-      if (databases.some((db) => db.id === databaseId)) {
-        return project.id
-      }
-    }
+    const database = await getDatabase(client, databaseId)
+    return database?.project?.id ?? null
   } catch {
-    // best-effort; telemetry should not block the command
+    return null
   }
-  return null
 }
 
 export class Link implements Command {
@@ -256,7 +255,7 @@ ${bold('Examples')}
 
     const connection = await createDevConnection(client, databaseId)
     const localFilesResult = writeLocalFiles(baseDir, connection)
-    const hasModels = schemaHasModels(baseDir)
+    const hasModels = getModelNames(baseDir).length > 0
     const environmentId = databaseId.replace(/^db_/, '')
 
     return {
@@ -284,17 +283,4 @@ ${bold('Examples')}
     }
     return Link.help
   }
-}
-
-function schemaHasModels(baseDir: string): boolean {
-  const candidates = [path.join(baseDir, 'prisma', 'schema.prisma'), path.join(baseDir, 'schema.prisma')]
-
-  for (const schemaPath of candidates) {
-    if (fs.existsSync(schemaPath)) {
-      const content = fs.readFileSync(schemaPath, 'utf-8')
-      return /^\s*model\s+\w+/m.test(content)
-    }
-  }
-
-  return false
 }

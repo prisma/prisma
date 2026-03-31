@@ -275,6 +275,216 @@ model User { id Int @id }
   })
 })
 
+describe('Bootstrap command — deps gate', () => {
+  test('pauses with pending deps message when dotenv and prisma are missing', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(true)
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Bootstrap completed')
+    expect(output).toContain('Install')
+    expect(output).toContain('dotenv')
+    expect(output).toContain('Re-run')
+  })
+
+  test('skips deps gate when deps are installed', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(true)
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Bootstrap completed')
+    expect(output).not.toContain('Re-run')
+    expect(output).toContain('Migration')
+  })
+})
+
+describe('Bootstrap command — seed step', () => {
+  test('runs seed when seed script exists and user accepts', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      '{"name":"test","prisma":{"seed":"npx tsx prisma/seed.ts"}}',
+      'utf-8',
+    )
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(true)
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toMatch(/Seed\s+done/)
+  })
+
+  test('skips seed when user declines', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      '{"name":"test","prisma":{"seed":"npx tsx prisma/seed.ts"}}',
+      'utf-8',
+    )
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm)
+      .mockResolvedValueOnce(true) // migrate
+      .mockResolvedValueOnce(false) // seed
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Seed')
+    expect(output).toContain('skipped')
+  })
+})
+
+describe('Bootstrap command — mixed consent gates', () => {
+  test('accepts migration but declines seed', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      '{"name":"test","prisma":{"seed":"npx tsx prisma/seed.ts"}}',
+      'utf-8',
+    )
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm)
+      .mockResolvedValueOnce(true) // migrate
+      .mockResolvedValueOnce(false) // seed
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Migration')
+    expect(output).toContain('done')
+    expect(output).toContain('Seed')
+    expect(output).toContain('skipped')
+  })
+
+  test('declines migration but accepts seed', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      '{"name":"test","prisma":{"seed":"npx tsx prisma/seed.ts"}}',
+      'utf-8',
+    )
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm)
+      .mockResolvedValueOnce(false) // migrate
+      .mockResolvedValueOnce(true) // seed
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Migration')
+    expect(output).toContain('skipped')
+    expect(output).toContain('Seed')
+  })
+})
+
 describe('Bootstrap command — error handling', () => {
   test('returns error on API failure', async () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')

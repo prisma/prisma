@@ -139,7 +139,7 @@ function stripFirstComponent(filePath: string): string | null {
   return filePath.slice(idx + 1)
 }
 
-type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun' | 'deno'
+export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun' | 'deno'
 
 export function detectPackageManager(baseDir: string): PackageManager {
   if (fs.existsSync(path.join(baseDir, 'pnpm-lock.yaml'))) return 'pnpm'
@@ -157,5 +157,6 @@ export async function installDependencies(baseDir: string): Promise<void> {
     cwd: baseDir,
     env: { ...process.env },
     shell: process.platform === 'win32',
+    timeout: 300_000,
   })
 }

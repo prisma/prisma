@@ -82,3 +82,16 @@ export async function listDatabases(client: ManagementApiClient, projectId: stri
 
   return data?.data ?? []
 }
+
+export async function getDatabase(client: ManagementApiClient, databaseId: string) {
+  const { data, error } = await client.GET('/v1/databases/{databaseId}', {
+    params: { path: { databaseId } },
+  })
+
+  if (error) {
+    const msg = typeof error.error?.message === 'string' ? error.error.message : 'Failed to get database'
+    throw new LinkApiError(msg)
+  }
+
+  return data?.data ?? null
+}
