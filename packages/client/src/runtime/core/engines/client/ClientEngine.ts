@@ -2,6 +2,8 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
+  parameterizeBatch,
+  parameterizeQuery,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -34,7 +36,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
 import { QueryPlanCache } from './query-plan-cache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -691,7 +692,7 @@ export class ClientEngine implements Engine {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
           queries,
-          execute: () => compiler.compileBatch(request),
+          execute: () => compiler.compileBatch(request) as BatchResponse,
         }),
       )
     } catch (err) {

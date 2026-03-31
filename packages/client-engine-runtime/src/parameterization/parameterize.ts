@@ -6,7 +6,6 @@
  * both schema rules and runtime value types agree.
  */
 
-import { deserializeJsonObject, safeJsonStringify } from '@prisma/client-engine-runtime'
 import type {
   JsonArgumentValue,
   JsonBatchQuery,
@@ -20,6 +19,8 @@ import { PlaceholderType } from '@prisma/json-protocol'
 import type { InputEdge, InputNode } from '@prisma/param-graph'
 import { EdgeFlag, getScalarMask, hasFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 
+import { deserializeJsonObject } from '../json-protocol'
+import { safeJsonStringify } from '../utils'
 import { classifyValue, isPlainObject, isTaggedValue, ValueClass } from './classify'
 
 /**

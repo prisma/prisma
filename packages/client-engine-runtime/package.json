@@ -31,12 +31,16 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/sqlcommenter": "workspace:*",
+    "@prisma/param-graph": "workspace:*",
+    "@prisma/json-protocol": "workspace:*",
     "klona": "2.0.6",
     "nanoid": "5.1.5",
     "ulid": "3.0.0",
     "uuid": "11.1.0"
   },
   "devDependencies": {
+    "@prisma/get-dmmf": "workspace:*",
+    "@prisma/param-graph-builder": "workspace:*",
     "@codspeed/benchmark.js-plugin": "4.0.0",
     "@types/benchmark": "2.1.5",
     "@types/node": "~20.19.24",

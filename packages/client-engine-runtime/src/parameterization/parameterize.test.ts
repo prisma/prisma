@@ -1,11 +1,11 @@
-import type { RuntimeDataModel } from '@prisma/client-common'
 import type { JsonQuery } from '@prisma/json-protocol'
 import type { ParamGraphData } from '@prisma/param-graph'
 import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
+import { describe, expect, it } from 'vitest'
 
 import { parameterizeBatch, parameterizeQuery } from './parameterize'
 
-function createEnumLookup(runtimeDataModel: RuntimeDataModel) {
+function createEnumLookup(runtimeDataModel: { enums: Record<string, { values: { name: string }[] }> }) {
   return (enumName: string): readonly string[] | undefined => {
     const enumDef = runtimeDataModel.enums[enumName]
     return enumDef?.values.map((v) => v.name)
@@ -88,7 +88,7 @@ describe('parameterizeQuery', () => {
     },
   }
 
-  const sampleRuntimeDataModel: RuntimeDataModel = {
+  const sampleRuntimeDataModel = {
     models: {},
     enums: {
       Status: {
@@ -512,7 +512,7 @@ describe('parameterizeBatch', () => {
     },
   }
 
-  const sampleRuntimeDataModel: RuntimeDataModel = {
+  const sampleRuntimeDataModel = {
     models: {},
     enums: {},
     types: {},

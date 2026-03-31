@@ -73,6 +73,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
+    "@prisma/get-dmmf": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/prisma-schema-wasm": "7.6.0-1.75cbdc1eb7150937890ad5465d861175c6624711",
     "@prisma/schema-engine-wasm": "7.6.0-1.75cbdc1eb7150937890ad5465d861175c6624711",
