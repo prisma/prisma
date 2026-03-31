@@ -10,7 +10,7 @@ function createEnumLookup(runtimeDataModel: {
 }): EnumLookup {
   return (enumName: string) => {
     const enumDef = runtimeDataModel.enums[enumName]
-    const mapping = {}
+    const mapping: Record<string, string> = {}
     for (const value of enumDef?.values ?? []) {
       mapping[value.name] = value.dbName ?? value.name
     }

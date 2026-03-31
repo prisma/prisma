@@ -146,7 +146,7 @@ export class ClientEngine implements Engine {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
       }
-      const mapping = {}
+      const mapping: Record<string, string> = {}
       for (const value of config.runtimeDataModel.enums[enumName].values) {
         mapping[value.name] = value.dbName ?? value.name
       }
