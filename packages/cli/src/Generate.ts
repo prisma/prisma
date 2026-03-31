@@ -35,6 +35,11 @@ import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
 
+type GeneratorLogEntry = {
+  text: string
+  attachesClientHint: boolean
+}
+
 /**
  * $ prisma generate
  */
@@ -86,24 +91,58 @@ ${bold('Examples')}
   private hasGeneratorErrored = false
 
   private runGenerate = simpleDebounce(async ({ generators }: { generators: Generator[] }) => {
-    const message: string[] = []
+    const logEntries = await this.generateLogEntries({ generators })
+    this.logText += `${this.renderGeneratorLogEntries(logEntries)}\n`
+  })
+
+  private isPrismaClientJSGenerator(generator: Generator): boolean {
+    return Boolean(
+      generator.options?.generator.provider &&
+        parseEnvValue(generator.options.generator.provider) === BuiltInProvider.PrismaClientJs,
+    )
+  }
+
+  private async generateLogEntries({ generators }: { generators: Generator[] }): Promise<GeneratorLogEntry[]> {
+    const logEntries: GeneratorLogEntry[] = []
 
     for (const generator of generators) {
       const before = Math.round(performance.now())
       try {
         await generator.generate()
         const after = Math.round(performance.now())
-        message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
+        logEntries.push({
+          text: getGeneratorSuccessMessage(generator, after - before),
+          attachesClientHint: this.isPrismaClientJSGenerator(generator),
+        })
         generator.stop()
       } catch (err) {
         this.hasGeneratorErrored = true
         generator.stop()
-        message.push(`${err.message}\n\n`)
+        logEntries.push({
+          text: err.message,
+          attachesClientHint: false,
+        })
       }
     }
 
-    this.logText += message.join('\n')
-  })
+    return logEntries
+  }
+
+  private renderGeneratorLogEntries(logEntries: GeneratorLogEntry[], clientHint = ''): string {
+    const renderedEntries: string[] = []
+    let hasAttachedClientHint = false
+
+    for (const entry of logEntries) {
+      renderedEntries.push(entry.text)
+
+      if (clientHint && entry.attachesClientHint && !hasAttachedClientHint) {
+        renderedEntries.push(clientHint)
+        hasAttachedClientHint = true
+      }
+    }
+
+    return renderedEntries.join('\n\n')
+  }
 
   public async parse(
     argv: string[],
@@ -153,6 +192,7 @@ ${bold('Examples')}
     let hasJsClient = false
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
+    let generatorLogEntries: GeneratorLogEntry[] = []
 
     let typedSqlData: { validatedConfig: PrismaConfigWithDatasource; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
@@ -179,16 +219,14 @@ ${bold('Examples')}
         this.logText += `${missingGeneratorMessage}\n`
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
-        const jsClient = generators.find(
-          (g) => g.options && parseEnvValue(g.options.generator.provider) === BuiltInProvider.PrismaClientJs,
-        )
+        const jsClient = generators.find((generator) => this.isPrismaClientJSGenerator(generator))
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
 
         hasJsClient = Boolean(jsClient)
 
         try {
-          await this.runGenerate({ generators })
+          generatorLogEntries = await this.generateLogEntries({ generators })
         } catch (errRunGenerate) {
           this.logText += `${errRunGenerate.message}\n\n`
         }
@@ -255,14 +293,17 @@ Please make sure they have the same version.`
         if (hideHints) {
           hint = `${breakingChangesStr}${versionsWarning}`
         } else {
-          hint = `
-Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-${breakingChangesStr}${versionsWarning}`
+          hint = `Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)${breakingChangesStr}${versionsWarning}`
         }
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      const clientHint = hasJsClient && !this.hasGeneratorErrored ? hint : ''
+      const renderedLogText =
+        generatorLogEntries.length > 0
+          ? this.renderGeneratorLogEntries(generatorLogEntries, clientHint)
+          : this.logText.trimEnd()
+      const trailingNewline = clientHint ? '\n\n' : '\n'
+      const message = renderedLogText ? `\n${renderedLogText}${trailingNewline}` : ''
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)

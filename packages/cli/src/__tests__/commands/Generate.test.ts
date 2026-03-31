@@ -41,7 +41,6 @@ describe('using cli', () => {
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
@@ -61,7 +60,6 @@ describe('using cli', () => {
       ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`"Prisma schema loaded from prisma/schema."`)
@@ -81,7 +79,6 @@ describe('using cli', () => {
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
@@ -105,7 +102,6 @@ describe('using cli', () => {
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
@@ -129,7 +125,6 @@ describe('using cli', () => {
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
@@ -157,7 +152,6 @@ describe('using cli', () => {
       ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
       "
     `)
     expect(data.stderr).toMatchInlineSnapshot(`
@@ -296,7 +290,6 @@ describe('prisma-client-ts validation', () => {
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Invalid compiler build: "invalid", expected one of: "fast", "small"
-
       "
     `)
   })
@@ -309,7 +302,6 @@ describe('prisma-client-js validation', () => {
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Invalid compiler build: "invalid", expected one of: "fast", "small"
-
       "
     `)
   })
@@ -479,9 +471,9 @@ describe('--schema from parent directory', () => {
       "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-      ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
-
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
 
       "
     `)
