@@ -30,6 +30,7 @@ describe('parameterizeQuery', () => {
       'status',
       'Status',
       'createdAt',
+      'properties',
     ],
     inputNodes: [
       // Node 0: UserWhereInput
@@ -62,6 +63,7 @@ describe('parameterizeQuery', () => {
           1: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // id
           2: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // email
           3: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.String }, // name
+          14: { flags: EdgeFlag.ParamScalar, scalarMask: ScalarMask.Json }, // properties
         },
       },
       // Node 4: CreateUserArgs
@@ -404,6 +406,156 @@ describe('parameterizeQuery', () => {
         '%2': 'test@example.com',
         '%3': 'John',
       })
+    })
+
+    it('serializes Decimal tagged values nested inside Json inputs as JSON numbers', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                someDecimal: { $type: 'Decimal', value: '-11000' },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"someDecimal":-11000}',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
+
+    it('serializes non-finite Decimal tagged values nested inside Json inputs as null', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                positiveInfinity: { $type: 'Decimal', value: 'Infinity' },
+                negativeInfinity: { $type: 'Decimal', value: '-Infinity' },
+                notANumber: { $type: 'Decimal', value: 'NaN' },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"positiveInfinity":null,"negativeInfinity":null,"notANumber":null}',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
+
+    it('serializes sparse Json arrays with holes as null entries', () => {
+      const properties: any[] = []
+      properties[0] = 1
+      properties[2] = { $type: 'Decimal', value: '3.5' }
+
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties,
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '[1,null,3.5]',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
+
+    it('serializes self-returning toJSON objects nested inside Json inputs', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                count: 1,
+                toJSON() {
+                  return this
+                },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"count":1}',
+      })
+      expect(result.parameterizedQuery.query.arguments).toEqual({
+        data: {
+          properties: { $type: 'Param', value: { name: '%1', type: 'Json' } },
+        },
+      })
+    })
+
+    it('applies nested Json toJSON handlers only once per object', () => {
+      const replacement = {
+        count: 1,
+        toJSON: jest.fn(() => ({ count: 2 })),
+      }
+
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'createOne',
+        query: {
+          arguments: {
+            data: {
+              properties: {
+                toJSON() {
+                  return replacement
+                },
+              },
+            },
+          },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': '{"count":1}',
+      })
+      expect(replacement.toJSON).not.toHaveBeenCalled()
     })
   })
 

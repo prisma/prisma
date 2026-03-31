@@ -6,7 +6,8 @@
  * both schema rules and runtime value types agree.
  */
 
-import { deserializeJsonObject, safeJsonStringify } from '@prisma/client-engine-runtime'
+import { deserializeJsonObject } from '@prisma/client-engine-runtime'
+import { Decimal } from '@prisma/client-runtime-utils'
 import type {
   JsonArgumentValue,
   JsonBatchQuery,
@@ -273,7 +274,7 @@ class Parameterizer {
    */
   #handleArray(items: unknown[], originalValue: unknown, edge: InputEdge): unknown {
     if (hasFlag(edge, EdgeFlag.ParamScalar) && getScalarMask(edge) & ScalarMask.Json) {
-      const jsonValue = safeJsonStringify(deserializeJsonObject(items))
+      const jsonValue = stringifyJsonPlaceholderValue(deserializeJsonObject(items))
       const type: PlaceholderType = { type: 'Json' }
       return this.#getOrCreatePlaceholder(jsonValue, type)
     }
@@ -324,7 +325,7 @@ class Parameterizer {
 
     const mask = getScalarMask(edge)
     if (mask & ScalarMask.Json) {
-      const jsonValue = safeJsonStringify(deserializeJsonObject(obj))
+      const jsonValue = stringifyJsonPlaceholderValue(deserializeJsonObject(obj))
       const type: PlaceholderType = { type: 'Json' }
       return this.#getOrCreatePlaceholder(jsonValue, type)
     }
@@ -401,6 +402,91 @@ function serializeValue(value: unknown): string {
     return bufView.toString('base64')
   }
   return JSON.stringify(value)
+}
+
+function stringifyJsonPlaceholderValue(value: unknown): string {
+  return serializeJsonValue(value, new Set())
+}
+
+function serializeJsonValue(value: unknown, seen: Set<object>, applyToJson = true): string {
+  if (value === null) {
+    return 'null'
+  }
+
+  switch (typeof value) {
+    case 'string':
+      return JSON.stringify(value)
+    case 'number':
+      return JSON.stringify(value) ?? 'null'
+    case 'boolean':
+      return value ? 'true' : 'false'
+    case 'bigint':
+      return JSON.stringify(value.toString())
+    case 'undefined':
+    case 'function':
+    case 'symbol':
+      return 'null'
+  }
+
+  if (Decimal.isDecimal(value)) {
+    return value.isFinite() ? value.toFixed() : 'null'
+  }
+
+  if (value instanceof Date) {
+    return JSON.stringify(value.toJSON())
+  }
+
+  if (ArrayBuffer.isView(value)) {
+    return JSON.stringify(Buffer.from(value.buffer, value.byteOffset, value.byteLength).toString('base64'))
+  }
+
+  if (Array.isArray(value)) {
+    if (seen.has(value)) {
+      throw new TypeError('Converting circular structure to JSON')
+    }
+
+    seen.add(value)
+    try {
+      const serializedItems = Array.from({ length: value.length }, (_, index) =>
+        index in value ? serializeJsonValue(value[index], seen) : 'null',
+      )
+
+      return `[${serializedItems.join(',')}]`
+    } finally {
+      seen.delete(value)
+    }
+  }
+
+  const objectValue = value as Record<string, unknown> & { toJSON?: () => unknown }
+
+  if (applyToJson && typeof objectValue.toJSON === 'function') {
+    const jsonValue = objectValue.toJSON()
+
+    // Match JSON.stringify: if toJSON returns the same object, serialize its
+    // enumerable properties instead of recursing forever through toJSON().
+    if (jsonValue !== objectValue) {
+      return serializeJsonValue(jsonValue, seen, false)
+    }
+  }
+
+  if (seen.has(objectValue)) {
+    throw new TypeError('Converting circular structure to JSON')
+  }
+
+  seen.add(objectValue)
+  try {
+    const entries: string[] = []
+    for (const key of Object.keys(objectValue)) {
+      const propertyValue = objectValue[key]
+      if (propertyValue === undefined || typeof propertyValue === 'function' || typeof propertyValue === 'symbol') {
+        continue
+      }
+      entries.push(`${JSON.stringify(key)}:${serializeJsonValue(propertyValue, seen)}`)
+    }
+    return `{${entries.join(',')}}`
+  } finally {
+    seen.delete(objectValue)
+  }
 }
 
 /**
