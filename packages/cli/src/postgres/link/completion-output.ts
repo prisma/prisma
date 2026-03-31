@@ -1,13 +1,10 @@
 import { getCommandWithExecutor } from '@prisma/internals'
 import { bold, dim, green } from 'kleur/colors'
 
-import { formatEnvSummary, type WriteLocalFilesResult } from './local-setup'
+import type { LinkResult } from './Link'
+import { formatEnvSummary } from './local-setup'
 
-export function formatCompletionOutput(opts: {
-  databaseId: string
-  localFilesResult: WriteLocalFilesResult
-  hasModels: boolean
-}): string {
+export function formatCompletionOutput(opts: LinkResult): string {
   const lines: string[] = []
 
   lines.push('')

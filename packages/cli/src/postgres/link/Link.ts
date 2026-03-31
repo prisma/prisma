@@ -1,6 +1,3 @@
-import fs from 'node:fs'
-import path from 'node:path'
-
 import { select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
@@ -9,12 +6,36 @@ import type { ManagementApiClient } from '@prisma/management-api-sdk'
 import { AuthError, createManagementApiClient } from '@prisma/management-api-sdk'
 import { bold, dim, green, red } from 'kleur/colors'
 
+import { getModelNames } from '../../bootstrap/project-state'
 import { login } from '../../management-api/auth'
 import { createAuthenticatedManagementAPI } from '../../management-api/auth-client'
 import { FileTokenStorage } from '../../management-api/token-storage'
 import { formatCompletionOutput } from './completion-output'
-import { isAlreadyLinked, writeLocalFiles } from './local-setup'
-import { createDevConnection, LinkApiError, listDatabases, listProjects, sanitizeErrorMessage } from './management-api'
+import { isAlreadyLinked, writeLocalFiles, type WriteLocalFilesResult } from './local-setup'
+import {
+  createDevConnection,
+  getDatabase,
+  LinkApiError,
+  listDatabases,
+  listProjects,
+  sanitizeErrorMessage,
+} from './management-api'
+
+export interface LinkResult {
+  workspaceId: string
+  projectId: string
+  environmentId: string
+  databaseId: string
+  connectionString: string
+  localFilesResult: WriteLocalFilesResult
+  hasModels: boolean
+}
+
+interface DatabaseSelection {
+  databaseId: string
+  workspaceId: string
+  projectId: string
+}
 
 const DEFAULT_MANAGEMENT_API_URL = 'https://api.prisma.io'
 
@@ -42,7 +63,7 @@ function isExpiredSessionError(err: unknown): boolean {
   return err instanceof AuthError && err.refreshTokenInvalid
 }
 
-async function resolveDatabase(client: ManagementApiClient): Promise<string> {
+async function resolveDatabase(client: ManagementApiClient): Promise<DatabaseSelection> {
   const projects = await listProjects(client)
 
   if (projects.length === 0) {
@@ -58,6 +79,9 @@ async function resolveDatabase(client: ManagementApiClient): Promise<string> {
     loop: true,
   })
 
+  const selectedProject = projects.find((p) => p.id === projectId)
+  const workspaceId = selectedProject?.workspace?.id ?? 'unknown'
+
   const databases = (await listDatabases(client, projectId)).filter((db) => db.status === 'ready')
 
   if (databases.length === 0) {
@@ -67,10 +91,10 @@ async function resolveDatabase(client: ManagementApiClient): Promise<string> {
   if (databases.length === 1) {
     const db = databases[0]
     console.log(`${green('✔')} Using database ${bold(db.name)}${db.region ? ` (${db.region.name})` : ''}`)
-    return db.id
+    return { databaseId: db.id, workspaceId, projectId }
   }
 
-  return select({
+  const databaseId = await select({
     message: 'Select a database:',
     choices: databases.map((db) => ({
       name: `${db.name}  ${dim(db.region?.name ?? 'unknown region')}`,
@@ -78,6 +102,29 @@ async function resolveDatabase(client: ManagementApiClient): Promise<string> {
     })),
     loop: true,
   })
+
+  return { databaseId, workspaceId, projectId }
+}
+
+function extractWorkspaceIdFromToken(token: string): string | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2 || !parts[1]) return null
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+    if (typeof payload !== 'object' || payload === null) return null
+    return payload.workspace_id ?? payload.workspaceId ?? null
+  } catch {
+    return null
+  }
+}
+
+async function resolveProjectForDatabase(client: ManagementApiClient, databaseId: string): Promise<string | null> {
+  try {
+    const database = await getDatabase(client, databaseId)
+    return database?.project?.id ?? null
+  } catch {
+    return null
+  }
 }
 
 export class Link implements Command {
@@ -147,13 +194,15 @@ ${bold('Examples')}
     }
 
     try {
-      return await this.linkDatabase(apiKey, databaseId, baseDir)
+      const result = await this.executeLinkFlow(apiKey, databaseId, baseDir)
+      return formatCompletionOutput(result)
     } catch (err) {
       if (!apiKey && isExpiredSessionError(err)) {
         console.log(`Session expired. Re-authenticating via browser...`)
         await login({ utmMedium: 'command-postgres-link' })
         try {
-          return await this.linkDatabase(apiKey, databaseId, baseDir)
+          const result = await this.executeLinkFlow(apiKey, databaseId, baseDir)
+          return formatCompletionOutput(result)
         } catch (retryErr) {
           return Link.formatError(retryErr)
         }
@@ -162,22 +211,62 @@ ${bold('Examples')}
     }
   }
 
-  private async linkDatabase(
+  async link(
     apiKey: string | undefined,
     databaseId: string | undefined,
     baseDir: string,
-  ): Promise<string> {
+    opts?: { force?: boolean },
+  ): Promise<LinkResult> {
+    if (!opts?.force && isAlreadyLinked(baseDir)) {
+      throw new LinkApiError('This project is already linked to Prisma Postgres. Use force to re-link.')
+    }
+
+    try {
+      return await this.executeLinkFlow(apiKey, databaseId, baseDir)
+    } catch (err) {
+      if (!apiKey && isExpiredSessionError(err)) {
+        console.log(`Session expired. Re-authenticating via browser...`)
+        await login({ utmMedium: 'command-postgres-link' })
+        return await this.executeLinkFlow(apiKey, databaseId, baseDir)
+      }
+      throw err
+    }
+  }
+
+  private async executeLinkFlow(
+    apiKey: string | undefined,
+    databaseId: string | undefined,
+    baseDir: string,
+  ): Promise<LinkResult> {
     const client = await resolveApiClient(apiKey)
 
+    let workspaceId: string | null = null
+    let projectId: string | null = null
+
     if (!databaseId) {
-      databaseId = await resolveDatabase(client)
+      const resolved = await resolveDatabase(client)
+      databaseId = resolved.databaseId
+      workspaceId = resolved.workspaceId
+      projectId = resolved.projectId
+    } else {
+      workspaceId = apiKey ? extractWorkspaceIdFromToken(apiKey) : null
+      projectId = await resolveProjectForDatabase(client, databaseId)
     }
 
     const connection = await createDevConnection(client, databaseId)
     const localFilesResult = writeLocalFiles(baseDir, connection)
-    const hasModels = schemaHasModels(baseDir)
+    const hasModels = getModelNames(baseDir).length > 0
+    const environmentId = databaseId.replace(/^db_/, '')
 
-    return formatCompletionOutput({ databaseId, localFilesResult, hasModels })
+    return {
+      workspaceId: workspaceId ?? 'unknown',
+      projectId: projectId ?? 'unknown',
+      environmentId,
+      databaseId,
+      connectionString: connection.connectionString,
+      localFilesResult,
+      hasModels,
+    }
   }
 
   private static formatError(err: unknown): HelpError {
@@ -194,17 +283,4 @@ ${bold('Examples')}
     }
     return Link.help
   }
-}
-
-function schemaHasModels(baseDir: string): boolean {
-  const candidates = [path.join(baseDir, 'prisma', 'schema.prisma'), path.join(baseDir, 'schema.prisma')]
-
-  for (const schemaPath of candidates) {
-    if (fs.existsSync(schemaPath)) {
-      const content = fs.readFileSync(schemaPath, 'utf-8')
-      return /^\s*model\s+\w+/m.test(content)
-    }
-  }
-
-  return false
 }
