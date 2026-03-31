@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import prismaSchemaWasm from '@prisma/prisma-schema-wasm'
 import { JSONParser } from '@streamparser/json'
