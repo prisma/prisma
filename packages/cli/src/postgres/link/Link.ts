@@ -6,10 +6,10 @@ import type { ManagementApiClient } from '@prisma/management-api-sdk'
 import { AuthError, createManagementApiClient } from '@prisma/management-api-sdk'
 import { bold, dim, green, red } from 'kleur/colors'
 
+import { getModelNames } from '../../bootstrap/project-state'
 import { login } from '../../management-api/auth'
 import { createAuthenticatedManagementAPI } from '../../management-api/auth-client'
 import { FileTokenStorage } from '../../management-api/token-storage'
-import { getModelNames } from '../../bootstrap/project-state'
 import { formatCompletionOutput } from './completion-output'
 import { isAlreadyLinked, writeLocalFiles, type WriteLocalFilesResult } from './local-setup'
 import {
