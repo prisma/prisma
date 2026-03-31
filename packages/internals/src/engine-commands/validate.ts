@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { MultipleSchemas } from '@prisma/get-dmmf'
+import type { MultipleSchemas } from '@prisma/get-dmmf'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'

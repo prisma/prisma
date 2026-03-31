@@ -13,7 +13,6 @@ export type SchemaFileInput = SingleSchema | MultipleSchemas
 
 export type GetDMMFOptions = {
   datamodel: SchemaFileInput
-  previewFeatures?: string[]
 }
 
 export type GetDMMFError = {

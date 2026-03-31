@@ -1,4 +1,4 @@
-import { MultipleSchemas } from '@prisma/get-dmmf'
+import type { MultipleSchemas } from '@prisma/get-dmmf'
 import { yellow } from 'kleur/colors'
 
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
