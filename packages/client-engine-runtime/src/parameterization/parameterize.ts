@@ -223,9 +223,9 @@ class Parameterizer {
   #handlePrimitive(value: string | number | boolean, edge: InputEdge): JsonArgumentValue {
     if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.enumNameIndex !== undefined && typeof value === 'string') {
       const enumValues = this.#view.enumValues(edge)
-      if (enumValues?.includes(value)) {
+      if (enumValues && Object.hasOwn(enumValues, value)) {
         const type: PlaceholderType = { type: 'Enum' }
-        return this.#getOrCreatePlaceholder(value, type)
+        return this.#getOrCreatePlaceholder(enumValues[value], type)
       }
     }
 
@@ -281,7 +281,7 @@ class Parameterizer {
 
     if (hasFlag(edge, EdgeFlag.ParamEnum)) {
       const enumValues = this.#view.enumValues(edge)
-      if (enumValues && items.every((item) => typeof item === 'string' && enumValues.includes(item))) {
+      if (enumValues && items.every((item) => typeof item === 'string' && Object.hasOwn(enumValues, item))) {
         const type: PlaceholderType = { type: 'List', inner: { type: 'Enum' } }
         return this.#getOrCreatePlaceholder(items, type)
       }

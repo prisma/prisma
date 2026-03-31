@@ -87,7 +87,11 @@ export function getParamGraph(): ParamGraph {
   const serialized = buildAndSerializeParamGraph(dmmf)
   cached = ParamGraph.deserialize(serialized, (enumName) => {
     const enumDef = testRuntimeDataModel.enums[enumName]
-    return enumDef?.values.map((v) => v.name)
+    const mapping = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
   })
   return cached
 }

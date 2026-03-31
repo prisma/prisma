@@ -127,7 +127,11 @@ async function setup(): Promise<void> {
 
   paramGraph = ParamGraph.fromData(paramGraphData, (enumName) => {
     const enumDef = runtimeDataModel.enums[enumName]
-    return enumDef?.values.map((v) => v.name)
+    const mapping = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
   })
 }
 
