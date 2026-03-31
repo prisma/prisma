@@ -161,7 +161,9 @@ testMatrix.setupTestSuite(
       }
 
       test('Selecting MAX ids at once in two inclusive disjunct filters succeeds', async () => {
-        const ids = generatedIds(MAX_BIND_VALUES)
+        // subtract 1 to account for the OFFSET parameters and divide by 2 to account for the
+        // two IN filters
+        const ids = generatedIds((MAX_BIND_VALUES - 1) / 2)
         await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
       })
 
