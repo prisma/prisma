@@ -147,7 +147,7 @@ ${bold('Examples')}
     const steps: BootstrapStepStatus = {
       init: 'skipped',
       template: 'not-applicable',
-      link: 'failed',
+      link: 'skipped',
       generate: 'not-applicable',
       migrate: 'not-applicable',
       seed: 'not-applicable',
@@ -540,17 +540,17 @@ ${bold('Examples')}
 
       if (initResult instanceof Error) {
         await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(initResult.message))
-        throw new LinkApiError(`Init failed: ${initResult.message}`)
+        throw new Error(`Init failed: ${initResult.message}`)
       }
 
       steps.init = 'completed'
       stepsCompleted.push('init')
       await emitStepCompleted(telemetryCtx, 'init', performance.now() - stepStart)
     } catch (err) {
-      if (err instanceof LinkApiError) throw err
+      if (err instanceof Error && err.message.startsWith('Init failed:')) throw err
       const msg = err instanceof Error ? err.message : String(err)
       await emitStepFailed(telemetryCtx, 'init', sanitizeErrorMessage(msg))
-      throw new LinkApiError(`Init failed: ${msg}`)
+      throw new Error(`Init failed: ${msg}`)
     }
   }
 
