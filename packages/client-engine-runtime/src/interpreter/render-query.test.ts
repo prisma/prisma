@@ -498,7 +498,7 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
 })
 
 test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
-  expect(
+  expect(() =>
     renderQuery(
       {
         type: 'templateSql',
@@ -526,19 +526,9 @@ test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
       {},
       TEST_MAX_CHUNK_SIZE,
     ),
-  ).toMatchObject([
-    {
-      sql: expect.stringMatching(
-        /^SELECT FROM "public"\."User" WHERE "banned" = \$1 AND "id" IN \((\$[0-9]+,?){3000}\) AND "name" = \$3002$/,
-      ),
-      args: [false, ...Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
-      argTypes: [
-        { arity: 'scalar', scalarType: 'boolean' },
-        ...Array.from({ length: 3000 }, () => ({ arity: 'scalar', scalarType: 'int' })),
-        { arity: 'scalar', scalarType: 'string' },
-      ],
-    },
-  ])
+  ).toThrowErrorMatchingInlineSnapshot(`
+    [UserFacingError: The query parameter limit supported by your database is exceeded.]
+  `)
 })
 
 test('executes a generator', () => {
