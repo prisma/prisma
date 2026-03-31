@@ -23,7 +23,6 @@ export interface ConfigMetaFormat {
 
 export type GetDMMFOptions = {
   datamodel: SchemaFileInput
-  previewFeatures?: string[]
 }
 
 export class GetDmmfError extends Error {
