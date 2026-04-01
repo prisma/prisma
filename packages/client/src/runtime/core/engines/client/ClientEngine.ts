@@ -676,7 +676,7 @@ export class ClientEngine implements Engine {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
           queries: [query],
-          execute: () => compiler.compile(request) as QueryPlanNode,
+          execute: () => compiler.compile(request),
         }),
       )
     } catch (error) {
@@ -696,7 +696,7 @@ export class ClientEngine implements Engine {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
           queries,
-          execute: () => compiler.compileBatch(request) as BatchResponse,
+          execute: () => compiler.compileBatch(request),
         }),
       )
     } catch (err) {
