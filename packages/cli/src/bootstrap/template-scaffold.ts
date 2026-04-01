@@ -54,7 +54,7 @@ export async function downloadAndExtractTemplate(templateName: string, targetDir
   const response = await fetch(PRISMA_EXAMPLES_TARBALL_URL, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'prisma-cli' },
     redirect: 'follow',
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(120_000),
   })
 
   if (!response.ok || !response.body) {
@@ -105,6 +105,7 @@ async function decompressGzip(body: import('node:stream/web').ReadableStream): P
   const chunks: Buffer[] = []
 
   return new Promise<Buffer>((resolve, reject) => {
+    nodeStream.on('error', reject)
     nodeStream
       .pipe(gunzip)
       .on('data', (chunk: Buffer) => chunks.push(chunk))
@@ -161,6 +162,21 @@ const execFileAsync = promisify(execFile)
 export async function installDependencies(baseDir: string): Promise<void> {
   const pm = detectPackageManager(baseDir)
   await execFileAsync(pm, ['install'], {
+    cwd: baseDir,
+    env: { ...process.env },
+    shell: process.platform === 'win32',
+    timeout: 300_000,
+  })
+}
+
+export async function addDevDependencies(baseDir: string, packages: string[]): Promise<void> {
+  const pm = detectPackageManager(baseDir)
+  const addArgs = pm === 'yarn' ? ['add', '--dev', ...packages] : ['add', '-D', ...packages]
+  if (pm === 'npm') {
+    addArgs[0] = 'install'
+    addArgs[1] = '--save-dev'
+  }
+  await execFileAsync(pm, addArgs, {
     cwd: baseDir,
     env: { ...process.env },
     shell: process.platform === 'win32',

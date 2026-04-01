@@ -21,6 +21,8 @@ import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-ou
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
 import {
+  addDevDependencies,
+  detectPackageManager,
   downloadAndExtractTemplate,
   installDependencies,
   isValidTemplateName,
@@ -210,7 +212,12 @@ ${bold('Examples')}
             stepsCompleted.push('template')
             await emitStepCompleted(telemetryCtx, 'template', performance.now() - stepStart)
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err)
+            const isTimeout = err instanceof DOMException && err.name === 'TimeoutError'
+            const msg = isTimeout
+              ? 'Download timed out — check your network connection and try again'
+              : err instanceof Error
+                ? err.message
+                : String(err)
             spinner.fail(`Template download failed: ${sanitizeErrorMessage(msg)}`)
 
             if (isEmptyProject) {
@@ -240,12 +247,10 @@ ${bold('Examples')}
 
       // --- Step 2: Link ---
       if (!force && isAlreadyLinked(baseDir)) {
-        if (databaseId) {
-          return new HelpError(
-            `\n${bold(red('!'))} This project is already linked to Prisma Postgres. Re-run with ${bold('--force')} to relink to a different database.`,
-          )
-        }
         console.log(`\n${green('✔')} Already linked to Prisma Postgres`)
+        if (databaseId) {
+          console.log(`  ${dim('Skipping link — use --force to relink to a different database')}`)
+        }
         steps.link = 'skipped'
         await emitStepSkipped(telemetryCtx, 'link')
       } else {
@@ -327,7 +332,6 @@ ${bold('Examples')}
       // The generated prisma.config.ts imports dotenv/config, and migrate/generate
       // shell out to the local prisma binary when a schema file exists. Both must
       // be installed for subsequent steps to work.
-      // Bootstrap doesn't install deps — that's the user's responsibility.
       const missingDeps: string[] = []
       if (!templateScaffolded) {
         for (const pkg of ['dotenv', 'prisma']) {
@@ -336,20 +340,50 @@ ${bold('Examples')}
           }
         }
       }
-      const needsDepsInstall = missingDeps.length > 0
 
-      if (needsDepsInstall) {
-        console.log(`\n${yellow('!')} Missing dependencies required by Prisma: ${bold(missingDeps.join(', '))}`)
-        console.log(`  Install them as dev dependencies with your package manager, then re-run:`)
-        console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
-
-        return formatBootstrapOutput({
-          databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
-          isNewProject: !initialState.hasPackageJson,
-          steps,
-          hasModels: updatedState.hasModels,
-          pendingDepsInstall: true,
+      if (missingDeps.length > 0) {
+        const pm = detectPackageManager(baseDir)
+        const depsLabel = bold(missingDeps.join(', '))
+        const shouldInstall = await confirm({
+          message: `Install missing Prisma dependencies (${missingDeps.join(', ')}) with ${pm}?`,
+          default: true,
         })
+
+        if (shouldInstall) {
+          const installSpinner = ora(`Installing ${depsLabel}...`).start()
+          try {
+            await addDevDependencies(baseDir, missingDeps)
+            installSpinner.succeed(`Prisma dependencies installed`)
+            stepsCompleted.push('deps')
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err)
+            installSpinner.fail(`Failed to install dependencies: ${sanitizeErrorMessage(msg)}`)
+            console.log(`\n  Install them manually, then re-run:`)
+            console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
+            console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
+
+            return formatBootstrapOutput({
+              databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
+              isNewProject: !initialState.hasPackageJson,
+              steps,
+              hasModels: updatedState.hasModels,
+              pendingDepsInstall: true,
+            })
+          }
+        } else {
+          const pm = detectPackageManager(baseDir)
+          console.log(`\n  Install them manually, then re-run:`)
+          console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
+          console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
+
+          return formatBootstrapOutput({
+            databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
+            isNewProject: !initialState.hasPackageJson,
+            steps,
+            hasModels: updatedState.hasModels,
+            pendingDepsInstall: true,
+          })
+        }
       }
 
       // --- Step 4: Migrate (if schema has models) ---

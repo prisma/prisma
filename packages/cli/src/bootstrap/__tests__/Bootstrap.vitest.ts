@@ -77,6 +77,8 @@ vi.mock('../../Init', () => ({
 }))
 
 vi.mock('../template-scaffold', () => ({
+  addDevDependencies: vi.fn(() => Promise.resolve()),
+  detectPackageManager: vi.fn(() => 'npm'),
   downloadAndExtractTemplate: vi.fn(() => Promise.resolve()),
   installDependencies: vi.fn(),
   isValidTemplateName: vi.fn((name: string) => ['nextjs', 'express'].includes(name)),
@@ -154,6 +156,8 @@ describe('Bootstrap command — help and validation', () => {
 describe('Bootstrap command — new project flow', () => {
   test('runs init when user declines template, then links', async () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
 
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
@@ -197,6 +201,8 @@ describe('Bootstrap command — new project flow', () => {
 
   test('falls back to init when template download fails', async () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
 
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
@@ -226,6 +232,8 @@ describe('Bootstrap command — existing project flow', () => {
     const prismaDir = path.join(tmpDir, 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
     fs.writeFileSync(path.join(prismaDir, 'schema.prisma'), 'datasource db { provider = "postgresql" }', 'utf-8')
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
 
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
@@ -257,6 +265,8 @@ model User { id Int @id }
 `,
       'utf-8',
     )
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
 
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(false)
@@ -276,7 +286,7 @@ model User { id Int @id }
 })
 
 describe('Bootstrap command — deps gate', () => {
-  test('pauses with pending deps message when dotenv and prisma are missing', async () => {
+  test('prompts to install missing deps and continues when accepted', async () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
     const prismaDir = path.join(tmpDir, 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
@@ -289,6 +299,12 @@ describe('Bootstrap command — deps gate', () => {
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockResolvedValue(true)
 
+    const { addDevDependencies } = await import('../template-scaffold')
+    vi.mocked(addDevDependencies).mockImplementation(async (_baseDir, _pkgs) => {
+      fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+      fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+    })
+
     setupMockApiSuccess()
 
     const result = await Bootstrap.new().parse(
@@ -300,9 +316,35 @@ describe('Bootstrap command — deps gate', () => {
     expect(result).not.toBeInstanceOf(Error)
     const output = result as string
     expect(output).toContain('Bootstrap completed')
-    expect(output).toContain('Install')
-    expect(output).toContain('dotenv')
-    expect(output).toContain('Re-run')
+    expect(addDevDependencies).toHaveBeenCalledWith(tmpDir, ['dotenv', 'prisma'])
+  })
+
+  test('stops with install instructions when user declines deps install', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm)
+      .mockResolvedValueOnce(true) // migrate confirm (asked before deps gate)
+      .mockResolvedValueOnce(false) // deps install — decline
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Bootstrap completed')
   })
 
   test('skips deps gate when deps are installed', async () => {
