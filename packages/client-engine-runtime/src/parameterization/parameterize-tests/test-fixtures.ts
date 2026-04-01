@@ -1,5 +1,4 @@
-import type { RuntimeDataModel } from '@prisma/client-common'
-import { getDMMF } from '@prisma/client-generator-js'
+import { getInternalDMMF } from '@prisma/get-dmmf'
 import { ParamGraph } from '@prisma/param-graph'
 import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 
@@ -56,7 +55,7 @@ const testSchema = /* prisma */ `
   }
 `
 
-export const testRuntimeDataModel: RuntimeDataModel = {
+export const testRuntimeDataModel = {
   models: {},
   enums: {
     Status: {
@@ -75,16 +74,24 @@ let cached: ParamGraph | undefined
 /**
  * Returns the ParamGraph for the test schema, building it on first call.
  */
-export async function getParamGraph(): Promise<ParamGraph> {
+export function getParamGraph(): ParamGraph {
   if (cached) {
     return cached
   }
 
-  const dmmf = await getDMMF({ datamodel: testSchema })
+  const dmmf = getInternalDMMF({ datamodel: testSchema })
+  if ('error' in dmmf) {
+    throw dmmf.error
+  }
+
   const serialized = buildAndSerializeParamGraph(dmmf)
   cached = ParamGraph.deserialize(serialized, (enumName) => {
     const enumDef = testRuntimeDataModel.enums[enumName]
-    return enumDef?.values.map((v) => v.name)
+    const mapping: Record<string, string> = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
   })
   return cached
 }

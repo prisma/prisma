@@ -974,6 +974,12 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@prisma/json-protocol':
+        specifier: workspace:*
+        version: link:../json-protocol
+      '@prisma/param-graph':
+        specifier: workspace:*
+        version: link:../param-graph
       '@prisma/sqlcommenter':
         specifier: workspace:*
         version: link:../sqlcommenter
@@ -993,6 +999,12 @@ importers:
       '@codspeed/benchmark.js-plugin':
         specifier: 4.0.0
         version: 4.0.0(benchmark@2.1.4)
+      '@prisma/get-dmmf':
+        specifier: workspace:*
+        version: link:../get-dmmf
+      '@prisma/param-graph-builder':
+        specifier: workspace:*
+        version: link:../param-graph-builder
       '@types/benchmark':
         specifier: 2.1.5
         version: 2.1.5
@@ -1342,6 +1354,28 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
 
+  packages/get-dmmf:
+    dependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
+      '@prisma/dmmf':
+        specifier: workspace:*
+        version: link:../dmmf
+      '@prisma/prisma-schema-wasm':
+        specifier: 7.6.0-1.75cbdc1eb7150937890ad5465d861175c6624711
+        version: 7.6.0-1.75cbdc1eb7150937890ad5465d861175c6624711
+      '@streamparser/json':
+        specifier: 0.0.22
+        version: 0.0.22
+      pluralize:
+        specifier: 8.0.0
+        version: 8.0.0
+    devDependencies:
+      '@types/pluralize':
+        specifier: 0.0.33
+        version: 0.0.33
+
   packages/get-platform:
     dependencies:
       '@prisma/debug':
@@ -1505,6 +1539,9 @@ importers:
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
+      '@prisma/get-dmmf':
+        specifier: workspace:*
+        version: link:../get-dmmf
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform

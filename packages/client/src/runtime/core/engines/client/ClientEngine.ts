@@ -2,6 +2,8 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
+  parameterizeBatch,
+  parameterizeQuery,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -34,7 +36,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
 import { QueryPlanCache } from './query-plan-cache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -145,7 +146,11 @@ export class ClientEngine implements Engine {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
       }
-      return config.runtimeDataModel.enums[enumName].values.map((v) => v.name)
+      const mapping: Record<string, string> = {}
+      for (const value of config.runtimeDataModel.enums[enumName].values) {
+        mapping[value.name] = value.dbName ?? value.name
+      }
+      return mapping
     })
 
     if (config.enableDebugLogs) {
@@ -671,7 +676,7 @@ export class ClientEngine implements Engine {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
           queries: [query],
-          execute: () => compiler.compile(request) as QueryPlanNode,
+          execute: () => compiler.compile(request),
         }),
       )
     } catch (error) {

@@ -1,4 +1,5 @@
 import { Debug } from '@prisma/debug'
+import { MultipleSchemaTuple } from '@prisma/get-dmmf'
 import type {
   GetSchemaResult,
   LookupResult,
@@ -10,8 +11,6 @@ import fs from 'fs'
 import { dim, green } from 'kleur/colors'
 import path from 'path'
 import { promisify } from 'util'
-
-import type { MultipleSchemaTuple } from '../utils/schemaFileInput'
 
 const readFile = promisify(fs.readFile)
 const stat = promisify(fs.stat)

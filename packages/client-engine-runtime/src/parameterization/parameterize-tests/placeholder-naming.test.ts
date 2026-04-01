@@ -1,70 +1,35 @@
 import type { JsonQuery } from '@prisma/json-protocol'
-import type { ParamGraph } from '@prisma/param-graph'
+import { describe, expect, it } from 'vitest'
 
 import { parameterizeQuery } from '../parameterize'
 import { getParamGraph } from './test-fixtures'
 
-let paramGraph: ParamGraph
+const paramGraph = getParamGraph()
 
-beforeAll(async () => {
-  paramGraph = await getParamGraph()
-})
-
-describe('parameterizeQuery scalar values', () => {
-  it('parameterizes string values', () => {
-    const query: JsonQuery = {
+describe('parameterizeQuery placeholder naming', () => {
+  it('generates deterministic names for same structure', () => {
+    const query1: JsonQuery = {
       modelName: 'User',
       action: 'findUnique',
       query: {
-        arguments: { where: { email: 'test@example.com' } },
+        arguments: { where: { id: 1 } },
         selection: { $scalars: true },
       },
     }
 
-    const result = parameterizeQuery(query, paramGraph)
-
-    expect(result).toMatchInlineSnapshot(`
-      {
-        "parameterizedQuery": {
-          "action": "findUnique",
-          "modelName": "User",
-          "query": {
-            "arguments": {
-              "where": {
-                "email": {
-                  "$type": "Param",
-                  "value": {
-                    "name": "%1",
-                    "type": "String",
-                  },
-                },
-              },
-            },
-            "selection": {
-              "$scalars": true,
-            },
-          },
-        },
-        "placeholderValues": {
-          "%1": "test@example.com",
-        },
-      }
-    `)
-  })
-
-  it('parameterizes number values', () => {
-    const query: JsonQuery = {
+    const query2: JsonQuery = {
       modelName: 'User',
       action: 'findUnique',
       query: {
-        arguments: { where: { id: 42 } },
+        arguments: { where: { id: 2 } },
         selection: { $scalars: true },
       },
     }
 
-    const result = parameterizeQuery(query, paramGraph)
+    const result1 = parameterizeQuery(query1, paramGraph)
+    const result2 = parameterizeQuery(query2, paramGraph)
 
-    expect(result).toMatchInlineSnapshot(`
+    expect(result1).toMatchInlineSnapshot(`
       {
         "parameterizedQuery": {
           "action": "findUnique",
@@ -87,25 +52,12 @@ describe('parameterizeQuery scalar values', () => {
           },
         },
         "placeholderValues": {
-          "%1": 42,
+          "%1": 1,
         },
       }
     `)
-  })
 
-  it('preserves null values', () => {
-    const query: JsonQuery = {
-      modelName: 'User',
-      action: 'findUnique',
-      query: {
-        arguments: { where: { deletedAt: null } },
-        selection: { $scalars: true },
-      },
-    }
-
-    const result = parameterizeQuery(query, paramGraph)
-
-    expect(result).toMatchInlineSnapshot(`
+    expect(result2).toMatchInlineSnapshot(`
       {
         "parameterizedQuery": {
           "action": "findUnique",
@@ -113,44 +65,11 @@ describe('parameterizeQuery scalar values', () => {
           "query": {
             "arguments": {
               "where": {
-                "deletedAt": null,
-              },
-            },
-            "selection": {
-              "$scalars": true,
-            },
-          },
-        },
-        "placeholderValues": {},
-      }
-    `)
-  })
-
-  it('parameterizes boolean values in where clauses', () => {
-    const query: JsonQuery = {
-      modelName: 'User',
-      action: 'findUnique',
-      query: {
-        arguments: { where: { isActive: true } },
-        selection: { $scalars: true },
-      },
-    }
-
-    const result = parameterizeQuery(query, paramGraph)
-
-    expect(result).toMatchInlineSnapshot(`
-      {
-        "parameterizedQuery": {
-          "action": "findUnique",
-          "modelName": "User",
-          "query": {
-            "arguments": {
-              "where": {
-                "isActive": {
+                "id": {
                   "$type": "Param",
                   "value": {
                     "name": "%1",
-                    "type": "Boolean",
+                    "type": "Int",
                   },
                 },
               },
@@ -161,7 +80,116 @@ describe('parameterizeQuery scalar values', () => {
           },
         },
         "placeholderValues": {
-          "%1": true,
+          "%1": 2,
+        },
+      }
+    `)
+  })
+
+  it('generates unique names for different values', () => {
+    const query: JsonQuery = {
+      modelName: 'User',
+      action: 'findMany',
+      query: {
+        arguments: {
+          where: {
+            id: { in: [1, 2, 3] },
+          },
+        },
+        selection: { $scalars: true },
+      },
+    }
+
+    const result = parameterizeQuery(query, paramGraph)
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "parameterizedQuery": {
+          "action": "findMany",
+          "modelName": "User",
+          "query": {
+            "arguments": {
+              "where": {
+                "id": {
+                  "in": {
+                    "$type": "Param",
+                    "value": {
+                      "inner": {
+                        "type": "Int",
+                      },
+                      "name": "%1",
+                      "type": "List",
+                    },
+                  },
+                },
+              },
+            },
+            "selection": {
+              "$scalars": true,
+            },
+          },
+        },
+        "placeholderValues": {
+          "%1": [
+            1,
+            2,
+            3,
+          ],
+        },
+      }
+    `)
+  })
+
+  it('handles deeply nested paths', () => {
+    const query: JsonQuery = {
+      modelName: 'User',
+      action: 'findMany',
+      query: {
+        arguments: {
+          where: {
+            author: {
+              profile: {
+                bio: { contains: 'developer' },
+              },
+            },
+          },
+        },
+        selection: { $scalars: true },
+      },
+    }
+
+    const result = parameterizeQuery(query, paramGraph)
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "parameterizedQuery": {
+          "action": "findMany",
+          "modelName": "User",
+          "query": {
+            "arguments": {
+              "where": {
+                "author": {
+                  "profile": {
+                    "bio": {
+                      "contains": {
+                        "$type": "Param",
+                        "value": {
+                          "name": "%1",
+                          "type": "String",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            "selection": {
+              "$scalars": true,
+            },
+          },
+        },
+        "placeholderValues": {
+          "%1": "developer",
         },
       }
     `)

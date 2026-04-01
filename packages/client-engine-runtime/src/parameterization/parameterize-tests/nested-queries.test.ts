@@ -1,14 +1,10 @@
 import type { JsonQuery } from '@prisma/json-protocol'
-import type { ParamGraph } from '@prisma/param-graph'
+import { describe, expect, it } from 'vitest'
 
 import { parameterizeQuery } from '../parameterize'
 import { getParamGraph } from './test-fixtures'
 
-let paramGraph: ParamGraph
-
-beforeAll(async () => {
-  paramGraph = await getParamGraph()
-})
+const paramGraph = getParamGraph()
 
 describe('parameterizeQuery nested queries', () => {
   it('parameterizes relation filter values', () => {

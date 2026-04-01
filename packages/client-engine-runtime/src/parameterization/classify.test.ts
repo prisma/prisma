@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest'
+
 import { classifyValue, isPlainObject, isTaggedValue } from './classify'
 
 describe('classifyValue', () => {

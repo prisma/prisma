@@ -1,14 +1,20 @@
-import type { RuntimeDataModel } from '@prisma/client-common'
 import type { JsonQuery } from '@prisma/json-protocol'
-import type { ParamGraphData } from '@prisma/param-graph'
+import type { EnumLookup, ParamGraphData } from '@prisma/param-graph'
 import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
+import { describe, expect, it } from 'vitest'
 
 import { parameterizeBatch, parameterizeQuery } from './parameterize'
 
-function createEnumLookup(runtimeDataModel: RuntimeDataModel) {
-  return (enumName: string): readonly string[] | undefined => {
+function createEnumLookup(runtimeDataModel: {
+  enums: Record<string, { values: { name: string; dbName: string | null }[] }>
+}): EnumLookup {
+  return (enumName: string) => {
     const enumDef = runtimeDataModel.enums[enumName]
-    return enumDef?.values.map((v) => v.name)
+    const mapping: Record<string, string> = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
   }
 }
 
@@ -88,13 +94,14 @@ describe('parameterizeQuery', () => {
     },
   }
 
-  const sampleRuntimeDataModel: RuntimeDataModel = {
+  const sampleRuntimeDataModel = {
     models: {},
     enums: {
       Status: {
         values: [
           { name: 'ACTIVE', dbName: null },
           { name: 'INACTIVE', dbName: null },
+          { name: 'UNSPECIFIED', dbName: 'N/A' },
         ],
         dbName: null,
       },
@@ -277,7 +284,7 @@ describe('parameterizeQuery', () => {
     })
   })
 
-  describe('enum membership validation', () => {
+  describe('enum handling', () => {
     it('parameterizes valid enum values', () => {
       const query: JsonQuery = {
         modelName: 'User',
@@ -292,6 +299,23 @@ describe('parameterizeQuery', () => {
 
       expect(result.placeholderValues).toEqual({
         '%1': 'ACTIVE',
+      })
+    })
+
+    it('parameterizes an enum value with a mapped name', () => {
+      const query: JsonQuery = {
+        modelName: 'User',
+        action: 'findMany',
+        query: {
+          arguments: { where: { status: 'UNSPECIFIED' } },
+          selection: { $scalars: true },
+        },
+      }
+
+      const result = parameterizeQuery(query, paramGraph)
+
+      expect(result.placeholderValues).toEqual({
+        '%1': 'N/A', // dbName mapping applied
       })
     })
 
@@ -512,7 +536,7 @@ describe('parameterizeBatch', () => {
     },
   }
 
-  const sampleRuntimeDataModel: RuntimeDataModel = {
+  const sampleRuntimeDataModel = {
     models: {},
     enums: {},
     types: {},

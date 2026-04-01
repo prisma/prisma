@@ -6,7 +6,6 @@
  * both schema rules and runtime value types agree.
  */
 
-import { deserializeJsonObject, safeJsonStringify } from '@prisma/client-engine-runtime'
 import type {
   JsonArgumentValue,
   JsonBatchQuery,
@@ -20,6 +19,8 @@ import { PlaceholderType } from '@prisma/json-protocol'
 import type { InputEdge, InputNode } from '@prisma/param-graph'
 import { EdgeFlag, getScalarMask, hasFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 
+import { deserializeJsonObject } from '../json-protocol'
+import { safeJsonStringify } from '../utils'
 import { classifyValue, isPlainObject, isTaggedValue, ValueClass } from './classify'
 
 /**
@@ -222,9 +223,9 @@ class Parameterizer {
   #handlePrimitive(value: string | number | boolean, edge: InputEdge): JsonArgumentValue {
     if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.enumNameIndex !== undefined && typeof value === 'string') {
       const enumValues = this.#view.enumValues(edge)
-      if (enumValues?.includes(value)) {
+      if (enumValues && Object.hasOwn(enumValues, value)) {
         const type: PlaceholderType = { type: 'Enum' }
-        return this.#getOrCreatePlaceholder(value, type)
+        return this.#getOrCreatePlaceholder(enumValues[value], type)
       }
     }
 
@@ -280,7 +281,7 @@ class Parameterizer {
 
     if (hasFlag(edge, EdgeFlag.ParamEnum)) {
       const enumValues = this.#view.enumValues(edge)
-      if (enumValues && items.every((item) => typeof item === 'string' && enumValues.includes(item))) {
+      if (enumValues && items.every((item) => typeof item === 'string' && Object.hasOwn(enumValues, item))) {
         const type: PlaceholderType = { type: 'List', inner: { type: 'Enum' } }
         return this.#getOrCreatePlaceholder(items, type)
       }

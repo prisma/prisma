@@ -29,11 +29,11 @@ export function renderQuery(
     case 'templateSql': {
       const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
       return chunks.map((params) => {
-        if (maxChunkSize !== undefined && params.length > maxChunkSize) {
+        const rendered = renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
+        if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
           throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
         }
-
-        return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
+        return rendered
       })
     }
     default:
