@@ -225,6 +225,33 @@ describe('Bootstrap command — new project flow', () => {
     expect(output).toContain('failed')
     expect(output).toContain('Init')
   })
+
+  test('shows user-friendly message on template download timeout', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(false)
+
+    const { downloadAndExtractTemplate } = await import('../template-scaffold')
+    const timeoutError = new DOMException('The operation was aborted due to timeout', 'TimeoutError')
+    vi.mocked(downloadAndExtractTemplate).mockRejectedValueOnce(timeoutError)
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new().parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'nextjs'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    const output = result as string
+    expect(output).toContain('Bootstrap completed')
+    expect(output).toContain('Template')
+    expect(output).toContain('failed')
+  })
 })
 
 describe('Bootstrap command — existing project flow', () => {
