@@ -1,3 +1,4 @@
+import { Decimal } from '@prisma/client-runtime-utils'
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 import { klona } from 'klona'
@@ -160,7 +161,13 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const queries = renderQuery(
+          node.args,
+          context.scope,
+          context.generators,
+          this.#maxChunkSize(),
+          this.#provider ?? context.queryable.provider,
+        )
 
         let sum = 0
         for (const query of queries) {
@@ -178,7 +185,13 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const queries = renderQuery(
+          node.args,
+          context.scope,
+          context.generators,
+          this.#maxChunkSize(),
+          this.#provider ?? context.queryable.provider,
+        )
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
@@ -405,6 +418,54 @@ function asNumber(value: Value): number {
   throw new Error(`Expected number, got ${typeof value}`)
 }
 
+// Decimal.js defaults to 20 significant digits of precision, which silently
+// truncates larger values during arithmetic. We use a higher-precision clone
+// to support the full range of database decimal types (e.g. PostgreSQL NUMERIC
+// can store up to ~131000 digits, MySQL DECIMAL up to 65, SQL Server up to 38).
+// https://github.com/prisma/prisma/issues/29160
+const ArithmeticDecimal = Decimal.clone({ precision: 1000 })
+
+/**
+ * Performs an arithmetic operation using Decimal when either operand is a string,
+ * which happens for Decimal database columns. This avoids precision loss that
+ * occurs when converting large decimal strings to JavaScript numbers.
+ */
+function evalArithmetic(lhs: Value, rhs: Value, op: 'add' | 'sub' | 'mul' | 'div'): Value {
+  if (typeof lhs === 'string' || typeof rhs === 'string') {
+    const left = new ArithmeticDecimal(lhs as string | number)
+    const right = new ArithmeticDecimal(rhs as string | number)
+    switch (op) {
+      case 'add':
+        return left.plus(right).toFixed()
+      case 'sub':
+        return left.minus(right).toFixed()
+      case 'mul':
+        return left.times(right).toFixed()
+      case 'div':
+        if (right.isZero()) {
+          return null
+        }
+        return left.dividedBy(right).toFixed()
+    }
+  }
+
+  const left = asNumber(lhs)
+  const right = asNumber(rhs)
+  switch (op) {
+    case 'add':
+      return left + right
+    case 'sub':
+      return left - right
+    case 'mul':
+      return left * right
+    case 'div':
+      if (right === 0) {
+        return null
+      }
+      return left / right
+  }
+}
+
 function asRecord(value: Value): PrismaObject {
   if (typeof value === 'object' && value !== null) {
     return value as PrismaObject
@@ -540,23 +601,17 @@ function evalFieldOperation(
     case 'set':
       return evaluateArg(op.value, scope, generators)
     case 'add':
-      return asNumber(value) + asNumber(evaluateArg(op.value, scope, generators))
+      return evalArithmetic(value, evaluateArg(op.value, scope, generators), 'add')
     case 'subtract':
-      return asNumber(value) - asNumber(evaluateArg(op.value, scope, generators))
+      return evalArithmetic(value, evaluateArg(op.value, scope, generators), 'sub')
     case 'multiply':
-      return asNumber(value) * asNumber(evaluateArg(op.value, scope, generators))
-    case 'divide': {
-      const lhs = asNumber(value)
-      const rhs = asNumber(evaluateArg(op.value, scope, generators))
+      return evalArithmetic(value, evaluateArg(op.value, scope, generators), 'mul')
+    case 'divide':
       // SQLite and older versions of MySQL return NULL for division by zero, so we emulate
       // that behavior here.
       // If the database does not permit division by zero, a database error should be raised,
       // preventing this case from being executed.
-      if (rhs === 0) {
-        return null
-      }
-      return lhs / rhs
-    }
+      return evalArithmetic(value, evaluateArg(op.value, scope, generators), 'div')
     default:
       assertNever(op, `Unexpected field operation type: ${op['type']}`)
   }
