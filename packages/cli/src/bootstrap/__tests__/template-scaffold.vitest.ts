@@ -51,4 +51,25 @@ describe('detectPackageManager', () => {
     fs.writeFileSync(path.join(tmpDir, 'yarn.lock'), '', 'utf-8')
     expect(detectPackageManager(tmpDir)).toBe('pnpm')
   })
+
+  test('detects pnpm from packageManager field', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"packageManager":"pnpm@10.15.1"}', 'utf-8')
+    expect(detectPackageManager(tmpDir)).toBe('pnpm')
+  })
+
+  test('detects yarn from packageManager field', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"packageManager":"yarn@4.0.0"}', 'utf-8')
+    expect(detectPackageManager(tmpDir)).toBe('yarn')
+  })
+
+  test('detects bun from packageManager field', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"packageManager":"bun@1.3.11"}', 'utf-8')
+    expect(detectPackageManager(tmpDir)).toBe('bun')
+  })
+
+  test('lockfile takes priority over packageManager field', () => {
+    fs.writeFileSync(path.join(tmpDir, 'yarn.lock'), '', 'utf-8')
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"packageManager":"pnpm@10.0.0"}', 'utf-8')
+    expect(detectPackageManager(tmpDir)).toBe('yarn')
+  })
 })

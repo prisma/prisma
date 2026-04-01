@@ -154,6 +154,20 @@ export function detectPackageManager(baseDir: string): PackageManager {
   if (fs.existsSync(path.join(baseDir, 'yarn.lock'))) return 'yarn'
   if (fs.existsSync(path.join(baseDir, 'bun.lock')) || fs.existsSync(path.join(baseDir, 'bun.lockb'))) return 'bun'
   if (fs.existsSync(path.join(baseDir, 'deno.lock'))) return 'deno'
+
+  const pkgPath = path.join(baseDir, 'package.json')
+  if (fs.existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+      const pm = pkg.packageManager as string | undefined
+      if (pm) {
+        if (pm.startsWith('pnpm')) return 'pnpm'
+        if (pm.startsWith('yarn')) return 'yarn'
+        if (pm.startsWith('bun')) return 'bun'
+      }
+    } catch {}
+  }
+
   return 'npm'
 }
 
