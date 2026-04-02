@@ -195,46 +195,29 @@ ${bold('Examples')}
           console.log(
             `  Initialize one with: ${dim('npm init -y')}, ${dim('pnpm init')}, ${dim('yarn init')}, or ${dim('bun init')}\n`,
           )
-        }
 
-        const useTemplate = templateName ?? (await this.askAboutTemplate())
+          const useTemplate = templateName ?? (await this.askAboutTemplate())
 
-        if (useTemplate) {
-          const spinner = ora(`Downloading ${bold(useTemplate)} template...`).start()
-          const stepStart = performance.now()
-
-          try {
-            await downloadAndExtractTemplate(useTemplate, baseDir)
-            spinner.succeed(`Template ${bold(useTemplate)} scaffolded`)
-            steps.template = 'completed'
-            steps.init = 'skipped'
-            templateScaffolded = true
-            stepsCompleted.push('template')
-            await emitStepCompleted(telemetryCtx, 'template', performance.now() - stepStart)
-          } catch (err) {
-            const isTimeout = err instanceof DOMException && err.name === 'TimeoutError'
-            const msg = isTimeout
-              ? 'Download timed out — check your network connection and try again'
-              : err instanceof Error
-                ? err.message
-                : String(err)
-            spinner.fail(`Template download failed: ${sanitizeErrorMessage(msg)}`)
-
-            if (isEmptyProject) {
+          if (useTemplate) {
+            await this.scaffoldTemplate(useTemplate, baseDir, steps, stepsCompleted, telemetryCtx)
+            templateScaffolded = steps.template === 'completed'
+            if (!templateScaffolded) {
               return new HelpError(
                 `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
               )
             }
-
+          } else {
+            return new HelpError(
+              `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
+            )
+          }
+        } else if (templateName) {
+          await this.scaffoldTemplate(templateName, baseDir, steps, stepsCompleted, telemetryCtx)
+          templateScaffolded = steps.template === 'completed'
+          if (!templateScaffolded) {
             console.log(`${dim('  Falling back to prisma init...')}`)
-            steps.template = 'failed'
-            await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
             await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
           }
-        } else if (isEmptyProject) {
-          return new HelpError(
-            `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
-          )
         } else {
           steps.template = 'not-applicable'
           await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
@@ -314,24 +297,14 @@ ${bold('Examples')}
       // Re-detect project state after init/template + link may have changed files
       const updatedState = detectProjectState(baseDir)
 
-      // Reload config after init/template may have created prisma.config.ts
-      let activeConfig = config
-      if (!initialState.hasPrismaConfig && updatedState.hasPrismaConfig) {
-        try {
-          const { config: reloadedConfig, error } = await loadConfigFromFile({})
-          if (!error) {
-            activeConfig = reloadedConfig
-          }
-        } catch {
-          console.log(`${yellow('warn')} Could not reload config — using initial config for migrate/seed`)
-        }
-      }
-
       // --- Deps gate: check if Prisma dependencies are available ---
       //
       // The generated prisma.config.ts imports dotenv/config, and migrate/generate
       // shell out to the local prisma binary when a schema file exists. Both must
       // be installed for subsequent steps to work.
+      //
+      // This runs BEFORE config reload — prisma.config.ts imports dotenv/config,
+      // so dotenv must be installed first or the config load will fail.
       const missingDeps: string[] = []
       if (!templateScaffolded) {
         for (const pkg of ['dotenv', 'prisma']) {
@@ -383,6 +356,20 @@ ${bold('Examples')}
             hasModels: updatedState.hasModels,
             pendingDepsInstall: true,
           })
+        }
+      }
+
+      // Reload config after deps are installed — prisma.config.ts imports
+      // dotenv/config, so this must happen after the deps gate above.
+      let activeConfig = config
+      if (!initialState.hasPrismaConfig && updatedState.hasPrismaConfig) {
+        try {
+          const { config: reloadedConfig, error } = await loadConfigFromFile({})
+          if (!error) {
+            activeConfig = reloadedConfig
+          }
+        } catch {
+          console.log(`${yellow('warn')} Could not reload config — using initial config for migrate/seed`)
         }
       }
 
@@ -558,6 +545,41 @@ ${bold('Examples')}
       message: 'Add a sample User model to get started?',
       default: true,
     })
+  }
+
+  private async scaffoldTemplate(
+    templateName: string,
+    baseDir: string,
+    steps: BootstrapStepStatus,
+    stepsCompleted: string[],
+    telemetryCtx: {
+      distinctId: string
+      databaseId: string | undefined
+      linkResult: LinkResult | null
+      projectState: ReturnType<typeof detectProjectState>
+    },
+  ): Promise<void> {
+    const spinner = ora(`Downloading ${bold(templateName)} template...`).start()
+    const stepStart = performance.now()
+
+    try {
+      await downloadAndExtractTemplate(templateName, baseDir)
+      spinner.succeed(`Template ${bold(templateName)} scaffolded`)
+      steps.template = 'completed'
+      steps.init = 'skipped'
+      stepsCompleted.push('template')
+      await emitStepCompleted(telemetryCtx, 'template', performance.now() - stepStart)
+    } catch (err) {
+      const isTimeout = err instanceof DOMException && err.name === 'TimeoutError'
+      const msg = isTimeout
+        ? 'Download timed out — check your network connection and try again'
+        : err instanceof Error
+          ? err.message
+          : String(err)
+      spinner.fail(`Template download failed: ${sanitizeErrorMessage(msg)}`)
+      steps.template = 'failed'
+      await emitStepFailed(telemetryCtx, 'template', sanitizeErrorMessage(msg))
+    }
   }
 
   private async runInit(
