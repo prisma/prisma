@@ -330,6 +330,7 @@ describe('Bootstrap command — deps gate', () => {
     vi.mocked(addDevDependencies).mockImplementation((_baseDir, _pkgs) => {
       fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
       fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
+      return Promise.resolve()
     })
 
     setupMockApiSuccess()
@@ -358,8 +359,8 @@ describe('Bootstrap command — deps gate', () => {
 
     const { confirm } = await import('@inquirer/prompts')
     vi.mocked(confirm)
-      .mockResolvedValueOnce(true) // migrate confirm (asked before deps gate)
-      .mockResolvedValueOnce(false) // deps install — decline
+      .mockResolvedValueOnce(true) // deps install — approve
+      .mockResolvedValueOnce(false) // migrate confirm — decline
 
     setupMockApiSuccess()
 

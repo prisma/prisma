@@ -164,6 +164,7 @@ export function detectPackageManager(baseDir: string): PackageManager {
         if (pm.startsWith('pnpm')) return 'pnpm'
         if (pm.startsWith('yarn')) return 'yarn'
         if (pm.startsWith('bun')) return 'bun'
+        if (pm.startsWith('deno')) return 'deno'
       }
     } catch {}
   }
@@ -185,6 +186,9 @@ export async function installDependencies(baseDir: string): Promise<void> {
 
 export async function addDevDependencies(baseDir: string, packages: string[]): Promise<void> {
   const pm = detectPackageManager(baseDir)
+  if (pm === 'deno') {
+    throw new Error('Deno projects require manual dependency management. Please add dependencies to your deno.json.')
+  }
   const addArgs = pm === 'yarn' ? ['add', '--dev', ...packages] : ['add', '-D', ...packages]
   if (pm === 'npm') {
     addArgs[0] = 'install'

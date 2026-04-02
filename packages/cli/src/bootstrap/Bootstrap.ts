@@ -344,7 +344,6 @@ ${bold('Examples')}
             })
           }
         } else {
-          const pm = detectPackageManager(baseDir)
           console.log(`\n  Install them manually, then re-run:`)
           console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
           console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
