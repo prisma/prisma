@@ -5,6 +5,7 @@ export enum Providers {
   MONGODB = 'mongodb',
   COCKROACHDB = 'cockroachdb',
   SQLSERVER = 'sqlserver',
+  SURREALDB = 'surrealdb',
 }
 
 export enum AdapterProviders {
@@ -16,6 +17,8 @@ export enum AdapterProviders {
   JS_BETTER_SQLITE3 = 'js_better_sqlite3',
   JS_MSSQL = 'js_mssql',
   JS_MARIADB = 'js_mariadb',
+
+  JS_SURREALDB = 'js_surrealdb',
 
   // entries below are not driver adapters,
   // they are used for testing different databases
@@ -37,6 +40,7 @@ export const adaptersForProvider = {
   [Providers.MONGODB]: [],
   [Providers.COCKROACHDB]: [AdapterProviders.JS_PG_COCKROACHDB],
   [Providers.SQLSERVER]: [AdapterProviders.JS_MSSQL],
+  [Providers.SURREALDB]: [AdapterProviders.JS_SURREALDB],
 } satisfies Record<Providers, AdapterProviders[]>
 
 export const relationModesForAdapter = {
@@ -50,6 +54,7 @@ export const relationModesForAdapter = {
   [AdapterProviders.JS_MSSQL]: undefined,
   [AdapterProviders.JS_MARIADB]: undefined,
   [AdapterProviders.JS_PG_COCKROACHDB]: undefined,
+  [AdapterProviders.JS_SURREALDB]: RelationModes.PRISMA,
 } satisfies Record<AdapterProviders, RelationModes | undefined>
 
 export const allProviders = Object.values(Providers).map((p) => ({ provider: p }))

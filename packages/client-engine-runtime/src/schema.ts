@@ -10,3 +10,4 @@ export type SchemaProvider =
   | 'prisma+postgres'
   | 'sqlite'
   | 'sqlserver'
+  | 'surrealdb'

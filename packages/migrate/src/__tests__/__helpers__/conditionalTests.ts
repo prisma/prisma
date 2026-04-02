@@ -18,7 +18,13 @@ export const allProviders = {
   cockroachdb: true,
   sqlserver: true,
   d1: true,
-} satisfies Record<SupportedProviders, true>
+  // SurrealDB is opt-in until the prisma-engines side is fully merged
+} satisfies Matrix['providers']
+
+/** Runs a test matrix only for the SurrealDB provider. */
+export const surrealdbOnly = {
+  providers: { surrealdb: true },
+} satisfies Matrix
 
 export const sqliteOnly = {
   providers: { sqlite: true },
@@ -90,6 +96,7 @@ export function describeMatrix(matrix: Matrix, name: string, fn: jest.EmptyFunct
   if (matrix.providers.cockroachdb && process.env.TEST_SKIP_COCKROACHDB) return skip(name)
   if (matrix.providers.sqlserver && process.env.TEST_SKIP_MSSQL) return skip(name)
   if (matrix.providers.mongodb && process.env.TEST_SKIP_MONGODB) return skip(name)
+  if (matrix.providers.surrealdb && process.env.TEST_SKIP_SURREALDB) return skip(name)
 
   // eslint-disable-next-line jest/valid-describe-callback
   describe(name, fn)

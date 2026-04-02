@@ -242,6 +242,18 @@ services:
       timeout: 2s
       retries: 20
 
+  surrealdb:
+    image: surrealdb/surrealdb:v3.0.4
+    restart: unless-stopped
+    command: start --user root --pass root
+    ports:
+      - '8000:8000'
+    healthcheck:
+      test: ['CMD', 'nc', '-z', '127.0.0.1', '8000']
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
   planetscale_proxy:
     build: ./planetscale_proxy
     environment:
