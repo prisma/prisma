@@ -358,9 +358,11 @@ describe('Bootstrap command — deps gate', () => {
     )
 
     const { confirm } = await import('@inquirer/prompts')
-    vi.mocked(confirm)
-      .mockResolvedValueOnce(true) // deps install — approve
-      .mockResolvedValueOnce(false) // migrate confirm — decline
+    vi.mocked(confirm).mockReset()
+    vi.mocked(confirm).mockResolvedValueOnce(false) // deps install — decline
+
+    const { addDevDependencies } = await import('../template-scaffold')
+    vi.mocked(addDevDependencies).mockReset()
 
     setupMockApiSuccess()
 
@@ -373,6 +375,7 @@ describe('Bootstrap command — deps gate', () => {
     expect(result).not.toBeInstanceOf(Error)
     const output = result as string
     expect(output).toContain('Bootstrap completed')
+    expect(addDevDependencies).not.toHaveBeenCalled()
   })
 
   test('skips deps gate when deps are installed', async () => {

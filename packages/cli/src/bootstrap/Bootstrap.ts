@@ -317,6 +317,25 @@ ${bold('Examples')}
       if (missingDeps.length > 0) {
         const pm = detectPackageManager(baseDir)
         const depsLabel = bold(missingDeps.join(', '))
+
+        const manualInstallAndReturn = () => {
+          console.log(`\n  Install them manually, then re-run:`)
+          console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
+          console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
+
+          return formatBootstrapOutput({
+            databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
+            isNewProject: !initialState.hasPackageJson,
+            steps,
+            hasModels: updatedState.hasModels,
+            pendingDepsInstall: true,
+          })
+        }
+
+        if (pm === 'deno') {
+          return manualInstallAndReturn()
+        }
+
         const shouldInstall = await confirm({
           message: `Install missing Prisma dependencies (${missingDeps.join(', ')}) with ${pm}?`,
           default: true,
@@ -331,30 +350,10 @@ ${bold('Examples')}
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err)
             installSpinner.fail(`Failed to install dependencies: ${sanitizeErrorMessage(msg)}`)
-            console.log(`\n  Install them manually, then re-run:`)
-            console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
-            console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
-
-            return formatBootstrapOutput({
-              databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
-              isNewProject: !initialState.hasPackageJson,
-              steps,
-              hasModels: updatedState.hasModels,
-              pendingDepsInstall: true,
-            })
+            return manualInstallAndReturn()
           }
         } else {
-          console.log(`\n  Install them manually, then re-run:`)
-          console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
-          console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
-
-          return formatBootstrapOutput({
-            databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
-            isNewProject: !initialState.hasPackageJson,
-            steps,
-            hasModels: updatedState.hasModels,
-            pendingDepsInstall: true,
-          })
+          return manualInstallAndReturn()
         }
       }
 
