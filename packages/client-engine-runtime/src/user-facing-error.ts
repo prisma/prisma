@@ -1,6 +1,6 @@
 import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-adapter-utils'
 
-import { assertNever } from './utils'
+import { assertNever, safeJsonStringify } from './utils'
 
 export class UserFacingError extends Error {
   name = 'UserFacingError'
@@ -108,7 +108,7 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'mssql':
       return
     default:
-      assertNever(err.cause, `Unknown error: ${err.cause}`)
+      assertNever(err.cause, `Unknown error: ${safeJsonStringify(err.cause)}`)
   }
 }
 
@@ -186,7 +186,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'mssql':
       return
     default:
-      assertNever(err.cause, `Unknown error: ${err.cause}`)
+      assertNever(err.cause, `Unknown error: ${safeJsonStringify(err.cause)}`)
   }
 }
 
