@@ -327,7 +327,7 @@ describe('Bootstrap command — deps gate', () => {
     vi.mocked(confirm).mockResolvedValue(true)
 
     const { addDevDependencies } = await import('../template-scaffold')
-    vi.mocked(addDevDependencies).mockImplementation(async (_baseDir, _pkgs) => {
+    vi.mocked(addDevDependencies).mockImplementation((_baseDir, _pkgs) => {
       fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
       fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma'), { recursive: true })
     })
