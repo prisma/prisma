@@ -319,8 +319,10 @@ ${bold('Examples')}
         const depsLabel = bold(missingDeps.join(', '))
 
         const manualInstallAndReturn = () => {
+          const installHint =
+            pm === 'npm' ? `npm install --save-dev ${missingDeps.join(' ')}` : `${pm} add -D ${missingDeps.join(' ')}`
           console.log(`\n  Install them manually, then re-run:`)
-          console.log(`  ${dim('$')} ${pm} add -D ${missingDeps.join(' ')}`)
+          console.log(`  ${dim('$')} ${installHint}`)
           console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
 
           return formatBootstrapOutput({

@@ -189,11 +189,16 @@ export async function addDevDependencies(baseDir: string, packages: string[]): P
   if (pm === 'deno') {
     throw new Error('Deno projects require manual dependency management. Please add dependencies to your deno.json.')
   }
-  const addArgs = pm === 'yarn' ? ['add', '--dev', ...packages] : ['add', '-D', ...packages]
-  if (pm === 'npm') {
-    addArgs[0] = 'install'
-    addArgs[1] = '--save-dev'
-  }
+  const addArgs = (() => {
+    switch (pm) {
+      case 'npm':
+        return ['install', '--save-dev', ...packages]
+      case 'yarn':
+        return ['add', '--dev', ...packages]
+      default:
+        return ['add', '-D', ...packages]
+    }
+  })()
   await execFileAsync(pm, addArgs, {
     cwd: baseDir,
     env: { ...process.env },
