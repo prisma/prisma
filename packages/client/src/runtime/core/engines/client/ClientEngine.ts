@@ -2,6 +2,8 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
+  parameterizeBatch,
+  parameterizeQuery,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -34,7 +36,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { parameterizeBatch, parameterizeQuery } from './parameterization/parameterize'
 import { QueryPlanCache } from './query-plan-cache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -145,7 +146,11 @@ export class ClientEngine implements Engine {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
       }
-      return config.runtimeDataModel.enums[enumName].values.map((v) => v.name)
+      const mapping: Record<string, string> = {}
+      for (const value of config.runtimeDataModel.enums[enumName].values) {
+        mapping[value.name] = value.dbName ?? value.name
+      }
+      return mapping
     })
 
     if (config.enableDebugLogs) {
@@ -475,14 +480,20 @@ export class ClientEngine implements Engine {
       const cacheKey = JSON.stringify(parameterizedQuery)
       placeholderValues = extractedValues
 
-      const cached = this.#queryPlanCache.getSingle(cacheKey)
+      // We do not cache `createMany` and `createManyAndReturn` queries as they are very unlikely
+      // to benefit from caching due to their high variability in parameters, which leads to a very
+      // high cache miss rate and potential cache bloat.
+      const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
+      const cached = isCacheable ? this.#queryPlanCache.getSingle(cacheKey) : undefined
       if (cached) {
         debug('query plan cache hit')
         plan = cached
       } else {
         debug('query plan cache miss')
         plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
-        this.#queryPlanCache.setSingle(cacheKey, plan)
+        if (isCacheable) {
+          this.#queryPlanCache.setSingle(cacheKey, plan)
+        }
       }
     }
 
@@ -665,7 +676,7 @@ export class ClientEngine implements Engine {
       return this.#withLocalPanicHandler(() =>
         this.#withCompileSpan({
           queries: [query],
-          execute: () => compiler.compile(request) as QueryPlanNode,
+          execute: () => compiler.compile(request),
         }),
       )
     } catch (error) {

@@ -1,4 +1,5 @@
 import { getLogs } from '@prisma/debug'
+import type { SqlQuery } from '@prisma/driver-adapter-utils'
 import pg, { DatabaseError } from 'pg'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -106,6 +107,48 @@ describe('PrismaPgAdapterFactory', () => {
     await transaction.rollback()
     expect(mockConnection.removeListener).toHaveBeenCalledWith('error', expect.any(Function))
     expect(mockConnection.listenerCount('error')).toEqual(0)
+
+    await adapter.dispose()
+  })
+
+  it('should pass generated name when statement name generator is provided', async () => {
+    const mockGenerator = vi.fn(() => 'test-name')
+    const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost/test', {
+      statementNameGenerator: mockGenerator,
+    })
+    const adapter = await factory.connect()
+
+    const mockQuery = vi.fn().mockResolvedValue({
+      rows: [],
+      fields: [],
+      rowCount: 0,
+    })
+    adapter['client'].query = mockQuery
+
+    const query: SqlQuery = { sql: 'SELECT 1', args: [], argTypes: [] }
+    await adapter.queryRaw(query)
+
+    expect(mockGenerator).toHaveBeenCalledWith(query)
+    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({ name: 'test-name' }), [])
+
+    await adapter.dispose()
+  })
+
+  it('should not pass name when statement name generator is not provided', async () => {
+    const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost/test')
+    const adapter = await factory.connect()
+
+    const mockQuery = vi.fn().mockResolvedValue({
+      rows: [],
+      fields: [],
+      rowCount: 0,
+    })
+    adapter['client'].query = mockQuery
+
+    const query: SqlQuery = { sql: 'SELECT 1', args: [], argTypes: [] }
+    await adapter.queryRaw(query)
+
+    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({ name: undefined }), [])
 
     await adapter.dispose()
   })
