@@ -1,5 +1,6 @@
 module.exports = {
   preset: '../../helpers/test/presets/withSnapshotSerializer.js',
+  testPathIgnorePatterns: ['/node_modules/', '\\.vitest.ts$'],
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',
     '<rootDir>/fixtures/',

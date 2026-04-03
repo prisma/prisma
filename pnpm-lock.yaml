@@ -265,8 +265,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       mariadb:
-        specifier: 3.4.5
-        version: 3.4.5
+        specifier: 3.5.2
+        version: 3.5.2
 
   packages/adapter-mssql:
     dependencies:
@@ -876,8 +876,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6
       mariadb:
-        specifier: 3.4.5
-        version: 3.4.5
+        specifier: 3.5.2
+        version: 3.5.2
       memfs:
         specifier: 4.17.2
         version: 4.17.2
@@ -1489,8 +1489,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       mariadb:
-        specifier: 3.4.5
-        version: 3.4.5
+        specifier: 3.5.2
+        version: 3.5.2
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -1763,8 +1763,8 @@ importers:
         specifier: 6.1.0
         version: 6.1.0
       mariadb:
-        specifier: 3.4.5
-        version: 3.4.5
+        specifier: 3.5.2
+        version: 3.5.2
       mock-stdin:
         specifier: 1.0.0
         version: 1.0.0
@@ -4117,9 +4117,6 @@ packages:
   '@types/node@20.19.25':
     resolution: {integrity: sha512-ZsJzA5thDQMSQO788d7IocwwQbI8B5OPzmqNvpf3NY/+MHDAS759Wo0gd2WQeXYt5AAAQjzcrTVC6SKCuYgoCQ==}
 
-  '@types/node@24.3.0':
-    resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
-
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
 
@@ -5847,6 +5844,10 @@ packages:
     resolution: {integrity: sha512-cf6L2Ds3h57VVmkZe+Pn+5APsT7FpqJtEhhieDCvrE2MK5Qk9MyffgQyuxQTm6BChfeZNtcOLHp9IcWRVcIcBQ==}
     engines: {node: '>=0.10.0'}
 
+  iconv-lite@0.7.2:
+    resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
+    engines: {node: '>=0.10.0'}
+
   identifier-regex@1.0.0:
     resolution: {integrity: sha512-Rcy5cjBOM9iTR+Vwy0Llyip9u0cA99T1yiWOhDW/+PDaTQhyski0tMovsipQ/FRNDkudjLWusJ/IMVIlG5WZnQ==}
     engines: {node: '>=18'}
@@ -6489,9 +6490,9 @@ packages:
     resolution: {integrity: sha512-hdN1wVrZbb29eBGiGjJbeP8JbKjq1urkHJ/LIP/NY48MZ1QVXUsQBV1G1zvYFHn1XE06cwjBsOI2K3Ulnj1YXQ==}
     engines: {node: '>=8'}
 
-  mariadb@3.4.5:
-    resolution: {integrity: sha512-gThTYkhIS5rRqkVr+Y0cIdzr+GRqJ9sA2Q34e0yzmyhMCwyApf3OKAC1jnF23aSlIOqJuyaUFUcj7O1qZslmmQ==}
-    engines: {node: '>= 14'}
+  mariadb@3.5.2:
+    resolution: {integrity: sha512-9rztrI4nouxAY/82a+RlzzZ5ie2vxu2eYclkBvTy1ATXH1B9cnvZ0O71Pzsy/mlfDb5P3HhOg0JzQKkDRhctyA==}
+    engines: {node: '>= 18'}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -8129,9 +8130,6 @@ packages:
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-
-  undici-types@7.10.0:
-    resolution: {integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==}
 
   undici@5.28.5:
     resolution: {integrity: sha512-zICwjrDrcrUE0pyyJc1I2QzBkLM8FINsgOrt6WjA+BgajVq9Nxu2PbFFXUrAggLfDXlZGZBVZYw7WNV5KiBiBA==}
@@ -10681,10 +10679,6 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@24.3.0':
-    dependencies:
-      undici-types: 7.10.0
-
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/pg@8.11.11':
@@ -12636,6 +12630,10 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
+  iconv-lite@0.7.2:
+    dependencies:
+      safer-buffer: 2.1.2
+
   identifier-regex@1.0.0:
     dependencies:
       reserved-identifiers: 1.0.0
@@ -13436,12 +13434,12 @@ snapshots:
 
   map-obj@4.3.0: {}
 
-  mariadb@3.4.5:
+  mariadb@3.5.2:
     dependencies:
       '@types/geojson': 7946.0.16
-      '@types/node': 24.3.0
+      '@types/node': 20.19.25
       denque: 2.1.0
-      iconv-lite: 0.6.3
+      iconv-lite: 0.7.2
       lru-cache: 10.4.3
 
   math-intrinsics@1.1.0: {}
@@ -15133,8 +15131,6 @@ snapshots:
   undici-types@5.26.5: {}
 
   undici-types@6.21.0: {}
-
-  undici-types@7.10.0: {}
 
   undici@5.28.5:
     dependencies:

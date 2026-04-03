@@ -27,7 +27,7 @@
     "fs-jetpack": "5.1.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
-    "mariadb": "3.4.5",
+    "mariadb": "3.5.2",
     "mssql": "11.0.1",
     "pg": "8.14.1",
     "sqlite-async": "1.2.2",
@@ -39,14 +39,14 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test:integration": "dotenv -e ../../.db.env -- jest integration --maxWorkers=1 --silent",
+    "test:integration": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts integration",
     "test:sqlite": "dotenv -e ../../.db.env -- jest integration.sqlite --silent",
     "test:postgresql": "dotenv -e ../../.db.env -- jest integration.postgresql --maxWorkers=1 --silent",
-    "test:mysql": "dotenv -e ../../.db.env -- jest integration.mysql --maxWorkers=1 --silent",
-    "test:mariadb": "dotenv -e ../../.db.env -- jest integration.mariadb --maxWorkers=1 --silent",
+    "test:mysql": "dotenv -e ../../.db.env -- vitest run 'integration/mysql'",
+    "test:mariadb": "dotenv -e ../../.db.env -- vitest run 'integration/mariadb'",
     "test:mssql": "dotenv -e ../../.db.env -- jest integration.mssql --maxWorkers=1 --silent",
     "jest": "dotenv -e ../../.db.env -- jest",
-    "test": "dotenv -e ../../.db.env -- jest --maxWorkers=1 --silent"
+    "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts"
   },
   "files": [
     "README.md",

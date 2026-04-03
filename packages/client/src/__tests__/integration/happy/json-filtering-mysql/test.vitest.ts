@@ -2,7 +2,7 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { migrateDb } from '../../__helpers__/migrateDb.vitest'
 // @ts-ignore trick to get typings at dev time
 import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 

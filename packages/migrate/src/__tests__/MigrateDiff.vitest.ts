@@ -1,9 +1,10 @@
 // describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
-
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+
+import { vi } from 'vitest'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
@@ -18,10 +19,10 @@ import {
   noDriverAdapters,
   postgresOnly,
   sqlServerOnly,
-} from './__helpers__/conditionalTests'
-import { createDefaultTestContext } from './__helpers__/context'
+} from './__helpers__/conditionalTests.vitest'
+import { createDefaultVitestContext } from './__helpers__/vitestContext'
 
-const ctx = createDefaultTestContext()
+const ctx = createDefaultVitestContext()
 
 const isWindows = os.platform() === 'win32'
 
@@ -146,7 +147,7 @@ describe('migrate diff', () => {
   describe('generic', () => {
     it('wrong flag', async () => {
       const commandInstance = MigrateDiff.new()
-      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+      const spy = vi.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
       await commandInstance.parse(['--something'], await ctx.config(), ctx.configDir())
       expect(spy).toHaveBeenCalledTimes(1)
@@ -155,7 +156,7 @@ describe('migrate diff', () => {
 
     it('help flag', async () => {
       const commandInstance = MigrateDiff.new()
-      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+      const spy = vi.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
       await commandInstance.parse(['--help'], await ctx.config(), ctx.configDir())
       expect(spy).toHaveBeenCalledTimes(1)
