@@ -21,6 +21,7 @@ import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-ou
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
 import {
+  addDependencies,
   addDevDependencies,
   detectPackageManager,
   downloadAndExtractTemplate,
@@ -305,24 +306,39 @@ ${bold('Examples')}
       //
       // This runs BEFORE config reload — prisma.config.ts imports dotenv/config,
       // so dotenv must be installed first or the config load will fail.
+      const missingDevDeps: string[] = []
       const missingDeps: string[] = []
       if (!templateScaffolded) {
         for (const pkg of ['dotenv', 'prisma']) {
           if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
-            missingDeps.push(pkg)
+            missingDevDeps.push(pkg)
           }
+        }
+        if (!fs.existsSync(path.join(baseDir, 'node_modules', '@prisma', 'client'))) {
+          missingDeps.push('@prisma/client')
         }
       }
 
-      if (missingDeps.length > 0) {
+      const allMissing = [...missingDevDeps, ...missingDeps]
+
+      if (allMissing.length > 0) {
         const pm = detectPackageManager(baseDir)
-        const depsLabel = bold(missingDeps.join(', '))
+        const depsLabel = bold(allMissing.join(', '))
 
         const manualInstallAndReturn = () => {
-          const installHint =
-            pm === 'npm' ? `npm install --save-dev ${missingDeps.join(' ')}` : `${pm} add -D ${missingDeps.join(' ')}`
           console.log(`\n  Install them manually, then re-run:`)
-          console.log(`  ${dim('$')} ${installHint}`)
+          if (missingDeps.length > 0) {
+            const installHint =
+              pm === 'npm' ? `npm install ${missingDeps.join(' ')}` : `${pm} add ${missingDeps.join(' ')}`
+            console.log(`  ${dim('$')} ${installHint}`)
+          }
+          if (missingDevDeps.length > 0) {
+            const installHint =
+              pm === 'npm'
+                ? `npm install --save-dev ${missingDevDeps.join(' ')}`
+                : `${pm} add -D ${missingDevDeps.join(' ')}`
+            console.log(`  ${dim('$')} ${installHint}`)
+          }
           console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
 
           return formatBootstrapOutput({
@@ -339,14 +355,19 @@ ${bold('Examples')}
         }
 
         const shouldInstall = await confirm({
-          message: `Install missing Prisma dependencies (${missingDeps.join(', ')}) with ${pm}?`,
+          message: `Install missing Prisma dependencies (${allMissing.join(', ')}) with ${pm}?`,
           default: true,
         })
 
         if (shouldInstall) {
           const installSpinner = ora(`Installing ${depsLabel}...`).start()
           try {
-            await addDevDependencies(baseDir, missingDeps)
+            if (missingDeps.length > 0) {
+              await addDependencies(baseDir, missingDeps)
+            }
+            if (missingDevDeps.length > 0) {
+              await addDevDependencies(baseDir, missingDevDeps)
+            }
             installSpinner.succeed(`Prisma dependencies installed`)
             stepsCompleted.push('deps')
           } catch (err) {

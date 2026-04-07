@@ -174,9 +174,9 @@ export function detectPackageManager(baseDir: string): PackageManager {
 
 const execFileAsync = promisify(execFile)
 
-export async function installDependencies(baseDir: string): Promise<void> {
+async function runPackageManager(baseDir: string, args: string[]): Promise<void> {
   const pm = detectPackageManager(baseDir)
-  await execFileAsync(pm, ['install'], {
+  await execFileAsync(pm, args, {
     cwd: baseDir,
     env: { ...process.env },
     shell: process.platform === 'win32',
@@ -184,25 +184,29 @@ export async function installDependencies(baseDir: string): Promise<void> {
   })
 }
 
-export async function addDevDependencies(baseDir: string, packages: string[]): Promise<void> {
+export function installDependencies(baseDir: string): Promise<void> {
+  return runPackageManager(baseDir, ['install'])
+}
+
+function addArgsForPackages(baseDir: string, packages: string[], dev: boolean): string[] {
   const pm = detectPackageManager(baseDir)
   if (pm === 'deno') {
     throw new Error('Deno projects require manual dependency management. Please add dependencies to your deno.json.')
   }
-  const addArgs = (() => {
-    switch (pm) {
-      case 'npm':
-        return ['install', '--save-dev', ...packages]
-      case 'yarn':
-        return ['add', '--dev', ...packages]
-      default:
-        return ['add', '-D', ...packages]
-    }
-  })()
-  await execFileAsync(pm, addArgs, {
-    cwd: baseDir,
-    env: { ...process.env },
-    shell: process.platform === 'win32',
-    timeout: 300_000,
-  })
+  switch (pm) {
+    case 'npm':
+      return dev ? ['install', '--save-dev', ...packages] : ['install', ...packages]
+    case 'yarn':
+      return dev ? ['add', '--dev', ...packages] : ['add', ...packages]
+    default:
+      return dev ? ['add', '-D', ...packages] : ['add', ...packages]
+  }
+}
+
+export function addDependencies(baseDir: string, packages: string[]): Promise<void> {
+  return runPackageManager(baseDir, addArgsForPackages(baseDir, packages, false))
+}
+
+export function addDevDependencies(baseDir: string, packages: string[]): Promise<void> {
+  return runPackageManager(baseDir, addArgsForPackages(baseDir, packages, true))
 }
