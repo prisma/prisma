@@ -7,17 +7,19 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
   getCommandWithExecutor,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
   validate,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -30,7 +32,6 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -43,21 +44,22 @@ export class MigrateDev implements Command {
 ${
   process.platform === 'win32' ? '' : '🏋️  '
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
- 
+
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate dev [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
        -h, --help   Display this help message
          --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
+         --url      Override the datasource URL from the Prisma config file
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
-  --skip-generate   Skip triggering generators (e.g. Prisma Client)
-      --skip-seed   Skip triggering seed
 
 ${bold('Examples')}
 
@@ -71,7 +73,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -82,8 +84,7 @@ ${bold('Examples')}
       '--create-only': Boolean,
       '--schema': String,
       '--config': String,
-      '--skip-generate': Boolean,
-      '--skip-seed': Boolean,
+      '--url': String,
       '--telemetry-information': String,
     })
 
@@ -95,50 +96,63 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
+    let cmdSpecificConfig = config
+    if (args['--url']) {
+      cmdSpecificConfig = {
+        ...cmdSpecificConfig,
+        datasource: {
+          ...cmdSpecificConfig.datasource,
+          url: args['--url'],
+        },
+      }
+    }
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
+    const cmd = 'migrate dev'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
 
-    printDatasource({ datasourceInfo, adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
+    printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
     validate({ schemas: schemaContext.schemaFiles })
 
-    let wasDbCreated: string | undefined
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
-      // Automatically create the database if it doesn't exist
-      wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write(wasDbCreated + '\n\n')
-      }
+    // Automatically create the database if it doesn't exist
+    const successMessage = await ensureDatabaseExists(
+      baseDir,
+      getSchemaDatasourceProvider(schemaContext),
+      validatedConfig,
+    )
+    if (successMessage) {
+      process.stdout.write(successMessage + '\n\n')
     }
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
-      externalTables: config.tables?.external ?? [],
-      externalEnums: config.enums?.external ?? [],
+      externalTables: cmdSpecificConfig.tables?.external ?? [],
+      externalEnums: cmdSpecificConfig.enums?.external ?? [],
     }
 
     const migrate = await Migrate.setup({
-      schemaEngineConfig: config,
+      schemaEngineConfig: cmdSpecificConfig,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
-      shadowDbInitScript: config.migrations?.initShadowDb,
-      extensions: config['extensions'],
+      shadowDbInitScript: cmdSpecificConfig.migrations?.initShadowDb,
+      extensions: cmdSpecificConfig['extensions'],
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
@@ -303,34 +317,6 @@ ${bold('Examples')}
 
 ${green('Your database is now in sync with your schema.')}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate(datasourceInfo)
-      process.stdout.write('\n') // empty line
-    }
-
-    // If database was created we want to run the seed if not skipped
-    if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      try {
-        const seedCommandFromPrismaConfig = config.migrations?.seed
-        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-        const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
-
-        if (seedCommand) {
-          process.stdout.write('\n') // empty line
-          const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
-          if (successfulSeeding) {
-            process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
-          } else {
-            process.exit(1)
-          }
-        }
-      } catch (e) {
-        console.error(e)
-      }
     }
 
     return ''

@@ -1,7 +1,6 @@
 import * as ts from '@prisma/ts-builders'
 
 import { commonCodeTS } from '../common'
-import { Datasources } from '../Datasources'
 import { Enum } from '../Enum'
 import { FieldRefInput } from '../FieldRefInput'
 import { GenerateContext } from '../GenerateContext'
@@ -31,6 +30,10 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
   const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
   const fieldRefs = context.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
+
+  const transactionClientDenyList = context.isSqlProvider()
+    ? 'runtime.ITXClientDenyList'
+    : "runtime.ITXClientDenyList | '$transaction'"
 
   return `${jsDocHeader}
 ${imports.join('\n')}
@@ -72,11 +75,10 @@ export type BatchPayload = {
   count: number
 }
 
-${new Datasources(options.datasources).toTS()}
 ${clientExtensionsDefinitions()}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-${ts.stringify(ts.moduleExport(buildClientOptions(context, options)))}
+${ts.stringify(ts.moduleExport(buildClientOptions(context)))}
 ${ts.stringify(globalOmitConfig(context.dmmf))}
 
 /* Types for Logging */
@@ -138,7 +140,7 @@ export type PrismaAction =
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient = Omit<DefaultPrismaClient, ${transactionClientDenyList}>
 
 `
 }
@@ -162,21 +164,36 @@ function clientExtensionsDefinitions() {
   return ts.stringify(define)
 }
 
-function buildClientOptions(context: GenerateContext, options: TSClientOptions) {
-  const clientOptions = ts
-    .interfaceDeclaration('PrismaClientOptions')
+function buildClientOptions(context: GenerateContext) {
+  // Build the mutually exclusive options union type
+  // This matches PrismaClientMutuallyExclusiveOptions from runtime
+  const adapterOption = ts
+    .objectType()
     .add(
       ts
-        .property('datasources', ts.namedType('Datasources'))
-        .optional()
-        .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+        .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
+        .setDocComment(ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.')),
     )
+    .add(ts.property('accelerateUrl', ts.neverType).optional())
+
+  const accelerateUrlOption = ts
+    .objectType()
     .add(
       ts
-        .property('datasourceUrl', ts.stringType)
-        .optional()
-        .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+        .property('accelerateUrl', ts.stringType)
+        .setDocComment(
+          ts.docComment(
+            'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
+          ),
+        ),
     )
+    .add(ts.property('adapter', ts.neverType).optional())
+
+  const mutuallyExclusiveOptions = ts.unionType([adapterOption, accelerateUrlOption])
+
+  // Build the other optional properties
+  const otherOptions = ts
+    .objectType()
     .add(
       ts
         .property('errorFormat', ts.namedType('ErrorFormat'))
@@ -207,7 +224,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
               { emit: 'stdout', level: 'error' }
             ]
              \`\`\`
-             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+             Read more in our [docs](https://pris.ly/d/logging).
           `),
     )
 
@@ -220,7 +237,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
     transactionOptions.add(ts.property('isolationLevel', ts.namedType('TransactionIsolationLevel')).optional())
   }
 
-  clientOptions.add(
+  otherOptions.add(
     ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
              The default values for transactionOptions
              maxWait ?= 2000
@@ -228,18 +245,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
           `),
   )
 
-  if (['library', 'client', 'wasm-compiler-edge', 'wasm-engine-edge'].includes(options.runtimeName)) {
-    clientOptions.add(
-      ts
-        .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
-        .optional()
-        .setDocComment(
-          ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
-        ),
-    )
-  }
-
-  clientOptions.add(
+  otherOptions.add(
     ts.property('omit', ts.namedType('GlobalOmitConfig')).optional().setDocComment(ts.docComment`
         Global configuration for omitting model fields by default.
 
@@ -256,5 +262,30 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
       `),
   )
 
-  return clientOptions
+  if (context.isSqlProvider()) {
+    otherOptions.add(
+      ts.property('comments', ts.array(ts.namedType('runtime.SqlCommenterPlugin'))).optional()
+        .setDocComment(ts.docComment`
+        SQL commenter plugins that add metadata to SQL queries as comments.
+        Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          adapter,
+          comments: [
+            traceContext(),
+            queryInsights(),
+          ],
+        })
+        \`\`\`
+      `),
+    )
+  }
+
+  // Intersect the mutually exclusive options with the other options
+  // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }
+  const prismaClientOptions = ts.intersectionType([mutuallyExclusiveOptions, otherOptions])
+
+  return ts.typeDeclaration('PrismaClientOptions', prismaClientOptions)
 }

@@ -4,9 +4,6 @@
 
 [OTEL - OpenTelemetry](https://opentelemetry.io/) compliant instrumentation for Prisma Client.
 
-⚠️ **Warning**: This package is provided as part of the `tracing` Preview Feature
-Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
-
 ## Installing
 
 ```
@@ -22,14 +19,6 @@ import { PrismaInstrumentation } from '@prisma/instrumentation'
 registerInstrumentations({
   instrumentations: [new PrismaInstrumentation()],
 })
-```
-
-Don't forget to set `previewFeatures`:
-
-```prisma
-generator client {
-  provider = "prisma-client-js"
-}
 ```
 
 ## Jaeger

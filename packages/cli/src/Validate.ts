@@ -4,6 +4,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
+  createSchemaPathInput,
   format,
   getConfig,
   getLintWarningsAsText,
@@ -11,7 +12,6 @@ import {
   handleLintPanic,
   HelpError,
   lintSchema,
-  loadEnvFile,
   logger,
   printSchemaLoadedMessage,
   validate,
@@ -52,7 +52,11 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    baseDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -69,9 +73,13 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
-    const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaWithPath({
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
+    })
     printSchemaLoadedMessage(schemaPath)
 
     const { lintDiagnostics } = handleLintPanic(() => {
@@ -90,10 +98,8 @@ ${bold('Examples')}
       schemas,
     })
 
-    // We could have a CLI flag to ignore env var validation
     await getConfig({
       datamodel: schemas,
-      ignoreEnvVarErrors: false,
     })
 
     const schemaRelativePath = path.relative(process.cwd(), schemaPath)

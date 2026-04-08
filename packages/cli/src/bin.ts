@@ -1,10 +1,12 @@
 #!/usr/bin/env tsx
 
+import path from 'node:path'
+
 import { context, trace } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
 import { InjectFormatters } from '@prisma/config'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
 import { arg, handlePanic, HelpError, isRustPanic, link } from '@prisma/internals'
@@ -25,14 +27,19 @@ import {
   MigrateStatus,
 } from '@prisma/migrate'
 import { bold, dim, red, yellow } from 'kleur/colors'
-import path from 'path'
 
+import { Bootstrap } from './bootstrap/Bootstrap'
 import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
+import { Init } from './Init'
 import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
+import { Link as PostgresLink } from './postgres/link/Link'
+import { PostgresCommand } from './postgres/PostgresCommand'
+import { Status } from './Status'
+import { Studio } from './Studio'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -41,12 +48,12 @@ import { Platform } from './platform/_Platform'
   prisma:cli Require stack:
   prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
 */
-import { Studio } from './Studio'
+// import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
-import { detectPrisma1 } from './utils/detectPrisma1'
+import { UserFacingError } from './utils/errors'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -88,50 +95,10 @@ const args = arg(
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
 
-  detectPrisma1()
-
   const cli = CLI.new(
     {
-      init: new SubCommand('@prisma/cli-init'),
-      platform: Platform.$.new({
-        workspace: Platform.Workspace.$.new({
-          show: Platform.Workspace.Show.new(),
-        }),
-        auth: Platform.Auth.$.new({
-          login: Platform.Auth.Login.new(),
-          logout: Platform.Auth.Logout.new(),
-          show: Platform.Auth.Show.new(),
-        }),
-        environment: Platform.Environment.$.new({
-          create: Platform.Environment.Create.new(),
-          delete: Platform.Environment.Delete.new(),
-          show: Platform.Environment.Show.new(),
-        }),
-        project: Platform.Project.$.new({
-          create: Platform.Project.Create.new(),
-          delete: Platform.Project.Delete.new(),
-          show: Platform.Project.Show.new(),
-        }),
-        pulse: Platform.Pulse.$.new({
-          enable: Platform.Pulse.Enable.new(),
-          disable: Platform.Pulse.Disable.new(),
-        }),
-        accelerate: Platform.Accelerate.$.new({
-          enable: Platform.Accelerate.Enable.new(),
-          disable: Platform.Accelerate.Disable.new(),
-        }),
-        serviceToken: Platform.ServiceToken.$.new({
-          create: Platform.ServiceToken.Create.new(),
-          delete: Platform.ServiceToken.Delete.new(),
-          show: Platform.ServiceToken.Show.new(),
-        }),
-        // Alias to "serviceToken". This will be removed in a future ORM release.
-        apikey: Platform.ServiceToken.$.new({
-          create: Platform.ServiceToken.Create.new(true),
-          delete: Platform.ServiceToken.Delete.new(true),
-          show: Platform.ServiceToken.Show.new(true),
-        }),
-      }),
+      bootstrap: Bootstrap.new(),
+      init: Init.new(),
       mcp: Mcp.new(),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
@@ -148,26 +115,20 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      /**
-       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
-       */
-      introspect: DbPull.new(),
-      studio: Studio.new(),
+      postgres: PostgresCommand.new({
+        link: PostgresLink.new(),
+      }),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
-      // TODO: add rules subcommand to --help after EA
-      rules: new SubCommand('@prisma/cli-security-rules'),
       dev: new SubCommand('@prisma/cli-dev'),
-      // TODO: add deploy subcommand to --help after it works.
-      deploy: new SubCommand('@prisma/cli-deploy'),
-      // TODO: add login subcommand to --help after it works.
-      login: new SubCommand('@prisma/cli-login'),
+      studio: Studio.new(),
+      platform: Platform.$.new({ status: Status.new() }),
     },
-    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 
@@ -175,7 +136,10 @@ async function main(): Promise<number> {
     debug(`Failed to initialize the command state: ${err}`)
   })
 
-  const configEither = await loadConfig(args['--config'])
+  const configFile = args['--config']
+  const configDir = configFile ? path.resolve(configFile, '..') : process.cwd()
+
+  const configEither = await loadConfig(configFile)
 
   if (configEither instanceof HelpError) {
     console.error(configEither.message)
@@ -202,22 +166,39 @@ async function main(): Promise<number> {
     configDiagnostic.value(configDiagnosticFormatters)()
   }
 
-  const startCliExec = performance.now()
-  // Execute the command
-  const result = await cli.parse(commandArray, config)
-  const endCliExec = performance.now()
-  const cliExecElapsedTime = endCliExec - startCliExec
-  debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
+  try {
+    const startCliExec = performance.now()
+    // Execute the command
+    const result = await cli.parse(commandArray, config, configDir)
+    const endCliExec = performance.now()
+    const cliExecElapsedTime = endCliExec - startCliExec
+    debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
 
-  if (result instanceof Error) {
-    console.error(result instanceof HelpError ? result.message : result)
-    return 1
+    if (result instanceof Error) {
+      if (result instanceof HelpError || result instanceof UserFacingError) {
+        console.error(result.message)
+      } else {
+        console.error(result)
+      }
+      return 1
+    }
+
+    // Success
+    console.log(result)
+
+    return 0
+  } catch (error) {
+    if (isRustPanic(error)) {
+      await handlePanic({
+        error,
+        cliVersion: packageJson.version,
+        enginesVersion,
+        command: redactCommandArray([...commandArray]).join(' '),
+        getDatabaseVersionSafe: (args) => getDatabaseVersionSafe(args, config, configDir),
+      })
+    }
+    throw error
   }
-
-  // Success
-  console.log(result)
-
-  return 0
 }
 
 /**
@@ -243,32 +224,13 @@ if (eval('require.main === module')) {
 }
 
 function handleIndividualError(error: Error): void {
-  if (isRustPanic(error)) {
-    handlePanic({
-      error,
-      cliVersion: packageJson.version,
-      enginesVersion,
-      command: redactCommandArray([...commandArray]).join(' '),
-      getDatabaseVersionSafe,
-    })
-      .catch((e) => {
-        if (Debug.enabled('prisma')) {
-          console.error(bold(red('Error: ')) + e.stack)
-        } else {
-          console.error(bold(red('Error: ')) + e.message)
-        }
-      })
-      .finally(() => {
-        process.exit(1)
-      })
+  if (Debug.enabled('prisma')) {
+    console.error(bold(red('Error: ')) + error.stack)
   } else {
-    if (Debug.enabled('prisma')) {
-      console.error(bold(red('Error: ')) + error.stack)
-    } else {
-      console.error(bold(red('Error: ')) + error.message)
-    }
-    process.exit(1)
+    console.error(bold(red('Error: ')) + error.message)
   }
+
+  process.exit(1)
 }
 
 /**
@@ -278,28 +240,20 @@ function handleIndividualError(error: Error): void {
  */
 
 // macOS
-path.join(__dirname, '../../engines/query-engine-darwin')
 path.join(__dirname, '../../engines/schema-engine-darwin')
 // Windows
-path.join(__dirname, '../../engines/query-engine-windows.exe')
 path.join(__dirname, '../../engines/schema-engine-windows.exe')
 
 // Debian openssl-1.0.x
-path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.0.x')
 // Debian openssl-1.1.x
-path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.1.x')
 // Debian openssl-3.0.x
-path.join(__dirname, '../../engines/query-engine-debian-openssl-3.0.x')
 path.join(__dirname, '../../engines/schema-engine-debian-openssl-3.0.x')
 
 // Red Hat Enterprise Linux openssl-1.0.x
-path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.0.x')
 // Red Hat Enterprise Linux openssl-1.1.x
-path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.1.x')
 // Red Hat Enterprise Linux openssl-3.0.x
-path.join(__dirname, '../../engines/query-engine-rhel-openssl-3.0.x')
 path.join(__dirname, '../../engines/schema-engine-rhel-openssl-3.0.x')

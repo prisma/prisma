@@ -21,10 +21,6 @@ on:
         type: string
         default: '-all-'
         required: false
-      queryEngine:
-        description: List of query engines to run tests on as JSON array
-        type: string
-        default: '["library", "binary"]'
       pnpmVersion:
         description: pnpm package manager version
         type: string
@@ -68,12 +64,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 20
+          node-version: '20.19.0'
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
@@ -97,11 +93,14 @@ jobs:
         run: pnpm run check-engines-override
         working-directory: ./
 
+      - name: Run pnpm audit (production dependencies only)
+        run: pnpm audit --prod
+
   #
-  # CLIENT (functional and legacy tests without types test)
+  # CLIENT (legacy tests without types test)
   #
-  client:
-    name: Client Legacy ${{ matrix.queryEngine }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+  client-unit:
+    name: Client Legacy ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -111,23 +110,14 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
         previewFeatures: ['', 'relationJoins']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -145,13 +135,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      # Run the functional test suite
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
-        if: |
-          contains(inputs.jobsToRun, '-all-') ||
-          contains(inputs.jobsToRun, '-client-')
-        working-directory: packages/client
-      # And run  all the other tests (except the types tests)
+      # And run all non functional, non e2e tests (except the types tests)
       - run: pnpm run test-notypes ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }}
         if: |
           contains(inputs.jobsToRun, '-all-') ||
@@ -170,12 +154,10 @@ jobs:
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
-  #
-  # CLIENT (functional tests with mini-proxy)
-  #
-  client-miniproxy:
-    name: Client Mini-Proxy [v${{ matrix.node }}] ${{ matrix.shard }}
-    timeout-minutes: ${{ inputs.jobTimeout }}
+  # This test suite is disabled until the problem is fixed.
+  client-generator-prisma-client-js:
+    name: Client Generator Prisma Client JS [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
@@ -184,9 +166,10 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
+        flavor: ['js_pg']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -194,26 +177,19 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
 
       - name: Install & build
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
           engine-hash: ${{ inputs.engineHash }}
-          # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-js --client-runtime client --runInBand
         working-directory: packages/client
         env:
-          NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: 'client/functional'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --data-proxy --client-runtime edge --shard ${{ matrix.shard }}
-        working-directory: packages/client
-        env:
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
@@ -242,8 +218,9 @@ jobs:
       contains(inputs.jobsToRun, '-client-')
     strategy:
       fail-fast: false
+      # Note: the maximum number of matrix configurations on Github Actions is 256
       matrix:
-        clientRuntime: ['node', 'wasm-engine-edge']
+        clientRuntime: ['client']
         flavor:
           [
             'js_pg',
@@ -256,11 +233,11 @@ jobs:
             'js_mariadb',
             'js_pg_cockroachdb',
           ]
-        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20]
+        shard: ['1/4', '2/4', '3/4', '4/4']
+        node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -277,63 +254,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
-        working-directory: packages/client
-        env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
-          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
-          NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: 'client/functional'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where we have access to secrets.
-        # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
-        with:
-          account: 17219288
-          repository: 192925833
-          path: packages/*/junit*.xml
-          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-
-  #
-  # CLIENT (functional tests with TS aka ESM client)
-  #
-  client-ts-client:
-    name: TS-Client ${{ matrix.provider }} [v${{ matrix.node }}] ${{ matrix.shard }}
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        provider: ['postgresql'] # TODO: test on all providers once it becomes stable
-        clientRuntime: ['node'] # TODO: test on wasm
-        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [18] # TODO: test on all node versions once it becomes stable
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: false
-
-      - run: pnpm run test:functional --generator-type=prisma-client-ts --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
@@ -354,10 +275,10 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (functional tests with client engine, query compiler and driver adapters)
+  # CLIENT (functional tests with wasm-compiler-edge runtime and driver adapters)
   #
-  client-query-compiler:
-    name: QC ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
+  client-wasm-compiler-edge:
+    name: Wasm Edge ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -366,22 +287,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        clientRuntime: ['wasm-compiler-edge']
         flavor:
           [
             'js_pg',
+            'js_neon',
             'js_libsql',
+            'js_planetscale',
             'js_d1',
             'js_better_sqlite3',
-            'js_planetscale',
             'js_mssql',
-            'js_neon',
             'js_mariadb',
             'js_pg_cockroachdb',
           ]
-        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20]
+        shard: ['1/4', '2/4', '3/4', '4/4']
+        node: ['20.19.0']
+        previewFeatures: ['', 'relationJoins']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -389,7 +312,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres planetscale_proxy mssql neon_wsproxy mysql cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy mssql mysql cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -398,10 +321,9 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --engine-type client --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -418,6 +340,7 @@ jobs:
           path: packages/*/junit*.xml
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
   #
   # CLIENT (functional tests with client engine, query compiler, driver adapters and Accelerate)
   #
@@ -434,9 +357,9 @@ jobs:
       matrix:
         provider: ['postgresql', 'mysql']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20]
+        node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -453,15 +376,13 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime client --engine-type client --remote-executor --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime client --remote-executor --runInBand
         working-directory: packages/client
         env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
           NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional-qpe'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          PRISMA_CLIENT_ENGINE_TYPE: client
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
@@ -474,100 +395,6 @@ jobs:
           path: packages/*/junit*.xml
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-
-  #
-  # CLIENT (memory tests)
-  #
-  client-memory:
-    name: Client (memory tests) [v${{ matrix.node }}]
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [18, 20, 22, 24]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: true
-
-      - run: pnpm run test:memory
-        working-directory: packages/client
-
-      - uses: actions/github-script@v7
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        id: upload-report
-        env:
-          NODE_VERSION: ${{ matrix.node }}
-        with:
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const fs = require('fs')
-            const nodeVersion = process.env.NODE_VERSION
-            const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
-            const url = `https://prisma.github.io/ci-reports/${reportPath}`
-            const localReport = './packages/client/tests/memory/memory-report.html'
-            if (fs.existsSync(localReport)) {
-              await github.rest.repos.createOrUpdateFileContents({
-                owner: 'prisma',
-                repo: 'ci-reports',
-                branch: 'gh-pages',
-                path: reportPath,
-                message: `Add memory results for PR ${context.issue.number}`,
-                content: fs.readFileSync(localReport, 'base64'),
-              });
-              core.setOutput('url', url);
-            }
-
-      - name: Find report comment
-        uses: peter-evans/find-comment@v3
-        id: fc
-        if: ${{ always() && github.event_name == 'pull_request' }}
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
-
-      - name: Create or update remote comment (failure)
-        uses: peter-evans/create-or-update-comment@v4
-        if: ${{ failure() && steps.upload-report.outputs.url }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
-
-            ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
-          edit-mode: replace
-
-      - name: Create or update remote comment (success)
-        uses: peter-evans/create-or-update-comment@v4
-        if: ${{ success() && steps.fc.outputs.comment-id != '' }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
-
-            ✅ Success
-          edit-mode: replace
 
   #
   # CLIENT test:e2e
@@ -586,9 +413,9 @@ jobs:
         # The Node.js version here is only used for the GitHub Actions job
         # The version used by the tests is actually defined in
         # ./packages/client/tests/e2e/_utils/standard.dockerfile
-        node: [20]
+        node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Not currently needed, but we might need it in the future
       - name: Start Docker Compose Services
@@ -627,13 +454,13 @@ jobs:
       matrix:
         relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
-        node: [18]
+        node: ['20.19.0']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set RELATION_MODE custom test env var
         run: |
@@ -701,9 +528,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18]
+        node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -729,9 +556,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -774,9 +601,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18]
+        node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -800,18 +627,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [18]
+        node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -844,11 +662,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -857,14 +674,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -889,13 +698,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
         # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
         driverAdapter: ['']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -904,14 +712,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate cockroachdb
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -938,11 +738,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -951,14 +750,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -984,14 +775,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
         include:
           - os: windows-latest
             version: 18
           - os: macos-latest
             version: 18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1015,9 +806,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1051,6 +842,10 @@ jobs:
         working-directory: packages/instrumentation
 
       - run: pnpm run test
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
 
@@ -1070,6 +865,18 @@ jobs:
         name: 'credentials-store'
         working-directory: packages/credentials-store
 
+      - run: pnpm run test
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
+
   #
   # Driver Adapter Unit Tests
   #
@@ -1082,9 +889,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 24]
+        node: ['20.19.0', '24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1121,6 +928,10 @@ jobs:
         name: 'adapter-neon'
         working-directory: packages/adapter-neon
 
+      - run: pnpm run test
+        name: 'adapter-ppg'
+        working-directory: packages/adapter-ppg
+
   #
   # Query plan executor unit tests
   #
@@ -1133,9 +944,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [24]
+        node: ['24']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1159,7 +970,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1192,14 +1003,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [18]
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
+        node: ['20.19.0']
         shard: ['1/2', '2/2']
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prerequisites
         shell: bash
@@ -1209,8 +1019,6 @@ jobs:
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_SKIP_VITESS=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -1227,7 +1035,7 @@ jobs:
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
@@ -1262,10 +1070,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [18]
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
+        node: ['20.19.0']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prerequisites
         shell: bash
@@ -1275,8 +1082,6 @@ jobs:
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_NO_DOCKER=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -1439,6 +1244,26 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
         name: 'query-plan-executor'
         working-directory: packages/query-plan-executor
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'instrumentation-contract'
+        working-directory: packages/instrumentation-contract
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-tags'
+        working-directory: packages/sqlcommenter-query-tags
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-trace-context'
+        working-directory: packages/sqlcommenter-trace-context
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'sqlcommenter-query-insights'
+        working-directory: packages/sqlcommenter-query-insights
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

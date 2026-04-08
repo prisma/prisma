@@ -23,6 +23,16 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle InvalidInputValue (22P02)', () => {
+    const error = { code: '22P02', message: 'invalid input value for enum "Status": "INVALID"', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'InvalidInputValue',
+      message: 'invalid input value for enum "Status": "INVALID"',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle UniqueConstraintViolation (23505)', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)' }
     expect(convertDriverError(error)).toEqual({
@@ -116,11 +126,22 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle ColumnNotFound (42703)', () => {
-    const error = { code: '42703', message: 'column "foo" does not exist', severity: 'ERROR' }
+  it.each([
+    ['unquoted column name', 'column foo does not exist', 'foo'],
+    ['quoted column name', 'column "foo" does not exist', 'foo'],
+    ['unquoted qualified column name', 'column users.first_name does not exist', 'users.first_name'],
+    ['quoted qualified column name', 'column "users"."first name" does not exist', 'users.first name'],
+    ['partially quoted qualified column name (1)', 'column users."first name" does not exist', 'users.first name'],
+    ['partially quoted qualified column name (2)', 'column "users".first_name does not exist', 'users.first_name'],
+    ['quoted column name containing spaces', 'column "first name" does not exist', 'first name'],
+    ['quoted column name containing dots', 'column "first.name" does not exist', 'first.name'],
+    ['quoted qualified column name containing dots', 'column "users"."first.name" does not exist', 'users.first.name'],
+    ['quoted column name containing escaped quotes', 'column "a""b" does not exist', 'a"b'],
+  ])('should handle ColumnNotFound (42703) with %s', (description, message, expectedColumn) => {
+    const error = { code: '42703', message, severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'ColumnNotFound',
-      column: 'foo',
+      column: expectedColumn,
       originalCode: error.code,
       originalMessage: error.message,
     })

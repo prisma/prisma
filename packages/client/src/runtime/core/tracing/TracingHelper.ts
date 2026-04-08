@@ -1,7 +1,11 @@
 import type { Context } from '@opentelemetry/api'
-import { EngineSpan, ExtendedSpanOptions, SpanCallback, TracingHelper, version } from '@prisma/internals'
-
-const majorVersion = version.split('.')[0]
+import {
+  EngineSpan,
+  ExtendedSpanOptions,
+  getGlobalTracingHelper,
+  SpanCallback,
+  TracingHelper,
+} from '@prisma/instrumentation-contract'
 
 export const disabledTracingHelper: TracingHelper = {
   isEnabled() {
@@ -32,36 +36,25 @@ export const disabledTracingHelper: TracingHelper = {
  */
 class DynamicTracingHelper implements TracingHelper {
   isEnabled(): boolean {
-    return this.getGlobalTracingHelper().isEnabled()
+    return this.getTracingHelper().isEnabled()
   }
   getTraceParent(context: Context) {
-    return this.getGlobalTracingHelper().getTraceParent(context)
+    return this.getTracingHelper().getTraceParent(context)
   }
 
   dispatchEngineSpans(spans: EngineSpan[]) {
-    return this.getGlobalTracingHelper().dispatchEngineSpans(spans)
+    return this.getTracingHelper().dispatchEngineSpans(spans)
   }
 
   getActiveContext() {
-    return this.getGlobalTracingHelper().getActiveContext()
+    return this.getTracingHelper().getActiveContext()
   }
   runInChildSpan<R>(options: string | ExtendedSpanOptions, callback: SpanCallback<R>): R {
-    return this.getGlobalTracingHelper().runInChildSpan(options, callback)
+    return this.getTracingHelper().runInChildSpan(options, callback)
   }
 
-  private getGlobalTracingHelper(): TracingHelper {
-    // These globals are defined in `@prisma/instrumentation`
-    const versionedPrismaInstrumentationGlobal = globalThis[`V${majorVersion}_PRISMA_INSTRUMENTATION`]
-    const fallbackPrismaInstrumentationGlobal = globalThis.PRISMA_INSTRUMENTATION
-
-    return (
-      versionedPrismaInstrumentationGlobal?.helper ??
-      // TODO(v7): In future major versions, the tracing helper should only be read from the versioned global field.
-      // This is to ensure that instrumentation libraries (including `@prisma/instrumentation`) can register tracing helpers with compatible interfaces for each major version - thus preventing potential crashes in case instrumentation libraries are not yet updated for a new major, allowing for easier migration.
-      // Currently, the versioned helper is preferred and the fallback helper is picked up for backwards compatibility.
-      fallbackPrismaInstrumentationGlobal?.helper ??
-      disabledTracingHelper
-    )
+  private getTracingHelper(): TracingHelper {
+    return getGlobalTracingHelper() ?? disabledTracingHelper
   }
 }
 

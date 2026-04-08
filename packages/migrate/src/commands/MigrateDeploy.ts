@@ -4,15 +4,17 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -33,6 +35,8 @@ ${bold('Usage')}
 
   ${dim('$')} prisma migrate deploy [options]
 
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+
 ${bold('Options')}
 
   -h, --help   Display this help message
@@ -49,7 +53,7 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -70,19 +74,21 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
+    const cmd = 'migrate deploy'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -91,24 +97,26 @@ ${bold('Examples')}
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
       extensions: config['extensions'],
     })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
-      try {
-        // Automatically create the database if it doesn't exist
-        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-        if (wasDbCreated) {
-          process.stdout.write('\n' + wasDbCreated + '\n')
-        }
-      } catch (e) {
-        process.stdout.write('\n') // empty line
-        throw e
+    try {
+      // Automatically create the database if it doesn't exist
+      const successMessage = await ensureDatabaseExists(
+        baseDir,
+        getSchemaDatasourceProvider(schemaContext),
+        validatedConfig,
+      )
+      if (successMessage) {
+        process.stdout.write('\n' + successMessage + '\n')
       }
+    } catch (e) {
+      process.stdout.write('\n') // empty line
+      throw e
     }
 
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
@@ -145,7 +153,7 @@ ${bold('Examples')}
           'migration.sql': '',
         },
       )}
-      
+
 ${green('All migrations have been successfully applied.')}`
     }
   }

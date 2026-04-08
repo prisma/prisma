@@ -4,15 +4,16 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   dropDatabase,
   format,
   HelpError,
   isError,
   link,
-  loadEnvFile,
   loadSchemaContext,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, red, yellow } from 'kleur/colors'
+import { bold, dim, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
@@ -39,6 +40,8 @@ ${bold('Usage')}
 
   ${dim('$')} prisma db drop [options] --preview-feature
 
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+
 ${bold('Options')}
 
    -h, --help   Display this help message
@@ -58,7 +61,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db drop --preview-feature --force
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -82,17 +85,20 @@ ${bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
 
-    checkUnsupportedDataProxy({ cmd: 'db drop', schemaContext })
+    const cmd = 'db drop'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
@@ -122,8 +128,11 @@ ${bold('Examples')}
 
     aiAgentConfirmationCheckpoint()
 
-    // Url exists because we set `ignoreEnvVarErrors: false` when calling `loadSchemaContext`
-    if (await dropDatabase(datasourceInfo.url!, datasourceInfo.configDir!)) {
+    if (datasourceInfo.url === undefined) {
+      throw new Error('Datasource URL is undefined')
+    }
+
+    if (await dropDatabase(datasourceInfo.url, baseDir)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`

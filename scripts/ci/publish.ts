@@ -70,7 +70,6 @@ async function run(cwd: string, cmd: string, dry = false, hidden = false): Promi
       shell: true,
       env: {
         ...process.env,
-        PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
       },
     })
   } catch (_e) {
@@ -463,6 +462,7 @@ async function publish() {
     '--dry-run': Boolean,
     '--release': String, // TODO What does that do? Can we remove this? probably
     '--test': Boolean,
+    '--custom-dist-tag': String,
   })
 
   if (!process.env.GITHUB_REF_NAME) {
@@ -485,6 +485,10 @@ async function publish() {
     args['--release'] = process.env.RELEASE_VERSION
     // TODO: put this into a global variable VERSION
     // and then replace the args['--release'] with it
+  }
+
+  if (process.env.CUSTOM_DIST_TAG) {
+    args['--custom-dist-tag'] = process.env.CUSTOM_DIST_TAG
   }
 
   if (!args['--test'] && !args['--publish'] && !dryRun) {
@@ -552,6 +556,11 @@ async function publish() {
   } else {
     prismaVersion = await getNewDevVersion(packages)
     tag = 'dev'
+  }
+
+  if (args['--custom-dist-tag']) {
+    console.log(`Using custom dist tag: ${args['--custom-dist-tag']}`)
+    tag = args['--custom-dist-tag']
   }
 
   console.log({

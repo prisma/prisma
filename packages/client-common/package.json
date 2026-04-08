@@ -28,7 +28,8 @@
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/generator": "workspace:*",
-    "@prisma/internals": "workspace:*"
+    "@prisma/internals": "workspace:*",
+    "@prisma/param-graph": "workspace:*"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

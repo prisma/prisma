@@ -43,7 +43,7 @@ testMatrix.setupTestSuite(
         jest.retryTimes(3)
       }
 
-      const prisma = newPrismaClient()
+      const prisma = newPrismaClient({})
       const promise = prisma.$connect()
 
       if (!clientMeta.dataProxy) {
@@ -51,14 +51,6 @@ testMatrix.setupTestSuite(
           const message = stripVTControlCharacters(e.message)
           expect(e.name).toEqual('PrismaClientInitializationError')
           expect(message).toContain('Error validating datasource `db`: the URL must start with the protocol')
-        })
-      } else if (['edge', 'node', 'wasm-engine-edge'].includes(clientMeta.runtime)) {
-        await promise.catch((e) => {
-          const message = stripVTControlCharacters(e.message)
-          expect(e.name).toEqual('InvalidDatasourceError')
-          expect(message).toContain(
-            'Error validating datasource `db`: the URL must start with the protocol `prisma://`',
-          )
         })
       } else {
         throw new Error('Unhandled case')

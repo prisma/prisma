@@ -4,15 +4,17 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  createSchemaPathInput,
   format,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
+  validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -21,7 +23,6 @@ import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDataba
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -35,13 +36,13 @@ ${bold('Usage')}
 
   ${dim('$')} prisma migrate reset [options]
 
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+
 ${bold('Options')}
 
        -h, --help   Display this help message
          --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
-  --skip-generate   Skip triggering generators (e.g. Prisma Client)
-      --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
 ${bold('Examples')}
@@ -56,14 +57,12 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset --force
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--force': Boolean,
       '-f': '--force',
-      '--skip-generate': Boolean,
-      '--skip-seed': Boolean,
       '--schema': String,
       '--config': String,
       '--telemetry-information': String,
@@ -77,29 +76,32 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
     })
+
+    const cmd = 'migrate reset'
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
 
-    printDatasource({ datasourceInfo, adapter })
+    printDatasource({ datasourceInfo })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
 
-    checkUnsupportedDataProxy({ cmd: 'migrate reset', schemaContext })
-
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
-      // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
-      }
+    // Automatically create the database if it doesn't exist
+    const successMessage = await ensureDatabaseExists(
+      baseDir,
+      getSchemaDatasourceProvider(schemaContext),
+      validatedConfig,
+    )
+    if (successMessage) {
+      process.stdout.write('\n' + successMessage + '\n')
     }
 
     process.stdout.write('\n')
@@ -132,6 +134,7 @@ ${bold('Examples')}
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
+      baseDir,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
@@ -160,29 +163,6 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
           'migration.sql': '',
         })}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate(datasourceInfo)
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      const seedCommandFromPrismaConfig = config.migrations?.seed
-      const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-      const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
-
-      if (seedCommand) {
-        process.stdout.write('\n') // empty line
-        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
-        if (successfulSeeding) {
-          process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
-        } else {
-          process.exit(1)
-        }
-      }
     }
 
     return ``

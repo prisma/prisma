@@ -1,10 +1,9 @@
-import Decimal from 'decimal.js'
+import { AnyNull, DbNull, Decimal, JsonNull } from '@prisma/client-runtime-utils'
 
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
 import { skip } from '../types'
-import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
 const User = model('User', [
@@ -57,6 +56,7 @@ function serialize(params: SimplifiedParams) {
       clientMethod: 'foo',
       errorFormat: 'colorless',
       clientVersion: '0.0.0',
+      wrapRawValues: true,
     }),
     null,
     2,
@@ -702,7 +702,7 @@ test('args - JsonNull field', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { jsonColumn: objectEnumValues.instances.JsonNull } },
+      args: { where: { jsonColumn: JsonNull } },
     }),
   ).toMatchInlineSnapshot(`
     "{
@@ -731,7 +731,7 @@ test('args - DbNull field', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { jsonColumn: objectEnumValues.instances.DbNull } },
+      args: { where: { jsonColumn: DbNull } },
     }),
   ).toMatchInlineSnapshot(`
     "{
@@ -760,7 +760,102 @@ test('args - AnyNull field', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { jsonColumn: objectEnumValues.instances.AnyNull } },
+      args: { where: { jsonColumn: AnyNull } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Enum",
+              "value": "AnyNull"
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+function makeCrossBundleNullValue(name: string) {
+  const value = Object.create(null)
+  value[Symbol.for('prisma.objectEnumValue')] = true
+  value._getName = () => name
+  value._getNamespace = () => 'NullTypes'
+  return value
+}
+
+test('args - cross-bundle DbNull serializes correctly', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { jsonColumn: makeCrossBundleNullValue('DbNull') } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Enum",
+              "value": "DbNull"
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('args - cross-bundle JsonNull serializes correctly', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { jsonColumn: makeCrossBundleNullValue('JsonNull') } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Enum",
+              "value": "JsonNull"
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('args - cross-bundle AnyNull serializes correctly', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { jsonColumn: makeCrossBundleNullValue('AnyNull') } },
     }),
   ).toMatchInlineSnapshot(`
     "{

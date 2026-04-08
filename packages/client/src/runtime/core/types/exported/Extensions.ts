@@ -1,5 +1,5 @@
 import { FluentOperation, NonModelOperation, Operation } from '@prisma/client-common'
-import { Sql } from 'sql-template-tag'
+import { Sql } from '@prisma/client-runtime-utils'
 
 import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
 import { ITXClientDenyList } from './itxClientDenyList'
@@ -431,7 +431,6 @@ export type { UserArgs }
 //   constructor(options?: Prisma.Subset<T, Prisma.PrismaClientOptions>)
 //   $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
 //   $use(cb: Prisma.Middleware): void
-//   ${metricDefinition.bind(this)()}
 // }
 // export interface PrismaClient<
 //   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,

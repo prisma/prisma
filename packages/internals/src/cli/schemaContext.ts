@@ -1,11 +1,10 @@
-import { SchemaEngineConfigInternal } from '@prisma/config'
-import { DataSource, GeneratorConfig } from '@prisma/generator'
+import path from 'node:path'
+
+import { ActiveConnectorType, DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
-import path from 'path'
-import { match } from 'ts-pattern'
 
 import { getConfig } from '../engine-commands'
-import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
+import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage, SchemaPathInput } from './getSchema'
 
 export type SchemaContext = {
   /**
@@ -17,12 +16,6 @@ export type SchemaContext = {
    * Either set explicitly from a schema folder based config or the parent directory of the schema.prisma file.
    */
   schemaRootDir: string
-  /**
-   * The directory of the schema.prisma file that contains the datasource block.
-   * Some relative paths like SQLite paths or SSL file paths are resolved relative to it.
-   * TODO(prisma7): consider whether relative paths should be resolved relative to `prisma.config.ts` instead.
-   */
-  primaryDatasourceDirectory: string
   /**
    * The path that shall be printed in user facing logs messages informing them from where the schema was loaded.
    */
@@ -50,11 +43,8 @@ export type SchemaContext = {
 }
 
 type LoadSchemaContextOptions = {
-  schemaPathFromArg?: string
-  schemaPathFromConfig?: string
-  schemaEngineConfig?: SchemaEngineConfigInternal
+  schemaPath: SchemaPathInput
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
   allowNull?: boolean
   schemaPathArgumentName?: string
   cwd?: string
@@ -63,49 +53,35 @@ type LoadSchemaContextOptions = {
 export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
-export async function loadSchemaContext(
-  opts?: LoadSchemaContextOptions & { schemaEngineConfig: { engine: 'classic' } },
-): Promise<Omit<SchemaContext, 'primaryDatasource'> & { primaryDatasource: DataSource }>
 export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
-export async function loadSchemaContext({
-  schemaPathFromArg,
-  schemaPathFromConfig,
-  schemaEngineConfig,
-  printLoadMessage = true,
-  ignoreEnvVarErrors = false,
-  allowNull = false,
-  schemaPathArgumentName = '--schema',
-  cwd = process.cwd(),
-}: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
+export async function loadSchemaContext(
+  { schemaPath, printLoadMessage, allowNull, schemaPathArgumentName, cwd }: LoadSchemaContextOptions = {
+    schemaPath: { baseDir: process.cwd() },
+    printLoadMessage: true,
+    allowNull: false,
+    schemaPathArgumentName: '--schema',
+    cwd: process.cwd(),
+  },
+): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
-    schemaResult = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig, {
-      argumentName: schemaPathArgumentName,
-      cwd,
-    })
+    schemaResult = await getSchemaWithPathOptional({ schemaPath, cwd, argumentName: schemaPathArgumentName })
     if (!schemaResult) return null
   } else {
-    schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig, {
-      argumentName: schemaPathArgumentName,
-      cwd,
-    })
+    schemaResult = await getSchemaWithPath({ schemaPath, cwd, argumentName: schemaPathArgumentName })
   }
 
-  return processSchemaResult({ schemaResult, schemaEngineConfig, printLoadMessage, ignoreEnvVarErrors, cwd })
+  return processSchemaResult({ schemaResult, printLoadMessage, cwd })
 }
 
 export async function processSchemaResult({
   schemaResult,
-  schemaEngineConfig,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
   cwd = process.cwd(),
 }: {
   schemaResult: GetSchemaResult
-  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
   cwd?: string
 }): Promise<SchemaContext> {
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
@@ -115,27 +91,9 @@ export async function processSchemaResult({
     printSchemaLoadedMessage(loadedFromPathForLogMessages)
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
+  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
 
-  const datasourceFromPsl = configFromPsl.datasources.at(0)
-
-  const primaryDatasource = match(schemaEngineConfig)
-    .with({ engine: 'classic' }, ({ datasource }) => {
-      const { url, directUrl, shadowDatabaseUrl } = datasource
-
-      const primaryDatasource = {
-        ...datasourceFromPsl,
-        url: { fromEnvVar: null, value: url },
-        directUrl: directUrl ? { fromEnvVar: null, value: directUrl } : undefined,
-        shadowDatabaseUrl: shadowDatabaseUrl ? { fromEnvVar: null, value: shadowDatabaseUrl } : undefined,
-        [Symbol.for('engine.classic')]: true,
-      } as DataSource
-
-      return primaryDatasource
-    })
-    .otherwise(() => datasourceFromPsl)
-
-  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
+  const primaryDatasource = configFromPsl.datasources.at(0)
 
   return {
     schemaFiles: schemaResult.schemas,
@@ -144,16 +102,14 @@ export async function processSchemaResult({
     datasources: configFromPsl.datasources,
     generators: configFromPsl.generators,
     primaryDatasource,
-    primaryDatasourceDirectory,
     warnings: configFromPsl.warnings,
     loadedFromPathForLogMessages,
   }
 }
 
-function getPrimaryDatasourceDirectory(primaryDatasource: DataSource | undefined) {
-  const datasourcePath = primaryDatasource?.sourceFilePath
-  if (datasourcePath) {
-    return path.dirname(datasourcePath)
+export function getSchemaDatasourceProvider(schemaContext: SchemaContext): ActiveConnectorType {
+  if (schemaContext.primaryDatasource === undefined) {
+    throw new Error('Schema must contain a datasource block')
   }
-  return null
+  return schemaContext.primaryDatasource.activeProvider
 }

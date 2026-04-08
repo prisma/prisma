@@ -69,6 +69,11 @@ function mapDriverError(error: DatabaseError): MappedError {
         kind: 'ValueOutOfRange',
         cause: error.message,
       }
+    case '22P02':
+      return {
+        kind: 'InvalidInputValue',
+        message: error.message,
+      }
     case '23505': {
       const fields = error.detail
         ?.match(/Key \(([^)]+)\)/)
@@ -131,11 +136,13 @@ function mapDriverError(error: DatabaseError): MappedError {
         kind: 'TableDoesNotExist',
         table: error.message.split(' ').at(1)?.split('"').at(1),
       }
-    case '42703':
+    case '42703': {
+      const rawColumn = error.message.match(/^column (.+) does not exist$/)?.at(1)
       return {
         kind: 'ColumnNotFound',
-        column: error.message.split(' ').at(1)?.split('"').at(1),
+        column: rawColumn?.replace(/"((?:""|[^"])*)"/g, (_, id) => id.replaceAll('""', '"')),
       }
+    }
     case '42P04':
       return {
         kind: 'DatabaseAlreadyExists',

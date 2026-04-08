@@ -1,9 +1,9 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { arg, Command, format, HelpError, isError } from '@prisma/internals'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
+import { executeSeedCommand } from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -54,14 +54,26 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    const seedCommand = config.migrations?.seed
 
-    const seedCommandFromPrismaConfig = config.migrations?.seed
-    const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
+    if (!seedCommand) {
+      return format(`⚠️ ${bold('No seed command configured')}
 
-    const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+To seed your database, add a ${bold('seed')} property to the ${bold('migrations')} section in your ${bold('Prisma config')} file.
 
-    if (!seedCommand) return ``
+${bold('Example')}
+
+  ${dim('// prisma.config.ts')}
+  export default defineConfig({
+    ${bold('migrations: {')}
+      ${bold(`seed: 'bun·./prisma/seed.ts'`)},
+    ${bold('}')},
+    ${dim('datasource: {')}
+      ${dim(`url: '[your database URL]'`)},
+    ${dim('}')},
+  })
+`)
+    }
 
     // We pass the extra params after a -- separator
     // Example: db seed -- --custom-param

@@ -1,8 +1,10 @@
 /* eslint-disable jest/no-identical-title */
 
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
+
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { serializeQueryEngineName } from '@prisma/internals'
 
 import { Validate } from '../../Validate'
 
@@ -47,6 +49,7 @@ describe('validate', () => {
               └── custom.prisma
               └── schema.prisma
           └── custom.prisma
+          └── prisma.config.ts
           └── schema.prisma
           "
         `)
@@ -86,6 +89,7 @@ describe('validate', () => {
               └── custom.prisma
               └── schema.prisma
           └── custom.prisma
+          └── prisma.config.ts
           "
         `)
 
@@ -193,10 +197,10 @@ describe('validate', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:11
+            -->  prisma/schema/schema_with_config.prisma:10
              | 
-          10 | model User {
-          11 |   id    Int     @id @default(now())
+           9 | model User {
+          10 |   id    Int     @id @default(now())
              | 
 
           Validation Error Count: 1
@@ -252,13 +256,6 @@ describe('validate', () => {
     )
   })
 
-  it('should throw if env var is not set', async () => {
-    ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'], defaultTestConfig())).rejects.toThrow(
-      'Environment variable not found',
-    )
-  })
-
   it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
     await expect(
@@ -303,6 +300,16 @@ describe('validate', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toEqual('')
   })
 
+  it('should load and validate schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+    const configDir = path.join(process.cwd(), 'config')
+    await expect(
+      Validate.new()
+        .parse(['--config=./config/prisma.config.ts'], defaultTestConfig(), configDir)
+        .then((res) => (typeof res === 'string' ? stripVTControlCharacters(res) : res)),
+    ).resolves.toContain(`The schema at ${path.join('config', 'schema.prisma')} is valid`)
+  })
+
   describe('referential actions', () => {
     beforeEach(() => {
       ctx.fixture('referential-actions/no-action/relationMode-prisma')
@@ -314,20 +321,20 @@ describe('validate', () => {
       try {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'], defaultTestConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
+        expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:21
+            -->  prisma/postgres.prisma:20
              | 
-          20 |   id       String @id @default(cuid())
-          21 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
+          19 |   id       String @id @default(cuid())
+          20 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
              | 
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:28
+            -->  prisma/postgres.prisma:27
              | 
-          27 |   id       String @id @default(cuid())
-          28 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
+          26 |   id       String @id @default(cuid())
+          27 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
              | 
 
           Validation Error Count: 2
@@ -344,20 +351,20 @@ describe('validate', () => {
       try {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'], defaultTestConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
+        expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:21
+            -->  prisma/postgres.prisma:20
              | 
-          20 |   id       String @id @default(cuid())
-          21 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
+          19 |   id       String @id @default(cuid())
+          20 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
              | 
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
-            -->  prisma/postgres.prisma:28
+            -->  prisma/postgres.prisma:27
              | 
-          27 |   id       String @id @default(cuid())
-          28 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
+          26 |   id       String @id @default(cuid())
+          27 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
              | 
 
           Validation Error Count: 2

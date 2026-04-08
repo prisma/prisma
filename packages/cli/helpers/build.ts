@@ -1,13 +1,11 @@
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
-import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { copyPrismaClient } from './copy-prisma-client'
 
 /**
  * Manages the extra actions that are needed for the CLI to work
@@ -15,23 +13,15 @@ import { copyPrismaClient } from './copy-prisma-client'
 const cliLifecyclePlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
-    // provide a copy of the client for studio to work
-    build.onStart(copyPrismaClient)
-
     build.onEnd(async () => {
-      // we copy the contents from @prisma/studio to build
-      await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
-        overwrite: true,
-      })
-
       // we copy the contents from checkpoint-client to build
       await fs.promises.copyFile(
-        path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
+        path.join(path.dirname(require.resolve('checkpoint-client')), 'child.js'),
         './build/child.js',
       )
 
       // we copy the contents from xdg-open to build
-      await fs.promises.copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
+      await fs.promises.copyFile(path.join(path.dirname(require.resolve('open')), 'xdg-open'), './build/xdg-open')
 
       // as a convention, we install all Prisma's Wasm modules in the internals package
       const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
@@ -67,9 +57,9 @@ async function copyClientWasmRuntime() {
   const clientRuntimePath = path.join(clientPath, 'runtime')
   const clientPrismaDepsPath = path.join(clientPath, 'node_modules', '@prisma')
 
-  for (const component of ['compiler', 'engine']) {
-    for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
-      const baseName = `query_${component}_bg.${provider}`
+  for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
+    for (const build of ['fast', 'small']) {
+      const baseName = `query_compiler_${build}_bg.${provider}`
 
       for (const file of [`${baseName}.js`, `${baseName}.mjs`]) {
         await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
@@ -77,14 +67,32 @@ async function copyClientWasmRuntime() {
 
       const wasmFilePath = path.join(
         clientPrismaDepsPath,
-        `query-${component}-wasm`,
+        `query-compiler-wasm`,
         provider,
-        `query_${component}_bg.wasm`,
+        `query_compiler_${build}_bg.wasm`,
       )
 
       await fs.promises.copyFile(wasmFilePath, `./build/${baseName}.wasm`)
     }
   }
+}
+
+async function buildStudioFrontend() {
+  const { build } = await import('esbuild')
+
+  await build({
+    bundle: true,
+    entryPoints: ['src/studio-entry.ts'],
+    format: 'esm',
+    logLevel: 'error',
+    minify: true,
+    outfile: 'build/studio.js',
+    platform: 'browser',
+    target: 'ES2022',
+    tsconfig: 'tsconfig.build.json',
+  })
+
+  await fs.promises.copyFile(require.resolve('@prisma/studio-core/ui/index.css'), './build/studio.css')
 }
 
 /**
@@ -127,7 +135,7 @@ const cliBuildConfig: BuildOptions = {
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
-  external: ['esbuild'],
+  external: ['better-sqlite3', 'esbuild'],
   emitTypes: false,
   minify: true,
 }
@@ -144,10 +152,12 @@ const preinstallBuildConfig: BuildOptions = {
 
 const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
 
-build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig]).catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
+build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig])
+  .then(buildStudioFrontend)
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

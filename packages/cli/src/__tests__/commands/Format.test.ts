@@ -1,5 +1,6 @@
 /* eslint-disable jest/no-identical-title */
 import fs from 'node:fs'
+import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
@@ -49,6 +50,7 @@ describe('format', () => {
               └── custom.prisma
               └── schema.prisma
           └── custom.prisma
+          └── prisma.config.ts
           └── schema.prisma
           "
         `)
@@ -133,10 +135,10 @@ describe('format', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:11
+            -->  prisma/schema/schema_with_config.prisma:10
              | 
-          10 | model User {
-          11 |   id Int @id @default(now())
+           9 | model User {
+          10 |   id Int @id @default(now())
              | 
 
           Validation Error Count: 1
@@ -217,7 +219,7 @@ describe('format', () => {
           Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"The schemas at prisma/schema are valid 🚀"`)
 
-        const { schemas } = (await getSchemaWithPath('prisma/schema'))!
+        const { schemas } = (await getSchemaWithPath({ schemaPath: { cliProvidedPath: 'prisma/schema' } }))!
 
         // notice how the `Link` backrelation was added in the first schema file:
         expect(extractSchemaContent(schemas)).toMatchInlineSnapshot(`
@@ -228,7 +230,6 @@ describe('format', () => {
 
           datasource db {
             provider = "sqlite"
-            url      = "file:dev.db"
           }
 
           model User {
@@ -323,6 +324,14 @@ describe('format', () => {
     ctx.fixture('example-project/prisma-unformatted')
     await expect(
       Format.new().parse(['--schema=unformatted.prisma', '--check'], defaultTestConfig()),
+    ).resolves.toMatchInlineSnapshot(`"! There are unformatted files. Run prisma format to format them."`)
+  })
+
+  it('should load and check schema located next to a nested config', async () => {
+    ctx.fixture('prisma-config-nested')
+    const configDir = path.join(process.cwd(), 'config')
+    await expect(
+      Format.new().parse(['--config=./config/prisma.config.ts', '--check'], defaultTestConfig(), configDir),
     ).resolves.toMatchInlineSnapshot(`"! There are unformatted files. Run prisma format to format them."`)
   })
 })

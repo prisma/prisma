@@ -1,6 +1,5 @@
-import { defaultTestConfig, defineConfig } from '@prisma/config'
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
 import { Validate } from '../../Validate'
@@ -25,19 +24,14 @@ function createCLI(download = jest.fn()) {
       //   // drop: DbDrop.new(),
       //   seed: DbSeed.new(),
       // }),
-      /**
-       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
-       */
-      introspect: DbPull.new(),
       // dev: Dev.new(),
-      // studio: Studio.new(),
       // generate: Generate.new(),
       // version: Version.new(),
       validate: Validate.new(),
       // format: Format.new(),
       // telemetry: Telemetry.new(),
     },
-    ['version', 'init', 'migrate', 'db', 'introspect', 'dev', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'dev', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 }
@@ -55,127 +49,17 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
-    const originalEnv = { ...process.env }
-    const resetEnv = () => {
-      for (const key of Object.keys(process.env)) {
-        if (!(key in originalEnv)) {
-          delete process.env[key]
-        }
-      }
+    it('should download schema engine', async () => {
+      ctx.fixture('ensure-needed-binaries-exist')
 
-      for (const [key, value] of Object.entries(originalEnv)) {
-        if (value === undefined) {
-          delete process.env[key]
-        } else {
-          process.env[key] = value
-        }
-      }
-    }
-
-    beforeAll(() => {
-      resetEnv()
-      delete process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
-      delete process.env.PRISMA_CLIENT_ENGINE_TYPE
-    })
-
-    afterAll(() => {
-      resetEnv()
-    })
-
-    describe('with `config.migrate.engine === "js"`, should not download schema-engine', () => {
-      // prisma.config.ts
-      const config = defineConfig({
-        experimental: {
-          adapter: true,
-        },
-        engine: 'js',
-        // @ts-ignore: we don't need to import an actual adapter
-        adapter: async () => {
-          return Promise.resolve({})
-        },
-      })
-
-      it('should not download query-engine when engineType = "client"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], config)
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {},
-          }),
-        )
-      })
-
-      it('should download query-engine when engineType = "library"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-library.prisma'], config)
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'libquery-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-
-      it('should download query-engine when engineType = "binary"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-binary.prisma'], config)
-
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'query-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-    })
-
-    describe('without config.migrate.adapter, should download schema-engine', () => {
-      it('should not download query-engine when engineType = "client"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], defaultTestConfig())
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-
-      it('should download query-engine when engineType = "library"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-library.prisma'], defaultTestConfig())
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'libquery-engine': expect.any(String),
-              'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-
-      it('should download query-engine when engineType = "binary"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-binary.prisma'], defaultTestConfig())
-
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'query-engine': expect.any(String),
-              'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
+      await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], defaultTestConfig())
+      expect(download).toHaveBeenCalledWith(
+        expect.objectContaining({
+          binaries: {
+            'schema-engine': expect.any(String),
+          },
+        }),
+      )
     })
   })
 
@@ -205,22 +89,5 @@ describe('CLI', () => {
 
   it('unknown command', async () => {
     await expect(cliInstance.parse(['doesnotexist'], defaultTestConfig())).resolves.toThrow()
-  })
-
-  it('introspect should include deprecation warning', async () => {
-    const result = cliInstance.parse(['introspect'], defaultTestConfig())
-
-    await expect(result).rejects.toMatchInlineSnapshot(`
-      "Could not find a schema.prisma file that is required for this command.
-      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
-    `)
-    expect(ctx.mocked['console.log'].mock.calls).toHaveLength(0)
-    expect(ctx.mocked['console.info'].mock.calls).toHaveLength(0)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "prisma:warn 
-      prisma:warn The prisma introspect command is deprecated. Please use prisma db pull instead.
-      prisma:warn "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls).toHaveLength(0)
   })
 })

@@ -90,7 +90,7 @@ export function mapIsolationLevel(level: IsolationLevel): sql.IIsolationLevel {
   }
 }
 
-export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | number | BigInt | string | Uint8Array | A {
+export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | number | BigInt | string | Buffer | A {
   if (arg === null) {
     return null
   }
@@ -125,10 +125,6 @@ export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | numb
     return Buffer.from(arg, 'base64')
   }
 
-  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
-    return Buffer.from(arg)
-  }
-
   if (ArrayBuffer.isView(arg)) {
     return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
   }
@@ -160,10 +156,6 @@ export function mapRow<A>(row: A[], columns?: sql.IColumn[]): (A | ResultValue)[
       }
       // If no suitable precision is found, return the value as is.
       return value
-    }
-
-    if (Buffer.isBuffer(value)) {
-      return Array.from(value)
     }
 
     // Using lower case to make it consistent with the driver in prisma-engines.

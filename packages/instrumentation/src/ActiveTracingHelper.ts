@@ -9,7 +9,13 @@ import {
   Tracer,
   TracerProvider,
 } from '@opentelemetry/api'
-import { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import type {
+  EngineSpan,
+  EngineSpanKind,
+  ExtendedSpanOptions,
+  SpanCallback,
+  TracingHelper,
+} from '@prisma/instrumentation-contract'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'

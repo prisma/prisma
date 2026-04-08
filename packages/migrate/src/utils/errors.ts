@@ -1,6 +1,13 @@
 import { getCommandWithExecutor, link, setClassName } from '@prisma/internals'
 import { bold, green } from 'kleur/colors'
 
+export class ConfigValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+  }
+}
+
+setClassName(ConfigValidationError, 'ConfigValidationError')
 export class NoSchemaFoundError extends Error {
   constructor() {
     super(
@@ -8,7 +15,7 @@ export class NoSchemaFoundError extends Error {
         'schema.prisma',
       )} file that is required for this command.\nYou can either provide it with ${green(
         '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
+      )}, set its path in the \`schema\` property in your Prisma Config file, or put it into the default location ${green(
         './prisma/schema.prisma',
       )} ${link('https://pris.ly/d/prisma-schema-location')}`,
     )
@@ -44,7 +51,7 @@ export class MigrateResetEnvNonInteractiveError extends Error {
       `Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
 Use ${bold(green(`--force`))} to run this command without user interaction.
-See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-reset')}`,
+See ${link('https://pris.ly/d/migrate-reset')}`,
     )
   }
 }
@@ -57,7 +64,7 @@ export class MigrateDevEnvNonInteractiveError extends Error {
 
 \`prisma migrate dev\` is an interactive command designed to create new migrations and evolve the database in development.
 To apply existing migrations in deployments, use ${bold(green(`prisma migrate deploy`))}.
-See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy')}`,
+See ${link('https://pris.ly/d/migrate-deploy')}`,
     )
   }
 }

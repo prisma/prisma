@@ -5,6 +5,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
+  createSchemaPathInput,
   format,
   formatms,
   formatSchema,
@@ -46,7 +47,11 @@ Or specify a Prisma schema path
 
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    config: PrismaConfigInternal,
+    baseDir: string = process.cwd(),
+  ): Promise<string | Error> {
     const before = Math.round(performance.now())
     const args = arg(argv, {
       '--help': Boolean,
@@ -65,7 +70,13 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaWithPath({
+      schemaPath: createSchemaPathInput({
+        schemaPathFromArgs: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        baseDir,
+      }),
+    })
     printSchemaLoadedMessage(schemaPath)
 
     const formattedDatamodel = await formatSchema({ schemas })

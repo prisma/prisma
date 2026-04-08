@@ -105,22 +105,11 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     try {
       const result = await this.client.query(
         {
+          name: this.pgOptions?.statementNameGenerator?.(query),
           text: sql,
           values,
           rowMode: 'array',
           types: {
-            // This is the error expected:
-            // No overload matches this call.
-            // The last overload gave the following error.
-            // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
-            //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
-            //     Types of parameters 'json' and 'value' are incompatible.
-            //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
-            //
-            // Because pg-types types expect us to handle both binary and text protocol versions,
-            // where as far we can see, pg will ever pass only text version.
-            //
-            // @ts-expect-error
             getTypeParser: (oid: number, format?) => {
               if (format === 'text' && customParsers[oid]) {
                 return customParsers[oid]
@@ -168,17 +157,47 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     this.cleanup?.()
     this.client.release()
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export type PrismaPgOptions = {
+  /** The name of the schema to use in generated queries */
   schema?: string
+  /**
+   * Whether to call `pool.end()` on an externally provided pool when the adapter is disposed.
+   * Defaults to `false`.
+   */
   disposeExternalPool?: boolean
+  /** Callback attached to the pool's 'error' events. */
   onPoolError?: (err: Error) => void
+  /** Callback attached to connection's 'error' events. */
   onConnectionError?: (err: Error) => void
+  /**
+   * Optional parser for user-defined types. Called with the type's OID, the value to parse, and
+   * a queryable for performing additional queries if necessary.
+   */
   userDefinedTypeParser?: UserDefinedTypeParser
+  /**
+   * Optional function to generate names for prepared statements. The generated strings are passed
+   * as the `name` property in the query to `pg.Client#query()`, which uses them to cache the
+   * underlying statements. If not provided, prepared statements are not cached.
+   */
+  statementNameGenerator?: StatementNameGenerator
 }
 
 export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
+export type StatementNameGenerator = (query: SqlQuery) => string
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
   constructor(
@@ -266,12 +285,15 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   private externalPool: pg.Pool | null
 
   constructor(
-    poolOrConfig: pg.Pool | pg.PoolConfig,
+    poolOrConfig: pg.Pool | pg.PoolConfig | string,
     private readonly options?: PrismaPgOptions,
   ) {
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
       this.config = poolOrConfig.options
+    } else if (typeof poolOrConfig === 'string') {
+      this.externalPool = null
+      this.config = { connectionString: poolOrConfig }
     } else {
       this.externalPool = null
       this.config = poolOrConfig

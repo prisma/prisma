@@ -22,7 +22,10 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(protected client: Connection) {}
+  constructor(
+    protected readonly client: Connection,
+    protected readonly mariadbOptions?: { useTextProtocol?: boolean },
+  ) {}
 
   async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
@@ -63,7 +66,10 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
         typeCast,
       }
       const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
-      return await this.client.query(req, values)
+      const execute = this.mariadbOptions?.useTextProtocol
+        ? this.client.query.bind(this.client)
+        : this.client.execute.bind(this.client)
+      return await execute(req, values)
     } catch (e) {
       const error = e as Error
       this.onError(error)
@@ -76,32 +82,63 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
   }
 }
 
+// All transaction operations use `client.query` instead of `client.execute` to avoid using the
+// binary protocol, which does not support transactions in the MariaDB driver.
 class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements Transaction {
   constructor(
-    conn: mariadb.Connection,
+    readonly conn: mariadb.Connection,
+    mariadbOptions: PrismaMariadbOptions | undefined,
     readonly options: TransactionOptions,
-    readonly cleanup?: () => void,
+    protected readonly cleanup?: () => void,
   ) {
-    super(conn)
+    super(conn, mariadbOptions)
   }
 
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    this.cleanup?.()
-    await this.client.end()
+    try {
+      await this.client.query({ sql: 'COMMIT' })
+    } catch (err) {
+      this.onError(err)
+    } finally {
+      this.cleanup?.()
+      await this.client.end()
+    }
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    this.cleanup?.()
-    await this.client.end()
+    try {
+      await this.client.query({ sql: 'ROLLBACK' })
+    } catch (err) {
+      this.onError(err)
+    } finally {
+      this.cleanup?.()
+      await this.client.end()
+    }
+  }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.client.query({ sql: `SAVEPOINT ${name}` }).catch(this.onError.bind(this))
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.client.query({ sql: `ROLLBACK TO ${name}` }).catch(this.onError.bind(this))
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.client.query({ sql: `RELEASE SAVEPOINT ${name}` }).catch(this.onError.bind(this))
   }
 }
 
 export type PrismaMariadbOptions = {
+  /** The name of the database to use in generated queries */
   database?: string
+  /** Use the driver's text protocol (`query`) instead of the binary protocol (`execute`). */
+  useTextProtocol?: boolean
+  /** Callback attached to transaction connection `error` events. */
   onConnectionError?: (err: mariadb.SqlError) => void
 }
 
@@ -113,9 +150,9 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
   constructor(
     client: mariadb.Pool,
     private readonly capabilities: Capabilities,
-    private readonly options?: PrismaMariadbOptions,
+    protected readonly mariadbOptions?: PrismaMariadbOptions,
   ) {
-    super(client)
+    super(client, mariadbOptions)
   }
 
   executeScript(_script: string): Promise<void> {
@@ -124,14 +161,14 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      schemaName: this.options?.database,
+      schemaName: this.mariadbOptions?.database,
       supportsRelationJoins: this.capabilities.supportsRelationJoins,
     }
   }
 
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
     const options: TransactionOptions = {
-      usePhantomQuery: false,
+      usePhantomQuery: true,
     }
 
     const tag = '[js::startTransaction]'
@@ -140,7 +177,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     const conn = await this.client.getConnection().catch((error) => this.onError(error))
     const onError = (err: mariadb.SqlError) => {
       debug(`Error from connection: ${err.message} %O`, err)
-      this.options?.onConnectionError?.(err)
+      this.mariadbOptions?.onConnectionError?.(err)
     }
     conn.on('error', onError)
 
@@ -149,7 +186,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     }
 
     try {
-      const tx = new MariaDbTransaction(conn, options, cleanup)
+      const tx = new MariaDbTransaction(conn, this.mariadbOptions, options, cleanup)
       if (isolationLevel) {
         await tx.executeRaw({
           sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
@@ -157,7 +194,8 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
           argTypes: [],
         })
       }
-      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      // Uses `query` instead of `execute` to avoid the binary protocol.
+      await tx.conn.query({ sql: 'BEGIN' }).catch(this.onError.bind(this))
       return tx
     } catch (error) {
       await conn.end()
@@ -184,12 +222,45 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   #options?: PrismaMariadbOptions
 
   constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
-    this.#config = rewriteConnectionString(config)
+    if (typeof config === 'string') {
+      try {
+        const url = new URL(config)
+        if (!url.searchParams.has('prepareCacheLength')) {
+          url.searchParams.set('prepareCacheLength', '0')
+        }
+        this.#config = rewriteConnectionString(url).toString()
+      } catch (error) {
+        debug('Error parsing connection string: %O', error)
+        // If we can't parse the connection string, use it as-is and let the driver fail with
+        // its own error.
+        this.#config = config
+      }
+    } else {
+      if (config.prepareCacheLength === undefined) {
+        this.#config = { ...config, prepareCacheLength: 0 }
+      } else {
+        this.#config = config
+      }
+    }
     this.#options = options
   }
 
   async connect(): Promise<PrismaMariaDbAdapter> {
-    const pool = mariadb.createPool(this.#config)
+    let pool: mariadb.Pool
+    try {
+      pool = mariadb.createPool(this.#config)
+    } catch (error) {
+      // We match on an error which is known to leak the connection string and replace it with
+      // a custom error message.
+      // The error might change in a future version of the driver, but this is covered in a
+      // test, which checks for credential leakage regardless of the exact error message.
+      if (error instanceof Error && error.message.startsWith('error parsing connection string')) {
+        throw new Error(
+          "error parsing connection string, format must be 'mariadb://[<user>[:<password>]@]<host>[:<port>]/[<db>[?<opt1>=<value1>[&<opt2>=<value2>]]]'",
+        )
+      }
+      throw error
+    }
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
     }
@@ -229,8 +300,8 @@ export function inferCapabilities(version: unknown): Capabilities {
 
   // No relation-joins support for mysql < 8.0.13 or mariadb.
   const isMariaDB = suffix?.toLowerCase()?.includes('mariadb') ?? false
-  const supportsRelationJoins = !isMariaDB && (major > 8 || (major === 8 && minor >= 0 && patch >= 13))
-
+  const supportsRelationJoins =
+    !isMariaDB && (major > 8 || (major === 8 && (minor > 0 || (minor === 0 && patch >= 13))))
   return { supportsRelationJoins }
 }
 
@@ -238,16 +309,11 @@ export function inferCapabilities(version: unknown): Capabilities {
  * Rewrites mysql:// connection strings to mariadb:// format.
  * This allows users to use mysql:// connection strings with the MariaDB adapter.
  */
-export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
-  if (typeof config !== 'string') {
-    return config
+export function rewriteConnectionString(url: URL): URL {
+  if (url.protocol === 'mysql:') {
+    url.protocol = 'mariadb:'
   }
-
-  if (!config.startsWith('mysql://')) {
-    return config
-  }
-
-  return config.replace(/^mysql:\/\//, 'mariadb://')
+  return url
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }

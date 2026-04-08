@@ -48,9 +48,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
     beforeEach(async () => {
       await setupPostgres(setupParams)
-
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+      ctx.setDatasource({ url: connectionString })
     })
 
     afterEach(async () => {
@@ -69,9 +67,13 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+          baseDir: ctx.configDir(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -91,9 +93,12 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+          baseDir: ctx.configDir(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -115,12 +120,21 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         // Empty dir should be deleted along the views dir
         await ctx.fs.dirAsync('views/empty-dir')
 
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+          baseDir: ctx.configDir(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -135,19 +149,28 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(undefined)
         // The views folder is deleted
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'prisma.config.ts', 'schema.prisma', 'setup.sql'])
       })
 
       it('`views` is [] and a non-empty existing views folder is kept', async () => {
         ctx.fixture(path.join(fixturePath))
 
         ctx.fs.write('views/README.md', 'Some readme markdown')
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+          baseDir: ctx.configDir(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -161,7 +184,13 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(['README.md'])
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
       })
     })
   })
@@ -174,7 +203,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspectWithViews = new DbPull()
-      const resultWithViews = introspectWithViews.parse([], await ctx.config())
+      const resultWithViews = introspectWithViews.parse([], await ctx.config(), ctx.configDir())
       await expect(resultWithViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithViews = await ctx.fs.listAsync('views')
@@ -204,7 +233,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       await runQueryPostgres(setupParams, dropViewsSQL!)
 
       const introspectWithoutViews = new DbPull()
-      const resultWithoutViews = introspectWithoutViews.parse([], await ctx.config())
+      const resultWithoutViews = introspectWithoutViews.parse([], await ctx.config(), ctx.configDir())
       await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithoutViews = await ctx.fs.listAsync('views')
@@ -212,14 +241,12 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+        "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
         Run prisma generate to generate Prisma Client.
-        Prisma schema loaded from schema.prisma
         Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
@@ -239,7 +266,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -260,8 +287,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+        "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
@@ -308,7 +334,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
         const introspect = new DbPull()
         const args = needsPathsArg ? ['--schema', `${schemaPath}`] : []
-        const result = introspect.parse(args, await ctx.config())
+        const result = introspect.parse(args, await ctx.config(), ctx.configDir())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
         // the folders in `views` match the database schema names (public, work) of the views
@@ -347,8 +373,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         `)
 
         expect(ctx.normalizedCapturedStdout().replaceAll(schemaPath, '<schema-location>')).toMatchInlineSnapshot(`
-          "Prisma schema loaded from <schema-location>
-          Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+          "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
           - Introspecting based on datasource defined in <schema-location>
           ✔ Introspected 2 models and wrote them into <schema-location> in XXXms
@@ -385,7 +410,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       // the folders in `views` match the database schema names (public, work) of the views
@@ -421,7 +446,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       ctx.fixture(path.join(fixturePath))
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -431,8 +456,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       expect(tree).toMatchInlineSnapshot(`[]`)
 
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+        "Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
@@ -457,7 +481,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], await ctx.config())
+      const result = introspect.parse([], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')

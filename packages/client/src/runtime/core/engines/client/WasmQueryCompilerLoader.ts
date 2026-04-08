@@ -1,10 +1,6 @@
-// this import points directly to ./query_compiler_bg.js it is generated with >>>
-// wasm-bindgen --browser. --browser is the leanest and most agnostic option
-// that is also easy to integrate with our bundling.
-// import * as wasmBindgenRuntime from '@prisma/query-compiler-wasm/query_compiler_bg.js'
 import { QueryCompilerConstructor } from '@prisma/client-common'
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 
 // cache loaded wasm instances by provider
@@ -36,7 +32,7 @@ export const wasmQueryCompilerLoader: QueryCompilerLoader = {
         }
 
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
-        const options = { './query_compiler_bg.js': runtime }
+        const options = { [compilerWasm.importName]: runtime }
         const instance = new WebAssembly.Instance(wasmModule, options)
         const wbindgen_start = instance.exports.__wbindgen_start as () => void
         runtime.__wbg_set_wasm(instance.exports)

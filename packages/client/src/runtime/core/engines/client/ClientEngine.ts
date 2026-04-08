@@ -2,27 +2,33 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
+  parameterizeBatch,
+  parameterizeQuery,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
   TransactionInfo,
   UserFacingError,
 } from '@prisma/client-engine-runtime'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
-import { assertNever, TracingHelper } from '@prisma/internals'
+import type { TracingHelper } from '@prisma/instrumentation-contract'
+import { assertNever } from '@prisma/internals'
+import type { JsonBatchQuery, JsonQuery, RawJsonQuery } from '@prisma/json-protocol'
+import { ParamGraph } from '@prisma/param-graph'
 
 import { version as clientVersion } from '../../../../../package.json'
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
+import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
@@ -30,6 +36,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
+import { QueryPlanCache } from './query-plan-cache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
@@ -83,7 +90,10 @@ type ExecutorKind =
       remote: false
       driverAdapterFactory: SqlDriverAdapterFactory
     }
-  | { remote: true }
+  | {
+      remote: true
+      accelerateUrl: string
+    }
 
 export class ClientEngine implements Engine {
   name = 'ClientEngine' as const
@@ -92,6 +102,8 @@ export class ClientEngine implements Engine {
   #state: EngineState = { type: 'disconnected' }
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
+  #queryPlanCache: QueryPlanCache
+  #paramGraph: ParamGraph
 
   config: EngineConfig
   datamodel: string
@@ -103,9 +115,9 @@ export class ClientEngine implements Engine {
 
   #emitQueryEvent?: (event: QueryEvent) => void
 
-  constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
-    if (remote) {
-      this.#executorKind = { remote: true }
+  constructor(config: EngineConfig, queryCompilerLoader?: QueryCompilerLoader) {
+    if (config.accelerateUrl !== undefined) {
+      this.#executorKind = { remote: true, accelerateUrl: config.accelerateUrl }
     } else if (config.adapter) {
       this.#executorKind = { remote: false, driverAdapterFactory: config.adapter }
       debug('Using driver adapter: %O', config.adapter)
@@ -129,6 +141,17 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
+    this.#queryPlanCache = new QueryPlanCache()
+    this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
+      if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
+        return undefined
+      }
+      const mapping: Record<string, string> = {}
+      for (const value of config.runtimeDataModel.enums[enumName].values) {
+        mapping[value.name] = value.dbName ?? value.name
+      }
+      return mapping
+    })
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -151,10 +174,6 @@ export class ClientEngine implements Engine {
         } satisfies ClientQueryEvent)
       }
     }
-  }
-
-  applyPendingMigrations(): Promise<void> {
-    throw new Error('Cannot call applyPendingMigrations on engine type client.')
   }
 
   async #ensureStarted(): Promise<ConnectedEngine> {
@@ -208,13 +227,12 @@ export class ClientEngine implements Engine {
     if (this.#executorKind.remote) {
       return new RemoteExecutor({
         clientVersion: this.config.clientVersion,
-        env: this.config.env,
-        inlineDatasources: this.config.inlineDatasources,
+        accelerateUrl: this.#executorKind.accelerateUrl,
         logEmitter: this.logEmitter,
         logLevel: this.logLevel,
         logQueries: this.logQueries,
-        overrideDatasources: this.config.overrideDatasources,
         tracingHelper: this.tracingHelper,
+        sqlCommenters: this.config.sqlCommenters,
       })
     } else {
       return await LocalExecutor.connect({
@@ -226,6 +244,7 @@ export class ClientEngine implements Engine {
         },
         onQuery: this.#emitQueryEvent,
         provider: this.config.activeProvider as ActiveConnectorType | undefined,
+        sqlCommenters: this.config.sqlCommenters,
       })
     }
   }
@@ -303,6 +322,7 @@ export class ClientEngine implements Engine {
     if (error instanceof PrismaClientRustPanicError) {
       return error
     }
+
     if (typeof error['message'] === 'string' && typeof error['code'] === 'string') {
       return new PrismaClientKnownRequestError(error['message'], {
         code: error['code'],
@@ -445,44 +465,62 @@ export class ClientEngine implements Engine {
     { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
   ): Promise<{ data: T }> {
     debug(`sending request`)
-    const queryStr = JSON.stringify(query)
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, queryStr)
+      throw this.#transformRequestError(err, JSON.stringify(query))
     })
 
-    let queryPlan: QueryPlanNode
-    try {
-      queryPlan = this.#withLocalPanicHandler(() =>
-        this.#withCompileSpan({
-          queries: [query],
-          execute: () => queryCompiler.compile(queryStr) as QueryPlanNode,
-        }),
-      )
-    } catch (error) {
-      throw this.#transformCompileError(error)
+    let plan: QueryPlanNode
+    let placeholderValues: Record<string, unknown> = {}
+
+    if (isRawQuery(query)) {
+      plan = compileRawQuery(query)
+    } else {
+      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
+      const cacheKey = JSON.stringify(parameterizedQuery)
+      placeholderValues = extractedValues
+
+      // We do not cache `createMany` and `createManyAndReturn` queries as they are very unlikely
+      // to benefit from caching due to their high variability in parameters, which leads to a very
+      // high cache miss rate and potential cache bloat.
+      const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
+      const cached = isCacheable ? this.#queryPlanCache.getSingle(cacheKey) : undefined
+      if (cached) {
+        debug('query plan cache hit')
+        plan = cached
+      } else {
+        debug('query plan cache miss')
+        plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
+        if (isCacheable) {
+          this.#queryPlanCache.setSingle(cacheKey, plan)
+        }
+      }
     }
 
     try {
-      debug(`query plan created`, queryPlan)
+      debug(`query plan created`, plan)
 
-      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
-      const placeholderValues = {}
       const result = await executor.execute({
-        plan: queryPlan,
+        plan,
         model: query.modelName,
         operation: query.action,
         placeholderValues,
         transaction: interactiveTransaction,
         batchIndex: undefined,
         customFetch: customDataProxyFetch?.(globalThis.fetch),
+        queryInfo: {
+          type: 'single',
+          modelName: query.modelName,
+          action: query.action,
+          query: query.query,
+        },
       })
 
       debug(`query plan executed`)
 
       return { data: { [query.action]: result } as T }
     } catch (e: any) {
-      throw this.#transformRequestError(e, queryStr)
+      throw this.#transformRequestError(e, JSON.stringify(query))
     }
   }
 
@@ -493,24 +531,44 @@ export class ClientEngine implements Engine {
     if (queries.length === 0) {
       return []
     }
-    const firstAction = queries[0].action
 
-    const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
+    const firstAction = queries[0].action
+    const firstModelName = queries[0].modelName
+
+    const batchPayload = getBatchRequestPayload(queries, transaction)
+    const request = JSON.stringify(batchPayload)
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, request)
     })
 
+    const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
-    try {
-      batchResponse = this.#withLocalPanicHandler(() =>
-        this.#withCompileSpan({
-          queries,
-          execute: () => queryCompiler.compileBatch(request),
-        }),
+    let placeholderValues: Record<string, unknown> = {}
+
+    if (!hasRawQueries) {
+      const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
+        batchPayload as JsonBatchQuery,
+        this.#paramGraph,
       )
-    } catch (err) {
-      throw this.#transformCompileError(err)
+      const cacheKeyStr = JSON.stringify(parameterizedBatch)
+      placeholderValues = extractedValues
+
+      const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
+      if (cached) {
+        debug('batch query plan cache hit')
+        batchResponse = cached
+      } else {
+        debug('batch query plan cache miss')
+        try {
+          batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
+          this.#queryPlanCache.setBatch(cacheKeyStr, batchResponse)
+        } catch (error) {
+          throw this.#transformCompileError(error)
+        }
+      }
+    } else {
+      batchResponse = this.#compileBatch(queries, request, queryCompiler)
     }
 
     try {
@@ -519,9 +577,6 @@ export class ClientEngine implements Engine {
         // If we are already in an interactive transaction we do not nest transactions
         txInfo = transaction.options
       }
-
-      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
-      const placeholderValues = {}
 
       switch (batchResponse.type) {
         case 'multi': {
@@ -544,6 +599,10 @@ export class ClientEngine implements Engine {
                 batchIndex,
                 transaction: txInfo,
                 customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+                queryInfo: {
+                  type: 'single',
+                  ...queries[batchIndex],
+                },
               })
               results.push({ data: { [queries[batchIndex].action]: rows } })
             } catch (err) {
@@ -563,21 +622,39 @@ export class ClientEngine implements Engine {
           return results as BatchQueryEngineResult<T>[]
         }
         case 'compacted': {
-          if (!queries.every((q) => q.action === firstAction)) {
-            throw new Error('All queries in a batch must have the same action')
+          if (!queries.every((q) => q.action === firstAction && q.modelName === firstModelName)) {
+            const actions = queries.map((q) => q.action).join(', ')
+            const modelNames = queries.map((q) => q.modelName).join(', ')
+            throw new Error(
+              `Internal error: All queries in a compacted batch must have the same action and model name, but received actions: [${actions}] and model names: [${modelNames}]. ` +
+                'This indicates a bug in the client. Please report this issue to the Prisma team with your query details.',
+            )
+          }
+
+          if (firstModelName === undefined) {
+            throw new Error(
+              'Internal error: A compacted batch cannot contain raw queries. ' +
+                'This indicates a bug in the client. Please report this issue to the Prisma team with your query details.',
+            )
           }
 
           const rows = await executor.execute({
             plan: batchResponse.plan as QueryPlanNode,
             placeholderValues,
-            model: queries[0].modelName,
+            model: firstModelName,
             operation: firstAction,
             batchIndex: undefined,
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+            queryInfo: {
+              type: 'compacted',
+              action: firstAction,
+              modelName: firstModelName,
+              queries,
+            },
           })
 
-          const results = convertCompactedRows(rows as {}[], batchResponse)
+          const results = convertCompactedRows(rows as {}[], batchResponse, placeholderValues)
           return results.map((result) => ({ data: { [firstAction]: result } }) as BatchQueryEngineResult<T>)
         }
       }
@@ -586,18 +663,45 @@ export class ClientEngine implements Engine {
     }
   }
 
-  metrics(options: MetricsOptionsJson): Promise<Metrics>
-  metrics(options: MetricsOptionsPrometheus): Promise<string>
-  metrics(_options: EngineMetricsOptions): Promise<Metrics | string> {
-    throw new Error('Method not implemented.')
-  }
-
   /**
    * Used by `@prisma/extension-accelerate`
    */
   async apiKey(): Promise<string | null> {
     const { executor } = await this.#ensureStarted()
     return executor.apiKey()
+  }
+
+  #compileQuery(query: JsonQuery, request: string, compiler: QueryCompiler): QueryPlanNode {
+    try {
+      return this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries: [query],
+          execute: () => compiler.compile(request),
+        }),
+      )
+    } catch (error) {
+      throw this.#transformCompileError(error)
+    }
+  }
+
+  #compileBatch(queries: JsonQuery[], request: string, compiler: QueryCompiler): BatchResponse {
+    if (queries.every(isRawQuery)) {
+      return {
+        type: 'multi',
+        plans: queries.map((q) => compileRawQuery(q)),
+      }
+    }
+
+    try {
+      return this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries,
+          execute: () => compiler.compileBatch(request),
+        }),
+      )
+    } catch (err) {
+      throw this.#transformCompileError(err)
+    }
   }
 
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {
@@ -653,4 +757,17 @@ function getErrorMessageWithLink(engine: ClientEngine, title: string, query?: st
     database: engine.config.activeProvider as any,
     query,
   })
+}
+
+function isRawQuery(query: JsonQuery): query is RawJsonQuery {
+  return query.action === 'queryRaw' || query.action === 'executeRaw'
+}
+
+function compileRawQuery(query: RawJsonQuery): QueryPlanNode {
+  const sql = query.query.arguments.query
+  const { args, argTypes } = deserializeRawParameters(query.query.arguments.parameters)
+  return {
+    type: query.action === 'queryRaw' ? 'query' : 'execute',
+    args: { type: 'rawSql', sql, args, argTypes },
+  }
 }

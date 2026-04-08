@@ -158,6 +158,18 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
     this.cleanup?.()
     this.client.release()
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export type PrismaNeonOptions = {
@@ -256,7 +268,7 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   }
 }
 
-export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAdapter {
+export class PrismaNeonHttpAdapter extends NeonQueryable implements SqlDriverAdapter {
   private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
 
   constructor(client: neon.NeonQueryFunction<any, any>) {
@@ -301,7 +313,7 @@ export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAda
   async dispose(): Promise<void> {}
 }
 
-export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
+export class PrismaNeonHttpAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -311,6 +323,6 @@ export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
   ) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaNeonHTTPAdapter(neon.neon(this.connectionString, this.options))
+    return new PrismaNeonHttpAdapter(neon.neon(this.connectionString, this.options))
   }
 }
