@@ -720,7 +720,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         const isolationLevel = options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel
-        const transaction = { kind: 'batch', id, index, isolationLevel, lock } as const
+        const transaction = {
+          kind: 'batch',
+          id,
+          index,
+          isolationLevel,
+          maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
+          timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
+          lock,
+        } as const
         return request.requestTransaction?.(transaction) ?? request
       })
 

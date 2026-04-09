@@ -12,6 +12,8 @@ import type * as Transaction from './types/Transaction'
 
 export type BatchTransactionOptions = {
   isolationLevel?: Transaction.IsolationLevel
+  maxWait?: number
+  timeout?: number
 }
 
 export type TransactionOptions<InteractiveTransactionPayload> =

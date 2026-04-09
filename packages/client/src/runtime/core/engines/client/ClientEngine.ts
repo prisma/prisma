@@ -581,9 +581,12 @@ export class ClientEngine implements Engine {
       switch (batchResponse.type) {
         case 'multi': {
           if (transaction?.kind !== 'itx') {
-            const txOptions = transaction?.options.isolationLevel
-              ? { ...this.config.transactionOptions, isolationLevel: transaction.options.isolationLevel }
-              : this.config.transactionOptions
+            const batchOptions = transaction?.options
+            const txOptions = {
+              maxWait: batchOptions?.maxWait ?? this.config.transactionOptions.maxWait,
+              timeout: batchOptions?.timeout ?? this.config.transactionOptions.timeout,
+              isolationLevel: batchOptions?.isolationLevel ?? this.config.transactionOptions.isolationLevel,
+            }
             txInfo = await this.transaction('start', {}, txOptions)
           }
 
