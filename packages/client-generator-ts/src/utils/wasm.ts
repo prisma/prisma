@@ -39,7 +39,7 @@ export function buildGetWasmModule({
 
   const buildNonEdgeLoader = runtimeName === 'client'
   const buildEdgeLoader = !buildNonEdgeLoader
-  const artifactName = `query_compiler_${compilerBuild}_bg`
+  const artifactName = `query_compiler_${normalizeCompilerBuild(compilerBuild)}_bg`
 
   let wasmPathBase: string
   let wasmBindingsPath: string
@@ -141,7 +141,7 @@ export function buildWasmFileMap({ activeProvider, runtimeName, compilerBuild }:
     return fileMap
   }
 
-  const artifactName = `query_compiler_${compilerBuild}_bg`
+  const artifactName = `query_compiler_${normalizeCompilerBuild(compilerBuild)}_bg`
   const fileNameBase = `${artifactName}.${activeProvider}` as const
 
   const files = {
@@ -154,4 +154,8 @@ export function buildWasmFileMap({ activeProvider, runtimeName, compilerBuild }:
   }
 
   return fileMap
+}
+
+function normalizeCompilerBuild(compilerBuild: string): 'fast' | 'small' {
+  return compilerBuild === 'small' ? 'small' : 'fast'
 }

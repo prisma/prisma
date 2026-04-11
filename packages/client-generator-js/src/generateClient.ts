@@ -189,7 +189,7 @@ export async function buildClient({
   fileMap['default.js'] = JS(trampolineTsClient)
   fileMap['default.d.ts'] = TS(trampolineTsClient)
 
-  const qcArtifactName = `query_compiler_${compilerBuild}_bg`
+  const qcArtifactName = `query_compiler_${normalizeCompilerBuild(compilerBuild)}_bg`
   fileMap['wasm-worker-loader.mjs'] = `export default import('./${qcArtifactName}.wasm')`
   fileMap['wasm-edge-light-loader.mjs'] = `export default import('./${qcArtifactName}.wasm?module')`
 
@@ -380,7 +380,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (isWasmEngineSupported(provider)) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
-    const filename = `query_compiler_${compilerBuild}_bg`
+    const filename = `query_compiler_${normalizeCompilerBuild(compilerBuild)}_bg`
 
     // Despite the `!testMode` condition above, we can't assume we are
     // necessarily inside the bundled Prisma CLI because the `prisma-client-js`
@@ -403,6 +403,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.mkdir(prismaCache, { recursive: true })
     await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
+}
+
+function normalizeCompilerBuild(compilerBuild: string): 'fast' | 'small' {
+  return compilerBuild === 'small' ? 'small' : 'fast'
 }
 
 function writeFileMap(outputDir: string, fileMap: FileMap) {

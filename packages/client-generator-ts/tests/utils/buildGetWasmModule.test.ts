@@ -100,4 +100,19 @@ describe('buildGetWasmModule', () => {
       })
     },
   )
+
+  it('uses fast artifacts when compilerBuild is empty', () => {
+    const output = buildGetWasmModule({
+      runtimeName: 'client',
+      runtimeBase: RUNTIME_BASE,
+      target: 'nodejs',
+      activeProvider: ACTIVE_CONNECTOR_TYPE,
+      moduleFormat: 'esm',
+      compilerBuild: '' as unknown as Options['compilerBuild'],
+    })
+
+    expect(output).toContain('query_compiler_fast_bg.postgresql.mjs')
+    expect(output).toContain('query_compiler_fast_bg.postgresql.wasm-base64.mjs')
+    expect(output).not.toContain('query_compiler_bg.postgresql')
+  })
 })

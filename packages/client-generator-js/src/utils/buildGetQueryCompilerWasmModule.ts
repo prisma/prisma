@@ -9,7 +9,7 @@ export function buildQueryCompilerWasmModule(
   runtimeName: TSClientOptions['runtimeName'],
   compilerBuild: TSClientOptions['compilerBuild'],
 ) {
-  const artifactName = `query_compiler_${compilerBuild}_bg`
+  const artifactName = `query_compiler_${normalizeCompilerBuild(compilerBuild)}_bg`
   if (runtimeName === 'client' && !forceEdgeWasmLoader) {
     return `config.compilerWasm = {
       getRuntime: async () => require('./${artifactName}.js'),
@@ -45,4 +45,8 @@ export function buildQueryCompilerWasmModule(
   }
 
   return `config.compilerWasm = undefined`
+}
+
+function normalizeCompilerBuild(compilerBuild: string): 'fast' | 'small' {
+  return compilerBuild === 'small' ? 'small' : 'fast'
 }
