@@ -123,6 +123,7 @@ describe('line ending normalization', () => {
     const formattedContent: string[] = extractSchemaContent(formatted)
     expect(formattedContent.length).toBe(1)
     expect(formattedContent[0]).not.toMatch(/\r/)
+    expect(formattedContent[0]).toContain('\n')
   })
 })
 
