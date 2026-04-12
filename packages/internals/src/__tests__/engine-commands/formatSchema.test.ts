@@ -111,7 +111,18 @@ describe('line ending normalization', () => {
     const formattedContent: string[] = extractSchemaContent(formatted)
     expect(formattedContent.length).toBe(1)
     expect(formattedContent[0]).not.toContain('\r\n')
+    expect(formattedContent[0]).not.toContain('\r')
     expect(formattedContent[0]).toContain('\n')
+  })
+
+  test('standalone CR in input is also normalized to LF', async () => {
+    const schemaWithCr = "datasource db {\r  provider = \"sqlite\"\r}\r"
+    const schemas: MultipleSchemas = [['/* schemaPath */', schemaWithCr]]
+
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).not.toMatch(/\r/)
   })
 })
 

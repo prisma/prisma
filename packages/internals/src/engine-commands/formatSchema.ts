@@ -113,5 +113,5 @@ function formatWasm(schema: string, documentFormattingParams: DocumentFormatting
  * The Wasm formatter may produce CRLF on Windows (see https://github.com/prisma/prisma/issues/8548).
  */
 function normalizeCrlf(schemas: MultipleSchemas): MultipleSchemas {
-  return schemas.map(([filePath, content]) => [filePath, content.replace(/\r\n/g, '\n')]) as MultipleSchemas
+  return schemas.map(([filePath, content]) => [filePath, content.replace(/\r\n?/g, '\n')]) as MultipleSchemas
 }
