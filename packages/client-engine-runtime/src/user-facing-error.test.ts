@@ -18,9 +18,7 @@ test('rethrowAsUserFacing re-throws the original error for unknown cause kinds',
   // "[object Object]"; after the fix it contains a JSON-serialised snapshot.
   const error = makeDriverAdapterError({ kind: 'SomeNewUnknownErrorKind', detail: 'more info' })
 
-  expect(() => rethrowAsUserFacing(error)).toThrowError(
-    /Unknown error: .*SomeNewUnknownErrorKind/,
-  )
+  expect(() => rethrowAsUserFacing(error)).toThrowError(/Unknown error: .*SomeNewUnknownErrorKind/)
 
   // Crucially the message must NOT degrade to the useless "[object Object]"
   expect(() => rethrowAsUserFacing(error)).not.toThrowError('[object Object]')
