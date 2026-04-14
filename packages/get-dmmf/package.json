@@ -36,7 +36,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/prisma-schema-wasm": "7.8.0-2.3187e3937290320ba3c7dbd5aa94af67942b4484",
+    "@prisma/prisma-schema-wasm": "7.8.0-3.5ed4178645c26440d94301d06d30505f8318a48c",
     "@streamparser/json": "0.0.22",
     "pluralize": "8.0.0"
   },
