@@ -95,20 +95,23 @@ export function mapIsolationLevel(level: IsolationLevel): sql.IIsolationLevel {
  * See the equivalent in adapter-pg for a full explanation.
  */
 function serializeJsonArg(value: unknown): string {
-  return JSON.stringify(value, (_key, val) => {
+  return JSON.stringify(value, function (this: Record<string, unknown>, key: string, val: unknown) {
     if (typeof val === 'bigint') {
       return val.toString()
     }
     if (ArrayBuffer.isView(val)) {
       return Buffer.from((val as ArrayBufferView).buffer, (val as ArrayBufferView).byteOffset, (val as ArrayBufferView).byteLength).toString('base64')
     }
+    // See adapter-pg serializeJsonArg for a full explanation of why we inspect the
+    // original pre-toJSON value via this[key] / value instead of using val directly.
+    const original: unknown = key === '' ? value : this[key]
     if (
-      val !== null &&
-      typeof val === 'object' &&
-      (val as Record<string, unknown>).constructor?.name === 'Decimal' &&
-      typeof (val as Record<string, unknown>).toNumber === 'function'
+      original !== null &&
+      typeof original === 'object' &&
+      (original as Record<string, unknown>).constructor?.name === 'Decimal' &&
+      typeof (original as Record<string, unknown>).toNumber === 'function'
     ) {
-      return (val as { toNumber(): number }).toNumber()
+      return (original as { toNumber(): number }).toNumber()
     }
     return val
   })

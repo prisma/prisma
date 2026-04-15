@@ -416,23 +416,27 @@ export const customParsers = {
  * before serialization.
  */
 function serializeJsonArg(value: unknown): string {
-  return JSON.stringify(value, (_key, val) => {
+  return JSON.stringify(value, function (this: Record<string, unknown>, key: string, val: unknown) {
     if (typeof val === 'bigint') {
       return val.toString()
     }
     if (ArrayBuffer.isView(val)) {
       return Buffer.from((val as ArrayBufferView).buffer, (val as ArrayBufferView).byteOffset, (val as ArrayBufferView).byteLength).toString('base64')
     }
-    // Decimal.js instances (and compatible Decimal classes) have `toNumber()` and an
-    // internal `toJSON()` that returns the string representation.  Convert to a JS number
-    // so the value is persisted as a JSON numeric literal, matching pre-7.4 behaviour.
+    // `JSON.stringify` calls `toJSON()` on objects *before* passing the value to the
+    // replacer.  Since `Decimal.prototype.toJSON === Decimal.prototype.toString`, the
+    // replacer would normally see a plain string and miss the Decimal instance.
+    // To work around this, we inspect the *original* pre-toJSON value:
+    //   - for root call (key === ''), `value` holds the original value we were given
+    //   - for nested properties, `this[key]` is the original property value on the parent
+    const original: unknown = key === '' ? value : this[key]
     if (
-      val !== null &&
-      typeof val === 'object' &&
-      (val as Record<string, unknown>).constructor?.name === 'Decimal' &&
-      typeof (val as Record<string, unknown>).toNumber === 'function'
+      original !== null &&
+      typeof original === 'object' &&
+      (original as Record<string, unknown>).constructor?.name === 'Decimal' &&
+      typeof (original as Record<string, unknown>).toNumber === 'function'
     ) {
-      return (val as { toNumber(): number }).toNumber()
+      return (original as { toNumber(): number }).toNumber()
     }
     return val
   })
