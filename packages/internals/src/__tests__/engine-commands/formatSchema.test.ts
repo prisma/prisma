@@ -102,6 +102,21 @@ describe('format custom options', () => {
   })
 })
 
+describe('line ending normalization', () => {
+  test('should normalize CRLF to LF in formatted output', async () => {
+    const schemaWithCRLF =
+      'datasource db {\r\n  provider = "sqlite"\r\n}\r\n\r\nmodel User {\r\n  id String @default(cuid()) @id\r\n  email String @unique\r\n}\r\n'
+    const schemas: MultipleSchemas = [['/* schemaPath */', schemaWithCRLF]]
+
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).not.toContain('\r\n')
+    expect(formattedContent[0]).toContain('\n')
+  })
+})
+
 describe('format', () => {
   test('valid blog schemaPath', async () => {
     const { schemas } = await getCliProvidedSchemaFile(path.join(fixturesPath, 'blog.prisma'))
