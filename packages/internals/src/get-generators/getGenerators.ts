@@ -27,6 +27,7 @@ import { printConfigWarnings } from '../utils/printConfigWarnings'
 import { fixBinaryTargets } from './utils/fixBinaryTargets'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
+import { isGeneratorEnabled } from './utils/isGeneratorEnabled'
 import { getOriginalBinaryTargetsValue, printGeneratorConfig } from './utils/printGeneratorConfig'
 
 const debug = Debug('prisma:getGenerators')
@@ -406,21 +407,38 @@ Read more about deploying Prisma Client: ${underline(
 }
 
 function filterGenerators(generators: GeneratorConfig[], generatorNames: string[]) {
-  if (generatorNames.length < 1) {
-    return generators
+  let filtered = generators
+  if (generatorNames.length > 0) {
+    filtered = generators.filter((generator) => generatorNames.includes(generator.name))
+
+    if (filtered.length !== generatorNames.length) {
+      const missings = generatorNames.filter((name) => filtered.find((generator) => generator.name === name) == null)
+      const isSingular = missings.length <= 1
+      throw new Error(
+        `The ${isSingular ? 'generator' : 'generators'} ${bold(missings.join(', '))} specified via ${bold(
+          '--generator',
+        )} ${isSingular ? 'does' : 'do'} not exist in your Prisma schema`,
+      )
+    }
   }
 
-  const filtered = generators.filter((generator) => generatorNames.includes(generator.name))
+  const disabledGenerators: string[] = []
+  const enabledGenerators = filtered.filter((generator) => {
+    if (isGeneratorEnabled(generator)) {
+      return true
+    }
+    disabledGenerators.push(generator.name)
+    return false
+  })
 
-  if (filtered.length !== generatorNames.length) {
-    const missings = generatorNames.filter((name) => filtered.find((generator) => generator.name === name) == null)
-    const isSingular = missings.length <= 1
-    throw new Error(
-      `The ${isSingular ? 'generator' : 'generators'} ${bold(missings.join(', '))} specified via ${bold(
-        '--generator',
-      )} ${isSingular ? 'does' : 'do'} not exist in your Prisma schema`,
+  if (disabledGenerators.length > 0) {
+    const isSingular = disabledGenerators.length === 1
+    console.log(
+      `${gray('info')} ${isSingular ? 'Generator' : 'Generators'} ${bold(disabledGenerators.join(', '))} ${
+        isSingular ? 'is' : 'are'
+      } disabled via environment variable.`,
     )
   }
 
-  return filtered
+  return enabledGenerators
 }

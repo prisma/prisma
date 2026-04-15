@@ -3,7 +3,7 @@ import { stripVTControlCharacters } from 'node:util'
 
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
-import { afterEach, describe, expect, it, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 
 import { loadSchemaContext } from '../../cli/schemaContext'
 import { GeneratorRegistry, getGenerators } from '../../get-generators/getGenerators'
@@ -802,5 +802,98 @@ describe('getGenerators', () => {
     expect(generators.length).toBeGreaterThanOrEqual(1)
 
     generators.forEach((g) => g.stop())
+  })
+
+  describe('generator enabled toggle via environment variable', () => {
+    const originalEnv = process.env
+
+    beforeEach(() => {
+      process.env = { ...originalEnv }
+    })
+
+    afterEach(() => {
+      process.env = originalEnv
+    })
+
+    it('should enable generator by default when enabled config is not set', async () => {
+      const schemaContext = await loadSchemaContext({
+        schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-minimal-schema.prisma') },
+      })
+      const generators = await getGenerators({ schemaContext, registry })
+
+      expect(generators).toHaveLength(1)
+      generators.forEach((g) => g.stop())
+    })
+
+    it.each([undefined, 'true', '1', 'yes', 'on'])('should enable generator when env var is %s', async (envValue) => {
+      if (envValue === undefined) {
+        delete process.env.PRISMA_GENERATOR_ENABLED_TEST
+      } else {
+        process.env.PRISMA_GENERATOR_ENABLED_TEST = envValue
+      }
+
+      const schemaContext = await loadSchemaContext({
+        schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-schema-with-enabled-env.prisma') },
+      })
+      const generators = await getGenerators({ schemaContext, registry })
+
+      expect(generators).toHaveLength(1)
+      generators.forEach((g) => g.stop())
+    })
+
+    it.each(['false', '0', 'no', 'off', '', 'FALSE', 'No', 'OFF'])(
+      'should disable generator when env var is "%s"',
+      async (envValue) => {
+        process.env.PRISMA_GENERATOR_ENABLED_TEST = envValue
+
+        const schemaContext = await loadSchemaContext({
+          schemaPath: { cliProvidedPath: path.join(__dirname, 'valid-schema-with-enabled-env.prisma') },
+        })
+        const generators = await getGenerators({ schemaContext, registry })
+
+        expect(generators).toHaveLength(0)
+      },
+    )
+
+    it('should selectively enable/disable multiple generators', async () => {
+      process.env.GENERATE_CLIENT_1 = 'true'
+      process.env.GENERATE_CLIENT_3 = 'false'
+
+      const multiRegistry = {
+        'predefined-generator-1': { type: 'rpc', generatorPath },
+        'predefined-generator-2': { type: 'rpc', generatorPath },
+        'predefined-generator-3': { type: 'rpc', generatorPath },
+      } satisfies GeneratorRegistry
+
+      const schemaContext = await loadSchemaContext({
+        schemaPath: { cliProvidedPath: path.join(__dirname, 'multiple-generators-with-enabled-schema.prisma') },
+      })
+      const generators = await getGenerators({ schemaContext, registry: multiRegistry })
+
+      expect(generators).toHaveLength(2)
+      expect(generators[0].config.name).toEqual('client_1')
+      expect(generators[1].config.name).toEqual('client_2')
+
+      generators.forEach((g) => g.stop())
+    })
+
+    it('should enable all generators when their env vars are not set', async () => {
+      delete process.env.GENERATE_CLIENT_1
+      delete process.env.GENERATE_CLIENT_3
+
+      const multiRegistry = {
+        'predefined-generator-1': { type: 'rpc', generatorPath },
+        'predefined-generator-2': { type: 'rpc', generatorPath },
+        'predefined-generator-3': { type: 'rpc', generatorPath },
+      } satisfies GeneratorRegistry
+
+      const schemaContext = await loadSchemaContext({
+        schemaPath: { cliProvidedPath: path.join(__dirname, 'multiple-generators-with-enabled-schema.prisma') },
+      })
+      const generators = await getGenerators({ schemaContext, registry: multiRegistry })
+
+      expect(generators).toHaveLength(3)
+      generators.forEach((g) => g.stop())
+    })
   })
 })
