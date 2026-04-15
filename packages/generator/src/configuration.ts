@@ -7,6 +7,11 @@ export interface GeneratorConfig {
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
+  /**
+   * When set via `env("VAR")`, disables this generator if the env var
+   * resolves to "false", "0", "no", "off", or "". Enabled by default.
+   */
+  enabled?: EnvValue
   config: {
     /** `output` is a reserved name and will only be available directly at `generator.output` */
     output?: never
@@ -16,6 +21,8 @@ export interface GeneratorConfig {
     binaryTargets?: never
     /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
     previewFeatures?: never
+    /** `enabled` is a reserved name and will only be available directly at `generator.enabled` */
+    enabled?: never
   } & {
     [key: string]: string | string[] | undefined
   }
