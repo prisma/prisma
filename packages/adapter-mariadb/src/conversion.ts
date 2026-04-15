@@ -107,9 +107,38 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
   }
 }
 
+/**
+ * Serializes a value intended for a JSON column.
+ * See the equivalent in adapter-pg for a full explanation.
+ */
+function serializeJsonArg(value: unknown): string {
+  return JSON.stringify(value, (_key, val) => {
+    if (typeof val === 'bigint') {
+      return val.toString()
+    }
+    if (ArrayBuffer.isView(val)) {
+      return Buffer.from((val as ArrayBufferView).buffer, (val as ArrayBufferView).byteOffset, (val as ArrayBufferView).byteLength).toString('base64')
+    }
+    if (
+      val !== null &&
+      typeof val === 'object' &&
+      (val as Record<string, unknown>).constructor?.name === 'Decimal' &&
+      typeof (val as Record<string, unknown>).toNumber === 'function'
+    ) {
+      return (val as { toNumber(): number }).toNumber()
+    }
+    return val
+  })
+}
+
 export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Buffer | A {
   if (arg === null) {
     return null
+  }
+
+  // Pre-serialize JSON args so that special types (e.g. Decimal) are converted correctly.
+  if (argType.scalarType === 'json' && typeof arg !== 'string') {
+    return serializeJsonArg(arg)
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'bigint') {

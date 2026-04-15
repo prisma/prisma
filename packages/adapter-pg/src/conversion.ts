@@ -406,6 +406,38 @@ export const customParsers = {
   [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
+/**
+ * Serializes a value intended for a JSON/JSONB column.
+ *
+ * `JSON.stringify` calls `toJSON()` on objects, and `Decimal.prototype.toJSON`
+ * returns the decimal as a *string*. This causes values like `new Decimal("-11000")`
+ * to be stored as the JSON string `"-11000"` instead of the number `-11000`.
+ * We use a custom replacer to convert Decimal-like instances to their numeric value
+ * before serialization.
+ */
+function serializeJsonArg(value: unknown): string {
+  return JSON.stringify(value, (_key, val) => {
+    if (typeof val === 'bigint') {
+      return val.toString()
+    }
+    if (ArrayBuffer.isView(val)) {
+      return Buffer.from((val as ArrayBufferView).buffer, (val as ArrayBufferView).byteOffset, (val as ArrayBufferView).byteLength).toString('base64')
+    }
+    // Decimal.js instances (and compatible Decimal classes) have `toNumber()` and an
+    // internal `toJSON()` that returns the string representation.  Convert to a JS number
+    // so the value is persisted as a JSON numeric literal, matching pre-7.4 behaviour.
+    if (
+      val !== null &&
+      typeof val === 'object' &&
+      (val as Record<string, unknown>).constructor?.name === 'Decimal' &&
+      typeof (val as Record<string, unknown>).toNumber === 'function'
+    ) {
+      return (val as { toNumber(): number }).toNumber()
+    }
+    return val
+  })
+}
+
 export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | string | Uint8Array | A {
   if (arg === null) {
     return null
@@ -413,6 +445,12 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 
   if (Array.isArray(arg) && argType.arity === 'list') {
     return arg.map((value) => mapArg(value, argType))
+  }
+
+  // Pre-serialize JSON args so that special types (e.g. Decimal) are converted correctly
+  // before the pg driver calls JSON.stringify internally on the value.
+  if (argType.scalarType === 'json' && typeof arg !== 'string') {
+    return serializeJsonArg(arg) as unknown as A
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'datetime') {
