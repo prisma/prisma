@@ -50,34 +50,32 @@ function extractMeta(err: DriverAdapterError): Record<string, unknown> {
   const meta: Record<string, unknown> = {}
 
   switch (err.cause.kind) {
-    case 'UniqueConstraintViolation': {
-      const constraint = err.cause.constraint
-      if (constraint) {
-        if ('fields' in constraint && constraint.fields.length > 0) {
-          // Adapters that resolve field names (e.g. adapter-pg via the error detail)
-          meta.target = constraint.fields
-        } else if ('index' in constraint) {
-          // Adapters that only expose the index name (e.g. adapter-mariadb, adapter-mssql).
-          // Wrap in an array to match the expected string[] type.
-          meta.target = [constraint.index]
-        }
-      }
-      break
-    }
+    case 'UniqueConstraintViolation':
     case 'NullConstraintViolation': {
-      const constraint = err.cause.constraint
-      if (constraint) {
-        if ('fields' in constraint && constraint.fields.length > 0) {
-          meta.target = constraint.fields
-        } else if ('index' in constraint) {
-          meta.target = [constraint.index]
-        }
-      }
+      const target = constraintToTarget(err.cause.constraint)
+      if (target) meta.target = target
       break
     }
   }
 
   return meta
+}
+
+/**
+ * Maps a structured constraint object to the `string[]` value expected by
+ * `meta.target`.
+ *
+ * - Adapters that resolve field names (e.g. adapter-pg) supply `{ fields }`.
+ * - Adapters that only expose an index name (e.g. adapter-mariadb, adapter-mssql)
+ *   supply `{ index }`, which is wrapped in an array to match the expected type.
+ */
+function constraintToTarget(
+  constraint?: { fields: string[] } | { index: string } | { foreignKey: {} },
+): string[] | undefined {
+  if (!constraint) return undefined
+  if ('fields' in constraint && constraint.fields.length > 0) return constraint.fields
+  if ('index' in constraint) return [constraint.index]
+  return undefined
 }
 
 export function rethrowAsUserFacingRawError(error: any): never {

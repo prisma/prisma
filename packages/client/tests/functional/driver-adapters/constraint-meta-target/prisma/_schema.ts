@@ -14,6 +14,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     model Role {
       id        ${idForProvider(provider)}
       shortCode String @unique
+      name      String
     }
   `
 })
