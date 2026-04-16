@@ -1,4 +1,4 @@
-import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 import { klona } from 'klona'
 
@@ -240,28 +240,12 @@ export class QueryInterpreter {
           return { value: null, lastInsertId }
         }
 
-        // When running inside a transaction the queryable is a single database connection that
-        // cannot handle concurrent queries. Serialise child fetches to avoid the pg deprecation
-        // warning "Calling client.query() when the client is already executing a query", which
-        // becomes a hard error in pg@9.0. When using a pool (no transaction), concurrent fetches
-        // are safe and remain parallel for performance.
-        let children: { joinExpr: JoinExpression; childRecords: Value }[]
-        if (isTransaction(context.queryable)) {
-          children = []
-          for (const joinExpr of node.args.children) {
-            children.push({
-              joinExpr,
-              childRecords: (await this.interpretNode(joinExpr.child, context)).value,
-            })
-          }
-        } else {
-          children = await Promise.all(
-            node.args.children.map(async (joinExpr) => ({
-              joinExpr,
-              childRecords: (await this.interpretNode(joinExpr.child, context)).value,
-            })),
-          )
-        }
+        const children = await Promise.all(
+          node.args.children.map(async (joinExpr) => ({
+            joinExpr,
+            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
+          })),
+        )
 
         return { value: attachChildrenToParents(parent, children, node.args.canAssumeStrictEquality), lastInsertId }
       }
@@ -619,8 +603,4 @@ function evaluateProcessingParameters(
 
 function cloneObject<T>(value: T): DeepUnreadonly<T> {
   return klona(value) as DeepUnreadonly<T>
-}
-
-function isTransaction(queryable: SqlQueryable): queryable is Transaction {
-  return 'commit' in queryable
 }
