@@ -11,12 +11,9 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRaw<{ times: string[] }[]>`
         SELECT ARRAY['12:00:00+00'::timetz, '13:00:00-05'::timetz] AS times
       `
-      expect(Array.isArray(result[0].times)).toBe(true)
-      expect(result[0].times).toHaveLength(2)
       // Values are returned as strings with the timezone offset stripped,
       // consistent with scalar timetz behaviour.
-      expect(result[0].times[0]).toMatch(/^\d{2}:\d{2}:\d{2}/)
-      expect(result[0].times[1]).toMatch(/^\d{2}:\d{2}:\d{2}/)
+      expect(result[0].times).toEqual(['12:00:00', '13:00:00'])
     })
 
     test('timetz[] NULL value returns null', async () => {
@@ -30,8 +27,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRaw<{ times: string[] }[]>`
         SELECT ARRAY['08:30:00+05:30'::timetz] AS times
       `
-      expect(Array.isArray(result[0].times)).toBe(true)
-      expect(result[0].times).toHaveLength(1)
+      expect(result[0].times).toEqual(['08:30:00'])
     })
   },
   {
