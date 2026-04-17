@@ -315,6 +315,14 @@ function normalize_timestamptz(time: string): string {
   // Bare hour offsets like '-06' are not understood by Date.parse, so we normalise them first.
   const withSeparator = time.replace(' ', 'T')
   const withFullOffset = withSeparator.replace(/([+-]\d{2})$/, '$1:00')
+  // JavaScript Date only handles millisecond (3-digit) precision. Extract any extra fractional
+  // digits and reattach after conversion — fractional seconds are unchanged by a timezone shift.
+  const fracMatch = withFullOffset.match(/\.(\d{4,})/)
+  if (fracMatch) {
+    const fullFrac = fracMatch[1]
+    const trimmed = withFullOffset.replace(/\.(\d{4,})/, '.' + fullFrac.slice(0, 3))
+    return new Date(trimmed).toISOString().replace(/\.\d{3}Z$/, '.' + fullFrac + '+00:00')
+  }
   return new Date(withFullOffset).toISOString().replace(/Z$/, '+00:00')
 }
 

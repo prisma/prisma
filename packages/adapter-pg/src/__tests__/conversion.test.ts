@@ -65,4 +65,10 @@ describe('normalize_timestamptz', () => {
   it('preserves sub-second precision when converting across midnight', () => {
     expect(parse('2024-03-10 23:59:59.123-01')).toBe('2024-03-11T00:59:59.123+00:00')
   })
+
+  it('preserves microsecond (6-digit) precision that JavaScript Date cannot represent', () => {
+    // PostgreSQL supports up to 6 fractional digits; JS Date only handles 3.
+    // The extra digits must survive the UTC conversion unchanged.
+    expect(parse('2025-11-24 09:26:34.887654-06')).toBe('2025-11-24T15:26:34.887654+00:00')
+  })
 })
