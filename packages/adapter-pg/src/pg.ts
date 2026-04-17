@@ -150,12 +150,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 
   protected async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
-    const release = await this.#mutex.acquire()
-    try {
-      return await super.performIO(query)
-    } finally {
-      release()
-    }
+    return this.#mutex.runExclusive(() => super.performIO(query))
   }
 
   async commit(): Promise<void> {
