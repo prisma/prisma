@@ -310,7 +310,12 @@ function normalize_timestamp(time: string): string {
 }
 
 function normalize_timestamptz(time: string): string {
-  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
+  // PostgreSQL returns TIMESTAMPTZ values in the session timezone (e.g. '2024-01-01 09:26:34-06').
+  // We must convert to UTC rather than merely swapping the offset label.
+  // Bare hour offsets like '-06' are not understood by Date.parse, so we normalise them first.
+  const withSeparator = time.replace(' ', 'T')
+  const withFullOffset = withSeparator.replace(/([+-]\d{2})$/, '$1:00')
+  return new Date(withFullOffset).toISOString().replace(/Z$/, '+00:00')
 }
 
 /*
@@ -446,6 +451,11 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 function formatDateTime(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
   const ms = date.getUTCMilliseconds()
+  // The '+00:00' suffix tells PostgreSQL that the value is UTC.
+  // For TIMESTAMP WITHOUT TIME ZONE columns PostgreSQL silently ignores the offset,
+  // so this suffix is a safe no-op for those columns while being critical for TIMESTAMPTZ
+  // columns when the database server is not running in the UTC timezone.
+  // See: https://github.com/prisma/prisma/issues/28629
   return (
     pad(date.getUTCFullYear(), 4) +
     '-' +
@@ -458,7 +468,8 @@ function formatDateTime(date: Date): string {
     pad(date.getUTCMinutes()) +
     ':' +
     pad(date.getUTCSeconds()) +
-    (ms ? '.' + String(ms).padStart(3, '0') : '')
+    (ms ? '.' + String(ms).padStart(3, '0') : '') +
+    '+00:00'
   )
 }
 
