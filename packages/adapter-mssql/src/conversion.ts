@@ -111,7 +111,8 @@ function serializeJsonArg(value: unknown): string {
       (original as Record<string, unknown>).constructor?.name === 'Decimal' &&
       typeof (original as Record<string, unknown>).toNumber === 'function'
     ) {
-      return (original as { toNumber(): number }).toNumber()
+      const num = (original as { toNumber(): number }).toNumber()
+      return Number.isFinite(num) ? num : String(original)
     }
     return val
   })

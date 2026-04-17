@@ -436,7 +436,8 @@ function serializeJsonArg(value: unknown): string {
       (original as Record<string, unknown>).constructor?.name === 'Decimal' &&
       typeof (original as Record<string, unknown>).toNumber === 'function'
     ) {
-      return (original as { toNumber(): number }).toNumber()
+      const num = (original as { toNumber(): number }).toNumber()
+      return Number.isFinite(num) ? num : String(original)
     }
     return val
   })
@@ -454,7 +455,7 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
   // Pre-serialize JSON args so that special types (e.g. Decimal) are converted correctly
   // before the pg driver calls JSON.stringify internally on the value.
   if (argType.scalarType === 'json' && typeof arg !== 'string') {
-    return serializeJsonArg(arg) as unknown as A
+    return serializeJsonArg(arg)
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'datetime') {
