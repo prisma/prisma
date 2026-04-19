@@ -75,9 +75,14 @@ describe('normalize_timestamptz', () => {
 })
 
 describe('TIMETZ_ARRAY custom parser (OID 1270)', () => {
+  const parse = customParsers[TIMETZ_ARRAY_OID] as (s: string) => string[]
+
   it('is registered so timetz[] columns do not throw', () => {
-    // Without an entry in customParsers for OID 1270, the neon driver uses the
-    // default text parser, which returns a raw string and may cause a P2010 error.
-    expect(customParsers[TIMETZ_ARRAY_OID]).toBeDefined()
+    expect(parse).toBeDefined()
+  })
+
+  it('parses a timetz[] literal and strips the offset from each element', () => {
+    // normalize_timez drops the offset (UTC is assumed, consistent with quaint).
+    expect(parse('{"09:26:34+00","12:00:00-05:30"}')).toEqual(['09:26:34', '12:00:00'])
   })
 })
