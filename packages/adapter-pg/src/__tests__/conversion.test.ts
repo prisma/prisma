@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { customParsers, mapArg } from '../conversion'
 
 const TIMESTAMPTZ_OID = 1184 // pg ScalarColumnType.TIMESTAMPTZ
+const TIMESTAMPTZ_ARRAY_OID = 1185 // pg ArrayColumnType.TIMESTAMPTZ_ARRAY
 
 describe('mapArg', () => {
   it('converts a date with a 4-digit year (value >= 1000-01-01) to the correct date', () => {
@@ -70,5 +71,23 @@ describe('normalize_timestamptz', () => {
     // PostgreSQL supports up to 6 fractional digits; JS Date only handles 3.
     // The extra digits must survive the UTC conversion unchanged.
     expect(parse('2025-11-24 09:26:34.887654-06')).toBe('2025-11-24T15:26:34.887654+00:00')
+  })
+
+  it('normalises LMT-era offsets with seconds component (e.g. +05:53:20)', () => {
+    // Some historical timezone abbreviations include a seconds component that
+    // JS Date.parse cannot handle. The seconds component should be dropped and
+    // the remaining ±HH:MM offset used for the conversion.
+    expect(parse('1900-01-01 10:00:00+05:53:20')).toBe('1900-01-01T04:06:40.000+00:00')
+  })
+})
+
+describe('normalize_timestamptz array path', () => {
+  const parseArray = customParsers[TIMESTAMPTZ_ARRAY_OID] as (s: string) => string[]
+
+  it('converts each element of a timestamptz[] literal to UTC', () => {
+    expect(parseArray('{"2025-11-24 09:26:34.887-06","2024-06-15 12:00:00+00"}')).toEqual([
+      '2025-11-24T15:26:34.887+00:00',
+      '2024-06-15T12:00:00.000+00:00',
+    ])
   })
 })
