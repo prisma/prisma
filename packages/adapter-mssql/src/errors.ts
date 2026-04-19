@@ -1,6 +1,12 @@
 import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
+const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'])
+
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isSocketError(error)) {
+    return mapSocketError(error)
+  }
+
   if (isDriverError(error)) {
     return {
       originalCode: error.code,
@@ -191,4 +197,42 @@ type DriverError = {
 
 function isDriverError(error: any): error is DriverError {
   return typeof error.message === 'string' && typeof error.code === 'string' && typeof error.number === 'number'
+}
+
+type SocketError = Error & {
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
+  syscall: string
+  errno: number
+  address?: string | undefined
+  port?: number | undefined
+  hostname?: string | undefined
+}
+
+function isSocketError(error: any): error is SocketError {
+  return (
+    typeof error.code === 'string' &&
+    typeof error.syscall === 'string' &&
+    typeof error.errno === 'number' &&
+    SOCKET_ERRORS.has(error.code as string)
+  )
+}
+
+function mapSocketError(error: SocketError): MappedError {
+  switch (error.code) {
+    case 'ENOTFOUND':
+    case 'ECONNREFUSED':
+      return {
+        kind: 'DatabaseNotReachable',
+        host: error.address ?? error.hostname,
+        port: error.port,
+      }
+    case 'ECONNRESET':
+      return {
+        kind: 'ConnectionClosed',
+      }
+    case 'ETIMEDOUT':
+      return {
+        kind: 'SocketTimeout',
+      }
+  }
 }
