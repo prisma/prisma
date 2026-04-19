@@ -4,7 +4,16 @@ import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-a
 const SQLITE_BUSY = 5
 const PRIMARY_ERROR_CODE_MASK = 0xff
 
+const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'])
+
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  // Socket errors must be checked before isDriverError because they satisfy the
+  // LibsqlError type shape (string code, string message, undefined rawCode) and
+  // would otherwise be misclassified as SQLite errors with extendedCode 1.
+  if (isSocketError(error)) {
+    return mapSocketError(error)
+  }
+
   if (isDriverError(error)) {
     return {
       originalCode: error.rawCode?.toString(),
@@ -84,4 +93,42 @@ function isDriverError(error: any): error is LibsqlError {
     typeof error.message === 'string' &&
     (typeof error.rawCode === 'number' || error.rawCode === undefined)
   )
+}
+
+type SocketError = Error & {
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
+  syscall: string
+  errno: number
+  address?: string | undefined
+  port?: number | undefined
+  hostname?: string | undefined
+}
+
+function isSocketError(error: any): error is SocketError {
+  return (
+    typeof error.code === 'string' &&
+    typeof error.syscall === 'string' &&
+    typeof error.errno === 'number' &&
+    SOCKET_ERRORS.has(error.code as string)
+  )
+}
+
+function mapSocketError(error: SocketError): MappedError {
+  switch (error.code) {
+    case 'ENOTFOUND':
+    case 'ECONNREFUSED':
+      return {
+        kind: 'DatabaseNotReachable',
+        host: error.address ?? error.hostname,
+        port: error.port,
+      }
+    case 'ECONNRESET':
+      return {
+        kind: 'ConnectionClosed',
+      }
+    case 'ETIMEDOUT':
+      return {
+        kind: 'SocketTimeout',
+      }
+  }
 }
