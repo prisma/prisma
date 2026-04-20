@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -32,6 +33,10 @@ testMatrix.setupTestSuite(
   },
   {
     ...defaultTestSuiteOptions,
+    optOut: {
+      from: [Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB, Providers.SQLITE, Providers.MYSQL],
+      reason: 'timetz[] is a PostgreSQL-only type',
+    },
     skipDriverAdapter: {
       from: ['js_neon'],
       reason: 'testing OID 1270 (timetz[]) type mapping in the js_pg adapter',
