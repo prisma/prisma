@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -41,5 +42,9 @@ testMatrix.setupTestSuite(
   },
   {
     ...defaultTestSuiteOptions,
+    optOut: {
+      from: [Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB, Providers.SQLITE],
+      reason: 'SQLite does not surface constraint metadata via driver adapters',
+    },
   },
 )
