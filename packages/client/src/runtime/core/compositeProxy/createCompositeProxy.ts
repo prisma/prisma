@@ -14,8 +14,7 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
   getPropertyValue(key: KeyType): unknown
 
   /**
-   * Gets a descriptor for given property. If not implemented or undefined is returned, { enumerable: true, writeable: true, configurable: true} is defaulted
-   * is used
+   * Gets a descriptor for given property. If not implemented or undefined is returned, { enumerable: true, writable: true, configurable: true } is used as the default.
    * @param key
    */
   getPropertyDescriptor?(key: KeyType): PropertyDescriptor | undefined
