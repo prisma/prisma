@@ -62,7 +62,8 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 2627: {
-      const index = error.message.split('. ').at(1)?.split(' ').pop()?.split("'").at(1)
+      // Message: "Violation of UNIQUE KEY constraint '<name>'. Cannot insert..."
+      const index = error.message.split("'").at(1)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,

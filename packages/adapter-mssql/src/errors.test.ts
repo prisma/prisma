@@ -22,7 +22,11 @@ describe('convertDriverError', () => {
       severity: 14,
     }
     const result = convertDriverError(error)
-    expect(result).toMatchObject({ kind: 'UniqueConstraintViolation', originalCode: 'EREQUEST' })
+    expect(result).toMatchObject({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'UQ_User_email' },
+      originalCode: 'EREQUEST',
+    })
   })
 
   it('should handle NullConstraintViolation (515)', () => {
@@ -64,12 +68,23 @@ describe('convertDriverError', () => {
     ['ECONNREFUSED', 'DatabaseNotReachable', 'connect ECONNREFUSED 127.0.0.1:1433'],
     ['ECONNRESET', 'ConnectionClosed', 'read ECONNRESET'],
     ['ETIMEDOUT', 'SocketTimeout', 'connect ETIMEDOUT 127.0.0.1:1433'],
-  ])('should handle socket error %s', (code, kind, message) => {
-    // Without the isSocketError guard these would fall through to throw error
-    // because mssql socket errors lack the numeric `number` field that
-    // isDriverError requires.
-    const error = { code, message, syscall: 'connect', errno: -1 }
-    expect(convertDriverError(error)).toEqual({ kind })
+  ])('should handle socket error %s and not misclassify as a driver error', (code, kind, message) => {
+    // Without the isSocketError guard these would fall through to throw because
+    // mssql socket errors lack the numeric `number` field that isDriverError requires.
+    const error = {
+      code,
+      message,
+      syscall: 'connect',
+      errno: -1,
+      address: '127.0.0.1',
+      port: 1433,
+      hostname: 'myserver.database.windows.net',
+    }
+    const mapped = convertDriverError(error)
+    expect(mapped.kind).toBe(kind)
+    if (kind === 'DatabaseNotReachable') {
+      expect(mapped).toMatchObject({ host: '127.0.0.1', port: 1433 })
+    }
   })
 
   it('should throw for unrecognised errors', () => {
