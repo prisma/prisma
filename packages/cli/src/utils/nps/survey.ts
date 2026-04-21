@@ -7,7 +7,7 @@ import path from 'path'
 import readline from 'readline'
 
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
-import { EventCapture, PosthogEventCapture } from './capture'
+import { EventCapture, PosthogEventCapture, PUBLIC_POSTHOG_NPS_PROJECT_KEY } from './capture'
 import { NpsStatusLookup, ProdNpsStatusLookup, Timeframe } from './status'
 
 type NpsConfig = {
@@ -61,7 +61,7 @@ export async function handleNpsSurvey() {
   })
 
   const status = new ProdNpsStatusLookup()
-  const eventCapture = new PosthogEventCapture()
+  const eventCapture = new PosthogEventCapture(PUBLIC_POSTHOG_NPS_PROJECT_KEY)
 
   await loadOrInitializeCommandState()
     .then((state) => handleNpsSurveyImpl(now, status, createSafeReadlineProxy(rl), eventCapture, state))
