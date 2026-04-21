@@ -1,12 +1,12 @@
 import type { LinkResult } from '../postgres/link/Link'
-import { PosthogEventCapture } from '../utils/nps/capture'
+import { PosthogEventCapture, PUBLIC_POSTHOG_BOOTSTRAP_ACTIVATION_PROJECT_KEY } from '../utils/nps/capture'
 import type { ProjectState } from './project-state'
 
 function isTelemetryDisabled(): boolean {
   return Boolean(process.env.CHECKPOINT_DISABLE)
 }
 
-const eventCapture = new PosthogEventCapture()
+const eventCapture = new PosthogEventCapture(PUBLIC_POSTHOG_BOOTSTRAP_ACTIVATION_PROJECT_KEY)
 
 interface TelemetryContext {
   distinctId: string
