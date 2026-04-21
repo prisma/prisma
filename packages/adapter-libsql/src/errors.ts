@@ -104,23 +104,31 @@ type SocketError = Error & {
   hostname?: string | undefined
 }
 
-function isSocketError(error: any): error is SocketError {
+// @libsql/client wraps raw socket errors inside a LibsqlError (e.g.
+// HRANA_WEBSOCKET_ERROR) with the original socket error as `cause`. We must
+// check both the error itself and its cause so neither path is missed.
+function isSocketError(error: any): boolean {
+  return isRawSocketError(error) || isRawSocketError(error?.cause)
+}
+
+function isRawSocketError(error: any): error is SocketError {
   return (
-    typeof error.code === 'string' &&
-    typeof error.syscall === 'string' &&
-    typeof error.errno === 'number' &&
+    typeof error?.code === 'string' &&
+    typeof error?.syscall === 'string' &&
+    typeof error?.errno === 'number' &&
     SOCKET_ERRORS.has(error.code as string)
   )
 }
 
-function mapSocketError(error: SocketError): MappedError {
-  switch (error.code) {
+function mapSocketError(error: any): MappedError {
+  const e: SocketError = isRawSocketError(error) ? error : error.cause
+  switch (e.code) {
     case 'ENOTFOUND':
     case 'ECONNREFUSED':
       return {
         kind: 'DatabaseNotReachable',
-        host: error.address ?? error.hostname,
-        port: error.port,
+        host: e.address ?? e.hostname,
+        port: e.port,
       }
     case 'ECONNRESET':
       return {

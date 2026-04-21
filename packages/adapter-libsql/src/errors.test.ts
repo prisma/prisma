@@ -26,6 +26,26 @@ describe('LibSQL error handling', () => {
     expect(convertDriverError(error)).toEqual({ kind })
   })
 
+  test.each([
+    ['ENOTFOUND', 'DatabaseNotReachable', 'getaddrinfo ENOTFOUND db.example.turso.io'],
+    ['ECONNREFUSED', 'DatabaseNotReachable', 'connect ECONNREFUSED 127.0.0.1:1'],
+    ['ECONNRESET', 'ConnectionClosed', 'read ECONNRESET'],
+    ['ETIMEDOUT', 'SocketTimeout', 'connect ETIMEDOUT 127.0.0.1:1'],
+  ])(
+    'socket error %s wrapped in HRANA_WEBSOCKET_ERROR maps to %s',
+    (code, kind, causeMessage) => {
+      // @libsql/client wraps socket errors inside a LibsqlError with the raw
+      // socket error in `cause` (e.g. HRANA_WEBSOCKET_ERROR wrapping ECONNREFUSED).
+      const wrapped = {
+        code: 'HRANA_WEBSOCKET_ERROR',
+        message: causeMessage,
+        rawCode: undefined,
+        cause: { code, message: causeMessage, syscall: 'connect', errno: -1 },
+      }
+      expect(convertDriverError(wrapped)).toEqual({ kind })
+    },
+  )
+
   test('non-driver, non-socket error is re-thrown', () => {
     expect(() => convertDriverError({ message: 'Unknown driver message' })).toThrow()
   })
