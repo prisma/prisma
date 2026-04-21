@@ -31,16 +31,18 @@ test('rethrowAsUserFacing wraps postgres errors as P2010 with formatted message'
     originalMessage: 'Trigger violation',
   })
 
+  expect.assertions(3)
+
   try {
     rethrowAsUserFacing(error)
   } catch (e: any) {
-    // Verify the Prisma P-code
+    // 1. Verify the Prisma P-code
     expect(e.code).toBe('P2010')
     
-    // Verify the formatted message matches the $queryRaw path
+    // 2. Verify the formatted message matches the $queryRaw path (via the new helper)
     expect(e.message).toBe('Raw query failed. Code: `P0001`. Message: `Trigger violation`')
     
-    // Verify the original error is attached in meta
+    // 3. Verify the original error is attached in meta
     expect(e.meta).toMatchObject({
       driverAdapterError: error,
     })
