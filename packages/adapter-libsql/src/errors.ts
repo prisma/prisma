@@ -104,24 +104,34 @@ type SocketError = Error & {
   hostname?: string | undefined
 }
 
-// @libsql/client wraps raw socket errors inside a LibsqlError (e.g.
-// HRANA_WEBSOCKET_ERROR) with the original socket error as `cause`. We must
-// check both the error itself and its cause so neither path is missed.
-function isSocketError(error: any): boolean {
-  return isRawSocketError(error) || isRawSocketError(error?.cause)
-}
-
 function isRawSocketError(error: any): error is SocketError {
   return (
     typeof error?.code === 'string' &&
     typeof error?.syscall === 'string' &&
     typeof error?.errno === 'number' &&
-    SOCKET_ERRORS.has(error.code as string)
+    SOCKET_ERRORS.has(error.code)
   )
 }
 
+// Walk the error.cause chain to find a raw socket error at any nesting depth.
+// @libsql/client wraps socket errors (e.g. ECONNREFUSED) inside a LibsqlError
+// (e.g. HRANA_WEBSOCKET_ERROR) with the original error as `cause`, so a single-
+// level check is insufficient when wrapping depth increases.
+function findSocketError(error: any): SocketError | undefined {
+  let err = error
+  while (err != null) {
+    if (isRawSocketError(err)) return err
+    err = err.cause
+  }
+  return undefined
+}
+
+function isSocketError(error: any): boolean {
+  return findSocketError(error) !== undefined
+}
+
 function mapSocketError(error: any): MappedError {
-  const e: SocketError = isRawSocketError(error) ? error : error.cause
+  const e = findSocketError(error)!
   switch (e.code) {
     case 'ENOTFOUND':
     case 'ECONNREFUSED':

@@ -22,8 +22,12 @@ describe('LibSQL error handling', () => {
     // Socket errors have a string `code` and undefined `rawCode`, so without an
     // explicit guard they would pass isDriverError and be returned as
     // { kind: 'sqlite', extendedCode: 1 } — the wrong kind.
-    const error = { code, message, syscall: 'connect', errno: -1 }
-    expect(convertDriverError(error)).toEqual({ kind })
+    const error = { code, message, syscall: 'connect', errno: -1, address: '127.0.0.1', port: 8080, hostname: 'db.example.turso.io' }
+    const mapped = convertDriverError(error)
+    expect(mapped.kind).toBe(kind)
+    if (kind === 'DatabaseNotReachable') {
+      expect(mapped).toMatchObject({ host: '127.0.0.1', port: 8080 })
+    }
   })
 
   test.each([
@@ -40,13 +44,20 @@ describe('LibSQL error handling', () => {
         code: 'HRANA_WEBSOCKET_ERROR',
         message: causeMessage,
         rawCode: undefined,
-        cause: { code, message: causeMessage, syscall: 'connect', errno: -1 },
+        cause: { code, message: causeMessage, syscall: 'connect', errno: -1, address: '127.0.0.1', port: 1 },
       }
-      expect(convertDriverError(wrapped)).toEqual({ kind })
+      const mapped = convertDriverError(wrapped)
+      expect(mapped.kind).toBe(kind)
+      if (kind === 'DatabaseNotReachable') {
+        expect(mapped).toMatchObject({ host: '127.0.0.1', port: 1 })
+      }
     },
   )
 
-  test('non-driver, non-socket error is re-thrown', () => {
-    expect(() => convertDriverError({ message: 'Unknown driver message' })).toThrow()
+  test('non-driver, non-socket error is re-thrown unchanged', () => {
+    const input = { message: 'Unknown driver message' }
+    expect(() => convertDriverError(input)).toThrowError(
+      expect.objectContaining({ message: 'Unknown driver message' }),
+    )
   })
 })
