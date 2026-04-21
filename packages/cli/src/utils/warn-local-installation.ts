@@ -9,9 +9,17 @@ import { bold, yellow } from 'kleur/colors'
  * Returns the resolved path if found, or `undefined` otherwise.
  */
 export function findLocalPrismaInstallation(cwd: string = process.cwd()): string | undefined {
-  const localBinPath = path.join(cwd, 'node_modules', '.bin', 'prisma')
-  if (fs.existsSync(localBinPath)) {
-    return localBinPath
+  // On Windows, npm/yarn/pnpm expose local bins as `prisma.cmd` (and sometimes `prisma.ps1`);
+  // on POSIX systems the shim is just `prisma`. Check all common variants so a valid local
+  // installation is not missed based on platform.
+  const localBinCandidates = [
+    path.join(cwd, 'node_modules', '.bin', 'prisma'),
+    path.join(cwd, 'node_modules', '.bin', 'prisma.cmd'),
+  ]
+  for (const candidate of localBinCandidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate
+    }
   }
 
   const localPackagePath = path.join(cwd, 'node_modules', 'prisma')

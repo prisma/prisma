@@ -40,6 +40,16 @@ describe('findLocalPrismaInstallation', () => {
     expect(result).toBe(path.join(tmpDir, 'node_modules', '.bin', 'prisma'))
   })
 
+  it('returns path when Windows shim node_modules/.bin/prisma.cmd exists', async () => {
+    const binDir = path.join(tmpDir, 'node_modules', '.bin')
+    fs.mkdirSync(binDir, { recursive: true })
+    fs.writeFileSync(path.join(binDir, 'prisma.cmd'), '')
+
+    const { findLocalPrismaInstallation } = await import('../warn-local-installation')
+    const result = findLocalPrismaInstallation(tmpDir)
+    expect(result).toBe(path.join(tmpDir, 'node_modules', '.bin', 'prisma.cmd'))
+  })
+
   it('returns path when node_modules/prisma directory exists', async () => {
     const prismaDir = path.join(tmpDir, 'node_modules', 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
