@@ -217,6 +217,11 @@ function isSocketError(error: any): error is SocketError {
   )
 }
 
-function isTlsError(error: any): error is Error & { code?: string } {
-  return typeof error.code === 'string' && TLS_ERRORS.has(error.code as string)
+function isTlsError(error: any): error is Error & { code: string } {
+  return (
+    typeof error.code === 'string' &&
+    TLS_ERRORS.has(error.code) &&
+    typeof error.message === 'string' &&
+    error.message.length > 0
+  )
 }

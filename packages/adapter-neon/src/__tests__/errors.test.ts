@@ -210,11 +210,21 @@ describe('convertDriverError', () => {
     ['ECONNREFUSED', 'DatabaseNotReachable', 'connect ECONNREFUSED 127.0.0.1:5432'],
     ['ECONNRESET', 'ConnectionClosed', 'read ECONNRESET'],
     ['ETIMEDOUT', 'SocketTimeout', 'connect ETIMEDOUT 127.0.0.1:5432'],
-  ])('should handle socket error code %s', (code, kind, message) => {
-    const error = { code, message, syscall: 'connect', errno: -1 }
-    expect(convertDriverError(error)).toEqual({
-      kind,
-    })
+  ])('should handle socket error code %s and not misclassify as a postgres error', (code, kind, message) => {
+    const error = {
+      code,
+      message,
+      syscall: 'connect',
+      errno: -1,
+      address: '127.0.0.1',
+      port: 5432,
+      hostname: 'ep.region.aws.neon.tech',
+    }
+    const mapped = convertDriverError(error)
+    expect(mapped.kind).toBe(kind)
+    if (kind === 'DatabaseNotReachable') {
+      expect(mapped).toMatchObject({ host: '127.0.0.1', port: 5432 })
+    }
   })
 
   it('should handle default (unknown code)', () => {
