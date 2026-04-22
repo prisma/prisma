@@ -190,9 +190,9 @@ const validators: {
         `Invalid value ${options} for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Expected an integer.`,
       )
     }
-    if (options <= 0) {
+    if (options < 0) {
       throw new PrismaClientConstructorValidationError(
-        `Invalid value ${options} for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater than 0.`,
+        `Invalid value ${options} for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater or equal to 0.`,
       )
     }
   },

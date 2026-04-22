@@ -233,12 +233,12 @@ describe('queryPlanCacheMaxSize option', () => {
     )
   })
 
-  test('accepts 1 as the minimum valid value', () => {
+  test('accepts 0 as the minimum valid value', () => {
     expect.assertions(0)
     validatePrismaClientOptions(
       {
         adapter: {} as any,
-        queryPlanCacheMaxSize: 1,
+        queryPlanCacheMaxSize: 0,
       },
       config,
     )
@@ -255,21 +255,6 @@ describe('queryPlanCacheMaxSize option', () => {
     )
   })
 
-  test('rejects zero', () => {
-    expect(() =>
-      validatePrismaClientOptions(
-        {
-          adapter: {} as any,
-          queryPlanCacheMaxSize: 0,
-        },
-        config,
-      ),
-    ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value 0 for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater than 0.
-      Read more at https://pris.ly/d/client-constructor"
-    `)
-  })
-
   test('rejects negative numbers', () => {
     expect(() =>
       validatePrismaClientOptions(
@@ -280,7 +265,7 @@ describe('queryPlanCacheMaxSize option', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value -1 for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater than 0.
+      "Invalid value -1 for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater or equal to 0.
       Read more at https://pris.ly/d/client-constructor"
     `)
   })
