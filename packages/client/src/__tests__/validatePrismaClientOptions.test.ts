@@ -220,3 +220,98 @@ describe('comments option', () => {
     `)
   })
 })
+
+describe('queryPlanCacheMaxSize option', () => {
+  test('accepts a positive integer', () => {
+    expect.assertions(0)
+    validatePrismaClientOptions(
+      {
+        adapter: {} as any,
+        queryPlanCacheMaxSize: 100,
+      },
+      config,
+    )
+  })
+
+  test('accepts 1 as the minimum valid value', () => {
+    expect.assertions(0)
+    validatePrismaClientOptions(
+      {
+        adapter: {} as any,
+        queryPlanCacheMaxSize: 1,
+      },
+      config,
+    )
+  })
+
+  test('accepts undefined', () => {
+    expect.assertions(0)
+    validatePrismaClientOptions(
+      {
+        adapter: {} as any,
+        queryPlanCacheMaxSize: undefined,
+      },
+      config,
+    )
+  })
+
+  test('rejects zero', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          queryPlanCacheMaxSize: 0,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value 0 for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater than 0.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+
+  test('rejects negative numbers', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          queryPlanCacheMaxSize: -1,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value -1 for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater than 0.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+
+  test('rejects non-integer floats', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          queryPlanCacheMaxSize: 1.5,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value 1.5 for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Expected an integer.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+
+  test('rejects string values', () => {
+    expect(() =>
+      validatePrismaClientOptions(
+        {
+          adapter: {} as any,
+          queryPlanCacheMaxSize: '100' as any,
+        },
+        config,
+      ),
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Invalid value "100" for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Expected a number.
+      Read more at https://pris.ly/d/client-constructor"
+    `)
+  })
+})

@@ -141,7 +141,7 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
-    this.#queryPlanCache = new QueryPlanCache()
+    this.#queryPlanCache = new QueryPlanCache(config.queryPlanCacheMaxSize)
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined

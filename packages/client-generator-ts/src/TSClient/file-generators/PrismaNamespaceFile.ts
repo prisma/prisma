@@ -283,6 +283,22 @@ function buildClientOptions(context: GenerateContext) {
     )
   }
 
+  otherOptions.add(
+    ts.property('queryPlanCacheMaxSize', ts.numberType).optional().setDocComment(ts.docComment`
+        Optional maximum size for the query plan cache. If not provided, a default size will be used.
+        A higher cache size can improve performance for applications that execute a large number of
+        unique queries, while a smaller cache size can reduce memory usage.
+
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          adapter,
+          queryPlanCacheMaxSize: 100,
+        })
+        \`\`\`
+      `),
+  )
+
   // Intersect the mutually exclusive options with the other options
   // This matches: PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & { ... }
   const prismaClientOptions = ts.intersectionType([mutuallyExclusiveOptions, otherOptions])
