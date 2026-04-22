@@ -102,7 +102,7 @@ export class ClientEngine implements Engine {
   #state: EngineState = { type: 'disconnected' }
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
-  #queryPlanCache: QueryPlanCache
+  #queryPlanCache?: QueryPlanCache
   #paramGraph: ParamGraph
 
   config: EngineConfig
@@ -141,7 +141,8 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
-    this.#queryPlanCache = new QueryPlanCache()
+    this.#queryPlanCache =
+      config.queryPlanCacheMaxSize === 0 ? undefined : new QueryPlanCache(config.queryPlanCacheMaxSize)
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
@@ -484,7 +485,7 @@ export class ClientEngine implements Engine {
       // to benefit from caching due to their high variability in parameters, which leads to a very
       // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
-      const cached = isCacheable ? this.#queryPlanCache.getSingle(cacheKey) : undefined
+      const cached = isCacheable ? this.#queryPlanCache?.getSingle(cacheKey) : undefined
       if (cached) {
         debug('query plan cache hit')
         plan = cached
@@ -492,7 +493,7 @@ export class ClientEngine implements Engine {
         debug('query plan cache miss')
         plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
         if (isCacheable) {
-          this.#queryPlanCache.setSingle(cacheKey, plan)
+          this.#queryPlanCache?.setSingle(cacheKey, plan)
         }
       }
     }
@@ -554,7 +555,7 @@ export class ClientEngine implements Engine {
       const cacheKeyStr = JSON.stringify(parameterizedBatch)
       placeholderValues = extractedValues
 
-      const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
+      const cached = this.#queryPlanCache?.getBatch(cacheKeyStr)
       if (cached) {
         debug('batch query plan cache hit')
         batchResponse = cached
@@ -562,7 +563,7 @@ export class ClientEngine implements Engine {
         debug('batch query plan cache miss')
         try {
           batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
-          this.#queryPlanCache.setBatch(cacheKeyStr, batchResponse)
+          this.#queryPlanCache?.setBatch(cacheKeyStr, batchResponse)
         } catch (error) {
           throw this.#transformCompileError(error)
         }

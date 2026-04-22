@@ -138,6 +138,22 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   comments?: SqlCommenterPlugin[]
 
   /**
+   * Optional maximum size for the query plan cache. If not provided, a default size will be used.
+   * A value of `0` can be used to disable the cache entirely. A higher cache size can improve
+   * performance for applications that execute a large number of unique queries, while a smaller
+   * cache size can reduce memory usage.
+   *
+   * @example
+   * ```
+   * const prisma = new PrismaClient({
+   *   adapter,
+   *   queryPlanCacheMaxSize: 100,
+   * })
+   * ```
+   */
+  queryPlanCacheMaxSize?: number
+
+  /**
    * @internal
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
    */
@@ -430,6 +446,7 @@ constructor() {
           sqlCommenters: options.comments,
           parameterizationSchema: config.parameterizationSchema,
           runtimeDataModel: config.runtimeDataModel,
+          queryPlanCacheMaxSize: optionsArg.queryPlanCacheMaxSize,
         }
 
         // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>
