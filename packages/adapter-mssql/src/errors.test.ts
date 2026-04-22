@@ -63,6 +63,13 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle mssql ESOCKET (connection error wrapped by mssql library)', () => {
+    // mssql wraps underlying socket errors (ECONNREFUSED, ENOTFOUND, etc.) as
+    // ConnectionError { code: 'ESOCKET' } — no syscall or errno fields.
+    const error = { code: 'ESOCKET', message: 'connect ECONNREFUSED 127.0.0.1:1433' }
+    expect(convertDriverError(error)).toEqual({ kind: 'DatabaseNotReachable' })
+  })
+
   it.each([
     ['ENOTFOUND', 'DatabaseNotReachable', 'getaddrinfo ENOTFOUND myserver.database.windows.net'],
     ['ECONNREFUSED', 'DatabaseNotReachable', 'connect ECONNREFUSED 127.0.0.1:1433'],

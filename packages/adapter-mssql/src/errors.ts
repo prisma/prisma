@@ -1,6 +1,6 @@
 import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
-const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'])
+const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ESOCKET'])
 
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   if (isSocketError(error)) {
@@ -200,28 +200,23 @@ function isDriverError(error: any): error is DriverError {
   return typeof error.message === 'string' && typeof error.code === 'string' && typeof error.number === 'number'
 }
 
-type SocketError = Error & {
-  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
-  syscall: string
-  errno: number
+type SocketError = {
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT' | 'ESOCKET'
+  message: string
   address?: string | undefined
   port?: number | undefined
   hostname?: string | undefined
 }
 
 function isSocketError(error: any): error is SocketError {
-  return (
-    typeof error.code === 'string' &&
-    typeof error.syscall === 'string' &&
-    typeof error.errno === 'number' &&
-    SOCKET_ERRORS.has(error.code as string)
-  )
+  return typeof error.code === 'string' && SOCKET_ERRORS.has(error.code)
 }
 
 function mapSocketError(error: SocketError): MappedError {
   switch (error.code) {
     case 'ENOTFOUND':
     case 'ECONNREFUSED':
+    case 'ESOCKET':
       return {
         kind: 'DatabaseNotReachable',
         host: error.address ?? error.hostname,
