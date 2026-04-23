@@ -36,7 +36,46 @@ export function rethrowAsUserFacing(error: any): never {
   if (!code || !message) {
     throw error
   }
-  throw new UserFacingError(message, code, { driverAdapterError: error })
+  throw new UserFacingError(message, code, { driverAdapterError: error, ...extractMeta(error) })
+}
+
+/**
+ * Extracts structured metadata from a DriverAdapterError to populate the well-known
+ * `meta` fields expected by Prisma Client (e.g. `meta.target` for P2002).
+ *
+ * The Rust query engine populates these fields automatically; this function provides
+ * equivalent behaviour for the JS driver-adapter runtime path.
+ */
+function extractMeta(err: DriverAdapterError): Record<string, unknown> {
+  const meta: Record<string, unknown> = {}
+
+  switch (err.cause.kind) {
+    case 'UniqueConstraintViolation':
+    case 'NullConstraintViolation': {
+      const target = constraintToTarget(err.cause.constraint)
+      if (target) meta.target = target
+      break
+    }
+  }
+
+  return meta
+}
+
+/**
+ * Maps a structured constraint object to the `string[]` value expected by
+ * `meta.target`.
+ *
+ * - Adapters that resolve field names (e.g. adapter-pg) supply `{ fields }`.
+ * - Adapters that only expose an index name (e.g. adapter-mariadb, adapter-mssql)
+ *   supply `{ index }`, which is wrapped in an array to match the expected type.
+ */
+function constraintToTarget(
+  constraint?: { fields: string[] } | { index: string } | { foreignKey: {} },
+): string[] | undefined {
+  if (!constraint) return undefined
+  if ('fields' in constraint && constraint.fields.length > 0) return constraint.fields
+  if ('index' in constraint) return [constraint.index]
+  return undefined
 }
 
 export function rethrowAsUserFacingRawError(error: any): never {
