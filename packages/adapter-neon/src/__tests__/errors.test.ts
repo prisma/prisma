@@ -227,6 +227,17 @@ describe('convertDriverError', () => {
     }
   })
 
+  it.each([
+    ['ENOTFOUND', 'DatabaseNotReachable', 'getaddrinfo ENOTFOUND ep.region.aws.neon.tech'],
+    ['ECONNREFUSED', 'DatabaseNotReachable', 'connect ECONNREFUSED 127.0.0.1:5432'],
+    ['ECONNRESET', 'ConnectionClosed', 'read ECONNRESET'],
+    ['ETIMEDOUT', 'SocketTimeout', 'connect ETIMEDOUT 127.0.0.1:5432'],
+  ])('should handle socket error code %s without syscall/errno fields', (code, kind, message) => {
+    // Socket errors wrapped by libraries may lack syscall/errno; guard must not require them.
+    const error = { code, message }
+    expect(convertDriverError(error)).toEqual({ kind })
+  })
+
   it('should handle default (unknown code)', () => {
     const error = {
       code: '99999',

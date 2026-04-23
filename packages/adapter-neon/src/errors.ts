@@ -179,10 +179,9 @@ function isDriverError(error: any): error is DatabaseError {
   )
 }
 
-type SocketError = Error & {
+type SocketError = {
   code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
-  syscall: string
-  errno: number
+  message: string
   address?: string | undefined
   port?: number | undefined
   hostname?: string | undefined
@@ -209,12 +208,7 @@ function mapSocketError(error: SocketError): MappedError {
 }
 
 function isSocketError(error: any): error is SocketError {
-  return (
-    typeof error.code === 'string' &&
-    typeof error.syscall === 'string' &&
-    typeof error.errno === 'number' &&
-    SOCKET_ERRORS.has(error.code as string)
-  )
+  return typeof error.code === 'string' && SOCKET_ERRORS.has(error.code)
 }
 
 function isTlsError(error: any): error is Error & { code: string } {
