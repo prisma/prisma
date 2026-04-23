@@ -3,10 +3,14 @@ import { PrismaNeon, PrismaNeonHttp } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available
+// eslint-disable-next-line import/no-duplicates
 import * as G1 from '@prisma/client/generator-build'
 // @ts-ignore no types available
+// eslint-disable-next-line import/no-duplicates
 import * as G2 from '@prisma/client/generator-build/index.js'
+// eslint-disable-next-line import/no-duplicates
 import { PrismaClientKnownRequestError as E1 } from '@prisma/client/runtime/client'
+// eslint-disable-next-line import/no-duplicates
 import { PrismaClientKnownRequestError as E2 } from '@prisma/client/runtime/client.js'
 // import { withAccelerate } from '@prisma/extension-accelerate'
 // import { readReplicas } from '@prisma/extension-read-replicas'
