@@ -95,22 +95,16 @@ function isDriverError(error: any): error is LibsqlError {
   )
 }
 
-type SocketError = Error & {
+type SocketError = {
   code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
-  syscall: string
-  errno: number
+  message: string
   address?: string | undefined
   port?: number | undefined
   hostname?: string | undefined
 }
 
 function isRawSocketError(error: any): error is SocketError {
-  return (
-    typeof error?.code === 'string' &&
-    typeof error?.syscall === 'string' &&
-    typeof error?.errno === 'number' &&
-    SOCKET_ERRORS.has(error.code)
-  )
+  return typeof error?.code === 'string' && SOCKET_ERRORS.has(error.code)
 }
 
 // Walk the error.cause chain to find a raw socket error at any nesting depth.
