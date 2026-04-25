@@ -60,21 +60,29 @@ export function getTestSuitePlan(
  */
 function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuiteConfig) {
   const provider = suiteConfig.matrixOptions.provider
+  const testRuntime = process.env.TEST_RUNTIME
 
-  const suiteConfigExpansions = adaptersForProvider[provider].map((adapterProvider) => {
-    const newSuiteConfig = klona(suiteConfig)
+  const suiteConfigExpansions = adaptersForProvider[provider]
+    .filter((adapterProvider) => {
+      if (adapterProvider === AdapterProviders.JS_BUN_POSTGRES && testRuntime !== 'bun') {
+        return false
+      }
+      return true
+    })
+    .map((adapterProvider) => {
+      const newSuiteConfig = klona(suiteConfig)
 
-    newSuiteConfig.matrixOptions.driverAdapter = adapterProvider
-    newSuiteConfig.parametersString += `, ${adapterProvider}`
-    // ^^^ temporary until I get to the TODO in getTestSuiteParametersString
+      newSuiteConfig.matrixOptions.driverAdapter = adapterProvider
+      newSuiteConfig.parametersString += `, ${adapterProvider}`
+      // ^^^ temporary until I get to the TODO in getTestSuiteParametersString
 
-    // if the test is not doing stuff with relation mode already, we set one
-    if (newSuiteConfig.matrixOptions.relationMode === undefined) {
-      newSuiteConfig.matrixOptions.relationMode = relationModesForAdapter[adapterProvider]
-    }
+      // if the test is not doing stuff with relation mode already, we set one
+      if (newSuiteConfig.matrixOptions.relationMode === undefined) {
+        newSuiteConfig.matrixOptions.relationMode = relationModesForAdapter[adapterProvider]
+      }
 
-    return newSuiteConfig
-  })
+      return newSuiteConfig
+    })
 
   // add the original suite config to the list of expanded configs
   return [suiteConfig, ...suiteConfigExpansions]
@@ -180,6 +188,10 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  if (driverAdapter === AdapterProviders.JS_BUN_POSTGRES && process.env.TEST_RUNTIME !== 'bun') {
+    return true
+  }
+
   // if the Driver Adapter is explicitly skipped in the matrix options, skip
   if (driverAdapter !== undefined && options?.skipDriverAdapter?.from.includes(driverAdapter)) {
     return true
@@ -245,6 +257,7 @@ const excludeEnvToProviderMap = {
 const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_VITESS: AdapterProviders.VITESS_8,
   TEST_SKIP_PG: AdapterProviders.JS_PG,
+  TEST_SKIP_BUN_POSTGRES: AdapterProviders.JS_BUN_POSTGRES,
   TEST_SKIP_NEON: AdapterProviders.JS_NEON,
   TEST_SKIP_PLANETSCALE: AdapterProviders.JS_PLANETSCALE,
   TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,

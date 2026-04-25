@@ -171,7 +171,11 @@ testMatrix.setupTestSuite(
         const ids = generatedIds(EXCESS_BIND_VALUES)
 
         if (usingRelationJoins) {
-          if (driverAdapter === 'js_pg' || driverAdapter === 'js_pg_cockroachdb') {
+          if (
+            driverAdapter === 'js_pg' ||
+            driverAdapter === 'js_bun_postgres' ||
+            driverAdapter === 'js_pg_cockroachdb'
+          ) {
             await expect(selectWith2InFilters(ids)).rejects.toThrow(
               'The query parameter limit supported by your database is exceeded',
             )

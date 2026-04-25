@@ -184,7 +184,10 @@ testMatrix.setupTestSuite(
             await expect(create).rejects.toThrow(
               `bigint is too large to be represented as a 64-bit integer and passed as argument`,
             )
-          } else if (driverAdapter && ['js_neon', 'js_pg', 'js_pg_cockroachdb'].includes(driverAdapter)) {
+          } else if (
+            driverAdapter &&
+            ['js_neon', 'js_pg', 'js_bun_postgres', 'js_pg_cockroachdb'].includes(driverAdapter)
+          ) {
             // PostgresError { code: \"22003\", message: \"value \\\"-18428729675200069634\\\" is out of range for type bigint\", severity: \"ERROR\", detail: None, column: None, hint: None }
             await expect(create).rejects.toThrow(`is out of range for type bigint`)
           } else if (driverAdapter === 'js_planetscale') {

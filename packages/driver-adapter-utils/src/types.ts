@@ -204,6 +204,7 @@ const officialPrismaAdapters = [
   '@prisma/adapter-planetscale',
   '@prisma/adapter-neon',
   '@prisma/adapter-libsql',
+  '@prisma/adapter-bun-postgres',
   '@prisma/adapter-better-sqlite3',
   '@prisma/adapter-d1',
   '@prisma/adapter-pg',

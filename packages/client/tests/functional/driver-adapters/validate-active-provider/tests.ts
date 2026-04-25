@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import type { D1Database } from '@cloudflare/workers-types'
+import { PrismaBunPostgres } from '@prisma/adapter-bun-postgres'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
@@ -36,6 +37,27 @@ testMatrix.setupTestSuite(
           expect(e.constructor.name).toEqual('PrismaClientInitializationError')
           expect(e.message).toMatchInlineSnapshot(
             `"The Driver Adapter \`@prisma/adapter-pg\`, based on \`postgres\`, is not compatible with the provider \`mysql\` specified in the Prisma schema."`,
+          )
+        }
+      },
+    )
+
+    testIf(driverAdapter === 'js_bun_postgres' && provider === Providers.MYSQL)(
+      '@prisma/adapter-bun-postgres cannot be used with `provider = "mysql"`',
+      () => {
+        expect.assertions(2)
+
+        const adapter = new PrismaBunPostgres({ connectionString: datasourceInfo.databaseUrl })
+
+        try {
+          newPrismaClient({
+            adapter,
+          })
+        } catch (error) {
+          const e = error as PrismaClientInitializationError
+          expect(e.constructor.name).toEqual('PrismaClientInitializationError')
+          expect(e.message).toMatchInlineSnapshot(
+            `"The Driver Adapter \`@prisma/adapter-bun-postgres\`, based on \`postgres\`, is not compatible with the provider \`mysql\` specified in the Prisma schema."`,
           )
         }
       },

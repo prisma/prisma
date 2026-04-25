@@ -1,0 +1,28 @@
+diff --git a/build/index.js b/build/index.js
+index 01cb4206525dab0e564e07366bb0de1cc68ae2d1..75f69c959eb3bc10bc31dbd1f0122bceec25aa2c 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -1634,8 +1634,21 @@ class Runtime {
+     // should we implement the class ourselves?
+     class Module extends _module().default.Module {}
+     Object.entries(_module().default.Module).forEach(([key, value]) => {
+-      // @ts-expect-error: no index signature
+-      Module[key] = value;
++      const descriptor = Object.getOwnPropertyDescriptor(
++        _module().default.Module,
++        key
++      );
++      if (descriptor?.writable === false || descriptor?.get || descriptor?.set) {
++        return;
++      }
++      try {
++        Object.defineProperty(Module, key, {
++          ...descriptor,
++          value
++        });
++      } catch {
++        // Bun marks some inherited static properties as readonly.
++      }
+     });
+     Module.Module = Module;
+     if ('createRequire' in _module().default) {
