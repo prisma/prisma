@@ -3,7 +3,7 @@ import type * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
 import { DMMFHelper } from '../dmmf'
-import { appendSkipType, extArgsParam, getFieldArgName, getIncludeName, getOmitName, getSelectName } from '../utils'
+import { appendSkipType, extArgsParam, getFieldArgName, getIncludeName, getModelArgName, getOmitName, getSelectName } from '../utils'
 import { GenerateContext } from './GenerateContext'
 
 type BuildIncludeTypeParams = {
@@ -93,12 +93,24 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
   const objectType = ts.objectType()
 
   for (const field of fields) {
-    const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType>(ts.booleanType)
+    const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType | ts.ObjectType>(ts.booleanType)
     if (field.outputType.location === 'outputObjectTypes') {
-      const subSelectType = ts.namedType(getFieldArgName(field, modelName))
-      subSelectType.addGenericArgument(extArgsParam.toArgument())
+      if (field.isPolymorphic && field.relationTypes) {
+        for (const variantType of field.relationTypes) {
+          const variantObject = ts.objectType()
+          variantObject.add(ts.property('on', ts.stringLiteral(variantType)))
+          const variantArgsType = ts.namedType(getModelArgName(variantType))
+          variantArgsType.addGenericArgument(extArgsParam.toArgument())
+          variantObject.add(ts.property('select', variantArgsType).optional())
+          variantObject.add(ts.property('include', variantArgsType).optional())
+          fieldType.addVariant(variantObject)
+        }
+      } else {
+        const subSelectType = ts.namedType(getFieldArgName(field, modelName))
+        subSelectType.addGenericArgument(extArgsParam.toArgument())
 
-      fieldType.addVariant(subSelectType)
+        fieldType.addVariant(subSelectType)
+      }
     }
     objectType.add(ts.property(field.name, appendSkipType(context, fieldType)).optional())
   }
