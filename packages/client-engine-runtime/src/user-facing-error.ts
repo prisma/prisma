@@ -32,7 +32,14 @@ export function rethrowAsUserFacing(error: any): never {
   }
 
   const code = getErrorCode(error)
-  const message = renderErrorMessage(error)
+  let message = renderErrorMessage(error)
+
+  if (code === 'P2010' && error.cause.kind === 'postgres') {
+  message = `Raw query failed. Code: \`${error.cause.originalCode ?? 'N/A'}\`. Message: \`${
+    error.cause.originalMessage ?? renderErrorMessage(error)
+  }\``
+}
+
   if (!code || !message) {
     throw error
   }
@@ -103,6 +110,7 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'TooManyConnections':
       return 'P2037'
     case 'postgres':
+      return 'P2010'
     case 'sqlite':
     case 'mysql':
     case 'mssql':

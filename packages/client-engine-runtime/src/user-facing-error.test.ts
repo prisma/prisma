@@ -23,3 +23,28 @@ test('rethrowAsUserFacing re-throws the original error for unknown cause kinds',
   // Crucially the message must NOT degrade to the useless "[object Object]"
   expect(() => rethrowAsUserFacing(error)).not.toThrowError('[object Object]')
 })
+
+test('rethrowAsUserFacing wraps postgres errors as P2010 with formatted message', () => {
+  const error = makeDriverAdapterError({
+    kind: 'postgres',
+    originalCode: 'P0001',
+    originalMessage: 'Trigger violation',
+  })
+
+  expect.assertions(3)
+
+  try {
+    rethrowAsUserFacing(error)
+  } catch (e: any) {
+    // 1. Verify the Prisma P-code
+    expect(e.code).toBe('P2010')
+    
+    // 2. Verify the formatted message matches the $queryRaw path (via the new helper)
+    expect(e.message).toBe('Raw query failed. Code: `P0001`. Message: `Trigger violation`')
+    
+    // 3. Verify the original error is attached in meta
+    expect(e.meta).toMatchObject({
+      driverAdapterError: error,
+    })
+  }
+})
