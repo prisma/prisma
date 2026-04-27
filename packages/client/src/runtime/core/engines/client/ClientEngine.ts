@@ -41,6 +41,10 @@ import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
+/**
+ * Prisma error code for the `PrismaClientInitializationError` raised when
+ * the `client` engine is instantiated without an active driver adapter.
+ */
 const CLIENT_ENGINE_ERROR = 'P2038'
 
 const debug = Debug('prisma:client:clientEngine')
