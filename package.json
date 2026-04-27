@@ -162,12 +162,15 @@
   "pnpm": {
     "overrides": {
       "form-data": ">=4.0.4",
-      "hono": ">=4.12.4",
+      "hono": ">=4.12.14",
       "@hono/node-server": ">=1.19.13",
       "jws": ">=4.0.1",
       "tar-fs": ">=2.1.4",
       "lodash": ">=4.17.23",
-      "@tootallnate/once": ">=3.0.1"
+      "@tootallnate/once": ">=3.0.1",
+      "ajv@^8.0.0": ">=8.18.0",
+      "@azure/core-rest-pipeline@^1.0.0": ">=1.14.0",
+      "@azure/msal-node>uuid": ">=14.0.0"
     }
   }
 }
