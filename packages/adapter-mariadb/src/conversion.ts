@@ -94,6 +94,8 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
       }
     case MariaDbColumnType.ENUM:
       return ColumnTypeEnum.Enum
+    case MariaDbColumnType.SET:
+      return ColumnTypeEnum.Text
     case MariaDbColumnType.JSON:
       return ColumnTypeEnum.Json
     case MariaDbColumnType.BIT:
@@ -160,6 +162,11 @@ export function mapRow<A>(row: A[] | Record<string, A>, fields?: mariadb.FieldIn
       case MariaDbColumnType.DATETIME:
       case MariaDbColumnType.DATETIME2:
         return new Date(`${value}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
+      case MariaDbColumnType.SET:
+        // The mariadb connector may return SET values as an Array when multiple
+        // values are selected. Normalise to a comma-joined string to match the
+        // Text column type returned by mapColumnType.
+        return Array.isArray(value) ? value.join(',') : value
     }
 
     if (typeof value === 'bigint') {
