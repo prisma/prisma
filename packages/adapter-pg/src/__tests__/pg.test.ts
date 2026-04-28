@@ -133,36 +133,57 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
-  it('should set search_path on new pool connections when schema is configured', async () => {
+  it('should set search_path via connection options when schema is configured', async () => {
     const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test', {
       schema: 'custom_schema',
     })
     const adapter = await factory.connect()
 
-    const mockConn = { query: vi.fn().mockResolvedValue({ rows: [] }) }
-    const pool = adapter['client'] as pg.Pool
-    pool.emit('connect', mockConn)
-
-    expect(mockConn.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: `SELECT set_config('search_path', $1 || ',' || current_setting('search_path'), false)`,
-        values: ['custom_schema'],
-      }),
-      ['custom_schema'],
-    )
+    expect(adapter.underlyingDriver().options.options).toBe('-csearch_path=custom_schema')
 
     await adapter.dispose()
   })
 
-  it('should not register search_path handler when no schema is configured', async () => {
+  it('should append search_path to existing connection options', async () => {
+    const factory = new PrismaPgAdapterFactory(
+      { connectionString: 'postgresql://test:test@localhost:5432/test', options: '-cstatement_timeout=5000' },
+      { schema: 'custom_schema' },
+    )
+    const adapter = await factory.connect()
+
+    expect(adapter.underlyingDriver().options.options).toBe('-cstatement_timeout=5000 -csearch_path=custom_schema')
+
+    await adapter.dispose()
+  })
+
+  it('should set search_path from URL schema parameter', async () => {
+    const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test?schema=url_schema')
+    const adapter = await factory.connect()
+
+    expect(adapter.underlyingDriver().options.options).toBe('-csearch_path=url_schema')
+
+    await adapter.dispose()
+  })
+
+  it('should not set connection options when no schema is configured', async () => {
     const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test')
     const adapter = await factory.connect()
 
-    const pool = adapter['client'] as pg.Pool
-    const connectListeners = pool.listeners('connect')
-    expect(connectListeners).toHaveLength(0)
+    expect(adapter.underlyingDriver().options.options).toBeUndefined()
 
     await adapter.dispose()
+  })
+
+  it('should not modify config for external pools', async () => {
+    const pool = new pg.Pool({ user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' })
+    pool.on('error', () => {})
+    const factory = new PrismaPgAdapterFactory(pool, { schema: 'custom_schema' })
+    const adapter = await factory.connect()
+
+    expect(adapter.underlyingDriver().options.options).toBeUndefined()
+
+    await adapter.dispose()
+    await pool.end()
   })
 
   it('should pass generated name when statement name generator is provided', async () => {

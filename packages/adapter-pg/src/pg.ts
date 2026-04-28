@@ -28,16 +28,6 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
-async function applySearchPath(client: StdClient | TransactionClient, schema: string): Promise<void> {
-  await client.query(
-    {
-      text: `SELECT set_config('search_path', $1 || ',' || current_setting('search_path'), false)`,
-      values: [schema],
-    },
-    [schema],
-  )
-}
-
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
@@ -298,6 +288,8 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     poolOrConfig: pg.Pool | pg.PoolConfig | string,
     private readonly options?: PrismaPgOptions,
   ) {
+    let schema = this.options?.schema ?? null
+
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
       this.config = poolOrConfig.options
@@ -305,25 +297,23 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       this.externalPool = null
       this.config = { connectionString: poolOrConfig }
 
-      if (!options?.schema) {
-        const schema = new URL(poolOrConfig).searchParams.get('schema')
-        if (schema) {
-          this.options = { ...options, schema }
-        }
+      if (!schema) {
+        schema = new URL(poolOrConfig).searchParams.get('schema')
+        if (schema) this.options = { ...options, schema }
       }
     } else {
       this.externalPool = null
       this.config = poolOrConfig
     }
+
+    if (schema && !this.externalPool) {
+      const searchPathOption = `-csearch_path=${schema}`
+      this.config.options = [this.config.options, searchPathOption].join(' ').trim()
+    }
   }
 
   async connect(): Promise<PrismaPgAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
-
-    if (this.options?.schema) {
-      const schema = this.options.schema
-      client.on('connect', (conn) => applySearchPath(conn, schema))
-    }
 
     const onIdleClientError = (err: Error) => {
       debug(`Error from idle pool client: ${err.message} %O`, err)
