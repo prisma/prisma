@@ -133,6 +133,38 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
+  it('should set search_path on new pool connections when schema is configured', async () => {
+    const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test', {
+      schema: 'custom_schema',
+    })
+    const adapter = await factory.connect()
+
+    const mockConn = { query: vi.fn().mockResolvedValue({ rows: [] }) }
+    const pool = adapter['client'] as pg.Pool
+    pool.emit('connect', mockConn)
+
+    expect(mockConn.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: `SELECT set_config('search_path', $1 || ',' || current_setting('search_path'), false)`,
+        values: ['custom_schema'],
+      }),
+      ['custom_schema'],
+    )
+
+    await adapter.dispose()
+  })
+
+  it('should not register search_path handler when no schema is configured', async () => {
+    const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test')
+    const adapter = await factory.connect()
+
+    const pool = adapter['client'] as pg.Pool
+    const connectListeners = pool.listeners('connect')
+    expect(connectListeners).toHaveLength(0)
+
+    await adapter.dispose()
+  })
+
   it('should pass generated name when statement name generator is provided', async () => {
     const mockGenerator = vi.fn(() => 'test-name')
     const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost/test', {

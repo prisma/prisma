@@ -28,6 +28,16 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
+async function applySearchPath(client: StdClient | TransactionClient, schema: string): Promise<void> {
+  await client.query(
+    {
+      text: `SELECT set_config('search_path', $1 || ',' || current_setting('search_path'), false)`,
+      values: [schema],
+    },
+    [schema],
+  )
+}
+
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
@@ -309,6 +319,11 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
 
   async connect(): Promise<PrismaPgAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
+
+    if (this.options?.schema) {
+      const schema = this.options.schema
+      client.on('connect', (conn) => applySearchPath(conn, schema))
+    }
 
     const onIdleClientError = (err: Error) => {
       debug(`Error from idle pool client: ${err.message} %O`, err)
