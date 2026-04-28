@@ -1,6 +1,10 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import type { LinkResult } from '../postgres/link/Link'
 import { PosthogEventCapture, PUBLIC_POSTHOG_BOOTSTRAP_ACTIVATION_PROJECT_KEY } from '../utils/nps/capture'
 import type { ProjectState } from './project-state'
+import { detectPackageManager } from './template-scaffold'
 
 function isTelemetryDisabled(): boolean {
   return Boolean(process.env.CHECKPOINT_DISABLE)
@@ -8,11 +12,24 @@ function isTelemetryDisabled(): boolean {
 
 const eventCapture = new PosthogEventCapture(PUBLIC_POSTHOG_BOOTSTRAP_ACTIVATION_PROJECT_KEY)
 
-interface TelemetryContext {
+export interface TelemetryContext {
   distinctId: string
   databaseId: string | undefined
   linkResult: LinkResult | null
   projectState: ProjectState
+  isScriptedInvocation: boolean
+  baseDir: string
+}
+
+function resolveLocalPrismaVersion(baseDir: string): string | null {
+  try {
+    const pkgPath = path.join(baseDir, 'node_modules', 'prisma', 'package.json')
+    if (!fs.existsSync(pkgPath)) return null
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+    return pkg.version ?? null
+  } catch {
+    return null
+  }
 }
 
 function baseProperties(ctx: TelemetryContext): Record<string, unknown> {
@@ -22,6 +39,10 @@ function baseProperties(ctx: TelemetryContext): Record<string, unknown> {
     'environment-id': ctx.linkResult?.environmentId ?? null,
     database_id: ctx.databaseId ?? ctx.linkResult?.databaseId ?? null,
     is_existing_project: ctx.projectState.hasPackageJson,
+    is_scripted_invocation: ctx.isScriptedInvocation,
+    package_manager: detectPackageManager(ctx.baseDir),
+    resolved_local_prisma_version: resolveLocalPrismaVersion(ctx.baseDir),
+    node_version: process.versions.node,
   }
 }
 
@@ -73,15 +94,42 @@ export async function emitStepFailed(ctx: TelemetryContext, stepName: string, er
   }
 }
 
-function extractErrorClass(msg: string): string {
+export function extractErrorClass(msg: string): string {
   const prismaCode = msg.match(/P\d{4}/)?.[0]
   if (prismaCode) return prismaCode
   if (msg.includes('ENOENT')) return 'ENOENT'
-  if (msg.includes('EACCES')) return 'EACCES'
-  if (msg.includes('ETIMEDOUT') || msg.includes('timeout')) return 'TIMEOUT'
+  if (msg.includes('EACCES') || msg.includes('permission denied')) return 'PERMISSION_DENIED'
+  if (msg.includes('ETIMEDOUT') || msg.includes('timeout') || msg.includes('ECONNREFUSED')) return 'NETWORK_UNREACHABLE'
   if (msg.includes('datasource')) return 'DATASOURCE_CONFIG'
-  if (msg.includes('authenticate') || msg.includes('credentials')) return 'AUTH'
+  if (msg.includes('authenticate') || msg.includes('credentials') || msg.includes('Invalid credentials'))
+    return 'AUTH_INVALID'
+  if (msg.includes('drift') || msg.includes('Drift detected')) return 'MIGRATION_DRIFT'
+  if (msg.includes('tsx') && msg.includes('ENOENT')) return 'TSX_MISSING'
+  if (msg.includes('schema') && msg.includes('validation')) return 'SCHEMA_VALIDATION'
   return 'UNKNOWN'
+}
+
+export async function emitFlowFailed(
+  ctx: TelemetryContext,
+  failedStep: string,
+  errorClass: string,
+  stderrExcerpt: string,
+  stepsCompleted: string[],
+  durationMs: number,
+): Promise<void> {
+  if (isTelemetryDisabled()) return
+  try {
+    await eventCapture.capture(ctx.distinctId, 'activation:cli_flow_failed', {
+      ...baseProperties(ctx),
+      failed_step: failedStep,
+      error_class: errorClass,
+      stderr_excerpt: stderrExcerpt.slice(0, 500),
+      steps_completed: stepsCompleted,
+      duration_ms: durationMs,
+    })
+  } catch {
+    // telemetry should never block the command
+  }
 }
 
 export async function emitFlowCompleted(
