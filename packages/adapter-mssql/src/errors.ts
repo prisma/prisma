@@ -1,6 +1,12 @@
 import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
+const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ESOCKET'])
+
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isSocketError(error)) {
+    return mapSocketError(error)
+  }
+
   if (isDriverError(error)) {
     return {
       originalCode: error.code,
@@ -56,7 +62,8 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 2627: {
-      const index = error.message.split('. ').at(1)?.split(' ').pop()?.split("'").at(1)
+      // Message: "Violation of UNIQUE KEY constraint '<name>'. Cannot insert..."
+      const index = error.message.split("'").at(1)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,
@@ -191,4 +198,37 @@ type DriverError = {
 
 function isDriverError(error: any): error is DriverError {
   return typeof error.message === 'string' && typeof error.code === 'string' && typeof error.number === 'number'
+}
+
+type SocketError = {
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT' | 'ESOCKET'
+  message: string
+  address?: string | undefined
+  port?: number | undefined
+  hostname?: string | undefined
+}
+
+function isSocketError(error: any): error is SocketError {
+  return typeof error.code === 'string' && SOCKET_ERRORS.has(error.code)
+}
+
+function mapSocketError(error: SocketError): MappedError {
+  switch (error.code) {
+    case 'ENOTFOUND':
+    case 'ECONNREFUSED':
+    case 'ESOCKET':
+      return {
+        kind: 'DatabaseNotReachable',
+        host: error.address ?? error.hostname,
+        port: error.port,
+      }
+    case 'ECONNRESET':
+      return {
+        kind: 'ConnectionClosed',
+      }
+    case 'ETIMEDOUT':
+      return {
+        kind: 'SocketTimeout',
+      }
+  }
 }

@@ -305,7 +305,7 @@ exports[`extensions.itx (provider=sqlserver, js_mssql) extended client in itx ca
 Invalid \`prisma.user.create()\` invocation:
 
 
-Unique constraint failed on the constraint: \`dbo.User\`"
+Unique constraint failed on the constraint: \`User_email_key\`"
 `;
 
 exports[`extensions.itx (provider=sqlserver, js_mssql) extended client in itx can rollback via normal call 1`] = `
@@ -315,7 +315,7 @@ Invalid \`tx.user.create()\` invocation in
 
   XX   },
   XX })
-  XX 
+  XX
 → XX await tx.user.create(
-Unique constraint failed on the constraint: \`dbo.User\`"
+Unique constraint failed on the constraint: \`User_email_key\`"
 `;
