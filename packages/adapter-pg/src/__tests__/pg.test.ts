@@ -111,6 +111,28 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
+  it('should extract schema from connection string URL when not provided in options', async () => {
+    const connectionString = 'postgresql://test:test@localhost:5432/test?schema=custom_schema'
+    const factory = new PrismaPgAdapterFactory(connectionString)
+    const adapter = await factory.connect()
+
+    const connectionInfo = adapter.getConnectionInfo()
+    expect(connectionInfo.schemaName).toBe('custom_schema')
+
+    await adapter.dispose()
+  })
+
+  it('should prefer schema from options over connection string URL', async () => {
+    const connectionString = 'postgresql://test:test@localhost:5432/test?schema=url_schema'
+    const factory = new PrismaPgAdapterFactory(connectionString, { schema: 'options_schema' })
+    const adapter = await factory.connect()
+
+    const connectionInfo = adapter.getConnectionInfo()
+    expect(connectionInfo.schemaName).toBe('options_schema')
+
+    await adapter.dispose()
+  })
+
   it('should pass generated name when statement name generator is provided', async () => {
     const mockGenerator = vi.fn(() => 'test-name')
     const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost/test', {
