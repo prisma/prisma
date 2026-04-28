@@ -406,6 +406,43 @@ export const customParsers = {
   [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
+/**
+ * Serializes a value intended for a JSON/JSONB column.
+ *
+ * `JSON.stringify` calls `toJSON()` on objects, and `Decimal.prototype.toJSON`
+ * returns the decimal as a *string*. This causes values like `new Decimal("-11000")`
+ * to be stored as the JSON string `"-11000"` instead of the number `-11000`.
+ * We use a custom replacer to convert Decimal-like instances to their numeric value
+ * before serialization.
+ */
+function serializeJsonArg(value: unknown): string {
+  return JSON.stringify(value, function (this: Record<string, unknown>, key: string, val: unknown) {
+    if (typeof val === 'bigint') {
+      return val.toString()
+    }
+    if (ArrayBuffer.isView(val)) {
+      return Buffer.from((val as ArrayBufferView).buffer, (val as ArrayBufferView).byteOffset, (val as ArrayBufferView).byteLength).toString('base64')
+    }
+    // `JSON.stringify` calls `toJSON()` on objects *before* passing the value to the
+    // replacer.  Since `Decimal.prototype.toJSON === Decimal.prototype.toString`, the
+    // replacer would normally see a plain string and miss the Decimal instance.
+    // To work around this, we inspect the *original* pre-toJSON value:
+    //   - for root call (key === ''), `value` holds the original value we were given
+    //   - for nested properties, `this[key]` is the original property value on the parent
+    const original: unknown = key === '' ? value : this[key]
+    if (
+      original !== null &&
+      typeof original === 'object' &&
+      (original as Record<string, unknown>).constructor?.name === 'Decimal' &&
+      typeof (original as Record<string, unknown>).toNumber === 'function'
+    ) {
+      const num = (original as { toNumber(): number }).toNumber()
+      return Number.isFinite(num) ? num : String(original)
+    }
+    return val
+  })
+}
+
 export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | string | Uint8Array | A {
   if (arg === null) {
     return null
@@ -413,6 +450,12 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 
   if (Array.isArray(arg) && argType.arity === 'list') {
     return arg.map((value) => mapArg(value, argType))
+  }
+
+  // Pre-serialize JSON args so that special types (e.g. Decimal) are converted correctly
+  // before the pg driver calls JSON.stringify internally on the value.
+  if (argType.scalarType === 'json' && typeof arg !== 'string') {
+    return serializeJsonArg(arg)
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'datetime') {
