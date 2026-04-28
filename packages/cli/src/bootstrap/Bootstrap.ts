@@ -62,6 +62,9 @@ function runLocalPrismaCommand(
 ): Promise<SubprocessResult> {
   return new Promise((resolve, reject) => {
     const stderrChunks: Buffer[] = []
+    // nosemgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true
+    // Windows requires shell=true to execute .cmd scripts in node_modules/.bin;
+    // both bin path and args are constructed internally, not from user input.
     const child: ChildProcess = spawn(bin, args, {
       cwd: baseDir,
       env: { ...process.env, ...extraEnv },
@@ -228,7 +231,7 @@ ${bold('Examples')}
             )
           }
 
-          let resolvedTemplate = templateName
+          let resolvedTemplate: string | null = templateName ?? null
           if (!resolvedTemplate && scriptedMode) {
             resolvedTemplate = 'nextjs'
             console.log(
