@@ -51,6 +51,7 @@ export type ArgScalarType =
   | 'json'
   | 'datetime'
   | 'bytes'
+  | 'geometry'
   | 'unknown'
 
 export type Arity = 'scalar' | 'list'

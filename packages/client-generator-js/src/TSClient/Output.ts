@@ -51,6 +51,8 @@ function buildOutputField(field: DMMF.SchemaField) {
 
   if (field.outputType.location === 'enumTypes' && field.outputType.namespace === 'model') {
     fieldType = ts.namedType(enumTypeName(field.outputType))
+  } else if (field.outputType.location === 'scalar' && field.outputType.type.startsWith('geometry(')) {
+    fieldType = ts.namedType('Prisma.Geometry')
   } else {
     const typeNames = GraphQLScalarToJSTypeTable[field.outputType.type] ?? field.outputType.type
     fieldType = Array.isArray(typeNames) ? ts.namedType(typeNames[0]) : ts.namedType(typeNames)

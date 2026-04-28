@@ -11,6 +11,8 @@ type TypeMappingConfig = {
 
 const decimal = ts.namedType('$runtime.Decimal')
 const uint8Array = ts.namedType('$runtime.Bytes')
+const geometry = ts.namedType('$runtime.Geometry')
+const inputGeometry = ts.namedType('$runtime.InputGeometry')
 const date = ts.namedType('Date')
 const inputJsonValue = ts.namedType('$runtime.InputJsonObject')
 const jsonValue = ts.namedType('$runtime.JsonValue')
@@ -69,6 +71,14 @@ const typeMappings: Record<QueryIntrospectionBuiltinType, TypeMappingConfig | ts
   'decimal-array': {
     in: ts.array(decimalIn),
     out: ts.array(decimal),
+  },
+  geometry: {
+    in: inputGeometry,
+    out: geometry,
+  },
+  'geometry-array': {
+    in: ts.array(inputGeometry),
+    out: ts.array(geometry),
   },
 }
 

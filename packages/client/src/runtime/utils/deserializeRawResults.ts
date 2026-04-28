@@ -44,6 +44,12 @@ function deserializeValue(type: QueryIntrospectionBuiltinType, value: unknown): 
     case 'time-array':
       return (value as unknown[]).map((v: unknown) => deserializeValue('time', v))
 
+    case 'geometry':
+      return value
+
+    case 'geometry-array':
+      return value
+
     default:
       return value
   }

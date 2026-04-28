@@ -4,7 +4,16 @@ import { Script } from 'node:vm'
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
 import type { PrismaConfigInternal } from '@prisma/config'
-import { assertNever } from '@prisma/internals'
+import {
+  assertNever,
+  checkUnsupportedDataProxy,
+  createSchemaPathInput,
+  getSchemaDatasourceProvider,
+  inferDirectoryConfig,
+  loadSchemaContext,
+  MigrateTypes,
+  validatePrismaConfigWithDatasource,
+} from '@prisma/internals'
 import { MigrateDiff } from '@prisma/migrate'
 import fs from 'fs-extra'
 import { temporaryFile } from 'tempy'
@@ -13,11 +22,87 @@ import { match } from 'ts-pattern'
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
+import { Migrate } from '../../../../migrate/src/Migrate'
+import { ensureDatabaseExists } from '../../../../migrate/src/utils/ensureDatabaseExists'
+import { DbPushIgnoreWarningsWithFlagError } from '../../../../migrate/src/utils/errors'
 import { buildPrismaConfig } from './config-builder'
 import type { NamedTestSuiteConfig, TestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath, testSuiteHasTypedSql } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
 import { AlterStatementCallback } from './types'
+
+async function dbPushWithAfterForceReset({
+  runtimeConfig,
+  testDirectoryPath,
+  suiteConfig,
+  datasourceInfo,
+  afterForceResetCallback,
+}: {
+  runtimeConfig: PrismaConfigInternal
+  testDirectoryPath: string
+  suiteConfig: NamedTestSuiteConfig
+  datasourceInfo: DatasourceInfo
+  afterForceResetCallback: (provider: Providers, databaseUrl: string) => Promise<void>
+}): Promise<void> {
+  const schemaContext = await loadSchemaContext({
+    schemaPath: createSchemaPathInput({
+      schemaPathFromArgs: undefined,
+      schemaPathFromConfig: runtimeConfig.schema,
+      baseDir: testDirectoryPath,
+    }),
+  })
+
+  const validatedConfig = validatePrismaConfigWithDatasource({ config: runtimeConfig, cmd: 'db push' })
+  checkUnsupportedDataProxy({ cmd: 'db push', validatedConfig })
+
+  const { migrationsDirPath } = inferDirectoryConfig(schemaContext, validatedConfig)
+  const schemaFilter: MigrateTypes.SchemaFilter = {
+    externalTables: validatedConfig.tables?.external ?? [],
+    externalEnums: validatedConfig.enums?.external ?? [],
+  }
+
+  const migrate = await Migrate.setup({
+    schemaEngineConfig: validatedConfig,
+    baseDir: testDirectoryPath,
+    migrationsDirPath,
+    schemaContext,
+    schemaFilter,
+    extensions: validatedConfig['extensions'],
+  })
+
+  try {
+    const successMessage = await ensureDatabaseExists(
+      testDirectoryPath,
+      getSchemaDatasourceProvider(schemaContext),
+      validatedConfig,
+    )
+    if (successMessage) {
+      process.stdout.write('\n' + successMessage + '\n')
+    }
+
+    await migrate.reset()
+    await afterForceResetCallback(suiteConfig.matrixOptions.provider as Providers, datasourceInfo.databaseUrl)
+
+    const migration = await migrate.push({
+      force: false,
+    })
+
+    if (migration.unexecutable && migration.unexecutable.length > 0) {
+      const messages: string[] = []
+      messages.push(`We found changes that cannot be executed:\n`)
+      for (const item of migration.unexecutable) {
+        messages.push(`  • ${item}`)
+      }
+      throw new Error(messages.join('\n'))
+    }
+
+    if (migration.warnings && migration.warnings.length > 0) {
+      throw new DbPushIgnoreWarningsWithFlagError()
+    }
+  } finally {
+    await migrate.stop()
+  }
+}
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -144,6 +229,7 @@ export async function setupTestSuiteDatabase({
   suiteMeta,
   suiteConfig,
   errors = [],
+  afterForceResetCallback,
   alterStatementCallback,
   cfWorkerBindings,
   datasourceInfo,
@@ -151,6 +237,7 @@ export async function setupTestSuiteDatabase({
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   errors?: Error[]
+  afterForceResetCallback?: (provider: Providers, databaseUrl: string) => Promise<void>
   alterStatementCallback?: AlterStatementCallback
   cfWorkerBindings?: { [key: string]: unknown }
   datasourceInfo: DatasourceInfo
@@ -170,14 +257,24 @@ export async function setupTestSuiteDatabase({
       })
     } else {
       const dbPushParams = [] as string[]
+      const useReuseDatabase = process.env.TEST_REUSE_DATABASE === 'true'
 
-      // we reuse and clean the db when it is explicitly required
-      if (process.env.TEST_REUSE_DATABASE === 'true') {
+      if (useReuseDatabase) {
         dbPushParams.push('--force-reset')
       }
 
       const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
-      await DbPush.new().parse(dbPushParams, runtimeConfig, testDirectoryPath)
+      if (useReuseDatabase && afterForceResetCallback) {
+        await dbPushWithAfterForceReset({
+          runtimeConfig,
+          testDirectoryPath,
+          suiteConfig,
+          datasourceInfo,
+          afterForceResetCallback,
+        })
+      } else {
+        await DbPush.new().parse(dbPushParams, runtimeConfig, testDirectoryPath)
+      }
 
       if (
         suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -225,6 +322,7 @@ export async function setupTestSuiteDatabase({
         suiteMeta,
         suiteConfig,
         errors,
+        afterForceResetCallback: undefined,
         alterStatementCallback: undefined,
         cfWorkerBindings,
         datasourceInfo,
@@ -474,6 +572,7 @@ function getDbUrlFromFlavor(driverAdapterOrFlavor: `${AdapterProviders}` | undef
       // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
       // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
       .with(AdapterProviders.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+      .with(AdapterProviders.JS_PG_POSTGIS, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGIS_URI'))
       .with(AdapterProviders.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
       .with(AdapterProviders.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       .with(AdapterProviders.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))

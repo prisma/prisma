@@ -265,6 +265,37 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
   return selectionSet
 }
 
+const GEOMETRY_TYPES_WITH_COORDINATES = new Set([
+  'Point',
+  'LineString',
+  'Polygon',
+  'MultiPoint',
+  'MultiLineString',
+  'MultiPolygon',
+  'Geometry',
+])
+
+function isGeometry(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const v = value as Record<string, unknown>
+  if (typeof v.type !== 'string') {
+    return false
+  }
+
+  if (v.srid !== undefined && typeof v.srid !== 'number') {
+    return false
+  }
+
+  if (v.type === 'GeometryCollection') {
+    return Array.isArray(v.geometries)
+  }
+
+  return GEOMETRY_TYPES_WITH_COORDINATES.has(v.type) && Array.isArray(v.coordinates)
+}
+
 function serializeArgumentsValue(
   jsValue: Exclude<JsInputValue, undefined | Skip>,
   context: SerializeContext,
@@ -322,6 +353,10 @@ function serializeArgumentsValue(
 
   if (isDecimalJsLike(jsValue)) {
     return { $type: 'Decimal', value: jsValue.toFixed() }
+  }
+
+  if (isGeometry(jsValue)) {
+    return { $type: 'Geometry', value: jsValue }
   }
 
   if (isObjectEnumValue(jsValue)) {

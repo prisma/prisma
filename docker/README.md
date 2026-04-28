@@ -8,6 +8,12 @@ cd docker
 
 See [the Docker Compose configurations for our tests databases locally and also used by GitHub Actions in CI](./docker-compose.yml).
 
+For PostGIS tests, use the separate compose file:
+
+```sh
+docker compose -f postgis-test.yml up -d
+```
+
 ## Using `docker compose` for databases
 
 This is only intended to be run in a development environment where ports 3306 / default for MySQL - 5432 / default for PostgreSQL and 4306 custom port - MariaDB are free and not used.

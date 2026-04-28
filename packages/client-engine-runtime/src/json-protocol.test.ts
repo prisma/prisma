@@ -39,6 +39,12 @@ describe('deserializeJsonObject', () => {
     expect(value).toEqual({ foo: 123 })
   })
 
+  test('Geometry', () => {
+    const point = { type: 'Point', coordinates: [13.4, 52.5], srid: 4326 }
+    const value = deserializeJsonObject({ $type: 'Geometry', value: point })
+    expect(value).toEqual(point)
+  })
+
   test('object', () => {
     expect(
       deserializeJsonObject({

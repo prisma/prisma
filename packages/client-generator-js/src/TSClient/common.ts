@@ -195,6 +195,11 @@ export const prismaVersion: PrismaVersion
 
 
 export import Bytes = runtime.Bytes
+export import Point = runtime.Point
+export import LineString = runtime.LineString
+export import Polygon = runtime.Polygon
+export import Geometry = runtime.Geometry
+export import InputGeometry = runtime.InputGeometry
 export import JsonObject = runtime.JsonObject
 export import JsonArray = runtime.JsonArray
 export import JsonValue = runtime.JsonValue
