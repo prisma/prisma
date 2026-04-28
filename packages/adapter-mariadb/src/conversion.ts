@@ -180,6 +180,11 @@ export const typeCast: mariadb.TypeCastFunction = (field, next) => {
 function formatDateTime(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
   const ms = date.getUTCMilliseconds()
+  // The '+00:00' suffix tells MySQL/MariaDB that the value is UTC so that
+  // TIMESTAMP columns store the correct instant. The factory unconditionally sets
+  // timezone=+00:00 on the pool, so the server always interprets strings as UTC.
+  // DATETIME columns ignore timezone offsets.
+  // See: https://github.com/prisma/prisma/issues/29096
   return (
     pad(date.getUTCFullYear(), 4) +
     '-' +
@@ -192,7 +197,8 @@ function formatDateTime(date: Date): string {
     pad(date.getUTCMinutes()) +
     ':' +
     pad(date.getUTCSeconds()) +
-    (ms ? '.' + String(ms).padStart(3, '0') : '')
+    (ms ? '.' + String(ms).padStart(3, '0') : '') +
+    '+00:00'
   )
 }
 

@@ -228,6 +228,10 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
         if (!url.searchParams.has('prepareCacheLength')) {
           url.searchParams.set('prepareCacheLength', '0')
         }
+        // Always enforce UTC so TIMESTAMP strings returned with dateStrings:true are in UTC,
+        // which mapRow requires (it appends 'Z' to treat the string as UTC).
+        // See: https://github.com/prisma/prisma/issues/29096
+        url.searchParams.set('timezone', '+00:00')
         this.#config = rewriteConnectionString(url).toString()
       } catch (error) {
         debug('Error parsing connection string: %O', error)
@@ -236,11 +240,10 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
         this.#config = config
       }
     } else {
-      if (config.prepareCacheLength === undefined) {
-        this.#config = { ...config, prepareCacheLength: 0 }
-      } else {
-        this.#config = config
-      }
+      // Always enforce UTC so TIMESTAMP strings returned with dateStrings:true are in UTC,
+      // which mapRow requires. Placed after the spread so it cannot be overridden by config.
+      // See: https://github.com/prisma/prisma/issues/29096
+      this.#config = { ...config, timezone: '+00:00', prepareCacheLength: config.prepareCacheLength ?? 0 }
     }
     this.#options = options
   }

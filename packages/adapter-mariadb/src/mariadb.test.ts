@@ -20,8 +20,14 @@ describe('PrismaMariaDbAdapterFactory constructor', () => {
   })
 
   test.each([
-    { config: {}, expected: expect.objectContaining({ prepareCacheLength: 0 }) },
-    { config: 'mariadb://user:pass@localhost:3306/db', expected: expect.stringContaining('prepareCacheLength=0') },
+    {
+      config: {},
+      expected: expect.objectContaining({ prepareCacheLength: 0, timezone: '+00:00' }),
+    },
+    {
+      config: 'mariadb://user:pass@localhost:3306/db',
+      expected: expect.stringContaining('prepareCacheLength=0'),
+    },
   ])('should set prepareCacheLength to 0 when config has no prepareCacheLength', async ({ config, expected }) => {
     const mockCreatePool = vi.mocked(mariadb.createPool)
     mockCreatePool.mockReturnValue({
@@ -33,6 +39,69 @@ describe('PrismaMariaDbAdapterFactory constructor', () => {
     await factory.connect()
 
     expect(mockCreatePool).toHaveBeenCalledWith(expected)
+    mockCreatePool.mockClear()
+  })
+
+  test('forces timezone to +00:00 for object config to ensure UTC datetime strings', async () => {
+    const mockCreatePool = vi.mocked(mariadb.createPool)
+    mockCreatePool.mockReturnValue({
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+      end: vi.fn(),
+    } as unknown as mariadb.Pool)
+
+    const factory = new PrismaMariaDbAdapterFactory({ host: 'localhost', database: 'db' })
+    await factory.connect()
+
+    expect(mockCreatePool).toHaveBeenCalledWith(expect.objectContaining({ timezone: '+00:00' }))
+    mockCreatePool.mockClear()
+  })
+
+  test('forces timezone to +00:00 in connection string to ensure UTC datetime strings', async () => {
+    const mockCreatePool = vi.mocked(mariadb.createPool)
+    mockCreatePool.mockReturnValue({
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+      end: vi.fn(),
+    } as unknown as mariadb.Pool)
+
+    const factory = new PrismaMariaDbAdapterFactory('mariadb://user:pass@localhost:3306/db')
+    await factory.connect()
+
+    const calledWith = mockCreatePool.mock.calls[0][0] as string
+    expect(calledWith).toContain('timezone=')
+    expect(decodeURIComponent(calledWith)).toContain('timezone=+00:00')
+    mockCreatePool.mockClear()
+  })
+
+  test('overrides user-supplied timezone in connection string to enforce UTC', async () => {
+    // mapRow appends 'Z' assuming UTC, so we must always enforce timezone=+00:00 regardless
+    // of any value the user may have specified.
+    const mockCreatePool = vi.mocked(mariadb.createPool)
+    mockCreatePool.mockReturnValue({
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+      end: vi.fn(),
+    } as unknown as mariadb.Pool)
+
+    const factory = new PrismaMariaDbAdapterFactory('mariadb://user:pass@localhost:3306/db?timezone=%2B07%3A00')
+    await factory.connect()
+
+    const calledWith = mockCreatePool.mock.calls[0][0] as string
+    expect(decodeURIComponent(calledWith)).toContain('timezone=+00:00')
+    mockCreatePool.mockClear()
+  })
+
+  test('overrides user-supplied timezone in object config to enforce UTC', async () => {
+    // mapRow appends 'Z' assuming UTC, so timezone is always forced to +00:00 even when the
+    // caller explicitly sets a different value in the pool config.
+    const mockCreatePool = vi.mocked(mariadb.createPool)
+    mockCreatePool.mockReturnValue({
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+      end: vi.fn(),
+    } as unknown as mariadb.Pool)
+
+    const factory = new PrismaMariaDbAdapterFactory({ host: 'localhost', database: 'db', timezone: '+07:00' })
+    await factory.connect()
+
+    expect(mockCreatePool).toHaveBeenCalledWith(expect.objectContaining({ timezone: '+00:00' }))
     mockCreatePool.mockClear()
   })
 
