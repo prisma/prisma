@@ -33,6 +33,7 @@ const ArrayColumnType = {
   TIMESTAMP_ARRAY: 1115,
   TIMESTAMPTZ_ARRAY: 1185,
   TIME_ARRAY: 1183,
+  TIMETZ_ARRAY: 1270,
   UUID_ARRAY: 2951,
   VARBIT_ARRAY: 1563,
   VARCHAR_ARRAY: 1015,
@@ -188,6 +189,8 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case ScalarColumnType.TIME:
     case ScalarColumnType.TIMETZ:
       return ColumnTypeEnum.Time
+    case ArrayColumnType.TIMETZ_ARRAY:
+      return ColumnTypeEnum.TimeArray
     case ScalarColumnType.TIMESTAMP:
     case ScalarColumnType.TIMESTAMPTZ:
       return ColumnTypeEnum.DateTime
@@ -374,6 +377,7 @@ export const customParsers = {
   [ScalarColumnType.TIME]: normalize_time,
   [ArrayColumnType.TIME_ARRAY]: normalize_array(normalize_time),
   [ScalarColumnType.TIMETZ]: normalize_timez,
+  [ArrayColumnType.TIMETZ_ARRAY]: normalize_array(normalize_timez),
   [ScalarColumnType.DATE]: normalize_date,
   [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
   [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
@@ -433,6 +437,11 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
 function formatDateTime(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
   const ms = date.getUTCMilliseconds()
+  // The '+00:00' suffix tells PostgreSQL that the value is UTC.
+  // For TIMESTAMP WITHOUT TIME ZONE columns PostgreSQL silently ignores the offset,
+  // so this suffix is a safe no-op for those columns while being critical for TIMESTAMPTZ
+  // columns when the database server is not running in the UTC timezone.
+  // See: https://github.com/prisma/prisma/issues/28629
   return (
     pad(date.getUTCFullYear(), 4) +
     '-' +
@@ -445,7 +454,8 @@ function formatDateTime(date: Date): string {
     pad(date.getUTCMinutes()) +
     ':' +
     pad(date.getUTCSeconds()) +
-    (ms ? '.' + String(ms).padStart(3, '0') : '')
+    (ms ? '.' + String(ms).padStart(3, '0') : '') +
+    '+00:00'
   )
 }
 
