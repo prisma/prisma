@@ -4,7 +4,16 @@ import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-a
 const SQLITE_BUSY = 5
 const PRIMARY_ERROR_CODE_MASK = 0xff
 
+const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'])
+
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  // Socket errors must be checked before isDriverError because they satisfy the
+  // LibsqlError type shape (string code, string message, undefined rawCode) and
+  // would otherwise be misclassified as SQLite errors with extendedCode 1.
+  if (isSocketError(error)) {
+    return mapSocketError(error)
+  }
+
   if (isDriverError(error)) {
     return {
       originalCode: error.rawCode?.toString(),
@@ -84,4 +93,54 @@ function isDriverError(error: any): error is LibsqlError {
     typeof error.message === 'string' &&
     (typeof error.rawCode === 'number' || error.rawCode === undefined)
   )
+}
+
+type SocketError = {
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
+  message: string
+  address?: string | undefined
+  port?: number | undefined
+  hostname?: string | undefined
+}
+
+function isRawSocketError(error: any): error is SocketError {
+  return typeof error?.code === 'string' && SOCKET_ERRORS.has(error.code)
+}
+
+// Walk the error.cause chain to find a raw socket error at any nesting depth.
+// @libsql/client wraps socket errors (e.g. ECONNREFUSED) inside a LibsqlError
+// (e.g. HRANA_WEBSOCKET_ERROR) with the original error as `cause`, so a single-
+// level check is insufficient when wrapping depth increases.
+function findSocketError(error: any): SocketError | undefined {
+  let err = error
+  while (err != null) {
+    if (isRawSocketError(err)) return err
+    err = err.cause
+  }
+  return undefined
+}
+
+function isSocketError(error: any): boolean {
+  return findSocketError(error) !== undefined
+}
+
+function mapSocketError(error: any): MappedError {
+  const e = findSocketError(error)!
+  switch (e.code) {
+    case 'ENOTFOUND':
+    case 'ECONNREFUSED':
+      return {
+        kind: 'DatabaseNotReachable',
+        host: e.address ?? e.hostname,
+        port: e.port,
+      }
+    case 'ECONNRESET':
+      return {
+        kind: 'ConnectionClosed',
+      }
+    case 'ETIMEDOUT':
+      return {
+        kind: 'SocketTimeout',
+      }
+  }
 }
