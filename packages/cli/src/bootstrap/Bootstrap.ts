@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { type ChildProcess, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -14,12 +14,22 @@ import ora from 'ora'
 
 import { Generate } from '../Generate'
 import { Init } from '../Init'
-import { Link, type LinkResult } from '../postgres/link/Link'
+import { Link } from '../postgres/link/Link'
 import { isAlreadyLinked } from '../postgres/link/local-setup'
 import { LinkApiError, sanitizeErrorMessage } from '../postgres/link/management-api'
 import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
-import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
+import {
+  emitFlowCompleted,
+  emitFlowFailed,
+  emitFlowStarted,
+  emitStepCompleted,
+  emitStepFailed,
+  emitStepSkipped,
+  extractErrorClass,
+  recoveryHint,
+  type TelemetryContext,
+} from './telemetry'
 import {
   addDependencies,
   addDevDependencies,
@@ -30,26 +40,60 @@ import {
   promptTemplateSelection,
 } from './template-scaffold'
 
-/**
- * Locates the user's locally installed `prisma` binary in node_modules.
- * Returns the absolute path if found, null otherwise.
- */
 function findLocalPrismaBin(baseDir: string): string | null {
   const candidate = path.join(baseDir, 'node_modules', '.bin', 'prisma')
   return fs.existsSync(candidate) ? candidate : null
 }
 
+function resolveLocalPrismaVersion(baseDir: string): string | null {
+  try {
+    const pkgPath = path.join(baseDir, 'node_modules', 'prisma', 'package.json')
+    if (!fs.existsSync(pkgPath)) return null
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+    return pkg.version ?? null
+  } catch {
+    return null
+  }
+}
+
+interface SubprocessResult {
+  exitCode: number
+  stderr: string
+}
+
 /**
  * Runs a Prisma CLI command using the user's locally installed binary.
- * Uses execFileSync (no shell) to avoid shell injection risks.
- * Inherits stdio so the user sees real-time output from migrate/seed.
+ * Streams stdout/stderr to the terminal so the user sees real-time output,
+ * while also capturing stderr for telemetry and error classification.
  */
-function runLocalPrismaCommand(bin: string, args: string[], baseDir: string, extraEnv?: Record<string, string>): void {
-  execFileSync(bin, args, {
-    cwd: baseDir,
-    stdio: 'inherit',
-    env: { ...process.env, ...extraEnv },
-    shell: process.platform === 'win32',
+function runLocalPrismaCommand(
+  bin: string,
+  args: string[],
+  baseDir: string,
+  extraEnv?: Record<string, string>,
+): Promise<SubprocessResult> {
+  return new Promise((resolve, reject) => {
+    const stderrChunks: Buffer[] = []
+    const child: ChildProcess = spawn(bin, args, {
+      cwd: baseDir,
+      env: { ...process.env, ...extraEnv },
+      stdio: ['inherit', 'inherit', 'pipe'],
+      // nosemgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true
+      shell: process.platform === 'win32',
+    })
+
+    child.stderr?.on('data', (chunk: Buffer) => {
+      process.stderr.write(chunk)
+      stderrChunks.push(chunk)
+    })
+
+    child.on('error', (err) => reject(err))
+    child.on('close', (code) => {
+      resolve({
+        exitCode: code ?? 1,
+        stderr: Buffer.concat(stderrChunks).toString('utf-8'),
+      })
+    })
   })
 }
 
@@ -157,6 +201,8 @@ ${bold('Examples')}
       seed: 'not-applicable',
     }
 
+    const scriptedMode = Boolean(apiKey) && Boolean(databaseId)
+
     let distinctId: string
     try {
       distinctId = await checkpoint.getSignature()
@@ -166,41 +212,47 @@ ${bold('Examples')}
 
     const initialState = detectProjectState(baseDir)
 
-    const telemetryCtx = {
+    const telemetryCtx: TelemetryContext = {
       distinctId,
       databaseId,
-      linkResult: null as LinkResult | null,
+      linkResult: null,
       projectState: initialState,
+      isScriptedInvocation: scriptedMode,
+      baseDir,
     }
 
     await emitFlowStarted(telemetryCtx)
+
+    let failedStep: string | null = null
+    let failedStderr = ''
 
     try {
       let templateScaffolded = false
       const isEmptyProject = !initialState.hasSchemaFile && !initialState.hasPackageJson
 
-      // --- Step 1: Init or Template (mutually exclusive, only for from-scratch projects) ---
-      //
-      // When no schema exists, the user is starting from scratch. We either:
-      //   (a) scaffold a starter template from prisma-examples (replaces init), or
-      //   (b) run `prisma init` for a minimal empty setup (requires an existing package.json)
-      //
-      // Empty directories without a package.json need special handling: prisma init creates
-      // a prisma.config.ts that depends on `dotenv`, which can't be installed without a
-      // Node.js project. We surface this clearly and require either a template (which
-      // provides its own package.json) or manual project initialization first.
+      // --- Step 1: Init or Template ---
       if (!initialState.hasSchemaFile) {
         if (isEmptyProject) {
-          console.log(`\n${yellow('!')} No project found in this directory.`)
-          console.log(`  A ${bold('package.json')} is required for Prisma to work.`)
-          console.log(
-            `  Initialize one with: ${dim('npm init -y')}, ${dim('pnpm init')}, ${dim('yarn init')}, or ${dim('bun init')}\n`,
-          )
+          if (!scriptedMode) {
+            console.log(`\n${yellow('!')} No project found in this directory.`)
+            console.log(`  A ${bold('package.json')} is required for Prisma to work.`)
+            console.log(
+              `  Initialize one with: ${dim('npm init -y')}, ${dim('pnpm init')}, ${dim('yarn init')}, or ${dim('bun init')}\n`,
+            )
+          }
 
-          const useTemplate = templateName ?? (await this.askAboutTemplate())
+          let resolvedTemplate: string | null = templateName ?? null
+          if (!resolvedTemplate && scriptedMode) {
+            resolvedTemplate = 'nextjs'
+            console.log(
+              `\n${dim('ℹ')} Defaulting to ${bold('nextjs')} template — pass ${bold('--template <name>')} to override`,
+            )
+          } else if (!resolvedTemplate) {
+            resolvedTemplate = await this.askAboutTemplate()
+          }
 
-          if (useTemplate) {
-            await this.scaffoldTemplate(useTemplate, baseDir, steps, stepsCompleted, telemetryCtx)
+          if (resolvedTemplate) {
+            await this.scaffoldTemplate(resolvedTemplate, baseDir, steps, stepsCompleted, telemetryCtx)
             templateScaffolded = steps.template === 'completed'
             if (!templateScaffolded) {
               return new HelpError(
@@ -217,11 +269,23 @@ ${bold('Examples')}
           templateScaffolded = steps.template === 'completed'
           if (!templateScaffolded) {
             console.log(`${dim('  Falling back to prisma init...')}`)
-            await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
+            await this.runInit(
+              steps,
+              stepsCompleted,
+              telemetryCtx,
+              config,
+              scriptedMode || (await this.askAboutSampleModel()),
+            )
           }
         } else {
           steps.template = 'not-applicable'
-          await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
+          await this.runInit(
+            steps,
+            stepsCompleted,
+            telemetryCtx,
+            config,
+            scriptedMode || (await this.askAboutSampleModel()),
+          )
         }
       } else {
         steps.init = 'skipped'
@@ -229,83 +293,15 @@ ${bold('Examples')}
         await emitStepSkipped(telemetryCtx, 'init')
       }
 
-      // --- Step 2: Link ---
-      if (!force && isAlreadyLinked(baseDir)) {
-        console.log(`\n${green('✔')} Already linked to Prisma Postgres`)
-        if (databaseId) {
-          console.log(`  ${dim('Skipping link — use --force to relink to a different database')}`)
-        }
-        steps.link = 'skipped'
-        await emitStepSkipped(telemetryCtx, 'link')
-      } else {
-        console.log(`\n${bold('Linking to Prisma Postgres...')}`)
-        const linkStart = performance.now()
-
-        try {
-          const link = Link.new()
-          const linkResult = await link.link(apiKey, databaseId, baseDir, { force })
-
-          steps.link = 'completed'
-          stepsCompleted.push('link')
-          telemetryCtx.linkResult = linkResult
-          telemetryCtx.databaseId = linkResult.databaseId
-          await emitStepCompleted(telemetryCtx, 'link', performance.now() - linkStart)
-
-          console.log(`${green('✔')} Linked to database ${bold(linkResult.databaseId)}`)
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          await emitStepFailed(telemetryCtx, 'link', sanitizeErrorMessage(msg))
-          throw err
-        }
-      }
-
-      // --- Step 3: Install dependencies (template path only) ---
-      //
-      // Template projects include a package.json with all dependencies.
-      // Installing here brings the local `prisma` binary into node_modules,
-      // which is required for the migrate/generate/seed steps below.
-      if (templateScaffolded) {
-        const installSpinner = ora('Installing dependencies...').start()
-        try {
-          await installDependencies(baseDir)
-          installSpinner.succeed('Dependencies installed')
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
-          await emitStepFailed(telemetryCtx, 'install_deps', sanitizeErrorMessage(msg))
-          return new HelpError(
-            `\n${bold(red('!'))} Dependency installation failed. Please install dependencies manually and re-run ${bold('prisma bootstrap')}.`,
-          )
-        }
-      }
-
-      // Ensure DATABASE_URL is available for config loading and subprocesses.
-      // Read from the link result if we just linked, or from .env if already linked.
-      let databaseUrl = telemetryCtx.linkResult?.connectionString
-      if (!databaseUrl) {
-        const envPath = path.join(baseDir, '.env')
-        if (fs.existsSync(envPath)) {
-          const envContent = fs.readFileSync(envPath, 'utf-8')
-          const match = envContent.match(/^DATABASE_URL=["']?([^"'\n]+)["']?/m)
-          if (match) databaseUrl = match[1]
-        }
-      }
-      if (databaseUrl) {
-        process.env.DATABASE_URL = databaseUrl
-      }
-      const subprocessEnv: Record<string, string> = databaseUrl ? { DATABASE_URL: databaseUrl } : {}
-
-      // Re-detect project state after init/template + link may have changed files
+      // Re-detect project state after init/template may have changed files
       const updatedState = detectProjectState(baseDir)
 
-      // --- Deps gate: check if Prisma dependencies are available ---
+      // --- Deps gate (moved before link to prevent the dotenv landmine) ---
       //
-      // The generated prisma.config.ts imports dotenv/config, and migrate/generate
-      // shell out to the local prisma binary when a schema file exists. Both must
-      // be installed for subsequent steps to work.
-      //
-      // This runs BEFORE config reload — prisma.config.ts imports dotenv/config,
-      // so dotenv must be installed first or the config load will fail.
+      // prisma.config.ts imports dotenv/config, so dotenv must be installed
+      // before any step that loads the config. If deps aren't installed and
+      // link fails (auth error, network, Ctrl-C), re-running `prisma bootstrap`
+      // would crash at config load with "Cannot find module 'dotenv/config'".
       const missingDevDeps: string[] = []
       const missingDeps: string[] = []
       if (!templateScaffolded) {
@@ -354,10 +350,12 @@ ${bold('Examples')}
           return manualInstallAndReturn()
         }
 
-        const shouldInstall = await confirm({
-          message: `Install missing Prisma dependencies (${allMissing.join(', ')}) with ${pm}?`,
-          default: true,
-        })
+        const shouldInstall =
+          scriptedMode ||
+          (await confirm({
+            message: `Install missing Prisma dependencies (${allMissing.join(', ')}) with ${pm}?`,
+            default: true,
+          }))
 
         if (shouldInstall) {
           const installSpinner = ora(`Installing ${depsLabel}...`).start()
@@ -394,33 +392,99 @@ ${bold('Examples')}
         }
       }
 
+      // --- Step 2: Link ---
+      if (!force && isAlreadyLinked(baseDir)) {
+        console.log(`\n${green('✔')} Already linked to Prisma Postgres`)
+        if (databaseId) {
+          console.log(`  ${dim('Skipping link — use --force to relink to a different database')}`)
+        }
+        steps.link = 'skipped'
+        await emitStepSkipped(telemetryCtx, 'link')
+      } else {
+        console.log(`\n${bold('Linking to Prisma Postgres...')}`)
+        const linkStart = performance.now()
+
+        try {
+          const link = Link.new()
+          const linkResult = await link.link(apiKey, databaseId, baseDir, { force })
+
+          steps.link = 'completed'
+          stepsCompleted.push('link')
+          telemetryCtx.linkResult = linkResult
+          telemetryCtx.databaseId = linkResult.databaseId
+          await emitStepCompleted(telemetryCtx, 'link', performance.now() - linkStart)
+
+          console.log(`${green('✔')} Linked to database ${bold(linkResult.databaseId)}`)
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          await emitStepFailed(telemetryCtx, 'link', sanitizeErrorMessage(msg))
+          throw err
+        }
+      }
+
+      // --- Step 3: Install dependencies (template path only) ---
+      if (templateScaffolded) {
+        const installSpinner = ora('Installing dependencies...').start()
+        try {
+          await installDependencies(baseDir)
+          installSpinner.succeed('Dependencies installed')
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
+          await emitStepFailed(telemetryCtx, 'install_deps', sanitizeErrorMessage(msg))
+          return new HelpError(
+            `\n${bold(red('!'))} Dependency installation failed. Please install dependencies manually and re-run ${bold('prisma bootstrap')}.`,
+          )
+        }
+      }
+
+      // Ensure DATABASE_URL is available for config loading and subprocesses.
+      let databaseUrl = telemetryCtx.linkResult?.connectionString
+      if (!databaseUrl) {
+        const envPath = path.join(baseDir, '.env')
+        if (fs.existsSync(envPath)) {
+          const envContent = fs.readFileSync(envPath, 'utf-8')
+          const match = envContent.match(/^DATABASE_URL=["']?([^"'\n]+)["']?/m)
+          if (match) databaseUrl = match[1]
+        }
+      }
+      if (databaseUrl) {
+        process.env.DATABASE_URL = databaseUrl
+      }
+      const subprocessEnv: Record<string, string> = databaseUrl ? { DATABASE_URL: databaseUrl } : {}
+
       // --- Step 4: Migrate (if schema has models) ---
       //
-      // `link` is a Prisma Postgres platform concern — it always runs in-process because
-      // it uses the Management API shipped with this CLI version.
+      // When a local `prisma` binary exists, we shell out to it so that
+      // migrate/seed run with the user's own Prisma version. We only fall
+      // back to in-process execution for fresh projects where no local binary exists.
       //
-      // `migrate` and `seed` are ORM concerns that depend on the user's local Prisma setup.
-      // A user may run `npx prisma@latest bootstrap` on a project that has an older Prisma
-      // version installed locally (e.g., Prisma 6 with `url` in schema.prisma instead of
-      // prisma.config.ts). Running migrate in-process would force this CLI's engine version
-      // on their project, causing version mismatches or hard failures.
-      //
-      // When a local `prisma` binary exists in node_modules, we shell out to it so that
-      // migrate/seed run with the user's own Prisma version and configuration. We only fall
-      // back to in-process execution for fresh projects where `init` just scaffolded Prisma 7
-      // files and no local binary exists yet.
+      // Note: scripted mode skips bootstrap's own confirm() prompts but does NOT
+      // suppress prompts inside `prisma migrate dev` (e.g. drift-detection reset).
+      // Those are the sub-command's responsibility and surface as non-zero exits.
+      const finalState = detectProjectState(baseDir)
       const localPrismaBin = findLocalPrismaBin(baseDir)
       const useLocalBin = localPrismaBin !== null && (initialState.hasSchemaFile || templateScaffolded)
 
-      if (updatedState.hasModels) {
+      if (useLocalBin) {
+        const localVersion = resolveLocalPrismaVersion(baseDir)
+        if (localVersion) {
+          console.log(`\n${dim(`ℹ Using local Prisma ${localVersion} from ./node_modules`)}`)
+        }
+      }
+
+      if (finalState.hasModels) {
         const modelNames = getModelNames(baseDir)
         const modelCount = modelNames.length
         const modelSummary =
           modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
-        const shouldMigrate = await confirm({
-          message: `Apply${modelSummary} to database with prisma migrate dev?`,
-          default: true,
-        })
+
+        const shouldMigrate =
+          scriptedMode ||
+          (await confirm({
+            message: `Apply${modelSummary} to database with prisma migrate dev?`,
+            default: true,
+          }))
 
         if (shouldMigrate) {
           console.log(`\n${bold('Running migration...')}`)
@@ -428,13 +492,37 @@ ${bold('Examples')}
 
           try {
             if (useLocalBin && localPrismaBin) {
-              runLocalPrismaCommand(localPrismaBin, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
+              const result = await runLocalPrismaCommand(
+                localPrismaBin,
+                ['migrate', 'dev', '--name', 'init'],
+                baseDir,
+                subprocessEnv,
+              )
+              if (result.exitCode !== 0) {
+                steps.migrate = 'failed'
+                failedStep = 'migrate'
+                // Exit 130 (SIGINT) from migrate dev means its interactive
+                // reset prompt fired but received no input — a drift signal.
+                if (result.exitCode === 130) {
+                  failedStderr = 'Drift detected: ' + (result.stderr || 'migration history and database are out of sync')
+                } else {
+                  failedStderr = result.stderr
+                }
+                console.log(`${yellow('warn')} Migration failed (exit code ${result.exitCode})`)
+                await emitStepFailed(
+                  telemetryCtx,
+                  'migrate',
+                  failedStderr.slice(0, 500) || `exit code ${result.exitCode}`,
+                )
+              }
             } else {
               const migrateDev = MigrateDev.new()
               const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
 
               if (migrateResult instanceof Error) {
                 steps.migrate = 'failed'
+                failedStep = 'migrate'
+                failedStderr = migrateResult.message
                 console.log(`${yellow('warn')} Migration failed: ${sanitizeErrorMessage(migrateResult.message)}`)
                 await emitStepFailed(telemetryCtx, 'migrate', sanitizeErrorMessage(migrateResult.message))
               }
@@ -449,6 +537,8 @@ ${bold('Examples')}
             const msg = err instanceof Error ? err.message : String(err)
             console.log(`${yellow('warn')} Migration failed: ${sanitizeErrorMessage(msg)}`)
             steps.migrate = 'failed'
+            failedStep = 'migrate'
+            failedStderr = msg
             await emitStepFailed(telemetryCtx, 'migrate', sanitizeErrorMessage(msg))
           }
         } else {
@@ -458,25 +548,32 @@ ${bold('Examples')}
       }
 
       // --- Step 5: Generate ---
-      //
-      // Always run an explicit `generate` step. While `migrate dev` runs `generate`
-      // implicitly, when shelling out to the local binary the implicit generate may
-      // not produce output at the expected location (e.g., custom output paths in
-      // the schema). Running it explicitly ensures the Prisma Client is generated
-      // reliably regardless of how migrate was invoked.
-      {
+      if (!failedStep) {
         console.log(`\n${bold('Generating Prisma Client...')}`)
         const generateStart = performance.now()
 
         try {
           if (useLocalBin && localPrismaBin) {
-            runLocalPrismaCommand(localPrismaBin, ['generate'], baseDir, subprocessEnv)
+            const result = await runLocalPrismaCommand(localPrismaBin, ['generate'], baseDir, subprocessEnv)
+            if (result.exitCode !== 0) {
+              steps.generate = 'failed'
+              failedStep = 'generate'
+              failedStderr = result.stderr
+              console.log(`${yellow('warn')} Generate failed (exit code ${result.exitCode})`)
+              await emitStepFailed(
+                telemetryCtx,
+                'generate',
+                result.stderr.slice(0, 500) || `exit code ${result.exitCode}`,
+              )
+            }
           } else {
             const generate = Generate.new()
             const generateResult = await generate.parse([], activeConfig)
 
             if (generateResult instanceof Error) {
               steps.generate = 'failed'
+              failedStep = 'generate'
+              failedStderr = generateResult.message
               console.log(`${yellow('warn')} Generate failed: ${sanitizeErrorMessage(generateResult.message)}`)
               await emitStepFailed(telemetryCtx, 'generate', sanitizeErrorMessage(generateResult.message))
             }
@@ -491,19 +588,23 @@ ${bold('Examples')}
           const msg = err instanceof Error ? err.message : String(err)
           console.log(`${yellow('warn')} Generate failed: ${sanitizeErrorMessage(msg)}`)
           steps.generate = 'failed'
+          failedStep = 'generate'
+          failedStderr = msg
           await emitStepFailed(telemetryCtx, 'generate', sanitizeErrorMessage(msg))
         }
       }
 
       // --- Step 6: Seed (if seed script exists) ---
-      const finalState = detectProjectState(baseDir)
-      if (finalState.hasSeedScript) {
+      if (!failedStep && finalState.hasSeedScript) {
         const seedCmd = getSeedCommand(baseDir)
         const seedHint = seedCmd ? dim(` → ${seedCmd}`) : ''
-        const shouldSeed = await confirm({
-          message: `Seed the database?${seedHint}`,
-          default: true,
-        })
+
+        const shouldSeed =
+          scriptedMode ||
+          (await confirm({
+            message: `Seed the database?${seedHint}`,
+            default: true,
+          }))
 
         if (shouldSeed) {
           console.log(`\n${bold('Seeding database...')}`)
@@ -511,28 +612,64 @@ ${bold('Examples')}
 
           try {
             if (useLocalBin && localPrismaBin) {
-              runLocalPrismaCommand(localPrismaBin, ['db', 'seed'], baseDir, subprocessEnv)
+              const result = await runLocalPrismaCommand(localPrismaBin, ['db', 'seed'], baseDir, subprocessEnv)
+              if (result.exitCode !== 0) {
+                const seedErrorClass = extractErrorClass(result.stderr)
+                if (seedErrorClass === 'TSX_MISSING') {
+                  const pm = detectPackageManager(baseDir)
+                  console.log(
+                    `\n${yellow('⚠')} TypeScript seed script detected but ${bold('tsx')} is not installed.` +
+                      `\n  → Skipping seed. To run it later: ${bold(`${pm} add -D tsx`)} && ${bold('npx prisma db seed')}`,
+                  )
+                  steps.seed = 'skipped'
+                  await emitStepSkipped(telemetryCtx, 'seed')
+                } else {
+                  steps.seed = 'failed'
+                  failedStep = 'seed'
+                  failedStderr = result.stderr
+                  console.log(`${yellow('warn')} Seed failed (exit code ${result.exitCode})`)
+                  await emitStepFailed(
+                    telemetryCtx,
+                    'seed',
+                    result.stderr.slice(0, 500) || `exit code ${result.exitCode}`,
+                  )
+                }
+              }
             } else {
               const dbSeed = DbSeed.new()
               const seedResult = await dbSeed.parse([], activeConfig)
 
               if (seedResult instanceof Error) {
                 steps.seed = 'failed'
+                failedStep = 'seed'
+                failedStderr = seedResult.message
                 console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(seedResult.message)}`)
                 await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(seedResult.message))
               }
             }
 
-            if (steps.seed !== 'failed') {
+            if (steps.seed !== 'failed' && steps.seed !== 'skipped') {
               steps.seed = 'completed'
               stepsCompleted.push('seed')
               await emitStepCompleted(telemetryCtx, 'seed', performance.now() - seedStart)
             }
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err)
-            console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(msg)}`)
-            steps.seed = 'failed'
-            await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(msg))
+            if (extractErrorClass(msg) === 'TSX_MISSING') {
+              const pm = detectPackageManager(baseDir)
+              console.log(
+                `\n${yellow('⚠')} TypeScript seed script detected but ${bold('tsx')} is not installed.` +
+                  `\n  → Skipping seed. To run it later: ${bold(`${pm} add -D tsx`)} && ${bold('npx prisma db seed')}`,
+              )
+              steps.seed = 'skipped'
+              await emitStepSkipped(telemetryCtx, 'seed')
+            } else {
+              console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(msg)}`)
+              steps.seed = 'failed'
+              failedStep = 'seed'
+              failedStderr = msg
+              await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(msg))
+            }
           }
         } else {
           steps.seed = 'skipped'
@@ -540,14 +677,42 @@ ${bold('Examples')}
         }
       }
 
+      if (failedStep) {
+        const errorClass = extractErrorClass(failedStderr)
+        await emitFlowFailed(
+          telemetryCtx,
+          failedStep,
+          errorClass,
+          failedStderr,
+          stepsCompleted,
+          performance.now() - flowStart,
+        )
+        const pm = detectPackageManager(baseDir)
+        const hint = recoveryHint(errorClass, pm)
+        const hintLine = hint ? `\n  → ${hint}` : ''
+        return new HelpError(
+          `\n${bold(red('!'))} Bootstrap failed at ${bold(failedStep)} step.${hintLine}`,
+        )
+      }
+
+      await emitFlowCompleted(telemetryCtx, stepsCompleted, performance.now() - flowStart)
       return formatBootstrapOutput({
         databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
         isNewProject: !initialState.hasPackageJson,
         steps,
         hasModels: finalState.hasModels,
       })
-    } finally {
-      await emitFlowCompleted(telemetryCtx, stepsCompleted, performance.now() - flowStart)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      await emitFlowFailed(
+        telemetryCtx,
+        failedStep ?? 'unknown',
+        extractErrorClass(msg),
+        msg,
+        stepsCompleted,
+        performance.now() - flowStart,
+      )
+      throw err
     }
   }
 
@@ -573,12 +738,7 @@ ${bold('Examples')}
     baseDir: string,
     steps: BootstrapStepStatus,
     stepsCompleted: string[],
-    telemetryCtx: {
-      distinctId: string
-      databaseId: string | undefined
-      linkResult: LinkResult | null
-      projectState: ReturnType<typeof detectProjectState>
-    },
+    telemetryCtx: TelemetryContext,
   ): Promise<void> {
     const spinner = ora(`Downloading ${bold(templateName)} template...`).start()
     const stepStart = performance.now()
@@ -606,12 +766,7 @@ ${bold('Examples')}
   private async runInit(
     steps: BootstrapStepStatus,
     stepsCompleted: string[],
-    telemetryCtx: {
-      distinctId: string
-      databaseId: string | undefined
-      linkResult: LinkResult | null
-      projectState: ReturnType<typeof detectProjectState>
-    },
+    telemetryCtx: TelemetryContext,
     config: PrismaConfigInternal,
     withModel: boolean,
   ): Promise<void> {
