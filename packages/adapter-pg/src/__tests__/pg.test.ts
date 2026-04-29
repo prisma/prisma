@@ -165,6 +165,18 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
+  it('should extract schema from PoolConfig connectionString when not provided in options', async () => {
+    const factory = new PrismaPgAdapterFactory({
+      connectionString: 'postgresql://test:test@localhost:5432/test?schema=url_schema',
+    })
+    const adapter = await factory.connect()
+
+    expect(adapter.getConnectionInfo().schemaName).toBe('url_schema')
+    expect(adapter.underlyingDriver().options.options).toBe('-csearch_path=url_schema')
+
+    await adapter.dispose()
+  })
+
   it('should not set connection options when no schema is configured', async () => {
     const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test')
     const adapter = await factory.connect()

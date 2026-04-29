@@ -289,6 +289,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     private readonly options?: PrismaPgOptions,
   ) {
     let schema = this.options?.schema ?? null
+    let connectionString: string | undefined
 
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
@@ -296,14 +297,16 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     } else if (typeof poolOrConfig === 'string') {
       this.externalPool = null
       this.config = { connectionString: poolOrConfig }
-
-      if (!schema) {
-        schema = new URL(poolOrConfig).searchParams.get('schema')
-        if (schema) this.options = { ...options, schema }
-      }
+      connectionString = poolOrConfig
     } else {
       this.externalPool = null
       this.config = poolOrConfig
+      connectionString = poolOrConfig.connectionString
+    }
+
+    if (!schema && connectionString) {
+      schema = new URL(connectionString).searchParams.get('schema')
+      if (schema) this.options = { ...options, schema }
     }
 
     if (schema && !this.externalPool) {
