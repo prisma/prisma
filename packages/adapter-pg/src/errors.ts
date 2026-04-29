@@ -79,9 +79,17 @@ function mapDriverError(error: DatabaseError): MappedError {
         ?.match(/Key \(([^)]+)\)/)
         ?.at(1)
         ?.split(', ')
+      let constraint: { fields: string[] } | { index: string } | undefined
+
+      if (error.constraint) {
+        constraint = { index: error.constraint }
+      } else if (fields) {
+        constraint = { fields }
+      }
+
       return {
         kind: 'UniqueConstraintViolation',
-        constraint: fields !== undefined ? { fields } : undefined,
+        constraint,
       }
     }
     case '23502': {
