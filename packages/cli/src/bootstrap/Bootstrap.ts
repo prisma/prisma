@@ -27,6 +27,7 @@ import {
   emitStepFailed,
   emitStepSkipped,
   extractErrorClass,
+  recoveryHint,
   type TelemetryContext,
 } from './telemetry'
 import {
@@ -42,6 +43,17 @@ import {
 function findLocalPrismaBin(baseDir: string): string | null {
   const candidate = path.join(baseDir, 'node_modules', '.bin', 'prisma')
   return fs.existsSync(candidate) ? candidate : null
+}
+
+function resolveLocalPrismaVersion(baseDir: string): string | null {
+  try {
+    const pkgPath = path.join(baseDir, 'node_modules', 'prisma', 'package.json')
+    if (!fs.existsSync(pkgPath)) return null
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+    return pkg.version ?? null
+  } catch {
+    return null
+  }
 }
 
 interface SubprocessResult {
@@ -454,6 +466,13 @@ ${bold('Examples')}
       const localPrismaBin = findLocalPrismaBin(baseDir)
       const useLocalBin = localPrismaBin !== null && (initialState.hasSchemaFile || templateScaffolded)
 
+      if (useLocalBin) {
+        const localVersion = resolveLocalPrismaVersion(baseDir)
+        if (localVersion) {
+          console.log(`\n${dim(`ℹ Using local Prisma ${localVersion} from ./node_modules`)}`)
+        }
+      }
+
       if (finalState.hasModels) {
         const modelNames = getModelNames(baseDir)
         const modelCount = modelNames.length
@@ -482,12 +501,18 @@ ${bold('Examples')}
               if (result.exitCode !== 0) {
                 steps.migrate = 'failed'
                 failedStep = 'migrate'
-                failedStderr = result.stderr
+                // Exit 130 (SIGINT) from migrate dev means its interactive
+                // reset prompt fired but received no input — a drift signal.
+                if (result.exitCode === 130) {
+                  failedStderr = 'Drift detected: ' + (result.stderr || 'migration history and database are out of sync')
+                } else {
+                  failedStderr = result.stderr
+                }
                 console.log(`${yellow('warn')} Migration failed (exit code ${result.exitCode})`)
                 await emitStepFailed(
                   telemetryCtx,
                   'migrate',
-                  result.stderr.slice(0, 500) || `exit code ${result.exitCode}`,
+                  failedStderr.slice(0, 500) || `exit code ${result.exitCode}`,
                 )
               }
             } else {
@@ -589,15 +614,26 @@ ${bold('Examples')}
             if (useLocalBin && localPrismaBin) {
               const result = await runLocalPrismaCommand(localPrismaBin, ['db', 'seed'], baseDir, subprocessEnv)
               if (result.exitCode !== 0) {
-                steps.seed = 'failed'
-                failedStep = 'seed'
-                failedStderr = result.stderr
-                console.log(`${yellow('warn')} Seed failed (exit code ${result.exitCode})`)
-                await emitStepFailed(
-                  telemetryCtx,
-                  'seed',
-                  result.stderr.slice(0, 500) || `exit code ${result.exitCode}`,
-                )
+                const seedErrorClass = extractErrorClass(result.stderr)
+                if (seedErrorClass === 'TSX_MISSING') {
+                  const pm = detectPackageManager(baseDir)
+                  console.log(
+                    `\n${yellow('⚠')} TypeScript seed script detected but ${bold('tsx')} is not installed.` +
+                      `\n  → Skipping seed. To run it later: ${bold(`${pm} add -D tsx`)} && ${bold('npx prisma db seed')}`,
+                  )
+                  steps.seed = 'skipped'
+                  await emitStepSkipped(telemetryCtx, 'seed')
+                } else {
+                  steps.seed = 'failed'
+                  failedStep = 'seed'
+                  failedStderr = result.stderr
+                  console.log(`${yellow('warn')} Seed failed (exit code ${result.exitCode})`)
+                  await emitStepFailed(
+                    telemetryCtx,
+                    'seed',
+                    result.stderr.slice(0, 500) || `exit code ${result.exitCode}`,
+                  )
+                }
               }
             } else {
               const dbSeed = DbSeed.new()
@@ -612,18 +648,28 @@ ${bold('Examples')}
               }
             }
 
-            if (steps.seed !== 'failed') {
+            if (steps.seed !== 'failed' && steps.seed !== 'skipped') {
               steps.seed = 'completed'
               stepsCompleted.push('seed')
               await emitStepCompleted(telemetryCtx, 'seed', performance.now() - seedStart)
             }
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err)
-            console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(msg)}`)
-            steps.seed = 'failed'
-            failedStep = 'seed'
-            failedStderr = msg
-            await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(msg))
+            if (extractErrorClass(msg) === 'TSX_MISSING') {
+              const pm = detectPackageManager(baseDir)
+              console.log(
+                `\n${yellow('⚠')} TypeScript seed script detected but ${bold('tsx')} is not installed.` +
+                  `\n  → Skipping seed. To run it later: ${bold(`${pm} add -D tsx`)} && ${bold('npx prisma db seed')}`,
+              )
+              steps.seed = 'skipped'
+              await emitStepSkipped(telemetryCtx, 'seed')
+            } else {
+              console.log(`${yellow('warn')} Seed failed: ${sanitizeErrorMessage(msg)}`)
+              steps.seed = 'failed'
+              failedStep = 'seed'
+              failedStderr = msg
+              await emitStepFailed(telemetryCtx, 'seed', sanitizeErrorMessage(msg))
+            }
           }
         } else {
           steps.seed = 'skipped'
@@ -641,8 +687,11 @@ ${bold('Examples')}
           stepsCompleted,
           performance.now() - flowStart,
         )
+        const pm = detectPackageManager(baseDir)
+        const hint = recoveryHint(errorClass, pm)
+        const hintLine = hint ? `\n  → ${hint}` : ''
         return new HelpError(
-          `\n${bold(red('!'))} Bootstrap failed at ${bold(failedStep)} step. See the output above for details.`,
+          `\n${bold(red('!'))} Bootstrap failed at ${bold(failedStep)} step.${hintLine}`,
         )
       }
 

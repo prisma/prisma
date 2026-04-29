@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { bold } from 'kleur/colors'
+
 import type { LinkResult } from '../postgres/link/Link'
 import { PosthogEventCapture, PUBLIC_POSTHOG_BOOTSTRAP_ACTIVATION_PROJECT_KEY } from '../utils/nps/capture'
 import type { ProjectState } from './project-state'
@@ -95,18 +97,41 @@ export async function emitStepFailed(ctx: TelemetryContext, stepName: string, er
 }
 
 export function extractErrorClass(msg: string): string {
+  // More specific patterns first to avoid shadowing by broader ones.
+  if (msg.includes('tsx') && msg.includes('ENOENT')) return 'TSX_MISSING'
+  if (msg.includes('drift') || msg.includes('Drift detected')) return 'MIGRATION_DRIFT'
+  if (msg.includes('authenticate') || msg.includes('credentials') || msg.includes('Invalid credentials'))
+    return 'AUTH_INVALID'
+  if (msg.includes('schema') && msg.includes('validation')) return 'SCHEMA_VALIDATION'
   const prismaCode = msg.match(/P\d{4}/)?.[0]
   if (prismaCode) return prismaCode
   if (msg.includes('ENOENT')) return 'ENOENT'
   if (msg.includes('EACCES') || msg.includes('permission denied')) return 'PERMISSION_DENIED'
   if (msg.includes('ETIMEDOUT') || msg.includes('timeout') || msg.includes('ECONNREFUSED')) return 'NETWORK_UNREACHABLE'
   if (msg.includes('datasource')) return 'DATASOURCE_CONFIG'
-  if (msg.includes('authenticate') || msg.includes('credentials') || msg.includes('Invalid credentials'))
-    return 'AUTH_INVALID'
-  if (msg.includes('drift') || msg.includes('Drift detected')) return 'MIGRATION_DRIFT'
-  if (msg.includes('tsx') && msg.includes('ENOENT')) return 'TSX_MISSING'
-  if (msg.includes('schema') && msg.includes('validation')) return 'SCHEMA_VALIDATION'
   return 'UNKNOWN'
+}
+
+/** Maps a classified error to a short, actionable recovery suggestion. */
+export function recoveryHint(errorClass: string, pm: string): string | null {
+  switch (errorClass) {
+    case 'MIGRATION_DRIFT':
+      return `Migration drift detected — run ${bold('prisma migrate reset')} to realign, then rerun bootstrap.`
+    case 'TSX_MISSING':
+      return `TypeScript seed runner not found. Install it with ${bold(`${pm} add -D tsx`)} then run ${bold('npx prisma db seed')}.`
+    case 'AUTH_INVALID':
+      return `Check your API key or re-authenticate via ${bold('npx prisma platform auth login')}.`
+    case 'NETWORK_UNREACHABLE':
+      return 'Check your network connection and try again.'
+    case 'PERMISSION_DENIED':
+      return 'Check file/directory permissions and try again.'
+    case 'SCHEMA_VALIDATION':
+      return `Fix the schema errors above, then rerun ${bold('prisma bootstrap')}.`
+    case 'DATASOURCE_CONFIG':
+      return `Check your prisma.config.ts datasource configuration.`
+    default:
+      return null
+  }
 }
 
 export async function emitFlowFailed(
