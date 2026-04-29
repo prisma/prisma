@@ -33,11 +33,37 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle UniqueConstraintViolation (23505)', () => {
+  it('should handle UniqueConstraintViolation (23505) with detail fields', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)' }
     expect(convertDriverError(error)).toEqual({
       kind: 'UniqueConstraintViolation',
       constraint: { fields: ['id'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with constraint name', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', constraint: 'my_unique_idx' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'my_unique_idx' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with both constraint and detail', () => {
+    const error = {
+      code: '23505',
+      message: 'msg',
+      severity: 'ERROR',
+      detail: 'Key (user_id, account_id)',
+      constraint: 'partial_unique_idx',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'partial_unique_idx' },
       originalCode: error.code,
       originalMessage: error.message,
     })
