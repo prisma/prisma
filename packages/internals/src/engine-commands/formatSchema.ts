@@ -45,7 +45,9 @@ export async function formatSchema(
   const { formattedMultipleSchemas, lintDiagnostics } = handleFormatPanic(() => {
     // the only possible error here is a Rust panic
     const formattedMultipleSchemasRaw = formatWasm(JSON.stringify(schemas), documentFormattingParams)
-    const formattedMultipleSchemas = JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas
+    const formattedMultipleSchemas: MultipleSchemas = (JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas).map(
+      ([filename, content]) => [filename, content.replace(/\r\n/g, '\n')],
+    )
 
     const lintDiagnostics = lintSchema({ schemas: formattedMultipleSchemas })
     return { formattedMultipleSchemas, lintDiagnostics }
