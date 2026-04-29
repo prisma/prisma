@@ -278,6 +278,75 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   }
 }
 
+const PRISMA_POSTGRES_PROTOCOL = 'prisma+postgres:'
+
+/**
+ * Checks if the given connection string uses the `prisma+postgres://` protocol
+ * and points to a local development server (localhost, 127.0.0.1, or ::1).
+ */
+function isPrismaPostgresDevUrl(connectionString: string): boolean {
+  if (!connectionString.startsWith(`${PRISMA_POSTGRES_PROTOCOL}//`)) {
+    return false
+  }
+
+  try {
+    const url = new URL(connectionString)
+    const hostname = url.hostname
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * The contents of the JSON payload in the `api_key` query string parameter
+ * in local Prisma Postgres connection strings. The `api_key` is a
+ * base64url-encoded JSON object.
+ */
+interface LocalPpgApiKey {
+  databaseUrl: string
+  shadowDatabaseUrl: string
+}
+
+/**
+ * Transforms a local `prisma+postgres://` URL to a standard `postgres://` URL
+ * for direct TCP connection with the pg driver.
+ *
+ * The `api_key` parameter contains a base64url-encoded JSON object with the
+ * actual database connection string. This function decodes it and returns the
+ * embedded `databaseUrl`.
+ *
+ * Example: `prisma+postgres://localhost:51216/?api_key=<base64url-encoded JSON>`
+ * becomes: the `databaseUrl` value from the decoded JSON payload
+ */
+function transformPrismaPostgresToPgUrl(connectionString: string): string {
+  const url = new URL(connectionString)
+  const apiKey = url.searchParams.get('api_key')
+
+  if (apiKey) {
+    try {
+      const json = Buffer.from(apiKey, 'base64url').toString('utf-8')
+      const payload: LocalPpgApiKey = JSON.parse(json)
+      if (payload.databaseUrl) {
+        return payload.databaseUrl
+      }
+    } catch {
+      // If decoding fails, fall through to simple URL transformation
+    }
+  }
+
+  // Fallback: simple protocol replacement for URLs without a valid api_key payload
+  const transformedUrl = new URL(url.href.replace(PRISMA_POSTGRES_PROTOCOL, 'postgres:'))
+
+  if (!transformedUrl.pathname || transformedUrl.pathname === '/') {
+    transformedUrl.pathname = '/postgres'
+  }
+
+  transformedUrl.searchParams.delete('api_key')
+
+  return transformedUrl.href
+}
+
 export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
@@ -296,6 +365,22 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       this.config = { connectionString: poolOrConfig }
     } else {
       this.externalPool = null
+      // Transform prisma+postgres:// URLs for local development to standard postgres:// URLs
+      if (typeof poolOrConfig.connectionString === 'string') {
+        if (isPrismaPostgresDevUrl(poolOrConfig.connectionString)) {
+          poolOrConfig = {
+            ...poolOrConfig,
+            connectionString: transformPrismaPostgresToPgUrl(poolOrConfig.connectionString),
+          }
+        } else if (poolOrConfig.connectionString.startsWith(`${PRISMA_POSTGRES_PROTOCOL}//`)) {
+          // Remote prisma+postgres:// URLs (Accelerate) are not supported by adapter-pg
+          throw new Error(
+            `The "prisma+postgres://" protocol is not supported by @prisma/adapter-pg. ` +
+              `For remote Prisma Postgres (Accelerate), use @prisma/adapter-ppg or configure accelerateUrl in PrismaClient options. ` +
+              `For local development with "prisma dev", use the DATABASE_URL with a direct postgres:// connection string.`,
+          )
+        }
+      }
       this.config = poolOrConfig
     }
   }
