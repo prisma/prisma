@@ -7,6 +7,7 @@ import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
+import { resolveEnabledField } from '../get-generators/utils/isGeneratorEnabled'
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
@@ -120,6 +121,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
 
     for (const generator of data.generators) {
       await resolveBinaryTargets(generator)
+      resolveEnabledField(generator)
     }
 
     return Promise.resolve(data)
