@@ -534,10 +534,10 @@ describe('Bootstrap command — scripted mode (--api-key + --database)', () => {
   })
 
   test('defaults to nextjs template in empty dir when scripted', async () => {
-    const { confirm, select } = await import('@inquirer/prompts')
+    const { confirm, select: _select } = await import('@inquirer/prompts')
     vi.mocked(confirm).mockReset()
 
-    const { downloadAndExtractTemplate, installDependencies } = await import('../template-scaffold')
+    const { downloadAndExtractTemplate, installDependencies: _installDependencies } = await import('../template-scaffold')
 
     setupMockApiSuccess()
 

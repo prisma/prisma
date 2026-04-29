@@ -14,7 +14,7 @@ import ora from 'ora'
 
 import { Generate } from '../Generate'
 import { Init } from '../Init'
-import { Link, type LinkResult } from '../postgres/link/Link'
+import { Link } from '../postgres/link/Link'
 import { isAlreadyLinked } from '../postgres/link/local-setup'
 import { LinkApiError, sanitizeErrorMessage } from '../postgres/link/management-api'
 import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
@@ -62,13 +62,11 @@ function runLocalPrismaCommand(
 ): Promise<SubprocessResult> {
   return new Promise((resolve, reject) => {
     const stderrChunks: Buffer[] = []
-    // nosemgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true
-    // Windows requires shell=true to execute .cmd scripts in node_modules/.bin;
-    // both bin path and args are constructed internally, not from user input.
     const child: ChildProcess = spawn(bin, args, {
       cwd: baseDir,
       env: { ...process.env, ...extraEnv },
       stdio: ['inherit', 'inherit', 'pipe'],
+      // nosemgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true
       shell: process.platform === 'win32',
     })
 
