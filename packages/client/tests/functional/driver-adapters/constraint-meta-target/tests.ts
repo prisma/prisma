@@ -42,6 +42,7 @@ testMatrix.setupTestSuite(
   },
   {
     ...defaultTestSuiteOptions,
+    skipDefaultClientInstance: false,
     optOut: {
       from: [Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB, Providers.SQLITE],
       reason: 'SQLite does not surface constraint metadata via driver adapters',
