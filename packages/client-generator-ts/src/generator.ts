@@ -5,6 +5,7 @@ import { getTsconfig } from 'get-tsconfig'
 import { bold, dim, green } from 'kleur/colors'
 
 import { version as clientVersion } from '../package.json'
+import { findDenoConfigFromOutputDir } from './deno-config'
 import { inferImportFileExtension, parseGeneratedFileExtension, parseImportFileExtension } from './file-extensions'
 import { generateClient } from './generateClient'
 import { inferModuleFormat, parseModuleFormatFromUnknown } from './module-format'
@@ -46,6 +47,7 @@ export class PrismaClientTsGenerator implements Generator {
     const tsconfig = getTsconfig(outputDir)?.config
 
     const target = config.runtime !== undefined ? parseRuntimeTargetFromUnknown(config.runtime) : 'nodejs'
+    const hasDenoConfig = target === 'workerd' ? findDenoConfigFromOutputDir(outputDir) : false
 
     const generatedFileExtension =
       config.generatedFileExtension !== undefined ? parseGeneratedFileExtension(config.generatedFileExtension) : 'ts'
@@ -57,6 +59,7 @@ export class PrismaClientTsGenerator implements Generator {
             tsconfig,
             generatedFileExtension,
             target,
+            hasDenoConfig,
           })
 
     const moduleFormat =
