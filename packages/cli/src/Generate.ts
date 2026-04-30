@@ -13,6 +13,7 @@ import {
   getGeneratorSuccessMessage,
   getSchemaWithPath,
   HelpError,
+  isCurrentBinInstalledGlobally,
   isError,
   logger,
   missingGeneratorMessage,
@@ -30,8 +31,15 @@ import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
+import {
+  checkVersionMismatch,
+  formatVersionMismatchWarning,
+  getLocalPrismaVersion,
+  type VersionMismatchOptions,
+} from './utils/version-mismatch-checker'
 
 const pkg = eval(`require('../package.json')`)
 
@@ -40,9 +48,11 @@ const pkg = eval(`require('../package.json')`)
  */
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
+  versionMismatchOptions?: VersionMismatchOptions
 
-  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey, versionMismatchOptions?: VersionMismatchOptions) {
     this.surveyHandler = surveyHandler
+    this.versionMismatchOptions = versionMismatchOptions
   }
 
   public static new(): Generate {
@@ -135,6 +145,16 @@ ${bold('Examples')}
     }
 
     const watchMode = args['--watch'] || false
+
+    // Check for version mismatch between global prisma and local packages
+    const versionMismatchOptions = this.versionMismatchOptions ?? {
+      isGlobalInstall: isCurrentBinInstalledGlobally,
+      getClientVersion: getInstalledPrismaClientVersion,
+      getLocalPrismaVersion: getLocalPrismaVersion,
+    }
+
+    const mismatchResult = await checkVersionMismatch(String(pkg.version), versionMismatchOptions)
+    const versionMismatchWarning = mismatchResult ? formatVersionMismatchWarning(mismatchResult) : null
 
     const schemaResult = await getSchemaWithPath({
       schemaPath: createSchemaPathInput({
@@ -252,17 +272,27 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
+        // Add version mismatch warning from global/local check
+        const globalLocalMismatchWarning =
+          versionMismatchWarning && logger.should.warn() ? `\n\n${versionMismatchWarning}` : ''
+
         if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}${globalLocalMismatchWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${breakingChangesStr}${versionsWarning}`
+${breakingChangesStr}${versionsWarning}${globalLocalMismatchWarning}`
         }
+      } else if (versionMismatchWarning && logger.should.warn()) {
+        // Show version mismatch warning even without js client
+        hint = `\n\n${versionMismatchWarning}`
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      // Append hint when: no errors AND (has JS client OR should show version mismatch warning)
+      const shouldAppendHint =
+        !this.hasGeneratorErrored && (hasJsClient || Boolean(versionMismatchWarning && logger.should.warn()))
+      const message = '\n' + this.logText + (shouldAppendHint ? hint : '')
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
