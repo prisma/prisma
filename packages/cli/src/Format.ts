@@ -103,7 +103,10 @@ Or specify a Prisma schema path
     }
 
     for (const [filename, data] of formattedDatamodel) {
-      await fs.writeFile(filename, data)
+      // Normalize line endings to platform-specific format
+      // On Windows, ensure we don't add extra CRLF (issue #8548)
+      const normalizedData = data.replace(/\r\n/g, '\n').replace(/\n/g, require('node:os').EOL)
+      await fs.writeFile(filename, normalizedData)
     }
 
     const after = Math.round(performance.now())
