@@ -158,7 +158,7 @@ describe('Studio MySQL URL compatibility', () => {
     const passedUrl = new URL(createPoolMock.mock.calls[0][0])
 
     expect(passedUrl.searchParams.get('sslaccept')).toBeNull()
-    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":false}')
+    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":true}')
   })
 })
 
@@ -424,10 +424,15 @@ describe('Studio BFF', () => {
 })
 
 async function getBffResponse(body: unknown): Promise<Response> {
+  const htmlResponse = await getServerResponse('http://localhost:5555/')
+  const setCookieHeader = htmlResponse.headers.get('set-cookie') ?? ''
+  const tokenMatch = setCookieHeader.match(/__prisma_studio_token=([^;]+)/)
+  const tokenCookie = tokenMatch ? `__prisma_studio_token=${tokenMatch[1]}` : ''
   return getServerResponse('http://localhost:5555/bff', {
     body: JSON.stringify(body),
     headers: {
       'content-type': 'application/json',
+      'cookie': tokenCookie,
     },
     method: 'POST',
   })
