@@ -112,7 +112,7 @@ describe('Studio MySQL URL compatibility', () => {
     const passedUrl = new URL(createPoolMock.mock.calls[0][0])
 
     expect(passedUrl.searchParams.get('sslaccept')).toBeNull()
-    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":false}')
+    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":true}')
   })
 
   test('maps connection_limit to mysql2 connectionLimit', async () => {
@@ -158,7 +158,7 @@ describe('Studio MySQL URL compatibility', () => {
     const passedUrl = new URL(createPoolMock.mock.calls[0][0])
 
     expect(passedUrl.searchParams.get('sslaccept')).toBeNull()
-    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":false}')
+    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":true}')
   })
 })
 
