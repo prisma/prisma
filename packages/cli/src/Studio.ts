@@ -415,8 +415,9 @@ function normalizeMySQLConnectionString(connectionString: string): string {
 function prismaSslAcceptToMySQL2Ssl(sslAccept: string): { rejectUnauthorized: boolean } {
   switch (sslAccept) {
     case 'strict':
-    case 'accept_invalid_certs':
       return { rejectUnauthorized: true }
+    case 'accept_invalid_certs':
+      return { rejectUnauthorized: false }
     default:
       throw new Error(
         `Unknown Prisma MySQL sslaccept value "${sslAccept}". Supported values are "strict" and "accept_invalid_certs".`,
