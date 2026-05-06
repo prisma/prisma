@@ -112,7 +112,7 @@ describe('Studio MySQL URL compatibility', () => {
     const passedUrl = new URL(createPoolMock.mock.calls[0][0])
 
     expect(passedUrl.searchParams.get('sslaccept')).toBeNull()
-    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":true}')
+    expect(passedUrl.searchParams.get('ssl')).toBe('{"rejectUnauthorized":false}')
   })
 
   test('maps connection_limit to mysql2 connectionLimit', async () => {
@@ -421,13 +421,35 @@ describe('Studio BFF', () => {
 
     expect(response.status).toBe(404)
   })
+  test('rejects POST /bff without a valid session cookie with 401', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getServerResponse('http://localhost:5555/bff', {
+      body: JSON.stringify({ procedure: 'sql-lint', sql: 'select 1', schemaVersion: 'v1' }),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(401)
+    expect(await response.text()).toBe('Unauthorized')
+  })
+
 })
 
 async function getBffResponse(body: unknown): Promise<Response> {
+  const htmlResponse = await getServerResponse('http://localhost:5555/')
+  const setCookieHeader = htmlResponse.headers.get('set-cookie') ?? ''
+  const tokenMatch = setCookieHeader.match(/__prisma_studio_token=([^;]+)/)
+  const tokenCookie = tokenMatch ? `__prisma_studio_token=${tokenMatch[1]}` : ''
   return getServerResponse('http://localhost:5555/bff', {
     body: JSON.stringify(body),
     headers: {
       'content-type': 'application/json',
+      'cookie': tokenCookie,
     },
     method: 'POST',
   })
