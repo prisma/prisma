@@ -97,6 +97,18 @@ export type Field = ReadonlyDeep<{
   relationOnDelete?: string
   relationOnUpdate?: string
   relationName?: string
+  /**
+   * If true, this is a polymorphic relation (e.g., `item Post | Comment`)
+   */
+  isPolymorphic?: boolean
+  /**
+   * The target models for a polymorphic relation (e.g., ["Post", "Comment"])
+   */
+  relationTypes?: string[]
+  /**
+   * The field name that stores the discriminator value (e.g., "itemType")
+   */
+  relationDiscriminator?: string
   documentation?: string
 }>
 
@@ -194,6 +206,18 @@ export type SchemaField = ReadonlyDeep<{
   args: SchemaArg[]
   deprecation?: Deprecation
   documentation?: string
+  /**
+   * If true, this is a polymorphic relation (e.g., `item Post | Comment`)
+   */
+  isPolymorphic?: boolean
+  /**
+   * The target models for a polymorphic relation (e.g., ["Post", "Comment"])
+   */
+  relationTypes?: string[]
+  /**
+   * The field name that stores the discriminator value (e.g., "itemType")
+   */
+  relationDiscriminator?: string
 }>
 
 export type OutputTypeRef = TypeRef<'scalar' | 'outputObjectTypes' | 'enumTypes'>

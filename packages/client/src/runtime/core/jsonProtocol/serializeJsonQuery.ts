@@ -178,6 +178,28 @@ function createImplicitSelection(
   return selectionSet
 }
 
+function transformPolymorphicOn(
+  value: Record<string, unknown>,
+  field: { isPolymorphic?: boolean; relationDiscriminator?: string },
+): Record<string, unknown> {
+  if (!field.isPolymorphic || !('on' in value)) {
+    return value
+  }
+  const onValue = value.on as string | undefined
+  if (onValue === undefined || !field.relationDiscriminator) {
+    return value
+  }
+  const result = { ...value }
+  delete result.on
+  const existingWhere = result.where as Record<string, unknown> | undefined
+  const discriminatorFilter = { [field.relationDiscriminator]: onValue }
+  // Use AND to safely compose with any existing where (including AND/OR/NOT)
+  result.where = existingWhere
+    ? { AND: [existingWhere, discriminatorFilter] }
+    : discriminatorFilter
+  return result
+}
+
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
     if (isSkip(value)) {
@@ -199,7 +221,12 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
-      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
+      const processedValue = transformPolymorphicOn(value === true ? {} : value, field)
+      const polymorphicModel = field.isPolymorphic && typeof value === 'object' && value !== null && 'on' in value
+        ? (value as Record<string, unknown>).on as string
+        : undefined
+      const resolvedContext = polymorphicModel ? context.nestSelection(key, polymorphicModel) : nestedContext
+      selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, resolvedContext)
       continue
     }
 
@@ -260,7 +287,12 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       }
       continue
     }
-    selectionSet[key] = serializeFieldSelection(value, nestedContext)
+    const processedValue = field ? transformPolymorphicOn(value, field) : value
+    const polymorphicModel = field?.isPolymorphic && typeof value === 'object' && value !== null && 'on' in value
+      ? (value as Record<string, unknown>).on as string
+      : undefined
+    const resolvedContext = polymorphicModel ? context.nestSelection(key, polymorphicModel) : nestedContext
+    selectionSet[key] = serializeFieldSelection(processedValue as JsArgs, resolvedContext)
   }
   return selectionSet
 }
@@ -516,9 +548,9 @@ class SerializeContext {
     return this.modelOrType?.fields.find((field) => field.name === name)
   }
 
-  nestSelection(fieldName: string) {
+  nestSelection(fieldName: string, modelNameOverride?: string) {
     const field = this.findField(fieldName)
-    const modelName = field?.kind === 'object' ? field.type : undefined
+    const modelName = modelNameOverride ?? (field?.kind === 'object' ? field.type : undefined)
 
     return new SerializeContext({
       ...this.params,

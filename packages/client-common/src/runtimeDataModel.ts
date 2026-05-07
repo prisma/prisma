@@ -11,7 +11,10 @@ export type RuntimeDataModel = {
 
 export type PrunedRuntimeModel = {
   readonly dbName: RuntimeModel['dbName']
-  readonly fields: Pick<RuntimeModel['fields'][number], 'name' | 'kind' | 'type' | 'relationName' | 'dbName'>[]
+  readonly fields: Pick<
+    RuntimeModel['fields'][number],
+    'name' | 'kind' | 'type' | 'relationName' | 'dbName' | 'isPolymorphic' | 'relationTypes' | 'relationDiscriminator'
+  >[]
 }
 
 export type PrunedRuntimeDataModel = {
@@ -39,8 +42,8 @@ export function pruneRuntimeDataModel({ models }: RuntimeDataModel) {
   for (const modelName of Object.keys(models)) {
     prunedModels[modelName] = { fields: [], dbName: models[modelName].dbName }
 
-    for (const { name, kind, type, relationName, dbName } of models[modelName].fields) {
-      prunedModels[modelName].fields.push({ name, kind, type, relationName, dbName })
+    for (const { name, kind, type, relationName, dbName, isPolymorphic, relationTypes, relationDiscriminator } of models[modelName].fields) {
+      prunedModels[modelName].fields.push({ name, kind, type, relationName, dbName, isPolymorphic, relationTypes, relationDiscriminator })
     }
   }
 
