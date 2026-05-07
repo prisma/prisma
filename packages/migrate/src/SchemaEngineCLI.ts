@@ -386,9 +386,7 @@ export class SchemaEngineCLI implements SchemaEngine {
           args.push(...schemaArgs)
         }
 
-        if (this.datasource) {
-          args.push(...['--datasource', JSON.stringify(this.datasource)])
-        }
+        args.push(...['--datasource', JSON.stringify(this.datasource ?? {})])
 
         if (
           this.enabledPreviewFeatures &&

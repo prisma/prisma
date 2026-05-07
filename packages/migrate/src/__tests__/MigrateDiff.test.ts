@@ -239,6 +239,23 @@ describe('migrate diff', () => {
   })
 
   describe('sqlite', () => {
+    it('should diff --from-empty --to-schema=./prisma/schema.prisma without datasource in Prisma config', async () => {
+      ctx.fixture('schema-only-sqlite-no-config')
+
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema=./prisma/schema.prisma'],
+        await ctx.config(),
+        ctx.configDir(),
+      )
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "
+        [+] Added tables
+          - Blog
+        "
+      `)
+    })
+
     it('should diff --from-empty --to-schema=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-sqlite')
 
