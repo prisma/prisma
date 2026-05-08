@@ -29,7 +29,7 @@ describe('update available message', () => {
           outdated: true,
         },
       })
-      const message = ctx.mocked['console.error'].mock.calls[0][0]
+      const message = ctx.mocked['console.log'].mock.calls[0][0]
       expect(message).toContain('npm i --save-dev prisma@dev')
       expect(message).toContain('npm i @prisma/client@dev')
       expect(message).toMatchSnapshot()
@@ -47,7 +47,7 @@ describe('update available message', () => {
           outdated: true,
         },
       })
-      const message = ctx.mocked['console.error'].mock.calls[0][0]
+      const message = ctx.mocked['console.log'].mock.calls[0][0]
       expect(message).toContain('This is a major update')
       expect(message).toContain('npm i --save-dev prisma@dev')
       expect(message).toContain('npm i @prisma/client@dev')
@@ -66,7 +66,7 @@ describe('update available message', () => {
           outdated: true,
         },
       })
-      const message = ctx.mocked['console.error'].mock.calls[0][0]
+      const message = ctx.mocked['console.log'].mock.calls[0][0]
       expect(message).toContain('npm i --save-dev prisma@latest')
       expect(message).toContain('npm i @prisma/client@latest')
       expect(message).toMatchSnapshot()
@@ -84,7 +84,7 @@ describe('update available message', () => {
           outdated: true,
         },
       })
-      const message = ctx.mocked['console.error'].mock.calls[0][0]
+      const message = ctx.mocked['console.log'].mock.calls[0][0]
       expect(message).toContain('This is a major update')
       expect(message).toContain('npm i --save-dev prisma@latest')
       expect(message).toContain('npm i @prisma/client@latest')
@@ -103,7 +103,6 @@ describe('update available message', () => {
     expect(ctx.mocked['console.log']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.info']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.warn']).not.toHaveBeenCalled()
-    expect(ctx.mocked['console.error']).not.toHaveBeenCalled()
   })
 
   it('prints nothing if the checkResult.status is waiting', () => {
@@ -115,7 +114,6 @@ describe('update available message', () => {
     expect(ctx.mocked['console.log']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.info']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.warn']).not.toHaveBeenCalled()
-    expect(ctx.mocked['console.error']).not.toHaveBeenCalled()
   })
 
   it('prints nothing if the checkResult.status is disabled', () => {
@@ -125,7 +123,6 @@ describe('update available message', () => {
     expect(ctx.mocked['console.log']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.info']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.warn']).not.toHaveBeenCalled()
-    expect(ctx.mocked['console.error']).not.toHaveBeenCalled()
   })
 
   it('prints nothing if the checkResult.status is reminded', () => {
@@ -137,7 +134,6 @@ describe('update available message', () => {
     expect(ctx.mocked['console.log']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.info']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.warn']).not.toHaveBeenCalled()
-    expect(ctx.mocked['console.error']).not.toHaveBeenCalled()
   })
 
   it('prints nothing if process.env.PRISMA_HIDE_UPDATE_MESSAGE is set', () => {
@@ -156,6 +152,5 @@ describe('update available message', () => {
     expect(ctx.mocked['console.log']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.info']).not.toHaveBeenCalled()
     expect(ctx.mocked['console.warn']).not.toHaveBeenCalled()
-    expect(ctx.mocked['console.error']).not.toHaveBeenCalled()
   })
 })
