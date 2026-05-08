@@ -45,7 +45,7 @@ export function printUpdateMessage(checkResult: Check.Result | 0 | void): void {
     horizontalPadding: 2,
   })
 
-  console.error(boxedMessage)
+  console.log(boxedMessage)
 }
 
 function makeInstallCommand(
