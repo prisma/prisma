@@ -85,25 +85,50 @@ ${bold('Examples')}
   private logText = ''
   private hasGeneratorErrored = false
 
-  private runGenerate = simpleDebounce(async ({ generators }: { generators: Generator[] }) => {
-    const message: string[] = []
+  private runGenerate = simpleDebounce(
+    async ({
+      generators,
+      jsClient,
+      showHint,
+    }: {
+      generators: Generator[]
+      jsClient?: Generator
+      showHint: boolean
+    }) => {
+      const messages: string[] = []
+      const hints: Map<Generator, string> = new Map()
 
-    for (const generator of generators) {
-      const before = Math.round(performance.now())
-      try {
-        await generator.generate()
-        const after = Math.round(performance.now())
-        message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
-        generator.stop()
-      } catch (err) {
-        this.hasGeneratorErrored = true
-        generator.stop()
-        message.push(`${err.message}\n\n`)
+      if (jsClient && showHint) {
+        hints.set(jsClient, '\nStart by importing your Prisma Client (See: https://pris.ly/d/importing-client)\n')
       }
-    }
 
-    this.logText += message.join('\n')
-  })
+      for (const generator of generators) {
+        const before = Math.round(performance.now())
+        try {
+          await generator.generate()
+          const after = Math.round(performance.now())
+          messages.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
+          generator.stop()
+        } catch (err) {
+          this.hasGeneratorErrored = true
+          generator.stop()
+          const errorMessage = err instanceof Error ? err.message : String(err)
+          messages.push(`${errorMessage}\n\n`)
+        }
+      }
+
+      if (!this.hasGeneratorErrored) {
+        for (let i = 0; i < generators.length; i++) {
+          const hint = hints.get(generators[i])
+          if (hint) {
+            messages[i] += hint
+          }
+        }
+      }
+
+      this.logText += messages.join('\n')
+    },
+  )
 
   public async parse(
     argv: string[],
@@ -135,6 +160,7 @@ ${bold('Examples')}
     }
 
     const watchMode = args['--watch'] || false
+    const hideHints = args['--no-hints'] ?? false
 
     const schemaResult = await getSchemaWithPath({
       schemaPath: createSchemaPathInput({
@@ -151,6 +177,7 @@ ${bold('Examples')}
 
     // TODO Extract logic from here
     let hasJsClient = false
+    let jsClient: Generator | undefined
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
 
@@ -179,7 +206,7 @@ ${bold('Examples')}
         this.logText += `${missingGeneratorMessage}\n`
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
-        const jsClient = generators.find(
+        jsClient = generators.find(
           (g) => g.options && parseEnvValue(g.options.generator.provider) === BuiltInProvider.PrismaClientJs,
         )
 
@@ -188,7 +215,7 @@ ${bold('Examples')}
         hasJsClient = Boolean(jsClient)
 
         try {
-          await this.runGenerate({ generators })
+          await this.runGenerate({ generators, jsClient, showHint: !hideHints && !watchMode })
         } catch (errRunGenerate) {
           this.logText += `${errRunGenerate.message}\n\n`
         }
@@ -226,21 +253,10 @@ Please run \`prisma generate\` manually.`
 
     const watchingText = `\n${green('Watching...')} ${dim(schemaContext.schemaRootDir)}\n`
 
-    const hideHints = args['--no-hints'] ?? false
-
     if (!watchMode) {
-      const prismaClientJSGenerator = generators?.find(
-        ({ options }) =>
-          options?.generator.provider && parseEnvValue(options?.generator.provider) === BuiltInProvider.PrismaClientJs,
-      )
-
-      let hint = ''
-      if (prismaClientJSGenerator) {
-        const breakingChangesStr = printBreakingChangesMessage
-          ? `
-
-${breakingChangesMessage}`
-          : ''
+      let globalWarnings = ''
+      if (jsClient) {
+        const breakingChangesStr = printBreakingChangesMessage ? `\n\n${breakingChangesMessage}` : ''
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
@@ -252,17 +268,10 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}`
-        } else {
-          hint = `
-Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-${breakingChangesStr}${versionsWarning}`
-        }
+        globalWarnings = `${breakingChangesStr}${versionsWarning}`
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? globalWarnings : '')
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
@@ -318,6 +327,7 @@ ${breakingChangesStr}${versionsWarning}`
             try {
               await this.runGenerate({
                 generators: generatorsWatch,
+                showHint: false,
               })
               logUpdate(watchingText + '\n' + this.logText)
             } catch (errRunGenerate) {
