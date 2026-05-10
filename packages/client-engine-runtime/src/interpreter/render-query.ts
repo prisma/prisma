@@ -223,8 +223,11 @@ function* pairFragmentsWithParams<Types>(
           throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
         }
 
-        const value = params[index]
-        yield { ...fragment, value: Array.isArray(value) ? value : [value], argType: argTypes?.[index] }
+        const rawValue = params[index]
+        const value = Array.isArray(rawValue) ? rawValue : [rawValue]
+        // Deduplicate values to avoid duplicate entries in IN clauses (#29478)
+        const deduplicated = Array.from(new Set(value))
+        yield { ...fragment, value: deduplicated, argType: argTypes?.[index] }
         index++
         break
       }

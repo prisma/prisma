@@ -561,3 +561,32 @@ test('executes a generator', () => {
     },
   ])
 })
+
+test('deduplicates duplicate values in IN clause (#29478)', () => {
+  expect(
+    renderQuery(
+      {
+        type: 'templateSql',
+        fragments: [
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
+          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
+        ],
+        placeholderFormat: {
+          prefix: '$',
+          hasNumbering: true,
+        } satisfies PlaceholderFormat,
+        args: [[1, 1, 1, 2, 2, 3, 3, 3]],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+        chunkable: true,
+      } satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3)',
+      args: [1, 2, 3],
+      argTypes: Array.from({ length: 3 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+    },
+  ])
+})
