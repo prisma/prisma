@@ -32,6 +32,7 @@ import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
+import { getVersionMismatchWarning, type VersionMismatchWarningOptions } from './utils/version-mismatch-warning'
 
 const pkg = eval(`require('../package.json')`)
 
@@ -40,9 +41,14 @@ const pkg = eval(`require('../package.json')`)
  */
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
+  versionMismatchWarningOptions?: VersionMismatchWarningOptions
 
-  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+  constructor(
+    surveyHandler: () => Promise<void> = handleNpsSurvey,
+    versionMismatchWarningOptions?: VersionMismatchWarningOptions,
+  ) {
     this.surveyHandler = surveyHandler
+    this.versionMismatchWarningOptions = versionMismatchWarningOptions
   }
 
   public static new(): Generate {
@@ -229,6 +235,15 @@ Please run \`prisma generate\` manually.`
     const hideHints = args['--no-hints'] ?? false
 
     if (!watchMode) {
+      const versionMismatchWarning = logger.should.warn()
+        ? await getVersionMismatchWarning({
+            cwd: baseDir,
+            globalVersion: pkg.version,
+            ...this.versionMismatchWarningOptions,
+          })
+        : null
+      const globalLocalVersionWarning = versionMismatchWarning ? `\n\n${versionMismatchWarning}` : ''
+
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
           options?.generator.provider && parseEnvValue(options?.generator.provider) === BuiltInProvider.PrismaClientJs,
@@ -253,16 +268,18 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}${globalLocalVersionWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${breakingChangesStr}${versionsWarning}`
+${breakingChangesStr}${versionsWarning}${globalLocalVersionWarning}`
         }
+      } else {
+        hint = globalLocalVersionWarning
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      const message = '\n' + this.logText + (!this.hasGeneratorErrored ? hint : '')
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
