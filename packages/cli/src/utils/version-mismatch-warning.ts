@@ -33,7 +33,7 @@ export async function getVersionMismatchWarning(options: VersionMismatchWarningO
   }
 
   const cwd = options.cwd ?? process.cwd()
-  const globalVersion = normalizeVersion(options.globalVersion ?? '')
+  const globalVersion = normalizeVersion(options.globalVersion)
 
   if (!globalVersion) {
     return null
