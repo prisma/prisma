@@ -27,7 +27,7 @@ export function renderQuery(
     case 'rawSql':
       return [renderRawSql(dbQuery.sql, args, dbQuery.argTypes)]
     case 'templateSql': {
-      const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
+      const chunks = chunkParams(dbQuery.fragments, args, maxChunkSize)
       return chunks.map((params) => {
         const rendered = renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
         if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
@@ -224,7 +224,21 @@ function* pairFragmentsWithParams<Types>(
         }
 
         const value = params[index]
-        yield { ...fragment, value: Array.isArray(value) ? value : [value], argType: argTypes?.[index] }
+        const rawValue = Array.isArray(value) ? value : [value]
+        // Deduplicate IN clause values to avoid performance issues on databases
+        // like MariaDB where duplicate values create unnecessarily large queries.
+        // Use Map as a simple deduplication approach that preserves insertion order
+        // and works for primitive values (numbers, strings) and complex objects.
+        const seen = new Map()
+        const dedupedValue: unknown[] = []
+        for (const item of rawValue) {
+          const key = typeof item === 'object' ? JSON.stringify(item) : String(item)
+          if (!seen.has(key)) {
+            seen.set(key, true)
+            dedupedValue.push(item)
+          }
+        }
+        yield { ...fragment, value: dedupedValue, argType: argTypes?.[index] }
         index++
         break
       }
@@ -247,7 +261,19 @@ function* pairFragmentsWithParams<Types>(
           }
         }
 
-        yield { ...fragment, value, argType: argTypes?.[index] }
+        // Deduplicate tuples in the list to avoid performance issues on databases
+        // like MariaDB where duplicate tuples create unnecessarily large queries.
+        const seen = new Map()
+        const dedupedValue: unknown[][] = []
+        for (const tuple of value) {
+          const key = JSON.stringify(tuple)
+          if (!seen.has(key)) {
+            seen.set(key, true)
+            dedupedValue.push(tuple)
+          }
+        }
+
+        yield { ...fragment, value: dedupedValue, argType: argTypes?.[index] }
         index++
         break
       }
