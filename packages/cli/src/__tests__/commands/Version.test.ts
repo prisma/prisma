@@ -13,6 +13,7 @@ describe('version', () => {
     expect(data.exitCode).toBe(0)
     expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
       "prisma               : 0.0.0
+      CLI Path             : sanitized_path
       @prisma/client       : 0.0.0
       Operating System     : OS
       Architecture         : ARCHITECTURE
@@ -33,6 +34,9 @@ describe('version', () => {
 })
 
 function cleanSnapshot(str: string, versionOverride?: string): string {
+  // sanitize CLI path
+  str = str.replace(new RegExp('(CLI Path\\s+:).*', 'g'), '$1 sanitized_path')
+
   // sanitize engine path
   // Schema Engine : schema-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/schema-engine-TEST_PLATFORM)
   // +
