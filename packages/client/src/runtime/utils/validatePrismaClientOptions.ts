@@ -13,6 +13,7 @@ const knownProperties = [
   'transactionOptions',
   'omit',
   'comments',
+  'queryPlanCacheMaxSize',
   '__internal',
 ]
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
@@ -172,6 +173,26 @@ const validators: {
     if (validationErrors.length > 0) {
       throw new PrismaClientConstructorValidationError(
         renderOmitValidationErrors(options as Record<string, unknown>, validationErrors),
+      )
+    }
+  },
+  queryPlanCacheMaxSize: (options) => {
+    if (options === undefined) {
+      return
+    }
+    if (typeof options !== 'number') {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(options)} for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Expected a number.`,
+      )
+    }
+    if (!Number.isInteger(options)) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${options} for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Expected an integer.`,
+      )
+    }
+    if (options < 0) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${options} for "queryPlanCacheMaxSize" provided to PrismaClient constructor. Cache size needs to be greater or equal to 0.`,
       )
     }
   },
