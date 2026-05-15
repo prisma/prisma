@@ -113,7 +113,7 @@ export default defineConfig({
 })
 ```
 
-If you store the database connection string in `process.env`, an `env` function can help you access it in a type safe way and throw an error if it is missing at run time:
+If you store the database connection string in `process.env`, an `env` function can help you access it in a type-safe way and throw an error if it is missing at run time:
 
 ```ts
 import { defineConfig, env } from 'prisma/config'
@@ -244,7 +244,7 @@ After you change your data model, you'll need to manually re-generate Prisma Cli
 npx prisma generate
 ```
 
-Refer to the documentation for more information about ["generating the Prisma client"](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/generating-prisma-client).
+Refer to the documentation for more information about ["generating Prisma Client"](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/generating-prisma-client).
 
 #### Step 5: Use Prisma Client to send queries to your database
 
@@ -264,7 +264,7 @@ const prisma = new PrismaClient({ adapter })
 
 To load environment variables, you can use `dotenv` by importing `dotenv/config`, use `tsx --env-file=.env`, `node --env-file=.env`, or Bun (which loads `.env` automatically).
 
-Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
+Now you can start sending queries via the generated Prisma Client API. Here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
 
 Learn more about the available operations in the [Prisma Client docs](https://www.prisma.io/docs/orm/prisma-client) or watch this [demo video](https://www.youtube.com/watch?v=LggrE5kJ75I&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=4) (2 min).
 
