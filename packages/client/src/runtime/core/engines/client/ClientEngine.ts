@@ -36,7 +36,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { QueryPlanCache } from './query-plan-cache'
+import { getSharedEdgeQueryPlanCache, QueryPlanCache } from './query-plan-cache'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
@@ -70,6 +70,7 @@ globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY = {
 interface ConnectedEngine {
   executor: Executor
   queryCompiler: QueryCompiler
+  planCacheKeyPrefix: string
 }
 
 type EngineState =
@@ -146,7 +147,11 @@ export class ClientEngine implements Engine {
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
     this.#queryPlanCache =
-      config.queryPlanCacheMaxSize === 0 ? undefined : new QueryPlanCache(config.queryPlanCacheMaxSize)
+      config.queryPlanCacheMaxSize === 0
+        ? undefined
+        : TARGET_BUILD_TYPE === 'wasm-compiler-edge'
+          ? getSharedEdgeQueryPlanCache(config.queryPlanCacheMaxSize)
+          : new QueryPlanCache(config.queryPlanCacheMaxSize)
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
@@ -190,22 +195,24 @@ export class ClientEngine implements Engine {
 
           try {
             executor = await this.#connectExecutor()
-            queryCompiler = await this.#instantiateQueryCompiler(executor)
+            const { queryCompiler: qc, planCacheKeyPrefix } = await this.#instantiateQueryCompiler(executor)
+            queryCompiler = qc
+
+            const engine: ConnectedEngine = {
+              executor,
+              queryCompiler,
+              planCacheKeyPrefix,
+            }
+
+            this.#state = { type: 'connected', engine }
+
+            return engine
           } catch (error) {
             this.#state = { type: 'disconnected' }
             queryCompiler?.free()
             await executor?.disconnect()
             throw error
           }
-
-          const engine: ConnectedEngine = {
-            executor,
-            queryCompiler,
-          }
-
-          this.#state = { type: 'connected', engine }
-
-          return engine
         })
 
         this.#state = {
@@ -254,7 +261,10 @@ export class ClientEngine implements Engine {
     }
   }
 
-  async #instantiateQueryCompiler(executor: Executor): Promise<QueryCompiler> {
+  async #instantiateQueryCompiler(executor: Executor): Promise<{
+    queryCompiler: QueryCompiler
+    planCacheKeyPrefix: string
+  }> {
     // We reuse the `QueryCompilerConstructor` from the same `WebAssembly.Instance` between
     // reconnects as long as there are no panics. This avoids the overhead of loading and
     // JIT compiling the WebAssembly module after every reconnect. If it panics, we discard
@@ -267,9 +277,13 @@ export class ClientEngine implements Engine {
     }
 
     const { provider, connectionInfo } = await executor.getConnectionInfo()
+    const planCacheKeyPrefix =
+      TARGET_BUILD_TYPE === 'wasm-compiler-edge'
+        ? `${provider}\x1e${JSON.stringify(connectionInfo)}`
+        : ''
 
     try {
-      return this.#withLocalPanicHandler(
+      const queryCompiler = this.#withLocalPanicHandler(
         () =>
           new QueryCompilerConstructor({
             datamodel: this.datamodel,
@@ -279,6 +293,7 @@ export class ClientEngine implements Engine {
         undefined,
         false,
       )
+      return { queryCompiler, planCacheKeyPrefix }
     } catch (e) {
       throw this.#transformInitError(e)
     }
@@ -471,7 +486,7 @@ export class ClientEngine implements Engine {
   ): Promise<{ data: T }> {
     debug(`sending request`)
 
-    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
+    const { executor, queryCompiler, planCacheKeyPrefix } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, JSON.stringify(query))
     })
 
@@ -489,7 +504,9 @@ export class ClientEngine implements Engine {
       // to benefit from caching due to their high variability in parameters, which leads to a very
       // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
-      const cached = isCacheable ? this.#queryPlanCache?.getSingle(cacheKey) : undefined
+      const effectiveCacheKey =
+        planCacheKeyPrefix.length > 0 ? `${planCacheKeyPrefix}\x1e${cacheKey}` : cacheKey
+      const cached = isCacheable ? this.#queryPlanCache?.getSingle(effectiveCacheKey) : undefined
       if (cached) {
         debug('query plan cache hit')
         plan = cached
@@ -497,7 +514,7 @@ export class ClientEngine implements Engine {
         debug('query plan cache miss')
         plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
         if (isCacheable) {
-          this.#queryPlanCache?.setSingle(cacheKey, plan)
+          this.#queryPlanCache?.setSingle(effectiveCacheKey, plan)
         }
       }
     }
@@ -543,7 +560,7 @@ export class ClientEngine implements Engine {
     const batchPayload = getBatchRequestPayload(queries, transaction)
     const request = JSON.stringify(batchPayload)
 
-    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
+    const { executor, queryCompiler, planCacheKeyPrefix } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, request)
     })
 
@@ -559,7 +576,9 @@ export class ClientEngine implements Engine {
       const cacheKeyStr = JSON.stringify(parameterizedBatch)
       placeholderValues = extractedValues
 
-      const cached = this.#queryPlanCache?.getBatch(cacheKeyStr)
+      const effectiveBatchKey =
+        planCacheKeyPrefix.length > 0 ? `${planCacheKeyPrefix}\x1e${cacheKeyStr}` : cacheKeyStr
+      const cached = this.#queryPlanCache?.getBatch(effectiveBatchKey)
       if (cached) {
         debug('batch query plan cache hit')
         batchResponse = cached
@@ -567,7 +586,7 @@ export class ClientEngine implements Engine {
         debug('batch query plan cache miss')
         try {
           batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
-          this.#queryPlanCache?.setBatch(cacheKeyStr, batchResponse)
+          this.#queryPlanCache?.setBatch(effectiveBatchKey, batchResponse)
         } catch (error) {
           throw this.#transformCompileError(error)
         }

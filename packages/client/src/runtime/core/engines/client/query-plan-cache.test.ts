@@ -199,3 +199,23 @@ describe('QueryPlanCache', () => {
     })
   })
 })
+
+describe('getSharedEdgeQueryPlanCache', () => {
+  it('returns the same cache for repeated calls', () => {
+    jest.isolateModules(() => {
+      const mod = require('./query-plan-cache') as typeof import('./query-plan-cache')
+      expect(mod.getSharedEdgeQueryPlanCache(100)).toBe(mod.getSharedEdgeQueryPlanCache(100))
+    })
+  })
+
+  it('replaces the cache when a larger max size is requested', () => {
+    jest.isolateModules(() => {
+      const mod = require('./query-plan-cache') as typeof import('./query-plan-cache')
+      const first = mod.getSharedEdgeQueryPlanCache(2)
+      first.setSingle('k', { type: 'value' as const, args: null })
+      const second = mod.getSharedEdgeQueryPlanCache(10)
+      expect(second).not.toBe(first)
+      expect(second.getSingle('k')).toBeUndefined()
+    })
+  })
+})

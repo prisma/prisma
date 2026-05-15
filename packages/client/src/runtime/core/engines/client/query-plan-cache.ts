@@ -1,5 +1,18 @@
 import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime'
 
+let sharedEdgeQueryPlanCache: QueryPlanCache | undefined
+let sharedEdgeMaxSize = 0
+
+/** Singleton plan cache for edge builds so request-scoped clients share compiled plans. */
+export function getSharedEdgeQueryPlanCache(maxSize: number | undefined): QueryPlanCache {
+  const resolved = maxSize ?? 1000
+  if (sharedEdgeQueryPlanCache === undefined || resolved > sharedEdgeMaxSize) {
+    sharedEdgeQueryPlanCache = new QueryPlanCache(resolved)
+    sharedEdgeMaxSize = resolved
+  }
+  return sharedEdgeQueryPlanCache
+}
+
 // todo: store the query plan for the individual queries in a non-compacted batch
 // in the `#singleCache` so that it's possible to reuse them for compatible queries
 // outside of the batch in the future and avoid compiling them individually.
