@@ -51,6 +51,7 @@ function mapDeclType(declType: string): ColumnType | null {
       return ColumnTypeEnum.Bytes
     case 'BOOLEAN':
       return ColumnTypeEnum.Boolean
+    case 'JSON':
     case 'JSONB':
       return ColumnTypeEnum.Json
     default:
@@ -169,9 +170,45 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   return result
 }
 
+/**
+ * Serializes a value intended for a JSON column.
+ * See the equivalent in adapter-pg for a full explanation.
+ */
+function serializeJsonArg(value: unknown): string {
+  return JSON.stringify(value, function (this: Record<string, unknown>, key: string, val: unknown) {
+    if (typeof val === 'bigint') {
+      return val.toString()
+    }
+    if (val instanceof ArrayBuffer) {
+      return Buffer.from(val).toString('base64')
+    }
+    if (ArrayBuffer.isView(val)) {
+      return Buffer.from((val as ArrayBufferView).buffer, (val as ArrayBufferView).byteOffset, (val as ArrayBufferView).byteLength).toString('base64')
+    }
+    // See adapter-pg serializeJsonArg for a full explanation of why we inspect the
+    // original pre-toJSON value via this[key] / value instead of using val directly.
+    const original: unknown = key === '' ? value : this[key]
+    if (
+      original !== null &&
+      typeof original === 'object' &&
+      (original as Record<string, unknown>).constructor?.name === 'Decimal' &&
+      typeof (original as Record<string, unknown>).toNumber === 'function'
+    ) {
+      const num = (original as { toNumber(): number }).toNumber()
+      return Number.isFinite(num) ? num : String(original)
+    }
+    return val
+  })
+}
+
 export function mapArg(arg: unknown, argType: ArgType, options?: PrismaLibSqlOptions): InValue {
   if (arg === null) {
     return null
+  }
+
+  // Pre-serialize JSON args so that special types (e.g. Decimal) are converted correctly.
+  if (argType.scalarType === 'json' && typeof arg !== 'string') {
+    return serializeJsonArg(arg)
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'bigint') {
