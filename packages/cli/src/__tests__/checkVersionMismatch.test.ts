@@ -63,6 +63,72 @@ describe('checkVersionMismatch', () => {
 
     expect(consoleWarnMock).not.toHaveBeenCalled()
   })
+
+  test('does not warn when versions match exactly', async () => {
+    const cwd = await createProject({
+      dependencies: {
+        prisma: globalVersion,
+        '@prisma/client': globalVersion,
+      },
+    })
+
+    await checkVersionMismatch(cwd)
+
+    expect(consoleWarnMock).not.toHaveBeenCalled()
+  })
+
+  test('does not warn when no prisma dependencies are found', async () => {
+    const cwd = await createProject({
+      dependencies: {
+        'some-other-package': '1.0.0',
+      },
+    })
+
+    await checkVersionMismatch(cwd)
+
+    expect(consoleWarnMock).not.toHaveBeenCalled()
+  })
+
+  test('does not warn when package.json cannot be read', async () => {
+    const cwd = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-cli-version-mismatch-'))
+    tempDirs.push(cwd)
+    // No package.json created
+
+    await checkVersionMismatch(cwd)
+
+    expect(consoleWarnMock).not.toHaveBeenCalled()
+  })
+
+  test('warns when @prisma/client differs even when prisma is not installed', async () => {
+    const cwd = await createProject({
+      dependencies: {
+        '@prisma/client': '1.2.3',
+      },
+    })
+
+    await checkVersionMismatch(cwd)
+
+    expect(consoleWarnMock).toHaveBeenCalledTimes(1)
+    expect(stripVTControlCharacters(consoleWarnMock.mock.calls[0][0])).toBe(
+      `prisma warn Your global prisma version (${globalVersion}) differs from local version (1.2.3). Run npm install prisma@${globalVersion} to align.`,
+    )
+  })
+
+  test('handles tilde version ranges that resolve to global version', async () => {
+    const [major, minor] = globalVersion.split('.')
+    const tildeRange = `~${major}.${minor}.0`
+    
+    const cwd = await createProject({
+      devDependencies: {
+        prisma: tildeRange,
+      },
+    })
+
+    await checkVersionMismatch(cwd)
+
+    // Should not warn since the range includes the global version
+    expect(consoleWarnMock).not.toHaveBeenCalled()
+  })
 })
 
 async function createProject(packageJsonContent: Record<string, unknown>): Promise<string> {
