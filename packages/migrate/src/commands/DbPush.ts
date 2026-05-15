@@ -16,6 +16,7 @@ import {
   MigrateTypes,
   validatePrismaConfigWithDatasource,
 } from '@prisma/internals'
+import { execaNode } from 'execa'
 import { bold, dim, green, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
@@ -48,6 +49,7 @@ ${bold('Options')}
                  --url   Override the datasource URL from the Prisma config file
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push
+          --sql      Generate typed sql module after push
 
 ${bold('Examples')}
 
@@ -68,6 +70,7 @@ ${bold('Examples')}
         '--help': Boolean,
         '-h': '--help',
         '--accept-data-loss': Boolean,
+        '--sql': Boolean,
         '--force-reset': Boolean,
         '--schema': String,
         '--config': String,
@@ -248,6 +251,26 @@ ${bold(red('All data will be lost.'))}
     }
 
     await migrate.stop()
+
+    const shouldRunGenerateSql = Boolean(args['--sql'] || config.typedSql?.path)
+    if (shouldRunGenerateSql) {
+      const generateArgs: string[] = ['generate', '--sql']
+      if (args['--schema']) {
+        generateArgs.push('--schema', String(args['--schema']))
+      }
+      if (args['--config']) {
+        generateArgs.push('--config', String(args['--config']))
+      }
+      if (args['--telemetry-information']) {
+        generateArgs.push('--telemetry-information', String(args['--telemetry-information']))
+      }
+      process.stdout.write('\n')
+      const generateCwd = schemaContext?.schemaRootDir ?? process.cwd()
+      const env = { ...(process.env || {}) }
+      const projectNodeModules = `${generateCwd}/node_modules`
+      env.NODE_PATH = env.NODE_PATH ? `${projectNodeModules}:${env.NODE_PATH}` : projectNodeModules
+      await execaNode(process.argv[1], generateArgs, { stdio: 'inherit', cwd: process.cwd(), env })
+    }
 
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       process.stdout.write(`\nThe database is already in sync with the Prisma schema.\n`)
