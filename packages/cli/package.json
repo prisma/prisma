@@ -187,7 +187,8 @@
     "@prisma/engines": "workspace:*",
     "@prisma/studio-core": "0.27.3",
     "mysql2": "3.15.3",
-    "postgres": "3.4.7"
+    "postgres": "3.4.7",
+    "semver": "7.7.0"
   },
   "peerDependencies": {
     "better-sqlite3": ">=9.0.0",
