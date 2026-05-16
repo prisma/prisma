@@ -378,6 +378,7 @@ async function deleteOutputDir(outputDir: string) {
       !files.includes('client.ts') &&
       !files.includes('client.mts') &&
       !files.includes('client.cts') &&
+      !files.includes('client.js') &&
       !files.includes('client.d.ts') // for legacy js client
     ) {
       // Make sure users don't accidentally wipe their source code or home directory.

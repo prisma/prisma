@@ -3,7 +3,7 @@ import { TsConfigJson, TsConfigJsonResolved } from 'get-tsconfig'
 
 import type { RuntimeTargetInternal } from './runtime-targets'
 
-const expectedGeneratedFileExtensions = ['ts', 'mts', 'cts'] as const
+const expectedGeneratedFileExtensions = ['ts', 'mts', 'cts', 'js'] as const
 export type GeneratedFileExtension = (typeof expectedGeneratedFileExtensions)[number] | (string & {})
 
 const expectedImportFileExtensions = ['', 'ts', 'mts', 'cts', 'js', 'mjs', 'cjs'] as const
