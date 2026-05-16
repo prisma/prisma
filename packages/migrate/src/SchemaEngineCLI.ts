@@ -59,6 +59,8 @@ export class SchemaEngineCLI implements SchemaEngine {
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []
+  /** Raw stderr lines that could not be parsed as JSON. */
+  private rawStderr: string[] = []
   private lastRequest?: any
   /** The fields of the last engine log event with an `ERROR` level. */
   private lastError: SchemaEngineLogLine['fields'] | null = null
@@ -428,7 +430,9 @@ export class SchemaEngineCLI implements SchemaEngine {
             reject(err)
           }
           const processMessages = this.messages.join('\n')
-          const engineMessage = this.lastError?.message || processMessages
+          const rawStderr = this.rawStderr.join('\n')
+          const engineMessage =
+            this.lastError?.message || processMessages || rawStderr
           const handlePanic = () => {
             /**
              * Example:
@@ -488,7 +492,7 @@ export class SchemaEngineCLI implements SchemaEngine {
               this.lastError = json.fields
             }
           } catch (e) {
-            //
+            this.rawStderr.push(line)
           }
         })
 
