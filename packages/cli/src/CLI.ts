@@ -6,6 +6,7 @@ import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
+import { confirmUsingGlobalPrisma } from './utils/localPrisma'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Version } from './Version'
 
@@ -72,6 +73,13 @@ export class CLI implements Command {
           /* noop */
         },
       )
+
+      const shouldUseGlobalPrisma = await confirmUsingGlobalPrisma(cmdName, baseDir)
+      if (!shouldUseGlobalPrisma) {
+        return new HelpError(
+          `\n${bold(red('!'))} Use the local Prisma CLI instead, for example \`npx prisma ${cmdName}\`.\n`,
+        )
+      }
 
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {

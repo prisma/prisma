@@ -19,6 +19,7 @@ import { isAlreadyLinked } from '../postgres/link/local-setup'
 import { LinkApiError, sanitizeErrorMessage } from '../postgres/link/management-api'
 import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
+import { findLocalPrismaBin } from '../utils/localPrisma'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
 import {
   addDependencies,
@@ -29,15 +30,6 @@ import {
   isValidTemplateName,
   promptTemplateSelection,
 } from './template-scaffold'
-
-/**
- * Locates the user's locally installed `prisma` binary in node_modules.
- * Returns the absolute path if found, null otherwise.
- */
-function findLocalPrismaBin(baseDir: string): string | null {
-  const candidate = path.join(baseDir, 'node_modules', '.bin', 'prisma')
-  return fs.existsSync(candidate) ? candidate : null
-}
 
 /**
  * Runs a Prisma CLI command using the user's locally installed binary.
