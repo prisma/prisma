@@ -1,3 +1,4 @@
+import fs from 'fs'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import {
@@ -13,9 +14,11 @@ import {
   isError,
   loadSchemaContext,
   resolveEngine,
+  resolvePkg,
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
+import path from 'path'
 import os from 'os'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
@@ -78,9 +81,11 @@ export class Version implements Command {
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
+    const prismaInstallPath = await this.getPrismaInstallPath()
 
     const rows = [
       [packageJson.name, packageJson.version],
+      ['Current Prisma Path', prismaInstallPath],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
@@ -111,6 +116,17 @@ export class Version implements Command {
 
     // @ts-ignore TODO @jkomyno, as affects the type of rows
     return formatTable(rows, { json: args['--json'] })
+  }
+
+  private async getPrismaInstallPath(): Promise<string> {
+    const prismaEntryPoint = fs.realpathSync(process.argv[1] ?? process.cwd())
+    const basedir = path.dirname(prismaEntryPoint)
+
+    return (
+      (await resolvePkg('prisma', { basedir })) ??
+      (await resolvePkg('prisma', { basedir: process.cwd() })) ??
+      basedir
+    )
   }
 
   private async getFeatureFlags(schemaPath: string | undefined, baseDir: string): Promise<string[]> {

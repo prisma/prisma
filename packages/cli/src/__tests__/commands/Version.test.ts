@@ -13,6 +13,7 @@ describe('version', () => {
     expect(data.exitCode).toBe(0)
     expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
       "prisma               : 0.0.0
+      Current Prisma Path  : PRISMA_INSTALL_PATH
       @prisma/client       : 0.0.0
       Operating System     : OS
       Architecture         : ARCHITECTURE
@@ -48,6 +49,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
     /Loaded Prisma config from ".*(\/|\\)prisma\.config\.ts"/g,
     'Loaded Prisma config from "sanitized prisma.config.ts path"',
   )
+  str = str.replace(/(Current Prisma Path\s+:).*/g, '$1 PRISMA_INSTALL_PATH')
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
   // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
