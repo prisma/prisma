@@ -119,9 +119,9 @@ export class Version implements Command {
   }
 
   private async getPrismaInstallPath(): Promise<string> {
-    const prismaEntryPoint = fs.realpathSync(process.argv[1] ?? process.cwd())
-    const basedir = path.dirname(prismaEntryPoint)
-    const packageRoot = this.getPackageRootFromFile(prismaEntryPoint) ?? basedir
+    const prismaEntryPoint = process.argv[1] ? fs.realpathSync(process.argv[1]) : undefined
+    const basedir = prismaEntryPoint ? path.dirname(prismaEntryPoint) : fs.realpathSync(process.cwd())
+    const packageRoot = prismaEntryPoint ? this.getPackageRootFromFile(prismaEntryPoint) ?? basedir : basedir
 
     return (
       (await resolvePkg('prisma', { basedir })) ??
