@@ -162,6 +162,31 @@ describe('format', () => {
     expect(formattedContent[0]).toMatchSnapshot()
   })
 
+  test('normalizes formatted schema output to LF line endings', async () => {
+    const schemas: MultipleSchemas = [
+      [
+        '/* schemaPath */',
+        'datasource db {\r\n  provider = "sqlite"\r\n}\r\n\r\nmodel User {\r\n  id String @id\r\n}\r\n',
+      ],
+    ]
+
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+
+    expect(formattedContent).toHaveLength(1)
+    expect(formattedContent[0]).not.toContain('\r')
+    expect(formattedContent[0]).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "sqlite"
+      }
+
+      model User {
+        id String @id
+      }
+      "
+    `)
+  })
+
   test('valid schema with 1 preview feature flag warning', async () => {
     const schema = /* prisma */ `
       generator client {
