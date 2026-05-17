@@ -168,23 +168,35 @@ describe('format', () => {
         '/* schemaPath */',
         'datasource db {\r\n  provider = "sqlite"\r\n}\r\n\r\nmodel User {\r\n  id String @id\r\n}\r\n',
       ],
+      [
+        '/* legacySchemaPath */',
+        'datasource db {\r  provider = "sqlite"\r}\r\rmodel Post {\r  id String @id\r}\r',
+      ],
     ]
 
     const formatted = await formatSchema({ schemas })
     const formattedContent: string[] = extractSchemaContent(formatted)
 
-    expect(formattedContent).toHaveLength(1)
-    expect(formattedContent[0]).not.toContain('\r')
-    expect(formattedContent[0]).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = "sqlite"
-      }
+    expect(formattedContent).toHaveLength(2)
+    expect(formattedContent).toEqual([
+      `datasource db {
+  provider = "sqlite"
+}
 
-      model User {
-        id String @id
-      }
-      "
-    `)
+model User {
+  id String @id
+}
+`,
+      `datasource db {
+  provider = "sqlite"
+}
+
+model Post {
+  id String @id
+}
+`,
+    ])
+    expect(formattedContent).toEqual(formattedContent.map((content) => content.replaceAll('\r', '')))
   })
 
   test('valid schema with 1 preview feature flag warning', async () => {
