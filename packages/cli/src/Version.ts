@@ -121,12 +121,35 @@ export class Version implements Command {
   private async getPrismaInstallPath(): Promise<string> {
     const prismaEntryPoint = fs.realpathSync(process.argv[1] ?? process.cwd())
     const basedir = path.dirname(prismaEntryPoint)
+    const packageRoot = this.getPackageRootFromFile(prismaEntryPoint) ?? basedir
 
     return (
       (await resolvePkg('prisma', { basedir })) ??
-      (await resolvePkg('prisma', { basedir: process.cwd() })) ??
-      basedir
+      (await resolvePkg('prisma', { basedir: packageRoot })) ??
+      packageRoot
     )
+  }
+
+  private getPackageRootFromFile(filePath: string): string | undefined {
+    let currentDir = path.dirname(filePath)
+
+    while (currentDir !== path.dirname(currentDir)) {
+      const packageJsonPath = path.join(currentDir, 'package.json')
+      if (fs.existsSync(packageJsonPath)) {
+        try {
+          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+          if (packageJson.name === 'prisma') {
+            return currentDir
+          }
+        } catch {
+          return undefined
+        }
+      }
+
+      currentDir = path.dirname(currentDir)
+    }
+
+    return undefined
   }
 
   private async getFeatureFlags(schemaPath: string | undefined, baseDir: string): Promise<string[]> {
