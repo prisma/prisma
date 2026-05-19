@@ -57,8 +57,8 @@ function makeInstallCommand(
   },
 ): string {
   let command = ''
-  if (isPrismaInstalledGlobally === 'npm' && options.canBeGlobal) {
-    command = `npm i -g ${packageName}`
+  if (isPrismaInstalledGlobally && options.canBeGlobal) {
+    command = globalInstallCommand(isPrismaInstalledGlobally, packageName)
   } else if (options.canBeDev) {
     command = `npm i --save-dev ${packageName}`
   } else {
@@ -71,4 +71,16 @@ function makeInstallCommand(
   command += `@${tag}`
 
   return command
+}
+
+function globalInstallCommand(manager: 'npm' | 'yarn' | 'pnpm', packageName: string): string {
+  switch (manager) {
+    case 'yarn':
+      return `yarn global add ${packageName}`
+    case 'pnpm':
+      return `pnpm add -g ${packageName}`
+    case 'npm':
+    default:
+      return `npm i -g ${packageName}`
+  }
 }

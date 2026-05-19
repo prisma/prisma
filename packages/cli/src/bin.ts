@@ -55,6 +55,7 @@ import { redactCommandArray } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
 import { UserFacingError } from './utils/errors'
 import { loadConfig } from './utils/loadConfig'
+import { warnIfLocalInstallationShadowed } from './utils/warn-local-installation'
 import { Validate } from './Validate'
 import { Version } from './Version'
 
@@ -93,6 +94,9 @@ const args = arg(
  * Main function
  */
 async function main(): Promise<number> {
+  // https://github.com/prisma/prisma/issues/2738
+  warnIfLocalInstallationShadowed()
+
   // create a new CLI with our subcommands
 
   const cli = CLI.new(
