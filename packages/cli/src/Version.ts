@@ -1,3 +1,4 @@
+import fs from 'fs'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import {
@@ -13,9 +14,11 @@ import {
   isError,
   loadSchemaContext,
   resolveEngine,
+  resolvePkg,
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
+import path from 'path'
 import os from 'os'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
@@ -78,9 +81,11 @@ export class Version implements Command {
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
+    const prismaInstallPath = await this.getPrismaInstallPath()
 
     const rows = [
       [packageJson.name, packageJson.version],
+      ['Current Prisma Path', prismaInstallPath],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
@@ -111,6 +116,48 @@ export class Version implements Command {
 
     // @ts-ignore TODO @jkomyno, as affects the type of rows
     return formatTable(rows, { json: args['--json'] })
+  }
+
+  private async getPrismaInstallPath(): Promise<string> {
+    const prismaEntryPoint = process.argv[1] ? this.safeRealpath(process.argv[1]) : undefined
+    const basedir = prismaEntryPoint ? path.dirname(prismaEntryPoint) : this.safeRealpath(process.cwd())
+    const packageRoot = prismaEntryPoint ? this.getPackageRootFromFile(prismaEntryPoint) ?? basedir : basedir
+
+    return (
+      (await resolvePkg('prisma', { basedir })) ??
+      (await resolvePkg('prisma', { basedir: packageRoot })) ??
+      packageRoot
+    )
+  }
+
+  private safeRealpath(filePath: string): string {
+    try {
+      return fs.realpathSync(filePath)
+    } catch {
+      return path.resolve(filePath)
+    }
+  }
+
+  private getPackageRootFromFile(filePath: string): string | undefined {
+    let currentDir = path.dirname(filePath)
+
+    while (currentDir !== path.dirname(currentDir)) {
+      const packageJsonPath = path.join(currentDir, 'package.json')
+      if (fs.existsSync(packageJsonPath)) {
+        try {
+          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+          if (packageJson.name === 'prisma') {
+            return currentDir
+          }
+        } catch {
+          return undefined
+        }
+      }
+
+      currentDir = path.dirname(currentDir)
+    }
+
+    return undefined
   }
 
   private async getFeatureFlags(schemaPath: string | undefined, baseDir: string): Promise<string[]> {
