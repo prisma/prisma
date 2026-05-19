@@ -257,6 +257,34 @@ it('should hide hints with --no-hints', async () => {
   `)
 })
 
+it('should show a global/local version mismatch warning', async () => {
+  ctx.fixture('example-project')
+  const generate = new Generate(jest.fn(), {
+    isGlobalInstall: () => 'npm',
+    getPrismaClientVersion: () => Promise.resolve('5.0.0'),
+    getPackageJsonVersion: () => Promise.resolve('6.0.0'),
+  })
+
+  const result = await generate.parse([], await ctx.config())
+
+  expect(result).toContain('globally installed')
+  expect(result).toContain('@prisma/client@5.0.0')
+})
+
+it('should keep global/local version mismatch warnings with --no-hints', async () => {
+  ctx.fixture('example-project')
+  const generate = new Generate(jest.fn(), {
+    isGlobalInstall: () => 'npm',
+    getPrismaClientVersion: () => Promise.resolve(null),
+    getPackageJsonVersion: () => Promise.resolve('5.0.0'),
+  })
+
+  const result = await generate.parse(['--no-hints'], await ctx.config())
+
+  expect(result).toContain('prisma@5.0.0')
+  expect(result).not.toContain('Start by importing your Prisma Client')
+})
+
 it('should call the survey handler when hints are not disabled', async () => {
   ctx.fixture('example-project')
   const handler = jest.fn()
