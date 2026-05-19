@@ -33,11 +33,47 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle UniqueConstraintViolation (23505)', () => {
+  it('should handle UniqueConstraintViolation (23505) with detail only', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)' }
     expect(convertDriverError(error)).toEqual({
       kind: 'UniqueConstraintViolation',
       constraint: { fields: ['id'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with constraint only', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', constraint: 'users_email_partial_idx' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_email_partial_idx' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with both constraint and detail (constraint wins)', () => {
+    const error = {
+      code: '23505',
+      message: 'msg',
+      severity: 'ERROR',
+      detail: 'Key (account_id)=(1) already exists.',
+      constraint: 'accounts_owner_partial_idx',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'accounts_owner_partial_idx' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with neither constraint nor parseable detail', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: undefined,
       originalCode: error.code,
       originalMessage: error.message,
     })
