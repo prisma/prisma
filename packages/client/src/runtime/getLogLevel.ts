@@ -16,7 +16,7 @@ export function getLogLevel(log: LogLevel | Array<LogLevel | LogDefinition>): Lo
     if (!acc) {
       return currentLevel
     }
-    if (curr === 'info' || acc === 'info') {
+    if (currentLevel === 'info' || acc === 'info') {
       // info has precedence
       return 'info'
     }
