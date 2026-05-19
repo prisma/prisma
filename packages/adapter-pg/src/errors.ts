@@ -85,13 +85,12 @@ function mapDriverError(error: DatabaseError): MappedError {
       }
     }
     case '23502': {
-      const fields = error.detail
-        ?.match(/Key \(([^)]+)\)/)
-        ?.at(1)
-        ?.split(', ')
+      // PostgreSQL sets `error.column` to the violating column for NOT NULL errors.
+      // The `error.detail` field contains "Failing row contains (...)", not the
+      // "Key (...)" format used by unique-violation (23505), so it cannot be parsed.
       return {
         kind: 'NullConstraintViolation',
-        constraint: fields !== undefined ? { fields } : undefined,
+        constraint: error.column !== undefined ? { fields: [error.column] } : undefined,
       }
     }
     case '23503': {

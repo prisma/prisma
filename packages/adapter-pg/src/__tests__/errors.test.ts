@@ -43,11 +43,34 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle NullConstraintViolation (23502)', () => {
-    const error = { code: '23502', message: 'msg', severity: 'ERROR', detail: 'Key (foo)' }
+  it('should handle NullConstraintViolation (23502) using error.column', () => {
+    // PostgreSQL sets error.column for NOT NULL violations.
+    // error.detail contains "Failing row contains (...)" — not the "Key (...)" format
+    // used by unique-violation errors — so it cannot be parsed for the field name.
+    const error = {
+      code: '23502',
+      message: 'null value in column "foo" of relation "User" violates not-null constraint',
+      severity: 'ERROR',
+      detail: 'Failing row contains (null, null, null)',
+      column: 'foo',
+    }
     expect(convertDriverError(error)).toEqual({
       kind: 'NullConstraintViolation',
       constraint: { fields: ['foo'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should return undefined constraint for NullConstraintViolation (23502) without error.column', () => {
+    const error = {
+      code: '23502',
+      message: 'null value in column "foo" violates not-null constraint',
+      severity: 'ERROR',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'NullConstraintViolation',
+      constraint: undefined,
       originalCode: error.code,
       originalMessage: error.message,
     })
