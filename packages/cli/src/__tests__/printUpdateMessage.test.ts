@@ -24,7 +24,7 @@ function printUpdateMessageFromTo(from: string, to: string): void {
   })
 }
 
-const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation()
+const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
 
 let originalPrismaHideUpdateMessageEnv: string | undefined
 
@@ -34,13 +34,13 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  consoleErrorMock.mockReset()
+  consoleLogMock.mockReset()
   process.env.PRISMA_HIDE_UPDATE_MESSAGE = originalPrismaHideUpdateMessageEnv
 })
 
 test('normal release', () => {
   printUpdateMessageFromTo('4.5.0', '4.6.0')
-  expect(consoleErrorMock.mock.calls[0][0]).toMatchInlineSnapshot(`
+  expect(consoleLogMock.mock.calls[0][0]).toMatchInlineSnapshot(`
     "┌─────────────────────────────────────────────────────────┐
     │  Update available 4.5.0 -> 4.6.0                        │
     │  Run the following to update                            │
@@ -52,7 +52,7 @@ test('normal release', () => {
 
 test('integration version with long name', () => {
   printUpdateMessageFromTo('4.5.0-integration-use-keep-alive-for-node-fetch.1', '4.6.0')
-  expect(consoleErrorMock.mock.calls[0][0]).toMatchInlineSnapshot(`
+  expect(consoleLogMock.mock.calls[0][0]).toMatchInlineSnapshot(`
     "┌───────────────────────────────────────────────────────────────────────────────┐
     │  Update available 4.5.0-integration-use-keep-alive-for-node-fetch.1 -> 4.6.0  │
     │  Run the following to update                                                  │
