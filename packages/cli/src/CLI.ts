@@ -6,6 +6,7 @@ import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
+import { checkVersionMismatch } from './utils/checkVersionMismatch'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Version } from './Version'
 
@@ -66,6 +67,8 @@ export class CLI implements Command {
 
     const cmd = this.cmds[cmdName]
     if (cmd) {
+      await checkVersionMismatch(baseDir)
+
       // Only track if the command actually exists
       const checkResultPromise = runCheckpointClientCheck({ schemaPathFromConfig: config.schema, baseDir }).catch(
         () => {

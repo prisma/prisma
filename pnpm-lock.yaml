@@ -444,6 +444,9 @@ importers:
       postgres:
         specifier: 3.4.7
         version: 3.4.7
+      semver:
+        specifier: 7.7.0
+        version: 7.7.0
     devDependencies:
       '@inquirer/prompts':
         specifier: 7.3.3
@@ -1904,7 +1907,7 @@ importers:
     dependencies:
       '@ark/attest':
         specifier: 0.48.2
-        version: 0.48.2(typescript@5.8.2)
+        version: 0.48.2(typescript@5.4.5)
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -5969,12 +5972,12 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-directory@4.0.0:
     resolution: {integrity: sha512-3vKugswCmRx+wqK8azY+6yFXfi3DzPLyMtzUmVbBp6CqV+7v6vcOwUJGt50fmc9orIyCh29g2ypcXWfbCMZVWw==}
@@ -8467,10 +8470,12 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
@@ -8820,16 +8825,16 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.48.2(typescript@5.8.2)':
+  '@ark/attest@0.48.2(typescript@5.4.5)':
     dependencies:
       '@ark/fs': 0.46.0
       '@ark/util': 0.46.0
       '@prettier/sync': 0.5.5(prettier@3.5.3)
       '@typescript/analyze-trace': 0.10.1
-      '@typescript/vfs': 1.6.1(typescript@5.8.2)
+      '@typescript/vfs': 1.6.1(typescript@5.4.5)
       arktype: 2.1.20
       prettier: 3.5.3
-      typescript: 5.8.2
+      typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
 
@@ -11351,10 +11356,10 @@ snapshots:
       treeify: 1.1.0
       yargs: 16.2.0
 
-  '@typescript/vfs@1.6.1(typescript@5.8.2)':
+  '@typescript/vfs@1.6.1(typescript@5.4.5)':
     dependencies:
       debug: 4.4.3
-      typescript: 5.8.2
+      typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
 
@@ -13713,7 +13718,7 @@ snapshots:
       jest-util: 29.7.0
       natural-compare: 1.4.0
       pretty-format: 29.7.0
-      semver: 7.5.4
+      semver: 7.7.0
     transitivePeerDependencies:
       - supports-color
 
