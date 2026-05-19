@@ -6,6 +6,7 @@ import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
+import { confirmUsingGlobalPrisma } from './utils/localPrisma'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Version } from './Version'
 
@@ -66,7 +67,14 @@ export class CLI implements Command {
 
     const cmd = this.cmds[cmdName]
     if (cmd) {
-      // Only track if the command actually exists
+      const shouldUseGlobalPrisma = await confirmUsingGlobalPrisma(cmdName, baseDir)
+      if (!shouldUseGlobalPrisma) {
+        return new HelpError(
+          `\n${bold(red('!'))} Use the local Prisma CLI instead, for example \`npx prisma ${cmdName}\`.\n`,
+        )
+      }
+
+      // Only track if the command actually exists and will run.
       const checkResultPromise = runCheckpointClientCheck({ schemaPathFromConfig: config.schema, baseDir }).catch(
         () => {
           /* noop */
