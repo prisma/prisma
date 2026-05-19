@@ -300,7 +300,9 @@ function normalize_timestamp(time: string): string {
 }
 
 function normalize_timestamptz(time: string): string {
-  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
+  // Rewrite the offset label to +00:00 without converting the time digits (label-swap, matching adapter-pg).
+  // Handles bare hour (±HH), hour+minute (±HH:MM), and LMT-era hour+minute+second (±HH:MM:SS) offsets.
+  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2}(:\d{2})?)?$/, '+00:00')
 }
 
 /*

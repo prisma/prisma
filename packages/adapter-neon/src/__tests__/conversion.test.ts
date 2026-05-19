@@ -66,6 +66,12 @@ describe('normalize_timestamptz', () => {
   it('preserves microsecond (6-digit) fractional seconds without truncation', () => {
     expect(parse('2025-11-24 09:26:34.887654-06')).toBe('2025-11-24T09:26:34.887654+00:00')
   })
+
+  it('handles LMT-era ±HH:MM:SS offsets (e.g. Asia/Kolkata pre-1906)', () => {
+    // PostgreSQL can emit ±HH:MM:SS offsets for historical timestamps in timezones
+    // that used non-standard offsets before standardisation (LMT = Local Mean Time).
+    expect(parse('1883-11-18 12:00:00+05:53:28')).toBe('1883-11-18T12:00:00+00:00')
+  })
 })
 
 describe('TIMETZ_ARRAY custom parser (OID 1270)', () => {
