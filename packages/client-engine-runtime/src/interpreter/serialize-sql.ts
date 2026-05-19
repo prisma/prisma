@@ -165,6 +165,16 @@ function serializeColumnType(columnType: ColumnType): string {
     /// - SET (SET) -> e.g. `"foo,bar"` (String-encoded, comma-separated)
     case ColumnTypeEnum.Set:
       return 'string'
+    case ColumnTypeEnum.Point:
+    case ColumnTypeEnum.LineString:
+    case ColumnTypeEnum.Polygon:
+    case ColumnTypeEnum.Geometry:
+      return 'geometry'
+    case ColumnTypeEnum.PointArray:
+    case ColumnTypeEnum.LineStringArray:
+    case ColumnTypeEnum.PolygonArray:
+    case ColumnTypeEnum.GeometryArray:
+      return 'geometry-array'
     default:
       assertNever(columnType, `Unexpected column type: ${columnType}`)
   }

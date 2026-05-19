@@ -81,6 +81,9 @@ export type InputJsonObject = runtime.InputJsonObject
 export type InputJsonArray = runtime.InputJsonArray
 export type InputJsonValue = runtime.InputJsonValue
 
+export type Geometry = runtime.Geometry
+export type InputGeometry = runtime.InputGeometry
+
 ${nullTypes}
 
 type SelectAndInclude = {

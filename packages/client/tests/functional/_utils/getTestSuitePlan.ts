@@ -33,7 +33,7 @@ export function getTestSuitePlan(
   const context = buildPlanContext()
 
   const expandedSuiteConfigs = suiteConfigs
-    .flatMap(getExpandedTestSuitePlanWithProviderFlavors)
+    .flatMap((suiteConfig) => getExpandedTestSuitePlanWithProviderFlavors(suiteConfig, options))
     .flatMap(getExpandedTestSuitePlanWithRemoteQpe)
 
   expandedSuiteConfigs.forEach((config) => {
@@ -58,8 +58,12 @@ export function getTestSuitePlan(
  * @param suiteConfig
  * @returns
  */
-function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuiteConfig) {
+function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuiteConfig, options?: MatrixOptions) {
   const provider = suiteConfig.matrixOptions.provider
+
+  if (options?.skipProviderFlavorExpansion) {
+    return [suiteConfig]
+  }
 
   const suiteConfigExpansions = adaptersForProvider[provider].map((adapterProvider) => {
     const newSuiteConfig = klona(suiteConfig)
@@ -245,6 +249,7 @@ const excludeEnvToProviderMap = {
 const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_VITESS: AdapterProviders.VITESS_8,
   TEST_SKIP_PG: AdapterProviders.JS_PG,
+  TEST_SKIP_PG_POSTGIS: AdapterProviders.JS_PG_POSTGIS,
   TEST_SKIP_NEON: AdapterProviders.JS_NEON,
   TEST_SKIP_PLANETSCALE: AdapterProviders.JS_PLANETSCALE,
   TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,

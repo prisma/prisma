@@ -57,12 +57,15 @@ export type JsonSelectionSet = {
   [fieldName: string]: boolean | JsonFieldSelection
 }
 
+export type GeometryTaggedValue = { $type: 'Geometry'; value: object }
+
 export type JsonArgumentValue =
   | number
   | string
   | boolean
   | null
   | RawTaggedValue
+  | GeometryTaggedValue
   | JsonArgumentValue[]
   | { [key: string]: JsonArgumentValue }
 
@@ -86,6 +89,7 @@ export type JsonInputTaggedValue =
   | EnumTaggedValue
   | RawTaggedValue
   | PlaceholderTaggedValue
+  | GeometryTaggedValue
 
 export type JsonOutputTaggedValue =
   | DateTaggedValue
@@ -93,6 +97,7 @@ export type JsonOutputTaggedValue =
   | BytesTaggedValue
   | BigIntTaggedValue
   | JsonTaggedValue
+  | GeometryTaggedValue
 
 export type Placeholder = {
   name: string

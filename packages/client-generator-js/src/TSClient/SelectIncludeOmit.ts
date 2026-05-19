@@ -4,6 +4,7 @@ import * as ts from '@prisma/ts-builders'
 
 import { DMMFHelper } from '../dmmf'
 import { appendSkipType, extArgsParam, getFieldArgName, getIncludeName, getOmitName, getSelectName } from '../utils'
+import { isGeometryScalarTypeRef } from '../utils/common'
 import { GenerateContext } from './GenerateContext'
 
 type BuildIncludeTypeParams = {
@@ -36,6 +37,7 @@ export function buildOmitType({ modelName, fields, context }: BuildOmitTypeParam
         (field) =>
           field.outputType.location === 'scalar' ||
           field.outputType.location === 'enumTypes' ||
+          isGeometryScalarTypeRef(field.outputType) ||
           context.dmmf.isComposite(field.outputType.type),
       )
       .map((field) => ts.stringLiteral(field.name)),
@@ -82,7 +84,12 @@ function modelResultExtensionsType(modelName: string) {
 export function buildScalarSelectType({ modelName, fields, context }: BuildSelectTypeParams) {
   const object = buildSelectOrIncludeObject(
     modelName,
-    fields.filter((field) => field.outputType.location === 'scalar' || field.outputType.location === 'enumTypes'),
+    fields.filter(
+      (field) =>
+        field.outputType.location === 'scalar' ||
+        field.outputType.location === 'enumTypes' ||
+        isGeometryScalarTypeRef(field.outputType),
+    ),
     context,
   )
 

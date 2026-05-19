@@ -331,3 +331,4 @@ export type FieldScalarType =
     }
   | { type: 'enum'; name: string }
   | { type: 'bytes'; encoding: 'array' | 'base64' | 'hex' }
+  | { type: 'geometry'; geometryType: 'point' | 'linestring' | 'polygon' | 'geometry' }

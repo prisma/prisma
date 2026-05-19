@@ -3,6 +3,11 @@ import { TestSuiteMatrix } from './getTestSuiteInfo'
 import { AdapterProviders, GeneratorTypes, Providers } from './providers'
 
 export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
+  /**
+   * When true, do not expand PostgreSQL suites into every driver-adapter flavor (e.g. js_pg, neon).
+   * Use for suites that only make sense with a specific matrix `driverAdapter` (e.g. PostGIS + JS_PG_POSTGIS).
+   */
+  skipProviderFlavorExpansion?: boolean
   optOut?: {
     from: `${Providers}`[]
     reason: string
@@ -17,6 +22,13 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
     suiteConfig: TestsFactoryFnParams<MatrixT>[0],
   ) => void
   skipDb?: boolean
+  // SQL to run before DbPush (e.g. CREATE EXTENSION for PostGIS)
+  beforeDbPushCallback?: (provider: Providers, databaseUrl: string) => Promise<void>
+  /**
+   * When `TEST_REUSE_DATABASE` is set, db push uses `--force-reset`. Runs immediately after that reset
+   * and before the schema push (unlike `alterStatementCallback`, which runs after a successful push).
+   */
+  afterForceResetCallback?: (provider: Providers, databaseUrl: string) => Promise<void>
   // SQL Migration to apply after initial generated migration
   alterStatementCallback?: AlterStatementCallback
 }

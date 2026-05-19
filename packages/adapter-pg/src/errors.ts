@@ -237,3 +237,38 @@ function isTlsError(error: any): error is Error & { code?: string } {
 
   return false
 }
+
+export class GeometryError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly data?: Record<string, unknown>,
+  ) {
+    super(message)
+    this.name = 'GeometryError'
+  }
+}
+
+export class WKBParseError extends GeometryError {
+  constructor(message: string, wkbType: number, offset: number) {
+    super(message, 'WKB_PARSE_ERROR', { wkbType, offset })
+  }
+}
+
+export class InvalidGeometryError extends GeometryError {
+  constructor(message: string, geometry: unknown) {
+    super(message, 'INVALID_GEOMETRY', { geometry })
+  }
+}
+
+export class SRIDError extends GeometryError {
+  constructor(message: string, expected: number, actual: number) {
+    super(message, 'SRID_ERROR', { expected, actual })
+  }
+}
+
+export class BufferError extends GeometryError {
+  constructor(message: string, expectedSize: number, actualSize: number) {
+    super(message, 'BUFFER_ERROR', { expectedSize, actualSize })
+  }
+}

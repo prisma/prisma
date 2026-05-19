@@ -143,6 +143,8 @@ function setupTestSuiteMatrix(
           datasourceInfo,
           clientMeta,
           skipDb: options?.skipDb,
+          beforeDbPushCallback: options?.beforeDbPushCallback,
+          afterForceResetCallback: options?.afterForceResetCallback,
           alterStatementCallback: options?.alterStatementCallback,
           cfWorkerBindings,
         })
@@ -231,6 +233,7 @@ function setupTestSuiteMatrix(
             setupTestSuiteDatabase({
               suiteMeta,
               suiteConfig,
+              afterForceResetCallback: options?.afterForceResetCallback,
               alterStatementCallback: options?.alterStatementCallback,
               cfWorkerBindings,
               datasourceInfo,

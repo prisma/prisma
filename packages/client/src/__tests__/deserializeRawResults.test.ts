@@ -122,6 +122,28 @@ describe('deserializeRawResult', () => {
     ])
   })
 
+  test('geometry', () => {
+    const point = { type: 'Point' as const, coordinates: [1, 2], srid: 4326 }
+    expect(
+      deserializeRawResult({
+        columns: ['position'],
+        types: ['geometry'],
+        rows: [[point]],
+      }),
+    ).toEqual([{ position: point }])
+  })
+
+  test('geometry-array', () => {
+    const point = { type: 'Point' as const, coordinates: [1, 2], srid: 4326 }
+    expect(
+      deserializeRawResult({
+        columns: ['positions'],
+        types: ['geometry-array'],
+        rows: [[[point, point]]],
+      }),
+    ).toEqual([{ positions: [point, point] }])
+  })
+
   test('unsupported', () => {
     expect(
       deserializeRawResult({

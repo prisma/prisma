@@ -302,6 +302,10 @@ function mapValue(
       return enumValue
     }
 
+    case 'geometry': {
+      return value
+    }
+
     default:
       assertNever(scalarType, `DataMapper: Unknown result type: ${scalarType['type']}`)
   }

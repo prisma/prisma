@@ -2,6 +2,7 @@ export { bindAdapter, bindMigrationAwareSqlAdapterFactory, bindSqlAdapterFactory
 export { ColumnTypeEnum } from './const'
 export { Debug } from './debug'
 export { DriverAdapterError, isDriverAdapterError } from './error'
+export type { Geometry, InputGeometry, LineString, Point, Polygon } from './Geometry'
 export * from './mock'
 export { err, ok, type Result } from './result'
 export type {
