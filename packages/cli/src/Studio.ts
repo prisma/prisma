@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { access, constants, readFile } from 'node:fs/promises'
 
 import type { PrismaConfigInternal } from '@prisma/config'
@@ -476,6 +477,7 @@ function createStudioRequestHandler({
   version: string
 }): (request: Request) => Promise<Response> {
   let projectHash: string | null = null
+  const sessionToken = randomUUID()
 
   return async (request) => {
     const { pathname } = new URL(request.url)
@@ -486,8 +488,10 @@ function createStudioRequestHandler({
 
     if (isGetOrHeadRequest(request.method) && pathname === '/') {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
-
-      return textResponse(getIndexHtml(adapter), 200, { 'Content-Type': contentType })
+      const response = textResponse(getIndexHtml(adapter), 200, { 'Content-Type': contentType })
+      const headers = new Headers(response.headers)
+      headers.append('Set-Cookie', `__prisma_studio_token=${sessionToken}; HttpOnly; SameSite=Strict; Path=/`)
+      return new Response(response.body, { headers, status: response.status, statusText: response.statusText })
     }
 
     if (isGetOrHeadRequest(request.method) && pathname === '/favicon.ico') {
@@ -502,6 +506,11 @@ function createStudioRequestHandler({
     }
 
     if (request.method === 'POST' && pathname === '/bff') {
+      const cookieHeader = request.headers.get('cookie') ?? ''
+      const isAuthorized = cookieHeader.split(';').some((c) => c.trim() === `__prisma_studio_token=${sessionToken}`)
+      if (!isAuthorized) {
+        return textResponse('Unauthorized', 401)
+      }
       return handleStudioBffRequest(await request.json(), executor)
     }
 
