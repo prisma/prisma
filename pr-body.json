@@ -1,0 +1,6 @@
+{
+  "title": "fix: normalize line endings in prisma format on Windows",
+  "head": "Iceshen87:fix/format-crlf-windows-8548",
+  "base": "main",
+  "body": "## Summary\n\nThis PR fixes issue #8548 where `prisma format` ends the file with a single CRLF on Windows.\n\n## Root Cause\n\nThe file writing logic in `Format.ts` was not normalizing line endings for Windows platforms, causing an extra CRLF to be added at the end of the formatted schema file.\n\n## Solution\n\nNormalize line endings before writing to disk:\n\n```typescript\n// Normalize line endings to platform-specific format\nconst normalizedData = data.replace(/\\r\\n/g, '\\n').replace(/\\n/g, require('node:os').EOL)\nawait fs.writeFile(filename, normalizedData)\n```\n\nThis ensures:\n1. All line endings are first normalized to LF\n2. Then converted to platform-specific EOL (CRLF on Windows, LF on Unix)\n3. Prevents double CRLF on Windows\n\n## Testing\n\n- Tested on Windows: No extra CRLF at end of file\n- Tested on Unix: LF line endings preserved\n- `prisma format --check` works correctly\n\n## Related Issue\n\nFixes: #8548\n\n---\n\n/claim #8548"
+}
