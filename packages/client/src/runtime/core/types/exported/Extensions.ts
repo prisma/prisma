@@ -3,6 +3,7 @@ import { Sql } from '@prisma/client-runtime-utils'
 
 import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
 import { ITXClientDenyList } from './itxClientDenyList'
+import { Action } from './JsApi'
 import { InputJsonObject, JsonObject } from './Json'
 import { OperationPayload } from './Payload'
 import { PrismaPromise } from './Public'
@@ -60,7 +61,7 @@ export type DynamicQueryExtensionArgs<
 > = {
   [K in keyof Q_]:
     K extends '$allOperations'
-    ? (args: { model?: string, operation: string, args: any, query: (args: any) => PrismaPromise<any> }) => Promise<any>
+    ? (args: { model?: string, operation: string, args: any, query: (args: any, operation?: Action) => PrismaPromise<any> }) => Promise<any>
     : K extends '$allModels'
       ? {
           [P in keyof Q_[K] | keyof TypeMap['model'][keyof TypeMap['model']]['operations'] | '$allOperations']?:
@@ -94,6 +95,27 @@ export type DynamicQueryExtensionCb<
   <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A) =>
     Promise<TypeMap[_0][_1][_2]['result']>
 
+type QueryOperation<
+  TypeMap extends TypeMapDef,
+  _0 extends PropertyKey,
+  _1 extends PropertyKey,
+> = keyof TypeMap[_0][_1]['operations']
+
+type QueryCb<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> = <
+  _3 extends QueryOperation<TypeMap, _0, _1> | undefined = undefined,
+  A extends DynamicQueryExtensionCbArgsArgs<
+    TypeMap,
+    _0,
+    _1,
+    _3 extends QueryOperation<TypeMap, _0, _1> ? _3 : _2
+  > = DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _3 extends QueryOperation<TypeMap, _0, _1> ? _3 : _2>,
+>(
+  args: A,
+  operation?: _3,
+) => _3 extends QueryOperation<TypeMap, _0, _1>
+  ? PrismaPromise<TypeMap[_0][_1]['operations'][_3]['result']>
+  : PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
+
 // prettier-ignore
 export type DynamicQueryExtensionCbArgs<
   TypeMap extends TypeMapDef,
@@ -106,12 +128,10 @@ export type DynamicQueryExtensionCbArgs<
       args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>,
       model: _0 extends 0 ? undefined : _1,
       operation: _2,
-      query: <A extends DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>>(args: A) =>
-        PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
+      query: QueryCb<TypeMap, _0, _1, _2>
     } : never : never
   ) & { // but we don't distribute for query so that the input types stay union
-    query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
-      PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
+    query: QueryCb<TypeMap, _0, _1, _2>
   }
 
 export type DynamicQueryExtensionCbArgsArgs<
