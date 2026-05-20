@@ -13,6 +13,7 @@ import {
   HelpError,
   printSchemaLoadedMessage,
   validate,
+  type MultipleSchemas,
 } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
@@ -79,7 +80,7 @@ Or specify a Prisma schema path
     })
     printSchemaLoadedMessage(schemaPath)
 
-    const formattedDatamodel = await formatSchema({ schemas })
+    const formattedDatamodel = normalizeFormattedSchemas(await formatSchema({ schemas }))
 
     // Validate whether the formatted output is a valid schema
     validate({
@@ -118,4 +119,12 @@ Or specify a Prisma schema path
     }
     return Format.help
   }
+}
+
+export function normalizeFormattedSchemaLineEndings(schema: string): string {
+  return schema.replace(/\r\n/g, '\n')
+}
+
+function normalizeFormattedSchemas(schemas: MultipleSchemas): MultipleSchemas {
+  return schemas.map(([filename, schema]) => [filename, normalizeFormattedSchemaLineEndings(schema)])
 }

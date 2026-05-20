@@ -6,7 +6,7 @@ import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 
-import { Format } from '../../Format'
+import { Format, normalizeFormattedSchemaLineEndings } from '../../Format'
 import { Validate } from '../../Validate'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -263,6 +263,12 @@ describe('format', () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse([], defaultTestConfig())
     expect(fs.readFileSync('schema.prisma', { encoding: 'utf-8' })).toMatchSnapshot()
+  })
+
+  it('normalizes CRLF line endings from formatter output', () => {
+    const formatted = 'model User {\r\n  id Int @id\r\n}\r\n'
+
+    expect(normalizeFormattedSchemaLineEndings(formatted)).toBe('model User {\n  id Int @id\n}\n')
   })
 
   it('should add missing backrelation', async () => {
