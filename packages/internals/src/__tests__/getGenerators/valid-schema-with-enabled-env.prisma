@@ -1,0 +1,14 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator gen {
+  provider = "predefined-generator"
+  enabled  = env("PRISMA_GENERATOR_ENABLED_TEST")
+}
+
+model User {
+  id   Int    @id
+  name String
+}
