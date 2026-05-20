@@ -1,0 +1,16 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
+}
+
+model Document {
+  id      String @id @default(uuid())
+  groupId String
+  status  String @db.VarChar(20)
+
+  @@unique([groupId], where: { status: { not: "superseded" } })
+}
