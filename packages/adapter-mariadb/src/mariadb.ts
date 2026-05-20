@@ -243,7 +243,7 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
       // Always enforce UTC so TIMESTAMP strings returned with dateStrings:true are in UTC,
       // which mapRow requires. Placed after the spread so it cannot be overridden by config.
       // See: https://github.com/prisma/prisma/issues/29096
-      this.#config = { ...config, timezone: '+00:00', prepareCacheLength: config.prepareCacheLength ?? 0 }
+      this.#config = { ...config, timezone: 'UTC', prepareCacheLength: config.prepareCacheLength ?? 0 }
     }
     this.#options = options
   }

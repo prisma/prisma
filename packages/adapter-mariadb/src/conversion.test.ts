@@ -48,17 +48,17 @@ describe('mapRow', () => {
 })
 
 describe('mapArg datetime formatting', () => {
-  it('formats a UTC Date as a datetime string with +00:00 suffix', () => {
+  it('formats a UTC Date as a plain datetime string without offset suffix', () => {
     const date = new Date('2025-11-24T15:26:34.887Z')
     const result = mapArg(date, { dbType: 'DATETIME', scalarType: 'datetime', arity: 'scalar' })
-    // The '+00:00' suffix ensures MySQL/MariaDB TIMESTAMP columns store the correct
-    // UTC instant even when the session timezone is not UTC.
-    expect(result).toBe('2025-11-24 15:26:34.887+00:00')
+    // MariaDB rejects offset syntax in datetime literals; UTC is enforced
+    // via timezone:'UTC' on the connection config instead.
+    expect(result).toBe('2025-11-24 15:26:34.887')
   })
 
   it('formats a UTC Date without milliseconds', () => {
     const date = new Date('2024-01-01T00:00:00.000Z')
     const result = mapArg(date, { dbType: 'DATETIME', scalarType: 'datetime', arity: 'scalar' })
-    expect(result).toBe('2024-01-01 00:00:00+00:00')
+    expect(result).toBe('2024-01-01 00:00:00')
   })
 })
