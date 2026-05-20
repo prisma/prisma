@@ -209,6 +209,7 @@ type SocketError = {
 }
 
 function isSocketError(error: any): error is SocketError {
+  if (typeof error !== 'object' || error === null) return false
   return typeof error.code === 'string' && SOCKET_ERRORS.has(error.code)
 }
 
