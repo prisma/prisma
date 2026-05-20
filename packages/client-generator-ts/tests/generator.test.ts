@@ -94,52 +94,75 @@ describe('generator', () => {
       registry,
     })
 
-    const manifest = omit(generator.manifest!, ['version'])
+    try {
+      const manifest = omit(generator.manifest!, ['version'])
 
-    if (manifest.requiresEngineVersion?.length !== 40) {
-      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
-    }
-    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
-
-    expect(manifest).toMatchInlineSnapshot(`
-      {
-        "defaultOutput": "./generated",
-        "prettyName": "Prisma Client",
-        "requiresEngineVersion": "ENGINE_VERSION_TEST",
-        "requiresEngines": [],
+      if (manifest.requiresEngineVersion?.length !== 40) {
+        throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
       }
-    `)
+      manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      {
-        "binaryTargets": [
-          {
+      expect(manifest).toMatchInlineSnapshot(`
+        {
+          "defaultOutput": "./generated",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [],
+        }
+      `)
+
+      expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
+        {
+          "binaryTargets": [
+            {
+              "fromEnvVar": null,
+              "native": true,
+              "value": "NATIVE_BINARY_TARGET",
+            },
+          ],
+          "config": {},
+          "isCustomOutput": true,
+          "name": "client",
+          "previewFeatures": [],
+          "provider": {
             "fromEnvVar": null,
-            "native": true,
-            "value": "NATIVE_BINARY_TARGET",
+            "value": "prisma-client-ts",
           },
-        ],
-        "config": {},
-        "isCustomOutput": true,
-        "name": "client",
-        "previewFeatures": [],
-        "provider": {
-          "fromEnvVar": null,
-          "value": "prisma-client-ts",
-        },
-        "sourceFilePath": "/project/schema.prisma",
-      }
-    `)
+          "sourceFilePath": "/project/schema.prisma",
+        }
+      `)
 
-    expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
-      `"generated"`,
-    )
+      expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
+        `"generated"`,
+      )
 
-    await generator.generate()
-    const clientDir = path.join(__dirname, 'generated')
-    expect(fs.existsSync(clientDir)).toBe(true)
-    expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
-    generator.stop()
+      await generator.generate()
+      const clientDir = path.join(__dirname, 'generated')
+      expect(fs.existsSync(clientDir)).toBe(true)
+      expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
+    } finally {
+      generator.stop()
+    }
+  })
+
+  test('emits portable typed null singleton exports in the browser namespace', async () => {
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'schema.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    try {
+      await generator.generate()
+      const clientDir = path.join(__dirname, 'generated')
+      const browserNamespace = fs.readFileSync(path.join(clientDir, 'internal', 'prismaNamespaceBrowser.ts'), 'utf8')
+      expect(browserNamespace).toContain('export const DbNull: typeof runtime.DbNull = runtime.DbNull')
+      expect(browserNamespace).toContain('export const JsonNull: typeof runtime.JsonNull = runtime.JsonNull')
+      expect(browserNamespace).toContain('export const AnyNull: typeof runtime.AnyNull = runtime.AnyNull')
+    } finally {
+      generator.stop()
+    }
   })
 
   test('denylist from engine validation', async () => {
