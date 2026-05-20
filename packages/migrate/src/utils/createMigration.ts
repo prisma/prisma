@@ -4,6 +4,8 @@ import path from 'node:path'
 import type { ActiveConnectorType } from '@prisma/generator'
 import type { MigrateTypes } from '@prisma/internals'
 
+import { transformPostgresMnPrimaryKeyUpgrade } from './transformMigrationScript'
+
 type CreateMigrationInput = {
   baseDir: string
   generatedMigrationName: string
@@ -25,6 +27,7 @@ type WriteMigrationScriptInput = {
   migrationName: string
   extension: string
   script: string
+  connectorType?: ActiveConnectorType
 }
 
 export async function writeMigrationScript({
@@ -32,8 +35,14 @@ export async function writeMigrationScript({
   extension,
   migrationName,
   script,
+  connectorType,
 }: WriteMigrationScriptInput): Promise<void> {
-  await fs.promises.writeFile(path.join(baseDir, migrationName, `migration.${extension}`), script, {
+  let finalScript = script
+  if (connectorType === 'postgresql') {
+    finalScript = transformPostgresMnPrimaryKeyUpgrade(script)
+  }
+
+  await fs.promises.writeFile(path.join(baseDir, migrationName, `migration.${extension}`), finalScript, {
     encoding: 'utf-8',
   })
 }

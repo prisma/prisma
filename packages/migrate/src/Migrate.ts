@@ -101,6 +101,7 @@ export class Migrate {
       extension,
       migrationName: generatedMigrationName,
       script: migrationScript,
+      connectorType,
     }).catch((e: Error) => {
       throw new Error(`Failed to write migration script to ${directoryPath}: ${e.message}`)
     })
