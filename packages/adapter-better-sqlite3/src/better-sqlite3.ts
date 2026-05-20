@@ -39,6 +39,207 @@ type BetterSQLite3Meta = {
   lastInsertRowid: number | bigint
 }
 
+type State =
+  | 'normal'
+  | 'single'
+  | 'double'
+  | 'backtick'
+  | 'bracket'
+  | 'lineComment'
+  | 'blockComment'
+
+/**
+ * Scans the SQL string and extracts parameter placeholders while ignoring
+ * strings, identifiers, and comments using a state-machine approach.
+ */
+function scanPlaceholders(sql: string): string[] {
+  const tokens: string[] = []
+
+  let i = 0
+  let state: State = 'normal'
+
+  while (i < sql.length) {
+    const char = sql[i]
+    const next = sql[i + 1]
+
+    if (state === 'normal') {
+      if (char === "'") {
+        state = 'single'
+      } else if (char === '"') {
+        state = 'double'
+      } else if (char === '`') {
+        state = 'backtick'
+      } else if (char === '[') {
+        state = 'bracket'
+      } else if (char === '-' && next === '-') {
+        state = 'lineComment'
+        i++
+      } else if (char === '/' && next === '*') {
+        state = 'blockComment'
+        i++
+      }
+
+      else if (char === '?') {
+        if (next && /\d/.test(next)) {
+          let j = i + 1
+          while (j < sql.length && /\d/.test(sql[j])) j++
+          tokens.push(sql.slice(i, j))
+          i = j - 1
+          continue
+        } else {
+          tokens.push('?')
+          i++
+          continue
+        }
+      }
+
+      else if (char === '$') {
+        if (next && /\d/.test(next)) {
+          let j = i + 1
+          while (j < sql.length && /\d/.test(sql[j])) j++
+          tokens.push(sql.slice(i, j))
+          i = j - 1
+          continue
+        } else if (next && /[a-zA-Z_]/.test(next)) {
+          let j = i + 1
+          while (j < sql.length && /[a-zA-Z0-9_]/.test(sql[j])) j++
+          tokens.push(sql.slice(i, j))
+          i = j - 1
+          continue
+        }
+      }
+      else if ((char === ':' || char === '@') && next && /[a-zA-Z_]/.test(next)) {
+        let j = i + 1
+        while (j < sql.length && /[a-zA-Z0-9_]/.test(sql[j])) j++
+        tokens.push(sql.slice(i, j))
+        i = j - 1
+        continue
+      }
+    }
+
+    else if (state === 'single') {
+      if (char === "'" && next === "'") {
+        i++
+      } else if (char === "'") {
+        state = 'normal'
+      }
+    }
+
+    else if (state === 'double') {
+      if (char === '"' && next === '"') {
+        i++
+      } else if (char === '"') {
+        state = 'normal'
+      }
+    }
+
+    else if (state === 'backtick') {
+      if (char === '`' && next === '`') {
+        i++
+      } else if (char === '`') {
+        state = 'normal'
+      }
+    }
+
+    else if (state === 'bracket') {
+      if (char === ']') {
+        state = 'normal'
+      }
+    }
+
+    else if (state === 'lineComment') {
+      if (char === '\n' || char === '\r') {
+        state = 'normal'
+      }
+    }
+
+    else if (state === 'blockComment') {
+      if (char === '*' && next === '/') {
+        state = 'normal'
+        i++
+      }
+    }
+
+    i++
+  }
+
+  return tokens
+}
+
+/**
+ * Binds query arguments based on detected placeholder types (anonymous,
+ * positional, or named) to match better-sqlite3's expected input format.
+ */
+function bindArgs(sql: string, args: unknown[]): unknown[] {
+  const tokens = scanPlaceholders(sql)
+
+  const hasAnonymous = tokens.includes('?')
+  const hasPositional = tokens.some(t => /^[?$]\d+$/.test(t))
+  const hasNamed = tokens.some(t => /^[:$@][a-zA-Z_]/.test(t))
+
+  if (hasPositional && hasAnonymous) {
+    throw new Error('Mixing positional (?N/$N) and anonymous (?) placeholders is not supported')
+  }
+
+  if (hasNamed && hasPositional) {
+    throw new Error('Mixing positional and named placeholders is not supported')
+  }
+
+  if (hasPositional && !hasNamed && !hasAnonymous) {
+    const obj: Record<string, unknown> = {}
+    let argIdx = 0
+
+    for (const token of tokens) {
+      if (/^[?$]\d+$/.test(token)) {
+        const index = token.slice(1)
+        if (!(index in obj)) {
+          obj[index] = args[argIdx++]
+        }
+      }
+    }
+
+    return [obj]
+  }
+
+  if (hasNamed && !hasPositional && !hasAnonymous) {
+    const obj: Record<string, unknown> = {}
+    let argIdx = 0
+
+    for (const token of tokens) {
+      if (/^[:$@][a-zA-Z_]/.test(token)) {
+        const name = token.slice(1)
+        if (!(name in obj)) {
+          obj[name] = args[argIdx++]
+        }
+      }
+    }
+
+    return [obj]
+  }
+
+  if (hasNamed && hasAnonymous) {
+    const positionalArgs: unknown[] = []
+    const namedObj: Record<string, unknown> = {}
+
+    let argIdx = 0
+
+    for (const token of tokens) {
+      if (token === '?') {
+        positionalArgs.push(args[argIdx++])
+      } else if (/^[:$@][a-zA-Z_]/.test(token)) {
+        const name = token.slice(1)
+        if (!(name in namedObj)) {
+          namedObj[name] = args[argIdx++]
+        }
+      }
+    }
+
+    return [...positionalArgs, namedObj]
+  }
+
+  return args
+}
+
 class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
@@ -46,7 +247,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   constructor(
     protected readonly client: ClientT,
     protected readonly adapterOptions?: PrismaBetterSqlite3Options,
-  ) {}
+  ) { }
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -87,7 +288,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   private executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
       const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions))
-      const stmt = this.client.prepare(query.sql).bind(args)
+      const stmt = this.client.prepare(query.sql).bind(...bindArgs(query.sql, args))
       const result = stmt.run()
 
       return Promise.resolve(result)
@@ -104,7 +305,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   private performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
       const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions))
-      const stmt = this.client.prepare(query.sql).bind(args)
+      const stmt = this.client.prepare(query.sql).bind(...bindArgs(query.sql, args))
 
       // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
       if (!stmt.reader) {
