@@ -7,6 +7,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { getCliProvidedSchemaFile } from '../../cli/getSchema'
 import { formatSchema } from '../../engine-commands'
 import { extractSchemaContent, type MultipleSchemas } from '../../utils/schemaFileInput'
+import { prismaSchemaWasm } from '../../wasm'
 import { fixturesPath } from '../__utils__/fixtures'
 
 if (process.env.CI) {
@@ -103,6 +104,45 @@ describe('format custom options', () => {
 })
 
 describe('format', () => {
+  test('normalizes CRLF returned by wasm to LF', async () => {
+    const formattedSchemaWithCrLf = [
+      'datasource db {',
+      '  provider = "sqlite"',
+      '  url      = "file:dev.db"',
+      '}',
+      '',
+      'model User {',
+      '  id Int @id',
+      '}',
+      '',
+    ].join('\r\n')
+    const formattedSchemaWithLf = [
+      'datasource db {',
+      '  provider = "sqlite"',
+      '  url      = "file:dev.db"',
+      '}',
+      '',
+      'model User {',
+      '  id Int @id',
+      '}',
+      '',
+    ].join('\n')
+
+    const formatSpy = vi
+      .spyOn(prismaSchemaWasm, 'format')
+      .mockReturnValue(JSON.stringify([['schema.prisma', formattedSchemaWithCrLf]]))
+    const lintSpy = vi.spyOn(prismaSchemaWasm, 'lint').mockReturnValue('[]')
+
+    try {
+      await expect(formatSchema({ schemas: [['schema.prisma', 'model User { id Int @id }']] })).resolves.toEqual([
+        ['schema.prisma', formattedSchemaWithLf],
+      ])
+    } finally {
+      formatSpy.mockRestore()
+      lintSpy.mockRestore()
+    }
+  })
+
   test('valid blog schemaPath', async () => {
     const { schemas } = await getCliProvidedSchemaFile(path.join(fixturesPath, 'blog.prisma'))
     const formatted = await formatSchema({ schemas })
