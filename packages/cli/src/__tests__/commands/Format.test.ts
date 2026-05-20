@@ -4,6 +4,7 @@ import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import * as internals from '@prisma/internals'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 
 import { Format } from '../../Format'
@@ -327,6 +328,20 @@ describe('format', () => {
     await expect(
       Format.new().parse(['--schema=unformatted.prisma', '--check'], defaultTestConfig()),
     ).resolves.toMatchInlineSnapshot(`"! There are unformatted files. Run prisma format to format them."`)
+  })
+
+  it('check should accept formatted output with CRLF line endings', async () => {
+    ctx.fixture('example-project/prisma')
+    const schema = fs.readFileSync('schema.prisma', { encoding: 'utf-8' })
+    const formatSchemaMock = jest
+      .spyOn(internals, 'formatSchema')
+      .mockResolvedValueOnce([['schema.prisma', schema.replace(/\n/g, '\r\n')]])
+
+    await expect(Format.new().parse(['--check'], defaultTestConfig())).resolves.toMatchInlineSnapshot(
+      `"All files are formatted correctly!"`,
+    )
+
+    formatSchemaMock.mockRestore()
   })
 
   it('should load and check schema located next to a nested config', async () => {
