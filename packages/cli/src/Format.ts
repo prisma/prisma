@@ -10,6 +10,7 @@ import {
   formatms,
   formatSchema,
   getSchemaWithPath,
+  type MultipleSchemas,
   HelpError,
   printSchemaLoadedMessage,
   validate,
@@ -79,7 +80,7 @@ Or specify a Prisma schema path
     })
     printSchemaLoadedMessage(schemaPath)
 
-    const formattedDatamodel = await formatSchema({ schemas })
+    const formattedDatamodel = normalizeLineEndings(await formatSchema({ schemas }))
 
     // Validate whether the formatted output is a valid schema
     validate({
@@ -118,4 +119,8 @@ Or specify a Prisma schema path
     }
     return Format.help
   }
+}
+
+function normalizeLineEndings(schemas: MultipleSchemas): MultipleSchemas {
+  return schemas.map(([filename, schema]) => [filename, schema.replace(/\r\n/g, '\n')])
 }

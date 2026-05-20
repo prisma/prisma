@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
+import * as internals from '@prisma/internals'
 
 import { Format } from '../../Format'
 import { Validate } from '../../Validate'
@@ -219,10 +219,10 @@ describe('format', () => {
           Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"The schemas at prisma/schema are valid 🚀"`)
 
-        const { schemas } = (await getSchemaWithPath({ schemaPath: { cliProvidedPath: 'prisma/schema' } }))!
+        const { schemas } = (await internals.getSchemaWithPath({ schemaPath: { cliProvidedPath: 'prisma/schema' } }))!
 
         // notice how the `Link` backrelation was added in the first schema file:
-        expect(extractSchemaContent(schemas)).toMatchInlineSnapshot(`
+        expect(internals.extractSchemaContent(schemas)).toMatchInlineSnapshot(`
           [
             "generator client {
             provider = "prisma-client-js"
@@ -263,6 +263,23 @@ describe('format', () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse([], defaultTestConfig())
     expect(fs.readFileSync('schema.prisma', { encoding: 'utf-8' })).toMatchSnapshot()
+  })
+
+  it('normalizes CRLF from formatter output before writing', async () => {
+    ctx.fixture('example-project/prisma')
+    const schemaPath = path.join(process.cwd(), 'schema.prisma')
+    const schema = fs.readFileSync(schemaPath, { encoding: 'utf-8' }).replace(/\n/g, '\r\n')
+
+    const formatSchema = jest.spyOn(internals, 'formatSchema').mockResolvedValue([[schemaPath, schema]])
+    try {
+      await Format.new().parse([], defaultTestConfig())
+    } finally {
+      formatSchema.mockRestore()
+    }
+
+    const formatted = fs.readFileSync(schemaPath, { encoding: 'utf-8' })
+    expect(formatted).not.toContain('\r\n')
+    expect(formatted.endsWith('\n')).toBe(true)
   })
 
   it('should add missing backrelation', async () => {
