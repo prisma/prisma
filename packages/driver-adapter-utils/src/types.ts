@@ -193,6 +193,8 @@ export type ConnectionInfo = {
   schemaName?: string
   maxBindValues?: number
   supportsRelationJoins: boolean
+  serverAddress?: string
+  serverPort?: number
 }
 
 export type Provider = 'mysql' | 'postgres' | 'sqlite' | 'sqlserver'

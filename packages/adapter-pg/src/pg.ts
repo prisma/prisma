@@ -200,12 +200,15 @@ export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQu
 export type StatementNameGenerator = (query: SqlQuery) => string
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
+  #connectionInfo?: ConnectionInfo
+
   constructor(
     client: StdClient,
     protected readonly pgOptions?: PrismaPgOptions,
     private readonly release?: () => Promise<void>,
   ) {
     super(client)
+    this.#connectionInfo = this.#extractConnectionInfo()
   }
 
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
@@ -262,8 +265,27 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     }
   }
 
+  #extractConnectionInfo(): ConnectionInfo {
+    const info: ConnectionInfo = {
+      schemaName: this.pgOptions?.schema,
+      supportsRelationJoins: true,
+    }
+
+    const config = this.client.options
+
+    if (config.host) {
+      info.serverAddress = config.host
+    }
+
+    if (config.port) {
+      info.serverPort = config.port
+    }
+
+    return info
+  }
+
   getConnectionInfo(): ConnectionInfo {
-    return {
+    return this.#connectionInfo ?? {
       schemaName: this.pgOptions?.schema,
       supportsRelationJoins: true,
     }

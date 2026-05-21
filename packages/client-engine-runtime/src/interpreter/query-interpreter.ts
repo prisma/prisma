@@ -376,6 +376,7 @@ export class QueryInterpreter {
       provider: this.#provider ?? queryable.provider,
       tracingHelper: this.#tracingHelper,
       onQuery: this.#onQuery,
+      connectionInfo: this.#connectionInfo,
     })
   }
 }
