@@ -45,7 +45,13 @@ export async function formatSchema(
   const { formattedMultipleSchemas, lintDiagnostics } = handleFormatPanic(() => {
     // the only possible error here is a Rust panic
     const formattedMultipleSchemasRaw = formatWasm(JSON.stringify(schemas), documentFormattingParams)
-    const formattedMultipleSchemas = JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas
+    const formattedMultipleSchemasParsed = JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas
+    const formattedMultipleSchemas = formattedMultipleSchemasParsed.map(([filename, schema]) => {
+      // Ensure stable line endings across platforms. The formatter should emit LF-only;
+      // normalize defensively so `prisma format` doesn't introduce a trailing CRLF on Windows.
+      const normalized = schema.replaceAll('\r\n', '\n').replaceAll('\r', '')
+      return [filename, normalized] as const
+    })
 
     const lintDiagnostics = lintSchema({ schemas: formattedMultipleSchemas })
     return { formattedMultipleSchemas, lintDiagnostics }

@@ -103,6 +103,14 @@ describe('format custom options', () => {
 })
 
 describe('format', () => {
+  test('does not emit CR characters', async () => {
+    const { schemas } = await getCliProvidedSchemaFile(path.join(fixturesPath, 'blog.prisma'))
+    const formatted = await formatSchema({ schemas })
+    for (const [, schema] of formatted) {
+      expect(schema.includes('\r')).toBe(false)
+    }
+  })
+
   test('valid blog schemaPath', async () => {
     const { schemas } = await getCliProvidedSchemaFile(path.join(fixturesPath, 'blog.prisma'))
     const formatted = await formatSchema({ schemas })
