@@ -30,6 +30,10 @@ import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import {
+  type CheckGlobalLocalVersionMismatchOptions,
+  getGlobalLocalVersionMismatchWarning,
+} from './utils/checkGlobalLocalVersionMismatch'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -40,9 +44,14 @@ const pkg = eval(`require('../package.json')`)
  */
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
+  versionMismatchOptions?: Omit<CheckGlobalLocalVersionMismatchOptions, 'globalVersion'>
 
-  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+  constructor(
+    surveyHandler: () => Promise<void> = handleNpsSurvey,
+    versionMismatchOptions?: Omit<CheckGlobalLocalVersionMismatchOptions, 'globalVersion'>,
+  ) {
     this.surveyHandler = surveyHandler
+    this.versionMismatchOptions = versionMismatchOptions
   }
 
   public static new(): Generate {
@@ -229,6 +238,15 @@ Please run \`prisma generate\` manually.`
     const hideHints = args['--no-hints'] ?? false
 
     if (!watchMode) {
+      const globalLocalVersionWarning = logger.should.warn()
+        ? await getGlobalLocalVersionMismatchWarning({
+            cwd: baseDir,
+            globalVersion: pkg.version,
+            ...this.versionMismatchOptions,
+          })
+        : null
+      const globalLocalVersionStr = globalLocalVersionWarning ? `\n\n${globalLocalVersionWarning}` : ''
+
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
           options?.generator.provider && parseEnvValue(options?.generator.provider) === BuiltInProvider.PrismaClientJs,
@@ -253,16 +271,19 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}${globalLocalVersionStr}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${breakingChangesStr}${versionsWarning}`
+${breakingChangesStr}${versionsWarning}${globalLocalVersionStr}`
         }
+      } else {
+        hint = globalLocalVersionStr
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      const hintSuffix = hasJsClient && !this.hasGeneratorErrored ? hint : globalLocalVersionStr
+      const message = '\n' + this.logText + hintSuffix
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
