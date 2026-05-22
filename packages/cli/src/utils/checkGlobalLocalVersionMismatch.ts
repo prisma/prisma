@@ -66,6 +66,9 @@ export async function getGlobalLocalVersionMismatchWarning(
 }
 
 export function formatGlobalLocalVersionMismatchWarning(mismatches: GlobalLocalVersionMismatch[]): string {
+  if (mismatches.length === 0) {
+    return ''
+  }
   const globalVersion = mismatches[0].globalVersion
   const localList = mismatches
     .map(({ packageName, localVersion }) => bold(`${packageName}@${localVersion}`))

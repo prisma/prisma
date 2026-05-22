@@ -76,3 +76,7 @@ test('formatGlobalLocalVersionMismatchWarning includes both versions in the mess
   expect(message).toContain('prisma@7.4.0')
   expect(message).toContain('npx prisma generate')
 })
+
+test('formatGlobalLocalVersionMismatchWarning returns empty string for empty input', () => {
+  expect(formatGlobalLocalVersionMismatchWarning([])).toBe('')
+})
