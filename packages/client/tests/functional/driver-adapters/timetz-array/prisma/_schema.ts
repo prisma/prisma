@@ -11,7 +11,8 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model A {
-      id Int @id @default(autoincrement())
+      id    Int                       @id @default(autoincrement())
+      times Unsupported("timetz[]")?
     }
   `
 })

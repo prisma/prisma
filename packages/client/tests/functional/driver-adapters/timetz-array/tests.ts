@@ -1,5 +1,4 @@
 import { Providers } from '../../_utils/providers'
-import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
@@ -30,11 +29,25 @@ testMatrix.setupTestSuite(
       `
       expect(result[0].times).toEqual(['08:30:00'])
     })
+
+    test('timetz[] model column round-trips via raw SQL', async () => {
+      await prisma.$executeRaw`INSERT INTO "A" ("times") VALUES (ARRAY['12:00:00+00'::timetz, '08:30:00+05:30'::timetz])`
+      const result = await prisma.$queryRaw<{ times: string[] }[]>`
+        SELECT "times" FROM "A" WHERE "times" IS NOT NULL LIMIT 1
+      `
+      expect(result[0].times).toEqual(['12:00:00', '08:30:00'])
+    })
   },
   {
-    ...defaultTestSuiteOptions,
     optOut: {
-      from: [Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB, Providers.SQLITE, Providers.MYSQL],
+      from: [
+        Providers.COCKROACHDB,
+        Providers.SQLSERVER,
+        Providers.MONGODB,
+        Providers.SQLITE,
+        Providers.MYSQL,
+        Providers.MARIADB,
+      ],
       reason: 'timetz[] is a PostgreSQL-only type',
     },
     skipDriverAdapter: {
