@@ -248,6 +248,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       "
     `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
