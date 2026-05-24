@@ -17,10 +17,13 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
+import path from 'path'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json')
+// Resolves to the package root in both source (`src/..`) and bundled (`build/..`) layouts.
+const prismaCliPath = path.resolve(__dirname, '..')
 
 /**
  * $ prisma version
@@ -92,6 +95,7 @@ export class Version implements Command {
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.dependencies['@prisma/studio-core']],
+      ['Prisma CLI Path', prismaCliPath],
     ]
 
     /**
