@@ -59,6 +59,23 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
+  it('no unapplied migrations with --no-hints', async () => {
+    ctx.fixture('schema-only-sqlite')
+    ctx.setConfigFile('empty.config.ts')
+
+    const result = MigrateDeploy.new().parse(['--no-hints'], await ctx.config(), ctx.configDir())
+    await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "
+      No migration found in prisma/migrations
+
+
+      "
+    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+  })
+
   it('should work with nested config and schema', async () => {
     ctx.fixture('prisma-config-nested-sqlite')
     ctx.setConfigFile('config/prisma.config.ts')
