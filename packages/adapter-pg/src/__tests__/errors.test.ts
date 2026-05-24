@@ -43,6 +43,16 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle UniqueConstraintViolation (23505) with constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)', constraint: 'users_id_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_id_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle NullConstraintViolation (23502)', () => {
     const error = { code: '23502', message: 'msg', severity: 'ERROR', detail: 'Key (foo)' }
     expect(convertDriverError(error)).toEqual({
