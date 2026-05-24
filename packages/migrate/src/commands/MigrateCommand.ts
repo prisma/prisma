@@ -97,7 +97,7 @@ ${bold('Examples')}
         argsForCmd = filteredArgs.slice(1)
       }
 
-      if (args['--no-hints']) {
+      if (args['--no-hints'] && (commandName === 'deploy' || commandName === 'status')) {
         argsForCmd.push('--no-hints')
       }
 
