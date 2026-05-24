@@ -230,6 +230,27 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
+
+  it('should throw if database is not empty with --no-hints', async () => {
+    ctx.fixture('existing-db-1-migration-conflict')
+
+    const result = MigrateDeploy.new().parse(['--no-hints'], await ctx.config(), ctx.configDir())
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      "P3005
+
+      The database schema is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
+      "
+    `)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "
+      1 migration found in prisma/migrations
+
+      "
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
+  })
 })
 
 describeMatrix(postgresOnly, 'postgres', () => {
