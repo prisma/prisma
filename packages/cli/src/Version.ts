@@ -15,8 +15,10 @@ import {
   resolveEngine,
   wasm,
 } from '@prisma/internals'
+import fs from 'fs'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
+import path from 'path'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -78,6 +80,7 @@ export class Version implements Command {
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
+    const prismaCliPath = getPrismaCliPath()
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -92,6 +95,7 @@ export class Version implements Command {
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.dependencies['@prisma/studio-core']],
+      ['Prisma CLI Path', prismaCliPath],
     ]
 
     /**
@@ -126,5 +130,50 @@ export class Version implements Command {
       // console.error(e)
     }
     return []
+  }
+}
+
+export function getPrismaCliPath(entryPoint: string | undefined = process.argv[1]): string {
+  if (!entryPoint) {
+    return 'Not found'
+  }
+
+  const realEntryPoint = getRealPath(path.resolve(entryPoint))
+
+  return findPrismaPackageRoot(realEntryPoint) ?? path.dirname(realEntryPoint)
+}
+
+function getRealPath(entryPoint: string): string {
+  try {
+    return fs.realpathSync(entryPoint)
+  } catch {
+    return entryPoint
+  }
+}
+
+function findPrismaPackageRoot(entryPoint: string): string | null {
+  let currentDir = path.dirname(entryPoint)
+
+  while (true) {
+    const packageJsonPath = path.join(currentDir, 'package.json')
+
+    if (isPrismaPackage(packageJsonPath)) {
+      return currentDir
+    }
+
+    const parentDir = path.dirname(currentDir)
+    if (parentDir === currentDir) {
+      return null
+    }
+
+    currentDir = parentDir
+  }
+}
+
+function isPrismaPackage(packageJsonPath: string): boolean {
+  try {
+    return JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')).name === 'prisma'
+  } catch {
+    return false
   }
 }
