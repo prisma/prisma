@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { enginesVersion } from '@prisma/engines'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { version as typeScriptVersion } from 'typescript'
@@ -22,13 +24,22 @@ describe('version', () => {
       PSL                  : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
       Schema Engine        : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
       Default Engines Hash : ENGINE_VERSION
-      Studio               : STUDIO_VERSION"
+      Studio               : STUDIO_VERSION
+      Prisma CLI Path      : sanitized_prisma_cli_path"
     `)
     expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
 
       Prisma schema loaded from schema.prisma."
     `)
+  })
+
+  test('includes the Prisma CLI path in JSON output', async () => {
+    ctx.fixture('version')
+    const data = await ctx.cli('version', '--json')
+
+    expect(data.exitCode).toBe(0)
+    expect(JSON.parse(data.stdout)['prisma-cli-path']).toBe(path.dirname(require.resolve('../../../package.json')))
   })
 })
 
@@ -72,6 +83,8 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
 
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
+
+  str = str.replace(new RegExp('(Prisma CLI Path\\s+:).*', 'g'), '$1 sanitized_prisma_cli_path')
 
   return str
 }
