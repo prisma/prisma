@@ -43,7 +43,7 @@ import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
 /**
  * Prisma error code for the `PrismaClientInitializationError` raised when
- * the `client` engine is instantiated without an active driver adapter.
+ * `PrismaClient` is instantiated without a driver adapter.
  */
 const CLIENT_ENGINE_ERROR = 'P2038'
 
@@ -127,7 +127,7 @@ export class ClientEngine implements Engine {
       debug('Using driver adapter: %O', config.adapter)
     } else {
       throw new PrismaClientInitializationError(
-        'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
+        'PrismaClient requires a driver adapter to connect to your database, but none was provided. Pass one to the PrismaClient constructor, e.g. `new PrismaClient({ adapter })`. Learn more: https://pris.ly/d/driver-adapters',
         config.clientVersion,
         CLIENT_ENGINE_ERROR,
       )

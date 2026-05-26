@@ -285,6 +285,19 @@ export type Subset<T, U> = {
 };
 
 /**
+ * Resolved type of the argument passed to the \`PrismaClient\` constructor.
+ *
+ * When called without a narrower options type (the common case), this resolves
+ * to \`PrismaClientOptions\` directly, which produces a clear TypeScript error
+ * message (\`not assignable to parameter of type 'PrismaClientOptions'\`) when
+ * the argument is missing or incomplete. When the user supplies a narrower
+ * options type (e.g. via a literal), it falls back to \`Subset\` to keep
+ * filtering out unknown properties.
+ */
+export type PrismaClientConstructorArgs<Options extends PrismaClientOptions> =
+  [PrismaClientOptions] extends [Options] ? PrismaClientOptions : Subset<Options, PrismaClientOptions>;
+
+/**
  * SelectSubset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection.
  * Additionally, it validates, if both select and include are present. If the case, it errors.
