@@ -58,7 +58,7 @@ export async function getInstalledPackageVersionFromNodeModules(
   cwd: string = process.cwd(),
 ): Promise<string | null> {
   try {
-    const packageJsonPath = findPackageJsonFromNodeModules(packageName, cwd)
+    const packageJsonPath = await findPackageJsonFromNodeModules(packageName, cwd)
     if (!packageJsonPath) {
       return null
     }
@@ -72,14 +72,17 @@ export async function getInstalledPackageVersionFromNodeModules(
   }
 }
 
-function findPackageJsonFromNodeModules(packageName: LocalPackageName, cwd: string): string | null {
+async function findPackageJsonFromNodeModules(packageName: LocalPackageName, cwd: string): Promise<string | null> {
   let currentDir = path.resolve(cwd)
   const packageJsonSegments = ['node_modules', ...packageName.split('/'), 'package.json']
 
   while (true) {
     const packageJsonPath = path.join(currentDir, ...packageJsonSegments)
-    if (fs.existsSync(packageJsonPath)) {
+    try {
+      await fs.promises.access(packageJsonPath, fs.constants.F_OK)
       return packageJsonPath
+    } catch {
+      // Keep walking parent directories until a local install is found.
     }
 
     const parentDir = path.dirname(currentDir)

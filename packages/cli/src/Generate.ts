@@ -248,12 +248,17 @@ Please run \`prisma generate\` manually.`
     const hideHints = args['--no-hints'] ?? false
 
     if (!watchMode) {
-      const globalLocalVersionWarning = logger.should.warn()
-        ? await this.getGlobalLocalVersionMismatchWarning({
+      let globalLocalVersionWarning: string | null = null
+      if (logger.should.warn()) {
+        try {
+          globalLocalVersionWarning = await this.getGlobalLocalVersionMismatchWarning({
             cwd: baseDir,
             globalVersion: cliVersion,
           })
-        : null
+        } catch {
+          globalLocalVersionWarning = null
+        }
+      }
       const globalLocalVersionWarningStr = globalLocalVersionWarning ? `\n\n${globalLocalVersionWarning}` : ''
 
       const prismaClientJSGenerator = generators?.find(

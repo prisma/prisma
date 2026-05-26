@@ -277,6 +277,17 @@ it('should still show the global/local version warning with --no-hints', async (
   expect(output).not.toContain('Start by importing your Prisma Client')
 })
 
+it('should not fail generate when the global/local version warning lookup fails', async () => {
+  ctx.fixture('example-project')
+  const generate = new Generate(jest.fn(), {
+    getGlobalLocalVersionMismatchWarning: () => Promise.reject(new Error('version lookup failed')),
+  })
+  const output = await generate.parse([], await ctx.config())
+
+  expect(output).toContain('Generated Prisma Client')
+  expect(output).not.toContain('version lookup failed')
+})
+
 it('should show the global/local version warning without a prisma-client-js generator', async () => {
   ctx.fixture('no-config')
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
