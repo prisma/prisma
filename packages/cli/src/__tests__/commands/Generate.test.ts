@@ -266,6 +266,27 @@ it('should hide hints with --no-hints', async () => {
   `)
 })
 
+it('should still show the global/local version warning with --no-hints', async () => {
+  ctx.fixture('example-project')
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    getGlobalLocalVersionMismatchWarning: () => Promise.resolve('warn global/local version mismatch'),
+  })
+  const output = await generate.parse(['--no-hints'], await ctx.config())
+
+  expect(output).toContain('warn global/local version mismatch')
+  expect(output).not.toContain('Start by importing your Prisma Client')
+})
+
+it('should show the global/local version warning without a prisma-client-js generator', async () => {
+  ctx.fixture('no-config')
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    getGlobalLocalVersionMismatchWarning: () => Promise.resolve('warn global/local version mismatch'),
+  })
+  const output = await generate.parse([], await ctx.config())
+
+  expect(output).toContain('warn global/local version mismatch')
+})
+
 it('should run the skills offer before the survey handler when hints are not disabled', async () => {
   ctx.fixture('example-project')
   const calls: string[] = []
