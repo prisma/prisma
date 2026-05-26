@@ -13,6 +13,7 @@ import {
   getGeneratorSuccessMessage,
   getSchemaWithPath,
   HelpError,
+  isCurrentBinInstalledGlobally,
   isError,
   logger,
   missingGeneratorMessage,
@@ -30,6 +31,7 @@ import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import { getInstalledPrismaCliVersion, shouldWarnGlobalLocalCliMismatch } from './utils/getClientVersion'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -252,13 +254,27 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
+        const installedLocalPrismaCliVersion = await getInstalledPrismaCliVersion(baseDir)
+        const globalLocalCliMismatch = shouldWarnGlobalLocalCliMismatch({
+          isGlobalInstall: Boolean(isCurrentBinInstalledGlobally()),
+          globalCliVersion: pkg.version,
+          installedLocalPrismaCliVersion,
+        })
+        const globalLocalCliWarning =
+          globalLocalCliMismatch && logger.should.warn()
+            ? `\n\n${yellow(bold('warn'))} You're running ${bold(
+                `prisma@${pkg.version}`,
+              )} globally, but this project has ${bold(`prisma@${installedLocalPrismaCliVersion}`)} installed locally.
+Run \`npx prisma generate\` (or your package manager's equivalent) to use the local version.`
+            : ''
+
         if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}${globalLocalCliWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${breakingChangesStr}${versionsWarning}`
+${breakingChangesStr}${versionsWarning}${globalLocalCliWarning}`
         }
       }
 
