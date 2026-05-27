@@ -123,4 +123,32 @@ describe('getInstalledPrismaCliVersion', () => {
     const result = await getInstalledPrismaCliVersion(tmpDir)
     expect(result).toBeNull()
   })
+
+  test('walks up from cwd and finds prisma in a parent directory', async () => {
+    const nestedCwd = path.join(tmpDir, 'apps', 'api')
+    fs.mkdirSync(nestedCwd, { recursive: true })
+
+    const prismaDir = path.join(tmpDir, 'node_modules', 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(path.join(prismaDir, 'package.json'), JSON.stringify({ name: 'prisma', version: '6.5.0' }))
+
+    const result = await getInstalledPrismaCliVersion(nestedCwd)
+    expect(result).toBe('6.5.0')
+  })
+
+  test('returns null on a malformed package.json without continuing to walk up', async () => {
+    // Inner node_modules/prisma/package.json is corrupt; outer one has a real version.
+    // The function must NOT silently fall through to the outer install.
+    const innerDir = path.join(tmpDir, 'inner')
+    const innerPrismaDir = path.join(innerDir, 'node_modules', 'prisma')
+    fs.mkdirSync(innerPrismaDir, { recursive: true })
+    fs.writeFileSync(path.join(innerPrismaDir, 'package.json'), 'not valid json{')
+
+    const outerPrismaDir = path.join(tmpDir, 'node_modules', 'prisma')
+    fs.mkdirSync(outerPrismaDir, { recursive: true })
+    fs.writeFileSync(path.join(outerPrismaDir, 'package.json'), JSON.stringify({ name: 'prisma', version: '9.9.9' }))
+
+    const result = await getInstalledPrismaCliVersion(innerDir)
+    expect(result).toBeNull()
+  })
 })

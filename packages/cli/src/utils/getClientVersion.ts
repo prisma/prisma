@@ -31,8 +31,14 @@ export async function getInstalledPrismaCliVersion(cwd: string = process.cwd()):
       try {
         const pkgJson = JSON.parse(await fs.promises.readFile(candidate, 'utf-8'))
         return pkgJson.version ?? null
-      } catch {
-        // not in this directory; keep walking up
+      } catch (error: unknown) {
+        // Only ENOENT means "not here, keep walking". Any other error
+        // (EACCES, parse failure, etc.) on an existing candidate is terminal
+        // — silently continuing could resolve a different prisma higher up
+        // and produce a misleading warning.
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          return null
+        }
       }
       const parent = path.dirname(dir)
       if (parent === dir) return null
