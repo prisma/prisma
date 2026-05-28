@@ -80,18 +80,19 @@ export class Version implements Command {
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
 
+    // Try to resolve the actual binary path; if it doesn't exist (e.g. symlink to
+    // parent node_modules), use the unresolved argv[1] rather than throwing
+    let cliPath = 'unknown'
+    if (process.argv[1]) {
+      try { cliPath = fs.realpathSync(process.argv[1]) } catch { cliPath = process.argv[1] }
+    }
+
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
-      // Try to resolve the actual binary path; if it doesn't exist (e.g. symlink to
-      // parent node_modules), use the unresolved argv[1] rather than throwing
-      let cliPath = 'unknown'
-      if (process.argv[1]) {
-        try { cliPath = fs.realpathSync(process.argv[1]) } catch { cliPath = process.argv[1] }
-      }
       ['Prisma CLI Path', cliPath],
       ['TypeScript', typescriptVersion],
       ['Query Compiler', 'enabled'],
