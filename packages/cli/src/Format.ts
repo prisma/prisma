@@ -103,7 +103,10 @@ Or specify a Prisma schema path
     }
 
     for (const [filename, data] of formattedDatamodel) {
-      await fs.writeFile(filename, data)
+      const normalizedData = data.endsWith('
+') ? data.replace(/\r
+$/, '
+') : data; await fs.writeFile(filename, normalizedData)
     }
 
     const after = Math.round(performance.now())
