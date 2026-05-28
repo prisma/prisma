@@ -79,7 +79,10 @@ Or specify a Prisma schema path
     })
     printSchemaLoadedMessage(schemaPath)
 
-    const formattedDatamodel = await formatSchema({ schemas })
+    const formattedDatamodelRaw = await formatSchema({ schemas })
+    const formattedDatamodel = formattedDatamodelRaw.map(
+      ([filename, data]) => [filename, normalizeSchemaNewlines(data)] as [string, string],
+    )
 
     // Validate whether the formatted output is a valid schema
     validate({
@@ -118,4 +121,8 @@ Or specify a Prisma schema path
     }
     return Format.help
   }
+}
+
+function normalizeSchemaNewlines(schema: string): string {
+  return schema.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 }
