@@ -86,7 +86,13 @@ export class Version implements Command {
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
-      ['Prisma CLI Path', process.argv[1] ? fs.realpathSync(process.argv[1]) : 'unknown'],
+      // Try to resolve the actual binary path; if it doesn't exist (e.g. symlink to
+      // parent node_modules), use the unresolved argv[1] rather than throwing
+      let cliPath = 'unknown'
+      if (process.argv[1]) {
+        try { cliPath = fs.realpathSync(process.argv[1]) } catch { cliPath = process.argv[1] }
+      }
+      ['Prisma CLI Path', cliPath],
       ['TypeScript', typescriptVersion],
       ['Query Compiler', 'enabled'],
       ['PSL', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
