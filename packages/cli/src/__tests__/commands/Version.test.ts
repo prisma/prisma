@@ -63,6 +63,9 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
   str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
+
+  // sanitize Prisma CLI Path
+  str = str.replace(/Prisma CLI Path\s+:.*/g, 'Prisma CLI Path      : CLI_PATH')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
   str = str.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')

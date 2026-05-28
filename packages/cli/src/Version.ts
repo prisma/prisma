@@ -17,6 +17,7 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
+import fs from 'fs'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -85,6 +86,7 @@ export class Version implements Command {
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
+      ['Prisma CLI Path', process.argv[1] ? fs.realpathSync(process.argv[1]) : 'unknown'],
       ['TypeScript', typescriptVersion],
       ['Query Compiler', 'enabled'],
       ['PSL', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
