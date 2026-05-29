@@ -54,7 +54,7 @@ export async function downloadAndExtractTemplate(templateName: string, targetDir
   const response = await fetch(PRISMA_EXAMPLES_TARBALL_URL, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'prisma-cli' },
     redirect: 'follow',
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(120_000),
   })
 
   if (!response.ok || !response.body) {
@@ -105,6 +105,7 @@ async function decompressGzip(body: import('node:stream/web').ReadableStream): P
   const chunks: Buffer[] = []
 
   return new Promise<Buffer>((resolve, reject) => {
+    nodeStream.on('error', reject)
     nodeStream
       .pipe(gunzip)
       .on('data', (chunk: Buffer) => chunks.push(chunk))
@@ -153,17 +154,59 @@ export function detectPackageManager(baseDir: string): PackageManager {
   if (fs.existsSync(path.join(baseDir, 'yarn.lock'))) return 'yarn'
   if (fs.existsSync(path.join(baseDir, 'bun.lock')) || fs.existsSync(path.join(baseDir, 'bun.lockb'))) return 'bun'
   if (fs.existsSync(path.join(baseDir, 'deno.lock'))) return 'deno'
+
+  const pkgPath = path.join(baseDir, 'package.json')
+  if (fs.existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+      const pm = pkg.packageManager as string | undefined
+      if (pm) {
+        if (pm.startsWith('pnpm')) return 'pnpm'
+        if (pm.startsWith('yarn')) return 'yarn'
+        if (pm.startsWith('bun')) return 'bun'
+        if (pm.startsWith('deno')) return 'deno'
+      }
+    } catch {}
+  }
+
   return 'npm'
 }
 
 const execFileAsync = promisify(execFile)
 
-export async function installDependencies(baseDir: string): Promise<void> {
+async function runPackageManager(baseDir: string, args: string[]): Promise<void> {
   const pm = detectPackageManager(baseDir)
-  await execFileAsync(pm, ['install'], {
+  await execFileAsync(pm, args, {
     cwd: baseDir,
     env: { ...process.env },
     shell: process.platform === 'win32',
     timeout: 300_000,
   })
+}
+
+export function installDependencies(baseDir: string): Promise<void> {
+  return runPackageManager(baseDir, ['install'])
+}
+
+function addArgsForPackages(baseDir: string, packages: string[], dev: boolean): string[] {
+  const pm = detectPackageManager(baseDir)
+  if (pm === 'deno') {
+    throw new Error('Deno projects require manual dependency management. Please add dependencies to your deno.json.')
+  }
+  switch (pm) {
+    case 'npm':
+      return dev ? ['install', '--save-dev', ...packages] : ['install', ...packages]
+    case 'yarn':
+      return dev ? ['add', '--dev', ...packages] : ['add', ...packages]
+    default:
+      return dev ? ['add', '-D', ...packages] : ['add', ...packages]
+  }
+}
+
+export function addDependencies(baseDir: string, packages: string[]): Promise<void> {
+  return runPackageManager(baseDir, addArgsForPackages(baseDir, packages, false))
+}
+
+export function addDevDependencies(baseDir: string, packages: string[]): Promise<void> {
+  return runPackageManager(baseDir, addArgsForPackages(baseDir, packages, true))
 }

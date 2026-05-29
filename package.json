@@ -47,7 +47,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.14",
-    "@types/node": "~20.19.24",
+    "@types/node": "~20.19.37",
     "@types/resolve": "1.20.6",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
@@ -162,12 +162,15 @@
   "pnpm": {
     "overrides": {
       "form-data": ">=4.0.4",
-      "hono": ">=4.12.4",
-      "@hono/node-server": ">=1.19.10",
+      "hono": ">=4.12.14",
+      "@hono/node-server": ">=1.19.13",
       "jws": ">=4.0.1",
       "tar-fs": ">=2.1.4",
       "lodash": ">=4.17.23",
-      "@tootallnate/once": ">=3.0.1"
+      "@tootallnate/once": ">=3.0.1",
+      "ajv@^8.0.0": ">=8.18.0",
+      "@azure/core-rest-pipeline@^1.0.0": ">=1.14.0",
+      "@azure/msal-node>uuid": ">=14.0.0"
     }
   }
 }
