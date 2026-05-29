@@ -22,6 +22,7 @@ export async function loadOrInitializeCommandState(): Promise<CommandState> {
   const state = data === undefined ? { firstCommandTimestamp: new Date().toISOString() } : JSON.parse(data)
 
   if (data === undefined) {
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
     await fs.promises.writeFile(filePath, JSON.stringify(state))
   }
 

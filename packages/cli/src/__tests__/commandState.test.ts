@@ -5,17 +5,18 @@ import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } fro
 describe('command state', () => {
   let mockRead: jest.SpyInstance
   let mockWrite: jest.SpyInstance
-  let mockExists: jest.SpyInstance
+  let mockMkdir: jest.SpyInstance
 
   afterEach(() => {
     mockRead?.mockRestore()
     mockWrite?.mockRestore()
-    mockExists?.mockRestore()
+    mockMkdir?.mockRestore()
   })
 
   it("initialize with the date when the state file doesn't exist", async () => {
     mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
     mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockMkdir = jest.spyOn(fs.promises, 'mkdir').mockImplementation()
 
     const state = await loadOrInitializeCommandState()
 
@@ -23,6 +24,7 @@ describe('command state', () => {
       firstCommandTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/),
     })
     expect(mockRead).toHaveBeenCalledTimes(1)
+    expect(mockMkdir).toHaveBeenCalledWith(expect.anything(), { recursive: true })
     expect(mockWrite).toHaveBeenCalledWith(expect.anything(), JSON.stringify(state))
   })
 
