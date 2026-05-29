@@ -19,18 +19,26 @@ export async function loadOrInitializeCommandState(): Promise<CommandState> {
   const data = await fs.promises
     .readFile(filePath, 'utf-8')
     .catch((err) => (err.code === 'ENOENT' ? Promise.resolve(undefined) : Promise.reject(err)))
-  const state = data === undefined ? { firstCommandTimestamp: new Date().toISOString() } : JSON.parse(data)
 
-  if (data === undefined) {
+  let state: CommandState | undefined
+  if (data !== undefined) {
+    try {
+      const parsed = JSON.parse(data)
+      if (parsed && typeof parsed.firstCommandTimestamp === 'string') {
+        state = parsed
+      }
+    } catch {
+      // Gracefully ignore parsing errors and re-initialize
+    }
+  }
+
+  if (state === undefined) {
+    state = { firstCommandTimestamp: new Date().toISOString() }
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
     await fs.promises.writeFile(filePath, JSON.stringify(state))
   }
 
-  if (typeof state.firstCommandTimestamp === 'string') {
-    return state
-  } else {
-    throw new Error('Invalid command state schema')
-  }
+  return state
 }
 
 /*

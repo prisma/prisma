@@ -43,6 +43,36 @@ describe('command state', () => {
     expect(mockWrite).toHaveBeenCalledTimes(0)
   })
 
+  it('gracefully re-initializes when the state file contains invalid JSON', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockResolvedValue('invalid-json')
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockMkdir = jest.spyOn(fs.promises, 'mkdir').mockImplementation()
+
+    const state = await loadOrInitializeCommandState()
+
+    expect(state).toEqual({
+      firstCommandTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/),
+    })
+    expect(mockRead).toHaveBeenCalledTimes(1)
+    expect(mockMkdir).toHaveBeenCalledWith(expect.anything(), { recursive: true })
+    expect(mockWrite).toHaveBeenCalledWith(expect.anything(), JSON.stringify(state))
+  })
+
+  it('gracefully re-initializes when the state file has an invalid schema', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(JSON.stringify({ wrongField: 123 }))
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockMkdir = jest.spyOn(fs.promises, 'mkdir').mockImplementation()
+
+    const state = await loadOrInitializeCommandState()
+
+    expect(state).toEqual({
+      firstCommandTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/),
+    })
+    expect(mockRead).toHaveBeenCalledTimes(1)
+    expect(mockMkdir).toHaveBeenCalledWith(expect.anything(), { recursive: true })
+    expect(mockWrite).toHaveBeenCalledWith(expect.anything(), JSON.stringify(state))
+  })
+
   it('calculate the days since last command', () => {
     const start = new Date('2023-01-01T00:00:00Z')
     const end = new Date('2025-05-14T12:00:00Z')
