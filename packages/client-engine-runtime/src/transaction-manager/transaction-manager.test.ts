@@ -681,6 +681,59 @@ test('transaction times out during execution', async () => {
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
 })
 
+test('execution timeout does not produce an unhandled rejection when rollback fails on a dead connection', async () => {
+  // Regression test: when the database kills the backend connection before the execution timeout
+  // fires, the timeout-driven ROLLBACK rejects. Since nothing awaits the timer callback's promise,
+  // such a rejection used to escape as an unhandled rejection and crash the process outside the
+  // user's try/catch around $transaction. The timer callback must therefore never reject.
+  const originalSetTimeout = global.setTimeout
+  const timerCallbackResults: Promise<unknown>[] = []
+  const setTimeoutSpy = vi
+    .spyOn(global, 'setTimeout')
+    .mockImplementation((callback: (...args: any[]) => void, ms?: number, ...args: any[]) => {
+      return originalSetTimeout(
+        (...cbArgs: any[]) => {
+          const result = callback(...cbArgs) as unknown
+          if (result instanceof Promise) {
+            timerCallbackResults.push(result)
+          }
+        },
+        ms,
+        ...args,
+      )
+    })
+
+  try {
+    const driverAdapter = new MockDriverAdapter()
+    const connectionError = new Error('Client has encountered a connection error and is not queryable')
+    driverAdapter.executeRawMock = vi.fn().mockRejectedValue(connectionError)
+
+    const transactionManager = new TransactionManager({
+      driverAdapter,
+      transactionOptions: TRANSACTION_OPTIONS,
+      tracingHelper: noopTracingHelper,
+    })
+
+    const id = await startTransaction(transactionManager)
+
+    await vi.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT + 100)
+
+    expect(driverAdapter.executeRawMock).toHaveBeenCalled()
+    expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
+
+    // The timer callback's promise must settle without rejecting; otherwise it would surface as an
+    // unhandled rejection in production where its return value is discarded.
+    await expect(Promise.all(timerCallbackResults)).resolves.toBeDefined()
+    expect(timerCallbackResults.length).toBeGreaterThan(0)
+
+    // The transaction is still cleanly closed, so subsequent operations reject through the normal path.
+    await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
+    await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
+  } finally {
+    setTimeoutSpy.mockRestore()
+  }
+})
+
 test('internal transaction does not apply the default start timeout', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
