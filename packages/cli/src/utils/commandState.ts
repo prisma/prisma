@@ -1,6 +1,9 @@
+import { Debug } from '@prisma/debug'
 import paths from 'env-paths'
 import fs from 'fs'
 import path from 'path'
+
+const debug = Debug('prisma:cli:commandState')
 
 export interface CommandState {
   firstCommandTimestamp: string
@@ -34,8 +37,14 @@ export async function loadOrInitializeCommandState(): Promise<CommandState> {
 
   if (state === undefined) {
     state = { firstCommandTimestamp: new Date().toISOString() }
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
-    await fs.promises.writeFile(filePath, JSON.stringify(state))
+    try {
+      await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
+      const tempFilePath = `${filePath}.tmp`
+      await fs.promises.writeFile(tempFilePath, JSON.stringify(state))
+      await fs.promises.rename(tempFilePath, filePath)
+    } catch (err) {
+      debug('Failed to write command state: %O', err)
+    }
   }
 
   return state
