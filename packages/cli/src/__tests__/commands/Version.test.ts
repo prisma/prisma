@@ -13,6 +13,7 @@ describe('version', () => {
     expect(data.exitCode).toBe(0)
     expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
       "prisma               : 0.0.0
+      Prisma CLI path       : PRISMA_CLI_PATH
       @prisma/client       : 0.0.0
       Operating System     : OS
       Architecture         : ARCHITECTURE
@@ -61,6 +62,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp('(Prisma CLI path\\s+:).*', 'g'), '$1 PRISMA_CLI_PATH')
   str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
   str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
