@@ -167,7 +167,7 @@
     "@codspeed/benchmark.js-plugin": "4.0.0",
     "@faker-js/faker": "9.6.0",
     "@fast-check/jest": "2.0.3",
-    "@hono/node-server": "1.19.0",
+    "@hono/node-server": "^1.19.13",
     "@inquirer/prompts": "7.3.3",
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",

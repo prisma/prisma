@@ -11,7 +11,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@hono/node-server": "1.19.0",
+    "@hono/node-server": "^1.19.13",
     "@hono/zod-validator": "0.7.2",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/context-async-hooks": "2.1.0",
