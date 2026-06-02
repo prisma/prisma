@@ -162,8 +162,6 @@
   "pnpm": {
     "overrides": {
       "form-data": ">=4.0.4",
-      "hono": ">=4.12.14",
-      "@hono/node-server": ">=1.19.13",
       "jws": ">=4.0.1",
       "tar-fs": ">=2.1.4",
       "lodash": ">=4.17.23",
