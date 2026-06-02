@@ -49,13 +49,17 @@ describe('PrismaPgAdapterFactory', () => {
   it('should add and remove error event listener when using an external Pool', async () => {
     const pool = new pg.Pool({ user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' })
     pool.on('error', () => {})
-    const factory = new PrismaPgAdapterFactory(pool, { disposeExternalPool: true })
+    const factory = new PrismaPgAdapterFactory(pool)
     const adapter = await factory.connect()
-    expect(adapter).toBeDefined()
-    expect(adapter.adapterName).toBeDefined()
-    expect(pool.listenerCount('error')).toEqual(2)
-    await adapter.dispose()
-    expect(pool.listenerCount('error')).toEqual(1)
+    try {
+      expect(adapter).toBeDefined()
+      expect(adapter.adapterName).toBeDefined()
+      expect(pool.listenerCount('error')).toEqual(2)
+      await adapter.dispose()
+      expect(pool.listenerCount('error')).toEqual(1)
+    } finally {
+      await pool.end()
+    }
   })
 
   it('should remove connection error listener after transaction commit', async () => {

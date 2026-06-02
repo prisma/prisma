@@ -319,9 +319,9 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
 
     return new PrismaPgAdapter(client, this.options, async () => {
       if (this.externalPool) {
+        this.externalPool.removeListener('error', this.onIdleClientError)
         if (this.options?.disposeExternalPool) {
           await this.externalPool.end()
-          this.externalPool.removeListener('error', this.onIdleClientError)
           this.externalPool = null
         }
       } else {
