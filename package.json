@@ -164,7 +164,7 @@
       "form-data": ">=4.0.4",
       "jws": ">=4.0.1",
       "tar-fs": ">=2.1.4",
-      "lodash": ">=4.17.23",
+      "lodash": ">=4.18.1",
       "@tootallnate/once": ">=3.0.1",
       "ajv@^8.0.0": ">=8.18.0",
       "@azure/core-rest-pipeline@^1.0.0": ">=1.14.0",
