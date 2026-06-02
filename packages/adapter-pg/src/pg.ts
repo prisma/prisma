@@ -283,14 +283,21 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   readonly adapterName = packageName
   private readonly config: pg.PoolConfig
   private externalPool: pg.Pool | null
+  private readonly onIdleClientError: (err: Error) => void
 
   constructor(
     poolOrConfig: pg.Pool | pg.PoolConfig | string,
     private readonly options?: PrismaPgOptions,
   ) {
+    this.onIdleClientError = (err: Error) => {
+      debug(`Error from idle pool client: ${err.message} %O`, err)
+      this.options?.onPoolError?.(err)
+    }
+
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
       this.config = poolOrConfig.options
+      this.externalPool.on('error', this.onIdleClientError)
     } else if (typeof poolOrConfig === 'string') {
       this.externalPool = null
       this.config = { connectionString: poolOrConfig }
@@ -303,11 +310,12 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   async connect(): Promise<PrismaPgAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
 
-    const onIdleClientError = (err: Error) => {
-      debug(`Error from idle pool client: ${err.message} %O`, err)
-      this.options?.onPoolError?.(err)
+    if (this.externalPool) {
+      client.removeListener('error', this.onIdleClientError)
+      client.on('error', this.onIdleClientError)
+    } else {
+      client.on('error', this.onIdleClientError)
     }
-    client.on('error', onIdleClientError)
 
     return new PrismaPgAdapter(client, this.options, async () => {
       if (this.externalPool) {
@@ -315,7 +323,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
           await this.externalPool.end()
           this.externalPool = null
         } else {
-          this.externalPool.removeListener('error', onIdleClientError)
+          this.externalPool.removeListener('error', this.onIdleClientError)
         }
       } else {
         await client.end()
@@ -329,6 +337,8 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
     const client = new pg.Pool({ ...this.config, database })
+    client.on('error', this.onIdleClientError)
+
     return new PrismaPgAdapter(client, undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
       await client.end()
