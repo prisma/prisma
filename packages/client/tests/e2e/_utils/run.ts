@@ -100,17 +100,13 @@ async function main() {
   }
 
   if (args['--shard'] !== undefined) {
-    const [indexStr, countStr] = args['--shard'].split('/')
-    const shardIndex = Number(indexStr)
-    const shardCount = Number(countStr)
+    // Require an exact "<index>/<count>" so malformed values (e.g. "1/3/2")
+    // error out instead of silently running the wrong shard.
+    const shardMatch = /^(\d+)\/(\d+)$/.exec(args['--shard'])
+    const shardIndex = Number(shardMatch?.[1])
+    const shardCount = Number(shardMatch?.[2])
 
-    if (
-      !Number.isInteger(shardIndex) ||
-      !Number.isInteger(shardCount) ||
-      shardCount < 1 ||
-      shardIndex < 1 ||
-      shardIndex > shardCount
-    ) {
+    if (shardMatch === null || shardCount < 1 || shardIndex < 1 || shardIndex > shardCount) {
       console.log(`🛑 Invalid --shard "${args['--shard']}", expected "<index>/<count>" with 1 <= index <= count`)
       process.exit(1)
     }
