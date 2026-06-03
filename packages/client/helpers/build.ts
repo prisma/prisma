@@ -198,38 +198,6 @@ function wasmEdgeRuntimeBuildConfig(format: ModuleFormat, name: string): BuildOp
   }
 }
 
-const generatorBuildDir = path.resolve(__dirname, '..', 'generator-build')
-
-// old-style generator compatiblity shim for studio
-const generatorBuildConfig: BuildOptions = {
-  name: 'generator',
-  entryPoints: ['src/generation/generator.ts'],
-  outfile: 'generator-build/index',
-  bundle: true,
-  emitTypes: false,
-  plugins: [
-    {
-      // The legacy `generator-build` shim bundles `@prisma/client-generator-js`
-      // (-> `@prisma/internals` -> `@prisma/prisma-schema-wasm`), which loads
-      // its `.wasm` from disk next to the bundled JS at runtime, so esbuild does
-      // not inline it. Copy it into the output dir so importing/running the
-      // entrypoint doesn't ENOENT. `generator-build` is in `files` already.
-      name: 'copy-schema-build-wasm',
-      setup(build) {
-        build.onEnd(() => {
-          const wasmFileName = 'prisma_schema_build_bg.wasm'
-          const schemaWasmDir = path.dirname(require.resolve('@prisma/prisma-schema-wasm/package.json'))
-          try {
-            fs.copyFileSync(path.join(schemaWasmDir, 'src', wasmFileName), path.join(generatorBuildDir, wasmFileName))
-          } catch (error) {
-            throw new Error(`Failed to copy ${wasmFileName} into ${generatorBuildDir}`, { cause: error })
-          }
-        })
-      },
-    },
-  ],
-}
-
 // default-index.js file in scripts
 const defaultIndexConfig: BuildOptions = {
   name: 'default-index',
@@ -266,7 +234,6 @@ function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
 }
 
 void build([
-  generatorBuildConfig,
   ...allNodeRuntimeBuildConfigs(),
   ...browserBuildConfigs(),
   ...allWasmEdgeRuntimeConfigs(),
