@@ -209,16 +209,21 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
   plugins: [
     {
-      // `@prisma/prisma-schema-wasm` loads its `.wasm` file from disk next to
-      // its bundled JS at runtime, so esbuild does not inline it. Copy it into
-      // the output directory so it is present in the published package (and not
-      // an ENOENT at runtime). `generator-build` is in `files` in package.json.
+      // The legacy `generator-build` shim bundles `@prisma/client-generator-js`
+      // (-> `@prisma/internals` -> `@prisma/prisma-schema-wasm`), which loads
+      // its `.wasm` from disk next to the bundled JS at runtime, so esbuild does
+      // not inline it. Copy it into the output dir so importing/running the
+      // entrypoint doesn't ENOENT. `generator-build` is in `files` already.
       name: 'copy-schema-build-wasm',
       setup(build) {
         build.onEnd(() => {
           const wasmFileName = 'prisma_schema_build_bg.wasm'
           const schemaWasmDir = path.dirname(require.resolve('@prisma/prisma-schema-wasm/package.json'))
-          fs.copyFileSync(path.join(schemaWasmDir, 'src', wasmFileName), path.join(generatorBuildDir, wasmFileName))
+          try {
+            fs.copyFileSync(path.join(schemaWasmDir, 'src', wasmFileName), path.join(generatorBuildDir, wasmFileName))
+          } catch (error) {
+            throw new Error(`Failed to copy ${wasmFileName} into ${generatorBuildDir}`, { cause: error })
+          }
         })
       },
     },

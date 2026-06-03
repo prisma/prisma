@@ -1,8 +1,8 @@
-# Node 22.12 is the minimum version where `require()` of an ES module is
-# enabled by default. The e2e `_steps.cts` files run as CommonJS and
-# `require('zx')` (ESM-only), which throws ERR_VM_MODULE_LINK_FAILURE on
-# Node 20. Node 22 also satisfies `@prisma/streams-local`'s `engines: >=22`.
-FROM node:22.12
+# Node 22: the e2e `_steps.cts` files run as CommonJS and `require('zx')`
+# (ESM-only), which throws ERR_VM_MODULE_LINK_FAILURE on Node 20 because
+# `require()` of ESM is only enabled by default from Node 22.12 onward. Node 22
+# also satisfies `@prisma/streams-local`'s `engines: >=22`.
+FROM node:22
 
 RUN npm -v
 
