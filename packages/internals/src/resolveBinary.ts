@@ -18,10 +18,24 @@ async function getBinaryName(name: BinaryType): Promise<string> {
   return `${name}-${binaryTarget}${extension}`
 }
 
+/**
+ * Helper function to check if a file exists asynchronously
+ */
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.promises.access(filePath, fs.constants.F_OK)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
-  if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.existsSync(proposedPath)) {
-    return proposedPath
+  if (proposedPath && !proposedPath.match(vercelPkgPathRegex)) {
+    if (await fileExists(proposedPath)) {
+      return proposedPath
+    }
   }
 
   // If engine path was provided via env var, check and use that one
@@ -33,36 +47,37 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
   // If still here, try different paths
   const binaryName = await getBinaryName(name)
 
-  const prismaPath = path.join(getEnginesPath(), binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return maybeCopyToTmp(prismaPath)
+  // Check the most likely path first (where engines are typically installed)
+  const mostLikelyPath = path.join(getEnginesPath(), binaryName)
+  if (await fileExists(mostLikelyPath)) {
+    return maybeCopyToTmp(mostLikelyPath)
   }
 
-  // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
-  const prismaPath2 = path.join(__dirname, '..', binaryName)
-  if (fs.existsSync(prismaPath2)) {
-    return maybeCopyToTmp(prismaPath2)
-  }
+  // If not found in the most likely location, check remaining paths in parallel
+  const fallbackPaths = [
+    path.join(__dirname, '..', binaryName), // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
+    path.join(__dirname, '../..', binaryName), // TODO for ??
+    path.join(__dirname, '../runtime', binaryName), // TODO for ?? / needed to come from @prisma/client/generator-build to @prisma/client/runtime
+  ]
 
-  // TODO for ??
-  const prismaPath3 = path.join(__dirname, '../..', binaryName)
-  if (fs.existsSync(prismaPath3)) {
-    return maybeCopyToTmp(prismaPath3)
-  }
+  const results = await Promise.all(
+    fallbackPaths.map(async (p) => ({
+      path: p,
+      exists: await fileExists(p),
+    })),
+  )
 
-  // TODO for ?? / needed to come from @prisma/client/generator-build to @prisma/client/runtime
-  const prismaPath4 = path.join(__dirname, '../runtime', binaryName)
-  if (fs.existsSync(prismaPath4)) {
-    return maybeCopyToTmp(prismaPath4)
+  const foundPath = results.find((r) => r.exists)?.path
+
+  if (foundPath) {
+    return maybeCopyToTmp(foundPath)
   }
 
   // Still here? Could not find the engine, so error out.
+  const allPaths = [mostLikelyPath, ...fallbackPaths]
   throw new Error(
     `Could not find ${name} binary. Searched in:
-- ${prismaPath}
-- ${prismaPath2}
-- ${prismaPath3}
-- ${prismaPath4}`,
+${allPaths.map((p) => `- ${p}`).join('\n')}`,
   )
 }
 
