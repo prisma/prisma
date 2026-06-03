@@ -27,6 +27,9 @@ const args = arg(
     // number of workers to use for parallel tests
     '--maxWorkers': Number,
     '--max-workers': '--maxWorkers',
+    // run only a subset of the tests, as "<index>/<count>" (1-based), to split
+    // the suite across multiple CI machines. Tests are distributed round-robin.
+    '--shard': String,
   },
   true,
   true,
@@ -94,6 +97,29 @@ async function main() {
 
   if (args._.length > 0) {
     e2eTestNames = e2eTestNames.filter((p) => args._.some((a) => p.includes(a)))
+  }
+
+  if (args['--shard'] !== undefined) {
+    const [indexStr, countStr] = args['--shard'].split('/')
+    const shardIndex = Number(indexStr)
+    const shardCount = Number(countStr)
+
+    if (
+      !Number.isInteger(shardIndex) ||
+      !Number.isInteger(shardCount) ||
+      shardCount < 1 ||
+      shardIndex < 1 ||
+      shardIndex > shardCount
+    ) {
+      console.log(`🛑 Invalid --shard "${args['--shard']}", expected "<index>/<count>" with 1 <= index <= count`)
+      process.exit(1)
+    }
+
+    // Sort first so shards are stable and disjoint regardless of glob order,
+    // then distribute round-robin so slow tests don't cluster into one shard.
+    e2eTestNames = [...e2eTestNames].sort().filter((_, i) => i % shardCount === shardIndex - 1)
+
+    console.log(`🔀 Shard ${shardIndex}/${shardCount}: running ${e2eTestNames.length} test(s)`)
   }
 
   const dockerVolumes = [
