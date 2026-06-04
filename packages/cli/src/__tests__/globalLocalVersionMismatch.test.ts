@@ -5,7 +5,7 @@ import path from 'path'
 import {
   getGlobalLocalVersionMismatchWarning,
   getInstalledPackageVersionFromNodeModules,
-} from '../utils/globalLocalVersionMismatch'
+} from '../utils/global-local-version-mismatch'
 
 const GLOBAL_VERSION = '7.5.0'
 

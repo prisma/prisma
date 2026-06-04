@@ -288,6 +288,22 @@ it('should not fail generate when the global/local version warning lookup fails'
   expect(output).not.toContain('version lookup failed')
 })
 
+it('should check local package versions from the schema root directory', async () => {
+  ctx.fixture('generate-from-parent-dir')
+  const getGlobalLocalVersionMismatchWarning = jest.fn().mockResolvedValue(null)
+  const generate = new Generate(jest.fn(), {
+    getGlobalLocalVersionMismatchWarning,
+  })
+
+  await generate.parse(['--schema=./subdirectory/schema.prisma'], await ctx.config())
+
+  expect(getGlobalLocalVersionMismatchWarning).toHaveBeenCalledWith(
+    expect.objectContaining({
+      cwd: path.join(process.cwd(), 'subdirectory'),
+    }),
+  )
+})
+
 it('should show the global/local version warning without a prisma-client-js generator', async () => {
   ctx.fixture('no-config')
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {

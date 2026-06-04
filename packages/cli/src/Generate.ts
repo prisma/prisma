@@ -34,7 +34,7 @@ import { breakingChangesMessage } from './utils/breakingChanges'
 import {
   getGlobalLocalVersionMismatchWarning as getDefaultGlobalLocalVersionMismatchWarning,
   type GlobalLocalVersionMismatchWarningOptions,
-} from './utils/globalLocalVersionMismatch'
+} from './utils/global-local-version-mismatch'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { handleSkillsOffer } from './utils/skills/skills-offer'
@@ -252,7 +252,7 @@ Please run \`prisma generate\` manually.`
       if (logger.should.warn()) {
         try {
           globalLocalVersionWarning = await this.getGlobalLocalVersionMismatchWarning({
-            cwd: baseDir,
+            cwd: schemaContext.schemaRootDir,
             globalVersion: cliVersion,
           })
         } catch {
