@@ -100,7 +100,7 @@
   - `@prisma/sqlcommenter-query-insights`: Plugin for adding parameterized query shapes to comments (format: `Model.action:base64Payload`).
   - Plugins are registered via `PrismaClient({ comments: [plugin1(), plugin2()] })`.
   - E2E tests for sqlcommenter plugins live in `packages/client/tests/e2e/sqlcommenter*` directories.
-  - `SqlCommenterQueryInfo` distinguishes `type: 'single'` (single query) vs `type: 'compacted'` (batched queries merged into one SQL statement).
+  - `SqlCommenterQueryInfo` distinguishes `type: 'single'` (single query) vs `type: 'compacted'` (batched queries merged into one SQL statement). For non-raw client-engine queries, the SQL commenter context should receive parameterized query payloads so plugins such as query-insights never see user data values.
 
 - **Codebase helpers to know**:
   - `@prisma/internals` exports CLI utilities: `arg`, `loadSchemaContext` (less used now).
