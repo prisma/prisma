@@ -99,11 +99,6 @@
       "import": "./runtime/index-browser.mjs",
       "default": "./runtime/index-browser.mjs"
     },
-    "./generator-build": {
-      "require": "./generator-build/index.js",
-      "import": "./generator-build/index.js",
-      "default": "./generator-build/index.js"
-    },
     "./sql": {
       "require": {
         "types": "./sql.d.ts",
@@ -148,7 +143,6 @@
     "README.md",
     "runtime",
     "scripts",
-    "generator-build",
     "edge.js",
     "edge.d.ts",
     "index.js",
