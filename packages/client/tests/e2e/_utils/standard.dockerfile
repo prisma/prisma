@@ -34,4 +34,4 @@ RUN curl -fsSL https://bun.sh/install | bash && \
   ls -la ${BUN_INSTALL}/bin/bun && \
   bun --version
 
-CMD chmod +x ./e2e/_utils/standard.cmd.sh && ./e2e/_utils/standard.cmd.sh
+CMD ["bash", "./e2e/_utils/standard.cmd.sh"]

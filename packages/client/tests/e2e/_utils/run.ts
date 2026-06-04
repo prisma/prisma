@@ -118,14 +118,18 @@ async function main() {
     console.log(`🔀 Shard ${shardIndex}/${shardCount}: running ${e2eTestNames.length} test(s)`)
   }
 
+  const dockerVolumeOptions = process.platform === 'linux' ? ':z' : ''
+  const dockerVolume = (source: string, target: string) => `${source}:${target}${dockerVolumeOptions}`
   const dockerVolumes = [
-    `${prismaTmpDir}/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
-    ...allPackageFolderNames.map((p) => `${prismaTmpDir}/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
-    `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
-    `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
-    `${e2eRoot}:/e2e`,
-    `${path.join(e2eRoot, '.cache')}:/root/.cache`,
-    `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
+    dockerVolume(`${prismaTmpDir}/prisma-0.0.0.tgz`, '/tmp/prisma-0.0.0.tgz'), // hardcoded because folder doesn't match name
+    ...allPackageFolderNames.map((p) =>
+      dockerVolume(`${prismaTmpDir}/prisma-${p}-0.0.0.tgz`, `/tmp/prisma-${p}-0.0.0.tgz`),
+    ),
+    dockerVolume(path.join(monorepoRoot, 'packages', 'engines'), '/engines'),
+    dockerVolume(path.join(monorepoRoot, 'packages', 'client'), '/client'),
+    dockerVolume(e2eRoot, '/e2e'),
+    dockerVolume(path.join(e2eRoot, '.cache'), '/root/.cache'),
+    dockerVolume((await $`pnpm store path`.quiet()).stdout.trim(), '/root/.local/share/pnpm/store/v3'),
   ]
   const dockerVolumeArgs = dockerVolumes.flatMap((v) => ['-v', v])
 
