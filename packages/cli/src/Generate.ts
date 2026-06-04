@@ -236,6 +236,26 @@ Please run \`prisma generate\` manually.`
           options?.generator.provider && parseEnvValue(options?.generator.provider) === BuiltInProvider.PrismaClientJs,
       )
 
+      // The global-vs-local prisma CLI mismatch concerns the CLI itself, not any
+      // particular client generator, so it must surface independent of which
+      // generator ran (e.g. the Prisma 7 default `prisma-client` generator) and
+      // of whether a JS client was produced. Anchor the local-install lookup at
+      // the schema's root dir so `--schema <other-dir>` invocations resolve the
+      // project's node_modules rather than the shell cwd.
+      const installedLocalPrismaCliVersion = await getInstalledPrismaCliVersion(schemaContext.schemaRootDir)
+      const globalLocalCliMismatch = shouldWarnGlobalLocalCliMismatch({
+        isGlobalInstall: Boolean(isCurrentBinInstalledGlobally()),
+        globalCliVersion: pkg.version,
+        installedLocalPrismaCliVersion,
+      })
+      const globalLocalCliWarning =
+        globalLocalCliMismatch && logger.should.warn()
+          ? `\n\n${yellow(bold('warn'))} You're running ${bold(
+              `prisma@${pkg.version}`,
+            )} globally, but this project has ${bold(`prisma@${installedLocalPrismaCliVersion}`)} installed locally.
+Run \`npx prisma generate\` (or your package manager's equivalent) to use the local version.`
+          : ''
+
       let hint = ''
       if (prismaClientJSGenerator) {
         const breakingChangesStr = printBreakingChangesMessage
@@ -254,31 +274,20 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        const installedLocalPrismaCliVersion = await getInstalledPrismaCliVersion(baseDir)
-        const globalLocalCliMismatch = shouldWarnGlobalLocalCliMismatch({
-          isGlobalInstall: Boolean(isCurrentBinInstalledGlobally()),
-          globalCliVersion: pkg.version,
-          installedLocalPrismaCliVersion,
-        })
-        const globalLocalCliWarning =
-          globalLocalCliMismatch && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} You're running ${bold(
-                `prisma@${pkg.version}`,
-              )} globally, but this project has ${bold(`prisma@${installedLocalPrismaCliVersion}`)} installed locally.
-Run \`npx prisma generate\` (or your package manager's equivalent) to use the local version.`
-            : ''
-
         if (hideHints) {
-          hint = `${breakingChangesStr}${versionsWarning}${globalLocalCliWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${breakingChangesStr}${versionsWarning}${globalLocalCliWarning}`
+${breakingChangesStr}${versionsWarning}`
         }
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      // Client-specific hint only renders when a JS client was generated; the CLI
+      // mismatch warning renders regardless, except on the thrown-error path below.
+      const clientHint = hasJsClient && !this.hasGeneratorErrored ? hint : ''
+      const message = '\n' + this.logText + clientHint + (this.hasGeneratorErrored ? '' : globalLocalCliWarning)
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
