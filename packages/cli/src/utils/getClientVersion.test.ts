@@ -45,26 +45,22 @@ describe('shouldWarnGlobalLocalCliMismatch', () => {
     ).toBe(false)
   })
 
+  // Defensive: `installedLocalPrismaCliVersion` is always read from an installed
+  // `node_modules/prisma/package.json` `version` field, so in practice it is a
+  // well-formed version. These cases lock in that a malformed / non-exact-semver
+  // `version` value never produces a (misleading) warning.
   test.each([
-    ['workspace:*', 'workspace:*'],
-    ['workspace alias', 'workspace:^7.0.0'],
-    ['dist-tag latest', 'latest'],
-    ['dist-tag next', 'next'],
-    ['caret range', '^7.0.0'],
-    ['tilde range', '~7.0.0'],
-    ['gte range', '>=7.0.0'],
-    ['file specifier', 'file:../prisma'],
-    ['link specifier', 'link:../prisma'],
-    ['npm alias', 'npm:prisma@7.0.0'],
+    ['empty string', ''],
     ['partial version', '7'],
     ['partial version with minor', '7.0'],
-    ['empty string', ''],
-  ])('does not warn for non-exact-semver local specifier (%s)', (_label, specifier) => {
+    ['leading v', 'v7.0.0'],
+    ['non-version string', 'not-a-version'],
+  ])('does not warn for a non-exact-semver installed version (%s)', (_label, version) => {
     expect(
       shouldWarnGlobalLocalCliMismatch({
         isGlobalInstall: true,
         globalCliVersion: '7.0.0',
-        installedLocalPrismaCliVersion: specifier,
+        installedLocalPrismaCliVersion: version,
       }),
     ).toBe(false)
   })
@@ -119,6 +115,15 @@ describe('getInstalledPrismaCliVersion', () => {
     const prismaDir = path.join(tmpDir, 'node_modules', 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
     fs.writeFileSync(path.join(prismaDir, 'package.json'), JSON.stringify({ name: 'prisma' }))
+
+    const result = await getInstalledPrismaCliVersion(tmpDir)
+    expect(result).toBeNull()
+  })
+
+  test('returns null when the version field is not a string', async () => {
+    const prismaDir = path.join(tmpDir, 'node_modules', 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(path.join(prismaDir, 'package.json'), JSON.stringify({ name: 'prisma', version: 7 }))
 
     const result = await getInstalledPrismaCliVersion(tmpDir)
     expect(result).toBeNull()

@@ -30,7 +30,10 @@ export async function getInstalledPrismaCliVersion(cwd: string = process.cwd()):
       const candidate = path.join(dir, 'node_modules', 'prisma', 'package.json')
       try {
         const pkgJson = JSON.parse(await fs.promises.readFile(candidate, 'utf-8'))
-        return pkgJson.version ?? null
+        // Guard the type: a malformed package.json could carry a non-string
+        // `version` (e.g. a number), which must not leak through the
+        // `Promise<string | null>` contract.
+        return typeof pkgJson.version === 'string' ? pkgJson.version : null
       } catch (error: unknown) {
         // Only ENOENT means "not here, keep walking". Any other error
         // (EACCES, parse failure, etc.) on an existing candidate is terminal
@@ -53,8 +56,14 @@ const exactSemverRegex = /^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/
 
 /**
  * Decide whether to surface a "global prisma vs locally-installed prisma" mismatch warning.
- * Only triggers on exact semver mismatches — workspace:*, dist-tags (latest/next),
- * ranges (^x, ~x), and file:/link: specifiers are intentionally ignored to avoid false positives.
+ *
+ * Both inputs are concrete, installed versions: `globalCliVersion` is the running CLI's
+ * own `pkg.version` and `installedLocalPrismaCliVersion` is read from an installed
+ * `node_modules/prisma/package.json` (see `getInstalledPrismaCliVersion`). Neither is ever
+ * a dependency specifier. The exact-semver guard is therefore defensive — it only acts when
+ * both strings are concrete versions, so a malformed/non-version `version` field can never
+ * produce a misleading warning. Comparison is exact-string by design (an advisory about
+ * differing installed identities), so prerelease/build-metadata differences do surface.
  */
 export function shouldWarnGlobalLocalCliMismatch(args: {
   isGlobalInstall: boolean
