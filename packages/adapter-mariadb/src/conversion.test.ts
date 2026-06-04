@@ -20,6 +20,18 @@ describe('mapRow', () => {
     expect(result).toEqual(['123'])
   })
 
+  it('maps buffer columns to Uint8Array views', () => {
+    const source = Buffer.from([0, 1, 2, 3, 4])
+    const value = source.subarray(1, 4)
+    const row = { data: value }
+
+    const result = mapRow(row, [{ type: 'BLOB' } as unknown as mariadb.FieldInfo])
+
+    expect(Buffer.isBuffer(result[0])).toBe(false)
+    expect(result[0]).toBeInstanceOf(Uint8Array)
+    expect(result[0]).toEqual(Uint8Array.from([1, 2, 3]))
+  })
+
   it('preserves property order for mixed object rows', () => {
     const row = {
       createdAt: '2024-01-02 03:04:05.123',

@@ -166,6 +166,10 @@ export function mapRow<A>(row: A[] | Record<string, A>, fields?: mariadb.FieldIn
       return value.toString()
     }
 
+    if (Buffer.isBuffer(value)) {
+      return new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+    }
+
     return value
   })
 }
