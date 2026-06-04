@@ -1,6 +1,8 @@
 import { $ } from 'zx'
 
-import { executeSteps } from '../_utils/executeSteps'
+import executeStepsModule from '../_utils/executeSteps'
+
+const { executeSteps } = executeStepsModule
 
 void executeSteps({
   setup: async () => {
