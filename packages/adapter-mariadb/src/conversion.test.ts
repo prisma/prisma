@@ -26,10 +26,14 @@ describe('mapRow', () => {
     const row = { data: value }
 
     const result = mapRow(row, [{ type: 'BLOB' } as unknown as mariadb.FieldInfo])
+    const mapped = result[0] as Uint8Array
 
-    expect(Buffer.isBuffer(result[0])).toBe(false)
-    expect(result[0]).toBeInstanceOf(Uint8Array)
-    expect(result[0]).toEqual(Uint8Array.from([1, 2, 3]))
+    expect(Buffer.isBuffer(mapped)).toBe(false)
+    expect(mapped).toBeInstanceOf(Uint8Array)
+    expect(mapped.buffer).toBe(value.buffer)
+    expect(mapped.byteOffset).toBe(value.byteOffset)
+    expect(mapped.byteLength).toBe(value.byteLength)
+    expect(mapped).toEqual(Uint8Array.from([1, 2, 3]))
   })
 
   it('preserves property order for mixed object rows', () => {
