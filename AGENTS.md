@@ -45,6 +45,7 @@
   - In `packages/client-engine-runtime/src/parameterization/parameterize.ts`, `Object.keys()` based copy-on-write traversal benchmarked faster than guarded `for...in` traversal despite the extra key-array allocation. Do not replace those loops with `for...in` for allocation reasons unless a new benchmark proves it.
   - Lazy caching of `ParamGraph.inputNode()` / `outputNode()` wrapper objects produced mixed/noisy `query-performance/caching.bench.ts` results and did not clearly improve nested parameterization; keep the current fresh `{ id }` wrappers unless a new benchmark proves otherwise.
   - In `packages/client-engine-runtime/src/interpreter/render-query.ts`, a primitive fast path inside `evaluateArgs()` benchmarked slower across interpreter scenarios; keep the straight `evaluateArg(args[i], ...)` loop unless new evidence changes.
+  - In `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, single-column strict join attachment can avoid `JSON.stringify([key])` once parent+child rows are large enough. Keep the row-count threshold: applying the scalar-key path to tiny joins regressed the `interpreter: join (1:N)` benchmark even though it helped deep nested joins.
 
 - **Adding PrismaClient constructor options**:
   - Runtime types: `PrismaClientOptions` in `packages/client/src/runtime/getPrismaClient.ts`.

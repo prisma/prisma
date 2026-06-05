@@ -82,6 +82,43 @@ test('applies SQL comments without query instrumentation', async () => {
   expect(observedQuery?.sql).toBe("SELECT 1 /*source='test'*/")
 })
 
+test('joins single strict keys without scalar key collisions', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = {
+    type: 'join',
+    args: {
+      parent: {
+        type: 'value',
+        args: [{ id: '1' }, { id: 1 }, { id: null }, { id: 'null' }],
+      },
+      children: [
+        {
+          child: {
+            type: 'value',
+            args: [
+              { parentId: '1', value: 'string-one' },
+              { parentId: 1, value: 'number-one' },
+              { parentId: null, value: 'null-value' },
+              { parentId: 'null', value: 'string-null' },
+            ],
+          },
+          on: [['id', 'parentId']],
+          parentField: 'children',
+          isRelationUnique: false,
+        },
+      ],
+      canAssumeStrictEquality: true,
+    },
+  } satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
+    { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
+    { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
+    { id: null, children: [{ parentId: null, value: 'null-value' }] },
+    { id: 'null', children: [{ parentId: 'null', value: 'string-null' }] },
+  ])
+})
+
 function emptyResultSet(): SqlResultSet {
   return {
     columnNames: [],

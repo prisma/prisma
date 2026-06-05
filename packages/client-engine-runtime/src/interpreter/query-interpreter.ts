@@ -556,12 +556,20 @@ function attachChildrenToParents(
       parentKeys[i] = joinExpr.on[i][0]
       childKeys[i] = joinExpr.on[i][1]
     }
-    const parentMap = {}
+    const parentKey = parentKeys[0]
+    const childKey = childKeys[0]
 
     const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
+    const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]
+    const useSingleStrictKey =
+      canAssumeStrictEquality && parentKeys.length === 1 && parentArray.length + childArray.length >= 8
+    const parentMap = useSingleStrictKey ? (Object.create(null) as Record<string, PrismaObject[]>) : {}
+
     for (const parent of parentArray) {
       const parentRecord = asRecord(parent)
-      const key = getRecordKey(parentRecord, parentKeys)
+      const key = useSingleStrictKey
+        ? getScalarRecordKey(parentRecord[parentKey])
+        : getRecordKey(parentRecord, parentKeys)
       if (!parentMap[key]) {
         parentMap[key] = []
       }
@@ -575,13 +583,15 @@ function attachChildrenToParents(
     }
 
     const mappers = canAssumeStrictEquality ? undefined : inferKeyCasts(parentArray, parentKeys)
-    const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]
     for (const childRecord of childArray) {
       if (childRecord === null) {
         continue
       }
 
-      const key = getRecordKey(asRecord(childRecord), childKeys, mappers)
+      const childRecordObject = asRecord(childRecord)
+      const key = useSingleStrictKey
+        ? getScalarRecordKey(childRecordObject[childKey])
+        : getRecordKey(childRecordObject, childKeys, mappers)
       const matchingParents = parentMap[key]
       if (matchingParents === undefined) {
         continue
@@ -599,6 +609,25 @@ function attachChildrenToParents(
   }
 
   return parentRecords
+}
+
+function getScalarRecordKey(value: Value): string {
+  switch (typeof value) {
+    case 'string':
+      return `s:${value.length}:${value}`
+    case 'number':
+      return `n:${value}`
+    case 'boolean':
+      return value ? 'b:1' : 'b:0'
+    case 'bigint':
+      return `i:${value}`
+    case 'undefined':
+      return 'u:'
+    case 'object':
+      return value === null ? '0:' : `o:${JSON.stringify(value)}`
+    default:
+      return JSON.stringify([value])
+  }
 }
 
 function inferKeyCasts(rows: unknown[], keys: readonly string[]): KeyCast[] {
