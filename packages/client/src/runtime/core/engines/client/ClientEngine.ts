@@ -75,9 +75,18 @@ function getStringCacheKeyPart(value: string | null | undefined): string {
   return `${value.length}:${value}`
 }
 
-function getSingleQueryCacheKey(query: JsonQuery): string {
-  const queryPart = JSON.stringify(query.query)
+function getSingleQueryCacheKey(query: JsonQuery, queryPart: string): string {
   return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
+}
+
+function getSingleQueryRequest(query: JsonQuery, queryPart: string): string {
+  const actionPart = JSON.stringify(query.action)
+
+  if (query.modelName === undefined) {
+    return `{"action":${actionPart},"query":${queryPart}}`
+  }
+
+  return `{"modelName":${JSON.stringify(query.modelName)},"action":${actionPart},"query":${queryPart}}`
 }
 
 function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
@@ -519,14 +528,15 @@ export class ClientEngine implements Engine {
       }
 
       if (isCacheable) {
-        const cacheKey = getSingleQueryCacheKey(parameterizedQuery)
+        const queryPart = JSON.stringify(parameterizedQuery.query)
+        const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
         const cached = this.#queryPlanCache?.getSingle(cacheKey)
         if (cached) {
           debug('query plan cache hit')
           plan = cached
         } else {
           debug('query plan cache miss')
-          const request = JSON.stringify(parameterizedQuery)
+          const request = getSingleQueryRequest(parameterizedQuery, queryPart)
           plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
           this.#queryPlanCache?.setSingle(cacheKey, plan)
         }
