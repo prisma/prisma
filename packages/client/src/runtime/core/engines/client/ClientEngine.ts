@@ -67,6 +67,19 @@ globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY = {
   },
 }
 
+function getSingleQueryCacheKey(query: JsonQuery): string {
+  return JSON.stringify([query.modelName ?? null, query.action, query.query])
+}
+
+function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
+  const queries = new Array(batch.batch.length)
+  for (let i = 0; i < batch.batch.length; i++) {
+    const query = batch.batch[i]
+    queries[i] = [query.modelName ?? null, query.action, query.query]
+  }
+  return JSON.stringify([queries, batch.transaction ?? null])
+}
+
 interface ConnectedEngine {
   executor: Executor
   queryCompiler: QueryCompiler
@@ -482,25 +495,30 @@ export class ClientEngine implements Engine {
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
     } else {
-      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
-      const cacheKey = JSON.stringify(parameterizedQuery)
-      placeholderValues = extractedValues
-      queryInfoQuery = parameterizedQuery.query
-
       // We do not cache `createMany` and `createManyAndReturn` queries as they are very unlikely
       // to benefit from caching due to their high variability in parameters, which leads to a very
       // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
-      const cached = isCacheable ? this.#queryPlanCache?.getSingle(cacheKey) : undefined
-      if (cached) {
-        debug('query plan cache hit')
-        plan = cached
-      } else {
-        debug('query plan cache miss')
-        plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
-        if (isCacheable) {
+
+      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
+      placeholderValues = extractedValues
+      queryInfoQuery = parameterizedQuery.query
+
+      if (isCacheable) {
+        const cacheKey = getSingleQueryCacheKey(parameterizedQuery)
+        const cached = this.#queryPlanCache?.getSingle(cacheKey)
+        if (cached) {
+          debug('query plan cache hit')
+          plan = cached
+        } else {
+          debug('query plan cache miss')
+          const request = JSON.stringify(parameterizedQuery)
+          plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
           this.#queryPlanCache?.setSingle(cacheKey, plan)
         }
+      } else {
+        const request = JSON.stringify(parameterizedQuery)
+        plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
       }
     }
 
@@ -560,22 +578,23 @@ export class ClientEngine implements Engine {
         batchPayload as JsonBatchQuery,
         this.#paramGraph,
       )
-      const cacheKeyStr = JSON.stringify(parameterizedBatch)
+      const cacheKey = getBatchQueryCacheKey(parameterizedBatch)
       placeholderValues = extractedValues
       queryInfoQueries = new Array(parameterizedBatch.batch.length)
       for (let i = 0; i < parameterizedBatch.batch.length; i++) {
         queryInfoQueries[i] = parameterizedBatch.batch[i].query
       }
 
-      const cached = this.#queryPlanCache?.getBatch(cacheKeyStr)
+      const cached = this.#queryPlanCache?.getBatch(cacheKey)
       if (cached) {
         debug('batch query plan cache hit')
         batchResponse = cached
       } else {
         debug('batch query plan cache miss')
         try {
-          batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
-          this.#queryPlanCache?.setBatch(cacheKeyStr, batchResponse)
+          const request = JSON.stringify(parameterizedBatch)
+          batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
+          this.#queryPlanCache?.setBatch(cacheKey, batchResponse)
         } catch (error) {
           throw this.#transformCompileError(error)
         }
