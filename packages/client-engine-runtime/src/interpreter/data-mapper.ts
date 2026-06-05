@@ -53,10 +53,11 @@ export function applyDataMapToResultSet(
 ): PrismaObject[] {
   const rows = resultSet.rows
   const columnIndexes = getColumnIndexes(resultSet.columnNames)
+  const fieldEntries = getFieldEntries(structure.fields)
   const result = new Array<PrismaObject>(rows.length)
 
   for (let i = 0; i < rows.length; i++) {
-    result[i] = mapResultSetRow(rows[i], columnIndexes, structure.fields, enums)
+    result[i] = mapResultSetRow(rows[i], columnIndexes, fieldEntries, enums)
   }
 
   return result
@@ -167,11 +168,11 @@ function mapObject(
 function mapResultSetRow(
   row: unknown[],
   columnIndexes: Record<string, number>,
-  fields: Record<string, ResultNode>,
+  fieldEntries: [string, ResultNode][],
   enums: Record<string, Record<string, string>>,
 ): PrismaObject {
   const result = {}
-  for (const [name, node] of getFieldEntries(fields)) {
+  for (const [name, node] of fieldEntries) {
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
@@ -180,7 +181,7 @@ function mapResultSetRow(
       case 'object': {
         const { serializedName, fields: nodeFields, skipNulls } = node
         if (serializedName === null) {
-          result[name] = mapResultSetRow(row, columnIndexes, nodeFields, enums)
+          result[name] = mapResultSetRow(row, columnIndexes, getFieldEntries(nodeFields), enums)
           break
         }
 
