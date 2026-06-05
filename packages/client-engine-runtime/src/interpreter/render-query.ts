@@ -374,118 +374,51 @@ function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder 
   return isPrismaValuePlaceholder(param) || isPrismaValueGenerator(param)
 }
 
-type FragmentWithParams<Type extends DeepReadonly<DynamicArgType> | undefined = undefined> = Fragment &
-  (
-    | { type: 'stringChunk' }
-    | { type: 'parameter'; value: unknown; argType: Type }
-    | { type: 'parameterTuple'; value: unknown[]; argType: Type }
-    | { type: 'parameterTupleList'; value: unknown[][]; argType: Type }
-  )
-
-function* pairFragmentsWithParams<Types>(
-  fragments: DeepReadonly<Fragment[]>,
-  params: unknown[],
-  argTypes: Types,
-): Generator<
-  FragmentWithParams<Types extends DeepReadonly<DynamicArgType[]> ? DeepReadonly<DynamicArgType> : undefined>
-> {
-  let index = 0
-
-  for (const fragment of fragments) {
-    switch (fragment.type) {
-      case 'parameter': {
-        if (index >= params.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
-        }
-
-        yield { ...fragment, value: params[index], argType: argTypes?.[index] }
-        index++
-        break
-      }
-
-      case 'stringChunk': {
-        yield fragment
-        break
-      }
-
-      case 'parameterTuple': {
-        if (index >= params.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
-        }
-
-        const value = params[index]
-        yield { ...fragment, value: Array.isArray(value) ? value : [value], argType: argTypes?.[index] }
-        index++
-        break
-      }
-
-      case 'parameterTupleList': {
-        if (index >= params.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
-        }
-
-        const value = params[index]
-        if (!Array.isArray(value)) {
-          throw new Error(`Malformed query template. Tuple list expected.`)
-        }
-        if (value.length === 0) {
-          throw new Error(`Malformed query template. Tuple list cannot be empty.`)
-        }
-        for (const tuple of value) {
-          if (!Array.isArray(tuple)) {
-            throw new Error(`Malformed query template. Tuple expected.`)
-          }
-        }
-
-        yield { ...fragment, value, argType: argTypes?.[index] }
-        index++
-        break
-      }
-    }
-  }
-}
-
-function* flattenedFragmentParams<Type extends DeepReadonly<DynamicArgType> | undefined>(
-  fragment: FragmentWithParams<Type>,
-): Generator<unknown, undefined, undefined> {
-  switch (fragment.type) {
-    case 'parameter':
-      yield fragment.value
-      break
-    case 'stringChunk':
-      break
-    case 'parameterTuple':
-      yield* fragment.value
-      break
-    case 'parameterTupleList':
-      for (const tuple of fragment.value) {
-        yield* tuple
-      }
-      break
-  }
-}
-
 function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], maxChunkSize?: number): unknown[][] {
   // Find out the total number of parameters once flattened and what the maximum number of
   // parameters in a single fragment is.
   let totalParamCount = 0
   let maxParamsPerFragment = 0
-  for (const fragment of pairFragmentsWithParams(fragments, params, undefined)) {
+  let paramIndex = 0
+  for (const fragment of fragments) {
     let paramSize = 0
-    for (const _ of flattenedFragmentParams(fragment)) {
-      void _
-      paramSize++
+    switch (fragment.type) {
+      case 'parameter': {
+        getParam(params, paramIndex++)
+        paramSize = 1
+        break
+      }
+
+      case 'stringChunk': {
+        break
+      }
+
+      case 'parameterTuple': {
+        paramSize = getTupleParam(params, paramIndex++).length
+        break
+      }
+
+      case 'parameterTupleList': {
+        paramSize = countTupleListParams(getTupleListParam(params, paramIndex++))
+        break
+      }
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
     }
+
     maxParamsPerFragment = Math.max(maxParamsPerFragment, paramSize)
     totalParamCount += paramSize
   }
 
   let chunkedParams: unknown[][] = [[]]
-  for (const fragment of pairFragmentsWithParams(fragments, params, undefined)) {
+  paramIndex = 0
+  for (const fragment of fragments) {
     switch (fragment.type) {
       case 'parameter': {
-        for (const params of chunkedParams) {
-          params.push(fragment.value)
+        const param = getParam(params, paramIndex++)
+        for (const chunkedParam of chunkedParams) {
+          chunkedParam.push(param)
         }
         break
       }
@@ -495,7 +428,8 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
       }
 
       case 'parameterTuple': {
-        const thisParamCount = fragment.value.length
+        const tuple = getTupleParam(params, paramIndex++)
+        const thisParamCount = tuple.length
         let chunks: unknown[][] = []
 
         if (
@@ -510,23 +444,24 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
           totalParamCount - thisParamCount < maxChunkSize
         ) {
           const availableSize = maxChunkSize - (totalParamCount - thisParamCount)
-          chunks = chunkArray(fragment.value, availableSize)
+          chunks = chunkArray(tuple, availableSize)
         } else {
-          chunks = [fragment.value]
+          chunks = [tuple]
         }
 
-        chunkedParams = chunkedParams.flatMap((params) => chunks.map((chunk) => [...params, chunk]))
+        chunkedParams = appendChunkVariants(chunkedParams, chunks)
         break
       }
 
       case 'parameterTupleList': {
-        const thisParamCount = fragment.value.reduce((acc, tuple) => acc + tuple.length, 0)
+        const tupleList = getTupleListParam(params, paramIndex++)
+        const thisParamCount = countTupleListParams(tupleList)
 
         const completeChunks: unknown[][][] = []
         let currentChunk: unknown[][] = []
         let currentChunkParamCount = 0
 
-        for (const tuple of fragment.value) {
+        for (const tuple of tupleList) {
           if (
             maxChunkSize &&
             // Have we split the parameters into chunks already?
@@ -550,13 +485,72 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
           completeChunks.push(currentChunk)
         }
 
-        chunkedParams = chunkedParams.flatMap((params) => completeChunks.map((chunk) => [...params, chunk]))
+        chunkedParams = appendChunkVariants(chunkedParams, completeChunks)
         break
       }
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
     }
   }
 
   return chunkedParams
+}
+
+function getParam(params: unknown[], index: number): unknown {
+  if (index >= params.length) {
+    throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+  }
+  return params[index]
+}
+
+function getTupleParam(params: unknown[], index: number): unknown[] {
+  const value = getParam(params, index)
+  return Array.isArray(value) ? value : [value]
+}
+
+function getTupleListParam(params: unknown[], index: number): unknown[][] {
+  const value = getParam(params, index)
+  if (!Array.isArray(value)) {
+    throw new Error(`Malformed query template. Tuple list expected.`)
+  }
+  if (value.length === 0) {
+    throw new Error(`Malformed query template. Tuple list cannot be empty.`)
+  }
+  for (let i = 0; i < value.length; i++) {
+    if (!Array.isArray(value[i])) {
+      throw new Error(`Malformed query template. Tuple expected.`)
+    }
+  }
+  return value
+}
+
+function countTupleListParams(tupleList: unknown[][]): number {
+  let count = 0
+  for (let i = 0; i < tupleList.length; i++) {
+    count += tupleList[i].length
+  }
+  return count
+}
+
+function appendChunkVariants(chunkedParams: unknown[][], chunks: unknown[][]): unknown[][] {
+  if (chunks.length === 1) {
+    const chunk = chunks[0]
+    for (let i = 0; i < chunkedParams.length; i++) {
+      chunkedParams[i].push(chunk)
+    }
+    return chunkedParams
+  }
+
+  const result = new Array<unknown[]>(chunkedParams.length * chunks.length)
+  let resultIndex = 0
+  for (let paramsIndex = 0; paramsIndex < chunkedParams.length; paramsIndex++) {
+    const params = chunkedParams[paramsIndex]
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      result[resultIndex++] = [...params, chunks[chunkIndex]]
+    }
+  }
+  return result
 }
 
 function chunkArray<T>(array: T[], chunkSize: number): T[][] {
