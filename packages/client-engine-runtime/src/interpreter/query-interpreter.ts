@@ -167,7 +167,7 @@ export class QueryInterpreter {
           const commentedQuery = applyComments(query, context.sqlCommenter)
           sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
             context.queryable
-              .executeRaw(cloneObject(commentedQuery))
+              .executeRaw(asMutable(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -185,7 +185,7 @@ export class QueryInterpreter {
           const commentedQuery = applyComments(query, context.sqlCommenter)
           const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
             context.queryable
-              .queryRaw(cloneObject(commentedQuery))
+              .queryRaw(asMutable(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
               ),
@@ -414,7 +414,11 @@ function asRecord(value: Value): PrismaObject {
 
 function mapField(value: Value, field: string): Value {
   if (Array.isArray(value)) {
-    return value.map((element) => mapField(element, field))
+    const result = new Array<Value>(value.length)
+    for (let i = 0; i < value.length; i++) {
+      result[i] = mapField(value[i], field)
+    }
+    return result
   }
 
   if (typeof value === 'object' && value !== null) {
@@ -437,8 +441,12 @@ function attachChildrenToParents(
   canAssumeStrictEquality: boolean,
 ) {
   for (const { joinExpr, childRecords } of children) {
-    const parentKeys = joinExpr.on.map(([k]) => k)
-    const childKeys = joinExpr.on.map(([, k]) => k)
+    const parentKeys = new Array<string>(joinExpr.on.length)
+    const childKeys = new Array<string>(joinExpr.on.length)
+    for (let i = 0; i < joinExpr.on.length; i++) {
+      parentKeys[i] = joinExpr.on[i][0]
+      childKeys[i] = joinExpr.on[i][1]
+    }
     const parentMap = {}
 
     const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
@@ -458,17 +466,24 @@ function attachChildrenToParents(
     }
 
     const mappers = canAssumeStrictEquality ? undefined : inferKeyCasts(parentArray, parentKeys)
-    for (const childRecord of Array.isArray(childRecords) ? childRecords : [childRecords]) {
+    const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]
+    for (const childRecord of childArray) {
       if (childRecord === null) {
         continue
       }
 
       const key = getRecordKey(asRecord(childRecord), childKeys, mappers)
-      for (const parentRecord of parentMap[key] ?? []) {
+      const matchingParents = parentMap[key]
+      if (matchingParents === undefined) {
+        continue
+      }
+
+      for (const parentRecord of matchingParents) {
         if (joinExpr.isRelationUnique) {
           parentRecord[joinExpr.parentField] = childRecord
         } else {
-          parentRecord[joinExpr.parentField].push(childRecord)
+          const childList = parentRecord[joinExpr.parentField] as Value[]
+          childList.push(childRecord)
         }
       }
     }
@@ -477,7 +492,7 @@ function attachChildrenToParents(
   return parentRecords
 }
 
-function inferKeyCasts(rows: unknown[], keys: string[]): KeyCast[] {
+function inferKeyCasts(rows: unknown[], keys: readonly string[]): KeyCast[] {
   function getKeyCast(type: string): KeyCast | undefined {
     switch (type) {
       case 'number':
@@ -497,7 +512,8 @@ function inferKeyCasts(rows: unknown[], keys: string[]): KeyCast[] {
   let keysFound = 0
   for (const parent of rows) {
     const parentRecord = asRecord(parent)
-    for (const [i, key] of keys.entries()) {
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
       if (parentRecord[key] !== null && keyCasts[i] === undefined) {
         const keyCast = getKeyCast(typeof parentRecord[key])
         if (keyCast !== undefined) {
@@ -603,4 +619,8 @@ function evaluateProcessingParameters(
 
 function cloneObject<T>(value: T): DeepUnreadonly<T> {
   return klona(value) as DeepUnreadonly<T>
+}
+
+function asMutable<T>(value: DeepReadonly<T>): DeepUnreadonly<T> {
+  return value as DeepUnreadonly<T>
 }

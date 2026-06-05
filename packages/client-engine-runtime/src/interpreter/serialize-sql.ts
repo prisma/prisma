@@ -3,12 +3,22 @@ import { type ColumnType, ColumnTypeEnum, type SqlResultSet } from '@prisma/driv
 import { assertNever } from '../utils'
 
 export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[] {
-  return resultSet.rows.map((row) =>
-    row.reduce<Record<string, unknown>>((acc, value, index) => {
-      acc[resultSet.columnNames[index]] = value
-      return acc
-    }, {}),
-  )
+  const rows = resultSet.rows
+  const columnNames = resultSet.columnNames
+  const result = new Array<Record<string, unknown>>(rows.length)
+
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex]
+    const mappedRow: Record<string, unknown> = {}
+
+    for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
+      mappedRow[columnNames[columnIndex]] = row[columnIndex]
+    }
+
+    result[rowIndex] = mappedRow
+  }
+
+  return result
 }
 
 export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown> {

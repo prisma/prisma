@@ -53,11 +53,26 @@ function mapArrayOrObject(
   if (data === null) return null
 
   if (Array.isArray(data)) {
-    let rows = data as PrismaObject[]
+    const rows = data as PrismaObject[]
     if (skipNulls) {
-      rows = rows.filter((row) => row !== null)
+      const result: PrismaObject[] = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        if (row !== null) {
+          result.push(mapObject(row, fields, enums))
+        }
+      }
+
+      return result
     }
-    return rows.map((row) => mapObject(row, fields, enums))
+
+    const result = new Array<PrismaObject>(rows.length)
+    for (let i = 0; i < rows.length; i++) {
+      result[i] = mapObject(rows[i], fields, enums)
+    }
+
+    return result
   }
 
   if (typeof data === 'object') {
@@ -143,7 +158,11 @@ function mapField(
 
   if (fieldType.arity === 'list') {
     const values = value as unknown[]
-    return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, fieldType, enums))
+    const result = new Array<unknown>(values.length)
+    for (let i = 0; i < values.length; i++) {
+      result[i] = mapValue(values[i], `${columnName}[${i}]`, fieldType, enums)
+    }
+    return result
   }
 
   return mapValue(value, columnName, fieldType, enums)

@@ -21,24 +21,48 @@ export function renderQuery(
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
 ): DeepReadonly<SqlQuery>[] {
-  const args = dbQuery.args.map((arg) => evaluateArg(arg, scope, generators))
+  const args = evaluateArgs(dbQuery.args, scope, generators)
 
   switch (dbQuery.type) {
     case 'rawSql':
       return [renderRawSql(dbQuery.sql, args, dbQuery.argTypes)]
     case 'templateSql': {
-      const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
-      return chunks.map((params) => {
-        const rendered = renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
+      const rendered = renderFlatTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, args, dbQuery.argTypes)
+      if (rendered !== undefined) {
         if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
           throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
         }
-        return rendered
-      })
+        return [rendered]
+      }
+
+      const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
+      const result = new Array<DeepReadonly<SqlQuery>>(chunks.length)
+      for (let i = 0; i < chunks.length; i++) {
+        const rendered = renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, chunks[i], dbQuery.argTypes)
+        if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
+          throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
+        }
+        result[i] = rendered
+      }
+      return result
     }
     default:
       assertNever(dbQuery['type'], `Invalid query type`)
   }
+}
+
+function evaluateArgs(
+  args: readonly unknown[],
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): unknown[] {
+  const result = new Array<unknown>(args.length)
+
+  for (let i = 0; i < args.length; i++) {
+    result[i] = evaluateArg(args[i], scope, generators)
+  }
+
+  return result
 }
 
 export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown {
@@ -65,17 +89,65 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
       if (!generator) {
         throw new Error(`Encountered an unknown generator '${name}'`)
       }
-      arg = generator.generate(...args.map((arg) => evaluateArg(arg, scope, generators)))
+      arg = generator.generate(...evaluateArgs(args, scope, generators))
     } else {
       assertNever(arg, `Unexpected unevaluated value type: ${arg}`)
     }
   }
 
   if (Array.isArray(arg)) {
-    arg = arg.map((el) => evaluateArg(el, scope, generators))
+    arg = evaluateArgs(arg, scope, generators)
   }
 
   return arg
+}
+
+function renderFlatTemplateSql(
+  fragments: DeepReadonly<Fragment[]>,
+  placeholderFormat: PlaceholderFormat,
+  params: unknown[],
+  argTypes: DeepReadonly<DynamicArgType[]>,
+): SqlQuery | undefined {
+  let sql = ''
+  let placeholderNumber = 1
+  let paramIndex = 0
+
+  for (const fragment of fragments) {
+    switch (fragment.type) {
+      case 'stringChunk':
+        sql += fragment.chunk
+        break
+
+      case 'parameter':
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+        sql += formatPlaceholder(placeholderFormat, placeholderNumber++)
+        paramIndex++
+        break
+
+      case 'parameterTuple':
+      case 'parameterTupleList':
+        return undefined
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
+    }
+  }
+
+  return {
+    sql,
+    args: paramIndex === params.length ? params : params.slice(0, paramIndex),
+    argTypes: paramIndex === argTypes.length ? (argTypes as ArgType[]) : copyArgTypes(argTypes, paramIndex),
+  }
+}
+
+function copyArgTypes(argTypes: DeepReadonly<DynamicArgType[]>, length: number): ArgType[] {
+  const result = new Array<ArgType>(length)
+  for (let i = 0; i < length; i++) {
+    result[i] = argTypes[i] as ArgType
+  }
+  return result
 }
 
 function renderTemplateSql(

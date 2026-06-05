@@ -185,6 +185,45 @@ describe('QueryPlanCache', () => {
       expect(cache.size).toBe(3)
     })
 
+    it('evicts the oldest entry across single and batch caches', () => {
+      const cache = new QueryPlanCache(2)
+
+      cache.setSingle('single1', { type: 'value' as const, args: 'single1' })
+      cache.setBatch('batch1', { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch1' }] })
+      cache.setSingle('single2', { type: 'value' as const, args: 'single2' })
+
+      expect(cache.getSingle('single1')).toBeUndefined()
+      expect(cache.getBatch('batch1')).toBeDefined()
+      expect(cache.getSingle('single2')).toBeDefined()
+      expect(cache.size).toBe(2)
+    })
+
+    it('refreshes entries across single and batch caches on get', () => {
+      const cache = new QueryPlanCache(2)
+
+      cache.setSingle('single1', { type: 'value' as const, args: 'single1' })
+      cache.setBatch('batch1', { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch1' }] })
+
+      cache.getSingle('single1')
+      cache.setBatch('batch2', { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch2' }] })
+
+      expect(cache.getSingle('single1')).toBeDefined()
+      expect(cache.getBatch('batch1')).toBeUndefined()
+      expect(cache.getBatch('batch2')).toBeDefined()
+      expect(cache.size).toBe(2)
+    })
+
+    it('does not store entries when max size is zero', () => {
+      const cache = new QueryPlanCache(0)
+
+      cache.setSingle('single', { type: 'value' as const, args: null })
+      cache.setBatch('batch', { type: 'multi' as const, plans: [] })
+
+      expect(cache.getSingle('single')).toBeUndefined()
+      expect(cache.getBatch('batch')).toBeUndefined()
+      expect(cache.size).toBe(0)
+    })
+
     it('clears both caches', () => {
       const cache = new QueryPlanCache()
 
