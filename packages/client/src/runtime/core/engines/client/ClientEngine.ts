@@ -67,8 +67,17 @@ globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY = {
   },
 }
 
+function getStringCacheKeyPart(value: string | null | undefined): string {
+  if (value == null) {
+    return '-1:'
+  }
+
+  return `${value.length}:${value}`
+}
+
 function getSingleQueryCacheKey(query: JsonQuery): string {
-  return JSON.stringify([query.modelName ?? null, query.action, query.query])
+  const queryPart = JSON.stringify(query.query)
+  return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
 }
 
 function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
