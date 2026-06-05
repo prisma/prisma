@@ -527,10 +527,12 @@ export class ClientEngine implements Engine {
         queryInfoQuery = parameterizedQuery.query
       }
 
-      if (isCacheable) {
+      const queryPlanCache = this.#queryPlanCache
+
+      if (isCacheable && queryPlanCache !== undefined) {
         const queryPart = JSON.stringify(parameterizedQuery.query)
         const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
-        const cached = this.#queryPlanCache?.getSingle(cacheKey)
+        const cached = queryPlanCache.getSingle(cacheKey)
         if (cached) {
           debug('query plan cache hit')
           plan = cached
@@ -538,7 +540,7 @@ export class ClientEngine implements Engine {
           debug('query plan cache miss')
           const request = getSingleQueryRequest(parameterizedQuery, queryPart)
           plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
-          this.#queryPlanCache?.setSingle(cacheKey, plan)
+          queryPlanCache.setSingle(cacheKey, plan)
         }
       } else {
         const request = JSON.stringify(parameterizedQuery)
@@ -605,7 +607,6 @@ export class ClientEngine implements Engine {
         batchPayload as JsonBatchQuery,
         this.#paramGraph,
       )
-      const cacheKey = getBatchQueryCacheKey(parameterizedBatch)
       placeholderValues = extractedValues
       if (hasSqlCommenters) {
         queryInfoQueries = new Array(parameterizedBatch.batch.length)
@@ -614,16 +615,27 @@ export class ClientEngine implements Engine {
         }
       }
 
-      const cached = this.#queryPlanCache?.getBatch(cacheKey)
-      if (cached) {
-        debug('batch query plan cache hit')
-        batchResponse = cached
+      const queryPlanCache = this.#queryPlanCache
+      if (queryPlanCache !== undefined) {
+        const cacheKey = getBatchQueryCacheKey(parameterizedBatch)
+        const cached = queryPlanCache.getBatch(cacheKey)
+        if (cached) {
+          debug('batch query plan cache hit')
+          batchResponse = cached
+        } else {
+          debug('batch query plan cache miss')
+          try {
+            const request = JSON.stringify(parameterizedBatch)
+            batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
+            queryPlanCache.setBatch(cacheKey, batchResponse)
+          } catch (error) {
+            throw this.#transformCompileError(error)
+          }
+        }
       } else {
-        debug('batch query plan cache miss')
         try {
           const request = JSON.stringify(parameterizedBatch)
           batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
-          this.#queryPlanCache?.setBatch(cacheKey, batchResponse)
         } catch (error) {
           throw this.#transformCompileError(error)
         }
