@@ -15,13 +15,29 @@ import { assertNever, DeepReadonly } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'
 
+const EMPTY_ARGS = Object.freeze([]) as unknown as unknown[]
+const EMPTY_ARG_TYPES = Object.freeze([]) as unknown as ArgType[]
+
 export function renderQuery(
   dbQuery: DeepReadonly<QueryPlanDbQuery>,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
 ): DeepReadonly<SqlQuery>[] {
-  const args = dbQuery.args.map((arg) => evaluateArg(arg, scope, generators))
+  if (dbQuery.type === 'templateSql' && dbQuery.args.length === 0) {
+    const fragment = dbQuery.fragments.length === 1 ? dbQuery.fragments[0] : undefined
+    if (fragment?.type === 'stringChunk') {
+      return [
+        {
+          sql: fragment.chunk,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
+    }
+  }
+
+  const args = evaluateArgs(dbQuery.args, scope, generators)
 
   switch (dbQuery.type) {
     case 'rawSql':
@@ -39,6 +55,20 @@ export function renderQuery(
     default:
       assertNever(dbQuery['type'], `Invalid query type`)
   }
+}
+
+function evaluateArgs(
+  args: readonly unknown[],
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): unknown[] {
+  const result = new Array<unknown>(args.length)
+
+  for (let i = 0; i < args.length; i++) {
+    result[i] = evaluateArg(args[i], scope, generators)
+  }
+
+  return result
 }
 
 export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown {
