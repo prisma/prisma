@@ -34,6 +34,7 @@ const FLOAT_PLACEHOLDER: PlaceholderType = { type: 'Float' }
 const INT_PLACEHOLDER: PlaceholderType = { type: 'Int' }
 const JSON_PLACEHOLDER: PlaceholderType = { type: 'Json' }
 const STRING_PLACEHOLDER: PlaceholderType = { type: 'String' }
+const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
 
 /**
  * Result of parameterizing a single query.
@@ -125,8 +126,8 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraph): Para
  */
 class Parameterizer {
   readonly #view: ParamGraph
-  readonly #placeholderValues: Record<string, unknown> = {}
-  readonly #valueToPlaceholder = new Map<string, string>()
+  #placeholderValues: Record<string, unknown> | undefined
+  #valueToPlaceholder: Map<string, string> | undefined
   #nextPlaceholderId = 1
 
   constructor(view: ParamGraph) {
@@ -137,7 +138,7 @@ class Parameterizer {
    * Returns the collected placeholder values as a plain object.
    */
   getPlaceholderValues(): Record<string, unknown> {
-    return this.#placeholderValues
+    return this.#placeholderValues ?? EMPTY_PLACEHOLDER_VALUES
   }
 
   /**
@@ -150,15 +151,17 @@ class Parameterizer {
    */
   #getOrCreatePlaceholder(value: unknown, type: PlaceholderType): PlaceholderTaggedValue {
     const valueKey = createValueKey(value, type)
-    const existingName = this.#valueToPlaceholder.get(valueKey)
+    const existingName = this.#valueToPlaceholder?.get(valueKey)
 
     if (existingName !== undefined) {
       return createPlaceholder(existingName, type)
     }
 
     const name = `%${this.#nextPlaceholderId++}`
-    this.#valueToPlaceholder.set(valueKey, name)
-    this.#placeholderValues[name] = value
+    const valueToPlaceholder = (this.#valueToPlaceholder ??= new Map())
+    const placeholderValues = (this.#placeholderValues ??= {})
+    valueToPlaceholder.set(valueKey, name)
+    placeholderValues[name] = value
     return createPlaceholder(name, type)
   }
 
