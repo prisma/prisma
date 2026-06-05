@@ -278,11 +278,14 @@ ${bold('Examples')}
       )
     }
 
-    if (!URL.canParse(connectionString)) {
+    // Extract protocol before URL validation, since MSSQL connection strings
+    // use semicolons instead of standard query parameters and are not valid WHATWG URLs.
+    // https://github.com/prisma/prisma/issues/29620
+    const protocol = connectionString.split('://')[0]?.toLowerCase() ?? ''
+
+    if (protocol !== 'sqlserver' && !URL.canParse(connectionString)) {
       return new UserFacingError('The provided database URL is not valid.')
     }
-
-    const protocol = new URL(connectionString).protocol.replace(':', '')
 
     if (isAccelerateProtocol(protocol)) {
       return new UserFacingError(ACCELERATE_UNSUPPORTED_MESSAGE)
