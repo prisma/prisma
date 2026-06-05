@@ -80,6 +80,8 @@ function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
   return JSON.stringify([queries, batch.transaction ?? null])
 }
 
+const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
+
 interface ConnectedEngine {
   executor: Executor
   queryCompiler: QueryCompiler
@@ -489,7 +491,7 @@ export class ClientEngine implements Engine {
     })
 
     let plan: QueryPlanNode
-    let placeholderValues: Record<string, unknown> = {}
+    let placeholderValues = EMPTY_PLACEHOLDER_VALUES
     let queryInfoQuery = query.query
 
     if (isRawQuery(query)) {
@@ -570,7 +572,7 @@ export class ClientEngine implements Engine {
 
     const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
-    let placeholderValues: Record<string, unknown> = {}
+    let placeholderValues = EMPTY_PLACEHOLDER_VALUES
     let queryInfoQueries: JsonQuery['query'][]
 
     if (!hasRawQueries) {
