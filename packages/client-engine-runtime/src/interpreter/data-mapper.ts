@@ -21,6 +21,10 @@ const resultSetFieldMappingsCache = new WeakMap<
   Record<string, ResultNode>,
   WeakMap<string[], ResultSetFieldMapping[]>
 >()
+const resultSetFieldMappingsByShapeCache = new WeakMap<
+  Record<string, ResultNode>,
+  Map<string, ResultSetFieldMapping[]>
+>()
 
 type ResultSetFieldMapping =
   | {
@@ -215,12 +219,42 @@ function getResultSetFieldMappings(fields: Record<string, ResultNode>, columnNam
     resultSetFieldMappingsCache.set(fields, fieldMappingsByColumnNames)
   }
 
-  let fieldMappings = fieldMappingsByColumnNames.get(columnNames)
-  if (fieldMappings === undefined) {
-    fieldMappings = buildResultSetFieldMappings(fields, getColumnIndexes(columnNames))
-    fieldMappingsByColumnNames.set(columnNames, fieldMappings)
+  const fieldMappings = fieldMappingsByColumnNames.get(columnNames)
+  if (fieldMappings !== undefined) {
+    return fieldMappings
   }
-  return fieldMappings
+
+  return getResultSetFieldMappingsForColumnNamesMiss(fields, columnNames, fieldMappingsByColumnNames)
+}
+
+function getResultSetFieldMappingsForColumnNamesMiss(
+  fields: Record<string, ResultNode>,
+  columnNames: string[],
+  fieldMappingsByColumnNames: WeakMap<string[], ResultSetFieldMapping[]>,
+): ResultSetFieldMapping[] {
+  let fieldMappingsByColumnShape = resultSetFieldMappingsByShapeCache.get(fields)
+  if (fieldMappingsByColumnShape === undefined) {
+    fieldMappingsByColumnShape = new Map<string, ResultSetFieldMapping[]>()
+    resultSetFieldMappingsByShapeCache.set(fields, fieldMappingsByColumnShape)
+  }
+
+  const columnShape = getColumnShape(columnNames)
+  let newFieldMappings = fieldMappingsByColumnShape.get(columnShape)
+  if (newFieldMappings === undefined) {
+    newFieldMappings = buildResultSetFieldMappings(fields, getColumnIndexes(columnNames))
+    fieldMappingsByColumnShape.set(columnShape, newFieldMappings)
+  }
+  fieldMappingsByColumnNames.set(columnNames, newFieldMappings)
+  return newFieldMappings
+}
+
+function getColumnShape(columnNames: string[]): string {
+  let shape = `${columnNames.length}`
+  for (let i = 0; i < columnNames.length; i++) {
+    const name = columnNames[i]
+    shape += `:${name.length}:${name}`
+  }
+  return shape
 }
 
 function buildResultSetFieldMappings(

@@ -48,3 +48,39 @@ test('direct result-set mapping uses the last duplicate column name', () => {
     applyDataMap(serializeSql(resultSet), structure, {}),
   )
 })
+
+test('direct result-set mapping caches independently for different column orders', () => {
+  const structure = {
+    type: 'object',
+    serializedName: null,
+    skipNulls: false,
+    fields: {
+      id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
+      name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
+    },
+  } satisfies ResultNode
+
+  expect(
+    applyDataMapToResultSet(
+      {
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+        columnNames: ['id', 'name'],
+        rows: [[1, 'Alice']],
+      },
+      structure,
+      {},
+    ),
+  ).toEqual([{ id: 1, name: 'Alice' }])
+
+  expect(
+    applyDataMapToResultSet(
+      {
+        columnTypes: [ColumnTypeEnum.Text, ColumnTypeEnum.Int32],
+        columnNames: ['name', 'id'],
+        rows: [['Bob', 2]],
+      },
+      structure,
+      {},
+    ),
+  ).toEqual([{ id: 2, name: 'Bob' }])
+})
