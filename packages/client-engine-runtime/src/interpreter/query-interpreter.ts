@@ -3,14 +3,21 @@ import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcomme
 import { klona } from 'klona'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, InMemoryOps, JoinExpression, QueryPlanNode } from '../query-plan'
+import {
+  FieldInitializer,
+  FieldOperation,
+  InMemoryOps,
+  JoinExpression,
+  QueryPlanDbQuery,
+  QueryPlanNode,
+} from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
 import { assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
-import { applyDataMap } from './data-mapper'
+import { applyDataMap, applyDataMapToResultSet } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
 import { evaluateArg, renderQuery } from './render-query'
@@ -269,7 +276,27 @@ export class QueryInterpreter {
       }
 
       case 'dataMap': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
+        const expr = node.args.expr
+        if (expr.type === 'query' && expr.args.type !== 'rawSql') {
+          const { structure, enums } = node.args
+          if (structure.type === 'object') {
+            const results = await this.#executeQuery(expr.args, context)
+            return { value: applyDataMapToResultSet(results, structure, enums), lastInsertId: results.lastInsertId }
+          }
+        } else if (expr.type === 'unique' && expr.args.type === 'query' && expr.args.args.type !== 'rawSql') {
+          const { structure, enums } = node.args
+          if (structure.type === 'object') {
+            const results = await this.#executeQuery(expr.args.args, context)
+            const value = applyDataMapToResultSet(results, structure, enums)
+
+            if (value.length > 1) {
+              throw new Error(`Expected zero or one element, got ${value.length}`)
+            }
+            return { value: value[0] ?? null, lastInsertId: results.lastInsertId }
+          }
+        }
+
+        const { value, lastInsertId } = await this.interpretNode(expr, context)
         return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
       }
 
@@ -377,6 +404,35 @@ export class QueryInterpreter {
       tracingHelper: this.#tracingHelper,
       onQuery: this.#onQuery,
     })
+  }
+
+  #usesQueryInstrumentation(): boolean {
+    return this.#onQuery !== undefined || this.#tracingHelper.isEnabled()
+  }
+
+  async #executeQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>, context: QueryRuntimeContext): Promise<SqlResultSet> {
+    const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
+    const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+    const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+    const handleError = dbQuery.type === 'rawSql' ? rethrowAsUserFacingRawError : rethrowAsUserFacing
+
+    let results: SqlResultSet | undefined
+    for (const query of queries) {
+      const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+      const result = usesQueryInstrumentation
+        ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+            context.queryable.queryRaw(cloneObject(queryToExecute)).catch(handleError),
+          )
+        : await context.queryable.queryRaw(cloneObject(queryToExecute)).catch(handleError)
+      if (results === undefined) {
+        results = result
+      } else {
+        results.rows.push(...result.rows)
+        results.lastInsertId = result.lastInsertId
+      }
+    }
+
+    return results!
   }
 }
 
