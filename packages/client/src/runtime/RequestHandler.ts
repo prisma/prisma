@@ -19,7 +19,7 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
-import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
+import { QueryEngineResultData, queryEngineResultDataWasDeserialized } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
@@ -167,7 +167,7 @@ export class RequestHandler {
     /**
      * Unpack
      */
-    const result = this.unpack(data, dataPath, unpacker)
+    const result = this.unpack(data, dataPath, unpacker, response?.[queryEngineResultDataWasDeserialized] === true)
     if (process.env.PRISMA_CLIENT_GET_TIME) {
       return { data: result }
     }
@@ -265,7 +265,7 @@ export class RequestHandler {
     return message
   }
 
-  unpack(data: unknown, dataPath: string[], unpacker?: Unpacker) {
+  unpack(data: unknown, dataPath: string[], unpacker?: Unpacker, alreadyDeserialized = false) {
     if (!data) {
       return data
     }
@@ -280,8 +280,9 @@ export class RequestHandler {
     const response = Object.values(data)[0]
     const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
     const extractedResponse = deepGet(response, pathForGet)
-    const deserializedResponse =
-      operation === 'queryRaw'
+    const deserializedResponse = alreadyDeserialized
+      ? extractedResponse
+      : operation === 'queryRaw'
         ? deserializeRawResult(extractedResponse as RawResponse)
         : (deserializeJsonObject(extractedResponse) as unknown)
 

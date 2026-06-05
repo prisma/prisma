@@ -29,7 +29,12 @@ import { deserializeRawParameters } from '../../../utils/deserializeRawParameter
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
-import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
+import {
+  type QueryEngineResultData,
+  queryEngineResultDataWasDeserialized,
+  RustRequestError,
+  SyncRustError,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
@@ -572,7 +577,11 @@ export class ClientEngine implements Engine {
 
       debug(`query plan executed`)
 
-      return { data: { [query.action]: result } as T }
+      const response: QueryEngineResultData<T> = { data: { [query.action]: result } as T }
+      if (executor.resultFormat === 'js' && !isRawQuery(query)) {
+        response[queryEngineResultDataWasDeserialized] = true
+      }
+      return response
     } catch (e: any) {
       throw this.#transformRequestError(e, JSON.stringify(query))
     }
@@ -692,7 +701,11 @@ export class ClientEngine implements Engine {
                     }
                   : undefined,
               })
-              results.push({ data: { [queries[batchIndex].action]: rows } })
+              const response: QueryEngineResultData<unknown> = { data: { [queries[batchIndex].action]: rows } }
+              if (executor.resultFormat === 'js' && !isRawQuery(queries[batchIndex])) {
+                response[queryEngineResultDataWasDeserialized] = true
+              }
+              results.push(response)
             } catch (err) {
               results.push(err as Error)
               rollback = true
@@ -745,7 +758,13 @@ export class ClientEngine implements Engine {
           })
 
           const results = convertCompactedRows(rows as {}[], batchResponse, placeholderValues)
-          return results.map((result) => ({ data: { [firstAction]: result } }) as BatchQueryEngineResult<T>)
+          return results.map((result) => {
+            const response: QueryEngineResultData<T> = { data: { [firstAction]: result } as T }
+            if (executor.resultFormat === 'js') {
+              response[queryEngineResultDataWasDeserialized] = true
+            }
+            return response as BatchQueryEngineResult<T>
+          })
         }
       }
     } catch (e: any) {

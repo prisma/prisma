@@ -22,6 +22,8 @@ export interface ProviderAndConnectionInfo {
 }
 
 export interface Executor {
+  readonly resultFormat: 'jsonProtocol' | 'js'
+
   getConnectionInfo(): Promise<ProviderAndConnectionInfo>
 
   execute(params: ExecutePlanParams): Promise<unknown>

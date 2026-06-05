@@ -1,3 +1,4 @@
+import { Decimal } from '@prisma/client-runtime-utils'
 import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import { expect, test } from 'vitest'
 
@@ -83,4 +84,38 @@ test('direct result-set mapping caches independently for different column orders
       {},
     ),
   ).toEqual([{ id: 2, name: 'Bob' }])
+})
+
+test('direct result-set mapping can return native JavaScript values', () => {
+  const resultSet = {
+    columnTypes: [
+      ColumnTypeEnum.Int64,
+      ColumnTypeEnum.Numeric,
+      ColumnTypeEnum.DateTime,
+      ColumnTypeEnum.Bytes,
+      ColumnTypeEnum.Json,
+    ],
+    columnNames: ['bigint', 'decimal', 'createdAt', 'bytes', 'json'],
+    rows: [['123', '12.34', '2024-01-15T12:00:00Z', 'aGVsbG8=', '{"nested":true}']],
+  }
+  const structure = {
+    type: 'object',
+    serializedName: null,
+    skipNulls: false,
+    fields: {
+      bigint: { type: 'field', dbName: 'bigint', fieldType: { type: 'bigint', arity: 'scalar' } },
+      decimal: { type: 'field', dbName: 'decimal', fieldType: { type: 'decimal', arity: 'scalar' } },
+      createdAt: { type: 'field', dbName: 'createdAt', fieldType: { type: 'datetime', arity: 'scalar' } },
+      bytes: { type: 'field', dbName: 'bytes', fieldType: { type: 'bytes', encoding: 'base64', arity: 'scalar' } },
+      json: { type: 'field', dbName: 'json', fieldType: { type: 'json', arity: 'scalar' } },
+    },
+  } satisfies ResultNode
+
+  const [row] = applyDataMapToResultSet(resultSet, structure, {}, 'js')
+
+  expect(row.bigint).toBe(123n)
+  expect(row.decimal).toEqual(new Decimal('12.34'))
+  expect(row.createdAt).toEqual(new Date('2024-01-15T12:00:00Z'))
+  expect(row.bytes).toEqual(new Uint8Array([104, 101, 108, 108, 111]))
+  expect(row.json).toEqual({ nested: true })
 })

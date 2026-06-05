@@ -18,7 +18,7 @@ import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
 import { assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
-import { applyDataMap, applyDataMapToResultSet } from './data-mapper'
+import { applyDataMap, applyDataMapToResultSet, type QueryResultFormat } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
 import { evaluateArg, renderQuery } from './render-query'
@@ -35,6 +35,7 @@ export type QueryInterpreterOptions = {
   rawSerializer?: (results: SqlResultSet) => Value
   provider?: SchemaProvider
   connectionInfo?: ConnectionInfo
+  resultFormat?: QueryResultFormat
 }
 
 export type QueryRuntimeOptions = {
@@ -65,6 +66,7 @@ export class QueryInterpreter {
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
   readonly #connectionInfo?: ConnectionInfo
+  readonly #resultFormat: QueryResultFormat
 
   constructor({
     onQuery,
@@ -73,6 +75,7 @@ export class QueryInterpreter {
     rawSerializer,
     provider,
     connectionInfo,
+    resultFormat = 'jsonProtocol',
   }: QueryInterpreterOptions) {
     this.#onQuery = onQuery
     this.#tracingHelper = tracingHelper
@@ -80,6 +83,7 @@ export class QueryInterpreter {
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
     this.#connectionInfo = connectionInfo
+    this.#resultFormat = resultFormat
   }
 
   static forSql(options: {
@@ -87,6 +91,7 @@ export class QueryInterpreter {
     tracingHelper: TracingHelper
     provider?: SchemaProvider
     connectionInfo?: ConnectionInfo
+    resultFormat?: QueryResultFormat
   }): QueryInterpreter {
     return new QueryInterpreter({
       onQuery: options.onQuery,
@@ -95,6 +100,7 @@ export class QueryInterpreter {
       rawSerializer: serializeRawSql,
       provider: options.provider,
       connectionInfo: options.connectionInfo,
+      resultFormat: options.resultFormat,
     })
   }
 
@@ -286,13 +292,16 @@ export class QueryInterpreter {
           const { structure, enums } = node.args
           if (structure.type === 'object') {
             const results = await this.#executeQuery(expr.args, context)
-            return { value: applyDataMapToResultSet(results, structure, enums), lastInsertId: results.lastInsertId }
+            return {
+              value: applyDataMapToResultSet(results, structure, enums, this.#resultFormat),
+              lastInsertId: results.lastInsertId,
+            }
           }
         } else if (expr.type === 'unique' && expr.args.type === 'query' && expr.args.args.type !== 'rawSql') {
           const { structure, enums } = node.args
           if (structure.type === 'object') {
             const results = await this.#executeQuery(expr.args.args, context)
-            const value = applyDataMapToResultSet(results, structure, enums)
+            const value = applyDataMapToResultSet(results, structure, enums, this.#resultFormat)
 
             if (value.length > 1) {
               throw new Error(`Expected zero or one element, got ${value.length}`)
@@ -302,7 +311,7 @@ export class QueryInterpreter {
         }
 
         const { value, lastInsertId } = await this.interpretNode(expr, context)
-        return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
+        return { value: applyDataMap(value, node.args.structure, node.args.enums, this.#resultFormat), lastInsertId }
       }
 
       case 'validate': {

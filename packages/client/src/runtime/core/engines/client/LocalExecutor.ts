@@ -22,6 +22,8 @@ export interface LocalExecutorOptions {
 }
 
 export class LocalExecutor implements Executor {
+  readonly resultFormat = 'js'
+
   readonly #options: LocalExecutorOptions
   readonly #driverAdapter: SqlDriverAdapter
   readonly #transactionManager: TransactionManager
@@ -38,6 +40,7 @@ export class LocalExecutor implements Executor {
       tracingHelper: this.#options.tracingHelper,
       provider: this.#options.provider,
       connectionInfo: this.#connectionInfo,
+      resultFormat: this.resultFormat,
     })
   }
 

@@ -6,6 +6,8 @@ import { UserFacingError } from '../user-facing-error'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
+export type QueryResultFormat = 'jsonProtocol' | 'js'
+
 export class DataMapperError extends UserFacingError {
   name = 'DataMapperError'
 
@@ -55,7 +57,12 @@ function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNod
   return entries
 }
 
-export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
+export function applyDataMap(
+  data: Value,
+  structure: ResultNode,
+  enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
+): Value {
   switch (structure.type) {
     case 'affectedRows':
       if (typeof data !== 'number') {
@@ -64,10 +71,10 @@ export function applyDataMap(data: Value, structure: ResultNode, enums: Record<s
       return { count: data }
 
     case 'object':
-      return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls)
+      return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls, resultFormat)
 
     case 'field':
-      return mapValue(data, '<result>', structure.fieldType, enums)
+      return mapValue(data, '<result>', structure.fieldType, enums, resultFormat)
 
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
@@ -78,6 +85,7 @@ export function applyDataMapToResultSet(
   resultSet: SqlResultSet,
   structure: Extract<ResultNode, { type: 'object' }>,
   enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
 ): PrismaObject[] {
   const rows = resultSet.rows
   if (rows.length === 0) {
@@ -88,7 +96,7 @@ export function applyDataMapToResultSet(
   const result = new Array<PrismaObject>(rows.length)
 
   for (let i = 0; i < rows.length; i++) {
-    result[i] = mapResultSetRow(rows[i], fieldMappings, enums)
+    result[i] = mapResultSetRow(rows[i], fieldMappings, enums, resultFormat)
   }
 
   return result
@@ -99,6 +107,7 @@ function mapArrayOrObject(
   fields: Record<string, ResultNode>,
   enums: Record<string, Record<string, string>>,
   skipNulls?: boolean,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
 ): PrismaObject | PrismaObject[] | null {
   if (data === null) return null
 
@@ -110,7 +119,7 @@ function mapArrayOrObject(
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
         if (row !== null) {
-          result.push(mapObject(row, fields, enums))
+          result.push(mapObject(row, fields, enums, resultFormat))
         }
       }
 
@@ -119,7 +128,7 @@ function mapArrayOrObject(
 
     const result = new Array<PrismaObject>(rows.length)
     for (let i = 0; i < rows.length; i++) {
-      result[i] = mapObject(rows[i], fields, enums)
+      result[i] = mapObject(rows[i], fields, enums, resultFormat)
     }
 
     return result
@@ -127,7 +136,7 @@ function mapArrayOrObject(
 
   if (typeof data === 'object') {
     const row = data as PrismaObject
-    return mapObject(row, fields, enums)
+    return mapObject(row, fields, enums, resultFormat)
   }
 
   if (typeof data === 'string') {
@@ -139,7 +148,7 @@ function mapArrayOrObject(
         cause: error,
       })
     }
-    return mapArrayOrObject(decodedData, fields, enums, skipNulls)
+    return mapArrayOrObject(decodedData, fields, enums, skipNulls, resultFormat)
   }
 
   throw new DataMapperError(`Expected an array or an object, got: ${typeof data}`)
@@ -150,6 +159,7 @@ function mapObject(
   data: PrismaObject,
   fields: Record<string, ResultNode>,
   enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat,
 ): PrismaObject {
   if (typeof data !== 'object') {
     throw new DataMapperError(`Expected an object, but got '${typeof data}'`)
@@ -171,7 +181,7 @@ function mapObject(
         }
 
         const target = serializedName !== null ? data[serializedName] : data
-        result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls)
+        result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls, resultFormat)
         break
       }
 
@@ -179,7 +189,7 @@ function mapObject(
         {
           const dbName = node.dbName
           if (Object.hasOwn(data, dbName)) {
-            result[name] = mapField(data[dbName], dbName, node.fieldType, enums)
+            result[name] = mapField(data[dbName], dbName, node.fieldType, enums, resultFormat)
           } else {
             throw new DataMapperError(
               `Missing data field (Value): '${dbName}'; ` +
@@ -200,23 +210,36 @@ function mapResultSetRow(
   row: unknown[],
   fieldMappings: ResultSetFieldMapping[],
   enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat,
 ): PrismaObject {
   const result = {}
   for (const mapping of fieldMappings) {
     switch (mapping.type) {
       case 'field': {
-        result[mapping.name] = mapField(row[mapping.columnIndex], mapping.dbName, mapping.fieldType, enums)
+        result[mapping.name] = mapField(
+          row[mapping.columnIndex],
+          mapping.dbName,
+          mapping.fieldType,
+          enums,
+          resultFormat,
+        )
         break
       }
 
       case 'rowObject': {
-        result[mapping.name] = mapResultSetRow(row, mapping.fields, enums)
+        result[mapping.name] = mapResultSetRow(row, mapping.fields, enums, resultFormat)
         break
       }
 
       case 'valueObject': {
         const node = mapping.node
-        result[mapping.name] = mapArrayOrObject(row[mapping.columnIndex] as Value, node.fields, enums, node.skipNulls)
+        result[mapping.name] = mapArrayOrObject(
+          row[mapping.columnIndex] as Value,
+          node.fields,
+          enums,
+          node.skipNulls,
+          resultFormat,
+        )
         break
       }
 
@@ -361,6 +384,7 @@ function mapField(
   columnName: string,
   fieldType: FieldType,
   enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
 ): unknown {
   if (value === null) {
     return fieldType.arity === 'list' ? [] : null
@@ -370,12 +394,12 @@ function mapField(
     const values = value as unknown[]
     const result = new Array<unknown>(values.length)
     for (let i = 0; i < values.length; i++) {
-      result[i] = mapValue(values[i], `${columnName}[${i}]`, fieldType, enums)
+      result[i] = mapValue(values[i], `${columnName}[${i}]`, fieldType, enums, resultFormat)
     }
     return result
   }
 
-  return mapValue(value, columnName, fieldType, enums)
+  return mapValue(value, columnName, fieldType, enums, resultFormat)
 }
 
 function mapValue(
@@ -383,6 +407,7 @@ function mapValue(
   columnName: string,
   scalarType: FieldScalarType,
   enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
 ): unknown {
   switch (scalarType.type) {
     case 'unsupported':
@@ -422,6 +447,9 @@ function mapValue(
     case 'bigint': {
       if (typeof value !== 'number' && typeof value !== 'string') {
         throw new DataMapperError(`Expected a bigint in column '${columnName}', got ${typeof value}: ${value}`)
+      }
+      if (resultFormat === 'js') {
+        return BigInt(value)
       }
       return { $type: 'BigInt', value }
     }
@@ -463,19 +491,32 @@ function mapValue(
       if (typeof value !== 'number' && typeof value !== 'string' && !Decimal.isDecimal(value)) {
         throw new DataMapperError(`Expected a decimal in column '${columnName}', got ${typeof value}: ${value}`)
       }
+      if (resultFormat === 'js') {
+        return new Decimal(value)
+      }
       return { $type: 'Decimal', value }
 
     case 'datetime': {
       if (typeof value === 'string') {
-        return { $type: 'DateTime', value: normalizeDateTime(value) }
+        const normalized = normalizeDateTime(value)
+        if (resultFormat === 'js') {
+          return new Date(normalized)
+        }
+        return { $type: 'DateTime', value: normalized }
       }
       if (typeof value === 'number' || value instanceof Date) {
+        if (resultFormat === 'js') {
+          return new Date(value)
+        }
         return { $type: 'DateTime', value }
       }
       throw new DataMapperError(`Expected a date in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
     case 'object': {
+      if (resultFormat === 'js') {
+        return JSON.parse(safeJsonStringify(value))
+      }
       return { $type: 'Json', value: safeJsonStringify(value) }
     }
 
@@ -483,6 +524,9 @@ function mapValue(
       // The value received here should normally be a string, but we cannot guarantee that,
       // because of SQLite databases like D1, which can return JSON scalars directly. We therefore
       // convert the value we receive to a string.
+      if (resultFormat === 'js') {
+        return JSON.parse(`${value}`)
+      }
       return { $type: 'Json', value: `${value}` }
     }
 
@@ -494,6 +538,10 @@ function mapValue(
               `Expected a base64-encoded byte array in column '${columnName}', got ${typeof value}: ${value}`,
             )
           }
+          if (resultFormat === 'js') {
+            const { buffer, byteOffset, byteLength } = Buffer.from(value, 'base64')
+            return new Uint8Array(buffer, byteOffset, byteLength)
+          }
           return { $type: 'Bytes', value }
 
         case 'hex':
@@ -502,13 +550,23 @@ function mapValue(
               `Expected a hex-encoded byte array in column '${columnName}', got ${typeof value}: ${value}`,
             )
           }
+          if (resultFormat === 'js') {
+            const { buffer, byteOffset, byteLength } = Buffer.from(value.slice(2), 'hex')
+            return new Uint8Array(buffer, byteOffset, byteLength)
+          }
           return { $type: 'Bytes', value: Buffer.from(value.slice(2), 'hex').toString('base64') }
 
         case 'array':
           if (Array.isArray(value)) {
+            if (resultFormat === 'js') {
+              return Uint8Array.from(value)
+            }
             return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
           }
           if (value instanceof Uint8Array) {
+            if (resultFormat === 'js') {
+              return new Uint8Array(value)
+            }
             return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
           }
           throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
