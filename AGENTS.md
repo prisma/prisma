@@ -77,6 +77,7 @@
   - Default Jest/Vitest runner is invoked via `pnpm --filter @prisma/<pkg> test <pattern>`; it wraps `dotenv` and expects `.db.env`.
     - Some packages already use Vitest, `packages/cli` uses both for different tests as it's in the process of transition, older packages still use Jest.
   - Functional generated clients in `packages/client/tests/functional/**/.generated` import `packages/client/runtime/client.js` directly; runtime changes in `src/runtime` may need corresponding runtime bundle updates to be exercised by functional tests.
+  - Client e2e `_steps.ts` files run inside `packages/client/tests/e2e/_utils/standard.dockerfile`; the startup script exports `NODE_PATH` for CommonJS and symlinks globally installed `zx` into `/test/node_modules` because ESM package resolution ignores `NODE_PATH`. Linux Docker runs may need SELinux-compatible bind mounts (`:z`) for mounted e2e files to be readable in the container.
   - Inline snapshots can be sensitive to formatting; prefer concise expectations unless the exact message matters.
 
 - **Environment loading**: Prisma 7 removes automatic `.env` loading.
@@ -99,7 +100,7 @@
   - `@prisma/sqlcommenter-query-insights`: Plugin for adding parameterized query shapes to comments (format: `Model.action:base64Payload`).
   - Plugins are registered via `PrismaClient({ comments: [plugin1(), plugin2()] })`.
   - E2E tests for sqlcommenter plugins live in `packages/client/tests/e2e/sqlcommenter*` directories.
-  - `SqlCommenterQueryInfo` distinguishes `type: 'single'` (single query) vs `type: 'compacted'` (batched queries merged into one SQL statement).
+  - `SqlCommenterQueryInfo` distinguishes `type: 'single'` (single query) vs `type: 'compacted'` (batched queries merged into one SQL statement). For non-raw client-engine queries, the SQL commenter context should receive parameterized query payloads so plugins such as query-insights never see user data values.
 
 - **Codebase helpers to know**:
   - `@prisma/internals` exports CLI utilities: `arg`, `loadSchemaContext` (less used now).

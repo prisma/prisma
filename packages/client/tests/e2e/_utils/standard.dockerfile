@@ -1,13 +1,19 @@
-FROM node:20.19
+# Node 22 satisfies `@prisma/streams-local`'s `engines: >=22`, which is
+# required by the e2e fixtures that install it.
+FROM node:22
 
 RUN npm -v
 
 # zx is pinned to v7 because v8 fails with:
 # [esbuild Error]: Top-level await is currently not supported with the "cjs" output format
 # at /usr/local/lib/node_modules/zx/build/vendor.js:2:17
+# pnpm is pinned (and matches the repo's `packageManager`): leaving it unpinned
+# pulls the latest pnpm, which fails `pnpm install` here with
+# ERR_PNPM_IGNORED_BUILDS because the standalone e2e projects don't carry the
+# repo's `onlyBuiltDependencies` config for `prisma`/`@prisma/engines`.
 RUN npm i -g \
   zx@7 \
-  pnpm \
+  pnpm@10.15.1 \
   typescript@5.9.3 \
   ts-node \
   esbuild \
@@ -28,4 +34,4 @@ RUN curl -fsSL https://bun.sh/install | bash && \
   ls -la ${BUN_INSTALL}/bin/bun && \
   bun --version
 
-CMD chmod +x ./e2e/_utils/standard.cmd.sh && ./e2e/_utils/standard.cmd.sh
+CMD ["bash", "./e2e/_utils/standard.cmd.sh"]
