@@ -170,3 +170,7 @@ You may only need to build and update one of these modules if your changes are i
 2. Build only `query-compiler-wasm` if your changes are related to query planning and execution but do not touch the schema or DMMF in any way.
 
 When in doubt, build both to avoid unexpected behavior. Time and cost of compilation is always less than of debugging.
+
+`make build-qc-wasm` runs `query-compiler/query-compiler-wasm/build.sh`, which expects `jq` on `PATH` for `cargo metadata` and package version rewriting. In minimal harnesses without `jq`, provide a temporary local shim or install `jq` before running the build.
+
+`cargo test -p request-handlers protocols::json::protocol_adapter --lib` can fail in the default local engines checkout before exercising code because JSON protocol adapter fixtures use `provider = "mongodb"` while that provider is not enabled. Use `cargo check -p request-handlers` and Criterion/query-compiler benches for local verification unless the provider feature set is fixed.
