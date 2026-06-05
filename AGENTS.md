@@ -147,6 +147,7 @@
     - PSL parser and query compiler/planner is still written in Rust and compiled to WebAssembly. There are no native binaries or library addons in Prisma Client.
     - Schema engine for Prisma Migrate still exists and is still a native binary.
     - `tsify::serde_wasm_bindgen::from_value` is not a proven performance path for query-compiler input. A local spike showed it only removes JS-side JSON conversion while still materializing `JsonBody`/`serde_json::Value` and then `ArgumentValue` before validation, and was slower than the current `compile(JSON.stringify(query))` path for sampled queries. A follow-up release-Wasm prototype of a Wasm-only `js_sys`/`JsValue` adapter that still built `Operation`/`ArgumentValue` directly was also neutral to slightly slower (roughly 1-3% slower on sampled sqlite read shapes), so meaningful parser wins likely require a deeper rewrite that collapses or borrows across the `JsonBody -> ArgumentValue -> ParsedInputValue -> QueryGraph` stages.
+    - A Rust-side one-pass `JsonArgumentValue` serde visitor that deserialized `FieldQuery.arguments` directly into `ArgumentValue` removed the adapter's second `serde_json::Value -> ArgumentValue` walk, but Criterion was mixed: some parameterized filter/nested rows improved while other common compile rows regressed or became noisy. Do not revive that shape without a stricter A/B benchmark and a plan for preserving raw/custom-tag error semantics.
 
 ## Debugging and making changes to Rust/WebAssembly code
 
