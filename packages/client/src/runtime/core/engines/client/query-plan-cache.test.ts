@@ -1,6 +1,47 @@
 import { QueryPlanCache } from './query-plan-cache'
+import { getQueryPlanCacheMaxSize } from './query-plan-cache-size'
+
+const originalTargetBuildType = (globalThis as any).TARGET_BUILD_TYPE
+
+function setTargetBuildType(value: 'client' | 'wasm-compiler-edge') {
+  ;(globalThis as any).TARGET_BUILD_TYPE = value
+}
+
+afterAll(() => {
+  if (originalTargetBuildType === undefined) {
+    delete (globalThis as any).TARGET_BUILD_TYPE
+  } else {
+    ;(globalThis as any).TARGET_BUILD_TYPE = originalTargetBuildType
+  }
+})
 
 describe('QueryPlanCache', () => {
+  describe('max size defaults', () => {
+    it('uses a larger default for the Node.js client build', () => {
+      setTargetBuildType('client')
+
+      expect(getQueryPlanCacheMaxSize(undefined)).toBe(1000)
+    })
+
+    it('uses a smaller default for the edge build', () => {
+      setTargetBuildType('wasm-compiler-edge')
+
+      expect(getQueryPlanCacheMaxSize(undefined)).toBe(100)
+    })
+
+    it('keeps explicit cache sizes independent of build target', () => {
+      setTargetBuildType('wasm-compiler-edge')
+
+      expect(getQueryPlanCacheMaxSize(250)).toBe(250)
+    })
+
+    it('keeps zero as the cache-disabled sentinel', () => {
+      setTargetBuildType('client')
+
+      expect(getQueryPlanCacheMaxSize(0)).toBeUndefined()
+    })
+  })
+
   describe('single cache', () => {
     it('stores and retrieves entries', () => {
       const cache = new QueryPlanCache()

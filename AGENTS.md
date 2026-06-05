@@ -32,6 +32,7 @@
 
 - **Client architecture (Prisma 7)**:
   - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using Wasm query compiler.
+  - `ClientEngine` query plan cache defaults are build-target specific: Node.js `client` builds keep up to 1000 entries, while `wasm-compiler-edge` builds keep up to 100 entries by default to reduce retained memory. `queryPlanCacheMaxSize: 0` disables the cache.
   - Two executor implementations: `LocalExecutor` (driver adapters, direct DB) and `RemoteExecutor` (Accelerate/Data Proxy).
   - `QueryInterpreter` class in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` executes query plans against `SqlQueryable` (driver adapter interface).
   - Query flow: `PrismaClient` → `ClientEngine.request()` → query compiler → `executor.execute()` → `QueryInterpreter.run()` → driver adapter.

@@ -285,7 +285,8 @@ function buildClientOptions(context: GenerateContext) {
 
   otherOptions.add(
     ts.property('queryPlanCacheMaxSize', ts.numberType).optional().setDocComment(ts.docComment`
-        Optional maximum size for the query plan cache. If not provided, a default size will be used.
+        Optional maximum size for the query plan cache. If not provided, defaults to 1000 entries in
+        Node.js builds and 100 entries in edge builds.
         A value of \`0\` can be used to disable the cache entirely. A higher cache size can improve
         performance for applications that execute a large number of unique queries, while a smaller
         cache size can reduce memory usage.

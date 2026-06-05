@@ -37,6 +37,7 @@ import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../co
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
 import { QueryPlanCache } from './query-plan-cache'
+import { getQueryPlanCacheMaxSize } from './query-plan-cache-size'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
@@ -178,8 +179,8 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
-    this.#queryPlanCache =
-      config.queryPlanCacheMaxSize === 0 ? undefined : new QueryPlanCache(config.queryPlanCacheMaxSize)
+    const queryPlanCacheMaxSize = getQueryPlanCacheMaxSize(config.queryPlanCacheMaxSize)
+    this.#queryPlanCache = queryPlanCacheMaxSize === undefined ? undefined : new QueryPlanCache(queryPlanCacheMaxSize)
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
