@@ -21,7 +21,7 @@ import { EdgeFlag, getScalarMask, hasFlag, ParamGraph, ScalarMask } from '@prism
 
 import { deserializeJsonObject } from '../json-protocol'
 import { safeJsonStringify } from '../utils'
-import { isPlainObject, isTaggedValue } from './classify'
+import { isPlainObject } from './classify'
 
 const SCALAR_TAGS = new Set(['DateTime', 'Decimal', 'BigInt', 'Bytes', 'Json', 'Raw'])
 const ANY_PLACEHOLDER: PlaceholderType = { type: 'Any' }
@@ -381,29 +381,10 @@ class Parameterizer {
     }
 
     if (hasFlag(edge, EdgeFlag.ParamListScalar)) {
-      let allValid = true
-      for (let i = 0; i < items.length; i++) {
-        if (!validateListElement(items[i], edge)) {
-          allValid = false
-          break
-        }
-      }
-
-      if (allValid && items.length > 0) {
-        let decodedItems: unknown[] | undefined
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i]
-          const decoded = decodeIfTagged(item)
-          if (decoded !== item && decodedItems === undefined) {
-            decodedItems = items.slice(0, i)
-          }
-          if (decodedItems !== undefined) {
-            decodedItems[i] = decoded
-          }
-        }
-        const innerType = inferListElementType(items)
-        const type: PlaceholderType = { type: 'List', inner: innerType }
-        return this.#getOrCreatePlaceholder(decodedItems ?? items, type)
+      const scalarList = getScalarListParameterization(items, edge)
+      if (scalarList !== undefined) {
+        const type: PlaceholderType = { type: 'List', inner: scalarList.innerType }
+        return this.#getOrCreatePlaceholder(scalarList.items, type)
       }
     }
 
@@ -622,38 +603,72 @@ function getTaggedPlaceholderType(tag: JsonInputTaggedValue['$type']): Placehold
   }
 }
 
-/**
- * Infers the widest placeholder type that accommodates all elements in a list.
- * For example, a list containing both Int and Float values infers Float.
- */
-function inferListElementType(items: unknown[]): PlaceholderType {
-  let widest: PlaceholderType = ANY_PLACEHOLDER
+interface ScalarListParameterization {
+  items: unknown[]
+  innerType: PlaceholderType
+}
 
-  for (const item of items) {
+function getScalarListParameterization(items: unknown[], edge: InputEdge): ScalarListParameterization | undefined {
+  if (items.length === 0) {
+    return undefined
+  }
+
+  const mask = getScalarMask(edge)
+  if (mask === 0) {
+    return undefined
+  }
+
+  let widest: PlaceholderType = ANY_PLACEHOLDER
+  let decodedItems: unknown[] | undefined
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
     let itemType: PlaceholderType
+    let decoded = item
 
     switch (typeof item) {
       case 'string':
       case 'number':
-      case 'boolean':
+      case 'boolean': {
         itemType = getPrimitivePlaceholderType(item)
+        if (!matchesPrimitiveMask(itemType, mask)) {
+          return undefined
+        }
         break
+      }
       case 'object': {
-        const tag = item !== null ? scalarTag(item as Record<string, unknown>) : undefined
+        if (item === null) {
+          return undefined
+        }
+        const tag = scalarTag(item as Record<string, unknown>)
         if (tag === undefined) {
-          return ANY_PLACEHOLDER
+          return undefined
+        }
+        if (!matchesTaggedMask(tag, mask)) {
+          return undefined
         }
         itemType = getTaggedPlaceholderType(tag) ?? ANY_PLACEHOLDER
+        decoded = decodeTaggedValue(item as JsonInputTaggedValue)
         break
       }
       default:
-        return ANY_PLACEHOLDER
+        return undefined
     }
 
     widest = widenType(widest, itemType)
+
+    if (decoded !== item && decodedItems === undefined) {
+      decodedItems = items.slice(0, i)
+    }
+    if (decodedItems !== undefined) {
+      decodedItems[i] = decoded
+    }
   }
 
-  return widest
+  return {
+    items: decodedItems ?? items,
+    innerType: widest,
+  }
 }
 
 /**
@@ -696,57 +711,12 @@ function matchesTaggedMask(tag: JsonInputTaggedValue['$type'], mask: number): bo
   }
 }
 
-/**
- * Validates that a list element can be parameterized.
- */
-function validateListElement(item: unknown, edge: InputEdge): boolean {
-  switch (typeof item) {
-    case 'undefined':
-    case 'bigint':
-    case 'function':
-    case 'symbol':
-      return false
-
-    case 'object':
-      if (item === null) {
-        return false
-      }
-      break
-
-    case 'string':
-    case 'number':
-    case 'boolean': {
-      const type = getPrimitivePlaceholderType(item)
-      const mask = getScalarMask(edge)
-      return mask !== 0 && matchesPrimitiveMask(type, mask)
-    }
-  }
-
-  const tag = scalarTag(item as Record<string, unknown>)
-  if (tag === undefined) {
-    return false
-  }
-
-  const mask = getScalarMask(edge)
-  return mask !== 0 && matchesTaggedMask(tag, mask)
-}
-
 function scalarTag(value: Record<string, unknown>): JsonInputTaggedValue['$type'] | undefined {
   const tag = value.$type
   if (typeof tag !== 'string' || !SCALAR_TAGS.has(tag)) {
     return undefined
   }
   return tag as JsonInputTaggedValue['$type']
-}
-
-/**
- * Decodes a value if it's a tagged scalar, otherwise returns as-is.
- */
-function decodeIfTagged(value: unknown): unknown {
-  if (isTaggedValue(value)) {
-    return decodeTaggedValue(value)
-  }
-  return value
 }
 
 /**

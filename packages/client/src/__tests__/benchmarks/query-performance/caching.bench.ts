@@ -52,6 +52,21 @@ function createFindManyQuery(): JsonQuery {
   }
 }
 
+function createFindManyInFilterQuery(ids: Parameterizable<number>[]): JsonQuery {
+  return {
+    modelName: 'User',
+    action: 'findMany',
+    query: {
+      arguments: {
+        where: { id: { in: ids } },
+      },
+      selection: {
+        $scalars: true,
+      },
+    },
+  }
+}
+
 function createBlogPostPageQuery(id: Parameterizable<number>): JsonQuery {
   return {
     modelName: 'Post',
@@ -176,6 +191,13 @@ async function runBenchmarks(): Promise<void> {
     'parameterize findMany',
     syncBench(() => {
       parameterizeQuery(createFindManyQuery(), paramGraph)
+    }),
+  )
+
+  suite.add(
+    'parameterize findMany in filter',
+    syncBench(() => {
+      parameterizeQuery(createFindManyInFilterQuery([1, 2, 3, 4, 5]), paramGraph)
     }),
   )
 
