@@ -36,6 +36,13 @@ const JSON_PLACEHOLDER: PlaceholderType = { type: 'Json' }
 const STRING_PLACEHOLDER: PlaceholderType = { type: 'String' }
 const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
 
+interface FirstPlaceholder {
+  key?: string
+  name: string
+  type: PlaceholderType
+  value: unknown
+}
+
 /**
  * Result of parameterizing a single query.
  */
@@ -128,6 +135,7 @@ class Parameterizer {
   readonly #view: ParamGraph
   #placeholderValues: Record<string, unknown> | undefined
   #valueToPlaceholder: Map<string, string> | undefined
+  #firstPlaceholder: FirstPlaceholder | undefined
   #nextPlaceholderId = 1
 
   constructor(view: ParamGraph) {
@@ -150,17 +158,44 @@ class Parameterizer {
    * only for deciding whether to use native or emulated upserts).
    */
   #getOrCreatePlaceholder(value: unknown, type: PlaceholderType): PlaceholderTaggedValue {
-    const valueKey = createValueKey(value, type)
-    const existingName = this.#valueToPlaceholder?.get(valueKey)
+    const valueToPlaceholder = this.#valueToPlaceholder
 
-    if (existingName !== undefined) {
-      return createPlaceholder(existingName, type)
+    if (valueToPlaceholder !== undefined) {
+      const valueKey = createValueKey(value, type)
+      const existingName = valueToPlaceholder.get(valueKey)
+
+      if (existingName !== undefined) {
+        return createPlaceholder(existingName, type)
+      }
+
+      const name = `%${this.#nextPlaceholderId++}`
+      const placeholderValues = (this.#placeholderValues ??= {})
+      valueToPlaceholder.set(valueKey, name)
+      placeholderValues[name] = value
+      return createPlaceholder(name, type)
+    }
+
+    const firstPlaceholder = this.#firstPlaceholder
+    if (firstPlaceholder !== undefined) {
+      const firstKey = (firstPlaceholder.key ??= createValueKey(firstPlaceholder.value, firstPlaceholder.type))
+      const valueKey = createValueKey(value, type)
+
+      if (valueKey === firstKey) {
+        return createPlaceholder(firstPlaceholder.name, type)
+      }
+
+      const name = `%${this.#nextPlaceholderId++}`
+      const placeholderValues = (this.#placeholderValues ??= {})
+      const newValueToPlaceholder = (this.#valueToPlaceholder = new Map())
+      newValueToPlaceholder.set(firstKey, firstPlaceholder.name)
+      newValueToPlaceholder.set(valueKey, name)
+      placeholderValues[name] = value
+      return createPlaceholder(name, type)
     }
 
     const name = `%${this.#nextPlaceholderId++}`
-    const valueToPlaceholder = (this.#valueToPlaceholder ??= new Map())
     const placeholderValues = (this.#placeholderValues ??= {})
-    valueToPlaceholder.set(valueKey, name)
+    this.#firstPlaceholder = { name, type, value }
     placeholderValues[name] = value
     return createPlaceholder(name, type)
   }
