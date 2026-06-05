@@ -492,7 +492,8 @@ export class ClientEngine implements Engine {
 
     let plan: QueryPlanNode
     let placeholderValues = EMPTY_PLACEHOLDER_VALUES
-    let queryInfoQuery = query.query
+    const hasSqlCommenters = this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+    let queryInfoQuery = hasSqlCommenters ? query.query : undefined
 
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
@@ -504,7 +505,9 @@ export class ClientEngine implements Engine {
 
       const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
       placeholderValues = extractedValues
-      queryInfoQuery = parameterizedQuery.query
+      if (hasSqlCommenters) {
+        queryInfoQuery = parameterizedQuery.query
+      }
 
       if (isCacheable) {
         const cacheKey = getSingleQueryCacheKey(parameterizedQuery)
@@ -535,12 +538,14 @@ export class ClientEngine implements Engine {
         transaction: interactiveTransaction,
         batchIndex: undefined,
         customFetch: customDataProxyFetch?.(globalThis.fetch),
-        queryInfo: {
-          type: 'single',
-          modelName: query.modelName,
-          action: query.action,
-          query: queryInfoQuery,
-        },
+        queryInfo: hasSqlCommenters
+          ? {
+              type: 'single',
+              modelName: query.modelName,
+              action: query.action,
+              query: queryInfoQuery!,
+            }
+          : undefined,
       })
 
       debug(`query plan executed`)
@@ -573,7 +578,8 @@ export class ClientEngine implements Engine {
     const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
     let placeholderValues = EMPTY_PLACEHOLDER_VALUES
-    let queryInfoQueries: JsonQuery['query'][]
+    const hasSqlCommenters = this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+    let queryInfoQueries: JsonQuery['query'][] | undefined
 
     if (!hasRawQueries) {
       const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
@@ -582,9 +588,11 @@ export class ClientEngine implements Engine {
       )
       const cacheKey = getBatchQueryCacheKey(parameterizedBatch)
       placeholderValues = extractedValues
-      queryInfoQueries = new Array(parameterizedBatch.batch.length)
-      for (let i = 0; i < parameterizedBatch.batch.length; i++) {
-        queryInfoQueries[i] = parameterizedBatch.batch[i].query
+      if (hasSqlCommenters) {
+        queryInfoQueries = new Array(parameterizedBatch.batch.length)
+        for (let i = 0; i < parameterizedBatch.batch.length; i++) {
+          queryInfoQueries[i] = parameterizedBatch.batch[i].query
+        }
       }
 
       const cached = this.#queryPlanCache?.getBatch(cacheKey)
@@ -602,9 +610,11 @@ export class ClientEngine implements Engine {
         }
       }
     } else {
-      queryInfoQueries = new Array(queries.length)
-      for (let i = 0; i < queries.length; i++) {
-        queryInfoQueries[i] = queries[i].query
+      if (hasSqlCommenters) {
+        queryInfoQueries = new Array(queries.length)
+        for (let i = 0; i < queries.length; i++) {
+          queryInfoQueries[i] = queries[i].query
+        }
       }
 
       batchResponse = this.#compileBatch(queries, stringifyBatchRequest(), queryCompiler)
@@ -641,12 +651,14 @@ export class ClientEngine implements Engine {
                 batchIndex,
                 transaction: txInfo,
                 customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
-                queryInfo: {
-                  type: 'single',
-                  modelName: queries[batchIndex].modelName,
-                  action: queries[batchIndex].action,
-                  query: queryInfoQueries[batchIndex],
-                },
+                queryInfo: hasSqlCommenters
+                  ? {
+                      type: 'single',
+                      modelName: queries[batchIndex].modelName,
+                      action: queries[batchIndex].action,
+                      query: queryInfoQueries![batchIndex],
+                    }
+                  : undefined,
               })
               results.push({ data: { [queries[batchIndex].action]: rows } })
             } catch (err) {
@@ -690,12 +702,14 @@ export class ClientEngine implements Engine {
             batchIndex: undefined,
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
-            queryInfo: {
-              type: 'compacted',
-              action: firstAction,
-              modelName: firstModelName,
-              queries: queryInfoQueries,
-            },
+            queryInfo: hasSqlCommenters
+              ? {
+                  type: 'compacted',
+                  action: firstAction,
+                  modelName: firstModelName,
+                  queries: queryInfoQueries!,
+                }
+              : undefined,
           })
 
           const results = convertCompactedRows(rows as {}[], batchResponse, placeholderValues)

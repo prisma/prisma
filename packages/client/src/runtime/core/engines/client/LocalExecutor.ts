@@ -77,15 +77,16 @@ export class LocalExecutor implements Executor {
     const queryable = transaction
       ? await this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
       : this.#driverAdapter
+    const sqlCommenter =
+      this.#options.sqlCommenters !== undefined && queryInfo !== undefined
+        ? { plugins: this.#options.sqlCommenters, queryInfo }
+        : undefined
 
     return await this.#interpreter.run(plan, {
       queryable,
       transactionManager: transaction ? { enabled: false } : { enabled: true, manager: this.#transactionManager },
       scope,
-      sqlCommenter: this.#options.sqlCommenters && {
-        plugins: this.#options.sqlCommenters,
-        queryInfo,
-      },
+      sqlCommenter,
     })
   }
 
