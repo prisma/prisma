@@ -543,16 +543,17 @@ export class ClientEngine implements Engine {
     const firstModelName = queries[0].modelName
 
     const batchPayload = getBatchRequestPayload(queries, transaction)
-    const request = JSON.stringify(batchPayload)
+    let request: string | undefined
+    const stringifyBatchRequest = () => (request ??= JSON.stringify(batchPayload))
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, request)
+      throw this.#transformRequestError(err, stringifyBatchRequest())
     })
 
     const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
     let placeholderValues: Record<string, unknown> = {}
-    let queryInfoQueries = queries.map((query) => query.query)
+    let queryInfoQueries: JsonQuery['query'][]
 
     if (!hasRawQueries) {
       const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
@@ -561,7 +562,10 @@ export class ClientEngine implements Engine {
       )
       const cacheKeyStr = JSON.stringify(parameterizedBatch)
       placeholderValues = extractedValues
-      queryInfoQueries = parameterizedBatch.batch.map((query) => query.query)
+      queryInfoQueries = new Array(parameterizedBatch.batch.length)
+      for (let i = 0; i < parameterizedBatch.batch.length; i++) {
+        queryInfoQueries[i] = parameterizedBatch.batch[i].query
+      }
 
       const cached = this.#queryPlanCache?.getBatch(cacheKeyStr)
       if (cached) {
@@ -577,7 +581,12 @@ export class ClientEngine implements Engine {
         }
       }
     } else {
-      batchResponse = this.#compileBatch(queries, request, queryCompiler)
+      queryInfoQueries = new Array(queries.length)
+      for (let i = 0; i < queries.length; i++) {
+        queryInfoQueries[i] = queries[i].query
+      }
+
+      batchResponse = this.#compileBatch(queries, stringifyBatchRequest(), queryCompiler)
     }
 
     try {
@@ -673,7 +682,7 @@ export class ClientEngine implements Engine {
         }
       }
     } catch (e: any) {
-      throw this.#transformRequestError(e, request)
+      throw this.#transformRequestError(e, stringifyBatchRequest())
     }
   }
 
