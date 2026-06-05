@@ -168,17 +168,20 @@ export class QueryInterpreter {
 
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+        const handleError = node.args.type === 'rawSql' ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let sum = 0
         for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .executeRaw(asMutable(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
+          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+          if (usesQueryInstrumentation) {
+            sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+              context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError),
+            )
+          } else {
+            sum += await context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError)
+          }
         }
 
         return { value: sum }
@@ -186,17 +189,18 @@ export class QueryInterpreter {
 
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+        const handleError = node.args.type === 'rawSql' ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .queryRaw(asMutable(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
+          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+          const result = usesQueryInstrumentation
+            ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+                context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
+              )
+            : await context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError)
           if (results === undefined) {
             results = result
           } else {
@@ -384,6 +388,10 @@ export class QueryInterpreter {
       tracingHelper: this.#tracingHelper,
       onQuery: this.#onQuery,
     })
+  }
+
+  #usesQueryInstrumentation(): boolean {
+    return this.#onQuery !== undefined || this.#tracingHelper.isEnabled()
   }
 }
 
