@@ -215,33 +215,82 @@ function renderTemplateSql(
   argTypes: DeepReadonly<DynamicArgType[]>,
 ): SqlQuery {
   let sql = ''
-  const ctx = { placeholderNumber: 1 }
+  let placeholderNumber = 1
+  let paramIndex = 0
   const flattenedParams: unknown[] = []
   const flattenedArgTypes: ArgType[] = []
 
-  for (const fragment of pairFragmentsWithParams(fragments, params, argTypes)) {
-    sql += renderFragment(fragment, placeholderFormat, ctx)
-    if (fragment.type === 'stringChunk') {
-      continue
-    }
-    const length = flattenedParams.length
-    const added = flattenedParams.push(...flattenedFragmentParams(fragment)) - length
+  for (const fragment of fragments) {
+    switch (fragment.type) {
+      case 'stringChunk': {
+        sql += fragment.chunk
+        break
+      }
 
-    if (fragment.argType.arity === 'tuple') {
-      if (added % fragment.argType.elements.length !== 0) {
-        throw new Error(
-          `Malformed query template. Expected the number of parameters to match the tuple arity, but got ${added} parameters for a tuple of arity ${fragment.argType.elements.length}.`,
-        )
+      case 'parameter': {
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+
+        sql += formatPlaceholder(placeholderFormat, placeholderNumber++)
+        flattenedParams.push(params[paramIndex])
+        appendArgTypes(flattenedArgTypes, argTypes[paramIndex], 1)
+        paramIndex++
+        break
       }
-      // If we have a tuple, we just expand its elements repeatedly.
-      for (let i = 0; i < added / fragment.argType.elements.length; i++) {
-        flattenedArgTypes.push(...fragment.argType.elements)
+
+      case 'parameterTuple': {
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+
+        const value = params[paramIndex]
+        const tuple = Array.isArray(value) ? value : [value]
+        sql += renderTuplePlaceholders(fragment, tuple.length, placeholderFormat, placeholderNumber)
+        placeholderNumber += tuple.length
+        pushAll(flattenedParams, tuple)
+        appendArgTypes(flattenedArgTypes, argTypes[paramIndex], tuple.length)
+        paramIndex++
+        break
       }
-    } else {
-      // If we have a non-tuple, we just expand the single type repeatedly.
-      for (let i = 0; i < added; i++) {
-        flattenedArgTypes.push(fragment.argType)
+
+      case 'parameterTupleList': {
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+
+        const value = params[paramIndex]
+        if (!Array.isArray(value)) {
+          throw new Error(`Malformed query template. Tuple list expected.`)
+        }
+        if (value.length === 0) {
+          throw new Error(`Malformed query template. Tuple list cannot be empty.`)
+        }
+
+        let added = 0
+        for (let tupleIndex = 0; tupleIndex < value.length; tupleIndex++) {
+          const tuple = value[tupleIndex]
+          if (!Array.isArray(tuple)) {
+            throw new Error(`Malformed query template. Tuple expected.`)
+          }
+
+          if (tupleIndex > 0) {
+            sql += fragment.groupSeparator
+          }
+
+          sql += renderTuplePlaceholders(fragment, tuple.length, placeholderFormat, placeholderNumber)
+          placeholderNumber += tuple.length
+          pushAll(flattenedParams, tuple)
+          added += tuple.length
+        }
+
+        appendArgTypes(flattenedArgTypes, argTypes[paramIndex], added)
+        paramIndex++
+        break
       }
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
     }
   }
 
@@ -252,58 +301,62 @@ function renderTemplateSql(
   }
 }
 
-function renderFragment<Type extends DeepReadonly<DynamicArgType> | undefined>(
-  fragment: FragmentWithParams<Type>,
+function renderTuplePlaceholders(
+  fragment: Extract<Fragment, { type: 'parameterTuple' | 'parameterTupleList' }>,
+  length: number,
   placeholderFormat: PlaceholderFormat,
-  ctx: { placeholderNumber: number },
+  placeholderNumber: number,
 ): string {
-  const fragmentType = fragment.type
-  switch (fragmentType) {
-    case 'parameter':
-      return formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+  if (length === 0) {
+    return fragment.type === 'parameterTuple' ? '(NULL)' : `${fragment.itemPrefix}${fragment.itemSuffix}`
+  }
 
-    case 'stringChunk':
-      return fragment.chunk
-
-    case 'parameterTuple': {
-      let placeholders = ''
-      if (fragment.value.length === 0) {
-        placeholders = 'NULL'
-      } else {
-        for (let i = 0; i < fragment.value.length; i++) {
-          if (i > 0) {
-            placeholders += fragment.itemSeparator
-          }
-          placeholders += fragment.itemPrefix
-          placeholders += formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
-          placeholders += fragment.itemSuffix
-        }
+  let result = ''
+  if (fragment.type === 'parameterTuple') {
+    for (let i = 0; i < length; i++) {
+      if (i > 0) {
+        result += fragment.itemSeparator
       }
-      return `(${placeholders})`
+      result += fragment.itemPrefix
+      result += formatPlaceholder(placeholderFormat, placeholderNumber++)
+      result += fragment.itemSuffix
+    }
+    return `(${result})`
+  }
+
+  result += fragment.itemPrefix
+  for (let i = 0; i < length; i++) {
+    if (i > 0) {
+      result += fragment.itemSeparator
+    }
+    result += formatPlaceholder(placeholderFormat, placeholderNumber++)
+  }
+  result += fragment.itemSuffix
+
+  return result
+}
+
+function appendArgTypes(flattenedArgTypes: ArgType[], argType: DeepReadonly<DynamicArgType>, added: number): void {
+  if (argType.arity === 'tuple') {
+    if (added % argType.elements.length !== 0) {
+      throw new Error(
+        `Malformed query template. Expected the number of parameters to match the tuple arity, but got ${added} parameters for a tuple of arity ${argType.elements.length}.`,
+      )
     }
 
-    case 'parameterTupleList': {
-      let result = ''
-      for (let tupleIndex = 0; tupleIndex < fragment.value.length; tupleIndex++) {
-        if (tupleIndex > 0) {
-          result += fragment.groupSeparator
-        }
-
-        const tuple = fragment.value[tupleIndex]
-        result += fragment.itemPrefix
-        for (let itemIndex = 0; itemIndex < tuple.length; itemIndex++) {
-          if (itemIndex > 0) {
-            result += fragment.itemSeparator
-          }
-          result += formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
-        }
-        result += fragment.itemSuffix
-      }
-      return result
+    for (let i = 0; i < added / argType.elements.length; i++) {
+      pushAll(flattenedArgTypes, argType.elements)
     }
+  } else {
+    for (let i = 0; i < added; i++) {
+      flattenedArgTypes.push(argType)
+    }
+  }
+}
 
-    default:
-      assertNever(fragmentType, 'Invalid fragment type')
+function pushAll<T>(target: T[], values: readonly T[]): void {
+  for (let i = 0; i < values.length; i++) {
+    target.push(values[i])
   }
 }
 
