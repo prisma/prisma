@@ -17,6 +17,30 @@ export class DataMapperError extends UserFacingError {
 // Optimization: Cache field entries to avoid repeated Object.entries() allocations per row
 const fieldEntriesCache = new WeakMap<Record<string, ResultNode>, [string, ResultNode][]>()
 const columnIndexesCache = new WeakMap<string[], Record<string, number>>()
+const resultSetFieldMappingsCache = new WeakMap<
+  Record<string, ResultNode>,
+  WeakMap<string[], ResultSetFieldMapping[]>
+>()
+
+type ResultSetFieldMapping =
+  | {
+      type: 'field'
+      name: string
+      dbName: string
+      columnIndex: number
+      fieldType: FieldType
+    }
+  | {
+      type: 'rowObject'
+      name: string
+      fields: ResultSetFieldMapping[]
+    }
+  | {
+      type: 'valueObject'
+      name: string
+      columnIndex: number
+      node: Extract<ResultNode, { type: 'object' }>
+    }
 
 function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
   let entries = fieldEntriesCache.get(fields)
@@ -52,12 +76,15 @@ export function applyDataMapToResultSet(
   enums: Record<string, Record<string, string>>,
 ): PrismaObject[] {
   const rows = resultSet.rows
-  const columnIndexes = getColumnIndexes(resultSet.columnNames)
-  const fieldEntries = getFieldEntries(structure.fields)
+  if (rows.length === 0) {
+    return []
+  }
+
+  const fieldMappings = getResultSetFieldMappings(structure.fields, resultSet.columnNames)
   const result = new Array<PrismaObject>(rows.length)
 
   for (let i = 0; i < rows.length; i++) {
-    result[i] = mapResultSetRow(rows[i], columnIndexes, fieldEntries, enums)
+    result[i] = mapResultSetRow(rows[i], fieldMappings, enums)
   }
 
   return result
@@ -167,21 +194,72 @@ function mapObject(
 
 function mapResultSetRow(
   row: unknown[],
-  columnIndexes: Record<string, number>,
-  fieldEntries: [string, ResultNode][],
+  fieldMappings: ResultSetFieldMapping[],
   enums: Record<string, Record<string, string>>,
 ): PrismaObject {
   const result = {}
-  for (const [name, node] of fieldEntries) {
+  for (const mapping of fieldMappings) {
+    switch (mapping.type) {
+      case 'field': {
+        result[mapping.name] = mapField(row[mapping.columnIndex], mapping.dbName, mapping.fieldType, enums)
+        break
+      }
+
+      case 'rowObject': {
+        result[mapping.name] = mapResultSetRow(row, mapping.fields, enums)
+        break
+      }
+
+      case 'valueObject': {
+        const node = mapping.node
+        result[mapping.name] = mapArrayOrObject(row[mapping.columnIndex] as Value, node.fields, enums, node.skipNulls)
+        break
+      }
+
+      default:
+        assertNever(mapping, `DataMapper: Invalid result set field mapping type`)
+    }
+  }
+  return result
+}
+
+function getResultSetFieldMappings(fields: Record<string, ResultNode>, columnNames: string[]): ResultSetFieldMapping[] {
+  let fieldMappingsByColumnNames = resultSetFieldMappingsCache.get(fields)
+  if (fieldMappingsByColumnNames === undefined) {
+    fieldMappingsByColumnNames = new WeakMap<string[], ResultSetFieldMapping[]>()
+    resultSetFieldMappingsCache.set(fields, fieldMappingsByColumnNames)
+  }
+
+  let fieldMappings = fieldMappingsByColumnNames.get(columnNames)
+  if (fieldMappings === undefined) {
+    fieldMappings = buildResultSetFieldMappings(fields, getColumnIndexes(columnNames))
+    fieldMappingsByColumnNames.set(columnNames, fieldMappings)
+  }
+  return fieldMappings
+}
+
+function buildResultSetFieldMappings(
+  fields: Record<string, ResultNode>,
+  columnIndexes: Record<string, number>,
+): ResultSetFieldMapping[] {
+  const fieldEntries = getFieldEntries(fields)
+  const result = new Array<ResultSetFieldMapping>(fieldEntries.length)
+
+  for (let i = 0; i < fieldEntries.length; i++) {
+    const [name, node] = fieldEntries[i]
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
       }
 
       case 'object': {
-        const { serializedName, fields: nodeFields, skipNulls } = node
+        const { serializedName } = node
         if (serializedName === null) {
-          result[name] = mapResultSetRow(row, columnIndexes, getFieldEntries(nodeFields), enums)
+          result[i] = {
+            type: 'rowObject',
+            name,
+            fields: buildResultSetFieldMappings(node.fields, columnIndexes),
+          }
           break
         }
 
@@ -193,20 +271,31 @@ function mapResultSetRow(
           )
         }
 
-        result[name] = mapArrayOrObject(row[columnIndex] as Value, nodeFields, enums, skipNulls)
+        result[i] = {
+          type: 'valueObject',
+          name,
+          columnIndex,
+          node,
+        }
         break
       }
 
       case 'field': {
-        const dbName = node.dbName
+        const { dbName } = node
         const columnIndex = columnIndexes[dbName]
-        if (columnIndex !== undefined) {
-          result[name] = mapField(row[columnIndex], dbName, node.fieldType, enums)
-        } else {
+        if (columnIndex === undefined) {
           throw new DataMapperError(
             `Missing data field (Value): '${dbName}'; ` +
               `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
           )
+        }
+
+        result[i] = {
+          type: 'field',
+          name,
+          dbName,
+          columnIndex,
+          fieldType: node.fieldType,
         }
         break
       }
@@ -215,6 +304,7 @@ function mapResultSetRow(
         assertNever(node, `DataMapper: Invalid data mapping node type: '${(node as ResultNode).type}'`)
     }
   }
+
   return result
 }
 
