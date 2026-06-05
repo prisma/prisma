@@ -377,6 +377,10 @@ function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder 
 }
 
 function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], maxChunkSize?: number): unknown[][] {
+  if (maxChunkSize === undefined) {
+    return [params]
+  }
+
   // Find out the total number of parameters once flattened and what the maximum number of
   // parameters in a single fragment is.
   let totalParamCount = 0
@@ -411,6 +415,10 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
 
     maxParamsPerFragment = Math.max(maxParamsPerFragment, paramSize)
     totalParamCount += paramSize
+  }
+
+  if (totalParamCount <= maxChunkSize) {
+    return [params]
   }
 
   let chunkedParams: unknown[][] = [[]]
