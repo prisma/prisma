@@ -266,27 +266,40 @@ function renderFragment<Type extends DeepReadonly<DynamicArgType> | undefined>(
       return fragment.chunk
 
     case 'parameterTuple': {
-      const placeholders =
-        fragment.value.length == 0
-          ? 'NULL'
-          : fragment.value
-              .map(() => {
-                const item = formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
-                return `${fragment.itemPrefix}${item}${fragment.itemSuffix}`
-              })
-              .join(fragment.itemSeparator)
+      let placeholders = ''
+      if (fragment.value.length === 0) {
+        placeholders = 'NULL'
+      } else {
+        for (let i = 0; i < fragment.value.length; i++) {
+          if (i > 0) {
+            placeholders += fragment.itemSeparator
+          }
+          placeholders += fragment.itemPrefix
+          placeholders += formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+          placeholders += fragment.itemSuffix
+        }
+      }
       return `(${placeholders})`
     }
 
     case 'parameterTupleList': {
-      return fragment.value
-        .map((tuple) => {
-          const elements = tuple
-            .map(() => formatPlaceholder(placeholderFormat, ctx.placeholderNumber++))
-            .join(fragment.itemSeparator)
-          return `${fragment.itemPrefix}${elements}${fragment.itemSuffix}`
-        })
-        .join(fragment.groupSeparator)
+      let result = ''
+      for (let tupleIndex = 0; tupleIndex < fragment.value.length; tupleIndex++) {
+        if (tupleIndex > 0) {
+          result += fragment.groupSeparator
+        }
+
+        const tuple = fragment.value[tupleIndex]
+        result += fragment.itemPrefix
+        for (let itemIndex = 0; itemIndex < tuple.length; itemIndex++) {
+          if (itemIndex > 0) {
+            result += fragment.itemSeparator
+          }
+          result += formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+        }
+        result += fragment.itemSuffix
+      }
+      return result
     }
 
     default:
