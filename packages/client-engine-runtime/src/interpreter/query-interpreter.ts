@@ -3,7 +3,14 @@ import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcomme
 import { klona } from 'klona'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, InMemoryOps, JoinExpression, QueryPlanNode } from '../query-plan'
+import {
+  FieldInitializer,
+  FieldOperation,
+  InMemoryOps,
+  isPrismaValueGenerator,
+  JoinExpression,
+  QueryPlanNode,
+} from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
@@ -93,7 +100,7 @@ export class QueryInterpreter {
   async run(queryPlan: DeepReadonly<QueryPlanNode>, options: QueryRuntimeOptions): Promise<unknown> {
     const { value } = await this.interpretNode(queryPlan, {
       ...options,
-      generators: this.#generators.snapshot(),
+      generators: queryPlanUsesNowGenerator(queryPlan) ? this.#generators.snapshot() : this.#generators.current(),
     }).catch((e) => rethrowAsUserFacing(e))
 
     return value
@@ -381,6 +388,54 @@ export class QueryInterpreter {
 }
 
 type IntermediateValue = { value: Value; lastInsertId?: string }
+
+const queryPlanUsesNowGeneratorCache = new WeakMap<object, boolean>()
+
+function queryPlanUsesNowGenerator(queryPlan: DeepReadonly<QueryPlanNode>): boolean {
+  const cached = queryPlanUsesNowGeneratorCache.get(queryPlan)
+  if (cached !== undefined) {
+    return cached
+  }
+
+  const result = containsNowGenerator(queryPlan, new Set<object>())
+  queryPlanUsesNowGeneratorCache.set(queryPlan, result)
+  return result
+}
+
+function containsNowGenerator(value: unknown, seen: Set<object>): boolean {
+  if (isPrismaValueGenerator(value)) {
+    if (value.prisma__value.name === 'now') {
+      return true
+    }
+    return containsNowGenerator(value.prisma__value.args, seen)
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  if (seen.has(value)) {
+    return false
+  }
+  seen.add(value)
+
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (containsNowGenerator(value[i], seen)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  for (const key in value) {
+    if (Object.hasOwn(value, key) && containsNowGenerator(value[key], seen)) {
+      return true
+    }
+  }
+
+  return false
+}
 
 function isEmpty(value: Value): boolean {
   if (Array.isArray(value)) {
