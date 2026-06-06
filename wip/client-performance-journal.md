@@ -204,9 +204,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - The probe warms the sqlite Wasm query compiler, compiles unique `User.findMany` scalar-selection shapes, stores the resulting plans in `QueryPlanCache`, and reports forced-GC heap deltas.
   - Stable local Node/V8 results:
     - Cache disabled, 1,000 compiles, 0 retained: heap delta about 56.2 KiB.
-    - Edge default warm, 100 compiles, 100 retained: heap delta about 258.9 KiB; about 2.6 KiB heap per retained entry; about 95.4 KiB serialized retained shape.
-    - Edge default churn, 1,000 compiles, 100 retained: heap delta about 404.5 KiB; about 4.0 KiB heap per retained entry; about 137.2 KiB serialized retained shape.
-    - Node default warm, 1,000 compiles, 1,000 retained: heap delta about 2.88 MiB; about 2.9 KiB heap per retained entry; about 1.16 MiB serialized retained shape.
+    - Edge default warm, 100 compiles, 100 retained: heap delta about 258.9-263.3 KiB; about 2.6 KiB heap per retained entry; about 7.6 KiB retained cache-key strings and 87.8 KiB retained serialized plan shape.
+    - Edge default churn, 1,000 compiles, 100 retained: heap delta about 404.5-413.3 KiB; about 4.0-4.1 KiB heap per retained entry; about 12.3 KiB retained cache-key strings and 125.0 KiB retained serialized plan shape.
+    - Node default warm, 1,000 compiles, 1,000 retained: heap delta about 2.88-2.91 MiB; about 2.9-3.0 KiB heap per retained entry; about 101.9 KiB retained cache-key strings and 1.06 MiB retained serialized plan shape.
+  - Follow-up key-size split:
+    - Scalar-selection cache-key strings were only about 7.9-8.9% of retained serialized shape.
+    - A temporary 100-plan nested blog-style variant check had about 30.0 KiB retained keys vs 537.3 KiB serialized plans, so keys were only about 5.3% of retained serialized shape.
+    - Conclusion: shortening or hashing stored cache keys is low ceiling under current plan shape and not worth a correctness-sensitive cache-key semantics change yet. Plan objects / serialized plan shape still dominate.
   - This confirms the edge default cache size materially caps retained plan memory for simple unique plans. It is still a Node/V8 proxy, not a true workerd isolate measurement.
 
 - Temporary native allocation profiler over query compiler phases:

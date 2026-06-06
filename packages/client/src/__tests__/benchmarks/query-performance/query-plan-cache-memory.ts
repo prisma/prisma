@@ -30,7 +30,13 @@ type Scenario = {
 type Measurement = Scenario & {
   retainedEntries: number
   heapDelta: number
-  retainedSerializedBytes: number
+  retainedCacheKeyBytes: number
+  retainedPlanSerializedBytes: number
+}
+
+type RetainedSize = {
+  cacheKeyBytes: number
+  planSerializedBytes: number
 }
 
 function getStringCacheKeyPart(value: string | null | undefined): string {
@@ -106,17 +112,21 @@ function heapUsed(): number {
   return process.memoryUsage().heapUsed
 }
 
-function retainedSerializedSize(retainedSizes: number[]): number {
-  let result = 0
+function retainedSerializedSize(retainedSizes: RetainedSize[]): RetainedSize {
+  let cacheKeyBytes = 0
+  let planSerializedBytes = 0
+
   for (let i = 0; i < retainedSizes.length; i++) {
-    result += retainedSizes[i]
+    cacheKeyBytes += retainedSizes[i].cacheKeyBytes
+    planSerializedBytes += retainedSizes[i].planSerializedBytes
   }
-  return result
+
+  return { cacheKeyBytes, planSerializedBytes }
 }
 
 function measureScenario(compiler: QueryCompiler, scenario: Scenario): Measurement {
   const cache = new QueryPlanCache(scenario.maxSize)
-  const retainedSizes: number[] = []
+  const retainedSizes: RetainedSize[] = []
   const before = heapUsed()
 
   for (let i = 0; i < scenario.compileCount; i++) {
@@ -129,7 +139,10 @@ function measureScenario(compiler: QueryCompiler, scenario: Scenario): Measureme
     cache.setSingle(cacheKey, plan)
 
     if (scenario.maxSize > 0) {
-      retainedSizes.push(cacheKey.length + JSON.stringify(plan).length)
+      retainedSizes.push({
+        cacheKeyBytes: cacheKey.length,
+        planSerializedBytes: JSON.stringify(plan).length,
+      })
       while (retainedSizes.length > scenario.maxSize) {
         retainedSizes.shift()
       }
@@ -137,11 +150,13 @@ function measureScenario(compiler: QueryCompiler, scenario: Scenario): Measureme
   }
 
   const after = heapUsed()
+  const retainedSerialized = retainedSerializedSize(retainedSizes)
   const measurement = {
     ...scenario,
     retainedEntries: cache.singleCacheSize,
     heapDelta: after - before,
-    retainedSerializedBytes: retainedSerializedSize(retainedSizes),
+    retainedCacheKeyBytes: retainedSerialized.cacheKeyBytes,
+    retainedPlanSerializedBytes: retainedSerialized.planSerializedBytes,
   }
 
   cache.clear()
@@ -156,7 +171,14 @@ function printMeasurement(measurement: Measurement): void {
   const serializedPerEntry =
     measurement.retainedEntries === 0
       ? 0
-      : Math.round(measurement.retainedSerializedBytes / measurement.retainedEntries)
+      : Math.round(
+          (measurement.retainedCacheKeyBytes + measurement.retainedPlanSerializedBytes) / measurement.retainedEntries,
+        )
+  const keyShare =
+    measurement.retainedCacheKeyBytes + measurement.retainedPlanSerializedBytes === 0
+      ? 0
+      : measurement.retainedCacheKeyBytes /
+        (measurement.retainedCacheKeyBytes + measurement.retainedPlanSerializedBytes)
 
   console.log(
     [
@@ -165,7 +187,9 @@ function printMeasurement(measurement: Measurement): void {
       `retained=${measurement.retainedEntries}`,
       `heapDelta=${formatBytes(measurement.heapDelta)}`,
       `heapPerEntry=${formatBytes(heapPerEntry)}`,
-      `serializedRetained=${formatBytes(measurement.retainedSerializedBytes)}`,
+      `keyRetained=${formatBytes(measurement.retainedCacheKeyBytes)}`,
+      `planJsonRetained=${formatBytes(measurement.retainedPlanSerializedBytes)}`,
+      `keyShare=${(keyShare * 100).toFixed(1)}%`,
       `serializedPerEntry=${formatBytes(serializedPerEntry)}`,
     ].join(' | '),
   )
