@@ -664,7 +664,9 @@ function appendArgTypes(flattenedArgTypes: ArgType[], argType: DeepReadonly<Dyna
     }
 
     for (let i = 0; i < added / argType.elements.length; i++) {
-      pushAll(flattenedArgTypes, argType.elements)
+      for (let j = 0; j < argType.elements.length; j++) {
+        flattenedArgTypes.push(toArgType(argType.elements[j]))
+      }
     }
   } else {
     const flattenedArgType = toArgType(argType)
@@ -677,11 +679,17 @@ function appendArgTypes(flattenedArgTypes: ArgType[], argType: DeepReadonly<Dyna
 function isTupleArgType(
   argType: DeepReadonly<DynamicArgType>,
 ): argType is DeepReadonly<{ arity: 'tuple'; elements: QueryPlanArgType[] }> {
-  return typeof argType === 'object' && argType.arity === 'tuple'
+  return typeof argType === 'object' && !Array.isArray(argType) && 'arity' in argType && argType.arity === 'tuple'
 }
 
 function toArgType(argType: DeepReadonly<QueryPlanArgType>): ArgType {
-  return typeof argType === 'string' ? SCALAR_ARG_TYPES[argType] : (argType as ArgType)
+  if (typeof argType === 'string') {
+    return SCALAR_ARG_TYPES[argType]
+  }
+  if (Array.isArray(argType)) {
+    return { arity: 'scalar', scalarType: argType[0], dbType: argType[1] }
+  }
+  return argType as ArgType
 }
 
 function pushAll<T>(target: T[], values: readonly T[]): void {

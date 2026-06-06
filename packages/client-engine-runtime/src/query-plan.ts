@@ -121,7 +121,9 @@ export type QueryPlanCompactTemplateSql = readonly [
   chunkable: boolean,
 ]
 
-export type QueryPlanArgType = ArgScalarType | ArgType
+export type QueryPlanArgType = ArgScalarType | CompactNativeArgType | ArgType
+
+export type CompactNativeArgType = readonly [scalarType: ArgScalarType, dbType: string]
 
 export type DynamicArgType = QueryPlanArgType | { arity: 'tuple'; elements: QueryPlanArgType[] }
 

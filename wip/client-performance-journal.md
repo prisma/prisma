@@ -37,6 +37,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `ba182dbb290 Compact native scalar query arg types`
   - `da6c7014b90 Compact query plan data rules`
   - `9c98a943d71 Compact query plan support structures`
   - `4debcd05b97 Compact Prisma value placeholders`
@@ -87,6 +88,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `ba182dbb290 Compact native scalar query arg types`
+    - Scalar query-plan `ArgType`s with native database metadata now serialize as `[scalarType, dbType]` tuples instead of `{ arity: "scalar", scalarType, dbType }` objects.
+    - Prisma runtime accepts compact native tuples and legacy object arg types. It normalizes compact arg types before returning driver-facing `SqlQuery.argTypes`, including tuple arg-type elements used by tuple parameter fragments.
+    - A/B PostgreSQL write fixture plan sizes with local Wasm:
+      - `create-nested-connectOrCreate-mixed.json`: 5,045 -> 4,499 bytes, saving 546 bytes.
+      - `update-set-nested.json`: 3,393 -> 3,003 bytes, saving 390 bytes.
+      - `update-connect.json`: 2,203 -> 2,008 bytes, saving 195 bytes.
+      - `delete-one.json`: 468 -> 429 bytes, saving 39 bytes.
+      - `create-nested-connect.json`: 2,364 -> 2,091 bytes, saving 273 bytes.
+      - `create-nested-create.json`: 2,152 -> 1,879 bytes, saving 273 bytes.
+    - A/B write compile probe:
+      - Legacy baseline: 3,044 / 1,915 / 1,270 / 289 / 1,309 / 1,218 us per compile for the six fixtures above.
+      - Compact native arg types: 2,952 / 1,865 / 1,251 / 283 / 1,324 / 1,180 us per compile.
+      - Interpretation: local dev-Wasm timing is noisy but neutral-to-positive; this is primarily a write-plan retained-size win.
+    - Compressed fast Wasm sizes from the legacy -> compact rebuild:
+      - PostgreSQL: 2,683,537 -> 2,684,083 bytes.
+      - SQLite: 2,607,972 -> 2,608,758 bytes.
+      - MySQL: 2,652,862 -> 2,653,132 bytes.
+      - SQL Server: 2,674,233 -> 2,674,867 bytes.
+      - CockroachDB: 2,697,277 -> 2,697,980 bytes.
+      - The Wasm-size cost is sub-KiB per provider and is outweighed by the per-plan savings on native-arg write plans.
+    - Renderer microprobe:
+      - Flat legacy native arg types: about 30.6M ops/sec.
+      - Flat compact native arg types: about 33.9M ops/sec.
+      - Tuple legacy native arg types: about 3.65M ops/sec.
+      - Tuple compact native arg types: about 3.66M ops/sec.
+    - Verification:
+      - `cargo fmt -p query-builder --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - Benchmark sanity after compact rebuild:
+      - Caching compile rerun rows: about 1,575 / 1,297 / 353 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows: about 1,164,693 / 514,826 / 635,475 / 474,984 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Query-plan cache memory probe read-plan rows were unchanged in serialized plan size because those scenarios do not materially exercise native arg-type metadata.
+      - Interpreter run measured about 748,353 simple-select ops/sec, 978,021 `findUnique` ops/sec, 300,698 join ops/sec, 784,388 sequence ops/sec, and 46,017 deep nested join ops/sec.
+    - Decision: keep. This removes a high-frequency object shape from PostgreSQL/native-arg write plans and surfaced/fixed tuple arg-type normalization in the renderer.
+
   - `da6c7014b90 Compact query plan data rules`
     - Query-plan validation `DataRule` now serializes as compact tags:
       - `RowCountEq(count)` -> `["=", count]`
