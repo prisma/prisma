@@ -1068,6 +1068,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Note: `pnpm --filter @prisma/client test ClientEngine.test.ts --runInBand` was attempted but there is no matching Jest test file in `packages/client`; no test failure in touched code was observed.
 
+- This commit: Fast-path non-raw interpreter SQL execution.
+  - `QueryInterpreter.run()` now uses a `try`/`catch` around the full interpretation instead of attaching a `.catch(rethrowAsUserFacing)` callback to every run.
+  - Non-raw `queryRaw`/`executeRaw` paths rely on that outer mapping; raw SQL paths still keep local `rethrowAsUserFacingRawError` handling so `$queryRaw` / `$executeRaw` continue to surface P2010.
+  - `#executeQuery()` now skips the result-set merge loop for the common single-query path when SQL commenters and query instrumentation are disabled.
+  - Fresh baseline immediately before this patch:
+    - warmed `findUnique`: about 12.04 us/op.
+    - warmed blog-page: about 32.52 us/op.
+    - cached request wrapper `findUnique`: about 9.86 us/op.
+    - cached request wrapper blog-page: about 26.59 us/op.
+    - direct plan blog-page value-scope churn: about 15.83 us/op.
+    - local executor findUnique value-scope churn: about 3.87 us/op.
+    - local executor blog-page value-scope churn: about 15.80 us/op.
+  - Product-path `client-engine-cache-timing.ts` after the patch:
+    - First kept run: warmed `findUnique` about 11.62 us/op, warmed blog-page about 30.94 us/op, cached request wrapper `findUnique` about 9.47 us/op, cached request wrapper blog-page about 26.09 us/op, direct plan blog-page value-scope churn about 15.76 us/op, local executor findUnique value-scope churn about 3.58 us/op, local executor blog-page value-scope churn about 15.65 us/op.
+    - Second kept run: warmed `findUnique` about 11.69 us/op, warmed blog-page about 30.53 us/op, cached request wrapper `findUnique` about 9.67 us/op, cached request wrapper blog-page about 26.29 us/op, direct plan blog-page value-scope churn about 15.30 us/op, local executor findUnique value-scope churn about 3.57 us/op, local executor blog-page value-scope churn about 15.88 us/op.
+  - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` after the patch:
+    - `simple select`: 903,596 ops/sec.
+    - `findUnique`: 1,203,571 ops/sec.
+    - `join (1:N)`: 350,013 ops/sec.
+    - `sequence`: 898,907 ops/sec.
+    - `deep nested join`: 46,895 ops/sec.
+  - Added interpreter regression coverage for the error-path distinction:
+    - non-raw template SQL driver errors map through the outer handler to P2039.
+    - raw SQL driver errors keep P2010 raw-query failure mapping.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+
 ## Rejected Experiments
 
 - Parameterization traversal object-copy variants.

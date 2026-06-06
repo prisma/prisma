@@ -145,14 +145,18 @@ export class QueryInterpreter {
 
   async run(queryPlan: QueryPlanNode, options: QueryRuntimeOptions): Promise<unknown> {
     const hasSqlCommenter = options.sqlCommenter !== undefined && options.sqlCommenter.plugins.length > 0
-    const { value } = await this.interpretNode(queryPlan, {
-      ...options,
-      generators: queryPlanUsesNowGenerator(queryPlan) ? this.#generators.snapshot() : this.#generators.current(),
-      hasSqlCommenter,
-      usesQueryInstrumentation: this.#usesQueryInstrumentation(),
-    }).catch((e) => rethrowAsUserFacing(e))
+    try {
+      const { value } = await this.interpretNode(queryPlan, {
+        ...options,
+        generators: queryPlanUsesNowGenerator(queryPlan) ? this.#generators.snapshot() : this.#generators.current(),
+        hasSqlCommenter,
+        usesQueryInstrumentation: this.#usesQueryInstrumentation(),
+      })
 
-    return value
+      return value
+    } catch (e) {
+      rethrowAsUserFacing(e)
+    }
   }
 
   private async interpretNode(queryNode: QueryPlanNode, context: QueryRuntimeContext): Promise<IntermediateValue> {
@@ -223,17 +227,20 @@ export class QueryInterpreter {
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
         const isRaw = isRawSqlQuery(node.args)
-        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let sum = 0
         for (const query of queries) {
           const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
           if (context.usesQueryInstrumentation) {
             sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
-              context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError),
+              isRaw
+                ? context.queryable.executeRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+                : context.queryable.executeRaw(asMutable(queryToExecute)),
             )
           } else {
-            sum += await context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError)
+            sum += isRaw
+              ? await context.queryable.executeRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+              : await context.queryable.executeRaw(asMutable(queryToExecute))
           }
         }
 
@@ -243,16 +250,19 @@ export class QueryInterpreter {
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
         const isRaw = isRawSqlQuery(node.args)
-        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
           const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
           const result = context.usesQueryInstrumentation
             ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
-                context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
+                isRaw
+                  ? context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+                  : context.queryable.queryRaw(asMutable(queryToExecute)),
               )
-            : await context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError)
+            : isRaw
+              ? await context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+              : await context.queryable.queryRaw(asMutable(queryToExecute))
           if (results === undefined) {
             results = result
           } else {
@@ -495,17 +505,20 @@ export class QueryInterpreter {
         const dbQuery = node[1]
         const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
         const isRaw = isRawSqlQuery(dbQuery)
-        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let sum = 0
         for (const query of queries) {
           const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
           if (context.usesQueryInstrumentation) {
             sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
-              context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError),
+              isRaw
+                ? context.queryable.executeRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+                : context.queryable.executeRaw(asMutable(queryToExecute)),
             )
           } else {
-            sum += await context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError)
+            sum += isRaw
+              ? await context.queryable.executeRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+              : await context.queryable.executeRaw(asMutable(queryToExecute))
           }
         }
 
@@ -516,16 +529,19 @@ export class QueryInterpreter {
         const dbQuery = node[1]
         const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
         const isRaw = isRawSqlQuery(dbQuery)
-        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
           const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
           const result = context.usesQueryInstrumentation
             ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
-                context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
+                isRaw
+                  ? context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+                  : context.queryable.queryRaw(asMutable(queryToExecute)),
               )
-            : await context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError)
+            : isRaw
+              ? await context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+              : await context.queryable.queryRaw(asMutable(queryToExecute))
           if (results === undefined) {
             results = result
           } else {
@@ -753,16 +769,25 @@ export class QueryInterpreter {
 
   async #executeQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>, context: QueryRuntimeContext): Promise<SqlResultSet> {
     const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
-    const handleError = isRawSqlQuery(dbQuery) ? rethrowAsUserFacingRawError : rethrowAsUserFacing
+    const isRaw = isRawSqlQuery(dbQuery)
+
+    if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+      const result = context.queryable.queryRaw(asMutable(queries[0]))
+      return isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result
+    }
 
     let results: SqlResultSet | undefined
     for (const query of queries) {
       const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
       const result = context.usesQueryInstrumentation
         ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
-            context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
+            isRaw
+              ? context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+              : context.queryable.queryRaw(asMutable(queryToExecute)),
           )
-        : await context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError)
+        : isRaw
+          ? await context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+          : await context.queryable.queryRaw(asMutable(queryToExecute))
       if (results === undefined) {
         results = result
       } else {

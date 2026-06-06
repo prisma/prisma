@@ -3,6 +3,7 @@ import { expect, test } from 'vitest'
 
 import { QueryPlanNode } from '../query-plan'
 import { noopTracingHelper } from '../tracing'
+import { UserFacingError } from '../user-facing-error'
 import { QueryInterpreter, QueryRuntimeOptions } from './query-interpreter'
 
 const runtimeOptions = {
@@ -93,6 +94,44 @@ test('applies SQL comments without query instrumentation', async () => {
   })
 
   expect(observedQuery?.sql).toBe("SELECT 1 /*source='test'*/")
+})
+
+test('maps non-raw query driver errors through the outer user-facing handler', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = {
+    type: 'query',
+    args: {
+      type: 'templateSql',
+      fragments: [{ type: 'stringChunk', chunk: 'SELECT 1' }],
+      placeholderFormat: { prefix: '?', hasNumbering: false },
+      args: [],
+      argTypes: [],
+      chunkable: false,
+    },
+  } satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable: rejectingQueryable() })).rejects.toMatchObject({
+    name: 'UserFacingError',
+    code: 'P2039',
+  } satisfies Partial<UserFacingError>)
+})
+
+test('keeps raw query driver errors mapped as raw query failures', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = {
+    type: 'query',
+    args: {
+      type: 'rawSql',
+      sql: 'SELECT 1',
+      args: [],
+      argTypes: [],
+    },
+  } satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable: rejectingQueryable() })).rejects.toMatchObject({
+    name: 'UserFacingError',
+    code: 'P2010',
+  } satisfies Partial<UserFacingError>)
 })
 
 test('interprets compact expression nodes', async () => {
@@ -219,5 +258,30 @@ function emptyResultSet(): SqlResultSet {
     columnNames: [],
     columnTypes: [],
     rows: [],
+  }
+}
+
+function rejectingQueryable(): SqlQueryable {
+  return {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw() {
+      return Promise.reject(makeUnmappedDatabaseError())
+    },
+    executeRaw() {
+      return Promise.reject(makeUnmappedDatabaseError())
+    },
+  }
+}
+
+function makeUnmappedDatabaseError() {
+  return {
+    name: 'DriverAdapterError',
+    message: 'no such table: User',
+    cause: {
+      kind: 'sqlite',
+      originalCode: '1',
+      originalMessage: 'no such table: User',
+    },
   }
 }
