@@ -188,14 +188,12 @@ export class QueryInterpreter {
 
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(context.scope)
+        const nestedContext = { ...context, scope: nestedScope }
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
-            ...context,
-            scope: nestedScope,
-          })
+          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), nestedContext)
           nestedScope[getQueryPlanBindingName(binding)] = value
         }
-        return this.interpretNode(node.args.expr, { ...context, scope: nestedScope })
+        return this.interpretNode(node.args.expr, nestedContext)
       }
 
       case 'getFirstNonEmpty': {
@@ -480,6 +478,7 @@ export class QueryInterpreter {
           for (const binding of mappedJoin.mappedBindings) {
             nestedScope[binding.name] = mapField(parent, binding.field)
           }
+          const nestedContext = { ...context, scope: nestedScope }
 
           const joinExpressions = mappedJoin.joinExpressions
           const children =
@@ -487,23 +486,14 @@ export class QueryInterpreter {
               ? [
                   {
                     joinExpr: joinExpressions[0],
-                    childRecords: (
-                      await this.interpretNode(getJoinExpressionChild(joinExpressions[0]), {
-                        ...context,
-                        scope: nestedScope,
-                      })
-                    ).value,
+                    childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpressions[0]), nestedContext))
+                      .value,
                   },
                 ]
               : await Promise.all(
                   joinExpressions.map(async (joinExpr) => ({
                     joinExpr,
-                    childRecords: (
-                      await this.interpretNode(getJoinExpressionChild(joinExpr), {
-                        ...context,
-                        scope: nestedScope,
-                      })
-                    ).value,
+                    childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), nestedContext)).value,
                   })),
                 )
 
@@ -523,11 +513,9 @@ export class QueryInterpreter {
           const nestedScope: ScopeBindings = Object.create(context.scope)
           nestedScope[nestedSingleChildJoin.parentName] = parent
           nestedScope[nestedSingleChildJoin.mappedName] = mapField(parent, nestedSingleChildJoin.mappedField)
+          const nestedContext = { ...context, scope: nestedScope }
 
-          const { value: childRecords } = await this.interpretNode(nestedSingleChildJoin.childExpr, {
-            ...context,
-            scope: nestedScope,
-          })
+          const { value: childRecords } = await this.interpretNode(nestedSingleChildJoin.childExpr, nestedContext)
 
           return {
             value: attachChildrenToParents(
@@ -545,14 +533,12 @@ export class QueryInterpreter {
         }
 
         const nestedScope: ScopeBindings = Object.create(context.scope)
+        const nestedContext = { ...context, scope: nestedScope }
         for (const binding of node[1]) {
-          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
-            ...context,
-            scope: nestedScope,
-          })
+          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), nestedContext)
           nestedScope[getQueryPlanBindingName(binding)] = value
         }
-        return this.interpretNode(node[2], { ...context, scope: nestedScope })
+        return this.interpretNode(node[2], nestedContext)
       }
 
       case 'e': {

@@ -2071,6 +2071,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` twice.
 
+- This commit: Reuse scoped interpreter runtime contexts.
+  - `QueryInterpreter` now allocates one nested runtime context per legacy `let`, compact `let`, compact mapped-join scope, and compact nested-single-child-join scope. Previously those paths cloned `{ ...context, scope: nestedScope }` for every binding and, in the root mapped-join case, for every join child.
+  - Local `client-engine-cache-timing.ts` evidence across two runs:
+    - Run 1: cached request wrapper nested rows 42.88 us/op, direct plan nested rows 40.39, local executor nested rows 37.01, precomputed query leaves 20.46, root join children 11.26, late warmed nested rows 52.24.
+    - Run 2: cached request wrapper nested rows 42.95 us/op, direct plan nested rows 40.35, local executor nested rows 37.27, precomputed query leaves 20.81, root join children 10.61, late warmed nested rows 52.37.
+  - Interpreter microbench remained in a good band: simple select 909,715 ops/sec, findUnique 1,202,516, join 333,232, sequence 912,344, deep nested join 43,338.
+  - Decision: keep as a small allocation/control-flow cleanup. It is not a major nested-plan win, but it avoids repeated context-wrapper allocation in the hot compact plan shapes without changing scope semantics.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+
 - Rejected experiment: WeakMap-cached compact join shape matchers.
   - Hypothesis: the compact mapped-join and nested-single-child-join fast paths still re-detect the same cached plan shapes on every execution, so caching positive/negative matcher results by compact plan node could reduce cached-plan interpreter overhead.
   - Local `client-engine-cache-timing.ts` looked initially promising:
