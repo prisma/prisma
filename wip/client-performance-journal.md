@@ -1005,6 +1005,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 ## Rejected Experiments
 
+- Parameterization traversal object-copy variants.
+  - Tried replacing `Object.keys()` plus "copy previous keys on first change" in `parameterizeQuery()` object and selection traversal with `for...in` plus a lazy full object clone on the first changed field.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+  - Local `client-engine-cache-timing.ts` was not positive:
+    - `parameterize findUnique`: about 3.87 us/op.
+    - `parameterize findMany`: about 1.53 us/op.
+    - `parameterize blog-page`: about 5.08 us/op.
+    - Combined cache-hit key blog-page: about 6.72 us/op.
+  - Reverted. The lazy clone avoided some key-array allocation but regressed the nested product shape.
+
+- Parameterization scalar-only selection shortcut.
+  - Tried adding an `isScalarOnlySelection()` pre-scan to return scalar-only selections before allocating `Object.keys()` in `#parameterizeSelection()`.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+  - The stable scalar-only `findMany` parameterization row improved slightly, but nested product rows regressed:
+    - `parameterize findMany`: about 1.32 us/op.
+    - `parameterize blog-page`: about 9.86 us/op.
+    - Combined cache-hit key blog-page: about 9.99 us/op.
+    - Cached request wrapper blog-page: about 31.46 us/op.
+  - Reverted. The extra pre-scan repeats at each nested selection level and is too expensive for relation-heavy queries.
+
+- Precompute `QueryInterpreter` max chunk size.
+  - Tried computing provider/connection max-bind chunk size once in the `QueryInterpreter` constructor instead of calling `#maxChunkSize()` around each `renderQuery()`.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts render-query.test.ts`
+  - Local `client-engine-cache-timing.ts` was not positive; direct plan and local executor nested rows were neutral-to-soft:
+    - First run direct plan blog-page value-scope churn: about 17.38 us/op.
+    - Second run direct plan blog-page value-scope churn: about 17.61 us/op.
+    - Second run local executor blog-page value-scope churn: about 15.17 us/op.
+  - Reverted. The provider max-size method call is not the measured cached-plan execution bottleneck.
+
 - `ClientEngine.request()` config/raw-check cleanup.
   - Tried hoisting `config.sqlCommenters !== undefined && config.sqlCommenters.length > 0` into a private `#hasSqlCommenters` field and reusing `action`, `modelName`, and a single `isRawQuery(query)` result inside `request()`.
   - Local `client-engine-cache-timing.ts` runs were neutral/noisy rather than clearly positive:
