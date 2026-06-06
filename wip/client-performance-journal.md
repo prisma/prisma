@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Extend workerd query compiler cache probe
+  - This commit: Add ClientEngine cache timing probe
+  - `565e3522a Extend workerd query compiler cache probe`
   - `4d0e41ce7 Share multi batch plans with single cache`
   - `f57c157fc Intern cached query plan strings`
   - `2162c650f Accept compact query plan validation errors`
@@ -94,6 +95,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Prisma cache-memory commits kept:
+  - This commit: Add ClientEngine cache timing probe
+    - Added `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The probe instantiates source `ClientEngine` directly with a counting query compiler loader and an empty SQLite driver adapter. It exercises the local product path through request parameterization, cache lookup, query compilation on misses, `LocalExecutor`, `QueryInterpreter`, SQL rendering, and adapter dispatch, while avoiding row-mapping noise by returning zero-row result sets.
+    - Local run:
+      - `findUnique` value churn / cache disabled: 500 requests, 500 compiles, about 380.2 ms total, about 760.32 us/op, heap delta about 694.3 KiB.
+      - `findUnique` value churn / cache enabled: 500 requests, 1 compile, about 9.7 ms total, about 19.33 us/op, heap delta about 83.6 KiB.
+      - Blog-page value churn / cache disabled: 200 requests, 200 compiles, about 681.7 ms total, about 3408.54 us/op, heap delta about 699.7 KiB.
+      - Blog-page value churn / cache enabled: 200 requests, 1 compile, about 11.9 ms total, about 59.33 us/op, heap delta noisy at about -542.5 KiB.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm --filter @prisma/client build`
+      - `git diff --check`
+    - Decision: keep. This gives a repeatable product-path cache-hit timing probe and confirms that value-churn requests collapse to one compile before spending about 19 us/op for simple unique reads and about 59 us/op for the nested blog-page shape on Node/V8 with an empty adapter.
+
   - This commit: Extend workerd query compiler cache probe
     - `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` now reports cache hits/misses and has a `mode=client-cache` path.
     - The new mode manually parameterizes the benchmark `findUnique` / blog-page `where.id` value churn enough to approximate ClientEngine cache hit behavior in Miniflare/workerd without pulling in a full generated client.
@@ -1243,6 +1259,7 @@ pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand
 pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
+pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
