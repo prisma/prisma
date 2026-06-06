@@ -3673,6 +3673,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connect,create-nested-create,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
   - Decision: reverted. This may be valid cleanup for an uncovered one-to-one shape, but it has no measured benefit in the current compiler fixture surface. Revisit only with a targeted fixture or product trace that exercises `one_to_one_inlined_child()` with a create parent.
 
+- Rejected experiment: cache `ParamGraph` view objects inside the `ParamGraph` instance.
+  - Hypothesis: `parameterizeQuery()` calls `ParamGraph.root()`, `inputNode()`, `outputNode()`, `inputEdge()`, and `outputEdge()` on every cache-hit request, and those accessors allocate small wrapper objects. Moving those wrapper allocations to `ParamGraph` construction could reduce hot-path allocation and improve parameterization/cache-key rows.
+  - Change tried:
+    - Added cached root entries, input/output node wrappers, and input/output edge wrappers to `packages/param-graph/src/param-graph.ts`.
+    - Accessors returned cached wrappers instead of reconstructing `{ id }`, `{ flags, ... }`, and `{ argsNodeId, outputNodeId }` objects.
+  - Verification while patched:
+    - `pnpm --filter @prisma/param-graph test`
+    - `pnpm --filter @prisma/param-graph build`
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+  - Timing while patched:
+    - Baseline just before the patch: `parameterize blog page / value churn` 5.04 us/op, `cache hit key blog page / value churn` 6.41 us/op, `cached request wrapper blog page / nested rows` 34.06 us/op, `blog page nested rows / warmed cache after phase warmup` 34.83 us/op.
+    - Patched run 1: `parameterize blog page` 4.99 us/op, `cache hit key blog page` 6.39 us/op, `cached request wrapper blog page / nested rows` 34.59 us/op, phase-warmed `ClientEngine` nested row 35.00 us/op.
+    - Patched run 2: `parameterize blog page` 4.85 us/op, `cache hit key blog page` 6.32 us/op, `cached request wrapper blog page / nested rows` 33.80 us/op, phase-warmed `ClientEngine` nested row 35.62 us/op.
+  - Decision: reverted. The patch adds steady `ParamGraph` construction/retained memory and does not improve the main phase-warmed nested cache-hit row. Do not retry this exact view-object cache without a stronger allocation profile or a benchmark showing a clear request-path win.
+
 ## Useful Commands
 
 ```sh
