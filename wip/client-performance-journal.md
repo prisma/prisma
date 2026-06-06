@@ -2221,6 +2221,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     2. If positive, prototype a borrowed/request-backed query document layer for a narrow read-only shape and feed it into validation/graph building without `JsonBody`.
     3. Separately profile plan serialization and SQL string retention to decide whether JS-backed plan objects or template-piece interning have enough memory upside to justify a larger IR/rendering redesign.
 
+- Rejected experiment: direct private execution helpers for compact join matchers.
+  - Hypothesis: `matchCompactMappedJoin()` and `matchCompactNestedSingleChildJoin()` allocate matcher result objects, and the mapped-join matcher allocates a `mappedBindings` descriptor array on every cached-plan execution. Rewriting them into private `#tryInterpret...()` helpers could validate shape synchronously, execute directly, and avoid those transient allocations.
+  - Correctness/build checks passed:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+  - Product-shaped timing was negative enough to revert:
+    - Run 1: cached request wrapper blog-page nested rows 49.09 us/op; direct plan nested rows 43.08; local executor nested rows 36.58; late warmed full `ClientEngine` nested rows 57.44.
+    - Run 2: cached request wrapper blog-page nested rows 54.46 us/op; direct plan nested rows 46.44; local executor nested rows 41.51; late warmed full `ClientEngine` nested rows 56.91.
+  - Decision: reverted. Avoiding the small matcher-result allocations made the hot cached wrapper and direct-plan rows worse, likely from extra private-method/control-flow shape changes and repeated tuple casts/scans. Do not retry this exact allocation-looking rewrite without a different plan representation or stronger profiler evidence.
+
 ## Useful Commands
 
 ```sh
