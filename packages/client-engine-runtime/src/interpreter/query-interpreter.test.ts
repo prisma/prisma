@@ -231,6 +231,62 @@ test('interprets compact nested single-child join branches', async () => {
   ])
 })
 
+test('interprets compact mapped join branches', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = [
+    'l',
+    [
+      [
+        '@parent',
+        [
+          'v',
+          {
+            id: 1,
+            authorId: 10,
+          },
+        ],
+      ],
+    ],
+    [
+      'l',
+      [
+        ['@parent$authorId', ['m', 'authorId', ['g', '@parent']]],
+        ['@parent$id', ['m', 'id', ['g', '@parent']]],
+      ],
+      [
+        'j',
+        ['g', '@parent'],
+        [
+          [['v', { id: 10, name: 'Alice' }], [['authorId', 'id']], '@nested$author', true],
+          [
+            [
+              'v',
+              [
+                { postId: 1, content: 'Nice' },
+                { postId: 1, content: 'Great' },
+              ],
+            ],
+            [['id', 'postId']],
+            '@nested$comments',
+            false,
+          ],
+        ],
+        true,
+      ],
+    ],
+  ] satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual({
+    id: 1,
+    authorId: 10,
+    '@nested$author': { id: 10, name: 'Alice' },
+    '@nested$comments': [
+      { postId: 1, content: 'Nice' },
+      { postId: 1, content: 'Great' },
+    ],
+  })
+})
+
 test('joins single strict keys without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {

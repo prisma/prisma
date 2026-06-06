@@ -468,6 +468,51 @@ export class QueryInterpreter {
       }
 
       case 'l': {
+        const mappedJoin = matchCompactMappedJoin(node)
+        if (mappedJoin !== undefined) {
+          const { value: parent, lastInsertId } = await this.interpretNode(mappedJoin.parentExpr, context)
+          if (parent === null) {
+            return { value: null, lastInsertId }
+          }
+
+          const nestedScope: ScopeBindings = Object.create(context.scope)
+          nestedScope[mappedJoin.parentName] = parent
+          for (const binding of mappedJoin.mappedBindings) {
+            nestedScope[binding.name] = mapField(parent, binding.field)
+          }
+
+          const joinExpressions = mappedJoin.joinExpressions
+          const children =
+            joinExpressions.length === 1
+              ? [
+                  {
+                    joinExpr: joinExpressions[0],
+                    childRecords: (
+                      await this.interpretNode(getJoinExpressionChild(joinExpressions[0]), {
+                        ...context,
+                        scope: nestedScope,
+                      })
+                    ).value,
+                  },
+                ]
+              : await Promise.all(
+                  joinExpressions.map(async (joinExpr) => ({
+                    joinExpr,
+                    childRecords: (
+                      await this.interpretNode(getJoinExpressionChild(joinExpr), {
+                        ...context,
+                        scope: nestedScope,
+                      })
+                    ).value,
+                  })),
+                )
+
+          return {
+            value: attachChildrenToParents(parent, children, mappedJoin.canAssumeStrictEquality),
+            lastInsertId,
+          }
+        }
+
         const nestedSingleChildJoin = matchCompactNestedSingleChildJoin(node)
         if (nestedSingleChildJoin !== undefined) {
           const { value: parent, lastInsertId } = await this.interpretNode(nestedSingleChildJoin.parentExpr, context)
@@ -834,6 +879,68 @@ export class QueryInterpreter {
 }
 
 type IntermediateValue = { value: Value; lastInsertId?: string }
+
+type CompactMappedJoin = {
+  parentName: string
+  parentExpr: QueryPlanNode
+  mappedBindings: { name: string; field: string }[]
+  joinExpressions: CompactJoinExpression[]
+  canAssumeStrictEquality: boolean
+}
+
+function matchCompactMappedJoin(node: QueryPlanCompactNode): CompactMappedJoin | undefined {
+  if (node[0] !== 'l' || node[1].length !== 1) {
+    return undefined
+  }
+
+  const parentBinding = node[1][0]
+  const parentName = getQueryPlanBindingName(parentBinding)
+  const parentExpr = getQueryPlanBindingExpr(parentBinding)
+  const innerLet = node[2]
+  if (!Array.isArray(innerLet) || innerLet[0] !== 'l' || innerLet[1].length < 2) {
+    return undefined
+  }
+
+  const innerBindings = innerLet[1] as QueryPlanBinding[]
+  const mappedBindings = new Array<{ name: string; field: string }>(innerBindings.length)
+  for (let i = 0; i < innerBindings.length; i++) {
+    const binding = innerBindings[i]
+    const mapExpr = getQueryPlanBindingExpr(binding)
+    if (
+      !Array.isArray(mapExpr) ||
+      mapExpr[0] !== 'm' ||
+      !Array.isArray(mapExpr[2]) ||
+      mapExpr[2][0] !== 'g' ||
+      mapExpr[2][1] !== parentName
+    ) {
+      return undefined
+    }
+    mappedBindings[i] = {
+      name: getQueryPlanBindingName(binding),
+      field: mapExpr[1],
+    }
+  }
+
+  const join = innerLet[2]
+  if (
+    !Array.isArray(join) ||
+    join[0] !== 'j' ||
+    !Array.isArray(join[1]) ||
+    join[1][0] !== 'g' ||
+    join[1][1] !== parentName ||
+    join[2].length < 2
+  ) {
+    return undefined
+  }
+
+  return {
+    parentName,
+    parentExpr,
+    mappedBindings,
+    joinExpressions: join[2] as CompactJoinExpression[],
+    canAssumeStrictEquality: join[3],
+  }
+}
 
 type CompactNestedSingleChildJoin = {
   parentName: string

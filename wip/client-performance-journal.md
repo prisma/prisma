@@ -1999,6 +1999,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
 
+- This commit: Compact root mapped-join fast path.
+  - Added a compact interpreter fast path for the root relation join shape emitted by the query compiler for blog-page author/category/tags/comments: `l(@parent = q) -> l(@parent$field... = m(field, g @parent)) -> j(g @parent, children...)`.
+  - The fast path evaluates the parent branch once, derives all mapped parent-field bindings with direct `mapField()` calls, evaluates the join children with the same single/multi-child scheduling as compact `j`, and attaches through `attachChildrenToParents()`. This avoids the generic outer/inner `let` interpreter path and several `mapField` interpreter calls for the root relation join shape.
+  - Focused test coverage added: `interprets compact mapped join branches` in `query-interpreter.test.ts`.
+  - Local product-shaped timing was strongly positive across two runs:
+    - Run 1: warmed `ClientEngine` blog-page value churn 20.70 us/op, warmed nested rows 68.34, cached request wrapper value churn 16.78, cached request wrapper nested rows 42.37, direct plan empty rows 5.59, direct plan nested rows 40.28, precomputed query leaves 20.79, precomputed root join children 10.78, inner plan 25.37, direct after phase warmup 28.34, local executor empty rows 5.72, local executor nested rows 37.67, local executor value-scope churn 4.48.
+    - Run 2: warmed `ClientEngine` blog-page value churn 20.76 us/op, warmed nested rows 69.60, cached request wrapper value churn 16.59, cached request wrapper nested rows 44.17, direct plan empty rows 5.39, direct plan nested rows 44.37, precomputed query leaves 22.09, precomputed root join children 11.19, inner plan 26.46, direct after phase warmup 30.70, local executor empty rows 5.89, local executor nested rows 42.97, local executor value-scope churn 4.49.
+  - Interpreter microbench with the spike was mixed and does not directly exercise this shape: simple select 849,571 ops/sec, findUnique 1,158,824, join 338,002, sequence 923,706, deep nested join 43,422. Product-shaped rows are the main evidence for keeping it.
+  - Verification:
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+
 ## Useful Commands
 
 ```sh
