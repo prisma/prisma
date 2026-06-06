@@ -1744,6 +1744,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: cached request wrapper nested rows 60.59 us/op, direct after phase warmup 44.04, local executor nested rows 54.35.
   - Decision: reverted. The explicit-loop helper did not beat the existing `Promise.all(...map(async ...))` shape on product-path nested rows.
 
+- This commit: Single-query request-as-cache-key benchmark rows.
+  - Added `request as cache key ...` rows to `client-engine-cache-timing.ts`. These compare the current single-query hit key (`parameterizeQuery()` + `JSON.stringify(parameterizedQuery.query)` + `getSingleQueryCacheKey()`) with using the existing compile request string (`getSingleQueryRequest(parameterizedQuery, queryPart)`) as the cache key.
+  - This is different from the previously rejected custom structural key writer: it still uses native `JSON.stringify()` for the query body and the existing manual request builder.
+  - Two local runs were not positive:
+    - Run 1: current cache key findUnique 3.89 us/op / 76.7 KiB keys, findMany 1.58 / 46.4 KiB, blog-page 6.66 / 324.7 KiB. Request-as-key findUnique 4.62 / 89.4 KiB, findMany 1.90 / 60.1 KiB, blog-page 6.71 / 337.4 KiB.
+    - Run 2: current cache key findUnique 3.97 us/op / 76.7 KiB keys, findMany 1.65 / 46.4 KiB, blog-page 7.28 / 324.7 KiB. Request-as-key findUnique 4.64 / 89.4 KiB, findMany 2.06 / 60.1 KiB, blog-page 7.04 / 337.4 KiB.
+  - Decision: do not switch single-query cache entries to use request strings as keys. It is slower on simple shapes, retains larger keys, and only noise-level on blog-page.
+
 ## Useful Commands
 
 ```sh

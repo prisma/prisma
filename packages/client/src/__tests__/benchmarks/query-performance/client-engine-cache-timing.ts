@@ -1027,6 +1027,38 @@ function measureCacheKeyScenario(paramGraph: ParamGraph, scenario: CacheKeyScena
   } satisfies CacheKeyMeasurement
 }
 
+function measureRequestAsCacheKeyScenario(paramGraph: ParamGraph, scenario: CacheKeyScenario) {
+  const queries = new Array<JsonQuery>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    queries[i] = scenario.query(i)
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    const { parameterizedQuery } = parameterizeQuery(queries[i], paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    getSingleQueryRequest(parameterizedQuery, queryPart)
+  }
+
+  let totalKeyBytes = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const { parameterizedQuery } = parameterizeQuery(queries[i], paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    totalKeyBytes += getSingleQueryRequest(parameterizedQuery, queryPart).length
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    totalKeyBytes,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies CacheKeyMeasurement
+}
+
 function measureParameterizeScenario(paramGraph: ParamGraph, scenario: CacheKeyScenario) {
   const queries = new Array<JsonQuery>(scenario.iterations)
   for (let i = 0; i < scenario.iterations; i++) {
@@ -1925,6 +1957,15 @@ async function main(): Promise<void> {
 
     for (const scenario of cacheKeyScenarios) {
       printCacheKeyMeasurement(measureCacheKeyScenario(paramGraph, scenario))
+    }
+
+    for (const scenario of cacheKeyScenarios) {
+      printCacheKeyMeasurement(
+        measureRequestAsCacheKeyScenario(paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('cache hit key', 'request as cache key'),
+        }),
+      )
     }
 
     for (const scenario of cachedRequestWrapperScenarios) {
