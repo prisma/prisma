@@ -2465,6 +2465,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec prettier --write packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice with the temporary prototype.
 
+- Rejected experiment: `process_children()` result-position allocation removal.
+  - Hypothesis: `query-compiler/src/translate.rs::NodeTranslator::process_children()` could avoid allocating a `result_positions` vector by scanning `child_pairs` from the right and moving result subgraphs out directly with `Vec::remove(pos)`, preserving the original right-to-left result-scope folding order.
+  - Allocation profile with the temporary patch:
+    - `create-nested-create` `translate_ir`: 709 -> 708 allocs/op.
+    - `create-nested-create` `compile_ir`: 1203 -> 1202.
+    - `create-nested-create` `full_compile`: 1316 -> 1315.
+    - default read/filter rows were unchanged.
+  - Correctness checks passed with the temporary patch:
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+  - Timing was not acceptable:
+    - First Criterion pass was mixed-positive/noisy, but the final focused rerun regressed both nested-create rows.
+    - `compile/create-nested-create-with-composite-id`: +1.77% average, reported regression.
+    - `compile/create-nested-create`: +1.80% average, reported regression.
+  - Decision: reverted. Removing one allocation in this path is not worth perturbing the result-subgraph splitting loop; keep the original `result_positions` allocation unless a broader translation rewrite changes the surrounding algorithm.
+
 ## Useful Commands
 
 ```sh
