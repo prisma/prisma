@@ -2015,6 +2015,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
 
+- Harness restart checkpoint after `937bbed39`.
+  - Re-ran the focused builds after the harness restart:
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+  - Re-ran `client-engine-cache-timing.ts` once to re-anchor the post-fast-path baseline:
+    - warmed blog-page nested rows: 69.60 us/op.
+    - cached request wrapper nested rows: 42.98 us/op.
+    - direct plan nested rows: 40.41 us/op.
+    - direct plan after phase warmup nested rows: 28.17 us/op.
+    - local executor nested rows: 37.18 us/op.
+    - precomputed query leaves: 21.16 us/op.
+    - precomputed root join children: 10.90 us/op.
+    - precomputed join leaves: 12.42 us/op.
+  - Interpretation: the post-root-fast-path profile is stable. The largest remaining product-shaped gap is between warmed `ClientEngine` nested rows and cached request wrapper/local executor/direct-plan rows; within cached-plan execution, `precomputed query leaves` remains the largest interpreter-internal slice.
+
 ## Useful Commands
 
 ```sh
