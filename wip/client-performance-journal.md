@@ -2097,6 +2097,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` with the temporary row failed before timing with zero process nodes found.
 
+- Rejected experiment: compact unique-query direct execution.
+  - Hypothesis: compact `u(q)` nodes could avoid one recursive interpreter hop and the generic compact `q` loop by calling `#executeQuery()` directly, then serializing and applying the same unique cardinality check. This targeted repeated `unique(query)` shapes in nested blog-page plans while avoiding the broader generic `q` fast path that was previously rejected.
+  - Focused correctness checks passed with a temporary `interprets compact unique query nodes` test:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+  - Product-shaped timing was mixed and not good enough to keep:
+    - Run 1: cached request wrapper nested rows 46.71 us/op, direct plan nested rows 37.19, precomputed query leaves 21.47, inner plan 24.74, local executor nested rows 43.19, late warmed nested rows 52.32.
+    - Run 2: cached request wrapper nested rows 46.54 us/op, direct plan nested rows 37.18, precomputed query leaves 22.19, inner plan 24.74, local executor nested rows 38.33, late warmed nested rows 52.90.
+  - Decision: reverted. The direct-plan row improved, but the cached request wrapper hot row regressed consistently from the current roughly 42-43 us/op band.
+  - Evidence:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts` after reverting.
+
 - Rejected experiment: WeakMap-cached compact join shape matchers.
   - Hypothesis: the compact mapped-join and nested-single-child-join fast paths still re-detect the same cached plan shapes on every execution, so caching positive/negative matcher results by compact plan node could reduce cached-plan interpreter overhead.
   - Local `client-engine-cache-timing.ts` looked initially promising:
