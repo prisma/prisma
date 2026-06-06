@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Guard disabled ClientEngine debug calls
+  - This commit: Add cached request wrapper timing rows
+  - `337273d20 Guard disabled ClientEngine debug calls`
   - `44c99869d Fast-path connected ClientEngine requests`
   - `b583f51a3 Add direct cached-plan timing rows`
   - `bf3e792ed Add cache-hit key benchmark rows`
@@ -194,6 +195,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
       - `git diff --check`
     - Decision: keep. The debug-enabled behavior is preserved by checking the same namespace dynamically before calling `debug(...)`, while the disabled default no longer records per-request plan objects.
+
+  - This commit: Add cached request wrapper timing rows
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` now adds `cached request wrapper ...` rows.
+    - These rows use the real `QueryPlanCache` and `LocalExecutor`, compile and cache one plan, then time a reconstructed warmed cache-hit request loop: `parameterizeQuery()`, `JSON.stringify()`, cache-key construction, `QueryPlanCache.getSingle()`, `LocalExecutor.execute()`, and response wrapping.
+    - Clean local run after reverting neutral runtime experiments:
+      - Warmed `ClientEngine` `findUnique`: about 12.20 us/op.
+      - Cached request wrapper `findUnique`: about 10.25 us/op.
+      - Cache-hit key `findUnique`: about 4.47 us/op.
+      - Warmed `ClientEngine` `findMany` 10 scalar rows: about 8.38 us/op.
+      - Cached request wrapper `findMany`: about 8.02 us/op.
+      - Cache-hit key `findMany`: about 1.85 us/op.
+      - Warmed `ClientEngine` blog-page: about 31.18 us/op.
+      - Cached request wrapper blog-page: about 27.30 us/op.
+      - Cache-hit key blog-page: about 6.36 us/op.
+      - Local executor blog-page with value-scope churn: about 16.03 us/op.
+    - Interpretation: the remaining `ClientEngine` class/private-field/config/try-catch wrapper gap after the reconstructed wrapper is small compared with cache-key construction and cached-plan execution. For the nested blog-page row, cache-key plus cached-plan execution account for about 22 us/op out of about 31 us/op.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `git diff --check`
+    - Decision: keep as a measurement probe. It narrows the next useful target away from generic `ClientEngine` wrapper work and toward either `parameterizeQuery()`/cache-key construction or cached-plan execution/rendering.
 
   - This commit: Add cache-hit key benchmark rows
     - `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` now prebuilds benchmark query objects for parameterization rows and adds `cache hit key ...` rows that run the current single-query cache-hit key path: `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `getSingleQueryCacheKey()`.
@@ -960,6 +982,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 ## Rejected Experiments
 
+- `ClientEngine.request()` config/raw-check cleanup.
+  - Tried hoisting `config.sqlCommenters !== undefined && config.sqlCommenters.length > 0` into a private `#hasSqlCommenters` field and reusing `action`, `modelName`, and a single `isRawQuery(query)` result inside `request()`.
+  - Local `client-engine-cache-timing.ts` runs were neutral/noisy rather than clearly positive:
+    - First run with the cleanup: warmed `findUnique` about 12.19 us/op, warmed `findMany` about 8.48 us/op, warmed blog-page about 34.18 us/op.
+    - Second run with the cleanup: warmed `findUnique` about 11.91 us/op, warmed `findMany` about 8.31 us/op, warmed blog-page about 31.30 us/op.
+  - Reverted. The cleanup was plausible but not proven, and generic wrapper work is no longer the dominant measured cost.
+
+- Returning internal `ParamGraph` data from lookup APIs.
+  - Tried changing `ParamGraph.root()`, `inputNode()`, `outputNode()`, `inputEdge()`, and `outputEdge()` to return the internal data objects directly instead of allocating small view objects on every parameterization traversal.
+  - Correctness gates passed:
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+    - `pnpm --filter @prisma/param-graph test`
+  - The cache-key rows did not improve in local `client-engine-cache-timing.ts`:
+    - Cache-hit key `findUnique`: about 4.50 us/op.
+    - Cache-hit key `findMany`: about 1.90 us/op.
+    - Cache-hit key blog-page: about 6.25 us/op.
+  - Reverted. The extra view allocations were not the measured bottleneck in this probe.
+
 - Batch cache-key/request serialization tradeoff.
   - Measured current batch cache miss serialization against two alternatives without changing production code.
   - Current path builds a compact batch cache key with `JSON.stringify([queries, transaction])`, and on cache miss separately stringifies the parameterized batch request for `compileBatch`.
@@ -1284,7 +1324,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - cache-hit key `findMany` stable query: about 1.9 us/op.
     - cache-hit key blog-page value churn: about 6.4 us/op, with about 324.7 KiB total key bytes across 500 iterations.
     - local executor blog-page with precomputed value-scope churn: about 15.3 us/op.
-    - warmed `ClientEngine` blog-page after disabled-debug guards: about 31.0 us/op, leaving roughly 9-10 us/op in remaining wrapper/cache/response work beyond cache-key construction and cached-plan execution.
+    - cached request wrapper blog-page with real `QueryPlanCache`, `LocalExecutor`, and response wrapping: about 27.3 us/op.
+    - warmed `ClientEngine` blog-page after disabled-debug guards: about 31.2 us/op, so generic `ClientEngine` wrapper glue is not the next major target.
   - Rejected experiment: a JS structural cache-key writer using type tags and length-delimited strings was much slower than native `JSON.stringify`:
     - `findUnique`: JSON 0.34 us vs custom 1.35 us.
     - filtered `findMany`: JSON 0.63 us vs custom 2.53 us.

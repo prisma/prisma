@@ -34,8 +34,10 @@ import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-grap
 
 import { ClientEngine } from '../../../runtime/core/engines/client/ClientEngine'
 import { LocalExecutor } from '../../../runtime/core/engines/client/LocalExecutor'
+import { QueryPlanCache } from '../../../runtime/core/engines/client/query-plan-cache'
 import type { EngineConfig } from '../../../runtime/core/engines/common/Engine'
 import type { LogEmitter } from '../../../runtime/core/engines/common/types/Events'
+import { queryEngineResultDataWasDeserialized } from '../../../runtime/core/engines/common/types/QueryEngine'
 import { disabledTracingHelper } from '../../../runtime/core/tracing/TracingHelper'
 import { loadQueryCompiler } from './qc-loader'
 
@@ -95,6 +97,7 @@ type CacheKeyScenario = {
   name: string
   iterations: number
   query: (iteration: number) => JsonQuery
+  resultSet?: SqlResultSet
 }
 
 type DirectPlanMeasurement = DirectPlanScenario & {
@@ -761,6 +764,102 @@ async function measureLocalExecutorScopeScenario(
   }
 }
 
+async function measureCachedRequestWrapperScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: CacheKeyScenario,
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const executor = await LocalExecutor.connect({
+    driverAdapterFactory: createAdapterFactory(counts, scenario.resultSet),
+    transactionOptions: {
+      maxWait: 2000,
+      timeout: 5000,
+    },
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+  })
+  const firstQuery = scenario.query(0)
+  const cache = new QueryPlanCache(100)
+  const { parameterizedQuery: firstParameterizedQuery } = parameterizeQuery(firstQuery, paramGraph)
+  const firstQueryPart = JSON.stringify(firstParameterizedQuery.query)
+  const firstCacheKey = getSingleQueryCacheKey(firstParameterizedQuery, firstQueryPart)
+  cache.setSingle(firstCacheKey, compiler.compile(getSingleQueryRequest(firstParameterizedQuery, firstQueryPart)))
+
+  const queries = new Array<JsonQuery>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    queries[i] = scenario.query(i)
+  }
+
+  let consumedResults = 0
+  try {
+    for (let i = 0; i < scenario.iterations; i++) {
+      const query = queries[i]
+      const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+      const queryPart = JSON.stringify(parameterizedQuery.query)
+      const plan = cache.getSingle(getSingleQueryCacheKey(parameterizedQuery, queryPart))!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    resetCounts(counts)
+
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const query = queries[i]
+      const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+      const queryPart = JSON.stringify(parameterizedQuery.query)
+      const plan = cache.getSingle(getSingleQueryCacheKey(parameterizedQuery, queryPart))!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (consumedResults < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      query: firstQuery,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    } satisfies DirectPlanMeasurement
+  } finally {
+    await executor.disconnect()
+  }
+}
+
 async function main(): Promise<void> {
   ;(globalThis as any).TARGET_BUILD_TYPE = 'client'
 
@@ -882,6 +981,7 @@ async function main(): Promise<void> {
       name: 'cache hit key findMany / stable query',
       iterations: 500,
       query: () => createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'cache hit key blog page / value churn',
@@ -893,6 +993,15 @@ async function main(): Promise<void> {
   try {
     for (const scenario of cacheKeyScenarios) {
       printCacheKeyMeasurement(measureCacheKeyScenario(paramGraph, scenario))
+    }
+
+    for (const scenario of cacheKeyScenarios) {
+      printDirectPlanMeasurement(
+        await measureCachedRequestWrapperScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('cache hit key', 'cached request wrapper'),
+        }),
+      )
     }
 
     for (const scenario of directPlanScenarios) {
