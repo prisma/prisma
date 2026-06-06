@@ -3159,6 +3159,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Regressed `update-set-nested` by about 3.70%.
   - Decision: reverted. The helper benefits cheap many-write rows but hurts hotter nested-write rows that matter more for the current goal. Do not retry this construction-path helper without a plan that preserves nested-write timing.
 
+- Accepted engines change: avoid dependency union vector allocation.
+  - Commit: `38e7af1c9ac Avoid dependency union vector allocation` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - Added `FieldSelection::union_iter()` with empty and single-selection fast paths.
+    - Switched `QueryGraph::ensure_return_nodes_have_parent_dependency()` and `find_unsatisfied_dependencies()` to feed dependency iterators directly into `union_iter()` instead of collecting an intermediate `Vec<FieldSelection>`.
+  - Allocation profile compared to the immediate pre-patch baseline:
+    - `create-nested-connectOrCreate-m2one`: `graph_build` 511 -> 509 allocs/op, 94.0 KiB -> 91.4 KiB; full compile 1,476 -> 1,474, 202.6 KiB -> 200.0 KiB.
+    - `update-set-nested`: `graph_build` 747 -> 745, 135.1 KiB -> 132.5 KiB; full compile 2,183 -> 2,181, 286.9 KiB -> 284.4 KiB.
+    - `create-nested-create`: `graph_build` 494 -> 492, 76.2 KiB -> 73.6 KiB; full compile 1,309 -> 1,307, 167.6 KiB -> 165.0 KiB.
+    - `create-m2m`: `graph_build` 640 -> 638, 96.8 KiB -> 94.3 KiB; full compile 1,718 -> 1,716, 214.4 KiB -> 211.8 KiB.
+    - `query-m2o`: `graph_build` 198 -> 196, 51.8 KiB -> 49.3 KiB; full compile 634 -> 632, 108.8 KiB -> 106.2 KiB.
+    - `query-many-m2m`: `graph_build` 286 -> 284, 54.2 KiB -> 51.6 KiB; full compile 811 -> 809, 108.7 KiB -> 106.1 KiB.
+    - `nested-pagination-query`: `graph_build` 235 -> 233, 44.8 KiB -> 42.2 KiB; full compile 632 -> 630, 89.8 KiB -> 87.2 KiB.
+    - `create-nested-connectOrCreate-mixed`, `create-nested-connectOrCreate-one2m`, `update-set-nested-prisma#27650`, and `filter-contains-param` were unchanged in this allocation harness.
+  - Criterion timing:
+    - First focused run: `m2one` connectOrCreate improved -1.27%, `filter-contains-param` improved -2.64%, `query-many-m2m` improved -2.17%, `update-set-nested` improved -3.78%; `create-m2m`, `create-nested-create`, `nested-pagination-query`, `query-m2o`, and `update-set-nested-prisma#27650` were neutral/noisy; `mixed` connectOrCreate showed a noisy +4.07% regression.
+    - Narrow rerun of the conflicting rows: `m2one` improved -2.06%, `mixed` improved -1.51%, `update-set-nested-prisma#27650` was within noise, `update-set-nested` was +1.09% within noise, and `query-many-m2m` then showed a +3.26% regression.
+    - Final single-row rerun of `query-many-m2m`: +1.13% within noise threshold.
+    - Interpretation: timing is noisy but did not show a repeated significant regression after reruns; allocation savings are broad and direct in graph build.
+  - Wasm/product verification:
+    - Local query compiler Wasm build succeeded with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - The compressed Wasm outputs grew slightly, roughly 6-8 KiB per provider versus the previous noted local build.
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` completed with compile rows in the expected band: findUnique 1,734 ops/sec, findMany filtered 1,346 ops/sec, blog post page 365 ops/sec.
+  - Verification:
+    - `cargo fmt -p query-core -p query-structure`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `git diff --check`
+  - Decision: keep. This is a small graph-build allocation cleanup with enough timing evidence to treat the relevant rows as neutral-to-positive after reruns.
+
 ## Useful Commands
 
 ```sh
