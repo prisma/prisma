@@ -1057,6 +1057,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`
     - `git diff --check`
 
+- This commit: Fast-path non-transaction local executor calls.
+  - `LocalExecutor.execute()` is no longer an `async` function on the normal non-transaction path. It returns `QueryInterpreter.run()` directly, reuses a stable `{ enabled: true, manager }` interpreter transaction-manager option object, and routes transaction calls through a private async helper with a shared disabled transaction-manager option.
+  - Product-path `client-engine-cache-timing.ts` was mixed but had useful local executor/cached wrapper signal:
+    - First run: warmed `findUnique` about 12.21 us/op, warmed blog-page about 32.35 us/op, cached request wrapper blog-page about 27.66 us/op, local executor findUnique value-scope churn about 3.68 us/op, local executor blog-page value-scope churn about 15.67 us/op.
+    - Second run: warmed `findUnique` about 12.04 us/op, warmed `findMany` about 8.28 us/op, cached request wrapper `findUnique` about 9.91 us/op, cached request wrapper blog-page about 26.63 us/op, local executor findUnique value-scope churn about 3.81 us/op, local executor blog-page value-scope churn about 16.10 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/LocalExecutor.ts`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Note: `pnpm --filter @prisma/client test ClientEngine.test.ts --runInBand` was attempted but there is no matching Jest test file in `packages/client`; no test failure in touched code was observed.
+
 ## Rejected Experiments
 
 - Parameterization traversal object-copy variants.

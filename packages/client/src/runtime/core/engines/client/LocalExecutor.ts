@@ -1,6 +1,8 @@
 import {
   type QueryEvent,
   QueryInterpreter,
+  type QueryInterpreterSqlCommenter,
+  type QueryInterpreterTransactionManager,
   type SchemaProvider,
   type TracingHelper,
   TransactionManager,
@@ -11,6 +13,8 @@ import type { SqlCommenterPlugin } from '@prisma/sqlcommenter'
 
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
 import type { ExecutePlanParams, Executor, ProviderAndConnectionInfo } from './Executor'
+
+const DISABLED_TRANSACTION_MANAGER = { enabled: false } satisfies QueryInterpreterTransactionManager
 
 export interface LocalExecutorOptions {
   driverAdapterFactory: SqlDriverAdapterFactory
@@ -27,6 +31,7 @@ export class LocalExecutor implements Executor {
   readonly #options: LocalExecutorOptions
   readonly #driverAdapter: SqlDriverAdapter
   readonly #transactionManager: TransactionManager
+  readonly #queryTransactionManager: QueryInterpreterTransactionManager
   readonly #connectionInfo?: ConnectionInfo
   readonly #interpreter: QueryInterpreter
 
@@ -34,6 +39,7 @@ export class LocalExecutor implements Executor {
     this.#options = options
     this.#driverAdapter = driverAdapter
     this.#transactionManager = transactionManager
+    this.#queryTransactionManager = { enabled: true, manager: transactionManager }
     this.#connectionInfo = driverAdapter.getConnectionInfo?.()
     this.#interpreter = QueryInterpreter.forSql({
       onQuery: this.#options.onQuery,
@@ -70,24 +76,39 @@ export class LocalExecutor implements Executor {
     return Promise.resolve({ provider: this.#driverAdapter.provider, connectionInfo })
   }
 
-  async execute({
-    plan,
-    placeholderValues: scope,
-    transaction,
-    batchIndex,
-    queryInfo,
-  }: ExecutePlanParams): Promise<unknown> {
-    const queryable = transaction
-      ? await this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
-      : this.#driverAdapter
+  execute({ plan, placeholderValues: scope, transaction, batchIndex, queryInfo }: ExecutePlanParams): Promise<unknown> {
     const sqlCommenter =
       this.#options.sqlCommenters !== undefined && queryInfo !== undefined
         ? { plugins: this.#options.sqlCommenters, queryInfo }
         : undefined
 
-    return await this.#interpreter.run(plan, {
+    if (transaction !== undefined) {
+      return this.#executeInTransaction(plan, scope, transaction, batchIndex, sqlCommenter)
+    }
+
+    return this.#interpreter.run(plan, {
+      queryable: this.#driverAdapter,
+      transactionManager: this.#queryTransactionManager,
+      scope,
+      sqlCommenter,
+    })
+  }
+
+  async #executeInTransaction(
+    plan: ExecutePlanParams['plan'],
+    scope: ExecutePlanParams['placeholderValues'],
+    transaction: InteractiveTransactionInfo,
+    batchIndex: ExecutePlanParams['batchIndex'],
+    sqlCommenter: QueryInterpreterSqlCommenter | undefined,
+  ): Promise<unknown> {
+    const queryable = await this.#transactionManager.getTransaction(
+      transaction,
+      batchIndex !== undefined ? 'batch query' : 'query',
+    )
+
+    return this.#interpreter.run(plan, {
       queryable,
-      transactionManager: transaction ? { enabled: false } : { enabled: true, manager: this.#transactionManager },
+      transactionManager: DISABLED_TRANSACTION_MANAGER,
       scope,
       sqlCommenter,
     })
