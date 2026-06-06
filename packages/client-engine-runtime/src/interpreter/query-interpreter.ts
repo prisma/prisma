@@ -4,6 +4,7 @@ import { klona } from 'klona'
 
 import { QueryEvent } from '../events'
 import {
+  type CompactResultObjectNode,
   FieldInitializer,
   FieldOperation,
   InMemoryOps,
@@ -13,6 +14,7 @@ import {
   QueryPlanNode,
   type QueryPlanRawSql,
   type ResultNode,
+  type ResultObjectNode,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
@@ -62,8 +64,11 @@ export type QueryInterpreterSqlCommenter = {
 
 function isObjectResultNode(
   structure: DeepReadonly<ResultNode>,
-): structure is DeepReadonly<Extract<ResultNode, { type: 'object' }>> {
-  return typeof structure === 'object' && structure.type === 'object'
+): structure is DeepReadonly<ResultObjectNode | CompactResultObjectNode> {
+  if (Array.isArray(structure)) {
+    return true
+  }
+  return typeof structure === 'object' && 'type' in structure && structure.type === 'object'
 }
 
 function isRawSqlQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>): dbQuery is DeepReadonly<QueryPlanRawSql> {
