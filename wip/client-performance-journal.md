@@ -3662,6 +3662,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This is a tiny graph-build allocation cleanup on the largest current `connectOrCreate` fixtures with neutral focused timing and full Rust/Wasm/product verification.
 
+- Rejected/no-movement experiment: move one-to-one inlined-child `child_link` construction into the non-create branch.
+  - Hypothesis: `one_to_one_inlined_child()` built a `child_link` before checking `utils::node_is_create(...)`, but that binding is only consumed later by the non-create disconnect/write-args branch. Moving it into the `else` branch could avoid one unused `linking_fields()` allocation for create-parent connect-or-create graphs.
+  - Change tried:
+    - Moved the `let child_link = parent_relation_field.related_field().linking_fields();` immediately above `WriteArgs::from_result(...)` inside the non-create branch.
+  - Allocation profile while patched:
+    - No allocation count or byte movement in the existing focused fixtures: `create-nested-connectOrCreate-m2one`, `create-nested-connectOrCreate-mixed`, `create-nested-connectOrCreate-one2m`, `create-nested-connect`, `create-nested-create`, `update-set-nested`, and `update-set-nested-prisma#27650`.
+  - Verification while patched:
+    - `cargo fmt -p query-core`
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connect,create-nested-create,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Decision: reverted. This may be valid cleanup for an uncovered one-to-one shape, but it has no measured benefit in the current compiler fixture surface. Revisit only with a targeted fixture or product trace that exercises `one_to_one_inlined_child()` with a create parent.
+
 ## Useful Commands
 
 ```sh
