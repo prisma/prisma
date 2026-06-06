@@ -1003,6 +1003,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `8939dc3b333 Avoid input object schema map allocation`
   - `aa0c044176d Reduce query parser argument cloning`
 
+- This commit: Precompute QueryInterpreter execution flags.
+  - `QueryInterpreter.run()` now computes `hasSqlCommenter` and `usesQueryInstrumentation` once per run and carries them through `QueryRuntimeContext`.
+  - The `execute`/`query`, compact `x`/`q`, and nested `#executeQuery()` paths use those context booleans instead of recomputing plugin length and instrumentation state at every query node.
+  - Local `client-engine-cache-timing.ts` runs after the patch were neutral-to-slightly-positive for nested cached-plan rows:
+    - First run: warmed blog-page about 32.16 us/op, cached request wrapper blog-page about 27.65 us/op, direct plan blog-page empty scope about 13.86 us/op, direct plan blog-page value-scope churn about 15.90 us/op.
+    - Second run: warmed blog-page about 31.13 us/op, cached request wrapper blog-page about 27.35 us/op, direct plan blog-page empty scope about 12.91 us/op, direct plan blog-page value-scope churn about 15.97 us/op.
+  - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` after the patch:
+    - `simple select`: 781,887 ops/sec.
+    - `findUnique`: 1,040,805 ops/sec.
+    - `join (1:N)`: 320,979 ops/sec.
+    - `sequence`: 817,330 ops/sec.
+    - `deep nested join`: 45,238 ops/sec.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts render-query.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+
 ## Rejected Experiments
 
 - Parameterization traversal object-copy variants.

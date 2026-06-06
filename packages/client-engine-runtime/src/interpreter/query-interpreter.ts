@@ -65,6 +65,8 @@ type QueryRuntimeContext = {
   transactionManager: QueryInterpreterTransactionManager
   scope: Record<string, unknown>
   generators: GeneratorRegistrySnapshot
+  hasSqlCommenter: boolean
+  usesQueryInstrumentation: boolean
   sqlCommenter?: QueryInterpreterSqlCommenter
 }
 
@@ -142,9 +144,12 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode, options: QueryRuntimeOptions): Promise<unknown> {
+    const hasSqlCommenter = options.sqlCommenter !== undefined && options.sqlCommenter.plugins.length > 0
     const { value } = await this.interpretNode(queryPlan, {
       ...options,
       generators: queryPlanUsesNowGenerator(queryPlan) ? this.#generators.snapshot() : this.#generators.current(),
+      hasSqlCommenter,
+      usesQueryInstrumentation: this.#usesQueryInstrumentation(),
     }).catch((e) => rethrowAsUserFacing(e))
 
     return value
@@ -217,15 +222,13 @@ export class QueryInterpreter {
 
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
-        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
-        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
         const isRaw = isRawSqlQuery(node.args)
         const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let sum = 0
         for (const query of queries) {
-          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
-          if (usesQueryInstrumentation) {
+          const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+          if (context.usesQueryInstrumentation) {
             sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
               context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError),
             )
@@ -239,15 +242,13 @@ export class QueryInterpreter {
 
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
-        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
-        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
         const isRaw = isRawSqlQuery(node.args)
         const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
-          const result = usesQueryInstrumentation
+          const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+          const result = context.usesQueryInstrumentation
             ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
                 context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
               )
@@ -484,15 +485,13 @@ export class QueryInterpreter {
       case 'x': {
         const dbQuery = node[1]
         const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
-        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
-        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
         const isRaw = isRawSqlQuery(dbQuery)
         const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let sum = 0
         for (const query of queries) {
-          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
-          if (usesQueryInstrumentation) {
+          const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+          if (context.usesQueryInstrumentation) {
             sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
               context.queryable.executeRaw(asMutable(queryToExecute)).catch(handleError),
             )
@@ -507,15 +506,13 @@ export class QueryInterpreter {
       case 'q': {
         const dbQuery = node[1]
         const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
-        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
-        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
         const isRaw = isRawSqlQuery(dbQuery)
         const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
-          const result = usesQueryInstrumentation
+          const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+          const result = context.usesQueryInstrumentation
             ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
                 context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
               )
@@ -738,14 +735,12 @@ export class QueryInterpreter {
 
   async #executeQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>, context: QueryRuntimeContext): Promise<SqlResultSet> {
     const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
-    const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
-    const usesQueryInstrumentation = this.#usesQueryInstrumentation()
     const handleError = isRawSqlQuery(dbQuery) ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
     let results: SqlResultSet | undefined
     for (const query of queries) {
-      const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
-      const result = usesQueryInstrumentation
+      const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+      const result = context.usesQueryInstrumentation
         ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
             context.queryable.queryRaw(asMutable(queryToExecute)).catch(handleError),
           )
