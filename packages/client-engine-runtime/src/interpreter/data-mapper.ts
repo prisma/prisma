@@ -187,7 +187,7 @@ function mapObject(
 
       case 'field':
         {
-          const dbName = node.dbName
+          const dbName = node.dbName ?? name
           if (Object.hasOwn(data, dbName)) {
             result[name] = mapField(data[dbName], dbName, node.fieldType, enums, resultFormat)
           } else {
@@ -338,7 +338,7 @@ function buildResultSetFieldMappings(
       }
 
       case 'field': {
-        const { dbName } = node
+        const dbName = node.dbName ?? name
         const columnIndex = columnIndexes[dbName]
         if (columnIndex === undefined) {
           throw new DataMapperError(

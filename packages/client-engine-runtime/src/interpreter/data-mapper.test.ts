@@ -30,6 +30,26 @@ test('maps result sets directly like serialized SQL rows', () => {
   )
 })
 
+test('maps field nodes with omitted default dbName', () => {
+  const resultSet = {
+    columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+    columnNames: ['id', 'name'],
+    rows: [[1, 'Alice']],
+  }
+  const structure = {
+    type: 'object',
+    serializedName: null,
+    skipNulls: false,
+    fields: {
+      id: { type: 'field', fieldType: { type: 'int', arity: 'scalar' } },
+      name: { type: 'field', fieldType: { type: 'string', arity: 'scalar' } },
+    },
+  } satisfies ResultNode
+
+  expect(applyDataMap(serializeSql(resultSet), structure, {})).toEqual([{ id: 1, name: 'Alice' }])
+  expect(applyDataMapToResultSet(resultSet, structure, {})).toEqual([{ id: 1, name: 'Alice' }])
+})
+
 test('direct result-set mapping uses the last duplicate column name', () => {
   const resultSet = {
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],

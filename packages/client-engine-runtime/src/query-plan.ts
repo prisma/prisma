@@ -37,7 +37,7 @@ export type ResultNode =
     }
   | {
       type: 'field'
-      dbName: string
+      dbName?: string
       fieldType: FieldType
     }
 
