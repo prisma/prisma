@@ -1,13 +1,14 @@
-import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
+import type { ArgScalarType, ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import {
-  DynamicArgType,
+  type DynamicArgType,
   type Fragment,
   isPrismaValueGenerator,
   isPrismaValuePlaceholder,
   type PlaceholderFormat,
   type PrismaValueGenerator,
   type PrismaValuePlaceholder,
+  type QueryPlanArgType,
   type QueryPlanDbQuery,
 } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
@@ -17,6 +18,20 @@ import { ScopeBindings } from './scope'
 
 const EMPTY_ARGS = Object.freeze([]) as unknown as unknown[]
 const EMPTY_ARG_TYPES = Object.freeze([]) as unknown as ArgType[]
+const SCALAR_ARG_TYPES: Record<ArgScalarType, ArgType> = Object.freeze({
+  string: Object.freeze({ arity: 'scalar', scalarType: 'string' }),
+  int: Object.freeze({ arity: 'scalar', scalarType: 'int' }),
+  bigint: Object.freeze({ arity: 'scalar', scalarType: 'bigint' }),
+  float: Object.freeze({ arity: 'scalar', scalarType: 'float' }),
+  decimal: Object.freeze({ arity: 'scalar', scalarType: 'decimal' }),
+  boolean: Object.freeze({ arity: 'scalar', scalarType: 'boolean' }),
+  enum: Object.freeze({ arity: 'scalar', scalarType: 'enum' }),
+  uuid: Object.freeze({ arity: 'scalar', scalarType: 'uuid' }),
+  json: Object.freeze({ arity: 'scalar', scalarType: 'json' }),
+  datetime: Object.freeze({ arity: 'scalar', scalarType: 'datetime' }),
+  bytes: Object.freeze({ arity: 'scalar', scalarType: 'bytes' }),
+  unknown: Object.freeze({ arity: 'scalar', scalarType: 'unknown' }),
+})
 
 type FlatTemplateSqlRendering = {
   sql: string
@@ -154,10 +169,7 @@ function getFlatTemplateSqlRendering(dbQuery: DeepReadonly<QueryPlanDbQuery>): F
   const rendering: FlatTemplateSqlRendering = {
     sql,
     paramCount,
-    argTypes:
-      paramCount === dbQuery.argTypes.length
-        ? (dbQuery.argTypes as ArgType[])
-        : copyArgTypes(dbQuery.argTypes, paramCount),
+    argTypes: copyArgTypes(dbQuery.argTypes, paramCount),
   }
   flatTemplateSqlCache.set(dbQuery, rendering)
   return rendering
@@ -217,7 +229,11 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
 function copyArgTypes(argTypes: DeepReadonly<DynamicArgType[]>, length: number): ArgType[] {
   const result = new Array<ArgType>(length)
   for (let i = 0; i < length; i++) {
-    result[i] = argTypes[i] as ArgType
+    const argType = argTypes[i]
+    if (isTupleArgType(argType)) {
+      throw new Error('Malformed query template. Unexpected tuple argument type in a flat query.')
+    }
+    result[i] = toArgType(argType)
   }
   return result
 }
@@ -356,7 +372,7 @@ function renderTuplePlaceholders(
 }
 
 function appendArgTypes(flattenedArgTypes: ArgType[], argType: DeepReadonly<DynamicArgType>, added: number): void {
-  if (argType.arity === 'tuple') {
+  if (isTupleArgType(argType)) {
     if (added % argType.elements.length !== 0) {
       throw new Error(
         `Malformed query template. Expected the number of parameters to match the tuple arity, but got ${added} parameters for a tuple of arity ${argType.elements.length}.`,
@@ -367,10 +383,21 @@ function appendArgTypes(flattenedArgTypes: ArgType[], argType: DeepReadonly<Dyna
       pushAll(flattenedArgTypes, argType.elements)
     }
   } else {
+    const flattenedArgType = toArgType(argType)
     for (let i = 0; i < added; i++) {
-      flattenedArgTypes.push(argType)
+      flattenedArgTypes.push(flattenedArgType)
     }
   }
+}
+
+function isTupleArgType(
+  argType: DeepReadonly<DynamicArgType>,
+): argType is DeepReadonly<{ arity: 'tuple'; elements: QueryPlanArgType[] }> {
+  return typeof argType === 'object' && argType.arity === 'tuple'
+}
+
+function toArgType(argType: DeepReadonly<QueryPlanArgType>): ArgType {
+  return typeof argType === 'string' ? SCALAR_ARG_TYPES[argType] : (argType as ArgType)
 }
 
 function pushAll<T>(target: T[], values: readonly T[]): void {
@@ -387,7 +414,7 @@ function renderRawSql(sql: string, params: unknown[], argTypes: DeepReadonly<Dyn
   return {
     sql,
     args: params,
-    argTypes: argTypes as ArgType[],
+    argTypes: copyArgTypes(argTypes, argTypes.length),
   }
 }
 
