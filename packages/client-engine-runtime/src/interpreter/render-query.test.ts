@@ -144,6 +144,55 @@ test('accepts compact parameter fragments', () => {
   ])
 })
 
+test('accepts compact Prisma value placeholders', () => {
+  expect(
+    renderQuery(
+      {
+        type: 'templateSql',
+        fragments: ['SELECT * FROM users WHERE id = ', null],
+        placeholderFormat: {
+          prefix: '$',
+          hasNumbering: true,
+        } satisfies PlaceholderFormat,
+        args: [{ $p: ['%1', 'Int'] }],
+        argTypes: ['int'],
+        chunkable: false,
+      } satisfies QueryPlanDbQuery,
+      { '%1': 42 } as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1',
+      args: [42],
+      argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+    },
+  ])
+})
+
+test('converts compact DateTime placeholders to dates', () => {
+  const date = '2024-01-01T00:00:00.000Z'
+
+  expect(
+    renderQuery(
+      {
+        type: 'rawSql',
+        sql: 'SELECT * FROM users WHERE created_at = $1',
+        args: [{ $p: ['%1', 'DateTime'] }],
+        argTypes: [{ arity: 'scalar', scalarType: 'datetime' }],
+      } satisfies QueryPlanDbQuery,
+      { '%1': date } as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE created_at = $1',
+      args: [new Date(date)],
+      argTypes: [{ arity: 'scalar', scalarType: 'datetime' }],
+    },
+  ])
+})
+
 test('accepts compact parameter tuple fragments', () => {
   expect(
     renderQuery(

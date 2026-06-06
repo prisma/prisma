@@ -5,6 +5,8 @@ import {
   type CompactParameterTupleListFragment,
   type DynamicArgType,
   type Fragment,
+  getPrismaValuePlaceholderName,
+  getPrismaValuePlaceholderType,
   isPrismaValueGenerator,
   isPrismaValuePlaceholder,
   type PrismaValueGenerator,
@@ -333,11 +335,12 @@ function evaluateArgs(
 export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown {
   while (doesRequireEvaluation(arg)) {
     if (isPrismaValuePlaceholder(arg)) {
-      const found = scope[arg.prisma__value.name]
+      const placeholderName = getPrismaValuePlaceholderName(arg)
+      const found = scope[placeholderName]
       if (found === undefined) {
-        throw new Error(`Missing value for query variable ${arg.prisma__value.name}`)
+        throw new Error(`Missing value for query variable ${placeholderName}`)
       }
-      if (arg.prisma__value.type === 'DateTime' && typeof found === 'string') {
+      if (getPrismaValuePlaceholderType(arg) === 'DateTime' && typeof found === 'string') {
         // Convert input datetime strings to Date objects. This is done to prevent issues that
         // arise when query input values end up being directly compared to values retrieved from
         // the database. One example of this is a query containing a DateTime cursor value being

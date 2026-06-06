@@ -1,9 +1,38 @@
 import type { ArgScalarType, ArgType, Arity } from '@prisma/driver-adapter-utils'
 
-export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+export type PrismaValuePlaceholder = LegacyPrismaValuePlaceholder | CompactPrismaValuePlaceholder
+export type LegacyPrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+export type CompactPrismaValuePlaceholder = { $p: readonly [name: string, type: string] }
 
 export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
-  return typeof value === 'object' && value !== null && value['prisma__type'] === 'param'
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const obj = value as Record<string, unknown>
+
+  if (obj.prisma__type === 'param') {
+    const prismaValue = obj.prisma__value
+    return (
+      typeof prismaValue === 'object' &&
+      prismaValue !== null &&
+      typeof (prismaValue as Record<string, unknown>).name === 'string' &&
+      typeof (prismaValue as Record<string, unknown>).type === 'string'
+    )
+  }
+
+  const compact = obj.$p
+  return (
+    Array.isArray(compact) && compact.length === 2 && typeof compact[0] === 'string' && typeof compact[1] === 'string'
+  )
+}
+
+export function getPrismaValuePlaceholderName(value: PrismaValuePlaceholder): string {
+  return '$p' in value ? value.$p[0] : value.prisma__value.name
+}
+
+export function getPrismaValuePlaceholderType(value: PrismaValuePlaceholder): string {
+  return '$p' in value ? value.$p[1] : value.prisma__value.type
 }
 
 export type PrismaValueGenerator = {

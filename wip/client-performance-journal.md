@@ -7,6 +7,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 ## Current Baseline
 
 - Prisma repo current relevant commits:
+  - Current branch: accept compact Prisma value placeholders
+  - `8eb5e2e01 Accept compact tuple parameter fragments`
+  - `afbc383a4 Accept compact parameter fragments`
+  - `a3082de43 Record JS-reference pipeline spike sequence`
   - `3f74503ec Accept compact expression nodes`
   - `8bb3a7e38 Accept compact result object nodes`
   - `33bbd7603 Accept compact template SQL queries`
@@ -31,6 +35,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `4debcd05b97 Compact Prisma value placeholders`
+  - `4dc9111d4cd Compact tuple parameter fragments`
+  - `b021a14b2c4 Compact parameter fragments`
   - `16f5dc6901d Compact expression nodes`
   - `8da0a53dd83 Compact result object nodes`
   - `fe2a4796eaf Compact template SQL queries`
@@ -76,6 +83,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `4debcd05b97 Compact Prisma value placeholders`
+    - `PrismaValue::Placeholder` now serializes as `{ "$p": [name, type] }` instead of `{ "prisma__type": "param", "prisma__value": { "name": name, "type": type } }`.
+    - Prisma runtime accepts both the compact and legacy placeholder shapes in SQL rendering and compacted batch row matching.
+    - Raw array placeholders such as `["p", name, type]` were rejected because ordinary `PrismaValue::List` values can appear in the same argument positions. The compact object keeps a tag boundary while saving nearly the same bytes.
+    - Parameterized local Wasm plan sizes after compact tuple fragments:
+      - `findUnique`: 673 -> 625 bytes, saving 48 bytes.
+      - `findMany filtered`: 831 -> 735 bytes, saving 96 bytes.
+      - `findMany in filter`: 665 -> 617 bytes, saving 48 bytes.
+      - `blog page`: 5,360 -> 5,024 bytes, saving 336 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm:
+      - Scalar selection / edge default warm: retained plan JSON stayed at 26.5 KiB for 100 entries.
+      - Scalar selection / node default warm: retained plan JSON stayed at 343.0 KiB for 1,000 entries.
+      - Blog page / edge default warm: retained plan JSON moved 479.8 KiB -> 451.6 KiB for 100 entries.
+      - Blog page / node default warm: retained plan JSON moved 4.74 MiB -> 4.46 MiB for 1,000 entries.
+    - Workerd query compiler memory probe with rebuilt runtime:
+      - Cold `findUnique` average serialized plan unchanged at 612 B.
+      - Retained scalar cache unchanged at 26.5 KiB serialized plans for 100 entries.
+      - Retained blog-page cache: 100 plans, 48.3 KiB keys, 451.6 KiB serialized plans.
+    - Verification:
+      - `cargo fmt -p prisma-value --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts batch.test.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` (twice because the first deep-nested row was low)
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Benchmark gate with local rebuilt Wasm was acceptable:
+      - Caching compile rows: about 1,509 / 1,270 / 334 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows stayed in range at about 1,058,836 / 486,904 / 619,870 / 460,160 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Interpreter rerun measured about 786,052 simple-select ops/sec, 1,019,276 `findUnique` ops/sec, 310,891 join ops/sec, 784,331 sequence ops/sec, and 45,100 deep nested join ops/sec.
+      - Decision: keep. The placeholder-heavy parameterized plans shrink materially, the edge retained blog plan shape improves, and compile/interpreter gates stayed in range.
+
   - `4dc9111d4cd Compact tuple parameter fragments`
     - SQL `ParameterTuple` fragments now serialize as `["T", itemPrefix, itemSeparator, itemSuffix]`.
     - SQL `ParameterTupleList` fragments now serialize as `["L", itemPrefix, itemSeparator, itemSuffix, groupSeparator]`.
@@ -803,10 +847,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Plan serialization shape.
   - The tagged object tree is verbose and `serde_wasm_bindgen` plan serialization is a large release-Wasm phase.
-  - Compact raw string fragments are now kept; remaining compact-shape candidates should be gated because previous default-field omissions had mixed throughput.
+  - Multiple compact plan shapes are now kept; remaining compact-shape candidates should be gated because previous default-field omissions had mixed throughput.
   - Larger possible directions:
-    - Compact representation for hot `Expression` variants.
-    - Compact representation for tuple and tuple-list SQL fragments if a readable and type-safe TS representation can be found.
     - Compact result field metadata only if a different representation can avoid the Wasm compile regression seen with tuple field nodes.
     - Provider-level defaults for repeated SQL-query metadata.
     - Avoid serializing query plans as generic JS objects if the interpreter can consume a more compact representation.
@@ -849,7 +891,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Storing `JsValue`/externref handles in Rust caches needs careful lifetime/GC behavior and Cloudflare Workers compatibility verification.
     - Not building SQL strings on Rust heap would require a lower-level SQL/template IR and JS-side or driver-side final rendering, which is much broader than request parsing.
   - Suggested spike sequence:
-    1. Add an isolated Wasm prototype that walks a JS query object and computes the existing parameterized cache key plus placeholder map without materializing `serde_json::Value` or stringifying the query in JS. This tests the highest-confidence win and cache semantics before touching query-core.
+    1. Do not repeat the rejected cache-key-only `JsValue` walker. Start with an isolated Wasm prototype that fuses JS-object walking, parameterization, structural cache lookup, and compile/hit handling enough to amortize boundary and reflection costs.
     2. Prototype `compileJsValue(request: JsValue)` that builds today's owned `Operation` directly from JS values. This would skip JSON stringify/parse and quantify the ceiling of a lower-risk direct parser, while preserving current `QueryGraphBuilder` and validation behavior.
     3. If the ceiling justifies it, design a borrowed/arena-backed query document layer (`Selection<'req>`, `ArgumentValue<'req>`, interned schema/action keys, arena-owned converted scalars) and adapt graph building incrementally. This is the first point where a `PrismaString`-style wrapper or arena is likely to pay off.
     4. Treat "do not own SQL strings" as a separate larger project: it likely requires SQL template/result IR changes so the interpreter/driver can consume interned or JS-owned fragments instead of Rust-owned serialized strings.

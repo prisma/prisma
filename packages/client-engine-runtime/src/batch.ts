@@ -1,5 +1,6 @@
 import { deserializeJsonObject } from './json-protocol'
-import { QueryPlanNode } from './query-plan'
+import type { PrismaValuePlaceholder, QueryPlanNode } from './query-plan'
+import { getPrismaValuePlaceholderName, isPrismaValuePlaceholder } from './query-plan'
 import { UserFacingError } from './user-facing-error'
 import { doKeysMatch } from './utils'
 
@@ -19,33 +20,35 @@ export type CompactedBatchResponse = {
   expectNonEmpty: boolean
 }
 
+type QueryProtocolPlaceholder = { $type: 'Param'; value: { name: string } }
+type Placeholder = QueryProtocolPlaceholder | PrismaValuePlaceholder
+
 /**
  * Checks if a value is a placeholder.
- * Handles both formats: `{ $type: 'Param', value: { name: '...' } }` and `{ prisma__type: 'param', prisma__value: { name: '...' } }`
+ * Handles both query-protocol `{ $type: 'Param', value: { name: '...' } }`
+ * and query-plan placeholder formats.
  */
-function isPlaceholder(
-  value: unknown,
-): value is { $type: 'Param'; value: { name: string } } | { prisma__type: 'param'; prisma__value: { name: string } } {
+function isPlaceholder(value: unknown): value is Placeholder {
   if (typeof value !== 'object' || value === null) {
     return false
   }
   const obj = value as Record<string, unknown>
   if ('$type' in obj && obj.$type === 'Param') {
-    return true
+    const placeholderValue = obj.value
+    return (
+      typeof placeholderValue === 'object' &&
+      placeholderValue !== null &&
+      typeof (placeholderValue as Record<string, unknown>).name === 'string'
+    )
   }
-  if ('prisma__type' in obj && obj.prisma__type === 'param') {
-    return true
-  }
-  return false
+  return isPrismaValuePlaceholder(value)
 }
 
-function getPlaceholderName(
-  value: { $type: 'Param'; value: { name: string } } | { prisma__type: 'param'; prisma__value: { name: string } },
-): string | undefined {
-  if ('prisma__type' in value) {
-    return value.prisma__value?.name
+function getPlaceholderName(value: Placeholder): string {
+  if (isPrismaValuePlaceholder(value)) {
+    return getPrismaValuePlaceholderName(value)
   }
-  return (value as { value: { name: string } }).value.name
+  return value.value.name
 }
 
 function resolveArgPlaceholders(
@@ -57,7 +60,7 @@ function resolveArgPlaceholders(
     resolved[key] = value
     if (isPlaceholder(value)) {
       const placeholderName = getPlaceholderName(value)
-      if (placeholderName && placeholderName in placeholderValues) {
+      if (placeholderName in placeholderValues) {
         resolved[key] = placeholderValues[placeholderName] as {}
       }
     }
