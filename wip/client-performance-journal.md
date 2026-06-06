@@ -1091,6 +1091,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Second run local executor blog-page value-scope churn: about 15.17 us/op.
   - Reverted. The provider max-size method call is not the measured cached-plan execution bottleneck.
 
+- Reuse one nested context per `QueryInterpreter` `let`/`l` node.
+  - Tried creating `{ ...context, scope: nestedScope }` once per legacy `let` / compact `l` node and reusing it for all binding evaluations plus the body, instead of creating one context object per binding and another for the body.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+  - The benchmark blog-page cached plan has six compact `l` nodes with binding counts `[1, 3, 1, 1, 1, 1]`, so this was a plausible allocation reduction.
+  - Product-path `client-engine-cache-timing.ts` was not positive:
+    - warmed blog-page: about 32.90 us/op.
+    - cached request wrapper blog-page: about 27.71 us/op.
+    - direct plan blog-page value-scope churn: about 15.67 us/op.
+    - local executor blog-page value-scope churn: about 16.34 us/op.
+  - Interpreter benchmark did not show a useful deep nested win:
+    - `simple select`: 784,820 ops/sec.
+    - `findUnique`: 1,055,016 ops/sec.
+    - `join (1:N)`: 343,605 ops/sec.
+    - `sequence`: 815,176 ops/sec.
+    - `deep nested join`: 45,770 ops/sec.
+  - Reverted. Reusing the nested context object is not the next cached-plan bottleneck.
+
 - `ClientEngine.request()` config/raw-check cleanup.
   - Tried hoisting `config.sqlCommenters !== undefined && config.sqlCommenters.length > 0` into a private `#hasSqlCommenters` field and reusing `action`, `modelName`, and a single `isRawQuery(query)` result inside `request()`.
   - Local `client-engine-cache-timing.ts` runs were neutral/noisy rather than clearly positive:
