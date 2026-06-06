@@ -2278,6 +2278,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
 
+- Rejected follow-up: wrapper-array-free tiny strict join helpers.
+  - Hypothesis: the accepted tiny strict join branch still allocates single-element `[parentRecords]` / `[childRecords]` wrappers for object-valued parent/child inputs, which is common in the blog-page root join shape.
+  - Tried changing the tiny strict branch to pass raw parent/child values into helper functions that handle scalar-vs-array internally.
+  - Focused checks passed:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+  - Interpreter microbench looked fine: simple select 865,492 ops/sec, findUnique 1,211,444, join (1:N) 397,626, sequence 905,130, deep nested join 43,814.
+  - Rebuilt product-path timing was not worth the extra helper depth:
+    - cached request wrapper blog-page nested rows 41.04 us/op, flat versus the accepted 40.81-41.03 us/op runs.
+    - direct plan blog-page nested rows 41.28 us/op, worse than the accepted 39.25-39.44 us/op runs.
+    - late warmed full `ClientEngine` nested rows 49.34 us/op, in range but not enough to offset the direct-plan regression.
+  - Decision: reverted. Avoiding the two tiny wrapper arrays is too small a ceiling and the helper split perturbs the direct nested-plan path.
+
 ## Useful Commands
 
 ```sh

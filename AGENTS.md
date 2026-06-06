@@ -97,6 +97,7 @@
   - Lazy caching of `ParamGraph.inputNode()` / `outputNode()` wrapper objects produced mixed/noisy `query-performance/caching.bench.ts` results and did not clearly improve nested parameterization; keep the current fresh `{ id }` wrappers unless a new benchmark proves otherwise.
   - In `packages/client-engine-runtime/src/interpreter/render-query.ts`, a primitive fast path inside `evaluateArgs()` benchmarked slower across interpreter scenarios; keep the straight `evaluateArg(args[i], ...)` loop unless new evidence changes.
   - In `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, single-column strict join attachment has two specializations. Large joins use scalar string keys once parent+child rows are above the threshold; keep that threshold because applying the scalar-key map path to tiny joins regressed the `interpreter: join (1:N)` benchmark. Tiny strict single-key joins use a direct nested equality loop instead of the generic `JSON.stringify([key])` path; preserve the focused collision coverage for both paths.
+  - Do not split the tiny strict join direct loop into wrapper-array-free helper calls without stronger evidence. A follow-up avoided `[parentRecords]` / `[childRecords]` wrapper arrays and looked fine in interpreter microbench, but the rebuilt product probe was flat on cached wrapper rows and worse on direct nested-plan rows.
 
 - **Adding PrismaClient constructor options**:
   - Runtime types: `PrismaClientOptions` in `packages/client/src/runtime/getPrismaClient.ts`.
