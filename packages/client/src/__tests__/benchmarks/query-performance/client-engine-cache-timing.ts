@@ -349,10 +349,15 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
     await engine.start()
     resetCounts(counts)
 
+    const queries = new Array<JsonQuery>(scenario.iterations)
+    for (let i = 0; i < scenario.iterations; i++) {
+      queries[i] = scenario.query(i)
+    }
+
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
-      await engine.request(scenario.query(i), {
+      await engine.request(queries[i], {
         isWrite: false,
       })
     }

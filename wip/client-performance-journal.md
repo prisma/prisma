@@ -8,7 +8,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Add ClientEngine cache timing probe
+  - This commit: Tighten ClientEngine timing probes
+  - `2809b037e Extend ClientEngine cache timing rows`
+  - `c26d7bd59 Add ClientEngine cache timing probe`
   - `565e3522a Extend workerd query compiler cache probe`
   - `4d0e41ce7 Share multi batch plans with single cache`
   - `f57c157fc Intern cached query plan strings`
@@ -103,16 +105,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `findUnique` value churn / cache enabled: 500 requests, 1 compile, about 9.7 ms total, about 19.33 us/op, heap delta about 83.6 KiB.
       - Blog-page value churn / cache disabled: 200 requests, 200 compiles, about 681.7 ms total, about 3408.54 us/op, heap delta about 699.7 KiB.
       - Blog-page value churn / cache enabled: 200 requests, 1 compile, about 11.9 ms total, about 59.33 us/op, heap delta noisy at about -542.5 KiB.
-    - Extended local run with 10 scalar `User` rows:
-      - `findUnique` value churn / cache disabled: 500 requests, 500 compiles, about 385.2 ms total, about 770.37 us/op, heap delta about 701.3 KiB.
-      - `findUnique` value churn / cache enabled: 500 requests, 1 compile, about 9.9 ms total, about 19.80 us/op, heap delta about 83.6 KiB.
-      - `findMany` 10 scalar rows / cache disabled: 500 requests, 500 compiles, about 212.5 ms total, about 425.01 us/op, heap delta about 197.4 KiB.
-      - `findMany` 10 scalar rows / cache enabled: 500 requests, 1 compile, about 7.4 ms total, about 14.89 us/op, heap delta noisy at about -46.9 KiB.
-      - Blog-page value churn / cache disabled: 200 requests, 200 compiles, about 671.9 ms total, about 3359.69 us/op, heap delta about 702.5 KiB.
-      - Blog-page value churn / cache enabled: 200 requests, 1 compile, about 11.8 ms total, about 59.17 us/op, heap delta noisy at about -545.3 KiB.
+    - Follow-up: the probe now prebuilds the benchmark `JsonQuery` objects outside the timed loop, after discovering that query object construction did not materially affect the numbers. This makes the timing boundary isolate `ClientEngine.request()` plus local execution.
+    - Prebuilt-query local run with 10 scalar `User` rows:
+      - `findUnique` value churn / cache disabled: 500 requests, 500 compiles, about 377.3 ms total, about 754.61 us/op, heap delta about 686.1 KiB.
+      - `findUnique` value churn / cache enabled: 500 requests, 1 compile, about 10.0 ms total, about 19.98 us/op, heap delta about 76.7 KiB.
+      - `findMany` 10 scalar rows / cache disabled: 500 requests, 500 compiles, about 212.0 ms total, about 424.07 us/op, heap delta about 190.1 KiB.
+      - `findMany` 10 scalar rows / cache enabled: 500 requests, 1 compile, about 7.4 ms total, about 14.73 us/op, heap delta noisy at about -48.7 KiB.
+      - Blog-page value churn / cache disabled: 200 requests, 200 compiles, about 665.9 ms total, about 3329.69 us/op, heap delta about 695.4 KiB.
+      - Blog-page value churn / cache enabled: 200 requests, 1 compile, about 11.8 ms total, about 59.09 us/op, heap delta noisy at about -545.7 KiB.
+    - Follow-up: `packages/client-engine-runtime/bench/interpreter.bench.ts` now reuses one `QueryInterpreter` per benchmark suite to match `LocalExecutor` product behavior. Reusing the interpreter only slightly changed the rows, so interpreter construction was not hiding the nested-plan cost:
+      - simple select: about 807,889 ops/sec.
+      - findUnique: about 1,048,780 ops/sec.
+      - join 1:N: about 317,723 ops/sec.
+      - sequence: about 812,696 ops/sec.
+      - deep nested join: about 44,999 ops/sec, roughly 22.2 us/op.
     - Verification:
       - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
       - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm --filter @prisma/client-engine-runtime build`
       - `pnpm --filter @prisma/client build`
       - `git diff --check`
     - Decision: keep. This gives a repeatable product-path cache-hit timing probe and confirms that value-churn requests collapse to one compile before spending about 20 us/op for simple unique reads and about 59 us/op for the nested blog-page shape on Node/V8 with an empty adapter. The added `findMany` scalar-row path shows 10-row scalar data mapping is still only about 15 us/op on a cache hit, so the next likely product-path target is nested plan traversal/empty-join handling or parameterization/cache-key fusion, not scalar result mapping.
