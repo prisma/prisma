@@ -2030,6 +2030,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - precomputed join leaves: 12.42 us/op.
   - Interpretation: the post-root-fast-path profile is stable. The largest remaining product-shaped gap is between warmed `ClientEngine` nested rows and cached request wrapper/local executor/direct-plan rows; within cached-plan execution, `precomputed query leaves` remains the largest interpreter-internal slice.
 
+- Measurement update: repeat full warmed `ClientEngine` nested rows after phase warmup.
+  - Added a late `blog page nested rows / warmed cache after phase warmup` row to `client-engine-cache-timing.ts`.
+  - Evidence across two local runs:
+    - Run 1: early warmed nested rows 68.51 us/op, cached request wrapper nested rows 43.48, local executor nested rows 37.21, late warmed nested rows 51.82.
+    - Run 2: early warmed nested rows 75.54 us/op, cached request wrapper nested rows 49.22, local executor nested rows 47.85, late warmed nested rows 57.49.
+  - Interpretation: the early full-engine warmed row is order/JIT sensitive. The late row is a better full-engine comparison point and still leaves about 8 us/op over the cached request wrapper row in these runs.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+
 ## Useful Commands
 
 ```sh

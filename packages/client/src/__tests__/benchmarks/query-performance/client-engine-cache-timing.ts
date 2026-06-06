@@ -3045,6 +3045,15 @@ async function main(): Promise<void> {
         }),
       )
     }
+
+    for (const scenario of scenarios.filter((scenario) => scenario.name === 'blog page nested rows / warmed cache')) {
+      printMeasurement(
+        await measureScenario(baseConfig, {
+          ...scenario,
+          name: 'blog page nested rows / warmed cache after phase warmup',
+        }),
+      )
+    }
   } finally {
     compiler.free()
   }
