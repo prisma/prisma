@@ -1721,6 +1721,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: cached request wrapper blog-page nested rows 64.81 us/op, local executor blog-page nested rows 61.50 us/op.
   - Decision: reverted. The extra helper call / shape change does not pay for nested child `q` nodes on the product path.
 
+- Rejected experiment: specialize `serializeSql()` for 0-5 column rows.
+  - Hypothesis: nested blog-page execution serializes several small child result sets with 2-3 columns, so object literals with computed keys for small column counts might beat the generic inner column loop.
+  - Correctness checks passed:
+    - `pnpm --filter @prisma/client-engine-runtime test serialize-sql.test.ts query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/serialize-sql.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+  - Timing after rebuilding the runtime package was not positive:
+    - Run 1: direct plan after phase warmup blog-page nested rows 49.83 us/op, cached request wrapper nested rows 60.39, local executor nested rows 55.47.
+    - Run 2: direct plan after phase warmup blog-page nested rows 50.10 us/op, cached request wrapper nested rows 59.78, local executor nested rows 56.18.
+  - Decision: reverted. The specialized object-literal shape worsened direct warmup rows and did not clearly improve product rows.
+
 ## Useful Commands
 
 ```sh
