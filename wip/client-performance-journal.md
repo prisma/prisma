@@ -1684,7 +1684,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Retained blog compile cache: 100 concrete shape entries, 48.3 KiB keys, 413.8 KiB serialized plans, host heap delta about 127.6 KiB.
     - Client-cache `findUnique` value churn: 100 requests, 99 hits / 1 miss, one retained plan, 138 B key, 625 B serialized plan, host heap delta about 42.4 KiB.
     - Client-cache blog-page value churn: 100 requests, 99 hits / 1 miss, one retained plan, 704 B key, 4.5 KiB serialized plan, host heap delta about 364.2 KiB.
-  - Follow-up: instantiate a generated edge client and execute through `ClientEngine` with a mock/adapter path if we need end-to-end query execution memory, not just query compiler/cache behavior.
+  - Follow-up implemented: `workerd-query-compiler-memory.ts` now also has `mode=client-execute`, which instantiates the bundled `wasm-compiler-edge.mjs` runtime through a generated-like `getPrismaClient()` config and executes through a fake SQLite adapter.
+  - Generated-client harness details:
+    - Miniflare does not resolve the edge runtime's bare `@prisma/client-runtime-utils` import unless the built workspace ESM is explicitly registered as a worker module under that exact specifier.
+    - The old manual compiler rows and the generated-client rows run in separate Miniflare instances because both paths instantiate the wasm-bindgen query compiler runtime.
+    - Workerd's worker-internal timer did not advance for the pure JS warmed request loops even though query/compile counters proved the work executed. Host-side `dispatchFetch` timing is printed and should be treated as an upper-bound signal because it includes dispatch and response overhead.
+  - Current generated-client local run:
+    - Generated client `findUnique` warmed cache: 5,000 requests, 0 compiles, 5,000 `queryRaw` calls, host dispatch about 361.9 ms total / 72.38 us/op, host heap delta about 237.5 KiB.
+    - Generated client blog-page warmed cache: 1,000 requests, 0 compiles, 7,000 `queryRaw` calls, host dispatch about 150.8 ms total / 150.82 us/op, host heap delta about 17.4 KiB.
+    - Same-run compiler/cache rows after scalar aliases: retained scalar cache 24.4 KiB serialized plans for 100 entries; retained blog-page cache 396.1 KiB serialized plans for 100 entries; client-cache `findUnique` retained plan 561 B; client-cache blog-page retained plan 4.3 KiB.
+  - Node comparison from `client-engine-cache-timing.ts` after adding the workerd generated-client rows:
+    - Warmed `findUnique`: 12.45 us/op.
+    - Warmed `findMany` 10 scalar rows: 7.70 us/op.
+    - Blog-page value churn warmed cache: 33.44 us/op.
+    - Blog-page nested rows warmed cache: 97.02 us/op.
+    - Cached request wrapper blog-page nested rows: 65.43 us/op.
+    - Direct plan blog-page nested rows: 64.55 us/op.
 
 - Nested data-map pushdown / plan-shape lead.
   - Read-only inspection of the compiled benchmark blog-page plan showed this root shape:
