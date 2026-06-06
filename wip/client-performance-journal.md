@@ -3339,6 +3339,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The generated-client warmed-cache rows are upper-bound host dispatch timings because the worker-internal timer is below resolution for the request loops.
     - The next Cloudflare-specific improvement should still target either retained plan representation for many distinct shapes or cache-hit request execution/parameterization, not Wasm startup alone.
 
+- Rejected experiment: skip `QueryPlanCache.#touch()` helper calls when hot entries are already the LRU tail.
+  - Hypothesis: after the last-hit cache pointer optimization, same-shape cache hits still call `#touch()`, which immediately returns when the entry is already the tail. Inlining the tail check in `getSingle()` / `getBatch()` could reduce hot cache-hit overhead without changing LRU semantics.
+  - Change tried:
+    - In `getSingle()` and `getBatch()`, call `#touch(entry)` only when the last-hit or `Map.get()` entry is not `#tail`.
+  - Focused baseline before patch:
+    - `cached request wrapper findUnique / value churn`: 2.31 us/op.
+    - `cached request wrapper findMany / stable query`: 2.45 us/op.
+    - `cached request wrapper blog page / value churn`: 4.83 us/op.
+    - `cached request wrapper blog page / nested rows`: 20.04 us/op.
+    - Split nested-row baseline in the same session: cached wrapper 18.91 us/op, direct plan 11.78 us/op, local executor 11.51 us/op, cache-hit key blog-page 3.79 us/op, parameterize blog-page 2.25 us/op.
+  - Timing while patched:
+    - `cached request wrapper findUnique / value churn`: 2.39 us/op.
+    - `cached request wrapper findMany / stable query`: 2.50 us/op.
+    - `cached request wrapper blog page / value churn`: 5.06 us/op.
+    - `cached request wrapper blog page / nested rows`: 19.83 us/op.
+    - Split nested-row row while patched: cached wrapper 19.33 us/op, direct plan 12.68 us/op, local executor 11.69 us/op.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand` passed.
+  - Decision: reverted. The change was semantically fine but timing was flat-to-worse on the cheap cache-hit rows where it should have helped. Do not retry this shape unless a JS engine profile specifically points at the private helper call.
+
 ## Useful Commands
 
 ```sh
