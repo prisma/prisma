@@ -4,6 +4,7 @@ import { klona } from 'klona'
 
 import { QueryEvent } from '../events'
 import {
+  type CompactJoinExpression,
   type CompactResultObjectNode,
   FieldInitializer,
   FieldOperation,
@@ -19,6 +20,7 @@ import {
   InMemoryOps,
   isPrismaValueGenerator,
   JoinExpression,
+  type QueryPlanBinding,
   type QueryPlanCompactNode,
   QueryPlanDbQuery,
   type QueryPlanLegacyNode,
@@ -466,6 +468,37 @@ export class QueryInterpreter {
       }
 
       case 'l': {
+        const nestedSingleChildJoin = matchCompactNestedSingleChildJoin(node)
+        if (nestedSingleChildJoin !== undefined) {
+          const { value: parent, lastInsertId } = await this.interpretNode(nestedSingleChildJoin.parentExpr, context)
+          if (parent === null) {
+            return { value: null, lastInsertId }
+          }
+
+          const nestedScope: ScopeBindings = Object.create(context.scope)
+          nestedScope[nestedSingleChildJoin.parentName] = parent
+          nestedScope[nestedSingleChildJoin.mappedName] = mapField(parent, nestedSingleChildJoin.mappedField)
+
+          const { value: childRecords } = await this.interpretNode(nestedSingleChildJoin.childExpr, {
+            ...context,
+            scope: nestedScope,
+          })
+
+          return {
+            value: attachChildrenToParents(
+              parent,
+              [
+                {
+                  joinExpr: nestedSingleChildJoin.joinExpr,
+                  childRecords,
+                },
+              ],
+              nestedSingleChildJoin.canAssumeStrictEquality,
+            ),
+            lastInsertId,
+          }
+        }
+
         const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node[1]) {
           const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
@@ -801,6 +834,67 @@ export class QueryInterpreter {
 }
 
 type IntermediateValue = { value: Value; lastInsertId?: string }
+
+type CompactNestedSingleChildJoin = {
+  parentName: string
+  parentExpr: QueryPlanNode
+  mappedName: string
+  mappedField: string
+  childExpr: QueryPlanNode
+  joinExpr: CompactJoinExpression
+  canAssumeStrictEquality: boolean
+}
+
+function matchCompactNestedSingleChildJoin(node: QueryPlanCompactNode): CompactNestedSingleChildJoin | undefined {
+  if (node[0] !== 'l' || node[1].length !== 1) {
+    return undefined
+  }
+
+  const parentBinding = node[1][0]
+  const parentName = getQueryPlanBindingName(parentBinding)
+  const parentExpr = getQueryPlanBindingExpr(parentBinding)
+  const innerLet = node[2]
+  if (!Array.isArray(innerLet) || innerLet[0] !== 'l' || innerLet[1].length !== 1) {
+    return undefined
+  }
+
+  const mappedBinding = innerLet[1][0] as QueryPlanBinding
+  const mappedName = getQueryPlanBindingName(mappedBinding)
+  const mapExpr = getQueryPlanBindingExpr(mappedBinding)
+  if (
+    !Array.isArray(mapExpr) ||
+    mapExpr[0] !== 'm' ||
+    !Array.isArray(mapExpr[2]) ||
+    mapExpr[2][0] !== 'g' ||
+    mapExpr[2][1] !== parentName
+  ) {
+    return undefined
+  }
+
+  const join = innerLet[2]
+  if (
+    !Array.isArray(join) ||
+    join[0] !== 'j' ||
+    !Array.isArray(join[1]) ||
+    join[1][0] !== 'g' ||
+    join[1][1] !== parentName ||
+    join[2].length !== 1
+  ) {
+    return undefined
+  }
+
+  const joinExpr = join[2][0] as CompactJoinExpression
+
+  return {
+    parentName,
+    parentExpr,
+    mappedName,
+    mappedField: mapExpr[1],
+    childExpr: joinExpr[0],
+    joinExpr,
+    canAssumeStrictEquality: join[3],
+  }
+}
 
 const queryPlanUsesNowGeneratorCache = new WeakMap<object, boolean>()
 

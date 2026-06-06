@@ -1984,6 +1984,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Interpreter microbench with the spike: simple select 877,045 ops/sec, findUnique 1,196,416, join 333,229, sequence 911,484, deep nested join 43,036.
   - Decision: reverted. The first run had a small local executor/product-path improvement, but the second run regressed local executor nested rows badly and deep nested interpreter throughput stayed below the recent no-spike band.
 
+- This commit: Compact nested single-child join branch fast path.
+  - Added a compact interpreter fast path for the nested relation branch shape emitted by the query compiler for blog-page `tags` and `comments`: `l(@parent = q) -> l(@parent$field = m(field, g @parent)) -> j(g @parent, one child)`.
+  - The fast path evaluates the parent branch once, derives the mapped child-key binding with `mapField()` directly, runs the child expression with one nested scope, and attaches the single child relation directly. This avoids one generic nested `let`, one `mapField` interpreter call, and one generic compact join scheduling layer for these child branches while preserving `attachChildrenToParents()` semantics.
+  - Focused test coverage added: `interprets compact nested single-child join branches` in `query-interpreter.test.ts`.
+  - Local product-shaped timing was positive across two runs:
+    - Run 1: warmed `ClientEngine` nested rows 78.83 us/op, cached request wrapper nested rows 57.35, direct plan nested rows 49.16, precomputed query leaves 30.16, root child tags branch 15.71, comments branch 15.79, inner plan 35.84, direct after phase warmup 39.36, local executor nested rows 43.75.
+    - Run 2: warmed `ClientEngine` nested rows 75.00 us/op, cached request wrapper nested rows 55.62, direct plan nested rows 47.29, precomputed query leaves 28.69, root child tags branch 15.46, comments branch 16.16, inner plan 35.11, direct after phase warmup 37.92, local executor nested rows 39.34.
+  - Interpreter microbench with the spike was mixed and does not directly exercise this shape: simple select 873,397 ops/sec, findUnique 1,203,540, join 339,013, sequence 931,509, deep nested join 43,279. The product-shaped nested rows are the main evidence for keeping this patch.
+  - Verification:
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+
 ## Useful Commands
 
 ```sh
