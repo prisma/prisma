@@ -1863,6 +1863,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: cached request wrapper nested rows 60.59 us/op, direct after phase warmup 44.04, local executor nested rows 54.35.
   - Decision: reverted. The explicit-loop helper did not beat the existing `Promise.all(...map(async ...))` shape on product-path nested rows.
 
+- Rejected experiment: direct compact join child attachment.
+  - Hypothesis: compact `j` nodes could avoid per-child wrapper objects and one layer of generic looping by evaluating child expressions to a plain child-record array, then calling a factored `attachChildToParents()` directly for each join expression.
+  - Correctness/build checks passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+  - Source-level timing was mixed:
+    - warmed `ClientEngine` blog-page nested rows: 87.93 us/op.
+    - cached request wrapper blog-page nested rows: 60.13 us/op.
+    - direct plan blog-page nested rows: 58.91 us/op.
+    - precomputed query leaves blog-page nested rows: 35.85 us/op.
+    - inner plan blog-page nested rows: 42.87 us/op.
+    - local executor blog-page nested rows: 53.88 us/op.
+  - After rebuilding `@prisma/client-engine-runtime`, two runs were not strong enough to keep:
+    - Run 1: warmed `ClientEngine` nested rows 90.29 us/op, cached request wrapper 60.95, direct plan 57.46, inner plan 45.61, local executor 54.19.
+    - Run 2: warmed `ClientEngine` nested rows 88.77 us/op, cached request wrapper 60.40, direct plan 60.36, inner plan 44.31, local executor 54.31.
+  - Reverted. Avoiding the wrapper objects is too small/noisy and sometimes worsens direct nested rows. The stronger next step is still a lower-overhead nested join representation/executor or compiler plan-shape change, not another local rearrangement of the current generic attachment helper.
+
 - This commit: Single-query request-as-cache-key benchmark rows.
   - Added `request as cache key ...` rows to `client-engine-cache-timing.ts`. These compare the current single-query hit key (`parameterizeQuery()` + `JSON.stringify(parameterizedQuery.query)` + `getSingleQueryCacheKey()`) with using the existing compile request string (`getSingleQueryRequest(parameterizedQuery, queryPart)`) as the cache key.
   - This is different from the previously rejected custom structural key writer: it still uses native `JSON.stringify()` for the query body and the existing manual request builder.
