@@ -1732,6 +1732,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: direct plan after phase warmup blog-page nested rows 50.10 us/op, cached request wrapper nested rows 59.78, local executor nested rows 56.18.
   - Decision: reverted. The specialized object-literal shape worsened direct warmup rows and did not clearly improve product rows.
 
+- Rejected experiment: multi-child join scheduling helper.
+  - Hypothesis: root nested blog-page joins have four child join expressions. Replacing `Promise.all(joinExpressions.map(async ...))` with explicit loops that build child promises and result objects might reduce async closure/array overhead while preserving parallel child execution.
+  - Correctness and build checks passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+  - Interpreter microbench stayed in range rather than clearly improving: simple select 866,298 ops/sec, findUnique 1,172,191, join 346,600, sequence 881,252, deep nested join 46,067.
+  - Product-shaped nested rows were not positive across two runs after rebuilding the runtime package:
+    - Run 1: cached request wrapper nested rows 61.22 us/op, direct after phase warmup 45.67, local executor nested rows 54.85.
+    - Run 2: cached request wrapper nested rows 60.59 us/op, direct after phase warmup 44.04, local executor nested rows 54.35.
+  - Decision: reverted. The explicit-loop helper did not beat the existing `Promise.all(...map(async ...))` shape on product-path nested rows.
+
 ## Useful Commands
 
 ```sh
