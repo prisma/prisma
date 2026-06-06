@@ -71,14 +71,14 @@ CODSPEED_BENCHMARK=true pnpm bench
 
 **Location:** `packages/client/src/__tests__/benchmarks/query-performance/`
 
-| File                         | Description                                  |
-| ---------------------------- | -------------------------------------------- |
-| `query-performance.bench.ts` | End-to-end query benchmarks with SQLite      |
-| `caching.bench.ts`           | Query compiler/cache behavior benchmarks     |
-| `query-plan-cache-memory.ts` | Query plan cache retained heap probe         |
-| `schema.prisma`              | Benchmark schema with typical web app models |
-| `seed-data.ts`               | Data generation utilities                    |
-| `prisma.config.ts`           | Prisma configuration for benchmarks          |
+| File                         | Description                                                               |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `query-performance.bench.ts` | End-to-end query benchmarks with SQLite                                   |
+| `caching.bench.ts`           | Query compiler/cache behavior benchmarks                                  |
+| `query-plan-cache-memory.ts` | Query plan cache retained heap probe for scalar and nested relation plans |
+| `schema.prisma`              | Benchmark schema with typical web app models                              |
+| `seed-data.ts`               | Data generation utilities                                                 |
+| `prisma.config.ts`           | Prisma configuration for benchmarks                                       |
 
 ### Interpreter Benchmarks
 

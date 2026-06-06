@@ -20,9 +20,27 @@ const USER_SCALAR_FIELDS = [
   'createdAt',
   'updatedAt',
 ] as const
+const POST_SCALAR_FIELDS = [
+  'id',
+  'title',
+  'slug',
+  'content',
+  'excerpt',
+  'published',
+  'featured',
+  'viewCount',
+  'authorId',
+  'categoryId',
+  'createdAt',
+  'updatedAt',
+  'publishedAt',
+] as const
+
+type ScenarioKind = 'user-scalar-selection' | 'blog-page'
 
 type Scenario = {
   name: string
+  kind: ScenarioKind
   maxSize: number
   compileCount: number
 }
@@ -79,6 +97,82 @@ function createFindManyQuery(mask: number): JsonQuery {
   }
 }
 
+function createBlogPostPageQuery(mask: number): JsonQuery {
+  const selection: Record<string, unknown> = {}
+
+  for (let i = 0; i < POST_SCALAR_FIELDS.length; i++) {
+    if ((mask & (1 << i)) !== 0) {
+      selection[POST_SCALAR_FIELDS[i]] = true
+    }
+  }
+
+  if (Object.keys(selection).length === 0) {
+    selection.id = true
+  }
+
+  selection.author = {
+    selection: {
+      id: true,
+      name: true,
+      avatar: true,
+    },
+  }
+  selection.category = {
+    selection: {
+      $scalars: true,
+    },
+  }
+  selection.tags = {
+    selection: {
+      tag: {
+        selection: {
+          $scalars: true,
+        },
+      },
+    },
+  }
+  selection.comments = {
+    arguments: {
+      take: 10,
+      orderBy: [{ createdAt: 'desc' }],
+    },
+    selection: {
+      $scalars: true,
+      author: {
+        selection: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+  }
+  selection._count = {
+    selection: {
+      likes: true,
+      comments: true,
+    },
+  }
+
+  return {
+    modelName: 'Post',
+    action: 'findUnique',
+    query: {
+      arguments: { where: { id: 1 } },
+      selection,
+    },
+  }
+}
+
+function createScenarioQuery(scenario: Scenario, iteration: number): JsonQuery {
+  switch (scenario.kind) {
+    case 'user-scalar-selection':
+      return createFindManyQuery((iteration % 1023) + 1)
+    case 'blog-page':
+      return createBlogPostPageQuery((iteration % ((1 << POST_SCALAR_FIELDS.length) - 1)) + 1)
+  }
+}
+
 function formatBytes(bytes: number): string {
   const sign = bytes < 0 ? '-' : ''
   const absolute = Math.abs(bytes)
@@ -130,7 +224,7 @@ function measureScenario(compiler: QueryCompiler, scenario: Scenario): Measureme
   const before = heapUsed()
 
   for (let i = 0; i < scenario.compileCount; i++) {
-    const query = createFindManyQuery((i % 1023) + 1)
+    const query = createScenarioQuery(scenario, i)
     const queryPart = JSON.stringify(query.query)
     const request = getSingleQueryRequest(query, queryPart)
     const cacheKey = getSingleQueryCacheKey(query, queryPart)
@@ -209,10 +303,13 @@ async function main(): Promise<void> {
   forceGc()
 
   const scenarios: Scenario[] = [
-    { name: 'cache disabled', maxSize: 0, compileCount: 1000 },
-    { name: 'edge default warm', maxSize: 100, compileCount: 100 },
-    { name: 'edge default churn', maxSize: 100, compileCount: 1000 },
-    { name: 'node default warm', maxSize: 1000, compileCount: 1000 },
+    { name: 'scalar selection / cache disabled', kind: 'user-scalar-selection', maxSize: 0, compileCount: 1000 },
+    { name: 'scalar selection / edge default warm', kind: 'user-scalar-selection', maxSize: 100, compileCount: 100 },
+    { name: 'scalar selection / edge default churn', kind: 'user-scalar-selection', maxSize: 100, compileCount: 1000 },
+    { name: 'scalar selection / node default warm', kind: 'user-scalar-selection', maxSize: 1000, compileCount: 1000 },
+    { name: 'blog page / edge default warm', kind: 'blog-page', maxSize: 100, compileCount: 100 },
+    { name: 'blog page / edge default churn', kind: 'blog-page', maxSize: 100, compileCount: 1000 },
+    { name: 'blog page / node default warm', kind: 'blog-page', maxSize: 1000, compileCount: 1000 },
   ]
 
   for (const scenario of scenarios) {

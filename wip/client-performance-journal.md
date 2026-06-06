@@ -255,6 +255,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Direct serializer `compile blog post page`: about 297 ops/sec, down from about 323.
   - Reverted. This suggests array-shaped field nodes or manual result-node serialization are slower through the Wasm/`serde_wasm_bindgen` compile path despite the smaller JS-visible plan.
 
+- Omit `templateSql.chunkable: false`.
+  - Measured before patching.
+  - Representative local Wasm output after compact string fragments had only one `chunkable: false` template in filtered `findMany` and one in the blog-page query; `findUnique` and `findMany in filter` had only `chunkable: true` templates.
+  - Ceiling was 18 bytes on filtered `findMany`, 18 bytes on the blog-page query, and 0 bytes on the other measured plans.
+  - Dropped without implementation.
+
 ## Measurements And Evidence
 
 - Native Rust query compiler Criterion timings on a clean engines tree:
@@ -311,9 +317,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Edge default warm, 100 compiles, 100 retained: heap delta about 258.9-263.3 KiB; about 2.6 KiB heap per retained entry; about 7.6 KiB retained cache-key strings and 87.8 KiB retained serialized plan shape.
     - Edge default churn, 1,000 compiles, 100 retained: heap delta about 404.5-413.3 KiB; about 4.0-4.1 KiB heap per retained entry; about 12.3 KiB retained cache-key strings and 125.0 KiB retained serialized plan shape.
     - Node default warm, 1,000 compiles, 1,000 retained: heap delta about 2.88-2.91 MiB; about 2.9-3.0 KiB heap per retained entry; about 101.9 KiB retained cache-key strings and 1.06 MiB retained serialized plan shape.
+  - After compact SQL string fragments, the committed probe also covers nested blog-page plans with varying selected Post scalar fields:
+    - Scalar selection / edge default warm: heap delta about 248.5 KiB, retained plan JSON about 75.9 KiB.
+    - Scalar selection / edge default churn: heap delta about 395.1 KiB, retained plan JSON about 107.2 KiB.
+    - Scalar selection / node default warm: heap delta about 2.74 MiB, retained plan JSON about 934.3 KiB.
+    - Blog page / edge default warm: heap delta about 2.61 MiB, about 26.7 KiB heap per retained entry, retained cache-key strings about 48.3 KiB, retained plan JSON about 952.8 KiB.
+    - Blog page / edge default churn: heap delta about 2.65 MiB, about 27.2 KiB heap per retained entry, retained cache-key strings about 53.5 KiB, retained plan JSON about 979.1 KiB.
+    - Blog page / node default warm: heap delta about 24.82 MiB, about 25.4 KiB heap per retained entry, retained cache-key strings about 512.2 KiB, retained plan JSON about 9.45 MiB.
   - Follow-up key-size split:
     - Scalar-selection cache-key strings were only about 7.9-8.9% of retained serialized shape.
-    - A temporary 100-plan nested blog-style variant check had about 30.0 KiB retained keys vs 537.3 KiB serialized plans, so keys were only about 5.3% of retained serialized shape.
+    - The committed nested blog-page scenarios show retained cache-key strings at about 4.8-5.2% of retained serialized cache-key-plus-plan shape.
     - Conclusion: shortening or hashing stored cache keys is low ceiling under current plan shape and not worth a correctness-sensitive cache-key semantics change yet. Plan objects / serialized plan shape still dominate.
   - This confirms the edge default cache size materially caps retained plan memory for simple unique plans. It is still a Node/V8 proxy, not a true workerd isolate measurement.
 
