@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Fast-path connected ClientEngine requests
+  - This commit: Guard disabled ClientEngine debug calls
+  - `44c99869d Fast-path connected ClientEngine requests`
   - `b583f51a3 Add direct cached-plan timing rows`
   - `bf3e792ed Add cache-hit key benchmark rows`
   - `b67898099 Warm ClientEngine cache timing probe`
@@ -166,6 +167,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm exec prettier --check packages/client/src/runtime/core/engines/client/ClientEngine.ts`
       - `git diff --check`
     - Decision: keep. The change is small, localized, and preserves disconnected/connecting fallback semantics while shaving roughly 1-2 us from simple warmed request rows in local measurements.
+
+  - This commit: Guard disabled ClientEngine debug calls
+    - `ClientEngine.request()` and `requestBatch()` now check `isDebugEnabled()` before calling per-request `debug(...)` in the warmed hot path.
+    - Reason: `@prisma/debug` appends call arguments to a global history before checking whether logging is enabled. The old hot path recorded every disabled `ClientEngine` debug call, including query plans, into that history.
+    - The `client-engine-cache-timing.ts` probe now has extra split rows:
+      - exact-shape cache-hit key rows for the same explicit `JsonQuery` shapes used by the product-path rows.
+      - direct cached-plan value-scope churn rows.
+      - direct `LocalExecutor.execute()` rows, both stable-scope and value-scope churn.
+    - Split before this patch, after cache-key warm-up:
+      - Warmed `ClientEngine` `findUnique`: about 15.33 us/op, heap delta about 71.4 KiB.
+      - Warmed `ClientEngine` `findMany` 10 scalar rows: about 12.14 us/op, heap delta about -61.9 KiB.
+      - Warmed `ClientEngine` blog-page: about 36.00 us/op, heap delta about -548.4 KiB.
+      - Cache-hit key blog-page: about 6.42 us/op.
+      - Local executor blog-page with value-scope churn: about 15.31 us/op.
+    - Local runs after this patch:
+      - First run warmed `findUnique`: about 12.25 us/op, warmed `findMany` 10 scalar rows about 8.47 us/op, warmed blog-page about 31.09 us/op.
+      - First run heap deltas: disabled-cache `findUnique` about 569.9 KiB, warmed `findUnique` about 129.9 KiB, disabled-cache blog-page about 131.3 KiB, warmed blog-page about 12.4 KiB.
+      - Rerun warmed `findUnique`: about 12.10 us/op, warmed `findMany` 10 scalar rows about 8.24 us/op, warmed blog-page about 30.98 us/op.
+      - Rerun heap deltas: disabled-cache `findUnique` about 572.3 KiB, warmed `findUnique` about 127.9 KiB, disabled-cache blog-page about 130.7 KiB, warmed blog-page about 13.0 KiB.
+    - Interpretation: guarding disabled hot-path debug calls saves roughly 3-5 us/op on warmed cache-hit rows in this probe and avoids retaining recent query plan arguments in `@prisma/debug` history. The memory signal is especially relevant for Workers-style constrained heaps.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+      - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+      - `pnpm --filter @prisma/client build`
+      - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `git diff --check`
+    - Decision: keep. The debug-enabled behavior is preserved by checking the same namespace dynamically before calling `debug(...)`, while the disabled default no longer records per-request plan objects.
 
   - This commit: Add cache-hit key benchmark rows
     - `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` now prebuilds benchmark query objects for parameterization rows and adds `cache hit key ...` rows that run the current single-query cache-hit key path: `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `getSingleQueryCacheKey()`.
@@ -1251,6 +1279,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - filtered `findMany`: parameterization about 2.45 us, stringify about 0.56 us, key about 0.22 us.
     - `findMany in filter`: parameterization about 1.90 us, stringify about 0.41 us, key about 0.24 us.
     - nested blog query: parameterization about 2.58 us, stringify about 1.52 us, key about 0.16 us.
+  - The later `client-engine-cache-timing.ts` exact-shape rows use explicit scalar selections instead of `$scalars` and are a better split for the current product-path benchmark:
+    - cache-hit key `findUnique` value churn: about 4.5 us/op.
+    - cache-hit key `findMany` stable query: about 1.9 us/op.
+    - cache-hit key blog-page value churn: about 6.4 us/op, with about 324.7 KiB total key bytes across 500 iterations.
+    - local executor blog-page with precomputed value-scope churn: about 15.3 us/op.
+    - warmed `ClientEngine` blog-page after disabled-debug guards: about 31.0 us/op, leaving roughly 9-10 us/op in remaining wrapper/cache/response work beyond cache-key construction and cached-plan execution.
   - Rejected experiment: a JS structural cache-key writer using type tags and length-delimited strings was much slower than native `JSON.stringify`:
     - `findUnique`: JSON 0.34 us vs custom 1.35 us.
     - filtered `findMany`: JSON 0.63 us vs custom 2.53 us.

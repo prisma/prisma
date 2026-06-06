@@ -53,7 +53,8 @@ import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
  */
 const CLIENT_ENGINE_ERROR = 'P2038'
 
-const debug = Debug('prisma:client:clientEngine')
+const DEBUG_NAMESPACE = 'prisma:client:clientEngine'
+const debug = Debug(DEBUG_NAMESPACE)
 
 type GlobalWithPanicHandler = typeof globalThis & {
   PRISMA_WASM_PANIC_REGISTRY: {
@@ -93,6 +94,11 @@ function getSingleQueryRequest(query: JsonQuery, queryPart: string): string {
   }
 
   return `{"modelName":${JSON.stringify(query.modelName)},"action":${actionPart},"query":${queryPart}}`
+}
+
+function isDebugEnabled(): boolean {
+  const globalDebug = (globalThis as { DEBUG?: string }).DEBUG
+  return debug.enabled || (globalDebug !== undefined && globalDebug !== '' && Debug.enabled(DEBUG_NAMESPACE))
 }
 
 function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
@@ -537,7 +543,10 @@ export class ClientEngine implements Engine {
     query: JsonQuery,
     { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
   ): Promise<{ data: T }> {
-    debug(`sending request`)
+    const debugEnabled = isDebugEnabled()
+    if (debugEnabled) {
+      debug(`sending request`)
+    }
 
     const { executor, queryCompiler } =
       this.#getConnectedEngine() ??
@@ -571,10 +580,14 @@ export class ClientEngine implements Engine {
         const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
         const cached = queryPlanCache.getSingle(cacheKey)
         if (cached) {
-          debug('query plan cache hit')
+          if (debugEnabled) {
+            debug('query plan cache hit')
+          }
           plan = cached
         } else {
-          debug('query plan cache miss')
+          if (debugEnabled) {
+            debug('query plan cache miss')
+          }
           const request = getSingleQueryRequest(parameterizedQuery, queryPart)
           plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
           queryPlanCache.setSingle(cacheKey, plan)
@@ -586,7 +599,9 @@ export class ClientEngine implements Engine {
     }
 
     try {
-      debug(`query plan created`, plan)
+      if (debugEnabled) {
+        debug(`query plan created`, plan)
+      }
 
       const result = await executor.execute({
         plan,
@@ -606,7 +621,9 @@ export class ClientEngine implements Engine {
           : undefined,
       })
 
-      debug(`query plan executed`)
+      if (debugEnabled) {
+        debug(`query plan executed`)
+      }
 
       const response: QueryEngineResultData<T> = { data: { [query.action]: result } as T }
       if (executor.resultFormat === 'js' && !isRawQuery(query)) {
@@ -626,6 +643,7 @@ export class ClientEngine implements Engine {
       return []
     }
 
+    const debugEnabled = isDebugEnabled()
     const firstAction = queries[0].action
     const firstModelName = queries[0].modelName
 
@@ -663,10 +681,14 @@ export class ClientEngine implements Engine {
         const cacheKey = getBatchQueryCacheKey(parameterizedBatch)
         const cached = queryPlanCache.getBatch(cacheKey)
         if (cached) {
-          debug('batch query plan cache hit')
+          if (debugEnabled) {
+            debug('batch query plan cache hit')
+          }
           batchResponse = cached
         } else {
-          debug('batch query plan cache miss')
+          if (debugEnabled) {
+            debug('batch query plan cache miss')
+          }
           try {
             const request = JSON.stringify(parameterizedBatch)
             batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
