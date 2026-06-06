@@ -2087,6 +2087,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
 
+- Measurement attempt: strip process nodes from the nested blog-page inner plan.
+  - Tried adding a benchmark-only transform to replace compact `p` process nodes with their child expression and time the current nested blog-page inner plan without in-memory processing.
+  - Outcome: the timing probe failed before measurement with `Expected at least one process node in nested blog-page plan`; the compiled compact inner plan currently has zero `p` nodes.
+  - Removed the benchmark edit instead of keeping a dead row.
+  - Interpretation: for the current `client-engine-cache-timing.ts` blog-page nested-row shape, the remaining child-branch cost is not `processRecords()`. Future work should focus on compact `let`/`unique`/`mapField`, nested join attachment, and plan/data-shape changes unless the compiled benchmark plan changes.
+  - Evidence:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` with the temporary row failed before timing with zero process nodes found.
+
 - Rejected experiment: WeakMap-cached compact join shape matchers.
   - Hypothesis: the compact mapped-join and nested-single-child-join fast paths still re-detect the same cached plan shapes on every execution, so caching positive/negative matcher results by compact plan node could reduce cached-plan interpreter overhead.
   - Local `client-engine-cache-timing.ts` looked initially promising:
