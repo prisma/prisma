@@ -228,6 +228,13 @@ export class QueryInterpreter {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(node.args)
 
+        if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+          const result = context.queryable.executeRaw(asMutable(queries[0]))
+          return {
+            value: isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result,
+          }
+        }
+
         let sum = 0
         for (const query of queries) {
           const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
@@ -250,6 +257,15 @@ export class QueryInterpreter {
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(node.args)
+
+        if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+          const result = context.queryable.queryRaw(asMutable(queries[0]))
+          const results = isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result
+          return {
+            value: isRaw ? this.#rawSerializer(results) : this.#serializer(results),
+            lastInsertId: results.lastInsertId,
+          }
+        }
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
@@ -570,6 +586,13 @@ export class QueryInterpreter {
         const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(dbQuery)
 
+        if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+          const result = context.queryable.executeRaw(asMutable(queries[0]))
+          return {
+            value: isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result,
+          }
+        }
+
         let sum = 0
         for (const query of queries) {
           const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
@@ -593,6 +616,15 @@ export class QueryInterpreter {
         const dbQuery = node[1]
         const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(dbQuery)
+
+        if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+          const result = context.queryable.queryRaw(asMutable(queries[0]))
+          const results = isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result
+          return {
+            value: isRaw ? this.#rawSerializer(results) : this.#serializer(results),
+            lastInsertId: results.lastInsertId,
+          }
+        }
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
