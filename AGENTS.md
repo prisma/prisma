@@ -225,4 +225,6 @@ When in doubt, build both to avoid unexpected behavior. Time and cost of compila
 
 `make build-qc-wasm` runs `query-compiler/query-compiler-wasm/build.sh`, which expects `jq` on `PATH` for `cargo metadata` and package version rewriting. In minimal harnesses without `jq`, provide a temporary local shim or install `jq` before running the build.
 
+For query compiler heap allocation splits, run `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release` in `/home/aqrln.guest/prisma-engines`. The example reports `parse_json`, `into_doc`, `graph_build`, `translate_ir`, `compile_ir`, `full_compile`, and native JSON serialization allocation counts/bytes; use `ALLOC_PROFILE_QUERIES=query-m2o,nested-pagination-query` to narrow the fixture set.
+
 `cargo test -p request-handlers protocols::json::protocol_adapter --lib` can fail in the default local engines checkout before exercising code because JSON protocol adapter fixtures use `provider = "mongodb"` while that provider is not enabled. Use `cargo check -p request-handlers` and Criterion/query-compiler benches for local verification unless the provider feature set is fixed.

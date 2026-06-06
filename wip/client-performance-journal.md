@@ -1627,7 +1627,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - request `JsonBody` -> `JsonProtocolAdapter` -> `Selection` / `ArgumentValue` tree transitions.
     - query graph to expression translation where owned `String`, `Cow<'static, str>`, `BTreeMap`, and `Vec` allocations accumulate.
     - result-node/data-map construction.
-  - This likely requires allocation profiling before patching, not guesswork.
+  - Added engines commit `974e1b4da3e Add query compiler allocation profile example`.
+    - New tool: `query-compiler/query-compiler/examples/allocation_profile.rs`.
+    - Run from `/home/aqrln.guest/prisma-engines`:
+      - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+      - Optional query subset: `ALLOC_PROFILE_QUERIES=query-m2o,nested-pagination-query ...`.
+    - The probe uses a counting global allocator in the example binary only and splits native compile allocations into `parse_json`, `into_doc`, `graph_build`, `translate_ir`, `compile_ir`, `full_compile`, and `serialize_json`.
+    - It mirrors the product compile path: `query_compiler::compile()` is not followed by an extra simplify pass.
+  - Allocation result from the default five-query sample:
+    - `parse_json` is small: about 21-38 allocations/op and 2.0-3.8 KiB/op.
+    - `into_doc` is also small compared with compile: about 46-75 allocations/op and 4.7-8.7 KiB/op.
+    - `graph_build` is material: about 200-496 allocations/op and 47.3-78.7 KiB/op.
+    - `translate_ir` is also material and query-shape dependent: about 167-719 allocations/op and 15.7-82.2 KiB/op.
+    - `compile_ir` total is the main sink: about 491-1215 allocations/op and 63.4-160.9 KiB/op.
+    - `serialize_json` is small in this native proxy: about 4-12 allocations/op and 904 B-4.0 KiB/op.
+  - Current interpretation:
+    - This supports the earlier skepticism about `serde_wasm_bindgen` as a standalone win: JSON parse/protocol adaptation allocations are not the dominant native sink in this sample.
+    - The next allocation-focused patch should inspect query graph build and translate internals, not start with a broad `Arc`/arena rewrite.
+    - For the user’s borrowing/arena idea, the first plausible target is an allocation-heavy substructure inside graph build or translate where ownership is local and measurable. Reworking request parsing alone is unlikely to move enough bytes.
 
 - Direct `js_sys` / typed request parser.
   - Potentially valuable only if it avoids the owned Rust `JsonBody` / `serde_json::Value` request tree, not if it merely swaps `serde_json::from_str` for `serde_wasm_bindgen::from_value`.
