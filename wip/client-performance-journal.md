@@ -1658,6 +1658,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - inner plan blog-page nested rows: 49.92 us/op.
       - direct plan after phase warmup: 46.86 us/op.
     - Interpretation update: removing DB query leaves from the timed path still leaves roughly 37 us/op in the nested inner expression. Query leaves account for about 13 us/op in this run, but the larger remaining cost is the compiled nested expression itself: `let`/scope evaluation, `unique`, `mapField`, `process`, and join attachment. This strengthens the case for plan-shape work or a lower-overhead interpreter representation for nested joins rather than further `q`/`serializeSql()` micro-optimizations.
+  - Follow-up added `precomputed join leaves blog page / nested rows`.
+    - This benchmark-only transform also replaces the root compact `j` with `g precomputedJoin0`, while still executing the top-level `let`/parent binding scaffolding. Each measured iteration gets a fresh fully joined inner object precomputed outside the timer.
+    - Local run:
+      - warmed `ClientEngine` blog-page nested rows: 89.73 us/op.
+      - cached request wrapper blog-page nested rows: 61.00 us/op.
+      - direct plan blog-page nested rows: 57.78 us/op.
+      - adapter-only seven result sets: 3.17 us/op.
+      - `serializeSql()` over seven result sets: 3.87 us/op.
+      - precomputed query leaves blog-page nested rows: 37.67 us/op.
+      - precomputed join leaves blog-page nested rows: 12.07 us/op.
+      - inner plan blog-page nested rows: 46.08 us/op.
+      - direct plan after phase warmup: 46.74 us/op.
+    - Interpretation update: the top-level binding/scaffolding cost is still visible at about 12 us/op, but join and child-expression evaluation account for about 25 us/op beyond that in this split. The next product-code target should be a lower-overhead nested join representation/executor or compiler plan-shape change, not another isolated query-leaf fast path.
   - Verification:
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm --filter @prisma/client-engine-runtime build`

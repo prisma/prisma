@@ -1054,6 +1054,124 @@ function replaceQueryLeavesWithPrecomputedGetters(plan: QueryPlanNode, state: { 
   }
 }
 
+function replaceQueryAndJoinLeavesWithPrecomputedGetters(
+  plan: QueryPlanNode,
+  state: { queryIndex: number; joinIndex: number },
+): QueryPlanNode {
+  if (!isCompactPlanNode(plan)) {
+    throw new Error('Expected compact query plan')
+  }
+
+  switch (plan[0]) {
+    case 'q': {
+      return ['g', `precomputedQuery${state.queryIndex++}`] as unknown as QueryPlanNode
+    }
+
+    case 'j': {
+      return ['g', `precomputedJoin${state.joinIndex++}`] as unknown as QueryPlanNode
+    }
+
+    case 'x': {
+      throw new Error('Unexpected execute node in precomputed-join phase')
+    }
+
+    case 'v':
+    case 'g':
+    case 'e':
+    case '0': {
+      return plan
+    }
+
+    case 's':
+    case '+':
+    case 'c': {
+      return [
+        plan[0],
+        plan[1].map((child) => replaceQueryAndJoinLeavesWithPrecomputedGetters(child, state)),
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'l': {
+      return [
+        'l',
+        plan[1].map(
+          (binding) =>
+            [
+              getQueryPlanBindingName(binding),
+              replaceQueryAndJoinLeavesWithPrecomputedGetters(getQueryPlanBindingExpr(binding), state),
+            ] as QueryPlanBinding,
+        ),
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[2], state),
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'd': {
+      return [
+        'd',
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case '?': {
+      return [
+        '?',
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[3], state),
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[4], state),
+      ] as unknown as QueryPlanNode
+    }
+
+    case '-': {
+      return [
+        '-',
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state),
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[2], state),
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'V': {
+      return [
+        'V',
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        plan[3],
+        plan[4],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'i':
+    case 'M': {
+      return [
+        plan[0],
+        replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'm': {
+      return ['m', plan[1], replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[2], state)] as unknown as QueryPlanNode
+    }
+
+    case 'p': {
+      return ['p', replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state), plan[2]] as unknown as QueryPlanNode
+    }
+
+    case 'r':
+    case 'R':
+    case 't':
+    case 'u': {
+      return [plan[0], replaceQueryAndJoinLeavesWithPrecomputedGetters(plan[1], state)] as unknown as QueryPlanNode
+    }
+
+    default:
+      throw new Error(`Unexpected compact query plan node: ${plan[0]}`)
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -1545,6 +1663,84 @@ async function measurePrecomputedQueryLeavesScenario(
     checksum += checksumNestedBlogInnerValue(
       await interpreter.run(precomputedExpr, {
         queryable: adapter,
+        scope: scopes[i],
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measurePrecomputedJoinLeavesScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const emptyAdapter = createAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr } = getRootDataMapPlan(plan)
+  const replacementState = { queryIndex: 0, joinIndex: 0 }
+  const precomputedExpr = replaceQueryAndJoinLeavesWithPrecomputedGetters(expr, replacementState)
+  if (replacementState.queryIndex !== 1 || replacementState.joinIndex !== 1) {
+    throw new Error(
+      `Expected one top-level query leaf and one top-level join leaf, got ${replacementState.queryIndex} queries and ${replacementState.joinIndex} joins`,
+    )
+  }
+
+  const scopes = new Array<Record<string, unknown>>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    scopes[i] = {
+      ...placeholderValues,
+      precomputedQuery0: serializeSql(BLOG_PAGE_POST_RESULT),
+      precomputedJoin0: await interpreter.run(expr, {
+        queryable: adapter,
+        scope: placeholderValues,
+        transactionManager: { enabled: false },
+      }),
+    }
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(precomputedExpr, {
+      queryable: emptyAdapter,
+      scope: scopes[i],
+      transactionManager: { enabled: false },
+    })
+  }
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogInnerValue(
+      await interpreter.run(precomputedExpr, {
+        queryable: emptyAdapter,
         scope: scopes[i],
         transactionManager: { enabled: false },
       }),
@@ -2302,6 +2498,15 @@ async function main(): Promise<void> {
         await measurePrecomputedQueryLeavesScenario(compiler, paramGraph, {
           ...scenario,
           name: scenario.name.replace('direct plan', 'precomputed query leaves'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measurePrecomputedJoinLeavesScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'precomputed join leaves'),
         }),
       )
     }
