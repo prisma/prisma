@@ -1713,6 +1713,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: first direct root 58.31 us/op, interpreter data-map precomputed 5.24, manual inner+outer 47.13, direct after phase warmup 45.09, local executor 52.42.
   - Interpretation: the earlier "root dataMap is materially slower than manual inner+outer" lead was mostly a warmup/order artifact. Root data-map pushdown is still theoretically possible but no longer has strong benchmark evidence. The next nested-row target should return to the inner expression itself: SQL serialization, join execution, async query loop overhead, or plan-shape changes that reduce row-object work while preserving hidden join keys.
 
+- Rejected experiment: route generic `query` / compact `q` nodes through `#executeQuery()`.
+  - Hypothesis: nested child relation `q` nodes could reuse the existing single-query/no-comment/no-instrumentation fast path in `#executeQuery()` and skip their local result-set merge loop.
+  - Source direct-plan rows were neutral: direct after phase warmup stayed around 43-44 us/op.
+  - After rebuilding `@prisma/client-engine-runtime`, product-shaped rows worsened:
+    - Run 1: cached request wrapper blog-page nested rows 64.93 us/op, local executor blog-page nested rows 60.71 us/op.
+    - Run 2: cached request wrapper blog-page nested rows 64.81 us/op, local executor blog-page nested rows 61.50 us/op.
+  - Decision: reverted. The extra helper call / shape change does not pay for nested child `q` nodes on the product path.
+
 ## Useful Commands
 
 ```sh
