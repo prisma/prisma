@@ -3215,6 +3215,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Regressed `update-set-nested-prisma#27650` by about 1.36% and `update-set-nested` by about 3.21%.
   - Decision: reverted. The allocation win is large and broad, but the timing regressions are too broad. The eager argument path construction appears to be better for current compile hot paths.
 
+- Accepted engines change: pre-size selected field extraction.
+  - Commit: `176fd2515b8 Pre-size selected field extraction` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - `query_graph_builder::read::utils::pairs_to_selections()` now creates the selected-field output vector with `Vec::with_capacity(pairs.len())`.
+    - This keeps the existing clone/parse behavior intact and only removes output-vector growth while converting parsed read selections.
+  - Allocation profile compared to the immediate pre-patch baseline:
+    - `query-m2o`: `graph_build` stayed at 196 allocs/op, 49.3 KiB -> 48.0 KiB; full compile stayed at 632 allocs/op, 106.2 KiB -> 104.9 KiB.
+    - `query-many-m2m`: `graph_build` stayed at 284 allocs/op, 51.6 KiB -> 50.3 KiB; full compile stayed at 809 allocs/op, 106.1 KiB -> 104.8 KiB.
+    - `nested-pagination-query`: `graph_build` stayed at 233 allocs/op, 42.2 KiB -> 40.3 KiB; full compile stayed at 630 allocs/op, 87.2 KiB -> 85.3 KiB.
+    - `filter-contains-param`: full compile stayed at 557 allocs/op, about 67.1 KiB -> 66.8 KiB.
+    - `create-nested-create`: full compile stayed at 1,307 allocs/op, 165.0 KiB -> 164.3 KiB.
+    - `create-nested-connectOrCreate-mixed`: full compile stayed at 2,794 allocs/op, about 361.4 KiB -> 360.4 KiB.
+    - `create-nested-connectOrCreate-one2m`: full compile stayed at 2,478 allocs/op, about 312.5 KiB -> 311.5 KiB.
+    - `update-set-nested`: full compile stayed at 2,181 allocs/op, about 284.4 KiB -> 283.7 KiB.
+  - Criterion timing:
+    - `compile/create-nested-connectOrCreate-mixed`: mean -0.83%, median -0.98%.
+    - `compile/create-nested-connectOrCreate-one2m`: mean -1.25%, median -1.30%.
+    - `compile/create-nested-create-with-composite-id`: mean -0.26%, median -0.20%.
+    - `compile/create-nested-create`: mean -0.64%, median -1.95%.
+    - `compile/filter-contains-param-insensitive`: mean -1.43%, median -1.85%.
+    - `compile/filter-contains-param`: mean -1.90%, median -1.96%.
+    - `compile/nested-pagination-query`: mean -1.86%, median -2.05%.
+    - `compile/query-m2o-lateral`: mean -8.24%, median -7.62%.
+    - `compile/query-m2o`: mean -3.35%, median -3.64%.
+    - `compile/query-many-m2m`: mean -1.99%, median -2.09%.
+    - `compile/update-set-nested`: mean -2.79%, median -2.62%.
+  - Wasm/product verification:
+    - Local query compiler Wasm build succeeded with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` completed with compile rows in the expected band: findUnique 1,716 ops/sec, findMany filtered 1,365 ops/sec, blog post page 370 ops/sec.
+  - Verification:
+    - `cargo fmt -p query-core`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `git diff --check`
+  - Decision: keep. This does not reduce allocation counts, but it consistently trims selected-field construction bytes and the focused Criterion run was neutral-to-positive across the targeted read/nested rows.
+
 ## Useful Commands
 
 ```sh
