@@ -41,7 +41,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { QueryPlanCache } from './query-plan-cache'
+import { type IndividualQueryPlanCacheEntry, QueryPlanCache } from './query-plan-cache'
 import { getQueryPlanCacheMaxSize } from './query-plan-cache-size'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
@@ -102,6 +102,31 @@ function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
     queries[i] = [query.modelName ?? null, query.action, query.query]
   }
   return JSON.stringify([queries, batch.transaction ?? null])
+}
+
+function getIndividualBatchPlanCacheEntries(
+  batch: JsonBatchQuery,
+  response: BatchResponse,
+  cache: QueryPlanCache,
+): IndividualQueryPlanCacheEntry[] | undefined {
+  if (
+    response.type !== 'multi' ||
+    response.plans.length !== batch.batch.length ||
+    response.plans.length + 1 > cache.maxSize
+  ) {
+    return undefined
+  }
+
+  const entries = new Array<IndividualQueryPlanCacheEntry>(batch.batch.length)
+  for (let i = 0; i < batch.batch.length; i++) {
+    const query = batch.batch[i]
+    const queryPart = JSON.stringify(query.query)
+    entries[i] = {
+      key: getSingleQueryCacheKey(query, queryPart),
+      plan: response.plans[i] as QueryPlanNode,
+    }
+  }
+  return entries
 }
 
 const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
@@ -637,7 +662,11 @@ export class ClientEngine implements Engine {
           try {
             const request = JSON.stringify(parameterizedBatch)
             batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
-            queryPlanCache.setBatch(cacheKey, batchResponse)
+            queryPlanCache.setBatch(
+              cacheKey,
+              batchResponse,
+              getIndividualBatchPlanCacheEntries(parameterizedBatch, batchResponse, queryPlanCache),
+            )
           } catch (error) {
             throw this.#transformCompileError(error)
           }

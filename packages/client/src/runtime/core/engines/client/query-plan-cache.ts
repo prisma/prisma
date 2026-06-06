@@ -25,11 +25,13 @@ type InternedString = {
   refCount: number
 }
 
+export type IndividualQueryPlanCacheEntry = {
+  key: string
+  plan: QueryPlanNode
+}
+
 const MIN_INTERNED_STRING_LENGTH = 8
 
-// todo: store the query plan for the individual queries in a non-compacted batch
-// in the `#singleCache` so that it's possible to reuse them for compatible queries
-// outside of the batch in the future and avoid compiling them individually.
 export class QueryPlanCache {
   readonly #singleCache: Map<string, Extract<CacheEntry, { kind: 'single' }>>
   readonly #batchCache: Map<string, Extract<CacheEntry, { kind: 'batch' }>>
@@ -83,9 +85,16 @@ export class QueryPlanCache {
     return undefined
   }
 
-  setBatch(key: string, response: BatchResponse): void {
+  setBatch(key: string, response: BatchResponse, individualPlans?: IndividualQueryPlanCacheEntry[]): void {
     if (this.#maxSize === 0) {
       return
+    }
+
+    if (individualPlans !== undefined && individualPlans.length + 1 <= this.#maxSize) {
+      for (let i = 0; i < individualPlans.length; i++) {
+        const individualPlan = individualPlans[i]
+        this.setSingle(individualPlan.key, individualPlan.plan)
+      }
     }
 
     const entry = this.#batchCache.get(key)
@@ -122,6 +131,10 @@ export class QueryPlanCache {
 
   get batchCacheSize(): number {
     return this.#batchCache.size
+  }
+
+  get maxSize(): number {
+    return this.#maxSize
   }
 
   #touch(entry: CacheEntry): void {

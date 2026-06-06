@@ -125,6 +125,46 @@ describe('QueryPlanCache', () => {
       expect(retrieved).toBe(response)
     })
 
+    it('stores individual plans from eligible multi batch entries', () => {
+      const cache = new QueryPlanCache(4)
+      const plan1 = { type: 'value' as const, args: 'first' }
+      const plan2 = { type: 'value' as const, args: 'second' }
+      const response = {
+        type: 'multi' as const,
+        plans: [plan1, plan2],
+      }
+
+      cache.setBatch('batchKey', response, [
+        { key: 'singleKey1', plan: plan1 },
+        { key: 'singleKey2', plan: plan2 },
+      ])
+
+      expect(cache.getBatch('batchKey')).toBe(response)
+      expect(cache.getSingle('singleKey1')).toBe(plan1)
+      expect(cache.getSingle('singleKey2')).toBe(plan2)
+      expect(cache.size).toBe(3)
+    })
+
+    it('skips individual plans from multi batch entries when they do not fit the cache size', () => {
+      const cache = new QueryPlanCache(2)
+      const plan1 = { type: 'value' as const, args: 'first' }
+      const plan2 = { type: 'value' as const, args: 'second' }
+      const response = {
+        type: 'multi' as const,
+        plans: [plan1, plan2],
+      }
+
+      cache.setBatch('batchKey', response, [
+        { key: 'singleKey1', plan: plan1 },
+        { key: 'singleKey2', plan: plan2 },
+      ])
+
+      expect(cache.getBatch('batchKey')).toBe(response)
+      expect(cache.getSingle('singleKey1')).toBeUndefined()
+      expect(cache.getSingle('singleKey2')).toBeUndefined()
+      expect(cache.size).toBe(1)
+    })
+
     it('returns undefined for missing batch keys', () => {
       const cache = new QueryPlanCache()
 

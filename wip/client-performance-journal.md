@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Intern cached query plan strings
+  - This commit: Share multi batch plans with single cache
+  - `f57c157fc Intern cached query plan strings`
   - `2162c650f Accept compact query plan validation errors`
   - `6ef2cc46c Accept compact query plan support structures`
   - `e7764152f Accept compact Prisma value placeholders`
@@ -92,6 +93,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Prisma cache-memory commits kept:
+  - This commit: Share multi batch plans with single cache
+    - Non-compacted `multi` batch responses now optionally populate `QueryPlanCache` single-query entries for each individual plan.
+    - `QueryPlanCache.setBatch()` accepts individual single-plan entries and keeps them only when the individual entries plus the batch entry fit within the configured max size. This avoids letting a large batch flush the cache, especially on the edge default size of 100.
+    - Compacted batches are intentionally not decomposed because the compacted plan is not equivalent to independent single-query plans.
+    - Benefit: a mixed batch compile can warm later single-query cache hits for the same parameterized shapes.
+    - Probe with local sqlite query compiler Wasm:
+      - Same-model/action `findUnique` batch compiled to `compacted`.
+      - Mixed `User.findUnique` + `Post.findUnique` batch compiled to `multi` with two plans.
+      - After 100 mixed batches with varying ids and cache max size 1000, retained cache entries were 2 singles + 1 batch because parameterization collapsed the ids to two single-query shapes, and later single-query lookups hit 200/200.
+    - Verification:
+      - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+      - `pnpm --filter @prisma/client build`
+      - Local query compiler Wasm probe for compacted vs multi batch shapes and later single-cache hits.
+    - Decision: keep. This is a low-risk cache-reuse improvement for mixed batches and removes the old `QueryPlanCache` TODO without changing compacted batch execution.
+
   - This commit: Intern cached query plan strings
     - `QueryPlanCache` now canonicalizes repeated string values when retaining join-shaped query plans.
     - Interning is intentionally limited to plans containing compact `j` or legacy `type: "join"` nodes, with a minimum string length of 8.
@@ -1113,11 +1129,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Plan serialization shape.
   - The tagged object tree is verbose and `serde_wasm_bindgen` plan serialization is a large release-Wasm phase.
   - Multiple compact plan shapes are now kept; remaining compact-shape candidates should be gated because previous default-field omissions had mixed throughput.
-  - Larger possible directions:
-    - Compact result field metadata only if a different representation can avoid the Wasm compile regression seen with tuple field nodes.
-    - Provider-level defaults for repeated SQL-query metadata.
-    - Avoid serializing query plans as generic JS objects if the interpreter can consume a more compact representation.
+- Larger possible directions:
+  - Compact result field metadata only if a different representation can avoid the Wasm compile regression seen with tuple field nodes.
+  - Provider-level defaults for repeated SQL-query metadata.
+  - Avoid serializing query plans as generic JS objects if the interpreter can consume a more compact representation.
   - Risk: broad TS interpreter contract change.
+
+- Query-plan cache-key generation.
+  - Current single-query cache hits still run `parameterizeQuery()` and `JSON.stringify(parameterizedQuery.query)`.
+  - Hit-path breakdown in Node/V8:
+    - `findUnique`: parameterization about 1.41 us, stringify about 0.38 us, cache-key concatenation about 0.17 us.
+    - filtered `findMany`: parameterization about 2.45 us, stringify about 0.56 us, key about 0.22 us.
+    - `findMany in filter`: parameterization about 1.90 us, stringify about 0.41 us, key about 0.24 us.
+    - nested blog query: parameterization about 2.58 us, stringify about 1.52 us, key about 0.16 us.
+  - Rejected experiment: a JS structural cache-key writer using type tags and length-delimited strings was much slower than native `JSON.stringify`:
+    - `findUnique`: JSON 0.34 us vs custom 1.35 us.
+    - filtered `findMany`: JSON 0.63 us vs custom 2.53 us.
+    - `findMany in filter`: JSON 0.41 us vs custom 1.73 us.
+    - nested blog query: JSON 1.65 us vs custom 6.48 us.
+  - Decision: do not replace `JSON.stringify` with a JS custom structural writer. Real wins here likely require fusing parameterization and cache-key construction in one traversal or moving toward the larger JS-reference-backed query pipeline.
 
 - Rust ownership/allocation redesign.
   - User specifically suggested reducing "Arc madness" and heap allocations by using references/borrowing and possibly arenas.
