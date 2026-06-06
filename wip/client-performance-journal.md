@@ -2827,6 +2827,67 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm build`
   - Decision: keep.
 
+- Refresh after cache last-hit commit.
+  - Node/V8 cache timing refresh:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `blog page nested rows / warmed cache`: 20.72 us/op.
+    - `blog page nested rows / warmed cache after phase warmup`: 20.58 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `cached request wrapper blog page / nested rows`: 19.53 us/op.
+    - `direct plan blog page / nested rows`: 12.79 us/op.
+    - `inner plan blog page / nested rows`: 10.14 us/op.
+    - `outer data map`: 2.43 us/op.
+    - `direct plan after phase warmup`: 12.56 us/op.
+    - `local executor`: 12.74 us/op.
+  - Full warmed `ClientEngine` CPU profile:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page nested rows / warmed cache after phase warmup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --cpu-prof --cpu-prof-dir /tmp/prisma-full-warmed-profile --cpu-prof-name full-warmed.cpuprofile --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Row timing: 20.49 us/op.
+    - Aggregated self-time leaders: compiled interpreter closures in `query-interpreter.ts` about 10.8%, V8 program about 7.6%, GC about 6.6%, `ClientEngine.request` about 6.5%, `mapObjectWithMappings` about 3.8%, `getBlogPageResultSet` about 3.7%, `serializeSql` about 2.3%, `#parameterizeSelection` about 2.2%, `#executeQueryNode` about 2.2%, and `QueryPlanCache.getSingle` down to about 0.5%.
+    - Interpretation: last-hit caching removed `QueryPlanCache.getSingle()` as a major profile item. Remaining full-engine overhead is distributed across request glue, parameterization, SQL rendering/serialization, data mapping, adapter fixture work, and GC; no single obvious TS micro-target remains.
+  - Workerd/Miniflare refresh:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `cold smoke compile`: 220128.89 us/op host dispatch, compiler init 65.0 ms, compile loop 47.0 ms for 1, average plan 545 B, host heap delta 1.61 MiB.
+    - `retained scalar plan cache`: 579.59 us/op, 100 entries, 7.6 KiB keys, 24.4 KiB plans, heap delta 121.4 KiB.
+    - `retained blog-page plan cache`: 3988.94 us/op, 100 entries, 48.3 KiB keys, 396.1 KiB plans, heap delta 121.2 KiB.
+    - `client-cache findUnique value churn`: 60.99 us/op, 99/1 hits/miss, heap 39.3 KiB.
+    - `client-cache blog-page value churn`: 83.36 us/op, 99/1 hits/miss, heap 361.5 KiB.
+    - `generated client findUnique warmed cache`: 66.92 us/op for 5000 hits, heap 236.2 KiB.
+    - `generated client blog-page warmed cache`: 118.17 us/op for 1000 hits, heap 17.7 KiB.
+    - Interpretation: generated blog-page warmed cache is modestly better than the earlier 120.77 us/op row, while generated findUnique is slightly worse than the earlier 64.88 us/op row. Treat this as a refresh, not a distinct win.
+  - Native allocation profile refresh in `/home/aqrln.guest/prisma-engines`:
+    - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `query-m2o`: graph_build 198 allocs / 51.8 KiB, translate_ir 358 / 47.7 KiB, compile_ir 556 / 99.5 KiB, full_compile 635 / 109.4 KiB.
+    - `query-many-m2m`: graph_build 286 / 54.2 KiB, translate_ir 455 / 48.1 KiB, compile_ir 741 / 102.2 KiB, full_compile 812 / 109.3 KiB.
+    - `nested-pagination-query`: graph_build 235 / 44.8 KiB, translate_ir 313 / 36.2 KiB, compile_ir 548 / 81.0 KiB, full_compile 633 / 90.4 KiB.
+    - `filter-contains-param`: graph_build 322 / 45.2 KiB, translate_ir 164 / 14.8 KiB, compile_ir 486 / 60.1 KiB, full_compile 557 / 67.1 KiB.
+    - `create-nested-create`: graph_build 494 / 76.2 KiB, translate_ir 703 / 79.9 KiB, compile_ir 1197 / 156.1 KiB, full_compile 1310 / 168.5 KiB.
+    - Interpretation: graph build and IR translation remain the largest native allocation sinks; JSON parse/`into_doc` and native plan serialization are smaller in this profile.
+
+- Rejected experiment: avoid scalar `ParsedField` clones in `pairs_to_selections()`.
+  - Hypothesis: `query_graph_builder::read::utils::pairs_to_selections()` cloned `ParsedField` before matching the field kind, so scalar selections paid to clone names/arguments/nested metadata that were immediately discarded.
+  - Change tried in `/home/aqrln.guest/prisma-engines`: match on the resolved field first and clone `pair.parsed_field` only for relation, composite, and `_count` branches.
+  - Allocation profile with the patch:
+    - `query-m2o`: graph_build 198 -> 191 allocs/op; compile_ir 556 -> 549 allocs/op.
+    - `query-many-m2m`: graph_build 286 -> 279; compile_ir 741 -> 734.
+    - `nested-pagination-query`: graph_build 235 -> 230; compile_ir 548 -> 543.
+    - `filter-contains-param`: graph_build 322 -> 319; compile_ir 486 -> 483.
+    - `create-nested-create`: graph_build 494 -> 485; compile_ir 1197 -> 1188.
+    - Allocated bytes were basically unchanged except for noise-level differences.
+  - Criterion evidence:
+    - First focused run with the patch was mostly neutral, but `create-nested-create` showed a statistically significant about 1.5% regression.
+    - Rerunning create rows with the patch gave `create-nested-create-with-composite-id` about 60.68 us/op and `create-nested-create` about 63.87 us/op.
+    - Temporarily reverting the patch and rerunning the same create rows gave about 60.58 us/op and 62.29 us/op respectively, so the original code was materially faster for `create-nested-create` in the direct A/B.
+  - Decision: reverted. The allocation count reduction does not justify a slower create compile row.
+
+- Rejected experiment: single output vector in `ScalarFilterParser::parse()`.
+  - Hypothesis: replacing `Vec<Vec<Filter>>` collection plus flattening with one `Vec<Filter>` and `extend()` would remove a temporary allocation in scalar filter graph build.
+  - Allocation profile with the patch on top of the scalar `ParsedField` clone spike:
+    - `filter-contains-param`: graph_build 319 -> 318 allocs/op and about 45.2 -> 44.7 KiB/op; compile_ir 483 -> 482 allocs/op and about 60.0 -> 59.6 KiB/op.
+    - Other default fixtures were unchanged.
+  - Criterion evidence:
+    - Focused compile rows regressed broadly in that run: `filter-contains-param-insensitive` about +10%, `filter-contains-param` about +5%, `nested-pagination-query` about +9%, `query-m2o-lateral` about +5%, `query-m2o` about +2.5%, and `query-many-m2m` about +1.9%.
+  - Decision: reverted. This looked allocation-positive but was speed-negative enough to reject immediately.
+
 ## Useful Commands
 
 ```sh
