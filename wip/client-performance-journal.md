@@ -2369,6 +2369,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `cargo bench -p query-compiler --bench compilation_bench -- "create-nested-create"`
     - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
 
+- Measurement refresh after harness restart: Workers-shaped cached client rows.
+  - Command: `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Result highlights:
+    - retained scalar plan cache: 100 entries, 7.6 KiB keys, 24.4 KiB serialized plans, 611.61 us/op host dispatch over compile misses.
+    - retained blog-page plan cache: 100 entries, 48.3 KiB keys, 396.1 KiB serialized plans, 4,125.84 us/op host dispatch over compile misses.
+    - client-cache `findUnique` value churn: 66.46 us/op host dispatch, 99 hits / 1 miss.
+    - client-cache blog-page value churn: 82.94 us/op host dispatch, 99 hits / 1 miss.
+    - generated-client `findUnique` warmed cache: 67.69 us/op host dispatch upper bound for 5,000 requests.
+    - generated-client blog-page warmed cache: 123.47 us/op host dispatch upper bound for 1,000 requests.
+  - Interpretation: the generated-client blog-page warmed row is modestly better than the previously journaled 126.79 us/op row, but this is a measurement refresh rather than a distinct optimization result. The edge-runtime product path still points at cached-plan execution/rendering and cache-key/parameterization as the main remaining short-term surfaces; the more radical JS-reference-backed pipeline remains a larger project-level lead.
+
 ## Useful Commands
 
 ```sh
