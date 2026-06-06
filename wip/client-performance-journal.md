@@ -3709,6 +3709,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connect,create-nested-create,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
   - Decision: reverted. This may be valid cleanup for an uncovered one-to-one shape, but it has no measured benefit in the current compiler fixture surface. Revisit only with a targeted fixture or product trace that exercises `one_to_one_inlined_child()` with a create parent.
 
+- Rejected experiment: build projected dependency `SelectionResult` directly in translation.
+  - Hypothesis: `translate.rs::process_edge_selections()` returned `Vec<(SelectedField, PrismaValue)>`, and `transform_node()` immediately passed that vector into `SelectionResult::new(fields)`, which appears to allocate a second vector. Returning `SelectionResult { pairs }` directly and skipping field extraction for `RowSink::Discard` might reduce `translate_ir` allocations in nested write graphs.
+  - Change tried:
+    - `process_edge_selections()` returned `SelectionResult` directly.
+    - `transform_node()` built edge fields only for non-`Discard` sinks.
+    - `process_edge_selections()` borrowed the edge `FieldSelection` and cached `edge_source` once.
+  - Verification while patched:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo check -p query-compiler`
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,create-nested-create,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650,create-nested-connect,update-connect,update-m2m-disconnect' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Allocation profile result:
+    - No allocation-count movement in the sampled rows.
+    - Representative unchanged rows: `create-nested-connectOrCreate-mixed` stayed at `translate_ir` 1705 / `full_compile` 2774 allocs/op, `create-nested-connectOrCreate-one2m` stayed at 1537 / 2458, `update-set-nested` stayed at 1307 / 2166, and `create-nested-create` stayed at 695 / 1300.
+  - Decision: reverted. The apparent intermediate-vector cleanup does not move current allocation counts; do not retry this exact `SelectionResult` direct-construction translator patch without a more specific allocator trace.
+
 - Rejected experiment: cache `ParamGraph` view objects inside the `ParamGraph` instance.
   - Hypothesis: `parameterizeQuery()` calls `ParamGraph.root()`, `inputNode()`, `outputNode()`, `inputEdge()`, and `outputEdge()` on every cache-hit request, and those accessors allocate small wrapper objects. Moving those wrapper allocations to `ParamGraph` construction could reduce hot-path allocation and improve parameterization/cache-key rows.
   - Change tried:
