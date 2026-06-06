@@ -137,6 +137,7 @@
   - Query-plan result `FieldType.arity` is only semantically needed for list fields in the TS data mapper. Omitted arity means non-list; do not reintroduce required/optional scalar arity into Wasm plan serialization.
   - Query-plan result object nodes may serialize as compact tuples `[serializedName, fields]` or `[serializedName, fields, true]` when `skipNulls` is true. The data mapper accepts both compact tuples and the legacy `{ type: 'object', serializedName, fields, skipNulls }` shape.
   - Query-plan result field nodes may omit `type: "field"` and default `dbName` metadata; field nodes are identified by `fieldType`, and missing `dbName` means the surrounding result-object key. Non-list primitive scalar default-`dbName` fields may serialize directly as raw strings in result object `fields` (for example `"int"` or `"string"`). Object-shaped `fieldType` remains for list, enum, bytes, extension, and explicit `dbName` metadata.
+  - `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts` includes concrete and parameterized blog-page scenarios. The parameterized scenarios mirror `ClientEngine` cache-key semantics by running `parameterizeQuery()` before `JSON.stringify(parameterizedQuery.query)` and `compiler.compile()`.
 
 - **Coding conventions**:
   - Use **kebab-case** for new file names (e.g., `query-utils.ts`, `filter-operators.test.ts`).

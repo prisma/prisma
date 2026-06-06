@@ -7,7 +7,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 ## Current Baseline
 
 - Prisma repo current relevant commits:
-  - Current branch: accept compact query-plan support structures
+  - Current branch: add parameterized plan cache memory scenarios
+  - `6ef2cc46c Accept compact query plan support structures`
   - `e7764152f Accept compact Prisma value placeholders`
   - `8eb5e2e01 Accept compact tuple parameter fragments`
   - `afbc383a4 Accept compact parameter fragments`
@@ -868,6 +869,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Scalar-selection cache-key strings were only about 7.9-8.9% of retained serialized shape.
     - The committed nested blog-page scenarios show retained cache-key strings at about 4.8-5.2% of retained serialized cache-key-plus-plan shape.
     - Conclusion: shortening or hashing stored cache keys is low ceiling under current plan shape and not worth a correctness-sensitive cache-key semantics change yet. Plan objects / serialized plan shape still dominate.
+  - Follow-up parameterized-scenario split:
+    - The probe now includes parameterized blog-page variants that mirror `ClientEngine`: `parameterizeQuery()`, then `JSON.stringify(parameterizedQuery.query)` for the cache key and compile request.
+    - With local rebuilt Wasm after compact query-plan support structures:
+      - Blog page parameterized / edge default warm: 100 retained plans, 53.3 KiB keys, 415.0 KiB retained plan JSON.
+      - Blog page parameterized / edge default churn: 100 retained plans, 58.5 KiB keys, 423.4 KiB retained plan JSON.
+      - Blog page parameterized / node default warm: 1,000 retained plans, 562.0 KiB keys, 4.10 MiB retained plan JSON.
+    - The parameterized plan shape is close to the concrete blog-page shape, but cache keys are larger because placeholder markers are part of the structural key. This makes the parameterized scenarios the better guard for future placeholder/cache experiments.
   - This confirms the edge default cache size materially caps retained plan memory for simple unique plans. It is still a Node/V8 proxy, not a true workerd isolate measurement.
 
 - Temporary native allocation profiler over query compiler phases:

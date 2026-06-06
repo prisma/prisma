@@ -1,8 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import type { QueryCompiler } from '@prisma/client-common'
+import { dmmfToRuntimeDataModel, type QueryCompiler } from '@prisma/client-common'
+import { parameterizeQuery, type QueryPlanNode } from '@prisma/client-engine-runtime'
+import { getDMMF } from '@prisma/client-generator-js'
 import type { JsonQuery } from '@prisma/json-protocol'
+import type { ParamGraph } from '@prisma/param-graph'
+import { ParamGraph as ParamGraphClass } from '@prisma/param-graph'
+import { buildParamGraph } from '@prisma/param-graph-builder'
 
 import { QueryPlanCache } from '../../../runtime/core/engines/client/query-plan-cache'
 import { loadQueryCompiler } from './qc-loader'
@@ -43,6 +48,7 @@ type Scenario = {
   kind: ScenarioKind
   maxSize: number
   compileCount: number
+  parameterized?: boolean
 }
 
 type Measurement = Scenario & {
@@ -55,6 +61,11 @@ type Measurement = Scenario & {
 type RetainedSize = {
   cacheKeyBytes: number
   planSerializedBytes: number
+}
+
+type CompiledScenarioQuery = RetainedSize & {
+  cacheKey: string
+  plan: QueryPlanNode
 }
 
 function getStringCacheKeyPart(value: string | null | undefined): string {
@@ -218,24 +229,46 @@ function retainedSerializedSize(retainedSizes: RetainedSize[]): RetainedSize {
   return { cacheKeyBytes, planSerializedBytes }
 }
 
-function measureScenario(compiler: QueryCompiler, scenario: Scenario): Measurement {
+function compileScenarioQuery(
+  compiler: QueryCompiler,
+  query: JsonQuery,
+  paramGraph: ParamGraph,
+  parameterized: boolean,
+): CompiledScenarioQuery {
+  const cacheQuery = parameterized ? parameterizeQuery(query, paramGraph).parameterizedQuery : query
+  const queryPart = JSON.stringify(cacheQuery.query)
+  const request = getSingleQueryRequest(cacheQuery, queryPart)
+  const cacheKey = getSingleQueryCacheKey(cacheQuery, queryPart)
+  const plan = compiler.compile(request)
+
+  return {
+    cacheKey,
+    cacheKeyBytes: cacheKey.length,
+    planSerializedBytes: JSON.stringify(plan).length,
+    plan,
+  }
+}
+
+function measureScenario(compiler: QueryCompiler, paramGraph: ParamGraph, scenario: Scenario): Measurement {
   const cache = new QueryPlanCache(scenario.maxSize)
   const retainedSizes: RetainedSize[] = []
   const before = heapUsed()
 
   for (let i = 0; i < scenario.compileCount; i++) {
     const query = createScenarioQuery(scenario, i)
-    const queryPart = JSON.stringify(query.query)
-    const request = getSingleQueryRequest(query, queryPart)
-    const cacheKey = getSingleQueryCacheKey(query, queryPart)
-    const plan = compiler.compile(request)
+    const { cacheKey, cacheKeyBytes, planSerializedBytes, plan } = compileScenarioQuery(
+      compiler,
+      query,
+      paramGraph,
+      scenario.parameterized === true,
+    )
 
     cache.setSingle(cacheKey, plan)
 
     if (scenario.maxSize > 0) {
       retainedSizes.push({
-        cacheKeyBytes: cacheKey.length,
-        planSerializedBytes: JSON.stringify(plan).length,
+        cacheKeyBytes,
+        planSerializedBytes,
       })
       while (retainedSizes.length > scenario.maxSize) {
         retainedSizes.shift()
@@ -290,6 +323,18 @@ function printMeasurement(measurement: Measurement): void {
 }
 
 async function main(): Promise<void> {
+  const dmmf = await getDMMF({ datamodel: BENCHMARK_DATAMODEL })
+  const paramGraphData = buildParamGraph(dmmf)
+  const runtimeDataModel = dmmfToRuntimeDataModel(dmmf.datamodel)
+  const paramGraph = ParamGraphClass.fromData(paramGraphData, (enumName) => {
+    const enumDef = runtimeDataModel.enums[enumName]
+    const mapping: Record<string, string> = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
+  })
+
   const QueryCompilerClass = await loadQueryCompiler('sqlite')
   const compiler = new QueryCompilerClass({
     provider: 'sqlite',
@@ -299,7 +344,7 @@ async function main(): Promise<void> {
     datamodel: BENCHMARK_DATAMODEL,
   })
 
-  compiler.compile(getSingleQueryRequest(createFindManyQuery(1), JSON.stringify(createFindManyQuery(1).query)))
+  compileScenarioQuery(compiler, createFindManyQuery(1), paramGraph, false)
   forceGc()
 
   const scenarios: Scenario[] = [
@@ -310,10 +355,31 @@ async function main(): Promise<void> {
     { name: 'blog page / edge default warm', kind: 'blog-page', maxSize: 100, compileCount: 100 },
     { name: 'blog page / edge default churn', kind: 'blog-page', maxSize: 100, compileCount: 1000 },
     { name: 'blog page / node default warm', kind: 'blog-page', maxSize: 1000, compileCount: 1000 },
+    {
+      name: 'blog page parameterized / edge default warm',
+      kind: 'blog-page',
+      maxSize: 100,
+      compileCount: 100,
+      parameterized: true,
+    },
+    {
+      name: 'blog page parameterized / edge default churn',
+      kind: 'blog-page',
+      maxSize: 100,
+      compileCount: 1000,
+      parameterized: true,
+    },
+    {
+      name: 'blog page parameterized / node default warm',
+      kind: 'blog-page',
+      maxSize: 1000,
+      compileCount: 1000,
+      parameterized: true,
+    },
   ]
 
   for (const scenario of scenarios) {
-    printMeasurement(measureScenario(compiler, scenario))
+    printMeasurement(measureScenario(compiler, paramGraph, scenario))
   }
 
   compiler.free?.()
