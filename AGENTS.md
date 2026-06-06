@@ -125,6 +125,7 @@
   - `@prisma/client-common` provides shared client utilities used by both generators and runtime.
   - `@prisma/client-runtime-utils` provides utility types and singletons for Prisma Client.
   - Query-plan SQL `argTypes` are forwarded to driver adapters; `dbType` is optional in `@prisma/driver-adapter-utils`, so absent native database types should be omitted from Wasm plan serialization rather than emitted as `dbType: null`.
+  - Query-plan SQL `argTypes` may serialize scalar/no-native-DB parameter types as raw scalar strings (for example `"int"` or `"bigint"`). The client-engine-runtime renderer expands those compact strings back to adapter-facing `{ arity: 'scalar', scalarType }` objects before calling driver adapters.
   - Query-plan result `FieldType.arity` is only semantically needed for list fields in the TS data mapper. Omitted arity means non-list; do not reintroduce required/optional scalar arity into Wasm plan serialization.
   - Query-plan result field nodes may omit `type: "field"` and default `dbName` metadata; field nodes are identified by `fieldType`, and missing `dbName` means the surrounding result-object key. Non-list primitive scalar `fieldType` values may serialize as raw strings (for example `"int"` or `"string"`); list, enum, bytes, and extension metadata stay object-shaped.
 
