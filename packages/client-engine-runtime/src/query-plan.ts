@@ -313,7 +313,9 @@ export type ValidationError =
       }
     }
 
-export type FieldType = { arity: Arity } & FieldScalarType
+export type FieldArity = Arity | 'required' | 'optional'
+
+export type FieldType = { arity?: FieldArity } & FieldScalarType
 
 export type FieldScalarType =
   | {
