@@ -316,21 +316,23 @@ export type ValidationError =
 
 export type FieldArity = Arity | 'required' | 'optional'
 
-export type FieldType = { arity?: FieldArity } & FieldScalarType
+export type FieldType = FieldScalarTypeName | ({ arity?: FieldArity } & FieldScalarType)
+
+export type FieldScalarTypeName =
+  | 'string'
+  | 'int'
+  | 'bigint'
+  | 'float'
+  | 'boolean'
+  | 'json'
+  | 'object'
+  | 'datetime'
+  | 'decimal'
+  | 'unsupported'
 
 export type FieldScalarType =
   | {
-      type:
-        | 'string'
-        | 'int'
-        | 'bigint'
-        | 'float'
-        | 'boolean'
-        | 'json'
-        | 'object'
-        | 'datetime'
-        | 'decimal'
-        | 'unsupported'
+      type: FieldScalarTypeName
     }
   | { type: 'enum'; name: string }
   | { type: 'bytes'; encoding: 'array' | 'base64' | 'hex' }

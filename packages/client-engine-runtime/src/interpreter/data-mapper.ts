@@ -392,10 +392,10 @@ function mapField(
   resultFormat: QueryResultFormat = 'jsonProtocol',
 ): unknown {
   if (value === null) {
-    return fieldType.arity === 'list' ? [] : null
+    return typeof fieldType !== 'string' && fieldType.arity === 'list' ? [] : null
   }
 
-  if (fieldType.arity === 'list') {
+  if (typeof fieldType !== 'string' && fieldType.arity === 'list') {
     const values = value as unknown[]
     const result = new Array<unknown>(values.length)
     for (let i = 0; i < values.length; i++) {
@@ -410,11 +410,13 @@ function mapField(
 function mapValue(
   value: unknown,
   columnName: string,
-  scalarType: FieldScalarType,
+  scalarType: FieldType,
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat = 'jsonProtocol',
 ): unknown {
-  switch (scalarType.type) {
+  const scalarTypeName = typeof scalarType === 'string' ? scalarType : scalarType.type
+
+  switch (scalarTypeName) {
     case 'unsupported':
       return value
 
@@ -536,7 +538,8 @@ function mapValue(
     }
 
     case 'bytes': {
-      switch (scalarType.encoding) {
+      const bytesType = scalarType as Extract<FieldScalarType, { type: 'bytes' }>
+      switch (bytesType.encoding) {
         case 'base64':
           if (typeof value !== 'string') {
             throw new DataMapperError(
@@ -577,25 +580,26 @@ function mapValue(
           throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
 
         default:
-          assertNever(scalarType.encoding, `DataMapper: Unknown bytes encoding: ${scalarType.encoding}`)
+          assertNever(bytesType.encoding, `DataMapper: Unknown bytes encoding: ${bytesType.encoding}`)
       }
       break
     }
 
     case 'enum': {
-      const enumDef = enums[scalarType.name]
+      const enumType = scalarType as Extract<FieldScalarType, { type: 'enum' }>
+      const enumDef = enums[enumType.name]
       if (enumDef === undefined) {
-        throw new DataMapperError(`Unknown enum '${scalarType.name}'`)
+        throw new DataMapperError(`Unknown enum '${enumType.name}'`)
       }
       const enumValue = enumDef[`${value}`]
       if (enumValue === undefined) {
-        throw new DataMapperError(`Value '${value}' not found in enum '${scalarType.name}'`)
+        throw new DataMapperError(`Value '${value}' not found in enum '${enumType.name}'`)
       }
       return enumValue
     }
 
     default:
-      assertNever(scalarType, `DataMapper: Unknown result type: ${scalarType['type']}`)
+      assertNever(scalarTypeName, `DataMapper: Unknown result type: ${scalarTypeName}`)
   }
 }
 
