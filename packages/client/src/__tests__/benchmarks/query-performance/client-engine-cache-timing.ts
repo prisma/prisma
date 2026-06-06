@@ -354,6 +354,13 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
       queries[i] = scenario.query(i)
     }
 
+    if (scenario.cacheMaxSize > 0) {
+      await engine.request(queries[0], {
+        isWrite: false,
+      })
+      resetCounts(counts)
+    }
+
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
@@ -402,7 +409,7 @@ async function main(): Promise<void> {
       query: (iteration) => createFindUniqueQuery(iteration + 1),
     },
     {
-      name: 'findUnique value churn / cache enabled',
+      name: 'findUnique value churn / warmed cache',
       iterations: 500,
       cacheMaxSize: 100,
       query: (iteration) => createFindUniqueQuery(iteration + 1),
@@ -415,7 +422,7 @@ async function main(): Promise<void> {
       resultSet: USER_SCALAR_RESULT,
     },
     {
-      name: 'findMany 10 scalar rows / cache enabled',
+      name: 'findMany 10 scalar rows / warmed cache',
       iterations: 500,
       cacheMaxSize: 100,
       query: () => createFindManyUsersQuery(),
@@ -423,13 +430,13 @@ async function main(): Promise<void> {
     },
     {
       name: 'blog page value churn / cache disabled',
-      iterations: 200,
+      iterations: 500,
       cacheMaxSize: 0,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
     {
-      name: 'blog page value churn / cache enabled',
-      iterations: 200,
+      name: 'blog page value churn / warmed cache',
+      iterations: 500,
       cacheMaxSize: 100,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
