@@ -2972,6 +2972,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - cached request wrapper filter: findUnique 2.34 us/op, findMany stable 2.38, blog-page value churn 4.84, blog-page nested rows 20.51.
   - Decision: reverted. The direct data-map rows got slower, and the broader cached request wrapper rerun showed a clear nested-row regression despite a noisy first nested wrapper number.
 
+- Rejected experiment: reuse no-commenter `LocalExecutor` runtime options.
+  - Hypothesis: `LocalExecutor.execute()` allocates a `QueryRuntimeOptions` object for every no-transaction request, and `QueryInterpreter.run()` immediately copies it into its own `QueryRuntimeContext`. Reusing a no-commenter options object and only mutating `scope` could reduce cached request wrapper overhead.
+  - Change tried:
+    - Added a reusable `#runtimeOptions` object in `packages/client/src/runtime/core/engines/client/LocalExecutor.ts`.
+    - Used it only when there was no transaction and no SQL commenter.
+    - Fell back to a fresh object with `sqlCommenter` for commented requests.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/LocalExecutor.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/LocalExecutor.ts`
+    - `pnpm --filter @prisma/client build`
+  - Timing with the patch:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`
+    - findUnique value churn 2.30 us/op, findMany stable query 2.62, blog-page value churn 4.80, blog-page nested rows 18.71.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`
+    - cached request wrapper 19.02 us/op, direct plan 12.12, inner plan 9.89, outer data map 1.64, interpreter data map precomputed 2.53, direct phase-warmed 12.09, local executor 12.03.
+  - Reverted A/B:
+    - cached request wrapper rows without the patch: findUnique value churn 2.38 us/op, findMany stable query 2.48, blog-page value churn 4.95, blog-page nested rows 18.75.
+  - Decision: reverted. The result was mixed and tiny: it helped some wrapper rows, regressed stable `findMany`, and relied on the subtle fact that `QueryInterpreter.run()` copies options before its first await. The complexity is not justified.
+
 ## Useful Commands
 
 ```sh
