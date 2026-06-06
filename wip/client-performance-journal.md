@@ -7,6 +7,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 ## Current Baseline
 
 - Prisma repo current relevant commits:
+  - `eb652f538 Allow omitted result field db names`
+  - `48d64e816 Add nested plan cache memory probe`
   - `dc8657d7f Accept compact SQL string fragments`
   - `10585f905 Record result field arity omission`
   - `af55854c7 Allow omitted result field arity`
@@ -22,6 +24,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `af7c591f3c6 Omit default result field db names`
   - `dd03ee258c9 Serialize SQL string fragments compactly`
   - `1fe6a7c341b Omit non-list result field arity`
   - `78dfd45e838 Omit empty query arg db types`
@@ -59,6 +62,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `af7c591f3c6 Omit default result field db names`
+    - Result field nodes now omit `dbName` when it matches the result field key. Prisma commit `eb652f538 Allow omitted result field db names` makes `dbName` optional and defaults it to the field key in the data mapper.
+    - Explicit `dbName` remains serialized when SQL column names differ from the result field key.
+    - Same-source local Wasm plan-size savings after compact SQL string fragments:
+      - `findUnique`: 1,567 -> 1,389 bytes, saving 178 bytes.
+      - `findMany filtered`: 1,684 -> 1,506 bytes, saving 178 bytes.
+      - `findMany in filter`: 1,811 -> 1,633 bytes, saving 178 bytes.
+      - `blog page`: 10,713 -> 10,054 bytes, saving 659 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm moved retained serialized plan shape down:
+      - Scalar selection / edge default warm: `planJsonRetained` 75.9 KiB -> 70.6 KiB, heap delta about 238.9 KiB.
+      - Scalar selection / edge default churn: `planJsonRetained` 107.2 KiB -> 96.1 KiB, heap delta about 359.5 KiB.
+      - Scalar selection / node default warm: `planJsonRetained` 934.3 KiB -> 848.5 KiB, heap delta about 2.51 MiB.
+      - Blog page / edge default warm: `planJsonRetained` 952.8 KiB -> 907.7 KiB, heap delta about 2.48 MiB.
+      - Blog page / edge default churn: `planJsonRetained` 979.1 KiB -> 927.7 KiB, heap delta about 2.52 MiB.
+      - Blog page / node default warm: `planJsonRetained` 9.45 MiB -> 8.98 MiB, heap delta about 23.50 MiB.
+    - Verification:
+      - `cargo fmt -p query-compiler --check`
+      - `cargo test -p query-compiler --test queries`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+    - Benchmark gate with local rebuilt Wasm was acceptable after rerun:
+      - First run was slightly low at about 1,432 / 1,214 / 313 compile ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Second run was back in range at about 1,503 / 1,260 / 328 compile ops/sec.
   - `dd03ee258c9 Serialize SQL string fragments compactly`
     - `DbQuery::TemplateSql.fragments` now serializes `Fragment::StringChunk` as a raw string. Other fragment variants (`parameter`, `parameterTuple`, `parameterTupleList`) keep the old tagged-object shape.
     - Prisma commit `dc8657d7f Accept compact SQL string fragments` makes the TypeScript query-plan type and renderer accept both raw string fragments and the legacy `{ type: 'stringChunk', chunk }` object.
@@ -306,6 +337,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Same-source local Wasm output had zero `stringChunk` tags in representative plans and saved 93 / 124 / 217 / 651 bytes on `findUnique`, filtered `findMany`, `findMany in filter`, and the blog-page query.
   - `caching.bench.ts` with rebuilt local Wasm was neutral-to-positive on compile rows: about 1,512 / 1,256 / 323 ops/sec.
   - The query-plan-cache memory probe showed retained plan JSON down to 75.9 KiB for 100 warm edge entries and 934.3 KiB for 1,000 warm node entries.
+
+- Default result field `dbName` omission:
+  - Field nodes omit `dbName` when the SQL/result column name matches the field key in the surrounding result-object map.
+  - Same-source local Wasm output kept explicit `dbName` only for the two non-default blog-page fields in the representative nested plan.
+  - Plan-size savings were 178 bytes on common read plans and 659 bytes on the blog-page plan.
+  - The second `caching.bench.ts` gate was in range/slightly positive on compile rows: about 1,503 / 1,260 / 328 ops/sec.
+  - The query-plan-cache memory probe showed retained plan JSON down to 848.5 KiB for 1,000 warm scalar-selection entries and 8.98 MiB for 1,000 warm blog-page entries.
 
 - Query plan cache memory probe:
   - Added `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
