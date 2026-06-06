@@ -3271,6 +3271,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `cargo test -p query-core filter_fold`
   - Decision: reverted. The one-allocation win on the boolean-group row is far too small, and the focused filter Criterion rows regress significantly. Keep the clone-looking `filter_fold` shape unless a broader filter folding redesign has stronger benchmark evidence.
 
+- Accepted engines change: pre-size search filter folding output.
+  - Commit: `395aad1e7d3 Pre-size search filter folding output` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - `query_graph_builder::extractors::filters::fold_search_filters()` now creates its `output` vector with `Vec::with_capacity(filters.len())`.
+    - This affects grouped filters (`AND` / `OR` / `NOT`) after search-filter folding and leaves the clone/match behavior rejected above unchanged.
+  - Allocation profile:
+    - Common filter/read/nested fixtures were unchanged.
+    - `filter-not-contains-param`, the only explicit boolean-group fixture in the compilation corpus, kept the same allocation count but trimmed bytes: full compile 667 allocs/op both, 80.9 KiB -> 80.5 KiB.
+  - Criterion:
+    - `compile/filter-not-contains-param`: +0.09%, no detected performance change.
+    - `compile/filter-contains-param-insensitive`: +0.51%, within Criterion noise threshold.
+    - `compile/filter-contains-param`: +0.84%, within Criterion noise threshold.
+  - Wasm/product verification:
+    - Local query compiler Wasm build succeeded with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` completed with compile rows in the expected band: findUnique 1,691 ops/sec, findMany filtered 1,336 ops/sec, blog post page 364 ops/sec.
+  - Verification:
+    - `cargo fmt -p query-core`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `git diff --check`
+  - Decision: keep, but treat as a very small allocation-byte cleanup. It is not a general filter speed win.
+
 ## Useful Commands
 
 ```sh
