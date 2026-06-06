@@ -1645,6 +1645,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - This supports the earlier skepticism about `serde_wasm_bindgen` as a standalone win: JSON parse/protocol adaptation allocations are not the dominant native sink in this sample.
     - The next allocation-focused patch should inspect query graph build and translate internals, not start with a broad `Arc`/arena rewrite.
     - For the user’s borrowing/arena idea, the first plausible target is an allocation-heavy substructure inside graph build or translate where ownership is local and measurable. Reworking request parsing alone is unlikely to move enough bytes.
+  - Engines commit `babed274835 Avoid result mapper lookup maps`.
+    - Removed three per-result-structure lookup maps from `query-compiler/query-compiler/src/data_mapper.rs`: the `field_map`, grouped virtual map, and nested-query map.
+    - `get_result_node()` now walks the existing field selection/nested query slices directly while iterating `selection_order`.
+    - Allocation profile default sample after the change:
+      - `translate_ir` dropped by about 1-3 allocations/op and roughly 0.2-0.6 KiB/op across the five default fixtures.
+      - `compile_ir` dropped similarly: e.g. `query-m2o` 564 -> 561 allocations/op and 103.4 -> 102.8 KiB/op; `create-nested-create` 1215 -> 1212 allocations/op and 160.9 -> 160.4 KiB/op.
+    - Compilation bench evidence:
+      - First focused run: `create-nested-create` improved about 3.3%, `filter-contains-param` improved about 3.4%, `query-m2o` and `query-many-m2m` were within noise, and one `nested-pagination-query` run regressed about 2.5%.
+      - Rerun for the mixed rows: `nested-pagination-query` improved about 3.1%, `create-nested-create` improved about 3.1%, `filter-contains-param` was within noise, and `query-m2o` showed no change.
+    - Product-path Node probe after rebuilding local query compiler Wasm and `@prisma/client`:
+      - Warmed `findUnique`: 11.93 us/op.
+      - Warmed `findMany`: 7.45 us/op.
+      - Blog-page value churn warmed cache: 30.54 us/op.
+      - Blog-page nested rows warmed cache: 88.36 us/op.
+      - Cached request wrapper blog-page nested rows: 58.43 us/op.
+      - Direct plan blog-page nested rows: 56.82 us/op.
+    - Decision: keep. The allocation win is modest but broad, compile-bench evidence is neutral-to-positive after rerun, and product-path rows are in a good band.
 
 - Direct `js_sys` / typed request parser.
   - Potentially valuable only if it avoids the owned Rust `JsonBody` / `serde_json::Value` request tree, not if it merely swaps `serde_json::from_str` for `serde_wasm_bindgen::from_value`.
