@@ -3018,6 +3018,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Avoiding Rust-owned SQL strings is a separate rendering/cache-IR problem. It probably needs query-plan SQL represented as templates, interned fragments, or JS-backed pieces; otherwise repeated JS property/string access over FFI can become slower than the current JSON transfer.
   - Suggested first spike: implement a single hot read-only Wasm path that walks `js_sys` values once, computes the structural cache key while extracting placeholders, probes the cache before building owned Rust parse data, and reports cache-hit latency plus Worker retained memory against the current `compile(JSON.stringify(query))` path.
 
+- Accepted engines change: optimize unique filter extraction.
+  - Commit: `9b42bd6e3d9 Optimize unique filter extraction` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - `extract_unique_filter()` now detects the all-unique selector case up front and skips partitioning into unique/rest maps plus recursive extraction of an empty rest filter.
+    - `internal_extract_unique_filter()` now avoids a temporary `Vec<Filter>` for one-field unique selectors and returns the scalar/compound filter directly.
+    - Query snapshots were updated because generated SQL no longer includes redundant tautologies such as `("User"."email" = $1 AND 1=1)`; OR chains similarly became `id = $1 OR id = $2` instead of `(id = $1 AND 1=1) OR ...`.
+  - Allocation profile after the patch, compared to the earlier broad baseline:
+    - `create-nested-connectOrCreate-mixed` full compile: 2,818 allocs / 366.2 KiB -> 2,796 allocs / 363.0 KiB.
+    - `create-nested-connectOrCreate-one2m`: 2,504 / 317.7 KiB -> 2,480 / 314.1 KiB.
+    - `create-nested-connectOrCreate-m2one`: 1,488 / 205.2 KiB -> 1,477 / 203.6 KiB.
+    - `update-set-nested`: 2,220 / 293.9 KiB -> 2,184 / 287.9 KiB.
+    - `delete-one`: 372 / 44.9 KiB -> 361 / 43.2 KiB.
+    - Read shapes without unique selector extraction (`query-m2o`, `query-many-m2m`) were unchanged in this allocation harness.
+  - Criterion timing:
+    - `compile/create-nested-connectOrCreate-m2one`: 69.3 us, change -7.5%.
+    - `compile/create-nested-connectOrCreate-mixed`: 135.1 us, change -5.4%.
+    - `compile/create-nested-connectOrCreate-one2m`: 119.1 us, change -6.0%.
+    - `compile/delete-one`: 15.36 us, change -6.2%.
+    - `compile/update-set-nested-prisma#27650`: 89.3 us, change -6.3%.
+    - `compile/update-set-nested`: 102.8 us, change -8.8%.
+    - `compile/upsert`: 34.0 us, change -5.2%.
+  - Verification:
+    - `cargo fmt`
+    - `ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,query-m2o,query-many-m2m,delete-one,upsert ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested|delete-one|upsert"`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` (generated only unrelated lockfile peer churn, which was removed)
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm build`
+  - Client read-cache benchmark after the rebuilt local Wasm package:
+    - compile findUnique 1,696 ops/sec, findMany filtered 1,359 ops/sec, blog post page 366 ops/sec.
+    - parameterize findUnique 1,153,312 ops/sec, findMany 522,941, findMany in filter 630,538, blog page 519,077.
+    - cache hit key findUnique 751,759 ops/sec, findMany 387,018, findMany in filter 467,072, blog page 313,718.
+  - Decision: keep. The allocation reduction is modest, but the native compile timing win is repeatable and broad on unique-selector write/read paths, and the SQL output is simpler.
+
 ## Useful Commands
 
 ```sh
@@ -3037,6 +3074,7 @@ pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
 cd /home/aqrln.guest/prisma-engines
+ALLOC_PROFILE_QUERIES="$(find query-compiler/query-compiler/tests/data -maxdepth 1 -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort | paste -sd, -)" ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release
 cargo test -p query-compiler --test queries
 cargo check -p query-compiler-wasm --features postgresql
 cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-m2m|query-many|filter|nested"
