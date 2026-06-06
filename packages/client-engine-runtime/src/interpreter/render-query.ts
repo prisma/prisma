@@ -263,6 +263,16 @@ function getFlatTemplateSqlRenderingFromParts(
       continue
     }
 
+    if (fragment === null) {
+      if (placeholderHasNumbering) {
+        sql += `${placeholderPrefix}${placeholderNumber++}`
+      } else {
+        sql += placeholderPrefix
+      }
+      paramCount++
+      continue
+    }
+
     switch (fragment.type) {
       case 'stringChunk':
         sql += fragment.chunk
@@ -375,6 +385,22 @@ function renderTemplateSql(
   for (const fragment of fragments) {
     if (typeof fragment === 'string') {
       sql += fragment
+      continue
+    }
+
+    if (fragment === null) {
+      if (paramIndex >= params.length) {
+        throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+      }
+
+      if (placeholderHasNumbering) {
+        sql += `${placeholderPrefix}${placeholderNumber++}`
+      } else {
+        sql += placeholderPrefix
+      }
+      flattenedParams.push(params[paramIndex])
+      appendArgTypes(flattenedArgTypes, argTypes[paramIndex], 1)
+      paramIndex++
       continue
     }
 
@@ -580,6 +606,13 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
       continue
     }
 
+    if (fragment === null) {
+      getParam(params, paramIndex++)
+      maxParamsPerFragment = Math.max(maxParamsPerFragment, 1)
+      totalParamCount++
+      continue
+    }
+
     let paramSize = 0
     switch (fragment.type) {
       case 'parameter': {
@@ -618,6 +651,14 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
   paramIndex = 0
   for (const fragment of fragments) {
     if (typeof fragment === 'string') {
+      continue
+    }
+
+    if (fragment === null) {
+      const param = getParam(params, paramIndex++)
+      for (const chunkedParam of chunkedParams) {
+        chunkedParam.push(param)
+      }
       continue
     }
 

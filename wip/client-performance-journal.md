@@ -76,6 +76,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `b021a14b2c4 Compact parameter fragments`
+    - Scalar SQL `Parameter` fragments now serialize as `null` in `templateSql.fragments`; string chunks stay raw strings and tuple/tuple-list fragments stay object-shaped.
+    - This is intentionally different from the previously rejected numeric `0` sentinel. The `null` sentinel is unambiguous in the fragment array, preserves legacy `{ type: "parameter" }` support in the TS renderer, and passed the compile benchmark gate.
+    - Prisma runtime accepts both legacy parameter objects and compact `null` parameter fragments in flat rendering, template rendering, and chunking.
+    - Same-source local Wasm plan-size savings:
+      - `findUnique`: 660 -> 612 bytes, saving 48 bytes.
+      - `findMany filtered`: 764 -> 700 bytes, saving 64 bytes.
+      - `findMany in filter`: 795 -> 683 bytes, saving 112 bytes.
+      - `blog page`: 5,727 -> 5,423 bytes, saving 304 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm moved retained serialized plan shape down again:
+      - Scalar selection / edge default warm: `planJsonRetained` 29.6 KiB -> 26.5 KiB.
+      - Scalar selection / edge default churn: `planJsonRetained` 43.6 KiB -> 40.4 KiB.
+      - Scalar selection / node default warm: `planJsonRetained` 374.2 KiB -> 343.0 KiB.
+      - Blog page / edge default warm: `planJsonRetained` 521.6 KiB -> 491.9 KiB.
+      - Blog page / edge default churn: `planJsonRetained` 530.0 KiB -> 500.3 KiB.
+      - Blog page / node default warm: `planJsonRetained` 5.14 MiB -> 4.85 MiB.
+    - Workerd query compiler memory probe with rebuilt runtime:
+      - Cold `findUnique` average serialized plan: 612 B.
+      - Retained scalar cache: 100 plans, 7.6 KiB keys, 26.5 KiB serialized plans.
+      - Retained blog-page cache: 100 plans, 48.3 KiB keys, 491.9 KiB serialized plans.
+    - Verification:
+      - `cargo fmt -p query-builder --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `git diff --check` in both repos
+    - Benchmark gate with local rebuilt Wasm was acceptable:
+      - Caching compile rows: about 1,550 / 1,285 / 341 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows stayed in range at about 1,132,594 / 510,548 / 629,700 / 466,952 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Interpreter sample-plan rerun recovered to about 790,192 simple-select ops/sec, 1,010,773 `findUnique` ops/sec, 316,323 join ops/sec, 795,728 sequence ops/sec, and 46,386 deep nested join ops/sec.
+      - A simple render loop was neutral: legacy object parameter fragments about 37.15M ops/sec; compact `null` parameter fragments about 37.56M ops/sec.
+      - Decision: keep. The compile rows passed, retained plan shape improved in both Node/V8 and workerd probes, and the renderer stayed compatible with legacy fragments.
   - `96eac0718c7 Compact in-memory ops serialization`
     - `InMemoryOps` now serializes only non-default fields: `pagination`, `distinct`, `reverse` when true, non-empty `nested`, and `linkingFields`.
     - `Pagination` now serializes only present `cursor`, `take`, and `skip` fields.
