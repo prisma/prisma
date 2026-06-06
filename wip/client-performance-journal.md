@@ -2481,6 +2481,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile/create-nested-create`: +1.80% average, reported regression.
   - Decision: reverted. Removing one allocation in this path is not worth perturbing the result-subgraph splitting loop; keep the original `result_positions` allocation unless a broader translation rewrite changes the surrounding algorithm.
 
+- Build restart after harness restart.
+  - Restarted `pnpm build` from the Prisma repo root.
+  - Result: passed; 44 packages built, 34 cache hits, wall time 1m37.969s.
+  - Note: the build started before the temporary benchmark-only fused-key probe below, and the edited benchmark file is outside the runtime bundle. The temporary probe was reverted afterward and did not affect the built runtime artifacts.
+
+- Rejected measurement lead: `RequestHandler.unpack()` empty-path wrapper cost.
+  - Hypothesis: the response wrapper/unpack path might still contribute meaningful cache-hit latency because `ClientEngine.request()` returns `{ data: { [action]: result } }` and `RequestHandler.unpack()` peels that shape.
+  - Focused micro-baseline on `RequestHandler.unpack(response, [], undefined, true)` with an already-deserialized `findUnique` payload:
+    - 1,000,000 iterations, elapsed 31.1 ms, average 0.031 us/op.
+  - Decision: dropped as a performance target for the 3x goal. The cost is far below the multi-microsecond parameterization/cache-hit and nested execution gaps.
+
+- Rejected experiment: benchmark-local fused parameterization + cache-key writer.
+  - Hypothesis: on cache hits, deriving the structural cache key and placeholder values in one traversal could avoid building the full parameterized query object before `JSON.stringify(parameterizedQuery.query)`.
+  - Temporary TypeScript-only prototype in `client-engine-cache-timing.ts`:
+    - Walked the same `ParamGraph`.
+    - Emitted byte-identical query-part JSON and cache keys for the benchmark queries.
+    - Collected placeholder values in the same pass.
+    - Added parity assertions against the existing `parameterizeQuery() + JSON.stringify()` path during warmup.
+  - Timing from `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`:
+    - Existing `cache hit key findUnique`: 4.07 us/op; fused writer: 5.57 us/op.
+    - Existing `cache hit key findMany`: 1.69 us/op; fused writer: 2.50 us/op.
+    - Existing `cache hit key blog page`: 6.41 us/op; fused writer: 22.99 us/op.
+    - Existing `cached request wrapper blog page / nested rows`: 40.43 us/op; fused wrapper: 57.07 us/op.
+  - Decision: reverted. A JavaScript/TypeScript fused structural JSON writer is worse than the current copy-on-write parameterizer plus native `JSON.stringify()`. This does not reject the larger JS-owned-data/Rust-owned-IR architecture lead, but it does reject a TS-side custom writer as the next step.
+
 ## Useful Commands
 
 ```sh
