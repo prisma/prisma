@@ -2156,6 +2156,71 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
 
+- Engines commit: skip empty nested relation selection merge (`cc32799cdf5` in `/home/aqrln.guest/prisma-engines`).
+  - Rust-side change: `query-compiler/core/src/query_graph_builder/read/utils.rs::merge_relation_selections()` now returns the accumulated `selected_fields` immediately when `nested_queries.is_empty()` after applying an optional `parent_relation`.
+  - Why this was worth keeping: common reads without nested relation selections previously still allocated an empty `Vec`, built an empty `FieldSelection::union(...)`, and merged it into `selected_fields`. The early return removes that small graph-build allocation path without changing nested-query behavior.
+  - Native allocation profile evidence:
+    - Before: `query-m2o` `graph_build` 200 allocs/op and 54.4 KiB; `compile_ir` 561 allocs/op and 102.8 KiB.
+    - After: `query-m2o` `graph_build` 198 allocs/op and 51.8 KiB; `compile_ir` 559 allocs/op and 100.3 KiB.
+    - Before: `filter-contains-param` `graph_build` 324 allocs/op and 47.8 KiB; `compile_ir` 490 allocs/op and 63.3 KiB.
+    - After: `filter-contains-param` `graph_build` 322 allocs/op and 45.2 KiB; `compile_ir` 488 allocs/op and 60.7 KiB.
+    - Before: `nested-pagination-query` `graph_build` 237 allocs/op and 47.3 KiB; `compile_ir` 553 allocs/op and 84.4 KiB.
+    - After: `nested-pagination-query` `graph_build` 235 allocs/op and 44.8 KiB; `compile_ir` 551 allocs/op and 81.8 KiB.
+  - Full default allocation profile after the patch:
+    - `query-m2o`: `graph_build` 198 allocs/op and 51.8 KiB; `compile_ir` 559 allocs/op and 100.3 KiB; `full_compile` 638 allocs/op and 110.2 KiB.
+    - `query-many-m2m`: `graph_build` 286 allocs/op and 54.2 KiB; `compile_ir` 744 allocs/op and 103.0 KiB; `full_compile` 815 allocs/op and 110.1 KiB.
+    - `nested-pagination-query`: `graph_build` 235 allocs/op and 44.8 KiB; `compile_ir` 551 allocs/op and 81.8 KiB; `full_compile` 636 allocs/op and 91.2 KiB.
+    - `filter-contains-param`: `graph_build` 322 allocs/op and 45.2 KiB; `compile_ir` 488 allocs/op and 60.7 KiB; `full_compile` 559 allocs/op and 67.8 KiB.
+    - `create-nested-create`: `graph_build` 494 allocs/op and 76.2 KiB; `translate_ir` 716 allocs/op and 81.7 KiB; `compile_ir` 1210 allocs/op and 157.9 KiB; `full_compile` 1323 allocs/op and 170.3 KiB.
+  - Criterion evidence:
+    - `query-m2o`: improved about 2.28%, statistically significant.
+    - `filter-contains-param`: improved about 1.53%, statistically significant.
+    - `nested-pagination-query`: improved about 1.86%, statistically significant.
+    - `query-m2o-lateral`: +1.24%, reported within noise threshold.
+    - `filter-contains-param-insensitive`: -0.71%, not significant (`p = 0.32`).
+  - Wasm / Prisma repo handoff:
+    - Rebuilt local query compiler Wasm with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - Ran `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`; it only produced unrelated `@ark/attest` TypeScript peer-resolution lockfile churn, so that lockfile noise was removed.
+    - Rebuilt `@prisma/client-engine-runtime` and `@prisma/client`.
+  - Product-shaped timing after the rebuilt Wasm:
+    - Run 1: cached request wrapper blog-page nested rows 42.15 us/op; direct plan nested rows 42.68; local executor nested rows 37.31; late warmed full `ClientEngine` nested rows 52.51.
+    - Run 2: cached request wrapper blog-page nested rows 42.13 us/op; direct plan nested rows 40.40; local executor nested rows 37.50; late warmed full `ClientEngine` nested rows 52.58.
+    - Interpretation: no material cached-execution change was expected because the patch is compile-time graph-build cleanup; the cached runtime rows stayed in the current good band.
+  - Product-shaped plan-cache memory after the rebuilt Wasm:
+    - `query-plan-cache-memory.ts`: blog-page node default warm retained plan JSON 3.91 MiB for 1,000 entries; blog-page parameterized node default warm retained plan JSON 3.93 MiB for 1,000 entries.
+    - `workerd-query-compiler-memory.ts`: retained blog-page plan cache held 100 entries, 48.3 KiB keys, and 396.1 KiB serialized plans; generated-client warmed blog-page upper-bound host dispatch was 126.79 us/op for 1,000 requests.
+  - Verification:
+    - `cargo fmt -p query-core`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 ALLOC_PROFILE_QUERIES=query-m2o,filter-contains-param,nested-pagination-query cargo run -p query-compiler --example allocation_profile --release`
+    - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|filter-contains-param|nested-pagination-query"`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+
+- Lead update: JS-reference-backed compiler with only internal IR on the Rust heap.
+  - User idea captured for the todo list: do not create or own the input query or built SQL strings on the Rust heap; only internal IR representations should be Rust-owned. In Wasm, the Client would pass the query object as a single reference, Rust would parameterize/cache-key it while walking JS data, and cache hits could return an existing cached query plan JS object without serializing across the FFI boundary.
+  - Practicality assessment: potentially practical, but only as a project-level redesign. It is not the same class of change as replacing `JSON.stringify` / `serde_json::from_str` with `serde_wasm_bindgen::from_value`.
+  - Why it could work:
+    - Wasm reference types / `JsValue` can carry an external JS object reference without copying the whole request into Wasm memory.
+    - A fused parameterization/cache-key/compile-hit walker could avoid constructing the current owned `JsonBody` / `serde_json::Value` tree on cache hits.
+    - Returning and retaining a JS plan object could avoid plan JSON serialization/deserialization and avoid transferring large plan strings on warmed cache hits.
+  - Main risks:
+    - Fine-grained JS property access from Wasm may be slower than one bulk JSON parse unless the walker is carefully structured and measured on Workers, Node, and browsers.
+    - Query validation and graph building currently expect owned Rust strings/maps/values; wrapper types such as `PrismaString` pay off only if these layers consume borrowed or input-backed values instead of immediately cloning.
+    - Avoiding Rust-owned SQL strings is a separate rendering/plan-IR problem. The query builder currently produces SQL string fragments; replacing that with borrowed/interned/template/JS-backed pieces has different lifetimes and cache semantics from request parsing.
+    - Native unit tests and Wasm builds would need dual backing stores for wrapper types, which can complicate trait bounds and error reporting.
+  - Suggested next spike sequence:
+    1. Measure a Wasm-only `JsValue` structural walker that computes the current single-query cache key and parameter map without compiling, comparing against current JS parameterization plus `JSON.stringify` on Node and Miniflare/workerd.
+    2. If positive, prototype a borrowed/request-backed query document layer for a narrow read-only shape and feed it into validation/graph building without `JsonBody`.
+    3. Separately profile plan serialization and SQL string retention to decide whether JS-backed plan objects or template-piece interning have enough memory upside to justify a larger IR/rendering redesign.
+
 ## Useful Commands
 
 ```sh
