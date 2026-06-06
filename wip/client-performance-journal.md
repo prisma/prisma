@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Accept compact query plan validation errors
+  - This commit: Intern cached query plan strings
+  - `2162c650f Accept compact query plan validation errors`
   - `6ef2cc46c Accept compact query plan support structures`
   - `e7764152f Accept compact Prisma value placeholders`
   - `8eb5e2e01 Accept compact tuple parameter fragments`
@@ -89,6 +90,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - `cc7f692dd Inline SQL template chunk planning`
   - Kept as a render-query/chunking improvement.
+
+- Prisma cache-memory commits kept:
+  - This commit: Intern cached query plan strings
+    - `QueryPlanCache` now canonicalizes repeated string values when retaining join-shaped query plans.
+    - Interning is intentionally limited to plans containing compact `j` or legacy `type: "join"` nodes, with a minimum string length of 8.
+    - Reason: broad all-plan interning saves nested blog-page plans but scalar-selection plans mostly retain unique SQL strings and can regress from interner/count-map bookkeeping.
+    - The interner is cache-local and refcounted per entry. Updates, LRU evictions, and `clear()` release old string references so cache churn does not retain strings from evicted plans.
+    - Hotspot measurement before patch:
+      - Across query-compiler fixtures, string values accounted for 43,397 / 59,893 serialized plan bytes (about 72.5%).
+      - SQL-like strings accounted for 25,136 / 59,893 bytes (about 42.0%).
+      - Nested read plans were most SQL-heavy, often 70-85% SQL string bytes.
+    - Refcounted interning threshold sweep in the Node/V8 proxy:
+      - All-string refcounting saved nested blog plans but regressed scalar plans.
+      - Threshold 8 had the best overall signal: scalar node warm about 2.06 MiB -> 1.93 MiB in the sweep; blog node warm about 18.70 MiB -> 16.79 MiB; parameterized blog node warm about 19.09 MiB -> 17.01 MiB.
+    - Final `query-plan-cache-memory.ts` run with join-only interning:
+      - Scalar-selection rows were noisy/slightly higher than the previous run: edge warm 209.4 KiB, edge churn 292.8 KiB, node warm 1.93 MiB.
+      - Blog page / edge default warm: 2.03 MiB previous -> 1.88 MiB.
+      - Blog page / edge default churn: 2.00 MiB previous -> 1.85 MiB.
+      - Blog page / node default warm: 18.75 MiB previous -> 16.88 MiB.
+      - Blog page parameterized / edge default warm: 1.95 MiB previous -> 1.78 MiB.
+      - Blog page parameterized / edge default churn: 2.08 MiB previous -> 1.91 MiB.
+      - Blog page parameterized / node default warm: 19.06 MiB previous -> 17.11 MiB.
+      - Serialized plan bytes are unchanged; this is retained heap reduction by sharing equal string values.
+    - Same-process timing sanity over 1,000 parameterized blog-page compile+cache-set iterations showed no clear slowdown:
+      - Old/simple cache: 3,229.0 / 2,678.8 / 2,624.4 ms.
+      - Current cache: 2,781.6 / 2,663.6 / 2,587.9 ms.
+    - Workerd-flavored probe stayed sane:
+      - Retained scalar plan cache: 100 entries, 7.6 KiB keys, 26.5 KiB serialized plans, host heap delta about 120.8 KiB.
+      - Retained blog-page plan cache: 100 entries, 48.3 KiB keys, 413.8 KiB serialized plans, host heap delta about 127.7 KiB.
+    - Verification:
+      - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Decision: keep. This is a bounded retained-memory win for nested cached plans, with eviction-safe string lifetime management and scalar plans excluded from actual interning.
 
 - Engines parser/allocation commits kept:
   - `1725c633cab Compact query plan validation errors`

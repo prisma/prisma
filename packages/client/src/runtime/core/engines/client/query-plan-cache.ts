@@ -1,8 +1,31 @@
 import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime'
 
+type InternedStringCounts = Map<string, number>
+
 type CacheEntry =
-  | { kind: 'single'; key: string; value: QueryPlanNode; previous?: CacheEntry; next?: CacheEntry }
-  | { kind: 'batch'; key: string; value: BatchResponse; previous?: CacheEntry; next?: CacheEntry }
+  | {
+      kind: 'single'
+      key: string
+      value: QueryPlanNode
+      internedStrings?: InternedStringCounts
+      previous?: CacheEntry
+      next?: CacheEntry
+    }
+  | {
+      kind: 'batch'
+      key: string
+      value: BatchResponse
+      internedStrings?: InternedStringCounts
+      previous?: CacheEntry
+      next?: CacheEntry
+    }
+
+type InternedString = {
+  value: string
+  refCount: number
+}
+
+const MIN_INTERNED_STRING_LENGTH = 8
 
 // todo: store the query plan for the individual queries in a non-compacted batch
 // in the `#singleCache` so that it's possible to reuse them for compatible queries
@@ -10,6 +33,7 @@ type CacheEntry =
 export class QueryPlanCache {
   readonly #singleCache: Map<string, Extract<CacheEntry, { kind: 'single' }>>
   readonly #batchCache: Map<string, Extract<CacheEntry, { kind: 'batch' }>>
+  readonly #stringInterner = new Map<string, InternedString>()
   readonly #maxSize: number
   #head?: CacheEntry
   #tail?: CacheEntry
@@ -37,12 +61,16 @@ export class QueryPlanCache {
 
     const entry = this.#singleCache.get(key)
     if (entry !== undefined) {
-      entry.value = plan
+      this.#releaseInternedStrings(entry.internedStrings)
+      const prepared = this.#prepareCacheValue(plan)
+      entry.value = prepared.value
+      entry.internedStrings = prepared.internedStrings
       this.#touch(entry)
       return
     }
 
-    this.#append({ kind: 'single', key, value: plan })
+    const prepared = this.#prepareCacheValue(plan)
+    this.#append({ kind: 'single', key, value: prepared.value, internedStrings: prepared.internedStrings })
     this.#evictIfNeeded()
   }
 
@@ -62,12 +90,16 @@ export class QueryPlanCache {
 
     const entry = this.#batchCache.get(key)
     if (entry !== undefined) {
-      entry.value = response
+      this.#releaseInternedStrings(entry.internedStrings)
+      const prepared = this.#prepareCacheValue(response)
+      entry.value = prepared.value
+      entry.internedStrings = prepared.internedStrings
       this.#touch(entry)
       return
     }
 
-    this.#append({ kind: 'batch', key, value: response })
+    const prepared = this.#prepareCacheValue(response)
+    this.#append({ kind: 'batch', key, value: prepared.value, internedStrings: prepared.internedStrings })
     this.#evictIfNeeded()
   }
 
@@ -77,6 +109,7 @@ export class QueryPlanCache {
     this.#head = undefined
     this.#tail = undefined
     this.#size = 0
+    this.#stringInterner.clear()
   }
 
   get size(): number {
@@ -160,6 +193,99 @@ export class QueryPlanCache {
     } else {
       this.#batchCache.delete(entry.key)
     }
+    this.#releaseInternedStrings(entry.internedStrings)
     this.#size--
   }
+
+  #prepareCacheValue<T>(value: T): { value: T; internedStrings?: InternedStringCounts } {
+    if (!shouldInternStrings(value)) {
+      return { value, internedStrings: undefined }
+    }
+
+    const internedStrings = new Map<string, number>()
+    return { value: this.#internStrings(value, internedStrings), internedStrings }
+  }
+
+  #internStrings<T>(value: T, counts: InternedStringCounts): T {
+    if (typeof value === 'string') {
+      if (value.length < MIN_INTERNED_STRING_LENGTH) {
+        return value
+      }
+
+      let interned = this.#stringInterner.get(value)
+      if (interned === undefined) {
+        interned = { value, refCount: 0 }
+        this.#stringInterner.set(value, interned)
+      }
+
+      interned.refCount++
+      counts.set(interned.value, (counts.get(interned.value) ?? 0) + 1)
+      return interned.value as T
+    }
+
+    if (Array.isArray(value)) {
+      const items = value as unknown[]
+      for (let i = 0; i < items.length; i++) {
+        items[i] = this.#internStrings(items[i], counts)
+      }
+      return value
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      const record = value as Record<string, unknown>
+      for (const key of Object.keys(record)) {
+        record[key] = this.#internStrings(record[key], counts)
+      }
+    }
+
+    return value
+  }
+
+  #releaseInternedStrings(counts: InternedStringCounts | undefined): void {
+    if (counts === undefined) {
+      return
+    }
+
+    for (const [value, count] of counts) {
+      const interned = this.#stringInterner.get(value)
+      if (interned === undefined) {
+        continue
+      }
+
+      interned.refCount -= count
+      if (interned.refCount <= 0) {
+        this.#stringInterner.delete(value)
+      }
+    }
+  }
+}
+
+function shouldInternStrings(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    if (value[0] === 'j') {
+      return true
+    }
+
+    for (let i = 0; i < value.length; i++) {
+      if (shouldInternStrings(value[i])) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    if ((value as { type?: unknown }).type === 'join') {
+      return true
+    }
+
+    for (const key of Object.keys(value)) {
+      if (shouldInternStrings((value as Record<string, unknown>)[key])) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
