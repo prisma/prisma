@@ -1172,6 +1172,216 @@ function replaceQueryAndJoinLeavesWithPrecomputedGetters(
   }
 }
 
+function replaceRootJoinChildrenWithPrecomputedGetters(
+  plan: QueryPlanNode,
+  state: { queryIndex: number; childIndex: number; foundJoin: boolean },
+): QueryPlanNode {
+  if (!isCompactPlanNode(plan)) {
+    throw new Error('Expected compact query plan')
+  }
+
+  switch (plan[0]) {
+    case 'q': {
+      return ['g', `precomputedQuery${state.queryIndex++}`] as unknown as QueryPlanNode
+    }
+
+    case 'j': {
+      if (state.foundJoin) {
+        return plan
+      }
+
+      state.foundJoin = true
+      return [
+        'j',
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state),
+        (plan[2] as CompactJoinExpression[]).map(
+          (join) =>
+            [
+              ['g', `precomputedRootJoinChild${state.childIndex++}`],
+              join[1],
+              join[2],
+              join[3],
+            ] as CompactJoinExpression,
+        ),
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'x': {
+      throw new Error('Unexpected execute node in precomputed-root-join-child phase')
+    }
+
+    case 'v':
+    case 'g':
+    case 'e':
+    case '0': {
+      return plan
+    }
+
+    case 's':
+    case '+':
+    case 'c': {
+      return [
+        plan[0],
+        plan[1].map((child) => replaceRootJoinChildrenWithPrecomputedGetters(child, state)),
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'l': {
+      return [
+        'l',
+        plan[1].map(
+          (binding) =>
+            [
+              getQueryPlanBindingName(binding),
+              replaceRootJoinChildrenWithPrecomputedGetters(getQueryPlanBindingExpr(binding), state),
+            ] as QueryPlanBinding,
+        ),
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[2], state),
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'd': {
+      return [
+        'd',
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case '?': {
+      return [
+        '?',
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[3], state),
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[4], state),
+      ] as unknown as QueryPlanNode
+    }
+
+    case '-': {
+      return [
+        '-',
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state),
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[2], state),
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'V': {
+      return [
+        'V',
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        plan[3],
+        plan[4],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'i':
+    case 'M': {
+      return [
+        plan[0],
+        replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state),
+        plan[2],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'm': {
+      return ['m', plan[1], replaceRootJoinChildrenWithPrecomputedGetters(plan[2], state)] as unknown as QueryPlanNode
+    }
+
+    case 'p': {
+      return ['p', replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state), plan[2]] as unknown as QueryPlanNode
+    }
+
+    case 'r':
+    case 'R':
+    case 't':
+    case 'u': {
+      return [plan[0], replaceRootJoinChildrenWithPrecomputedGetters(plan[1], state)] as unknown as QueryPlanNode
+    }
+
+    default:
+      throw new Error(`Unexpected compact query plan node: ${plan[0]}`)
+  }
+}
+
+function getRootCompactJoin(plan: QueryPlanNode): QueryPlanCompactNode {
+  if (!isCompactPlanNode(plan)) {
+    throw new Error('Expected compact query plan')
+  }
+
+  switch (plan[0]) {
+    case 'j': {
+      return plan
+    }
+
+    case 'l': {
+      return getRootCompactJoin(plan[2])
+    }
+
+    case 'd':
+    case 'p':
+    case 'r':
+    case 'R':
+    case 't':
+    case 'u':
+    case 'V': {
+      return getRootCompactJoin(plan[1])
+    }
+
+    case 'm': {
+      return getRootCompactJoin(plan[2])
+    }
+
+    default:
+      throw new Error(`Expected compact query plan with a root join, got ${plan[0]}`)
+  }
+}
+
+function wrapWithCompactLetBindings(plan: QueryPlanNode, bindingGroups: QueryPlanBinding[][]): QueryPlanNode {
+  let wrapped = plan
+  for (let i = bindingGroups.length - 1; i >= 0; i--) {
+    wrapped = ['l', bindingGroups[i], wrapped] as unknown as QueryPlanNode
+  }
+  return wrapped
+}
+
+function getRootCompactJoinChildPlans(plan: QueryPlanNode, bindingGroups: QueryPlanBinding[][] = []): QueryPlanNode[] {
+  if (!isCompactPlanNode(plan)) {
+    throw new Error('Expected compact query plan')
+  }
+
+  switch (plan[0]) {
+    case 'j': {
+      return (plan[2] as CompactJoinExpression[]).map((join) => wrapWithCompactLetBindings(join[0], bindingGroups))
+    }
+
+    case 'l': {
+      return getRootCompactJoinChildPlans(plan[2], [...bindingGroups, plan[1] as QueryPlanBinding[]])
+    }
+
+    case 'd':
+    case 'p':
+    case 'r':
+    case 'R':
+    case 't':
+    case 'u':
+    case 'V': {
+      return getRootCompactJoinChildPlans(plan[1], bindingGroups)
+    }
+
+    case 'm': {
+      return getRootCompactJoinChildPlans(plan[2], bindingGroups)
+    }
+
+    default:
+      throw new Error(`Expected compact query plan with root join children, got ${plan[0]}`)
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -1723,6 +1933,96 @@ async function measurePrecomputedJoinLeavesScenario(
         transactionManager: { enabled: false },
       }),
     }
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(precomputedExpr, {
+      queryable: emptyAdapter,
+      scope: scopes[i],
+      transactionManager: { enabled: false },
+    })
+  }
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogInnerValue(
+      await interpreter.run(precomputedExpr, {
+        queryable: emptyAdapter,
+        scope: scopes[i],
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measurePrecomputedRootJoinChildrenScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const emptyAdapter = createAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr } = getRootDataMapPlan(plan)
+  const rootJoin = getRootCompactJoin(expr)
+  const rootJoinChildren = rootJoin[2] as CompactJoinExpression[]
+  const rootJoinChildPlans = getRootCompactJoinChildPlans(expr)
+  const replacementState = { queryIndex: 0, childIndex: 0, foundJoin: false }
+  const precomputedExpr = replaceRootJoinChildrenWithPrecomputedGetters(expr, replacementState)
+  if (!replacementState.foundJoin || replacementState.queryIndex !== 1) {
+    throw new Error(
+      `Expected one root join and one precomputed query, got foundJoin=${replacementState.foundJoin} and ${replacementState.queryIndex} queries`,
+    )
+  }
+  if (replacementState.childIndex !== rootJoinChildren.length) {
+    throw new Error(`Expected ${rootJoinChildren.length} root join children, got ${replacementState.childIndex}`)
+  }
+  if (rootJoinChildPlans.length !== rootJoinChildren.length) {
+    throw new Error(`Expected ${rootJoinChildren.length} root join child plans, got ${rootJoinChildPlans.length}`)
+  }
+
+  const scopes = new Array<Record<string, unknown>>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    const scope = {
+      ...placeholderValues,
+      precomputedQuery0: serializeSql(BLOG_PAGE_POST_RESULT),
+    }
+    for (let childIndex = 0; childIndex < rootJoinChildren.length; childIndex++) {
+      scope[`precomputedRootJoinChild${childIndex}`] = await interpreter.run(rootJoinChildPlans[childIndex], {
+        queryable: adapter,
+        scope: placeholderValues,
+        transactionManager: { enabled: false },
+      })
+    }
+    scopes[i] = scope
   }
 
   for (let i = 0; i < scenario.iterations; i++) {
@@ -2507,6 +2807,15 @@ async function main(): Promise<void> {
         await measurePrecomputedJoinLeavesScenario(compiler, paramGraph, {
           ...scenario,
           name: scenario.name.replace('direct plan', 'precomputed join leaves'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measurePrecomputedRootJoinChildrenScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'precomputed root join children'),
         }),
       )
     }

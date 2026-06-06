@@ -1922,6 +1922,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
     - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
 
+- This commit: Precomputed root join children timing row.
+  - Added `precomputed root join children blog page / nested rows` to `client-engine-cache-timing.ts`.
+  - The benchmark-only transform keeps the top-level `let`/root compact `j` node live, replaces the root parent query with a fresh precomputed row object, and replaces each immediate root join child expression with a fresh precomputed value. Child values are precomputed under the original outer `let` bindings because the child queries depend on generated parent-scope variables such as `@parent$authorId`.
+  - Local run:
+    - warmed `ClientEngine` blog-page nested rows: 92.67 us/op.
+    - cached request wrapper blog-page nested rows: 59.21 us/op.
+    - direct plan blog-page nested rows: 56.23 us/op.
+    - adapter-only seven result sets: 3.09 us/op.
+    - `serializeSql()` over seven result sets: 4.05 us/op.
+    - precomputed query leaves blog-page nested rows: 37.61 us/op.
+    - precomputed root join children blog-page nested rows: 19.92 us/op.
+    - precomputed join leaves blog-page nested rows: 12.35 us/op.
+    - inner plan blog-page nested rows: 42.71 us/op.
+    - direct plan after phase warmup: 46.86 us/op.
+    - local executor blog-page nested rows: 55.46 us/op.
+  - Interpretation update: precomputing only root join children splits the earlier roughly 25 us/op join+child slice into about 7-8 us/op of root join attachment/scheduling beyond top-level scaffolding, and about 18 us/op of child-branch expression evaluation beyond precomputed root children. This makes root attachment worth watching, but it is not enough by itself to justify another small attachment-helper rewrite after the direct compact attachment spike failed. The stronger product-code target is still a lower-overhead child-branch/nested relation representation or compiler plan shape that reduces repeated `let`/`unique`/`mapField`/`process`/nested-join evaluation while preserving hidden join keys.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
 ## Useful Commands
 
 ```sh
