@@ -3688,6 +3688,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched run 2: `parameterize blog page` 4.85 us/op, `cache hit key blog page` 6.32 us/op, `cached request wrapper blog page / nested rows` 33.80 us/op, phase-warmed `ClientEngine` nested row 35.62 us/op.
   - Decision: reverted. The patch adds steady `ParamGraph` construction/retained memory and does not improve the main phase-warmed nested cache-hit row. Do not retry this exact view-object cache without a stronger allocation profile or a benchmark showing a clear request-path win.
 
+- Rejected experiment: nested single-query cache keyed by model/action/query-part.
+  - Hypothesis: the current single-query cache builds a second concatenated cache-key string from `modelName`, `action`, and `queryPart` after `JSON.stringify(parameterizedQuery.query)`. A nested `Map<modelName, Map<action, Map<queryPart, entry>>>` could use the existing `queryPart` string directly, reduce hit-path string concatenation, and slightly reduce retained key bytes by not duplicating the model/action prefix per entry.
+  - Change tried:
+    - Added `QueryPlanCache.getSingleQuery()` / `setSingleQuery()` while preserving the existing flat `getSingle()` / `setSingle()` API.
+    - Switched `ClientEngine.request()` and batch-to-single plan sharing to the new model/action/query-part key path.
+    - Updated the focused `client-engine-cache-timing.ts` cached-wrapper rows to use the same product path.
+    - Added focused `query-plan-cache.test.ts` coverage for query-part entries, LRU eviction, repeated-hit clearing, and individual batch plan sharing.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand` passed with 31 tests.
+    - `pnpm --filter @prisma/client build` passed.
+  - Timing while patched:
+    - Baseline just before the patch: `cached request wrapper blog page / nested rows` 34.06 us/op and phase-warmed `ClientEngine` nested row 34.83 us/op.
+    - Patched run 1: cached wrapper blog-page nested rows 33.45 us/op, 100 retained shapes 30.07 us/op, phase-warmed product row 34.22 us/op.
+    - Patched run 2: cached wrapper blog-page nested rows 34.01 us/op, 100 retained shapes 30.46 us/op, phase-warmed product row 34.82 us/op.
+  - Decision: reverted. The main product row is neutral, the simple-row/cache-wrapper improvements are too small and noisy to justify the more complex cache structure, and the retained key-byte win is only the small model/action prefix while the nested maps add their own retained overhead. Do not retry this exact nested-map key cache without a memory probe showing a clear retained-heap win.
+
 ## Useful Commands
 
 ```sh
