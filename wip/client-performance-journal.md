@@ -2558,6 +2558,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm build`
 
+- Rejected experiment: direct edge iteration in `subgraph_contains_result()`.
+  - Hypothesis: `query-compiler/core/src/query_graph/mod.rs::QueryGraph::subgraph_contains_result()` called `outgoing_edges()`, which allocates and sorts a `Vec<EdgeRef>`, even though this predicate only needs to know whether any outgoing child subgraph contains a result node.
+  - Temporary patch:
+    - Replaced `self.outgoing_edges(node).into_iter().any(...)` with direct `self.graph.edges_directed(node.node_ix, Direction::Outgoing).any(...)`.
+  - Correctness passed:
+    - `cargo test -p query-compiler --test queries`
+  - Allocation profile after the patch was unchanged versus the accepted root-node-vector baseline:
+    - `query-m2o`: `translate_ir` 358, `compile_ir` 556, `full_compile` 635.
+    - `query-many-m2m`: `translate_ir` 455, `compile_ir` 741, `full_compile` 812.
+    - `nested-pagination-query`: `translate_ir` 313, `compile_ir` 548, `full_compile` 633.
+    - `filter-contains-param`: `translate_ir` 164, `compile_ir` 486, `full_compile` 557.
+    - `create-nested-create`: `translate_ir` 707, `compile_ir` 1201, `full_compile` 1314.
+  - Decision: reverted. The measured fixtures do not allocate through this path after the current translation cleanups, likely because common `subgraph_contains_result()` calls hit direct result nodes or leaves before traversing non-empty outgoing edge lists.
+
 ## Useful Commands
 
 ```sh
