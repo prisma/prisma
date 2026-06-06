@@ -3704,6 +3704,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched run 2: cached wrapper blog-page nested rows 34.01 us/op, 100 retained shapes 30.46 us/op, phase-warmed product row 34.82 us/op.
   - Decision: reverted. The main product row is neutral, the simple-row/cache-wrapper improvements are too small and noisy to justify the more complex cache structure, and the retained key-byte win is only the small model/action prefix while the nested maps add their own retained overhead. Do not retry this exact nested-map key cache without a memory probe showing a clear retained-heap win.
 
+- Rejected experiment: disable `LocalExecutor` transaction manager for plans without transaction nodes.
+  - Hypothesis: direct interpreter rows use a disabled transaction-manager context while `LocalExecutor` passes an enabled manager for every non-transaction request. Because the interpreter only reads `context.transactionManager` in legacy `transaction` nodes and compact `t` nodes, scanning each cached plan once and passing `DISABLED_TRANSACTION_MANAGER` for transaction-free plans might reduce ordinary read overhead.
+  - Change tried:
+    - Added a WeakMap-backed `planUsesTransactionNode()` scan in `packages/client/src/runtime/core/engines/client/LocalExecutor.ts`.
+    - `LocalExecutor.execute()` used the live `TransactionManager` only when the plan contained a legacy `type: 'transaction'` node or compact `['t', child]` node; otherwise it passed `DISABLED_TRANSACTION_MANAGER`.
+    - The hot path checked the root plan WeakMap before allocating a traversal `Set`.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts` passed.
+    - `pnpm --filter @prisma/client build` passed.
+  - Timing while patched:
+    - Baseline before patch: `cached request wrapper blog page / nested rows` 34.06 us/op, phase-warmed `ClientEngine` nested row 34.83 us/op, `local executor blog page / nested rows` about 23.06 us/op in the most recent full baseline.
+    - Patched run: cached wrapper blog-page nested rows 35.36 us/op, 100 retained shapes 31.73 us/op, phase-warmed product row 35.56 us/op, local executor blog-page nested rows 23.03 us/op.
+  - Decision: reverted. The added WeakMap/root-plan check did not improve `LocalExecutor` and worsened the request-wrapper/product rows. Do not retry this exact per-execute transaction-node scan; if this area is revisited, the transaction metadata should be attached to cached/prepared plans rather than checked in `LocalExecutor.execute()`.
+
 ## Useful Commands
 
 ```sh
