@@ -3499,6 +3499,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Wasm/product verification:
     - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` succeeded.
     - Local-Wasm `caching.bench.ts` compile rows stayed in the expected band: findUnique 1,721 ops/sec, filtered findMany 1,362 ops/sec, blog post page 365 ops/sec.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` found the workspace already pointing at the local package; the only generated diff was unrelated TypeScript peer-resolution lockfile churn, which was reverted.
+    - Root `pnpm build` passed after the local package update check: 44 successful tasks, 42 cached, client and CLI rebuilt.
   - Verification:
     - `cargo fmt -p query-structure -p query-compiler`
     - `ALLOC_PROFILE_QUERIES='query-m2o,query-m2m,query-many-m2m,query-many-one2m,filter-contains-param,filter-not-contains-param,nested-pagination-query,create-nested-create,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
@@ -3507,6 +3509,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `cargo test -p query-compiler --test queries`
     - `cargo check -p query-compiler-wasm --features postgresql`
     - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm build`
     - `git diff --check`
   - Decision: keep. This is a small ownership/borrowing cleanup with consistent allocation reductions and no Criterion regressions in the focused row set.
 
