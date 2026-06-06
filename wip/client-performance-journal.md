@@ -2631,6 +2631,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm build`
 
+- Rejected experiment: direct `Let` return for binding-only child dependencies.
+  - Hypothesis: `query-compiler/src/translate.rs::NodeTranslator::process_child_with_dependencies()` returns `Expression::Seq([Expression::Let { ... }])` when dependency bindings are present but validation expressions are absent. Since `Expression::simplify()` later collapses one-element sequences, returning the `Let` directly could avoid redundant sequence allocation.
+  - Temporary patch:
+    - Added an early `if validations.is_empty()` branch that returned `Expression::Let { bindings, expr }` directly after translating the child.
+  - Correctness passed:
+    - `cargo fmt -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+  - Allocation profile showed only a narrow nested-write win:
+    - Common read/filter rows were unchanged.
+    - `create-nested-create`: `translate_ir` 703 -> 701 allocs/op, `compile_ir` 1197 -> 1195, `full_compile` 1310 -> 1308.
+  - Criterion rejected it:
+    - `compile/create-nested-create-with-composite-id`: +1.76% regression.
+    - `compile/create-nested-create`: +0.39% within noise threshold.
+  - Decision: reverted. Even though this removes a sequence shape that simplification later discards, the focused timing gate regressed the composite nested-create row.
+
 ## Useful Commands
 
 ```sh
