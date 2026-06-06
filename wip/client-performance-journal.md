@@ -2041,6 +2041,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
 
+- Rejected experiment: connected `ClientEngine.request()` cache-hit fast path.
+  - Hypothesis: a narrow fast path for connected, non-debug, no-SQL-commenter, non-raw single-query cache hits could reduce the late full-engine wrapper gap by bypassing generic request branching, query-info setup, cache-miss handling, and duplicate raw-query checks.
+  - The spike fired only when a cached plan was already present; misses and raw/debug/SQL-commenter requests fell through to the existing implementation.
+  - Local `client-engine-cache-timing.ts` was not positive enough to keep:
+    - Run 1: early warmed nested rows 70.36 us/op, cached request wrapper nested rows 42.91, local executor nested rows 37.40, late warmed nested rows 52.35.
+    - Run 2: early warmed nested rows 69.95 us/op, cached request wrapper nested rows 42.69, local executor nested rows 37.75, late warmed nested rows 52.10.
+  - Decision: reverted. The late full-engine row stayed in the same band as the pre-spike 51.82/57.49 us/op runs, and the gap to cached request wrapper rows did not shrink.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+
 ## Useful Commands
 
 ```sh
