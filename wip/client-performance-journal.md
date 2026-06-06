@@ -2087,6 +2087,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
 
+- This commit: Inline array-of-records `mapField()` extraction.
+  - `QueryInterpreter`'s local `mapField()` helper now handles the common array-of-records case inline and only recurses for nested arrays. This preserves primitive behavior while avoiding one function call per object element when extracting hidden join keys from nested branch arrays.
+  - Local `client-engine-cache-timing.ts` evidence across two runs:
+    - Run 1: cached request wrapper nested rows 43.12 us/op, direct plan nested rows 40.95, local executor nested rows 37.14, precomputed query leaves 20.94, tags branch 15.26, comments branch 13.80, late warmed nested rows 52.51.
+    - Run 2: cached request wrapper nested rows 42.07 us/op, direct plan nested rows 40.63, local executor nested rows 36.95, precomputed query leaves 20.63, tags branch 15.45, comments branch 14.12, late warmed nested rows 52.08.
+  - Interpreter microbench was healthy after rerun: simple select 907,839 ops/sec, findUnique 1,197,819, join 333,167, sequence 923,130, deep nested join 43,461.
+  - Decision: keep as a small nested branch key-extraction cleanup. The full product rows are neutral-to-slightly-positive and the per-branch split improved tags/comments modestly; do not treat it as a major nested-plan win.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` twice.
+
 - Measurement attempt: strip process nodes from the nested blog-page inner plan.
   - Tried adding a benchmark-only transform to replace compact `p` process nodes with their child expression and time the current nested blog-page inner plan without in-memory processing.
   - Outcome: the timing probe failed before measurement with `Expected at least one process node in nested blog-page plan`; the compiled compact inner plan currently has zero `p` nodes.

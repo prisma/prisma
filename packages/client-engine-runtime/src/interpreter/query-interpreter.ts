@@ -1068,7 +1068,14 @@ function mapField(value: Value, field: string): Value {
   if (Array.isArray(value)) {
     const result = new Array<Value>(value.length)
     for (let i = 0; i < value.length; i++) {
-      result[i] = mapField(value[i], field)
+      const item = value[i]
+      if (Array.isArray(item)) {
+        result[i] = mapField(item, field)
+      } else if (typeof item === 'object' && item !== null) {
+        result[i] = item[field] ?? null
+      } else {
+        result[i] = item
+      }
     }
     return result
   }
