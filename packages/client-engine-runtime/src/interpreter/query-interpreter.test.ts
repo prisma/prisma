@@ -144,6 +144,13 @@ test('interprets compact expression nodes', async () => {
   })
 })
 
+test('interprets compact binding tuples', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = ['l', [['record', ['v', { id: 1, name: 'Alice' }]]], ['g', 'record']] satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual({ id: 1, name: 'Alice' })
+})
+
 test('joins single strict keys without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
@@ -172,6 +179,38 @@ test('joins single strict keys without scalar key collisions', async () => {
       canAssumeStrictEquality: true,
     },
   } satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
+    { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
+    { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
+    { id: null, children: [{ parentId: null, value: 'null-value' }] },
+    { id: 'null', children: [{ parentId: 'null', value: 'string-null' }] },
+  ])
+})
+
+test('interprets compact join tuples', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = [
+    'j',
+    ['v', [{ id: '1' }, { id: 1 }, { id: null }, { id: 'null' }]],
+    [
+      [
+        [
+          'v',
+          [
+            { parentId: '1', value: 'string-one' },
+            { parentId: 1, value: 'number-one' },
+            { parentId: null, value: 'null-value' },
+            { parentId: 'null', value: 'string-null' },
+          ],
+        ],
+        [['id', 'parentId']],
+        'children',
+        false,
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
 
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },

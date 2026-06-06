@@ -7,6 +7,12 @@ import {
   type CompactResultObjectNode,
   FieldInitializer,
   FieldOperation,
+  getJoinExpressionChild,
+  getJoinExpressionIsRelationUnique,
+  getJoinExpressionOn,
+  getJoinExpressionParentField,
+  getQueryPlanBindingExpr,
+  getQueryPlanBindingName,
   InMemoryOps,
   isPrismaValueGenerator,
   JoinExpression,
@@ -170,8 +176,11 @@ export class QueryInterpreter {
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
-          nestedScope[binding.name] = value
+          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
+            ...context,
+            scope: nestedScope,
+          })
+          nestedScope[getQueryPlanBindingName(binding)] = value
         }
         return this.interpretNode(node.args.expr, { ...context, scope: nestedScope })
       }
@@ -294,7 +303,7 @@ export class QueryInterpreter {
         const children = await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
+            childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
           })),
         )
 
@@ -437,8 +446,11 @@ export class QueryInterpreter {
       case 'l': {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node[1]) {
-          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
-          nestedScope[binding.name] = value
+          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
+            ...context,
+            scope: nestedScope,
+          })
+          nestedScope[getQueryPlanBindingName(binding)] = value
         }
         return this.interpretNode(node[2], { ...context, scope: nestedScope })
       }
@@ -559,7 +571,7 @@ export class QueryInterpreter {
         const children = await Promise.all(
           node[2].map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
+            childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
           })),
         )
 
@@ -857,11 +869,14 @@ function attachChildrenToParents(
   canAssumeStrictEquality: boolean,
 ) {
   for (const { joinExpr, childRecords } of children) {
-    const parentKeys = new Array<string>(joinExpr.on.length)
-    const childKeys = new Array<string>(joinExpr.on.length)
-    for (let i = 0; i < joinExpr.on.length; i++) {
-      parentKeys[i] = joinExpr.on[i][0]
-      childKeys[i] = joinExpr.on[i][1]
+    const on = getJoinExpressionOn(joinExpr)
+    const parentField = getJoinExpressionParentField(joinExpr)
+    const isRelationUnique = getJoinExpressionIsRelationUnique(joinExpr)
+    const parentKeys = new Array<string>(on.length)
+    const childKeys = new Array<string>(on.length)
+    for (let i = 0; i < on.length; i++) {
+      parentKeys[i] = on[i][0]
+      childKeys[i] = on[i][1]
     }
     const parentKey = parentKeys[0]
     const childKey = childKeys[0]
@@ -882,10 +897,10 @@ function attachChildrenToParents(
       }
       parentMap[key].push(parentRecord)
 
-      if (joinExpr.isRelationUnique) {
-        parentRecord[joinExpr.parentField] = null
+      if (isRelationUnique) {
+        parentRecord[parentField] = null
       } else {
-        parentRecord[joinExpr.parentField] = []
+        parentRecord[parentField] = []
       }
     }
 
@@ -905,10 +920,10 @@ function attachChildrenToParents(
       }
 
       for (const parentRecord of matchingParents) {
-        if (joinExpr.isRelationUnique) {
-          parentRecord[joinExpr.parentField] = childRecord
+        if (isRelationUnique) {
+          parentRecord[parentField] = childRecord
         } else {
-          const childList = parentRecord[joinExpr.parentField] as Value[]
+          const childList = parentRecord[parentField] as Value[]
           childList.push(childRecord)
         }
       }

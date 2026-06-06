@@ -7,7 +7,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 ## Current Baseline
 
 - Prisma repo current relevant commits:
-  - Current branch: accept compact Prisma value placeholders
+  - Current branch: accept compact query-plan support structures
+  - `e7764152f Accept compact Prisma value placeholders`
   - `8eb5e2e01 Accept compact tuple parameter fragments`
   - `afbc383a4 Accept compact parameter fragments`
   - `a3082de43 Record JS-reference pipeline spike sequence`
@@ -35,6 +36,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `9c98a943d71 Compact query plan support structures`
   - `4debcd05b97 Compact Prisma value placeholders`
   - `4dc9111d4cd Compact tuple parameter fragments`
   - `b021a14b2c4 Compact parameter fragments`
@@ -83,6 +85,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `9c98a943d71 Compact query plan support structures`
+    - `Binding` now serializes as `[name, expr]` instead of `{ name, expr }`.
+    - `JoinExpression` now serializes as `[child, on, parentField, isRelationUnique]` instead of `{ child, on, parentField, isRelationUnique }`.
+    - Prisma runtime accepts both compact tuples and legacy objects in the query-plan type and query interpreter.
+    - Parameterized local Wasm plan sizes after compact placeholders:
+      - `findUnique`: unchanged at 625 bytes.
+      - `findMany filtered`: unchanged at 735 bytes.
+      - `findMany in filter`: unchanged at 617 bytes.
+      - `blog page`: 5,024 -> 4,636 bytes, saving 388 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm:
+      - Scalar selection / edge default warm: retained plan JSON stayed at 26.5 KiB for 100 entries.
+      - Scalar selection / node default warm: retained plan JSON stayed at 343.0 KiB for 1,000 entries.
+      - Blog page / edge default warm: retained plan JSON moved 451.6 KiB -> 413.8 KiB for 100 entries.
+      - Blog page / node default warm: retained plan JSON moved 4.46 MiB -> 4.09 MiB for 1,000 entries.
+    - Workerd query compiler memory probe with rebuilt runtime:
+      - Cold `findUnique` average serialized plan unchanged at 612 B.
+      - Retained scalar cache unchanged at 26.5 KiB serialized plans for 100 entries.
+      - Retained blog-page cache: 100 plans, 48.3 KiB keys, 413.8 KiB serialized plans.
+    - Verification:
+      - `cargo fmt -p query-compiler --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Benchmark gate with local rebuilt Wasm was acceptable:
+      - Caching compile rows improved/stayed in range at about 1,587 / 1,302 / 353 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows stayed in range at about 1,152,519 / 511,314 / 580,997 / 473,520 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Interpreter run measured about 781,577 simple-select ops/sec, 1,014,280 `findUnique` ops/sec, 310,697 join ops/sec, 767,296 sequence ops/sec, and 46,732 deep nested join ops/sec.
+      - Decision: keep. This isolates the useful part of the earlier broad nested-structure compaction attempt: nested/blog plans get a material retained-memory win without changing scalar plans or regressing compile/interpreter gates.
+
   - `4debcd05b97 Compact Prisma value placeholders`
     - `PrismaValue::Placeholder` now serializes as `{ "$p": [name, type] }` instead of `{ "prisma__type": "param", "prisma__value": { "name": name, "type": type } }`.
     - Prisma runtime accepts both the compact and legacy placeholder shapes in SQL rendering and compacted batch row matching.

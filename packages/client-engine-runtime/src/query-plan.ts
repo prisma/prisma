@@ -78,9 +78,21 @@ export type CompactResultObjectNode =
   | readonly [serializedName: string | null, fields: Record<string, ResultNode>]
   | readonly [serializedName: string | null, fields: Record<string, ResultNode>, skipNulls: boolean]
 
-export type QueryPlanBinding = {
+export type QueryPlanBinding = LegacyQueryPlanBinding | CompactQueryPlanBinding
+
+export type LegacyQueryPlanBinding = {
   name: string
   expr: QueryPlanNode
+}
+
+export type CompactQueryPlanBinding = readonly [name: string, expr: QueryPlanNode]
+
+export function getQueryPlanBindingName(binding: QueryPlanBinding): string {
+  return 'name' in binding ? binding.name : binding[0]
+}
+
+export function getQueryPlanBindingExpr(binding: QueryPlanBinding): QueryPlanNode {
+  return 'expr' in binding ? binding.expr : binding[1]
 }
 
 export type QueryPlanDbQuery = QueryPlanRawSql | QueryPlanTemplateSql | QueryPlanCompactTemplateSql
@@ -156,11 +168,36 @@ export interface PlaceholderFormat {
 
 export type CompactPlaceholderFormat = readonly [prefix: string, hasNumbering: boolean]
 
-export type JoinExpression = {
+export type JoinExpression = LegacyJoinExpression | CompactJoinExpression
+
+export type LegacyJoinExpression = {
   child: QueryPlanNode
   on: [left: string, right: string][]
   parentField: string
   isRelationUnique: boolean
+}
+
+export type CompactJoinExpression = readonly [
+  child: QueryPlanNode,
+  on: [left: string, right: string][],
+  parentField: string,
+  isRelationUnique: boolean,
+]
+
+export function getJoinExpressionChild(join: JoinExpression): QueryPlanNode {
+  return 'child' in join ? join.child : join[0]
+}
+
+export function getJoinExpressionOn(join: JoinExpression): [left: string, right: string][] {
+  return 'on' in join ? join.on : join[1]
+}
+
+export function getJoinExpressionParentField(join: JoinExpression): string {
+  return 'parentField' in join ? join.parentField : join[2]
+}
+
+export function getJoinExpressionIsRelationUnique(join: JoinExpression): boolean {
+  return 'isRelationUnique' in join ? join.isRelationUnique : join[3]
 }
 
 export type QueryPlanNode = QueryPlanLegacyNode | QueryPlanCompactNode
