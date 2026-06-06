@@ -121,6 +121,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Compile rows regressed to about `1,315` ops/sec for `findUnique`, `1,119` for filtered `findMany`, and `282` for blog page query, below prior current ranges around `1,445`, `1,200`, and `311`.
   - Reverted. The estimated byte savings (about 55 bytes per `templateSql`) did not justify the compile regression.
 
+- Direct scans instead of result-node construction maps.
+  - Rust side replaced short-lived `HashMap`s in `query-compiler/src/data_mapper.rs` (`field_map`, grouped virtuals, `nested_map`) with direct scans over the small field/nested-query slices.
+  - Allocation profile improved only slightly in `translate`: common representative queries saved about 1-3 allocations and about 140-520 allocated bytes.
+  - `cargo test -p query-compiler --test queries` passed.
+  - Native Criterion compile benchmark was mostly neutral, but `compile/update-set-nested` regressed:
+    - `112.63-114.25 us`, change about `+1.11%` to `+2.62%`, Criterion reported "Performance has regressed."
+  - Reverted. The small allocation savings do not justify the regression on a nested write shape.
+
 - `serde_wasm_bindgen::from_value` as a direct replacement for string JSON request parsing.
   - Investigation showed it only removes JS-side parsing/copying unless the Rust request parser is redesigned.
   - Current Rust path deserializes request strings into `JsonBody`, including owned `IndexMap` and `serde_json::Value`, then `JsonProtocolAdapter` walks the tree again into `ArgumentValue`/`Selection`.
@@ -154,7 +162,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Common two-query reads: about 110 bytes.
     - `create-nested-create`: about 220 bytes.
     - `update-set-nested`: about 385 bytes.
-  - This is a plausible small serialization/memory experiment, but not yet implemented or benchmarked.
+  - This was tried later and rejected because `caching.bench.ts` compile rows regressed.
+
+- Temporary native allocation profiler over query compiler phases:
+  - Implemented as a temporary `query-compiler` example with a counting global allocator, then removed.
+  - It measured per-iteration allocation counts/bytes for parse, `into_doc`, graph build, translate, simplify, and native JSON serialization.
+  - Key results for representative fixtures:
+    - `parse`: about 20-38 allocations and 2-4 KB.
+    - `into_doc`: about 44-73 allocations and 4.8-9.4 KB.
+    - `build_graph`: about 192-305 allocations / 48-59 KB for common reads; about 479 allocations / 81 KB for nested create; about 732 allocations / 146 KB for nested update.
+    - `translate`: about 160-465 allocations / 16-53 KB for reads; about 678 allocations / 84 KB for nested create; about 1,303 allocations / 146 KB for nested update.
+    - `simplify`: zero allocations in the measured fixtures.
+    - native `serde_json` plan serialization: about 8-52 allocations / 2.3-35 KB.
+  - Conclusion: native request parsing/adaptation is small relative to graph build and translation. Allocation-reduction work should profile `query-core` graph construction and query-compiler translation internals before broad ownership redesigns.
 
 ## Leads To Try Next
 
