@@ -1039,6 +1039,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`
     - `git diff --check`
 
+- This commit: Fast-path single-child joins.
+  - `QueryInterpreter` now avoids `Promise.all(...map(async ...))` for join nodes with exactly one child expression, in both legacy and compact query-plan forms.
+  - The benchmark blog-page cached plan shape has join child counts `[4, 1, 1]`, so this hits the nested single-child joins while preserving parallel child execution for the root four-child join.
+  - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` after the patch:
+    - `simple select`: 823,572 ops/sec.
+    - `findUnique`: 1,056,212 ops/sec.
+    - `join (1:N)`: 342,072 ops/sec.
+    - `sequence`: 822,728 ops/sec.
+    - `deep nested join`: 46,870 ops/sec.
+  - Product-path `client-engine-cache-timing.ts` stayed noisy/soft on empty-row nested blog rows, which is expected because that fake adapter returns no nested blog rows:
+    - First run: warmed blog-page about 31.73 us/op, cached request wrapper blog-page about 27.50 us/op, direct plan blog-page value-scope churn about 15.90 us/op, local executor blog-page value-scope churn about 16.02 us/op.
+    - Second run: warmed blog-page about 30.99 us/op, cached request wrapper blog-page about 29.25 us/op, direct plan blog-page value-scope churn about 15.72 us/op, local executor blog-page value-scope churn about 16.15 us/op.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts render-query.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+
 ## Rejected Experiments
 
 - Parameterization traversal object-copy variants.

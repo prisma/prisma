@@ -303,12 +303,21 @@ export class QueryInterpreter {
           return { value: null, lastInsertId }
         }
 
-        const children = await Promise.all(
-          node.args.children.map(async (joinExpr) => ({
-            joinExpr,
-            childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
-          })),
-        )
+        const children =
+          node.args.children.length === 1
+            ? [
+                {
+                  joinExpr: node.args.children[0],
+                  childRecords: (await this.interpretNode(getJoinExpressionChild(node.args.children[0]), context))
+                    .value,
+                },
+              ]
+            : await Promise.all(
+                node.args.children.map(async (joinExpr) => ({
+                  joinExpr,
+                  childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
+                })),
+              )
 
         return { value: attachChildrenToParents(parent, children, node.args.canAssumeStrictEquality), lastInsertId }
       }
@@ -567,12 +576,21 @@ export class QueryInterpreter {
           return { value: null, lastInsertId }
         }
 
-        const children = await Promise.all(
-          node[2].map(async (joinExpr) => ({
-            joinExpr,
-            childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
-          })),
-        )
+        const joinExpressions = node[2]
+        const children =
+          joinExpressions.length === 1
+            ? [
+                {
+                  joinExpr: joinExpressions[0],
+                  childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpressions[0]), context)).value,
+                },
+              ]
+            : await Promise.all(
+                joinExpressions.map(async (joinExpr) => ({
+                  joinExpr,
+                  childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
+                })),
+              )
 
         return { value: attachChildrenToParents(parent, children, node[3]), lastInsertId }
       }
