@@ -8,6 +8,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
+  - This commit: Accept compact query plan validation errors
   - `6ef2cc46c Accept compact query plan support structures`
   - `e7764152f Accept compact Prisma value placeholders`
   - `8eb5e2e01 Accept compact tuple parameter fragments`
@@ -37,6 +38,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `1725c633cab Compact query plan validation errors`
   - `ed7f1d14680 Compact Prisma value generator calls`
   - `ba182dbb290 Compact native scalar query arg types`
   - `da6c7014b90 Compact query plan data rules`
@@ -89,6 +91,58 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `1725c633cab Compact query plan validation errors`
+    - Query-plan validation errors now serialize compact identifiers and contexts:
+      - `RELATION_VIOLATION` -> `r` with `[relation, modelA, modelB]`.
+      - `MISSING_RELATED_RECORD` -> `m` with `[model, relation, relationType, operation, neededFor?]`.
+      - `MISSING_RECORD` -> `M` with the operation string.
+      - `INCOMPLETE_CONNECT_INPUT` -> `i` with `expectedRows`.
+      - `INCOMPLETE_CONNECT_OUTPUT` -> `o` with `[expectedRows, relation, relationType]`.
+      - `RECORDS_NOT_CONNECTED` -> `n` with `[relation, parent, child]`.
+    - Prisma runtime accepts compact and legacy validation metadata through `getValidationError()` before calling `performValidation()`.
+    - A/B PostgreSQL write fixture plan sizes with local Wasm:
+      - `create-m2m.json`: 2,632 -> 2,407 bytes, saving 225 bytes.
+      - `create-nested-connect.json`: 2,091 -> 1,920 bytes, saving 171 bytes.
+      - `create-nested-create.json`: 1,879 -> 1,773 bytes, saving 106 bytes.
+      - `create-nested-connectOrCreate-m2one.json`: 1,919 -> 1,892 bytes, saving 27 bytes.
+      - `create-nested-connectOrCreate-mixed.json`: 4,331 -> 4,066 bytes, saving 265 bytes.
+      - `create-nested-connectOrCreate-one2m.json`: 4,128 -> 3,784 bytes, saving 344 bytes.
+      - `update-connect.json`: 2,008 -> 1,837 bytes, saving 171 bytes.
+      - `update-set-nested.json`: 3,003 -> 2,851 bytes, saving 152 bytes.
+      - `delete-one.json`: 429 -> 402 bytes, saving 27 bytes.
+    - Total across validation-heavy fixture probe: 35,682 -> 33,254 bytes, saving 2,428 bytes.
+    - A/B write compile probe after compact validation:
+      - `create-nested-connectOrCreate-mixed.json`: about 2,790 us/compile.
+      - `create-m2m.json`: about 1,541 us/compile.
+      - `update-set-nested.json`: about 1,819 us/compile.
+      - `create-nested-connectOrCreate-m2one.json`: about 1,274 us/compile.
+      - Interpretation: neutral-to-positive versus the previous compact-generator run, which was about 2,945 / 1,568 / 1,839 / 1,294 us/compile on the same fixtures.
+    - Compressed fast Wasm sizes from the previous compact-generator rebuild -> compact validation rebuild:
+      - PostgreSQL: 2,678,171 -> 2,682,287 bytes.
+      - SQLite: 2,602,247 -> 2,607,101 bytes.
+      - MySQL: 2,648,182 -> 2,651,560 bytes.
+      - SQL Server: 2,667,901 -> 2,671,739 bytes.
+      - CockroachDB: 2,692,569 -> 2,696,338 bytes.
+      - The static Wasm cost is roughly 3-5 KiB/provider. Decision depends on retained write-plan cache size, but the change pays back after tens of distinct validation-heavy write plans and has neutral compile/runtime signal.
+    - Verification:
+      - `cargo fmt -p query-compiler --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test validation.test.ts query-interpreter.test.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - Benchmark sanity after compact validation:
+      - Caching compile rows: about 1,520 / 1,286 / 350 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows: about 1,140,528 / 500,111 / 636,032 / 474,266 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Query-plan cache memory probe read/blog rows were unchanged because those scenarios do not carry validation metadata.
+      - Interpreter run measured about 775,442 simple-select ops/sec, 994,602 `findUnique` ops/sec, 305,934 join ops/sec, 760,292 sequence ops/sec, and 45,339 deep nested join ops/sec.
+    - Decision: keep. This is a mutation/write-plan retained-size win with a small static Wasm-size cost and legacy validation metadata support retained in TS.
+
   - `ed7f1d14680 Compact Prisma value generator calls`
     - `PrismaValue::GeneratorCall` now serializes as `{ "$g": [name, args] }` instead of `{ "prisma__type": "generatorCall", "prisma__value": { "name": name, "args": args, "returnType": returnType } }`.
     - Prisma runtime accepts both compact and legacy generator shapes through `getPrismaValueGeneratorName()` / `getPrismaValueGeneratorArgs()`.

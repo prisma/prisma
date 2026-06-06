@@ -15,6 +15,7 @@ import {
   getPrismaValueGeneratorName,
   getQueryPlanBindingExpr,
   getQueryPlanBindingName,
+  getValidationError,
   InMemoryOps,
   isPrismaValueGenerator,
   JoinExpression,
@@ -25,7 +26,6 @@ import {
   type QueryPlanRawSql,
   type ResultNode,
   type ResultObjectNode,
-  type ValidationError,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
@@ -628,7 +628,7 @@ export class QueryInterpreter {
 
       case 'V': {
         const { value, lastInsertId } = await this.interpretNode(node[1], context)
-        performValidation(value, node[2], { errorIdentifier: node[3], context: node[4] } as ValidationError)
+        performValidation(value, node[2], getValidationError(node[3], node[4]))
 
         return { value, lastInsertId }
       }
