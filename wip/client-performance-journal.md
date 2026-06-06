@@ -2601,6 +2601,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile/create-nested-create`: -0.42%, no change detected.
   - Decision: reverted. One saved allocation in nested writes, with no common-read effect and no clear speedup, is not enough to justify changing the helper API.
 
+- Engines commit: avoid redundant single result-scope binding (`af75c51ccd6` in `/home/aqrln.guest/prisma-engines`).
+  - Hypothesis: `query-compiler/src/translate.rs::NodeTranslator::fold_result_scopes()` built a one-binding `Let` for a single result subgraph, then `Expression::simplify()` immediately collapsed that `Let` back to the child expression. Returning the child expression directly should preserve semantics while avoiding redundant translation allocations.
+  - Change:
+    - Added a single-result-subgraph fast path that calls `process_child_with_dependencies()` directly before constructing result-scope bindings.
+  - Allocation profile after the patch:
+    - Common read/filter rows were unchanged.
+    - `create-nested-create`: `translate_ir` 707 -> 703 allocs/op, `compile_ir` 1201 -> 1197, `full_compile` 1314 -> 1310.
+  - Focused Criterion gate:
+    - First pass was neutral within noise: `create-nested-create-with-composite-id` +0.45%, `create-nested-create` +0.69%.
+    - Rerun improved both rows: `create-nested-create-with-composite-id` -1.50%, `create-nested-create` -1.71%.
+  - Prisma repo handoff:
+    - Rebuilt local query compiler Wasm with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` again produced only unrelated `@ark/attest` TypeScript peer-resolution lockfile churn, which was removed.
+    - Rebuilt `@prisma/client`, then root `pnpm build` passed.
+  - Product-path timing sanity after rebuilding the local Wasm package:
+    - `cached request wrapper blog page / nested rows`: 40.04 us/op.
+    - `direct plan after phase warmup blog page / nested rows`: 25.03 us/op.
+    - `local executor blog page / nested rows`: 31.01 us/op.
+    - `blog page nested rows / warmed cache after phase warmup`: 42.30 us/op.
+  - Verification:
+    - `cargo fmt -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "create-nested-create"` twice
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm build`
+
 ## Useful Commands
 
 ```sh
