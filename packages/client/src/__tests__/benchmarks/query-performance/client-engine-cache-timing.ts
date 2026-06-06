@@ -2563,6 +2563,47 @@ async function measureInterpreterGetPrecomputedScenario(
   }
 }
 
+async function measureInterpreterUnitScenario(scenario: DirectPlanScenario): Promise<PlanPhaseMeasurement> {
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const plan = ['0'] as unknown as QueryPlanNode
+  const runtimeOptions = {
+    queryable: {},
+    scope: Object.create(null) as Record<string, unknown>,
+    transactionManager: { enabled: false as const },
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(plan, runtimeOptions)
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    if ((await interpreter.run(plan, runtimeOptions)) === undefined) {
+      checksum++
+    }
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 async function measureInterpreterDataMapPrecomputedScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -3182,6 +3223,15 @@ async function main(): Promise<void> {
         await measureInterpreterGetPrecomputedScenario(compiler, paramGraph, {
           ...scenario,
           name: scenario.name.replace('direct plan', 'interpreter get precomputed'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measureInterpreterUnitScenario({
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'interpreter unit'),
         }),
       )
     }

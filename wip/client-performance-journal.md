@@ -2409,6 +2409,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
     - `git diff --check`
 
+- Measurement probe: interpreter run setup floor.
+  - Added `interpreter unit blog page / nested rows` to `client-engine-cache-timing.ts`. The row runs a compact `unit` plan through `QueryInterpreter.run()` with a stable runtime options object, so it measures the current per-run interpreter setup floor without query rendering, adapter calls, join attachment, or data mapping.
+  - Fresh timing run with the probe:
+    - warmed blog-page nested rows: 62.88 us/op early, 46.95 us/op after phase warmup.
+    - cached request wrapper blog-page nested rows: 42.85 us/op.
+    - local executor blog-page nested rows: 36.06 us/op.
+    - direct plan blog-page nested rows: 36.45 us/op; direct plan after phase warmup: 27.80 us/op.
+    - precomputed query leaves: 21.49 us/op.
+    - interpreter get precomputed: 1.53 us/op.
+    - interpreter unit: 0.93 us/op.
+    - interpreter data map precomputed: 5.57 us/op.
+  - Interpretation: generic `QueryInterpreter.run()` setup is under 1 us/op on this Node/V8 probe and is not a major remaining target. The remaining nested product cost is still in cached-plan execution/data-shape work and wrapper/cache-key overhead, not in the bare run setup.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
 ## Useful Commands
 
 ```sh
