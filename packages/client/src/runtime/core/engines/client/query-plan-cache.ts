@@ -1,6 +1,7 @@
 import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime'
 
 type InternedStringCounts = Map<string, number>
+type InternedQueryCounts = Map<InternedQuery, number>
 
 type CacheEntry =
   | {
@@ -8,6 +9,7 @@ type CacheEntry =
       key: string
       value: QueryPlanNode
       internedStrings?: InternedStringCounts
+      internedQueries?: InternedQueryCounts
       previous?: CacheEntry
       next?: CacheEntry
     }
@@ -16,12 +18,19 @@ type CacheEntry =
       key: string
       value: BatchResponse
       internedStrings?: InternedStringCounts
+      internedQueries?: InternedQueryCounts
       previous?: CacheEntry
       next?: CacheEntry
     }
 
 type InternedString = {
   value: string
+  refCount: number
+}
+
+type InternedQuery = {
+  key: string
+  value: unknown
   refCount: number
 }
 
@@ -36,6 +45,7 @@ export class QueryPlanCache {
   readonly #singleCache: Map<string, Extract<CacheEntry, { kind: 'single' }>>
   readonly #batchCache: Map<string, Extract<CacheEntry, { kind: 'batch' }>>
   readonly #stringInterner = new Map<string, InternedString>()
+  readonly #queryInterner = new Map<string, InternedQuery>()
   readonly #maxSize: number
   #head?: CacheEntry
   #tail?: CacheEntry
@@ -75,15 +85,23 @@ export class QueryPlanCache {
     const entry = this.#singleCache.get(key)
     if (entry !== undefined) {
       this.#releaseInternedStrings(entry.internedStrings)
+      this.#releaseInternedQueries(entry.internedQueries)
       const prepared = this.#prepareCacheValue(plan)
       entry.value = prepared.value
       entry.internedStrings = prepared.internedStrings
+      entry.internedQueries = prepared.internedQueries
       this.#touch(entry)
       return
     }
 
     const prepared = this.#prepareCacheValue(plan)
-    this.#append({ kind: 'single', key, value: prepared.value, internedStrings: prepared.internedStrings })
+    this.#append({
+      kind: 'single',
+      key,
+      value: prepared.value,
+      internedStrings: prepared.internedStrings,
+      internedQueries: prepared.internedQueries,
+    })
     this.#evictIfNeeded()
   }
 
@@ -118,15 +136,23 @@ export class QueryPlanCache {
     const entry = this.#batchCache.get(key)
     if (entry !== undefined) {
       this.#releaseInternedStrings(entry.internedStrings)
+      this.#releaseInternedQueries(entry.internedQueries)
       const prepared = this.#prepareCacheValue(response)
       entry.value = prepared.value
       entry.internedStrings = prepared.internedStrings
+      entry.internedQueries = prepared.internedQueries
       this.#touch(entry)
       return
     }
 
     const prepared = this.#prepareCacheValue(response)
-    this.#append({ kind: 'batch', key, value: prepared.value, internedStrings: prepared.internedStrings })
+    this.#append({
+      kind: 'batch',
+      key,
+      value: prepared.value,
+      internedStrings: prepared.internedStrings,
+      internedQueries: prepared.internedQueries,
+    })
     this.#evictIfNeeded()
   }
 
@@ -141,6 +167,7 @@ export class QueryPlanCache {
     this.#lastBatchEntry = undefined
     this.#size = 0
     this.#stringInterner.clear()
+    this.#queryInterner.clear()
   }
 
   get size(): number {
@@ -237,16 +264,103 @@ export class QueryPlanCache {
       }
     }
     this.#releaseInternedStrings(entry.internedStrings)
+    this.#releaseInternedQueries(entry.internedQueries)
     this.#size--
   }
 
-  #prepareCacheValue<T>(value: T): { value: T; internedStrings?: InternedStringCounts } {
+  #prepareCacheValue<T>(value: T): {
+    value: T
+    internedStrings?: InternedStringCounts
+    internedQueries?: InternedQueryCounts
+  } {
     if (!shouldInternStrings(value)) {
-      return { value, internedStrings: undefined }
+      return { value, internedStrings: undefined, internedQueries: undefined }
     }
 
+    const internedQueries = new Map<InternedQuery, number>()
     const internedStrings = new Map<string, number>()
-    return { value: this.#internStrings(value, internedStrings), internedStrings }
+    const withSharedQueries = this.#internJoinChildQueries(value, internedQueries)
+    return {
+      value: this.#internStrings(withSharedQueries, internedStrings),
+      internedStrings,
+      internedQueries: internedQueries.size === 0 ? undefined : internedQueries,
+    }
+  }
+
+  #internJoinChildQueries<T>(value: T, counts: InternedQueryCounts): T {
+    this.#internJoinChildQueriesInner(value, false, counts)
+    return value
+  }
+
+  #internJoinChildQueriesInner(value: unknown, inJoinChild: boolean, counts: InternedQueryCounts): void {
+    if (Array.isArray(value)) {
+      const tag = value[0]
+      if ((tag === 'q' || tag === 'x') && inJoinChild && value.length > 1) {
+        value[1] = this.#internQuery(value[1], counts)
+        return
+      }
+
+      if (tag === 'j') {
+        this.#internJoinChildQueriesInner(value[1], inJoinChild, counts)
+        const children = value[2]
+        if (Array.isArray(children)) {
+          for (let i = 0; i < children.length; i++) {
+            const child = children[i]
+            if (Array.isArray(child)) {
+              this.#internJoinChildQueriesInner(child[0], true, counts)
+            }
+          }
+        }
+        return
+      }
+
+      for (let i = 0; i < value.length; i++) {
+        this.#internJoinChildQueriesInner(value[i], inJoinChild, counts)
+      }
+      return
+    }
+
+    if (typeof value !== 'object' || value === null) {
+      return
+    }
+
+    const record = value as Record<string, unknown>
+    if ((record.type === 'query' || record.type === 'execute') && inJoinChild && 'args' in record) {
+      record.args = this.#internQuery(record.args, counts)
+      return
+    }
+
+    if (record.type === 'join') {
+      const args = record.args as Record<string, unknown> | undefined
+      if (args !== undefined) {
+        this.#internJoinChildQueriesInner(args.parent, inJoinChild, counts)
+        const children = args.children
+        if (Array.isArray(children)) {
+          for (let i = 0; i < children.length; i++) {
+            const child = children[i] as { child?: unknown }
+            this.#internJoinChildQueriesInner(child.child, true, counts)
+          }
+        }
+      }
+      return
+    }
+
+    for (const key of Object.keys(record)) {
+      this.#internJoinChildQueriesInner(record[key], inJoinChild, counts)
+    }
+  }
+
+  #internQuery(value: unknown, counts: InternedQueryCounts): unknown {
+    const key = JSON.stringify(value)
+    let interned = this.#queryInterner.get(key)
+    if (interned === undefined) {
+      interned = { key, value, refCount: 0 }
+      this.#queryInterner.set(key, interned)
+    }
+
+    interned.refCount++
+    counts.set(interned, (counts.get(interned) ?? 0) + 1)
+    return interned.value
   }
 
   #internStrings<T>(value: T, counts: InternedStringCounts): T {
@@ -298,6 +412,19 @@ export class QueryPlanCache {
       interned.refCount -= count
       if (interned.refCount <= 0) {
         this.#stringInterner.delete(value)
+      }
+    }
+  }
+
+  #releaseInternedQueries(counts: InternedQueryCounts | undefined): void {
+    if (counts === undefined) {
+      return
+    }
+
+    for (const [interned, count] of counts) {
+      interned.refCount -= count
+      if (interned.refCount <= 0) {
+        this.#queryInterner.delete(interned.key)
       }
     }
   }

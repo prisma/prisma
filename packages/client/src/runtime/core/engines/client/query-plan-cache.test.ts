@@ -1,3 +1,5 @@
+import type { QueryPlanNode } from '@prisma/client-engine-runtime'
+
 import { QueryPlanCache } from './query-plan-cache'
 import { getQueryPlanCacheMaxSize } from './query-plan-cache-size'
 
@@ -120,6 +122,33 @@ describe('QueryPlanCache', () => {
 
       expect(cache.getSingle('key1')).toBeUndefined()
       expect(cache.getSingle('key2')).toBe(plan2)
+    })
+
+    it('shares repeated child query templates under joins', () => {
+      const cache = new QueryPlanCache(2)
+      const createDbQuery = (sql: string) => [[sql], ['?', true], [], [], false]
+      const createPlan = (rootSql: string): QueryPlanNode =>
+        [
+          'j',
+          ['q', createDbQuery(rootSql)],
+          [[['q', createDbQuery('SELECT child WHERE parentId = ')], [['id', 'parentId']], 'children', false]],
+          false,
+        ] as unknown as QueryPlanNode
+
+      cache.setSingle('key1', createPlan('SELECT root one WHERE id = '))
+      cache.setSingle('key2', createPlan('SELECT root two WHERE id = '))
+
+      type InspectableJoinPlan = readonly [
+        'j',
+        readonly ['q', unknown],
+        readonly [readonly [readonly ['q', unknown], unknown, string, boolean]],
+        boolean,
+      ]
+      const plan1 = cache.getSingle('key1') as unknown as InspectableJoinPlan
+      const plan2 = cache.getSingle('key2') as unknown as InspectableJoinPlan
+
+      expect(plan1[1][1]).not.toBe(plan2[1][1])
+      expect(plan1[2][0][0][1]).toBe(plan2[2][0][0][1])
     })
   })
 

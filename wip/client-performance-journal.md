@@ -3359,6 +3359,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand` passed.
   - Decision: reverted. The change was semantically fine but timing was flat-to-worse on the cheap cache-hit rows where it should have helped. Do not retry this shape unless a JS engine profile specifically points at the private helper call.
 
+- Accepted change: share repeated child query templates in `QueryPlanCache`.
+  - Commit: this commit (`Share cached child query templates`).
+  - Hypothesis: many distinct cached blog-page plans repeat the same child relation SQL templates under join children even when the root SQL differs by scalar-selection shape. Sharing those child `q`/`x` database-query arrays across cache entries can reduce retained object heap without changing the query-plan wire shape or runtime interpreter contract.
+  - Probe before implementation:
+    - A read-only Node heap prototype canonicalized only compact child `q`/`x` `DbQuery` arrays under joins before inserting plans into the existing `QueryPlanCache`.
+    - Baseline edge warm: 100 retained blog plans, heap delta 1.66 MiB.
+    - Canonical child `DbQuery` edge warm: 100 retained, 1.08 MiB, 6 interned child queries.
+    - Baseline edge churn: 100 retained after 1,000 compiles, 1.76 MiB.
+    - Canonical child `DbQuery` edge churn: 1.23 MiB, 6 interned child queries.
+    - Baseline node warm: 1,000 retained, 15.72 MiB.
+    - Canonical child `DbQuery` node warm: 10.49 MiB, 6 interned child queries.
+  - Kept implementation:
+    - `QueryPlanCache` now keeps a cache-local refcounted query-template interner alongside the existing string interner.
+    - Only `q` / `x` database-query values under join children are canonicalized. Root query templates are intentionally not shared, avoiding interner bloat from distinct root SQL strings.
+    - Cache updates, LRU eviction, and `clear()` release both string and query-template refcounts.
+    - Added a unit test proving repeated child query templates are shared while root query templates remain distinct.
+  - Node cache-memory probe after implementation:
+    - `blog page / edge default warm`: heap delta 1.77 MiB -> 1.31 MiB for 100 entries; retained serialized plan JSON unchanged at 396.1 KiB.
+    - `blog page / edge default churn`: 1.73 MiB -> 1.26 MiB for 100 retained entries after 1,000 compiles; serialized plan JSON unchanged at 403.8 KiB.
+    - `blog page / node default warm`: 15.76 MiB -> 10.83 MiB for 1,000 entries; serialized plan JSON unchanged at 3.91 MiB.
+    - `blog page parameterized / edge default warm`: 1.67 MiB -> 1.18 MiB.
+    - `blog page parameterized / edge default churn`: 1.80 MiB -> 1.31 MiB.
+    - `blog page parameterized / node default warm`: 16.00 MiB -> 11.06 MiB.
+    - Scalar selection rows were effectively unchanged/noisy: edge warm 197.2 KiB -> 202.9 KiB, node warm 1.77 MiB -> 1.78 MiB.
+  - Workerd probe after implementation:
+    - Retained serialized plan bytes are unchanged by design because the cached plan JSON shape is unchanged.
+    - A second workerd run kept retained blog-page compile/cache-set time in the previous band: 391.0 ms for 100 blog-page plans, versus the previous journaled 388.0 ms.
+    - Client-cache blog-page value churn stayed in the previous band: 80.96 us/op host dispatch for 100 requests, 99/1 hits/misses.
+    - Generated-client blog-page warmed cache stayed in the previous upper-bound band: 116.12 us/op host dispatch for 1,000 requests.
+  - Cache-hit timing sanity:
+    - Higher-iteration wrapper pass after implementation: findUnique 2.14 us/op, findMany 2.34 us/op, blog-page value churn 4.81 us/op, blog-page nested rows 19.09 us/op.
+    - This is in the current noisy baseline band and the new interner only runs on cache set, not cache hit.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/query-plan-cache.ts packages/client/src/runtime/core/engines/client/query-plan-cache.test.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/query-plan-cache.ts packages/client/src/runtime/core/engines/client/query-plan-cache.test.ts`
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` twice
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `git diff --check`
+  - Decision: keep. This is a retained-heap win for Workers-style caches with many distinct nested read plans, with no query-plan protocol change and no measurable cache-hit regression.
+
 ## Useful Commands
 
 ```sh
