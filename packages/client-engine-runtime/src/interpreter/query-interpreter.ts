@@ -1057,7 +1057,7 @@ function evaluateProcessingParameters(
       cursor[key] = evaluateArg(value, scope, generators)
     }
   }
-  for (const nested of Object.values(ops.nested)) {
+  for (const nested of Object.values(ops.nested ?? {})) {
     evaluateProcessingParameters(nested, scope, generators)
   }
 }

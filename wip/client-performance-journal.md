@@ -76,6 +76,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `96eac0718c7 Compact in-memory ops serialization`
+    - `InMemoryOps` now serializes only non-default fields: `pagination`, `distinct`, `reverse` when true, non-empty `nested`, and `linkingFields`.
+    - `Pagination` now serializes only present `cursor`, `take`, and `skip` fields.
+    - The TypeScript query-plan type and in-memory-processing interpreter treat missing fields as their previous defaults (`null`, `false`, or `{}`), and focused Vitest coverage checks omitted top-level defaults, compact pagination, and compact nested pagination.
+    - Same-source local Wasm plan-size savings on process-heavy fixtures:
+      - `query-m2o`: 1,071 -> 1,071 bytes, unchanged.
+      - `in-mem-distinct-mapped-field-query`: 491 -> 428 bytes, saving 63 bytes.
+      - `nested-pagination-query`: 1,062 -> 1,004 bytes, saving 58 bytes.
+      - `nested-distinct-pagination-query`: 1,067 -> 1,025 bytes, saving 42 bytes.
+      - `query-non-unique-one2m-pagination`: 1,301 -> 1,243 bytes, saving 58 bytes.
+      - `query-one2m-pagination`: 1,554 -> 1,526 bytes, saving 28 bytes.
+    - Verification:
+      - `cargo fmt -p query-compiler && cargo fmt -p query-compiler --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+      - `git diff --check` in both repos
+    - Benchmark gate with local rebuilt Wasm was acceptable:
+      - Caching compile rows: about 1,609 / 1,330 / 348 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows stayed in range at about 1,127,755 / 493,373 / 621,523 / 470,284 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Interpreter sample-plan rerun measured about 787,680 simple-select ops/sec, 1,021,849 `findUnique` ops/sec, 306,833 join ops/sec, 768,246 sequence ops/sec, and 47,003 deep nested join ops/sec.
+      - Native Criterion process-heavy rows were neutral-to-positive: `in-mem-distinct-mapped-field-join` improved about 5.3%, nested pagination rows improved about 1.5-2.0%, and the remaining sampled rows were unchanged/noise.
+      - Decision: keep. This is a narrow process-node size win with neutral-positive compile/interpreter evidence.
   - `16f5dc6901d Compact expression nodes`
     - `Expression` now serializes as compact tagged tuples instead of the legacy externally tagged `{ type, args }` object form.
     - Prisma commit `3f74503ec Accept compact expression nodes` makes `QueryInterpreter` accept both legacy object-shaped expression nodes and compact tuple-shaped expression nodes. It also keeps the data-map direct result-set fast path for compact `query` and `unique(query)` nodes.
