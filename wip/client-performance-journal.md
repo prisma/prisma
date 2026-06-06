@@ -2745,6 +2745,55 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Aggregated self-time samples were led by compact interpretation (`#interpretCompactNode` 125 samples, `interpretNode` 45), followed by data mapping (`mapArrayOrObjectWithMappings` 37, `mapObjectWithMappings` 36), benchmark adapter result selection (`getBlogPageResultSet` 35), SQL serialization/rendering (`serializeSql` 21, `renderCompactTemplateSqlQuery` 18, `renderTemplateSql` 13), and join attachment (`attachChildrenToParents` 20, `attachSingleStrictKeyChildren` 8).
   - Interpretation: the next runtime win likely needs either a lower-overhead compact read interpreter / compiled executor or a plan/data-shape change that reduces generic compact interpretation and data mapping together. Isolated strict join micro-helpers and leaf render tweaks have already failed or have low ceiling.
 
+- This commit: cache compiled compact query nodes.
+  - Hypothesis: the focused CPU profile showed compact interpretation dominating the phase-warmed nested blog-page row. A cached compact-plan executor can compile hot tuple tags once per plan object into closures, avoiding repeated `#interpretCompactNode` switch dispatch and repeated child matcher setup on cached-plan executions.
+  - Change:
+    - Added a per-`QueryInterpreter` `WeakMap<QueryPlanCompactNode, CompiledQueryNode>` in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - `interpretNode()` now routes compact tuple nodes through compiled closures.
+    - Compiled coverage includes the hot compact tags `v`, `s`, `g`, `l`, `e`, `q`, `x`, `u`, `m`, `j`, `d`, and `p`.
+    - Compact `l` compilation preserves the accepted mapped-join and nested-single-child-join fast paths, with compiled child executors.
+    - Compact `d` compilation preserves the direct `d(q)` and `d(u(q))` result-set data-map fast paths.
+    - Unsupported tags fall back to the existing compact interpreter, so uncommon validation/transaction/conditional/diff/record-init shapes keep old behavior.
+  - Exact focused no-GC A/B with `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows'`-style row filters and `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000`:
+    - With compiled compact nodes:
+      - `direct plan after phase warmup blog page / nested rows`: 683.2 ms total, 13.66 us/op.
+      - `cached request wrapper blog page / nested rows`: 1047.2 ms total, 20.94 us/op.
+      - `local executor blog page / nested rows`: 684.1 ms total, 13.68 us/op.
+      - `inner plan blog page / nested rows`: 542.5 ms total, 10.85 us/op.
+    - Baseline with only this runtime patch temporarily reversed:
+      - `direct plan after phase warmup blog page / nested rows`: 784.3 ms total, 15.69 us/op.
+      - `cached request wrapper blog page / nested rows`: 1137.2 ms total, 22.74 us/op.
+      - `local executor blog page / nested rows`: 797.6 ms total, 15.95 us/op.
+      - `inner plan blog page / nested rows`: 633.7 ms total, 12.67 us/op.
+    - Focused improvement: about 8-14% on the measured nested cached-plan rows, with the inner plan improving about 14.4%.
+    - Final lint-clean source sanity pass with `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000`: cached wrapper 20.50 us/op, direct plan 12.73 us/op, inner plan 9.86 us/op, direct plan after phase warmup 12.42 us/op, local executor 12.25 us/op.
+  - Product-shaped standard `--expose-gc` cache-timing comparison against the immediate pre-spike baseline:
+    - `cached request wrapper blog page / nested rows`: 40.93 -> 37.02 us/op.
+    - `direct plan blog page / nested rows`: 30.22 -> 23.57 us/op.
+    - `inner plan blog page / nested rows`: 21.16 -> 16.93 us/op.
+    - `local executor blog page / nested rows`: 29.47 -> 23.76 us/op.
+    - `direct plan after phase warmup blog page / nested rows`: 23.35 -> 18.37 us/op.
+    - `blog page nested rows / warmed cache after phase warmup`: 39.83 -> 38.87 us/op.
+  - Interpreter microbench with the patch stayed healthy:
+    - simple select 893,886 ops/sec.
+    - findUnique 1,215,698 ops/sec.
+    - join (1:N) 481,049 ops/sec.
+    - sequence 978,323 ops/sec.
+    - deep nested join 50,565 ops/sec.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - temporary A/B patch reversal and reapply around focused cache-timing rows
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+  - Decision: keep. This directly attacks the profiled `#interpretCompactNode` overhead and improves the relevant nested cached-plan rows without hurting the standalone interpreter bench or package builds.
+  - Lead carry-forward: the JS-owned query data / Rust-owned IR idea remains practical only as a larger architecture track. The useful version would pass the JS query object by reference, fuse parameterization, structural cache-keying, cache lookup, and compile-hit handling in one walk, and ideally return a cached JS plan object on hits. A `PrismaString`-style wrapper could help after validation/query graph construction can consume borrowed or input-backed values, but it will not pay off if the path still materializes owned `JsonBody` / `serde_json::Value` maps first. Avoiding Rust-owned SQL strings is likely a separate SQL-template/result-IR project.
+
 ## Useful Commands
 
 ```sh

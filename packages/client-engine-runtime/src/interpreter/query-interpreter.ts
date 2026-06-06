@@ -77,6 +77,8 @@ export type QueryInterpreterSqlCommenter = {
   queryInfo: SqlCommenterQueryInfo
 }
 
+type CompiledQueryNode = (context: QueryRuntimeContext) => Promise<IntermediateValue>
+
 function isObjectResultNode(structure: ResultNode): structure is ResultObjectNode | CompactResultObjectNode {
   if (Array.isArray(structure)) {
     return true
@@ -108,6 +110,7 @@ export class QueryInterpreter {
   readonly #provider?: SchemaProvider
   readonly #maxChunkSize: number | undefined
   readonly #resultFormat: QueryResultFormat
+  readonly #compiledCompactNodeCache = new WeakMap<QueryPlanCompactNode, CompiledQueryNode>()
 
   constructor({
     onQuery,
@@ -163,7 +166,7 @@ export class QueryInterpreter {
 
   private async interpretNode(queryNode: QueryPlanNode, context: QueryRuntimeContext): Promise<IntermediateValue> {
     if (Array.isArray(queryNode)) {
-      return this.#interpretCompactNode(queryNode as QueryPlanCompactNode, context)
+      return this.#getCompiledCompactNode(queryNode as QueryPlanCompactNode)(context)
     }
 
     const node = queryNode as QueryPlanLegacyNode
@@ -458,6 +461,278 @@ export class QueryInterpreter {
 
       default:
         throw new Error(`Unexpected node type: ${(node as { type: unknown }).type}`)
+    }
+  }
+
+  #getCompiledNode(node: QueryPlanNode): CompiledQueryNode {
+    if (Array.isArray(node)) {
+      return this.#getCompiledCompactNode(node as QueryPlanCompactNode)
+    }
+
+    return (context) => this.interpretNode(node, context)
+  }
+
+  #getCompiledCompactNode(node: QueryPlanCompactNode): CompiledQueryNode {
+    const cached = this.#compiledCompactNodeCache.get(node)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const compiled = this.#compileCompactNode(node)
+    this.#compiledCompactNodeCache.set(node, compiled)
+    return compiled
+  }
+
+  #compileCompactNode(node: QueryPlanCompactNode): CompiledQueryNode {
+    switch (node[0]) {
+      case 'v': {
+        const value = node[1]
+        return (context) =>
+          Promise.resolve({
+            value: evaluateArg(value, context.scope, context.generators),
+          })
+      }
+
+      case 's': {
+        const compiledArgs = node[1].map((arg) => this.#getCompiledNode(arg))
+        return async (context) => {
+          let result: IntermediateValue | undefined
+          for (const compiledArg of compiledArgs) {
+            result = await compiledArg(context)
+          }
+          return result ?? { value: undefined }
+        }
+      }
+
+      case 'g': {
+        const name = node[1]
+        return (context) => Promise.resolve({ value: context.scope[name] })
+      }
+
+      case 'l': {
+        const mappedJoin = matchCompactMappedJoin(node)
+        if (mappedJoin !== undefined) {
+          const compiledParent = this.#getCompiledNode(mappedJoin.parentExpr)
+          const compiledChildren = mappedJoin.joinExpressions.map((joinExpr) =>
+            this.#getCompiledNode(getJoinExpressionChild(joinExpr)),
+          )
+
+          return async (context) => {
+            const { value: parent, lastInsertId } = await compiledParent(context)
+            if (parent === null) {
+              return { value: null, lastInsertId }
+            }
+
+            const nestedScope: ScopeBindings = Object.create(context.scope)
+            nestedScope[mappedJoin.parentName] = parent
+            for (const binding of mappedJoin.mappedBindings) {
+              nestedScope[binding.name] = mapField(parent, binding.field)
+            }
+            const nestedContext = { ...context, scope: nestedScope }
+
+            const joinExpressions = mappedJoin.joinExpressions
+            const children =
+              joinExpressions.length === 1
+                ? [
+                    {
+                      joinExpr: joinExpressions[0],
+                      childRecords: (await compiledChildren[0](nestedContext)).value,
+                    },
+                  ]
+                : await Promise.all(
+                    joinExpressions.map(async (joinExpr, index) => ({
+                      joinExpr,
+                      childRecords: (await compiledChildren[index](nestedContext)).value,
+                    })),
+                  )
+
+            return {
+              value: attachChildrenToParents(parent, children, mappedJoin.canAssumeStrictEquality),
+              lastInsertId,
+            }
+          }
+        }
+
+        const nestedSingleChildJoin = matchCompactNestedSingleChildJoin(node)
+        if (nestedSingleChildJoin !== undefined) {
+          const compiledParent = this.#getCompiledNode(nestedSingleChildJoin.parentExpr)
+          const compiledChild = this.#getCompiledNode(nestedSingleChildJoin.childExpr)
+
+          return async (context) => {
+            const { value: parent, lastInsertId } = await compiledParent(context)
+            if (parent === null) {
+              return { value: null, lastInsertId }
+            }
+
+            const nestedScope: ScopeBindings = Object.create(context.scope)
+            nestedScope[nestedSingleChildJoin.parentName] = parent
+            nestedScope[nestedSingleChildJoin.mappedName] = mapField(parent, nestedSingleChildJoin.mappedField)
+            const nestedContext = { ...context, scope: nestedScope }
+
+            const { value: childRecords } = await compiledChild(nestedContext)
+
+            return {
+              value: attachChildrenToParents(
+                parent,
+                [
+                  {
+                    joinExpr: nestedSingleChildJoin.joinExpr,
+                    childRecords,
+                  },
+                ],
+                nestedSingleChildJoin.canAssumeStrictEquality,
+              ),
+              lastInsertId,
+            }
+          }
+        }
+
+        const compiledBindings = node[1].map((binding) => ({
+          name: getQueryPlanBindingName(binding),
+          expr: this.#getCompiledNode(getQueryPlanBindingExpr(binding)),
+        }))
+        const compiledExpr = this.#getCompiledNode(node[2])
+
+        return async (context) => {
+          const nestedScope: ScopeBindings = Object.create(context.scope)
+          const nestedContext = { ...context, scope: nestedScope }
+          for (const binding of compiledBindings) {
+            const { value } = await binding.expr(nestedContext)
+            nestedScope[binding.name] = value
+          }
+          return compiledExpr(nestedContext)
+        }
+      }
+
+      case 'e': {
+        const names = node[1]
+        return (context) => {
+          for (const name of names) {
+            const value = context.scope[name]
+            if (!isEmpty(value)) {
+              return Promise.resolve({ value })
+            }
+          }
+          return Promise.resolve({ value: [] })
+        }
+      }
+
+      case 'q': {
+        const dbQuery = node[1]
+        return async (context) => this.#executeQueryNode(dbQuery, context)
+      }
+
+      case 'x': {
+        const dbQuery = node[1]
+        return async (context) => this.#executeNode(dbQuery, context)
+      }
+
+      case 'u': {
+        const compiledExpr = this.#getCompiledNode(node[1])
+        return async (context) => {
+          const { value, lastInsertId } = await compiledExpr(context)
+          if (!Array.isArray(value)) {
+            return { value, lastInsertId }
+          }
+          if (value.length > 1) {
+            throw new Error(`Expected zero or one element, got ${value.length}`)
+          }
+          return { value: value[0] ?? null, lastInsertId }
+        }
+      }
+
+      case 'm': {
+        const field = node[1]
+        const compiledExpr = this.#getCompiledNode(node[2])
+        return async (context) => {
+          const { value, lastInsertId } = await compiledExpr(context)
+          return { value: mapField(value, field), lastInsertId }
+        }
+      }
+
+      case 'j': {
+        const compiledParent = this.#getCompiledNode(node[1])
+        const joinExpressions = node[2]
+        const compiledChildren = joinExpressions.map((joinExpr) =>
+          this.#getCompiledNode(getJoinExpressionChild(joinExpr)),
+        )
+        const canAssumeStrictEquality = node[3]
+
+        return async (context) => {
+          const { value: parent, lastInsertId } = await compiledParent(context)
+          if (parent === null) {
+            return { value: null, lastInsertId }
+          }
+
+          const children =
+            joinExpressions.length === 1
+              ? [
+                  {
+                    joinExpr: joinExpressions[0],
+                    childRecords: (await compiledChildren[0](context)).value,
+                  },
+                ]
+              : await Promise.all(
+                  joinExpressions.map(async (joinExpr, index) => ({
+                    joinExpr,
+                    childRecords: (await compiledChildren[index](context)).value,
+                  })),
+                )
+
+          return { value: attachChildrenToParents(parent, children, canAssumeStrictEquality), lastInsertId }
+        }
+      }
+
+      case 'd': {
+        const expr = node[1]
+        const structure = node[2]
+        const enums = node[3]
+        if (isCompactQueryNode(expr) && !isRawSqlQuery(expr[1])) {
+          if (isObjectResultNode(structure)) {
+            const dbQuery = expr[1]
+            return async (context) => {
+              const results = await this.#executeQuery(dbQuery, context)
+              return {
+                value: applyDataMapToResultSet(results, structure, enums, this.#resultFormat),
+                lastInsertId: results.lastInsertId,
+              }
+            }
+          }
+        } else if (isCompactUniqueQueryNode(expr) && !isRawSqlQuery(expr[1][1])) {
+          if (isObjectResultNode(structure)) {
+            const dbQuery = expr[1][1]
+            return async (context) => {
+              const results = await this.#executeQuery(dbQuery, context)
+              const value = applyDataMapToResultSet(results, structure, enums, this.#resultFormat)
+
+              if (value.length > 1) {
+                throw new Error(`Expected zero or one element, got ${value.length}`)
+              }
+              return { value: value[0] ?? null, lastInsertId: results.lastInsertId }
+            }
+          }
+        }
+
+        const compiledExpr = this.#getCompiledNode(expr)
+        return async (context) => {
+          const { value, lastInsertId } = await compiledExpr(context)
+          return { value: applyDataMap(value, structure, enums, this.#resultFormat), lastInsertId }
+        }
+      }
+
+      case 'p': {
+        const compiledExpr = this.#getCompiledNode(node[1])
+        const operations = node[2]
+        return async (context) => {
+          const { value, lastInsertId } = await compiledExpr(context)
+          const ops = cloneObject(operations)
+          evaluateProcessingParameters(ops, context.scope, context.generators)
+          return { value: processRecords(value, ops), lastInsertId }
+        }
+      }
+
+      default:
+        return (context) => this.#interpretCompactNode(node, context)
     }
   }
 
@@ -831,6 +1106,81 @@ export class QueryInterpreter {
 
   #usesQueryInstrumentation(): boolean {
     return this.#onQuery !== undefined || this.#tracingHelper.isEnabled()
+  }
+
+  async #executeNode(
+    dbQuery: DeepReadonly<QueryPlanDbQuery>,
+    context: QueryRuntimeContext,
+  ): Promise<IntermediateValue> {
+    const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
+    const isRaw = isRawSqlQuery(dbQuery)
+
+    if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+      const result = context.queryable.executeRaw(asMutable(queries[0]))
+      return {
+        value: isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result,
+      }
+    }
+
+    let sum = 0
+    for (const query of queries) {
+      const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+      if (context.usesQueryInstrumentation) {
+        sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+          isRaw
+            ? context.queryable.executeRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+            : context.queryable.executeRaw(asMutable(queryToExecute)),
+        )
+      } else {
+        sum += isRaw
+          ? await context.queryable.executeRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+          : await context.queryable.executeRaw(asMutable(queryToExecute))
+      }
+    }
+
+    return { value: sum }
+  }
+
+  async #executeQueryNode(
+    dbQuery: DeepReadonly<QueryPlanDbQuery>,
+    context: QueryRuntimeContext,
+  ): Promise<IntermediateValue> {
+    const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
+    const isRaw = isRawSqlQuery(dbQuery)
+
+    if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
+      const result = context.queryable.queryRaw(asMutable(queries[0]))
+      const results = isRaw ? await result.catch(rethrowAsUserFacingRawError) : await result
+      return {
+        value: isRaw ? this.#rawSerializer(results) : this.#serializer(results),
+        lastInsertId: results.lastInsertId,
+      }
+    }
+
+    let results: SqlResultSet | undefined
+    for (const query of queries) {
+      const queryToExecute = context.hasSqlCommenter ? applyComments(query, context.sqlCommenter!) : query
+      const result = context.usesQueryInstrumentation
+        ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+            isRaw
+              ? context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+              : context.queryable.queryRaw(asMutable(queryToExecute)),
+          )
+        : isRaw
+          ? await context.queryable.queryRaw(asMutable(queryToExecute)).catch(rethrowAsUserFacingRawError)
+          : await context.queryable.queryRaw(asMutable(queryToExecute))
+      if (results === undefined) {
+        results = result
+      } else {
+        results.rows.push(...result.rows)
+        results.lastInsertId = result.lastInsertId
+      }
+    }
+
+    return {
+      value: isRaw ? this.#rawSerializer(results!) : this.#serializer(results!),
+      lastInsertId: results?.lastInsertId,
+    }
   }
 
   async #executeQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>, context: QueryRuntimeContext): Promise<SqlResultSet> {
