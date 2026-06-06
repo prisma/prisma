@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Warm ClientEngine cache timing probe
+  - This commit: Add cache-hit key benchmark rows
+  - `b67898099 Warm ClientEngine cache timing probe`
   - `07601310e Tighten ClientEngine timing probes`
   - `2809b037e Extend ClientEngine cache timing rows`
   - `c26d7bd59 Add ClientEngine cache timing probe`
@@ -128,6 +129,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm --filter @prisma/client build`
       - `git diff --check`
     - Decision: keep. This gives a repeatable product-path cache-hit timing probe and confirms that warmed value-churn requests spend about 16 us/op for simple unique reads, about 13 us/op for a 10-row scalar `findMany`, and about 37 us/op for the nested blog-page shape on Node/V8 with an empty adapter. The first compile miss had materially inflated the previous 59 us/op blog-page row. The added scalar-row path still shows scalar data mapping is not the next primary target; the remaining cache-hit cost is more likely parameterization/cache-key work plus executing/rendering the cached parent plan.
+
+  - This commit: Add cache-hit key benchmark rows
+    - `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` now prebuilds benchmark query objects for parameterization rows and adds `cache hit key ...` rows that run the current single-query cache-hit key path: `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `getSingleQueryCacheKey()`.
+    - Local run:
+      - `compile findUnique`: about 1,559 ops/sec.
+      - `compile findMany filtered`: about 1,285 ops/sec.
+      - `compile blog post page`: about 349 ops/sec.
+      - `parameterize findUnique`: about 1,150,554 ops/sec.
+      - `parameterize findMany`: about 532,745 ops/sec.
+      - `parameterize findMany in filter`: about 631,420 ops/sec.
+      - `parameterize blog post page query`: about 532,501 ops/sec.
+      - `cache hit key findUnique`: about 799,939 ops/sec, roughly 1.3 us/op.
+      - `cache hit key findMany`: about 396,773 ops/sec, roughly 2.5 us/op.
+      - `cache hit key findMany in filter`: about 486,014 ops/sec, roughly 2.1 us/op.
+      - `cache hit key blog post page query`: about 313,706 ops/sec, roughly 3.2 us/op.
+    - Verification:
+      - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `pnpm --filter @prisma/client build`
+      - `git diff --check`
+    - Decision: keep. On current Node/V8 measurements, parameterization plus JSON cache-key construction is under 10% of the warmed nested blog-page product row (about 3.2 us/op out of about 37 us/op). This makes cached-plan execution/rendering and general `ClientEngine.request()` overhead more likely near-term targets than another cache-key-only optimization.
 
   - This commit: Extend workerd query compiler cache probe
     - `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` now reports cache hits/misses and has a `mode=client-cache` path.
