@@ -2991,6 +2991,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - cached request wrapper rows without the patch: findUnique value churn 2.38 us/op, findMany stable query 2.48, blog-page value churn 4.95, blog-page nested rows 18.75.
   - Decision: reverted. The result was mixed and tiny: it helped some wrapper rows, regressed stable `findMany`, and relied on the subtle fact that `QueryInterpreter.run()` copies options before its first await. The complexity is not justified.
 
+- Rejected experiment: use the full single-query compile request string as the cache key.
+  - Hypothesis: on cache misses, `ClientEngine.request()` currently builds the parameterized `queryPart`, the compact structural cache key, and then the compile request string. Using `getSingleQueryRequest(parameterizedQuery, queryPart)` as the cache key could remove one string-construction path and align single-query and individual batch-plan keys with the exact compiler request.
+  - Change tried:
+    - Removed `getSingleQueryCacheKey()` from `ClientEngine.ts`.
+    - Used the compile request string directly in `queryPlanCache.getSingle()` / `setSingle()`.
+    - Updated individual batch-plan cache entries and the Node/Workerd memory probes to retain the same request string used for compilation.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` (only existing `ClientEngine.ts` warnings outside this change)
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Timing while patched:
+    - `cached request wrapper`: findUnique value churn 2.36 us/op, findMany stable query 2.49 us/op, blog-page value churn 4.89 us/op, blog-page nested rows 18.89 us/op.
+    - `blog page / nested rows` phase split: cached wrapper 19.61 us/op, direct plan 12.31, inner plan 9.99, outer data map 1.67, interpreter data map precomputed 2.15, direct phase-warmed 11.76, local executor 11.90.
+    - Key micro rows: current compact `cache hit key` was 1.38 us/op for findUnique, 0.57 for findMany, 3.85 for blog-page value churn; `request as cache key` was 1.46, 0.61, and 3.67 respectively.
+  - Memory while patched:
+    - Node cache memory probe retained larger request keys: scalar edge warm 10.3 KiB keys / 24.4 KiB serialized plans, blog-page edge warm 50.9 KiB keys / 396.1 KiB serialized plans, blog-page parameterized node warm 587.4 KiB keys / 3.93 MiB serialized plans.
+    - Workerd probe showed `client-cache` retained one request-key per hot shape: findUnique 164 B keys / 561 B serialized plan, blog-page 730 B keys / 4.3 KiB serialized plan.
+  - Decision: reverted. The runtime rows were neutral-to-noisy, the key micro rows regressed simple shapes, and retained key bytes always increased. Keep the compact structural cache key unless new evidence changes the cache-hit/memory tradeoff.
+
+- Architecture lead carry-forward from user ramble: JS-owned input query and SQL data, Rust-owned internal IR only.
+  - Practicality assessment: potentially practical, but only as a project-level redesign rather than a narrow `serde_wasm_bindgen` swap. The likely useful shape is an externref/`JsValue` request handle that Rust walks directly, fusing parameterization, structural cache-keying, validation/query-graph construction, and compile-cache lookup before any owned Rust request map is built.
+  - Cache hits are the strongest early target: parameterize/cache-key one JS query walk, return the cached JS plan object directly, and avoid serializing either the request or plan through Wasm memory on hits.
+  - `PrismaString`-style wrappers are plausible if downstream validation/query graph code can accept borrowed/input-backed strings and test builds can wrap native Rust strings. They will not pay off if the pipeline immediately clones into `JsonBody`, `ArgumentValue`, or `ParsedInputValue`.
+  - Avoiding Rust-owned SQL strings is a separate rendering/cache-IR problem. It probably needs query-plan SQL represented as templates, interned fragments, or JS-backed pieces; otherwise repeated JS property/string access over FFI can become slower than the current JSON transfer.
+  - Suggested first spike: implement a single hot read-only Wasm path that walks `js_sys` values once, computes the structural cache key while extracting placeholders, probes the cache before building owned Rust parse data, and reports cache-hit latency plus Worker retained memory against the current `compile(JSON.stringify(query))` path.
+
 ## Useful Commands
 
 ```sh
