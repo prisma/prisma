@@ -37,6 +37,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `ed7f1d14680 Compact Prisma value generator calls`
   - `ba182dbb290 Compact native scalar query arg types`
   - `da6c7014b90 Compact query plan data rules`
   - `9c98a943d71 Compact query plan support structures`
@@ -88,6 +89,46 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `ed7f1d14680 Compact Prisma value generator calls`
+    - `PrismaValue::GeneratorCall` now serializes as `{ "$g": [name, args] }` instead of `{ "prisma__type": "generatorCall", "prisma__value": { "name": name, "args": args, "returnType": returnType } }`.
+    - Prisma runtime accepts both compact and legacy generator shapes through `getPrismaValueGeneratorName()` / `getPrismaValueGeneratorArgs()`.
+    - The serialized `returnType` was not used by the TS runtime; generator execution only consumes `name` and `args`.
+    - A/B PostgreSQL write fixture plan sizes with local Wasm:
+      - `create-nested-connectOrCreate-mixed.json`: 4,499 -> 4,331 bytes, saving 168 bytes.
+      - `create-m2m.json`: 2,716 -> 2,632 bytes, saving 84 bytes.
+      - `update-set-nested.json`: unchanged at 3,003 bytes.
+      - `create-nested-connectOrCreate-m2one.json`: unchanged at 1,919 bytes.
+    - A/B write compile probe:
+      - Legacy generator baseline: 2,982 / 1,631 / 1,887 / 1,298 us per compile for the four fixtures above.
+      - Compact generator calls: 2,945 / 1,568 / 1,839 / 1,294 us per compile.
+      - Interpretation: local dev-Wasm timing is neutral-to-positive on generator and non-generator write rows.
+    - Compressed fast Wasm sizes from the legacy -> compact rebuild:
+      - PostgreSQL: 2,684,079 -> 2,678,171 bytes.
+      - SQLite: 2,608,765 -> 2,602,247 bytes.
+      - MySQL: 2,653,132 -> 2,648,182 bytes.
+      - SQL Server: 2,674,870 -> 2,667,901 bytes.
+      - CockroachDB: 2,697,987 -> 2,692,569 bytes.
+      - The Wasm-size win likely comes from removing `serde_json::json!` from the generator serializer path in `prisma-value`.
+    - Verification:
+      - `cargo fmt -p prisma-value --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts query-interpreter.test.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - Benchmark sanity:
+      - Initial compact caching runs were soft on read compile rows and unrelated parameterization rows, so a legacy-generator rebuild was used as a control. Legacy-generator caching rows in the same noisy window were about 1,449 / 1,178 / 334 ops/sec on compile rows.
+      - Final compact generator caching rerun recovered to about 1,555 / 1,278 / 336 ops/sec on `findUnique`, filtered `findMany`, and blog-page compile rows.
+      - Final compact generator parameterization rows were about 1,100,931 / 494,088 / 608,095 / 456,661 ops/sec.
+      - Query-plan cache memory probe read-plan rows were unchanged because those scenarios do not exercise generator calls.
+      - Interpreter rerun measured about 778,631 simple-select ops/sec, 980,226 `findUnique` ops/sec, 298,491 join ops/sec, 788,542 sequence ops/sec, and 45,546 deep nested join ops/sec.
+    - Decision: keep. This is a narrow retained-plan win for generated-value write plans and a small Wasm-size win, with legacy generator support retained in TS.
+
   - `ba182dbb290 Compact native scalar query arg types`
     - Scalar query-plan `ArgType`s with native database metadata now serialize as `[scalarType, dbType]` tuples instead of `{ arity: "scalar", scalarType, dbType }` objects.
     - Prisma runtime accepts compact native tuples and legacy object arg types. It normalizes compact arg types before returning driver-facing `SqlQuery.argTypes`, including tuple arg-type elements used by tuple parameter fragments.

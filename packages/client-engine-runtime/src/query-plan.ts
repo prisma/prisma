@@ -35,13 +35,42 @@ export function getPrismaValuePlaceholderType(value: PrismaValuePlaceholder): st
   return '$p' in value ? value.$p[1] : value.prisma__value.type
 }
 
-export type PrismaValueGenerator = {
+export type PrismaValueGenerator = LegacyPrismaValueGenerator | CompactPrismaValueGenerator
+
+export type LegacyPrismaValueGenerator = {
   prisma__type: 'generatorCall'
   prisma__value: { name: string; args: PrismaValue[] }
 }
 
+export type CompactPrismaValueGenerator = { $g: readonly [name: string, args: PrismaValue[]] }
+
 export function isPrismaValueGenerator(value: unknown): value is PrismaValueGenerator {
-  return typeof value === 'object' && value !== null && value['prisma__type'] === 'generatorCall'
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const obj = value as Record<string, unknown>
+
+  if (obj.prisma__type === 'generatorCall') {
+    const prismaValue = obj.prisma__value
+    return (
+      typeof prismaValue === 'object' &&
+      prismaValue !== null &&
+      typeof (prismaValue as Record<string, unknown>).name === 'string' &&
+      Array.isArray((prismaValue as Record<string, unknown>).args)
+    )
+  }
+
+  const compact = obj.$g
+  return Array.isArray(compact) && compact.length === 2 && typeof compact[0] === 'string' && Array.isArray(compact[1])
+}
+
+export function getPrismaValueGeneratorName(value: PrismaValueGenerator): string {
+  return '$g' in value ? value.$g[0] : value.prisma__value.name
+}
+
+export function getPrismaValueGeneratorArgs(value: PrismaValueGenerator): PrismaValue[] {
+  return '$g' in value ? value.$g[1] : value.prisma__value.args
 }
 
 export type PrismaValue =

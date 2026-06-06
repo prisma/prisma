@@ -11,6 +11,8 @@ import {
   getJoinExpressionIsRelationUnique,
   getJoinExpressionOn,
   getJoinExpressionParentField,
+  getPrismaValueGeneratorArgs,
+  getPrismaValueGeneratorName,
   getQueryPlanBindingExpr,
   getQueryPlanBindingName,
   InMemoryOps,
@@ -777,10 +779,10 @@ function queryPlanUsesNowGenerator(queryPlan: object): boolean {
 
 function containsNowGenerator(value: unknown, seen: Set<object>): boolean {
   if (isPrismaValueGenerator(value)) {
-    if (value.prisma__value.name === 'now') {
+    if (getPrismaValueGeneratorName(value) === 'now') {
       return true
     }
-    return containsNowGenerator(value.prisma__value.args, seen)
+    return containsNowGenerator(getPrismaValueGeneratorArgs(value), seen)
   }
 
   if (typeof value !== 'object' || value === null) {

@@ -5,6 +5,8 @@ import {
   type CompactParameterTupleListFragment,
   type DynamicArgType,
   type Fragment,
+  getPrismaValueGeneratorArgs,
+  getPrismaValueGeneratorName,
   getPrismaValuePlaceholderName,
   getPrismaValuePlaceholderType,
   isPrismaValueGenerator,
@@ -352,7 +354,8 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
         arg = found
       }
     } else if (isPrismaValueGenerator(arg)) {
-      const { name, args } = arg.prisma__value
+      const name = getPrismaValueGeneratorName(arg)
+      const args = getPrismaValueGeneratorArgs(arg)
       const generator = generators[name]
       if (!generator) {
         throw new Error(`Encountered an unknown generator '${name}'`)

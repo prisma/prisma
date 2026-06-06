@@ -808,10 +808,7 @@ test('executes a generator', () => {
       {
         type: 'rawSql',
         sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
-        args: [
-          { prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } },
-          { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
-        ],
+        args: [{ prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } }, { $g: ['now', []] }],
         argTypes: [
           { arity: 'scalar', scalarType: 'datetime' },
           { arity: 'scalar', scalarType: 'datetime' },
