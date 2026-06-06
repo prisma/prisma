@@ -2888,6 +2888,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Focused compile rows regressed broadly in that run: `filter-contains-param-insensitive` about +10%, `filter-contains-param` about +5%, `nested-pagination-query` about +9%, `query-m2o-lateral` about +5%, `query-m2o` about +2.5%, and `query-many-m2m` about +1.9%.
   - Decision: reverted. This looked allocation-positive but was speed-negative enough to reject immediately.
 
+- Rejected experiment: reuse `left_scalars()` results inside `add_inmemory_join()`.
+  - Hypothesis: `query-compiler/src/translate/query/read.rs::add_inmemory_join()` calls `rrq.parent_field.left_scalars()` once while collecting all parent linking fields and again while building each child join. Caching the per-related-query scalar vector inside the function might avoid duplicate small vector allocations.
+  - Change tried in `/home/aqrln.guest/prisma-engines`:
+    - Converted `nested: Vec<ReadQuery>` into a local `nested_related_queries: Vec<(RelatedRecordsQuery, Vec<ScalarFieldRef>)>`.
+    - Reused each cached `left_scalars` vector for both `all_linking_fields` and `JoinExpression.on`.
+    - Folded `can_assume_strict_equality` during the same loop.
+  - Allocation profile with the patch:
+    - `query-m2o`: translate_ir 358 -> 357 allocs/op and 47.7 -> 46.1 KiB/op; compile_ir 556 -> 555 allocs/op and 99.5 -> 97.9 KiB/op.
+    - `query-many-m2m`: translate_ir 455 -> 452 and 48.1 -> 46.0 KiB/op; compile_ir 741 -> 738 and 102.2 -> 100.2 KiB/op.
+    - `nested-pagination-query`: translate_ir 313 -> 312 and 36.2 -> 34.7 KiB/op; compile_ir 548 -> 547 and 81.0 -> 79.5 KiB/op.
+    - `create-nested-create`: translate_ir 703 -> 702 and 79.9 -> 78.4 KiB/op; compile_ir 1197 -> 1196 and 156.1 -> 154.5 KiB/op.
+  - Criterion evidence:
+    - `nested-pagination-query` and `query-many-m2m` were neutral in the first focused run.
+    - `query-m2o-lateral` regressed about +4.9%, `query-m2o` regressed about +3.2%, and `create-nested-create` regressed about +1.3%.
+  - Decision: reverted. The extra local bookkeeping reduces allocation counts/bytes but slows hot read/write compile rows.
+
 ## Useful Commands
 
 ```sh
