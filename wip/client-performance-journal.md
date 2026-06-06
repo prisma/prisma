@@ -3550,6 +3550,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. The change is a small graph-IR cleanup with a consistent one-allocation reduction on query-load one-to-many rows and no focused Criterion regressions.
 
+- Accepted engines change: avoid hash-set dedup in nested `set`.
+  - Commit: `659fb896fe1 Avoid hash set dedup in nested set` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - `nested_set()` now iterates the coerced set input once, extracts each unique filter, and deduplicates against the small existing `Vec<Filter>` with a linear equality scan.
+    - This removes the intermediate `collect::<Vec<_>>()?.into_iter().unique().collect()` chain and the `itertools::unique()` hash-set path.
+  - Allocation profile after the patch, compared to the current baseline:
+    - `update-set-nested`: graph build 745 allocs / 131.9 KiB -> 743 / 130.5 KiB; full compile 2168 / 269.8 KiB -> 2166 / 268.4 KiB.
+    - Unchanged in the sampled profile: `update-set-nested-prisma#27650`, `create-nested-create`, `create-nested-connectOrCreate-mixed`, `update-connect`, `update-m2m-disconnect`.
+  - Criterion:
+    - Directly affected row: `update-set-nested` moved about 0.93% faster, classified within noise.
+    - Unaffected set-regression row: `update-set-nested-prisma#27650` moved about 0.45% slower, classified within noise.
+    - The broader control run had stale-baseline swings on unrelated create/connect rows, so those were not used as attribution evidence for this set-only patch.
+  - Verification:
+    - `cargo fmt -p query-core`
+    - `ALLOC_PROFILE_QUERIES='update-set-nested,update-set-nested-prisma#27650,create-nested-create,create-nested-connectOrCreate-mixed,update-connect,update-m2m-disconnect' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "update-set-nested|update-set-nested-prisma#27650|create-nested-create|create-nested-connectOrCreate-mixed|update-connect|update-m2m-disconnect"`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer lockfile churn, which was reverted.
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `git diff --check`
+  - Decision: keep. This is a small graph-build allocation cleanup on a nested-write fixture with neutral direct timing and no product-build fallout.
+
 - Rejected experiment: defer cloning `ParsedField` in `pairs_to_selections()`.
   - Hypothesis: `pairs_to_selections()` cloned every `ParsedField` before matching whether the selection was scalar, relation, composite, or virtual. Scalar selections do not need the clone, and relation selections only need it when join relation selection is collected, so deferring `pair.parsed_field.clone()` could trim graph-build allocations.
   - Change tried:
