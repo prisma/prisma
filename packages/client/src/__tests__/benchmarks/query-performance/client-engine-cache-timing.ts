@@ -9,6 +9,12 @@ import {
   type QueryCompilerConstructor,
   type QueryCompilerOptions,
 } from '@prisma/client-common'
+import {
+  noopTracingHelper,
+  parameterizeQuery,
+  QueryInterpreter,
+  type QueryPlanNode,
+} from '@prisma/client-engine-runtime'
 import { getDMMF } from '@prisma/client-generator-js'
 import type {
   ColumnType,
@@ -23,7 +29,8 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import type { JsonQuery } from '@prisma/json-protocol'
-import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
+import { ParamGraph } from '@prisma/param-graph'
+import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-graph-builder'
 
 import { ClientEngine } from '../../../runtime/core/engines/client/ClientEngine'
 import type { EngineConfig } from '../../../runtime/core/engines/common/Engine'
@@ -63,6 +70,20 @@ type Scenario = {
 }
 
 type Measurement = Scenario & {
+  elapsedMs: number
+  averageUs: number
+  counts: Counts
+  heapDelta?: number
+}
+
+type DirectPlanScenario = {
+  name: string
+  iterations: number
+  query: JsonQuery
+  resultSet?: SqlResultSet
+}
+
+type DirectPlanMeasurement = DirectPlanScenario & {
   elapsedMs: number
   averageUs: number
   counts: Counts
@@ -137,6 +158,10 @@ function createAdapterFactory(counts: Counts, resultSet?: SqlResultSet): SqlDriv
     adapterName: '@prisma/adapter-benchmark-empty',
     connect: () => Promise.resolve(new EmptySqliteAdapter(counts, resultSet)),
   }
+}
+
+function createAdapter(counts: Counts, resultSet?: SqlResultSet): EmptySqliteAdapter {
+  return new EmptySqliteAdapter(counts, resultSet)
 }
 
 async function createCountingQueryCompilerLoader(counts: Counts) {
@@ -280,6 +305,16 @@ function resetCounts(counts: Counts): void {
   counts.executeRaw = 0
 }
 
+function getSingleQueryRequest(query: JsonQuery, queryPart: string): string {
+  const actionPart = JSON.stringify(query.action)
+
+  if (query.modelName === undefined) {
+    return `{"action":${actionPart},"query":${queryPart}}`
+  }
+
+  return `{"modelName":${JSON.stringify(query.modelName)},"action":${actionPart},"query":${queryPart}}`
+}
+
 function forceGc(): void {
   for (let i = 0; i < 5; i++) {
     globalThis.gc?.()
@@ -318,6 +353,23 @@ function printMeasurement(measurement: Measurement): void {
     `avg=${measurement.averageUs.toFixed(2)} us/op`,
     `compile=${measurement.counts.compile}`,
     `compileBatch=${measurement.counts.compileBatch}`,
+    `queryRaw=${measurement.counts.queryRaw}`,
+    `executeRaw=${measurement.counts.executeRaw}`,
+  ]
+
+  if (measurement.heapDelta !== undefined) {
+    parts.push(`heapDelta=${formatBytes(measurement.heapDelta)}`)
+  }
+
+  console.log(parts.join(' | '))
+}
+
+function printDirectPlanMeasurement(measurement: DirectPlanMeasurement): void {
+  const parts = [
+    measurement.name,
+    `iterations=${measurement.iterations}`,
+    `elapsed=${measurement.elapsedMs.toFixed(1)} ms`,
+    `avg=${measurement.averageUs.toFixed(2)} us/op`,
     `queryRaw=${measurement.counts.queryRaw}`,
     `executeRaw=${measurement.counts.executeRaw}`,
   ]
@@ -383,10 +435,83 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
   }
 }
 
+function compileDirectPlan(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  query: JsonQuery,
+): { plan: QueryPlanNode; placeholderValues: Record<string, unknown> } {
+  const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+  const queryPart = JSON.stringify(parameterizedQuery.query)
+  return {
+    plan: compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)),
+    placeholderValues,
+  }
+}
+
+async function measureDirectPlanScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = createAdapter(counts, scenario.resultSet)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+
+  await interpreter.run(plan, {
+    queryable: adapter,
+    scope: placeholderValues,
+    transactionManager: { enabled: false },
+  })
+  resetCounts(counts)
+
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(plan, {
+      queryable: adapter,
+      scope: placeholderValues,
+      transactionManager: { enabled: false },
+    })
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies DirectPlanMeasurement
+}
+
 async function main(): Promise<void> {
   ;(globalThis as any).TARGET_BUILD_TYPE = 'client'
 
   const dmmf = await getDMMF({ datamodel: BENCHMARK_DATAMODEL })
+  const runtimeDataModel = dmmfToRuntimeDataModel(dmmf.datamodel)
+  const paramGraphData = buildParamGraph(dmmf)
+  const paramGraph = ParamGraph.fromData(paramGraphData, (enumName) => {
+    const enumDef = runtimeDataModel.enums[enumName]
+    const mapping: Record<string, string> = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
+  })
   const baseConfig: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'> = {
     clientVersion: '0.0.0',
     activeProvider: 'sqlite',
@@ -397,7 +522,7 @@ async function main(): Promise<void> {
       maxWait: 2000,
       timeout: 5000,
     },
-    runtimeDataModel: dmmfToRuntimeDataModel(dmmf.datamodel),
+    runtimeDataModel,
     parameterizationSchema: buildAndSerializeParamGraph(dmmf),
   }
 
@@ -444,6 +569,41 @@ async function main(): Promise<void> {
 
   for (const scenario of scenarios) {
     printMeasurement(await measureScenario(baseConfig, scenario))
+  }
+
+  const QueryCompilerClass = await loadQueryCompiler('sqlite')
+  const compiler = new QueryCompilerClass({
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    datamodel: BENCHMARK_DATAMODEL,
+  })
+  const directPlanScenarios: DirectPlanScenario[] = [
+    {
+      name: 'direct plan findUnique / empty rows',
+      iterations: 500,
+      query: createFindUniqueQuery(1),
+    },
+    {
+      name: 'direct plan findMany / 10 scalar rows',
+      iterations: 500,
+      query: createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
+    },
+    {
+      name: 'direct plan blog page / empty rows',
+      iterations: 500,
+      query: createBlogPostPageQuery(1),
+    },
+  ]
+
+  try {
+    for (const scenario of directPlanScenarios) {
+      printDirectPlanMeasurement(await measureDirectPlanScenario(compiler, paramGraph, scenario))
+    }
+  } finally {
+    compiler.free()
   }
 }
 

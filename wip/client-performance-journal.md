@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Add cache-hit key benchmark rows
+  - This commit: Add direct cached-plan timing rows
+  - `bf3e792ed Add cache-hit key benchmark rows`
   - `b67898099 Warm ClientEngine cache timing probe`
   - `07601310e Tighten ClientEngine timing probes`
   - `2809b037e Extend ClientEngine cache timing rows`
@@ -129,6 +130,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm --filter @prisma/client build`
       - `git diff --check`
     - Decision: keep. This gives a repeatable product-path cache-hit timing probe and confirms that warmed value-churn requests spend about 16 us/op for simple unique reads, about 13 us/op for a 10-row scalar `findMany`, and about 37 us/op for the nested blog-page shape on Node/V8 with an empty adapter. The first compile miss had materially inflated the previous 59 us/op blog-page row. The added scalar-row path still shows scalar data mapping is not the next primary target; the remaining cache-hit cost is more likely parameterization/cache-key work plus executing/rendering the cached parent plan.
+
+  - This commit: Add direct cached-plan timing rows
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` now also compiles the generated query plan once, then executes that cached plan directly through `QueryInterpreter.forSql()` with the same fake SQLite adapter. These rows isolate cached-plan execution/rendering from `ClientEngine.request()` wrapper work and cache-key construction.
+    - Local run:
+      - Warmed `ClientEngine` `findUnique`: about 17.12 us/op with 0 compiles.
+      - Warmed `ClientEngine` `findMany` 10 scalar rows: about 12.39 us/op with 0 compiles.
+      - Warmed `ClientEngine` blog-page: about 37.04 us/op with 0 compiles.
+      - Direct plan `findUnique` / empty rows: about 3.60 us/op.
+      - Direct plan `findMany` / 10 scalar rows: about 4.09 us/op.
+      - Direct plan blog-page / empty rows: about 14.18 us/op.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm --filter @prisma/client build`
+      - `git diff --check`
+    - Decision: keep. The generated cached blog plan execution/rendering is about 14 us/op, while warmed `ClientEngine.request()` is about 37 us/op and cache-hit key construction is about 3.2 us/op. That leaves roughly 20 us/op in the `ClientEngine.request()` wrapper and executor handoff path for this empty-adapter nested shape.
 
   - This commit: Add cache-hit key benchmark rows
     - `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` now prebuilds benchmark query objects for parameterization rows and adds `cache hit key ...` rows that run the current single-query cache-hit key path: `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `getSingleQueryCacheKey()`.
