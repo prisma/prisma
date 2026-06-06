@@ -2234,6 +2234,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: cached request wrapper blog-page nested rows 54.46 us/op; direct plan nested rows 46.44; local executor nested rows 41.51; late warmed full `ClientEngine` nested rows 56.91.
   - Decision: reverted. Avoiding the small matcher-result allocations made the hot cached wrapper and direct-plan rows worse, likely from extra private-method/control-flow shape changes and repeated tuple casts/scans. Do not retry this exact allocation-looking rewrite without a different plan representation or stronger profiler evidence.
 
+- Measurement: compact tuple arg type serialization ceiling.
+  - Candidate: compact object-shaped tuple dynamic arg types (`{ arity: "tuple", elements: [...] }`) in query plans, analogous to the earlier compact scalar/native arg type work.
+  - Probe over representative local query compiler plans (`findUnique`, `findMany in filter`, blog-page, raw and product-style parameterized requests) found zero object-shaped tuple arg types in those hot scenarios. The plans do contain compact tuple fragments (`"T"` / `"L"`), but their `argTypes` are already scalar/native entries for these shapes.
+  - Decision: do not patch this now. The current hot retained blog/scalar plans have no measurable byte ceiling from tuple arg type compaction.
+
+- This commit: Defer unused ParamGraph node lookups during parameterization.
+  - `Parameterizer.parameterizeFieldSelection()` now resolves the input node only when `sel.arguments` exists, and resolves the output node only when `sel.selection` exists.
+  - Nested selection traversal now resolves `edge.argsNodeId` only when the nested selection has `arguments`, and resolves `edge.outputNodeId` only when it has a nested `selection`.
+  - This targets nested read shapes such as the blog-page query where many selected relations have no arguments; the old code still paid `ParamGraph.inputNode()` lookups for those arg-less branches.
+  - Product-shaped `client-engine-cache-timing.ts` after the patch:
+    - Run 1: parameterize `findUnique` 3.67 us/op, `findMany` 1.24 us/op, blog-page 4.90 us/op; cache-hit blog key 6.50 us/op; cached request wrapper blog-page nested rows 41.46 us/op; late warmed full `ClientEngine` nested rows 52.51 us/op.
+    - Run 2: parameterize `findUnique` 3.84 us/op, `findMany` 1.18 us/op, blog-page 4.93 us/op; cache-hit blog key 6.33 us/op; cached request wrapper blog-page nested rows 43.72 us/op; late warmed full `ClientEngine` nested rows 52.39 us/op.
+  - Dedicated `caching.bench.ts` evidence:
+    - compile rows stayed in range: `findUnique` 1,687 ops/sec, filtered `findMany` 1,378 ops/sec, blog-page 363 ops/sec.
+    - parameterization rows: `findUnique` 1,165,296 ops/sec, `findMany` 524,088 ops/sec, `findMany in filter` 637,251 ops/sec, blog-page 536,587 ops/sec.
+    - cache-hit key rows: `findUnique` 817,467 ops/sec, `findMany` 400,659 ops/sec, `findMany in filter` 486,826 ops/sec, blog-page 316,694 ops/sec.
+  - Decision: keep. The code is a small semantic no-op and the cache-key/parameterization rows are neutral-to-positive, with the clearest win on nested blog-page parameterization.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/parameterization/parameterize.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/parameterization/parameterize.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+
 ## Useful Commands
 
 ```sh

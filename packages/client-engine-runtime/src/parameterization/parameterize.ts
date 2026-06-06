@@ -208,12 +208,10 @@ class Parameterizer {
     argsNodeId: number | undefined,
     outNodeId: number | undefined,
   ): JsonFieldSelection {
-    const argsNode = this.#view.inputNode(argsNodeId)
-    const outNode = this.#view.outputNode(outNodeId)
-
     let result: JsonFieldSelection | undefined
 
     if (sel.arguments && sel.arguments.$type !== 'Raw') {
+      const argsNode = this.#view.inputNode(argsNodeId)
       const argumentsResult = this.#parameterizeObject(sel.arguments as Record<string, unknown>, argsNode)
       if (argumentsResult !== sel.arguments) {
         result = { ...sel, arguments: argumentsResult }
@@ -221,6 +219,7 @@ class Parameterizer {
     }
 
     if (sel.selection) {
+      const outNode = this.#view.outputNode(outNodeId)
       const selection = this.#parameterizeSelection(sel.selection, outNode)
       if (selection !== sel.selection) {
         result = { ...(result ?? sel), selection }
@@ -452,11 +451,12 @@ class Parameterizer {
         if (edge) {
           const nested = value as { arguments?: Record<string, unknown>; selection?: JsonSelectionSet }
 
-          const argsNode = this.#view.inputNode(edge.argsNodeId)
-          const childOutNode = this.#view.outputNode(edge.outputNodeId)
-
-          const processedSelection = nested.selection ? this.#parameterizeSelection(nested.selection, childOutNode) : {}
-          const processedArguments = nested.arguments ? this.#parameterizeObject(nested.arguments, argsNode) : undefined
+          const processedSelection = nested.selection
+            ? this.#parameterizeSelection(nested.selection, this.#view.outputNode(edge.outputNodeId))
+            : {}
+          const processedArguments = nested.arguments
+            ? this.#parameterizeObject(nested.arguments, this.#view.inputNode(edge.argsNodeId))
+            : undefined
 
           if (processedSelection !== nested.selection || processedArguments !== nested.arguments) {
             const processedValue: JsonFieldSelection = {
