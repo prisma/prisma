@@ -29,10 +29,13 @@ type MemorySnapshot = {
 
 type WorkerRunResult = {
   scenario: string
+  mode: string
   iterations: number
   retain: boolean
   initMs: number
   compileMs: number
+  cacheHits: number
+  cacheMisses: number
   retainedEntries: number
   retainedCacheKeyBytes: number
   retainedPlanSerializedBytes: number
@@ -180,6 +183,20 @@ function getSingleQueryCacheKey(query, queryPart) {
   return 's:' + getStringCacheKeyPart(query.modelName) + getStringCacheKeyPart(query.action) + queryPart.length + ':' + queryPart
 }
 
+function getSingleQueryRequest(query, queryPart) {
+  const actionPart = JSON.stringify(query.action)
+
+  if (query.modelName === undefined) {
+    return '{"action":' + actionPart + ',"query":' + queryPart + '}'
+  }
+
+  return '{"modelName":' + JSON.stringify(query.modelName) + ',"action":' + actionPart + ',"query":' + queryPart + '}'
+}
+
+function createParam(name, type) {
+  return { $type: 'Param', value: { name, type } }
+}
+
 function createFindUniqueQuery(iteration) {
   return {
     modelName: 'User',
@@ -274,6 +291,12 @@ function createBlogPostPageQuery(mask) {
   }
 }
 
+function createBlogPostPageByIdQuery(id) {
+  const query = createBlogPostPageQuery((1 << postScalarFields.length) - 1)
+  query.query.arguments.where.id = id
+  return query
+}
+
 function createQuery(scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
@@ -282,9 +305,35 @@ function createQuery(scenario, iteration) {
       return createFindManyQuery((iteration % 1023) + 1)
     case 'blog-page':
       return createBlogPostPageQuery((iteration % ((1 << postScalarFields.length) - 1)) + 1)
+    case 'blog-page-by-id':
+      return createBlogPostPageByIdQuery(iteration + 1)
     default:
       throw new Error('Unknown scenario: ' + scenario)
   }
+}
+
+function parameterizeQueryForClientCache(query) {
+  if (
+    query.action === 'findUnique' &&
+    query.query?.arguments?.where?.id !== undefined &&
+    (query.modelName === 'User' || query.modelName === 'Post')
+  ) {
+    return {
+      ...query,
+      query: {
+        ...query.query,
+        arguments: {
+          ...query.query.arguments,
+          where: {
+            ...query.query.arguments.where,
+            id: createParam('%1', 'Int'),
+          },
+        },
+      },
+    }
+  }
+
+  return query
 }
 
 function retainedPlanSize() {
@@ -319,10 +368,57 @@ function runScenario(scenario, iterations, retain) {
   const retained = retainedPlanSize()
   return {
     scenario,
+    mode: 'compile',
     iterations,
     retain,
     initMs,
     compileMs: performance.now() - compileStart,
+    cacheHits: 0,
+    cacheMisses: iterations,
+    retainedEntries: retainedPlans.size,
+    retainedCacheKeyBytes: retained.cacheKeyBytes,
+    retainedPlanSerializedBytes: retained.planSerializedBytes,
+    averagePlanBytes: totalPlanBytes / iterations,
+    runtime: navigator.userAgent,
+  }
+}
+
+function runClientCacheScenario(scenario, iterations, retain) {
+  const compiler = getCompiler()
+  let totalPlanBytes = 0
+  let cacheHits = 0
+  let cacheMisses = 0
+  const compileStart = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    const query = parameterizeQueryForClientCache(createQuery(scenario, i))
+    const queryPart = JSON.stringify(query.query)
+    const cacheKey = getSingleQueryCacheKey(query, queryPart)
+    let plan = retainedPlans.get(cacheKey)
+
+    if (plan === undefined) {
+      cacheMisses++
+      plan = compiler.compile(getSingleQueryRequest(query, queryPart))
+      if (retain) {
+        retainedPlans.set(cacheKey, plan)
+      }
+    } else {
+      cacheHits++
+    }
+
+    totalPlanBytes += JSON.stringify(plan).length
+  }
+
+  const retained = retainedPlanSize()
+  return {
+    scenario,
+    mode: 'client-cache',
+    iterations,
+    retain,
+    initMs,
+    compileMs: performance.now() - compileStart,
+    cacheHits,
+    cacheMisses,
     retainedEntries: retainedPlans.size,
     retainedCacheKeyBytes: retained.cacheKeyBytes,
     retainedPlanSerializedBytes: retained.planSerializedBytes,
@@ -344,8 +440,15 @@ export default {
       const scenario = url.searchParams.get('scenario') ?? 'find-unique'
       const iterations = Number(url.searchParams.get('iterations') ?? '1')
       const retain = url.searchParams.get('retain') === 'true'
+      const mode = url.searchParams.get('mode') ?? 'compile'
 
-      return Response.json({ ok: true, result: runScenario(scenario, iterations, retain) })
+      return Response.json({
+        ok: true,
+        result:
+          mode === 'client-cache'
+            ? runClientCacheScenario(scenario, iterations, retain)
+            : runScenario(scenario, iterations, retain),
+      })
     } catch (error) {
       return Response.json({ ok: false, message: error?.message, stack: error?.stack }, { status: 500 })
     }
@@ -378,10 +481,11 @@ async function dispatchRun(
   scenario: string,
   iterations: number,
   retain: boolean,
+  mode = 'compile',
 ): Promise<Measurement> {
   const before = memorySnapshot()
   const response = await mf.dispatchFetch(
-    `http://query-compiler.test/?scenario=${scenario}&iterations=${iterations}&retain=${retain}`,
+    `http://query-compiler.test/?scenario=${scenario}&iterations=${iterations}&retain=${retain}&mode=${mode}`,
   )
   const body = (await response.json()) as
     | { ok: true; result: WorkerRunResult }
@@ -417,8 +521,10 @@ function printMeasurement(measurement: Measurement): void {
 
   console.log(label)
   console.log(`  runtime: ${worker.runtime}`)
+  console.log(`  mode: ${worker.mode}`)
   console.log(`  compiler init: ${formatMs(worker.initMs)}`)
   console.log(`  compile loop: ${formatMs(worker.compileMs)} for ${worker.iterations} ${worker.scenario} queries`)
+  console.log(`  cache hits/misses: ${worker.cacheHits}/${worker.cacheMisses}`)
   console.log(`  average serialized plan: ${formatBytes(worker.averagePlanBytes)}`)
   console.log(
     `  retained in worker: ${worker.retainedEntries} entries, ${formatBytes(worker.retainedCacheKeyBytes)} keys, ${formatBytes(
@@ -455,6 +561,18 @@ async function run(): Promise<void> {
 
     await clearWorkerCache(mf)
     printMeasurement(await dispatchRun(mf, 'retained blog-page plan cache', 'blog-page', 100, true))
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(mf, 'client-cache findUnique value churn', 'find-unique', 100, true, 'client-cache'),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(mf, 'client-cache blog-page value churn', 'blog-page-by-id', 100, true, 'client-cache'),
+    )
   } finally {
     await mf.dispose()
   }

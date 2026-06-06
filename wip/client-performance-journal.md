@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Share multi batch plans with single cache
+  - This commit: Extend workerd query compiler cache probe
+  - `4d0e41ce7 Share multi batch plans with single cache`
   - `f57c157fc Intern cached query plan strings`
   - `2162c650f Accept compact query plan validation errors`
   - `6ef2cc46c Accept compact query plan support structures`
@@ -93,6 +94,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Prisma cache-memory commits kept:
+  - This commit: Extend workerd query compiler cache probe
+    - `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` now reports cache hits/misses and has a `mode=client-cache` path.
+    - The new mode manually parameterizes the benchmark `findUnique` / blog-page `where.id` value churn enough to approximate ClientEngine cache hit behavior in Miniflare/workerd without pulling in a full generated client.
+    - This is still a query-compiler/cache probe, not a full local `ClientEngine` execution probe with a driver adapter.
+    - Local run:
+      - Cold smoke compile: compiler init about 67 ms, one compile about 47 ms, plan 612 B, host heap delta about 1.63 MiB.
+      - Retained scalar compile cache: 100 concrete shape entries, 7.6 KiB keys, 26.5 KiB serialized plans, host heap delta about 134.0 KiB.
+      - Retained blog compile cache: 100 concrete shape entries, 48.3 KiB keys, 413.8 KiB serialized plans, host heap delta about 127.6 KiB.
+      - Client-cache `findUnique` value churn: 100 requests, 99 hits / 1 miss, one retained plan, 138 B key, 625 B serialized plan, host heap delta about 42.4 KiB.
+      - Client-cache blog-page value churn: 100 requests, 99 hits / 1 miss, one retained plan, 704 B key, 4.5 KiB serialized plan, host heap delta about 364.2 KiB.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Decision: keep. This closes part of the Cloudflare measurement gap by showing the difference between concrete compile retention and ClientEngine-like value-churn cache behavior inside workerd.
+
   - This commit: Share multi batch plans with single cache
     - Non-compacted `multi` batch responses now optionally populate `QueryPlanCache` single-query entries for each individual plan.
     - `QueryPlanCache.setBatch()` accepts individual single-plan entries and keeps them only when the individual entries plus the batch entry fit within the configured max size. This avoids letting a large batch flush the cache, especially on the edge default size of 100.
@@ -1194,7 +1209,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - More Cloudflare-specific memory measurement.
   - Current evidence is still mostly Node/V8 local benchmarks.
   - First repeatable query-plan-cache retention probe exists at `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
-  - Added `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` as a closer edge-runtime probe for query compiler startup and retained plan cache shape.
+  - Added `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` as a closer edge-runtime probe for query compiler startup, retained plan cache shape, and ClientEngine-like value-churn cache behavior.
   - Run with:
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
   - Harness details:
@@ -1206,7 +1221,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Cold smoke compile: `runtime: Cloudflare-Workers`, compiler init about 65 ms, one `findUnique` compile loop about 51 ms, serialized plan 660 B, host RSS delta about 4.52 MiB.
     - Retained scalar cache: 100 `user-scalar-selection` plans, compile loop about 58 ms, 100 retained entries, 7.6 KiB cache keys, 29.6 KiB serialized plans, host RSS delta about 2.12 MiB.
     - Retained blog-page cache: 100 plans, compile loop about 425 ms, 100 retained entries, 48.3 KiB cache keys, 521.6 KiB serialized plans, host RSS delta about 128 KiB after the already-warm worker.
-  - Follow-up: extend the worker probe to instantiate a generated edge client and execute through `ClientEngine` with a mock/adapter path if we need end-to-end query execution memory, not just query compiler and retained plan shape.
+  - Current local run after adding `mode=client-cache`:
+    - Cold smoke compile: compiler init about 67 ms, one compile about 47 ms, serialized plan 612 B, host heap delta about 1.63 MiB.
+    - Retained scalar compile cache: 100 concrete shape entries, 7.6 KiB keys, 26.5 KiB serialized plans, host heap delta about 134.0 KiB.
+    - Retained blog compile cache: 100 concrete shape entries, 48.3 KiB keys, 413.8 KiB serialized plans, host heap delta about 127.6 KiB.
+    - Client-cache `findUnique` value churn: 100 requests, 99 hits / 1 miss, one retained plan, 138 B key, 625 B serialized plan, host heap delta about 42.4 KiB.
+    - Client-cache blog-page value churn: 100 requests, 99 hits / 1 miss, one retained plan, 704 B key, 4.5 KiB serialized plan, host heap delta about 364.2 KiB.
+  - Follow-up: instantiate a generated edge client and execute through `ClientEngine` with a mock/adapter path if we need end-to-end query execution memory, not just query compiler/cache behavior.
 
 ## Useful Commands
 
