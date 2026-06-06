@@ -399,6 +399,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 ## Rejected Experiments
 
+- Batch cache-key/request serialization tradeoff.
+  - Measured current batch cache miss serialization against two alternatives without changing production code.
+  - Current path builds a compact batch cache key with `JSON.stringify([queries, transaction])`, and on cache miss separately stringifies the parameterized batch request for `compileBatch`.
+  - A manual one-pass builder that preserved the compact key and request strings exactly was slower than the current path in local microbenchmarks.
+  - Using the full request string as the cache key roughly halves miss-side serialization work but increases retained cache-key bytes:
+    - Simple batch of 2: compact key 263 bytes, request key 343 bytes; current miss about 724k ops/sec, request-as-key about 1.37M ops/sec, manual about 686k ops/sec.
+    - Simple batch of 10: compact key 1,167 bytes, request key 1,479 bytes; current miss about 199k ops/sec, request-as-key about 384k ops/sec, manual about 150k ops/sec.
+    - Simple batch of 50: compact key 5,727 bytes, request key 7,199 bytes; current miss about 36.7k ops/sec, request-as-key about 71.0k ops/sec, manual about 29.9k ops/sec.
+    - Blog batch of 10: compact key 4,967 bytes, request key 5,279 bytes; current miss about 46.6k ops/sec, request-as-key about 92.5k ops/sec, manual about 69.0k ops/sec.
+    - Blog batch of 50: compact key 24,727 bytes, request key 26,199 bytes; current miss about 9.5k ops/sec, request-as-key about 18.8k ops/sec, manual about 13.8k ops/sec.
+  - Decision: no production change yet. Request-as-key may be worth revisiting for batch-heavy workloads, but it trades speed for retained cache-key memory and hit-path key size. The manual exact-key helper is not worth pursuing.
+
 - Compact nested query-plan support structures.
   - Tried serializing `Binding` as `[name, expr]`, `JoinExpression` as `[child, on, parentField, isRelationUnique]`, and tuple SQL fragments as `["T", itemPrefix, itemSeparator, itemSuffix]` / `["L", itemPrefix, itemSeparator, itemSuffix, groupSeparator]`.
   - TS side accepted compact and legacy forms in the query-plan type, query interpreter, SQL renderer, and chunk planner.
@@ -719,6 +731,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Current evidence is still mostly Node/V8 local benchmarks.
   - First repeatable query-plan-cache retention probe exists at `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
   - Remaining gap: a true workerd/miniflare memory harness for edge bundle startup, Wasm instance memory, query compiler cache size, and representative query execution.
+  - Current repo state:
+    - `pnpm exec wrangler --help` works from the root.
+    - `pnpm exec workerd` and `pnpm exec miniflare` are not root-exposed binaries.
+    - `require.resolve('miniflare')` is not root-resolvable, but Wrangler's sibling dependency path resolves to `node_modules/.pnpm/miniflare@3.20250718.2/node_modules/miniflare/dist/src/index.js`.
+  - A future harness can likely import Miniflare through Wrangler's package path for local measurement tooling, but that path is brittle and should not be used in production code.
 
 ## Useful Commands
 
