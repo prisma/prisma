@@ -2572,6 +2572,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `create-nested-create`: `translate_ir` 707, `compile_ir` 1201, `full_compile` 1314.
   - Decision: reverted. The measured fixtures do not allocate through this path after the current translation cleanups, likely because common `subgraph_contains_result()` calls hit direct result nodes or leaves before traversing non-empty outgoing edge lists.
 
+- Rejected experiment: direct incoming-edge iteration in `is_direct_child()`.
+  - Hypothesis: `query-compiler/core/src/query_graph/mod.rs::QueryGraph::is_direct_child()` called `incoming_edges()`, which allocates and sorts a `Vec<EdgeRef>`, even though the method only needs an `all()` predicate over incoming parents.
+  - Temporary patch:
+    - Replaced `self.incoming_edges(child).into_iter().all(...)` with direct `self.graph.edges_directed(child.node_ix, Direction::Incoming).all(...)`.
+  - Correctness passed:
+    - `cargo test -p query-compiler --test queries`
+  - Allocation profile showed a narrow nested-write win:
+    - Common read rows were unchanged.
+    - `create-nested-create`: `translate_ir` 707 -> 705 allocs/op, `compile_ir` 1201 -> 1199, `full_compile` 1314 -> 1312.
+  - Criterion rejected it:
+    - `compile/create-nested-create-with-composite-id`: +3.88% regression.
+    - `compile/create-nested-create`: +1.48% regression.
+  - Decision: reverted. Avoiding two allocations in this predicate is not worth perturbing the graph traversal path; keep the existing sorted `incoming_edges()` helper unless a broader `QueryGraph` traversal API is redesigned and benchmarked.
+
 ## Useful Commands
 
 ```sh
