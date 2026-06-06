@@ -3099,6 +3099,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Other rows were neutral/noisy: `create-nested-connectOrCreate-mixed`, `m2one`, `delete-one`, `query-m2o`, `update-set-nested`, `update-set-nested-prisma#27650`.
   - Decision: reverted. The allocation win was too small and timing regressed important rows.
 
+- Rejected probe: return `FieldSelection` unchanged when it already starts with the primary identifier.
+  - Hypothesis: `query_graph_builder::write::utils::get_selected_fields()` could avoid `primary_model_id.merge(selection)` when the requested selection already had the primary identifier as a prefix, preserving field order while skipping an `itertools::unique()` merge.
+  - Change tried:
+    - Replaced `selection != primary_model_id` with `selection.as_ref().starts_with(primary_model_id.as_ref())`.
+  - Measurement:
+    - Focused allocation profile over nested writes and read controls showed no allocation changes on sampled rows (`create-nested-connectOrCreate-*`, `update-set-nested*`, `create-m2m`, `create-nested-create`, `update-connect`, `query-m2o`, `query-many-m2m`).
+  - Decision: reverted without Criterion. The proposed fast path did not hit the sampled hot shapes.
+
 ## Useful Commands
 
 ```sh
