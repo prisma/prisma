@@ -270,8 +270,8 @@ describe('format', () => {
       'generator client {\r\n',
       '  provider = "prisma-client-js"\r\n',
       '}\r\n',
-      '\r\n',
-      'model User {\r\n',
+      '\r',
+      'model User {\n',
       '  id String @id\r\n',
       '}\r\n',
     ].join('')
