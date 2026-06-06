@@ -3477,6 +3477,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`
     - `git diff --check`
 
+- Accepted engines change: avoid read `FieldSelection` reallocations.
+  - Commit: `d87e1ef9d8a Avoid read field selection reallocations` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - Added consuming `FieldSelection::into_without_relations()` and used it in owned read translation paths instead of cloning through `without_relations()`.
+    - Added a no-virtual fast path to `FieldSelection::into_virtuals_last()` so scalar/relation-only selections return the original vector without repartitioning/reallocating.
+  - Allocation profile before -> after:
+    - `query-m2o`: full compile 632 allocs / 104.9 KiB -> 624 allocs / 92.4 KiB.
+    - `query-m2m`: 812 / 105.3 KiB -> 806 / 98.6 KiB.
+    - `query-many-m2m`: 809 / 104.8 KiB -> 803 / 98.1 KiB.
+    - `query-many-one2m`: 696 / 98.9 KiB -> 690 / 91.8 KiB.
+    - `filter-contains-param`: 557 / 66.8 KiB -> 555 / 64.5 KiB.
+    - `filter-not-contains-param`: 667 / 80.5 KiB -> 665 / 78.3 KiB.
+    - `nested-pagination-query`: 630 / 85.3 KiB -> 624 / 78.9 KiB.
+    - `create-nested-create`: 1307 / 164.3 KiB -> 1301 / 157.3 KiB.
+    - `create-nested-connectOrCreate-mixed`: 2794 / 360.4 KiB -> 2779 / 344.4 KiB.
+    - `update-set-nested`: 2181 / 283.7 KiB -> 2169 / 270.6 KiB.
+  - Criterion:
+    - Improved: `create-nested-connectOrCreate-mixed` about 1.33%, `create-nested-create` about 2.77%, `filter-contains-param-insensitive` about 6.03%, `filter-contains-param` about 10.22%, `filter-not-contains-param` about 9.70%, `query-m2m` about 10.59%, `query-many-m2m` about 1.36%, `query-many-one2m` about 5.91%.
+    - Within noise / no detected regression: `create-nested-create-with-composite-id`, `nested-pagination-query`, `query-m2o-lateral`, `query-m2o`, `update-set-nested-prisma#27650`, `update-set-nested`.
+  - Wasm/product verification:
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` succeeded.
+    - Local-Wasm `caching.bench.ts` compile rows stayed in the expected band: findUnique 1,721 ops/sec, filtered findMany 1,362 ops/sec, blog post page 365 ops/sec.
+  - Verification:
+    - `cargo fmt -p query-structure -p query-compiler`
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-m2m,query-many-m2m,query-many-one2m,filter-contains-param,filter-not-contains-param,nested-pagination-query,create-nested-create,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-m2m|query-many-m2m|query-many-one2m|filter-contains-param|filter-not-contains-param|nested-pagination-query|create-nested-create|create-nested-connectOrCreate-mixed|update-set-nested"`
+    - `cargo check -p query-structure -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `git diff --check`
+  - Decision: keep. This is a small ownership/borrowing cleanup with consistent allocation reductions and no Criterion regressions in the focused row set.
+
 ## Useful Commands
 
 ```sh
