@@ -1587,6 +1587,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 ## Leads To Try Next
 
+- JS-owned request data with Rust-owned internal IR only.
+  - User lead: make the Wasm query compiler avoid owning the input query and maybe avoid owning built SQL strings on the Rust heap, keeping only internal IR in Wasm memory. The Client would pass a JS query object reference; Rust would traverse JS values directly, parameterize in Rust without cloning into Wasm memory, check/update the query-plan cache, and return either an existing cached JS plan object or a newly compiled/cached plan.
+  - Related narrower observation: `tsify::serde_wasm_bindgen::from_value(request)?` only removes JSON conversion on the JS side. It still materializes untyped Rust-side maps/values before validation and parsing, so it is unlikely to be a large win while `JSON.stringify()` is still needed for the current query-plan cache key.
+  - Potential design: introduce facade types such as `PrismaString` / `PrismaValue` / query object wrappers that can wrap native Rust data in unit tests and JS external values in Wasm. The parser/validator would consume those facades, building only the typed IR/query graph in Rust.
+  - Practicality assessment: plausible as a project-level architecture spike, not a small optimization. It needs Wasm reference types or equivalent JS-value handles, careful lifetime/rooting rules, fast property access, and a benchmark proving that direct JS reflection plus FFI overhead is cheaper than the current JSON/serde path. Prior JS-reference cache-key-only work was rejected because crossing into Wasm just to walk JS objects was much slower; a retry would need to fuse parameterization, cache lookup, and compile-hit handling to amortize that cost.
+  - SQL-string angle: avoiding owned Rust SQL strings may be harder than avoiding owned input values because planner/rendering internals currently build SQL templates and compact plan objects. A lower-risk intermediate target is to keep SQL template fragments compact/interned and avoid duplicating them in cached JS plans.
+  - Smallest useful spike: build a Wasm-only prototype that traverses a representative `JsonQuery` as `js_sys::Object` / `Reflect`, parameterizes and computes a structural cache identity in the same pass, and compare it against current `parameterizeQuery()` plus `JSON.stringify()` plus cache lookup. Do not attempt a full parser rewrite until this proves a win on Workers/workerd and Node.
+
 - Plan serialization shape.
   - The tagged object tree is verbose and `serde_wasm_bindgen` plan serialization is a large release-Wasm phase.
   - Multiple compact plan shapes are now kept; remaining compact-shape candidates should be gated because previous default-field omissions had mixed throughput.
@@ -3450,6 +3458,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `git diff --check`
   - Decision: keep. This is a smaller retained-heap win than child query-template sharing, but it compounds on the same Workers cache pressure point and does not affect cache-hit execution.
+
+- Accepted measurement: many-shape cached request wrapper row.
+  - Commit: this commit (`Add many-shape cache timing row`).
+  - Added `cached request wrapper blog page / 100 retained shapes nested rows` to `client-engine-cache-timing.ts`.
+  - The row preloads 100 distinct blog-page cached plans that vary only root scalar selections among fields already present in the fake result set, then cycles through them on the cache-hit path with the real `QueryPlanCache`, `LocalExecutor`, parameterization, cache-key construction, nested row mapping, and response wrapping.
+  - Current implementation timing:
+    - 100k restored-cache pass: one-shape nested wrapper 18.84 us/op; 100 retained shapes nested wrapper 21.03 us/op.
+    - 500k restored-cache pass before the temporary comparison: value churn 4.74 us/op; one-shape nested wrapper 19.83 us/op; 100 retained shapes nested wrapper 20.72 us/op.
+  - Temporary comparison with nested result-node interning disabled:
+    - 500k pass: value churn 4.82 us/op; one-shape nested wrapper 18.81 us/op; 100 retained shapes nested wrapper 20.87 us/op.
+  - Interpretation: nested result-structure sharing is effectively neutral for cache-hit CPU in this probe. The many-shape row is still useful because it exercises the Workers-relevant retained-cache shape without relying on the one-entry last-hit fast path, but it does not justify another CPU optimization by itself.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
 
 ## Useful Commands
 

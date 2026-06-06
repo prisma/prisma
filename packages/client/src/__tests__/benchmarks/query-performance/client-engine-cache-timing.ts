@@ -163,6 +163,7 @@ const BLOG_PAGE_QUERY_SELECTORS: readonly SqlQuery[] = Object.freeze([
   Object.freeze({ sql: 'SELECT * FROM `main`.`Comment`', args: [], argTypes: [] }),
   Object.freeze({ sql: 'SELECT * FROM `main`.`User` WHERE `id` IN (?)', args: [], argTypes: [] }),
 ])
+const BLOG_PAGE_ROOT_SCALAR_FIELDS = ['id', 'title', 'slug', 'content', 'published', 'viewCount', 'createdAt'] as const
 
 type Counts = {
   compile: number
@@ -209,6 +210,15 @@ type CacheKeyScenario = {
   name: string
   iterations: number
   query: (iteration: number) => JsonQuery
+  resultSet?: SqlResultSet
+  adapterFactory?: ScenarioAdapterFactory
+}
+
+type ManyShapeCachedRequestScenario = {
+  name: string
+  iterations: number
+  shapeCount: number
+  query: (shapeIndex: number, iteration: number) => JsonQuery
   resultSet?: SqlResultSet
   adapterFactory?: ScenarioAdapterFactory
 }
@@ -473,7 +483,61 @@ function createFindManyUsersQuery(): JsonQuery {
   }
 }
 
-function createBlogPostPageQuery(id: number): JsonQuery {
+function addBlogPostPageNestedSelection(selection: Record<string, unknown>): void {
+  selection.author = {
+    selection: {
+      id: true,
+      name: true,
+      avatar: true,
+    },
+  }
+  selection.category = {
+    selection: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  }
+  selection.tags = {
+    selection: {
+      tag: {
+        selection: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  }
+  selection.comments = {
+    arguments: {
+      take: 10,
+      orderBy: [{ createdAt: 'desc' }],
+    },
+    selection: {
+      id: true,
+      content: true,
+      createdAt: true,
+      author: {
+        selection: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+  }
+  selection._count = {
+    selection: {
+      likes: true,
+      comments: true,
+    },
+  }
+}
+
+function createBlogPostPageQueryWithSelection(id: number, selection: Record<string, unknown>): JsonQuery {
+  addBlogPostPageNestedSelection(selection)
+
   return {
     modelName: 'Post',
     action: 'findUnique',
@@ -482,65 +546,35 @@ function createBlogPostPageQuery(id: number): JsonQuery {
         where: { id },
       },
       selection: {
-        id: true,
-        title: true,
-        slug: true,
-        content: true,
-        published: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          selection: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        category: {
-          selection: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        tags: {
-          selection: {
-            tag: {
-              selection: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
-        comments: {
-          arguments: {
-            take: 10,
-            orderBy: [{ createdAt: 'desc' }],
-          },
-          selection: {
-            id: true,
-            content: true,
-            createdAt: true,
-            author: {
-              selection: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-        },
-        _count: {
-          selection: {
-            likes: true,
-            comments: true,
-          },
-        },
+        ...selection,
       },
     },
   }
+}
+
+function createBlogPostPageQuery(id: number): JsonQuery {
+  const selection: Record<string, unknown> = {}
+  for (const field of BLOG_PAGE_ROOT_SCALAR_FIELDS) {
+    selection[field] = true
+  }
+
+  return createBlogPostPageQueryWithSelection(id, selection)
+}
+
+function createBlogPostPageRootMaskQuery(mask: number, id: number): JsonQuery {
+  const selection: Record<string, unknown> = {}
+
+  for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
+    if ((mask & (1 << i)) !== 0) {
+      selection[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]] = true
+    }
+  }
+
+  if (Object.keys(selection).length === 0) {
+    selection.id = true
+  }
+
+  return createBlogPostPageQueryWithSelection(id, selection)
 }
 
 function resetCounts(counts: Counts): void {
@@ -2976,6 +3010,107 @@ async function measureCachedRequestWrapperScenario(
   }
 }
 
+async function measureManyShapeCachedRequestWrapperScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: ManyShapeCachedRequestScenario,
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const executor = await LocalExecutor.connect({
+    driverAdapterFactory: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
+    transactionOptions: {
+      maxWait: 2000,
+      timeout: 5000,
+    },
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+  })
+  const cache = new QueryPlanCache(scenario.shapeCount)
+  const shapeQueries = new Array<JsonQuery>(scenario.shapeCount)
+
+  for (let i = 0; i < scenario.shapeCount; i++) {
+    const query = scenario.query(i, 0)
+    const { parameterizedQuery } = parameterizeQuery(query, paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
+    cache.setSingle(cacheKey, compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)))
+    shapeQueries[i] = query
+  }
+
+  const queries = new Array<JsonQuery>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    queries[i] = scenario.query(i % scenario.shapeCount, i)
+  }
+
+  let consumedResults = 0
+  try {
+    for (let i = 0; i < scenario.iterations; i++) {
+      const query = queries[i]
+      const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+      const queryPart = JSON.stringify(parameterizedQuery.query)
+      const plan = cache.getSingle(getSingleQueryCacheKey(parameterizedQuery, queryPart))!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    resetCounts(counts)
+
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const query = queries[i]
+      const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+      const queryPart = JSON.stringify(parameterizedQuery.query)
+      const plan = cache.getSingle(getSingleQueryCacheKey(parameterizedQuery, queryPart))!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (consumedResults < 0 || shapeQueries.length === 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      query: shapeQueries[0],
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    } satisfies DirectPlanMeasurement
+  } finally {
+    await executor.disconnect()
+  }
+}
+
 async function main(): Promise<void> {
   ;(globalThis as any).TARGET_BUILD_TYPE = 'client'
 
@@ -3127,6 +3262,15 @@ async function main(): Promise<void> {
       adapterFactory: createBlogPageAdapterFactory,
     },
   ]
+  const manyShapeCachedRequestScenarios: ManyShapeCachedRequestScenario[] = [
+    {
+      name: 'cached request wrapper blog page / 100 retained shapes nested rows',
+      iterations: benchmarkIterations(500),
+      shapeCount: 100,
+      query: (shapeIndex, iteration) => createBlogPostPageRootMaskQuery(shapeIndex + 1, iteration + 1),
+      adapterFactory: createBlogPageAdapterFactory,
+    },
+  ]
 
   try {
     for (const scenario of cacheKeyScenarios) {
@@ -3175,6 +3319,10 @@ async function main(): Promise<void> {
         continue
       }
       printDirectPlanMeasurement(await measureCachedRequestWrapperScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of manyShapeCachedRequestScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
+      printDirectPlanMeasurement(await measureManyShapeCachedRequestWrapperScenario(compiler, paramGraph, scenario))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
