@@ -1424,6 +1424,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - nested blog query: JSON 1.65 us vs custom 6.48 us.
   - Decision: do not replace `JSON.stringify` with a JS custom structural writer. Real wins here likely require fusing parameterization and cache-key construction in one traversal or moving toward the larger JS-reference-backed query pipeline.
 
+- Cached-plan execution phase split.
+  - Extended `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` with render-only and data-map-only phase rows.
+  - The render-only rows compile one plan, extract the first DB query in the cached plan, prebuild placeholder scopes, and time `renderQuery()` directly.
+  - The data-map-only rows compile one plan, extract the root data-map structure, and time `applyDataMapToResultSet()` directly against the benchmark result sets.
+  - Local run after `f8283212f Cache result set field metadata`:
+    - warmed `findUnique`: about 12.26 us/op.
+    - warmed `findMany`: about 8.48 us/op.
+    - warmed blog-page: about 30.51 us/op.
+    - cached request wrapper blog-page: about 26.88 us/op.
+    - direct plan blog-page value-scope churn: about 15.58 us/op.
+    - local executor blog-page value-scope churn: about 16.04 us/op.
+    - render query `findUnique` value-scope churn: about 1.02 us/op.
+    - render query blog-page first DB query value-scope churn: about 0.28 us/op.
+    - data map `findMany` 10 scalar rows: about 1.64 us/op.
+  - Interpretation: render-only and simple scalar data-map-only phases do not explain the remaining nested cached-plan cost. The next near-term target should be nested interpreter/join traversal, expression/binding lookup around compact plans, executor async layers, or a broader fused cache-hit path rather than another render-only tweak.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
 - Rust ownership/allocation redesign.
   - User specifically suggested reducing "Arc madness" and heap allocations by using references/borrowing and possibly arenas.
   - Good candidate areas:

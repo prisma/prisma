@@ -10,10 +10,16 @@ import {
   type QueryCompilerOptions,
 } from '@prisma/client-common'
 import {
+  type CompactJoinExpression,
+  getQueryPlanBindingExpr,
   noopTracingHelper,
   parameterizeQuery,
   QueryInterpreter,
+  type QueryPlanBinding,
+  type QueryPlanCompactNode,
+  type QueryPlanDbQuery,
   type QueryPlanNode,
+  type ResultNode,
 } from '@prisma/client-engine-runtime'
 import { getDMMF } from '@prisma/client-generator-js'
 import type {
@@ -32,6 +38,9 @@ import type { JsonQuery } from '@prisma/json-protocol'
 import { ParamGraph } from '@prisma/param-graph'
 import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-graph-builder'
 
+import { applyDataMapToResultSet } from '../../../../../client-engine-runtime/src/interpreter/data-mapper'
+import type { GeneratorRegistrySnapshot } from '../../../../../client-engine-runtime/src/interpreter/generators'
+import { renderQuery } from '../../../../../client-engine-runtime/src/interpreter/render-query'
 import { ClientEngine } from '../../../runtime/core/engines/client/ClientEngine'
 import { LocalExecutor } from '../../../runtime/core/engines/client/LocalExecutor'
 import { QueryPlanCache } from '../../../runtime/core/engines/client/query-plan-cache'
@@ -119,6 +128,20 @@ type PhaseMeasurement = CacheKeyScenario & {
   averageUs: number
   checksum: number
   heapDelta?: number
+}
+
+type PlanPhaseMeasurement = {
+  name: string
+  iterations: number
+  elapsedMs: number
+  averageUs: number
+  checksum: number
+  heapDelta?: number
+}
+
+type DirectDataMapPlan = {
+  structure: ResultNode
+  enums: Record<string, Record<string, string>>
 }
 
 class EmptySqliteAdapter implements SqlDriverAdapter {
@@ -456,6 +479,22 @@ function printPhaseMeasurement(measurement: PhaseMeasurement): void {
   console.log(parts.join(' | '))
 }
 
+function printPlanPhaseMeasurement(measurement: PlanPhaseMeasurement): void {
+  const parts = [
+    measurement.name,
+    `iterations=${measurement.iterations}`,
+    `elapsed=${measurement.elapsedMs.toFixed(1)} ms`,
+    `avg=${measurement.averageUs.toFixed(2)} us/op`,
+    `checksum=${measurement.checksum}`,
+  ]
+
+  if (measurement.heapDelta !== undefined) {
+    parts.push(`heapDelta=${formatBytes(measurement.heapDelta)}`)
+  }
+
+  console.log(parts.join(' | '))
+}
+
 async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>, scenario: Scenario) {
   const counts: Counts = {
     compile: 0,
@@ -521,6 +560,186 @@ function compileDirectPlan(
     plan: compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)),
     placeholderValues,
   }
+}
+
+function getRootDataMapPlan(plan: QueryPlanNode): DirectDataMapPlan {
+  if (isCompactPlanNode(plan)) {
+    if (plan[0] !== 'd') {
+      throw new Error(`Expected compact dataMap plan, got ${plan[0]}`)
+    }
+
+    return {
+      structure: plan[2],
+      enums: plan[3],
+    }
+  }
+
+  if (plan.type !== 'dataMap') {
+    throw new Error(`Expected dataMap plan, got ${plan.type}`)
+  }
+
+  return {
+    structure: plan.args.structure,
+    enums: plan.args.enums,
+  }
+}
+
+function getFirstDbQuery(plan: QueryPlanNode): QueryPlanDbQuery {
+  const dbQuery = findFirstDbQuery(plan)
+  if (dbQuery === undefined) {
+    throw new Error('Expected query plan with a DB query')
+  }
+  return dbQuery
+}
+
+function findFirstDbQueryInCompactJoins(joins: CompactJoinExpression[]): QueryPlanDbQuery | undefined {
+  for (const join of joins) {
+    const dbQuery = findFirstDbQuery(join[0])
+    if (dbQuery !== undefined) {
+      return dbQuery
+    }
+  }
+  return undefined
+}
+
+function findFirstDbQuery(plan: QueryPlanNode | undefined): QueryPlanDbQuery | undefined {
+  if (plan === undefined) {
+    return undefined
+  }
+
+  if (isCompactPlanNode(plan)) {
+    switch (plan[0]) {
+      case 'q':
+      case 'x':
+        return plan[1]
+
+      case 'd':
+      case 'm':
+      case 'p':
+      case 'r':
+      case 'R':
+      case 't':
+      case 'u':
+        return findFirstDbQuery(plan[1])
+
+      case 'j':
+        return findFirstDbQuery(plan[1]) ?? findFirstDbQueryInCompactJoins(plan[2] as CompactJoinExpression[])
+
+      case 'V':
+        return findFirstDbQuery(plan[1])
+
+      case '?':
+        return findFirstDbQuery(plan[1]) ?? findFirstDbQuery(plan[3]) ?? findFirstDbQuery(plan[4])
+
+      case '-':
+        return findFirstDbQuery(plan[1]) ?? findFirstDbQuery(plan[2])
+
+      case 'i':
+      case 'M':
+        return findFirstDbQuery(plan[1])
+
+      case 's':
+      case '+':
+      case 'c':
+        for (const child of plan[1]) {
+          const dbQuery = findFirstDbQuery(child)
+          if (dbQuery !== undefined) {
+            return dbQuery
+          }
+        }
+        return undefined
+
+      case 'l':
+        for (const binding of plan[1] as QueryPlanBinding[]) {
+          const dbQuery = findFirstDbQuery(getQueryPlanBindingExpr(binding))
+          if (dbQuery !== undefined) {
+            return dbQuery
+          }
+        }
+        return findFirstDbQuery(plan[2])
+
+      case 'g':
+      case 'e':
+      case 'v':
+      case '0':
+        return undefined
+
+      default:
+        throw new Error(`Expected compact query plan with a DB query, got ${plan[0]}`)
+    }
+  }
+
+  switch (plan.type) {
+    case 'query':
+    case 'execute':
+      return plan.args
+
+    case 'unique':
+    case 'required':
+    case 'reverse':
+    case 'transaction':
+      return findFirstDbQuery(plan.args)
+
+    case 'join':
+      return (
+        findFirstDbQuery(plan.args.parent) ??
+        plan.args.children.reduce<QueryPlanDbQuery | undefined>(
+          (found, join) => found ?? findFirstDbQuery('child' in join ? join.child : join[0]),
+          undefined,
+        )
+      )
+
+    case 'dataMap':
+    case 'validate':
+    case 'process':
+    case 'mapRecord':
+      return findFirstDbQuery(plan.args.expr)
+
+    case 'mapField':
+      return findFirstDbQuery(plan.args.records)
+
+    case 'if':
+      return findFirstDbQuery(plan.args.value) ?? findFirstDbQuery(plan.args.then) ?? findFirstDbQuery(plan.args.else)
+
+    case 'seq':
+    case 'sum':
+    case 'concat':
+      for (const child of plan.args) {
+        const dbQuery = findFirstDbQuery(child)
+        if (dbQuery !== undefined) {
+          return dbQuery
+        }
+      }
+      return undefined
+
+    case 'let':
+      for (const binding of plan.args.bindings) {
+        const dbQuery = findFirstDbQuery('expr' in binding ? binding.expr : binding[1])
+        if (dbQuery !== undefined) {
+          return dbQuery
+        }
+      }
+      return findFirstDbQuery(plan.args.expr)
+
+    case 'value':
+    case 'get':
+    case 'getFirstNonEmpty':
+    case 'unit':
+      return undefined
+
+    default:
+      throw new Error(`Expected query plan with a DB query, got ${plan['type']}`)
+  }
+}
+
+function isObjectResultNode(structure: ResultNode): boolean {
+  return (
+    Array.isArray(structure) || (typeof structure === 'object' && structure !== null && structure.type === 'object')
+  )
+}
+
+function isCompactPlanNode(plan: QueryPlanNode): plan is QueryPlanCompactNode {
+  return Array.isArray(plan)
 }
 
 async function measureDirectPlanScenario(
@@ -719,6 +938,81 @@ async function measureDirectPlanScopeScenario(
     counts: { ...counts },
     heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
   } satisfies DirectPlanMeasurement
+}
+
+function measureRenderQueryScopeScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScopeScenario,
+): PlanPhaseMeasurement {
+  const firstQuery = scenario.query(0)
+  const { plan } = compileDirectPlan(compiler, paramGraph, firstQuery)
+  const dbQuery = getFirstDbQuery(plan)
+  const placeholderValues = new Array<Record<string, unknown>>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    placeholderValues[i] = parameterizeQuery(scenario.query(i), paramGraph).placeholderValues
+  }
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  for (let i = 0; i < scenario.iterations; i++) {
+    renderQuery(dbQuery, placeholderValues[i], generators, 999)
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const queries = renderQuery(dbQuery, placeholderValues[i], generators, 999)
+    for (let queryIndex = 0; queryIndex < queries.length; queryIndex++) {
+      checksum += queries[queryIndex].sql.length + queries[queryIndex].args.length
+    }
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+function measureDataMapScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): PlanPhaseMeasurement {
+  const { plan } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { structure, enums } = getRootDataMapPlan(plan)
+  if (!isObjectResultNode(structure)) {
+    throw new Error('Expected object result mapping')
+  }
+
+  const resultSet = scenario.resultSet ?? EMPTY_RESULT
+  for (let i = 0; i < scenario.iterations; i++) {
+    applyDataMapToResultSet(resultSet, structure as never, enums, 'js')
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += applyDataMapToResultSet(resultSet, structure as never, enums, 'js').length
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
 }
 
 async function measureLocalExecutorScenario(
@@ -1111,6 +1405,24 @@ async function main(): Promise<void> {
 
     for (const scenario of directPlanScopeScenarios) {
       printDirectPlanMeasurement(await measureDirectPlanScopeScenario(compiler, paramGraph, scenario))
+    }
+
+    for (const scenario of directPlanScopeScenarios) {
+      printPlanPhaseMeasurement(
+        measureRenderQueryScopeScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'render query'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios) {
+      printPlanPhaseMeasurement(
+        measureDataMapScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'data map'),
+        }),
+      )
     }
 
     for (const scenario of directPlanScenarios) {
