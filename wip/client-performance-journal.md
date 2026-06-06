@@ -517,6 +517,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Release-Wasm phase probe showed JSON request decoding is only about 4-7 microseconds, roughly 4-6% of internal compile+serialize time.
   - Treat as low-ceiling unless combined with removing the owned `JsonBody`/`serde_json::Value` tree and/or the query-plan cache stringify path.
 
+- Direct `JsValue` cache-key walker in Wasm.
+  - Temporary `query-compiler-wasm` method walked a JS query object through `js_sys`/`Reflect`, serialized `query.query` structurally, and returned the current single-query cache key without using JS `JSON.stringify`.
+  - Correctness matched the current JS helper for representative `findUnique` and blog-page queries.
+  - Release-Wasm Node benchmark against the current JS key helper:
+    - `findUnique`: JS about 3.49M ops/sec; Wasm walker about 159k ops/sec; about 21.9x slower.
+    - Blog page: JS about 699k ops/sec; Wasm walker about 26.8k ops/sec; about 26.1x slower.
+  - Release-Wasm Miniflare/workerd benchmark:
+    - `findUnique`: JS about 8.33M ops/sec; Wasm walker about 173k ops/sec; about 48.1x slower.
+    - Blog page: JS about 1.32M ops/sec; Wasm walker about 28.1k ops/sec; about 46.8x slower.
+  - Reverted. Crossing into Wasm and reflecting over JS object properties is far too expensive for cache-key generation alone. Future JS-reference work should not move only cache-key/stringify work into Wasm; it would need to fuse parameterization, cache lookup, and compile/hit handling enough to amortize the boundary and reflection costs.
+
 - Compact single-parameter SQL fragments as `0`.
   - Built on the accepted raw-string fragment shape and serialized `Fragment::Parameter` as numeric sentinel `0`, while keeping tuple fragments as tagged objects.
   - Focused checks passed:
