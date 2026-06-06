@@ -13,6 +13,7 @@ import {
   isPrismaValuePlaceholder,
   type PrismaValueGenerator,
   type PrismaValuePlaceholder,
+  type QueryPlanArgScalarType,
   type QueryPlanArgType,
   type QueryPlanCompactTemplateSql,
   type QueryPlanDbQuery,
@@ -26,19 +27,69 @@ import { ScopeBindings } from './scope'
 
 const EMPTY_ARGS = Object.freeze([]) as unknown as unknown[]
 const EMPTY_ARG_TYPES = Object.freeze([]) as unknown as ArgType[]
-const SCALAR_ARG_TYPES: Record<ArgScalarType, ArgType> = Object.freeze({
-  string: Object.freeze({ arity: 'scalar', scalarType: 'string' }),
-  int: Object.freeze({ arity: 'scalar', scalarType: 'int' }),
-  bigint: Object.freeze({ arity: 'scalar', scalarType: 'bigint' }),
-  float: Object.freeze({ arity: 'scalar', scalarType: 'float' }),
-  decimal: Object.freeze({ arity: 'scalar', scalarType: 'decimal' }),
-  boolean: Object.freeze({ arity: 'scalar', scalarType: 'boolean' }),
-  enum: Object.freeze({ arity: 'scalar', scalarType: 'enum' }),
-  uuid: Object.freeze({ arity: 'scalar', scalarType: 'uuid' }),
-  json: Object.freeze({ arity: 'scalar', scalarType: 'json' }),
-  datetime: Object.freeze({ arity: 'scalar', scalarType: 'datetime' }),
-  bytes: Object.freeze({ arity: 'scalar', scalarType: 'bytes' }),
-  unknown: Object.freeze({ arity: 'scalar', scalarType: 'unknown' }),
+const STRING_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'string' }) satisfies ArgType
+const INT_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'int' }) satisfies ArgType
+const BIGINT_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'bigint' }) satisfies ArgType
+const FLOAT_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'float' }) satisfies ArgType
+const DECIMAL_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'decimal' }) satisfies ArgType
+const BOOLEAN_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'boolean' }) satisfies ArgType
+const ENUM_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'enum' }) satisfies ArgType
+const UUID_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'uuid' }) satisfies ArgType
+const JSON_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'json' }) satisfies ArgType
+const DATETIME_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'datetime' }) satisfies ArgType
+const BYTES_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'bytes' }) satisfies ArgType
+const UNKNOWN_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'unknown' }) satisfies ArgType
+const SCALAR_ARG_TYPES: Record<QueryPlanArgScalarType, ArgType> = Object.freeze({
+  string: STRING_ARG_TYPE,
+  s: STRING_ARG_TYPE,
+  int: INT_ARG_TYPE,
+  i: INT_ARG_TYPE,
+  bigint: BIGINT_ARG_TYPE,
+  I: BIGINT_ARG_TYPE,
+  float: FLOAT_ARG_TYPE,
+  f: FLOAT_ARG_TYPE,
+  decimal: DECIMAL_ARG_TYPE,
+  d: DECIMAL_ARG_TYPE,
+  boolean: BOOLEAN_ARG_TYPE,
+  b: BOOLEAN_ARG_TYPE,
+  enum: ENUM_ARG_TYPE,
+  e: ENUM_ARG_TYPE,
+  uuid: UUID_ARG_TYPE,
+  u: UUID_ARG_TYPE,
+  json: JSON_ARG_TYPE,
+  j: JSON_ARG_TYPE,
+  datetime: DATETIME_ARG_TYPE,
+  D: DATETIME_ARG_TYPE,
+  bytes: BYTES_ARG_TYPE,
+  B: BYTES_ARG_TYPE,
+  unknown: UNKNOWN_ARG_TYPE,
+  '?': UNKNOWN_ARG_TYPE,
+})
+const SCALAR_ARG_TYPE_NAMES: Record<QueryPlanArgScalarType, ArgScalarType> = Object.freeze({
+  string: 'string',
+  s: 'string',
+  int: 'int',
+  i: 'int',
+  bigint: 'bigint',
+  I: 'bigint',
+  float: 'float',
+  f: 'float',
+  decimal: 'decimal',
+  d: 'decimal',
+  boolean: 'boolean',
+  b: 'boolean',
+  enum: 'enum',
+  e: 'enum',
+  uuid: 'uuid',
+  u: 'uuid',
+  json: 'json',
+  j: 'json',
+  datetime: 'datetime',
+  D: 'datetime',
+  bytes: 'bytes',
+  B: 'bytes',
+  unknown: 'unknown',
+  '?': 'unknown',
 })
 
 type TemplateSqlQuery = QueryPlanTemplateSql
@@ -690,7 +741,11 @@ function toArgType(argType: DeepReadonly<QueryPlanArgType>): ArgType {
     return SCALAR_ARG_TYPES[argType]
   }
   if (Array.isArray(argType)) {
-    return { arity: 'scalar', scalarType: argType[0], dbType: argType[1] }
+    return {
+      arity: 'scalar',
+      scalarType: SCALAR_ARG_TYPE_NAMES[argType[0]],
+      dbType: argType[1],
+    }
   }
   return argType as ArgType
 }

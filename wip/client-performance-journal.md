@@ -1752,6 +1752,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: current cache key findUnique 3.97 us/op / 76.7 KiB keys, findMany 1.65 / 46.4 KiB, blog-page 7.28 / 324.7 KiB. Request-as-key findUnique 4.64 / 89.4 KiB, findMany 2.06 / 60.1 KiB, blog-page 7.04 / 337.4 KiB.
   - Decision: do not switch single-query cache entries to use request strings as keys. It is slower on simple shapes, retains larger keys, and only noise-level on blog-page.
 
+- This commit: Compact scalar type names in query plans.
+  - Engines now serialize compact scalar arg types and non-list result field scalar types with one-letter aliases. The runtime still accepts both canonical names and compact aliases, and expands arg aliases back to adapter-facing canonical `ArgType` objects before driver calls.
+  - Hypothetical size check before implementation:
+    - Omitting compact join booleans would save only 27 bytes on the nested blog-page plan and 0 bytes on simple `findUnique` / `findMany`, so that lead is rejected as a standalone patch.
+    - Scalar aliases saved 24 bytes on the benchmark `findUnique` plan (316 -> 292), 22 bytes on `findMany` (282 -> 260), and 167 bytes on the nested blog-page plan (4072 -> 3905).
+  - Query-plan-cache memory after rebuilding local query compiler Wasm:
+    - Scalar selection / node default warm: retained plan JSON 311.1 KiB for 1,000 entries.
+    - Blog page parameterized / node default warm: retained plan JSON 3.93 MiB for 1,000 entries, down from the previous 4.10 MiB journaled baseline.
+    - Blog page parameterized / edge default warm: retained plan JSON 397.6 KiB for 100 entries.
+  - Workerd-like probe after the same rebuild:
+    - Cold smoke `findUnique`: average serialized plan 545 B.
+    - Retained scalar plan cache: 24.4 KiB serialized plans for 100 entries.
+    - Retained blog-page plan cache: 396.1 KiB serialized plans for 100 entries.
+    - Client-cache `findUnique` value churn: one retained plan, 561 B serialized plan.
+    - Client-cache blog-page value churn: one retained plan, 4.3 KiB serialized plan.
+  - Timing/throughput was neutral enough to keep:
+    - Second `client-engine-cache-timing.ts` run: warmed `findUnique` 12.73 us/op, warmed `findMany` 8.67 us/op, warmed blog-page value churn 32.50 us/op, cached request wrapper blog-page nested rows 61.96 us/op, direct plan after phase warmup blog-page nested rows 44.43 us/op, local executor blog-page nested rows 56.86 us/op.
+    - `caching.bench.ts`: compile `findUnique` 1,519 ops/sec, compile filtered `findMany` 1,276 ops/sec, compile blog-page 347 ops/sec, cache-hit key blog-page 295,309 ops/sec.
+  - Verification:
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/render-query.ts packages/client-engine-runtime/src/interpreter/data-mapper.ts packages/client-engine-runtime/src/query-plan.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts data-mapper.test.ts query-interpreter.test.ts`
+    - `cargo check -p query-compiler -p query-builder`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+
 ## Useful Commands
 
 ```sh

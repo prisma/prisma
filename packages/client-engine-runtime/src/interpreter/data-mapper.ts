@@ -2,6 +2,8 @@ import { Decimal } from '@prisma/client-runtime-utils'
 import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import {
+  CanonicalFieldScalarTypeName,
+  CompactFieldScalarTypeName,
   CompactResultObjectNode,
   FieldScalarType,
   FieldScalarTypeName,
@@ -42,7 +44,7 @@ type ResultSetFieldMapping =
       dbName: string
       columnIndex: number
       fieldType: FieldType
-      scalarTypeName: FieldScalarType['type']
+      scalarTypeName: CanonicalScalarTypeName
       isList: boolean
     }
   | {
@@ -59,6 +61,19 @@ type ResultSetFieldMapping =
 
 type ObjectResultNode = ResultObjectNode | CompactResultObjectNode
 type FieldResultNode = FieldScalarTypeName | Extract<ResultNode, { fieldType: FieldType }>
+type CanonicalScalarTypeName = CanonicalFieldScalarTypeName | 'enum' | 'bytes'
+const FIELD_SCALAR_TYPE_NAMES: Record<CompactFieldScalarTypeName, CanonicalFieldScalarTypeName> = Object.freeze({
+  s: 'string',
+  i: 'int',
+  I: 'bigint',
+  f: 'float',
+  b: 'boolean',
+  j: 'json',
+  o: 'object',
+  D: 'datetime',
+  d: 'decimal',
+  x: 'unsupported',
+})
 
 function isCompactObjectNode(node: ResultNode | ObjectResultNode): node is CompactResultObjectNode {
   return Array.isArray(node)
@@ -93,8 +108,11 @@ function getFieldType(node: FieldResultNode): FieldType {
   return typeof node === 'string' ? node : node.fieldType
 }
 
-function getScalarTypeName(fieldType: FieldType): FieldScalarType['type'] {
-  return typeof fieldType === 'string' ? fieldType : fieldType.type
+function getScalarTypeName(fieldType: FieldType): CanonicalScalarTypeName {
+  const scalarTypeName = typeof fieldType === 'string' ? fieldType : fieldType.type
+  return (
+    FIELD_SCALAR_TYPE_NAMES[scalarTypeName as CompactFieldScalarTypeName] ?? (scalarTypeName as CanonicalScalarTypeName)
+  )
 }
 
 function isListField(fieldType: FieldType): boolean {
@@ -559,7 +577,7 @@ function mapValue(
 function mapScalarValue(
   value: unknown,
   columnName: string,
-  scalarTypeName: FieldScalarType['type'],
+  scalarTypeName: CanonicalScalarTypeName,
   scalarType: FieldType,
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat = 'jsonProtocol',

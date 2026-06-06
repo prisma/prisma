@@ -150,9 +150,13 @@ export type QueryPlanCompactTemplateSql = readonly [
   chunkable: boolean,
 ]
 
-export type QueryPlanArgType = ArgScalarType | CompactNativeArgType | ArgType
+export type CompactArgScalarType = 's' | 'i' | 'I' | 'f' | 'd' | 'b' | 'e' | 'u' | 'j' | 'D' | 'B' | '?'
 
-export type CompactNativeArgType = readonly [scalarType: ArgScalarType, dbType: string]
+export type QueryPlanArgScalarType = ArgScalarType | CompactArgScalarType
+
+export type QueryPlanArgType = QueryPlanArgScalarType | CompactNativeArgType | ArgType
+
+export type CompactNativeArgType = readonly [scalarType: QueryPlanArgScalarType, dbType: string]
 
 export type DynamicArgType = QueryPlanArgType | { arity: 'tuple'; elements: QueryPlanArgType[] }
 
@@ -576,7 +580,9 @@ export type FieldArity = Arity | 'required' | 'optional'
 
 export type FieldType = FieldScalarTypeName | ({ arity?: FieldArity } & FieldScalarType)
 
-export type FieldScalarTypeName =
+export type FieldScalarTypeName = CanonicalFieldScalarTypeName | CompactFieldScalarTypeName
+
+export type CanonicalFieldScalarTypeName =
   | 'string'
   | 'int'
   | 'bigint'
@@ -587,6 +593,8 @@ export type FieldScalarTypeName =
   | 'datetime'
   | 'decimal'
   | 'unsupported'
+
+export type CompactFieldScalarTypeName = 's' | 'i' | 'I' | 'f' | 'b' | 'j' | 'o' | 'D' | 'd' | 'x'
 
 export type FieldScalarType =
   | {
