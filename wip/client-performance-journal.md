@@ -2586,6 +2586,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile/create-nested-create`: +1.48% regression.
   - Decision: reverted. Avoiding two allocations in this predicate is not worth perturbing the graph traversal path; keep the existing sorted `incoming_edges()` helper unless a broader `QueryGraph` traversal API is redesigned and benchmarked.
 
+- Rejected experiment: `SmallVec` return for `direct_child_pairs()`.
+  - Hypothesis: `query-compiler/core/src/query_graph/mod.rs::QueryGraph::direct_child_pairs()` returns a `Vec<(EdgeRef, NodeRef)>` even though direct-child fanout is usually small; returning `SmallVec<[(EdgeRef, NodeRef); 4]>` could avoid a heap allocation in `translate_if()` / `process_children()`.
+  - Temporary patch:
+    - Changed the return type from `Vec<(EdgeRef, NodeRef)>` to `SmallVec<[(EdgeRef, NodeRef); 4]>`.
+  - Correctness passed:
+    - `cargo fmt -p query-core`
+    - `cargo test -p query-compiler --test queries`
+  - Allocation profile showed only a narrow nested-write win:
+    - Common read rows were unchanged.
+    - `create-nested-create`: `translate_ir` 707 -> 706 allocs/op, `compile_ir` 1201 -> 1200, `full_compile` 1314 -> 1313.
+  - Focused Criterion gate did not show a meaningful speed win:
+    - `compile/create-nested-create-with-composite-id`: +0.78% within noise threshold.
+    - `compile/create-nested-create`: -0.42%, no change detected.
+  - Decision: reverted. One saved allocation in nested writes, with no common-read effect and no clear speedup, is not enough to justify changing the helper API.
+
 ## Useful Commands
 
 ```sh
