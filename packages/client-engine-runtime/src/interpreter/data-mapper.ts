@@ -340,8 +340,9 @@ function mapObjectWithMappings(
   for (const mapping of fieldMappings) {
     switch (mapping.type) {
       case 'field': {
-        if (Object.hasOwn(data, mapping.dbName)) {
-          result[mapping.name] = mapMappedField(data[mapping.dbName], mapping, enums, resultFormat)
+        const value = data[mapping.dbName]
+        if (value !== undefined || Object.hasOwn(data, mapping.dbName)) {
+          result[mapping.name] = mapMappedField(value, mapping, enums, resultFormat)
         } else {
           throw new DataMapperError(
             `Missing data field (Value): '${mapping.dbName}'; ` +
@@ -352,14 +353,19 @@ function mapObjectWithMappings(
       }
 
       case 'object': {
-        if (mapping.serializedName !== null && !Object.hasOwn(data, mapping.serializedName)) {
-          throw new DataMapperError(
-            `Missing data field (Object): '${mapping.name}'; ` +
-              `node: ${JSON.stringify(mapping.node)}; data: ${JSON.stringify(data)}`,
-          )
+        let target: Value
+        if (mapping.serializedName === null) {
+          target = data
+        } else {
+          target = data[mapping.serializedName]
+          if (target === undefined && !Object.hasOwn(data, mapping.serializedName)) {
+            throw new DataMapperError(
+              `Missing data field (Object): '${mapping.name}'; ` +
+                `node: ${JSON.stringify(mapping.node)}; data: ${JSON.stringify(data)}`,
+            )
+          }
         }
 
-        const target = mapping.serializedName !== null ? data[mapping.serializedName] : data
         result[mapping.name] = mapArrayOrObjectWithMappings(
           target,
           mapping.fields,

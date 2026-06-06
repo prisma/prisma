@@ -2924,6 +2924,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - findUnique value churn 2.34 us/op, findMany stable query 2.44, blog-page value churn 4.88, blog-page nested rows 19.14.
   - Decision: reverted. The helper was neutral on cheap rows and slower on the nested cached wrapper row; avoiding the one-element array does not beat the current `renderQuery()` + flat-rendering-cache path.
 
+- This commit: skip ownership checks on present data-map fields.
+  - Hypothesis: the outer data map still showed about 2.4 us/op in the nested blog-page split. `mapObjectWithMappings()` called `Object.hasOwn()` before reading every scalar and nested object field. In mapped SQL/join results, common successful fields are present and not `undefined`, so loading the value first and only falling back to `Object.hasOwn()` for `undefined` should preserve missing-field errors while avoiding the intrinsic on the hot path.
+  - Change:
+    - In `packages/client-engine-runtime/src/interpreter/data-mapper.ts`, scalar field mappings now read `const value = data[mapping.dbName]` and call `Object.hasOwn()` only when `value === undefined`.
+    - Nested object mappings similarly read `target = data[mapping.serializedName]` first and only run the ownership check for `undefined`.
+    - The explicit-`undefined` property behavior is preserved: if a property exists with value `undefined`, the existing downstream mapper/error behavior still runs instead of reporting it as missing.
+  - Focused verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+  - Timing:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Run 1: cached wrapper 19.77 us/op, direct plan 11.63, precomputed query leaves 7.20, precomputed join leaves 3.96, inner plan 9.85, outer data map 1.66, interpreter data map precomputed 2.22, manual inner+outer 11.58, direct phase-warmed 11.67, local executor 11.57.
+    - Run 2: cached wrapper 18.53 us/op, direct plan 11.85, precomputed query leaves 7.82, precomputed join leaves 3.76, inner plan 9.85, outer data map 1.64, interpreter data map precomputed 2.20, manual inner+outer 11.52, direct phase-warmed 11.67, local executor 11.66.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`
+    - Run 1 was noisy/slower: findUnique 2.51 us/op, findMany 2.65, blog-page value churn 5.16, nested rows 20.23.
+    - Rerun normalized: findUnique 2.34 us/op, findMany 2.46, blog-page value churn 4.99, nested rows 19.20.
+  - Interpreter microbench:
+    - simple select 836,349 ops/sec.
+    - findUnique 1,152,319 ops/sec.
+    - join (1:N) 530,741 ops/sec.
+    - sequence 882,833 ops/sec.
+    - deep nested join 55,111 ops/sec.
+  - Decision: keep. The object data-map split improved repeatably from the prior about 2.4 us/op band to about 1.6 us/op, and the direct/local nested-plan rows improved into the 11.6-11.9 us/op band without a repeatable cheap cache-hit regression.
+
 ## Useful Commands
 
 ```sh
