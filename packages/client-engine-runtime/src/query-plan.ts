@@ -36,7 +36,7 @@ export type ResultNode =
       skipNulls: boolean
     }
   | {
-      type: 'field'
+      type?: 'field'
       dbName?: string
       fieldType: FieldType
     }

@@ -30,7 +30,7 @@ test('maps result sets directly like serialized SQL rows', () => {
   )
 })
 
-test('maps field nodes with omitted default dbName', () => {
+test('maps field nodes with omitted default dbName and type tag', () => {
   const resultSet = {
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
     columnNames: ['id', 'name'],
@@ -41,8 +41,8 @@ test('maps field nodes with omitted default dbName', () => {
     serializedName: null,
     skipNulls: false,
     fields: {
-      id: { type: 'field', fieldType: { type: 'int', arity: 'scalar' } },
-      name: { type: 'field', fieldType: { type: 'string', arity: 'scalar' } },
+      id: { fieldType: { type: 'int', arity: 'scalar' } },
+      name: { fieldType: { type: 'string', arity: 'scalar' } },
     },
   } satisfies ResultNode
 
