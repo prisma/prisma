@@ -3513,6 +3513,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This is a small ownership/borrowing cleanup with consistent allocation reductions and no Criterion regressions in the focused row set.
 
+- Rejected experiment: defer cloning `ParsedField` in `pairs_to_selections()`.
+  - Hypothesis: `pairs_to_selections()` cloned every `ParsedField` before matching whether the selection was scalar, relation, composite, or virtual. Scalar selections do not need the clone, and relation selections only need it when join relation selection is collected, so deferring `pair.parsed_field.clone()` could trim graph-build allocations.
+  - Change tried:
+    - Replaced `match (pair.parsed_field.clone(), field)` with `match field`, cloning `pair.parsed_field` only in relation/composite/virtual branches that pass it to extraction helpers.
+  - Allocation profile:
+    - Count reductions were consistent, but byte reductions were negligible.
+    - `query-m2o`: full compile 624 -> 617 allocs/op.
+    - `query-m2m`: 806 -> 799.
+    - `query-many-m2m`: 803 -> 796.
+    - `query-many-one2m`: 690 -> 681.
+    - `filter-contains-param`: 555 -> 552.
+    - `filter-not-contains-param`: 665 -> 662.
+    - `nested-pagination-query`: 624 -> 619.
+    - `create-nested-create`: 1301 -> 1292.
+    - `create-nested-connectOrCreate-mixed`: 2779 -> 2766.
+    - `update-set-nested`: 2169 -> 2160.
+  - Criterion:
+    - `create-nested-create` regressed about 1.30%, which Criterion classified as a regression.
+    - Other sampled rows were mostly no-change or within-noise but skewed slightly slower: `create-nested-connectOrCreate-mixed` +0.40%, `filter-contains-param` +1.36%, `filter-not-contains-param` +0.84%, `query-m2m` +0.95%, `query-many-m2m` +0.78%, `update-set-nested` +0.91%.
+    - `query-many-one2m`, `query-m2o`, and `query-m2o-lateral` showed no detected performance change.
+  - Reverted. This allocation-count-only cleanup is not worth the compile-time risk. Do not retry this exact `pairs_to_selections()` branch-shape change without a stronger explanation for the Criterion regression.
+
 ## Useful Commands
 
 ```sh
