@@ -2295,6 +2295,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - late warmed full `ClientEngine` nested rows 49.34 us/op, in range but not enough to offset the direct-plan regression.
   - Decision: reverted. Avoiding the two tiny wrapper arrays is too small a ceiling and the helper split perturbs the direct nested-plan path.
 
+- Engines commit: avoid extra linking-field iterator allocation (`b7d4eecbca1` in `/home/aqrln.guest/prisma-engines`).
+  - Rust-side change: `query-compiler/src/translate/query/read.rs::add_inmemory_join()` now collects nested parent linking fields into one small `Vec`, sorts it by field name, and `dedup_by`s by name before building `mapField` bindings.
+  - This replaces the previous `itertools::unique().sorted_by()` chain while preserving deterministic binding order.
+  - Allocation profile before -> after:
+    - `query-m2o` `translate_ir`: 361 -> 360 allocs/op; `compile_ir`: 559 -> 558; `full_compile`: 638 -> 637.
+    - `query-many-m2m` `translate_ir`: 458 -> 457; `compile_ir`: 744 -> 743; `full_compile`: 815 -> 814.
+    - `nested-pagination-query` `translate_ir`: 316 -> 315; `compile_ir`: 551 -> 550; `full_compile`: 636 -> 635.
+    - `create-nested-create` `translate_ir`: 716 -> 715; `compile_ir`: 1210 -> 1209; `full_compile`: 1323 -> 1322.
+  - Criterion evidence:
+    - First focused run: `nested-pagination-query` improved about 3.28%, `query-many-m2m` improved about 2.84%, `query-m2o` and `query-m2o-lateral` were neutral, and one `create-nested-create` run regressed about 4.02%.
+    - Rerun of the mixed rows: `create-nested-create` improved about 6.50%, `nested-pagination-query` improved about 0.71% within the noise threshold, and `query-many-m2m` was about 0.80% slower but within the noise threshold.
+    - Decision: keep. The allocation win is small but broad for this nested-join translation path, and the timing rerun did not confirm the initial write-row regression.
+  - Wasm / Prisma repo handoff:
+    - Rebuilt local query compiler Wasm with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer-resolution lockfile churn, so that lockfile noise was removed.
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` stayed in a good band: compile `findUnique` 1,627 ops/sec, filtered `findMany` 1,389, blog-page 359; cache-hit key blog-page 316,025 ops/sec.
+  - Verification:
+    - `cargo fmt -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|create-nested-create"`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "create-nested-create$|query-many-m2m|nested-pagination-query"`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+
 ## Useful Commands
 
 ```sh
