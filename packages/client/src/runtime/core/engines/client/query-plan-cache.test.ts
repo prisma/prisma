@@ -150,6 +150,52 @@ describe('QueryPlanCache', () => {
       expect(plan1[1][1]).not.toBe(plan2[1][1])
       expect(plan1[2][0][0][1]).toBe(plan2[2][0][0][1])
     })
+
+    it('shares repeated nested result structures under data maps', () => {
+      const cache = new QueryPlanCache(2)
+      const createDbQuery = (sql: string) => [[sql], ['?', true], [], [], false]
+      const createPlan = (rootField: string): QueryPlanNode =>
+        [
+          'd',
+          [
+            'j',
+            ['q', createDbQuery(`SELECT ${rootField} FROM root WHERE id = `)],
+            [
+              [
+                ['q', createDbQuery('SELECT id, name FROM child WHERE parentId = ')],
+                [['id', 'parentId']],
+                'children',
+                false,
+              ],
+            ],
+            false,
+          ],
+          [
+            null,
+            {
+              [rootField]: 'i',
+              children: [null, { id: 'i', name: 's' }],
+            },
+          ],
+          {},
+        ] as unknown as QueryPlanNode
+
+      cache.setSingle('key1', createPlan('firstRootField'))
+      cache.setSingle('key2', createPlan('secondRootField'))
+
+      type InspectableDataMapPlan = readonly [
+        'd',
+        unknown,
+        readonly [null, { children: readonly [null, Record<string, unknown>]; [key: string]: unknown }],
+        unknown,
+      ]
+      const plan1 = cache.getSingle('key1') as unknown as InspectableDataMapPlan
+      const plan2 = cache.getSingle('key2') as unknown as InspectableDataMapPlan
+
+      expect(plan1[2]).not.toBe(plan2[2])
+      expect(plan1[2][1]).not.toBe(plan2[2][1])
+      expect(plan1[2][1].children).toBe(plan2[2][1].children)
+    })
   })
 
   describe('batch cache', () => {

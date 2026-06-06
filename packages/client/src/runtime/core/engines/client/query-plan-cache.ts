@@ -2,6 +2,7 @@ import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime
 
 type InternedStringCounts = Map<string, number>
 type InternedQueryCounts = Map<InternedQuery, number>
+type InternedResultNodeCounts = Map<InternedResultNode, number>
 
 type CacheEntry =
   | {
@@ -10,6 +11,7 @@ type CacheEntry =
       value: QueryPlanNode
       internedStrings?: InternedStringCounts
       internedQueries?: InternedQueryCounts
+      internedResultNodes?: InternedResultNodeCounts
       previous?: CacheEntry
       next?: CacheEntry
     }
@@ -19,6 +21,7 @@ type CacheEntry =
       value: BatchResponse
       internedStrings?: InternedStringCounts
       internedQueries?: InternedQueryCounts
+      internedResultNodes?: InternedResultNodeCounts
       previous?: CacheEntry
       next?: CacheEntry
     }
@@ -29,6 +32,12 @@ type InternedString = {
 }
 
 type InternedQuery = {
+  key: string
+  value: unknown
+  refCount: number
+}
+
+type InternedResultNode = {
   key: string
   value: unknown
   refCount: number
@@ -46,6 +55,7 @@ export class QueryPlanCache {
   readonly #batchCache: Map<string, Extract<CacheEntry, { kind: 'batch' }>>
   readonly #stringInterner = new Map<string, InternedString>()
   readonly #queryInterner = new Map<string, InternedQuery>()
+  readonly #resultNodeInterner = new Map<string, InternedResultNode>()
   readonly #maxSize: number
   #head?: CacheEntry
   #tail?: CacheEntry
@@ -86,10 +96,12 @@ export class QueryPlanCache {
     if (entry !== undefined) {
       this.#releaseInternedStrings(entry.internedStrings)
       this.#releaseInternedQueries(entry.internedQueries)
+      this.#releaseInternedResultNodes(entry.internedResultNodes)
       const prepared = this.#prepareCacheValue(plan)
       entry.value = prepared.value
       entry.internedStrings = prepared.internedStrings
       entry.internedQueries = prepared.internedQueries
+      entry.internedResultNodes = prepared.internedResultNodes
       this.#touch(entry)
       return
     }
@@ -101,6 +113,7 @@ export class QueryPlanCache {
       value: prepared.value,
       internedStrings: prepared.internedStrings,
       internedQueries: prepared.internedQueries,
+      internedResultNodes: prepared.internedResultNodes,
     })
     this.#evictIfNeeded()
   }
@@ -137,10 +150,12 @@ export class QueryPlanCache {
     if (entry !== undefined) {
       this.#releaseInternedStrings(entry.internedStrings)
       this.#releaseInternedQueries(entry.internedQueries)
+      this.#releaseInternedResultNodes(entry.internedResultNodes)
       const prepared = this.#prepareCacheValue(response)
       entry.value = prepared.value
       entry.internedStrings = prepared.internedStrings
       entry.internedQueries = prepared.internedQueries
+      entry.internedResultNodes = prepared.internedResultNodes
       this.#touch(entry)
       return
     }
@@ -152,6 +167,7 @@ export class QueryPlanCache {
       value: prepared.value,
       internedStrings: prepared.internedStrings,
       internedQueries: prepared.internedQueries,
+      internedResultNodes: prepared.internedResultNodes,
     })
     this.#evictIfNeeded()
   }
@@ -168,6 +184,7 @@ export class QueryPlanCache {
     this.#size = 0
     this.#stringInterner.clear()
     this.#queryInterner.clear()
+    this.#resultNodeInterner.clear()
   }
 
   get size(): number {
@@ -265,6 +282,7 @@ export class QueryPlanCache {
     }
     this.#releaseInternedStrings(entry.internedStrings)
     this.#releaseInternedQueries(entry.internedQueries)
+    this.#releaseInternedResultNodes(entry.internedResultNodes)
     this.#size--
   }
 
@@ -272,18 +290,22 @@ export class QueryPlanCache {
     value: T
     internedStrings?: InternedStringCounts
     internedQueries?: InternedQueryCounts
+    internedResultNodes?: InternedResultNodeCounts
   } {
     if (!shouldInternStrings(value)) {
-      return { value, internedStrings: undefined, internedQueries: undefined }
+      return { value, internedStrings: undefined, internedQueries: undefined, internedResultNodes: undefined }
     }
 
     const internedQueries = new Map<InternedQuery, number>()
+    const internedResultNodes = new Map<InternedResultNode, number>()
     const internedStrings = new Map<string, number>()
     const withSharedQueries = this.#internJoinChildQueries(value, internedQueries)
+    const withSharedResultNodes = this.#internNestedResultNodes(withSharedQueries, internedResultNodes)
     return {
-      value: this.#internStrings(withSharedQueries, internedStrings),
+      value: this.#internStrings(withSharedResultNodes, internedStrings),
       internedStrings,
       internedQueries: internedQueries.size === 0 ? undefined : internedQueries,
+      internedResultNodes: internedResultNodes.size === 0 ? undefined : internedResultNodes,
     }
   }
 
@@ -363,6 +385,93 @@ export class QueryPlanCache {
     return interned.value
   }
 
+  #internNestedResultNodes<T>(value: T, counts: InternedResultNodeCounts): T {
+    this.#internNestedResultNodesInner(value, counts)
+    return value
+  }
+
+  #internNestedResultNodesInner(value: unknown, counts: InternedResultNodeCounts): void {
+    if (Array.isArray(value)) {
+      if (value[0] === 'd' && value.length > 2) {
+        this.#internNestedResultNodesInner(value[1], counts)
+        value[2] = this.#internResultNode(value[2], true, counts)
+        return
+      }
+
+      for (let i = 0; i < value.length; i++) {
+        this.#internNestedResultNodesInner(value[i], counts)
+      }
+      return
+    }
+
+    if (typeof value !== 'object' || value === null) {
+      return
+    }
+
+    const record = value as Record<string, unknown>
+    if (record.type === 'dataMap') {
+      const args = record.args as Record<string, unknown> | undefined
+      if (args !== undefined) {
+        this.#internNestedResultNodesInner(args.expr, counts)
+        args.structure = this.#internResultNode(args.structure, true, counts)
+      }
+      return
+    }
+
+    for (const key of Object.keys(record)) {
+      this.#internNestedResultNodesInner(record[key], counts)
+    }
+  }
+
+  #internResultNode<T>(value: T, isRoot: boolean, counts: InternedResultNodeCounts): T {
+    if (Array.isArray(value)) {
+      if (isCompactResultObjectNode(value)) {
+        const fields = value[1]
+        for (const key of Object.keys(fields)) {
+          fields[key] = this.#internResultNode(fields[key], false, counts)
+        }
+        return isRoot ? value : (this.#internResultNodeValue(value, counts) as T)
+      }
+
+      const items = value as unknown[]
+      for (let i = 0; i < items.length; i++) {
+        items[i] = this.#internResultNode(items[i], false, counts)
+      }
+      return isRoot ? value : (this.#internResultNodeValue(value, counts) as T)
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      const record = value as Record<string, unknown>
+      if (record.type === 'object' && isRecord(record.fields)) {
+        const fields = record.fields
+        for (const key of Object.keys(fields)) {
+          fields[key] = this.#internResultNode(fields[key], false, counts)
+        }
+        return isRoot ? value : (this.#internResultNodeValue(value, counts) as T)
+      }
+
+      for (const key of Object.keys(record)) {
+        record[key] = this.#internResultNode(record[key], false, counts)
+      }
+      return isRoot ? value : (this.#internResultNodeValue(value, counts) as T)
+    }
+
+    return value
+  }
+
+  #internResultNodeValue(value: unknown, counts: InternedResultNodeCounts): unknown {
+    const key = JSON.stringify(value)
+    let interned = this.#resultNodeInterner.get(key)
+    if (interned === undefined) {
+      interned = { key, value, refCount: 0 }
+      this.#resultNodeInterner.set(key, interned)
+    }
+
+    interned.refCount++
+    counts.set(interned, (counts.get(interned) ?? 0) + 1)
+    return interned.value
+  }
+
   #internStrings<T>(value: T, counts: InternedStringCounts): T {
     if (typeof value === 'string') {
       if (value.length < MIN_INTERNED_STRING_LENGTH) {
@@ -428,6 +537,19 @@ export class QueryPlanCache {
       }
     }
   }
+
+  #releaseInternedResultNodes(counts: InternedResultNodeCounts | undefined): void {
+    if (counts === undefined) {
+      return
+    }
+
+    for (const [interned, count] of counts) {
+      interned.refCount -= count
+      if (interned.refCount <= 0) {
+        this.#resultNodeInterner.delete(interned.key)
+      }
+    }
+  }
 }
 
 function shouldInternStrings(value: unknown): boolean {
@@ -458,4 +580,16 @@ function shouldInternStrings(value: unknown): boolean {
   }
 
   return false
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isCompactResultObjectNode(value: unknown[]): value is [string | null, Record<string, unknown>, boolean?] {
+  return (
+    (value.length === 2 || value.length === 3) &&
+    (typeof value[0] === 'string' || value[0] === null) &&
+    isRecord(value[1])
+  )
 }
