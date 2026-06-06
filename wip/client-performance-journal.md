@@ -1664,6 +1664,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Client-cache blog-page value churn: 100 requests, 99 hits / 1 miss, one retained plan, 704 B key, 4.5 KiB serialized plan, host heap delta about 364.2 KiB.
   - Follow-up: instantiate a generated edge client and execute through `ClientEngine` with a mock/adapter path if we need end-to-end query execution memory, not just query compiler/cache behavior.
 
+- Nested data-map pushdown / plan-shape lead.
+  - Read-only inspection of the compiled benchmark blog-page plan showed this root shape:
+    - outer `d dataMap` with final response fields `[id,title,slug,content,published,viewCount,createdAt,author,category,tags,comments,_count]`.
+    - inside it, `let @parent = unique(query)` for the post row.
+    - another `let` extracts `authorId`, `categoryId`, and `id`.
+    - a `join` attaches author, category, tags, and comments; tag/comment child branches contain their own nested `let` + one-child `join`.
+  - Important consequence: nested `q` nodes are not direct `dataMap(query)` nodes, so they do not use `applyDataMapToResultSet()` directly. They first go through `serializeSql()` into row objects; the outer data map later remaps the joined object graph into the final response shape and drops join keys / builds `_count`.
+  - This explains why tiny join-key micro-optimizations were weak: the bigger nested-row cost is likely row-object serialization plus a second object-graph data-map/projection pass.
+  - Next stronger lead: explore query-compiler plan-shape changes that push data-map/projection closer to each SQL result while preserving join keys for attachment, or introduce a cheaper final projection/drop-internal-keys node instead of a full scalar-remapping outer data map.
+
 ## Useful Commands
 
 ```sh
