@@ -3252,6 +3252,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This does not reduce allocation counts, but it consistently trims selected-field construction bytes and the focused Criterion run was neutral-to-positive across the targeted read/nested rows.
 
+- Rejected experiment: move-based `filter_fold` helpers.
+  - Hypothesis: `filter_fold.rs` cloned every `Filter` before matching it in `fold_and_impl()`, `fold_or_impl()`, and `fold_not_impl()`, then dropped the original. Matching by value, pre-sizing the output vectors, and returning the sole folded child by move should remove avoidable clone work.
+  - Change tried:
+    - Replaced `match f.clone()` with `match f`.
+    - Used `Vec::with_capacity(filters.len())` for the local folded output vectors.
+    - Returned single folded `AND` / `OR` children with `folded.into_iter().next().unwrap()` instead of cloning `folded.first()`.
+  - Allocation profile:
+    - Common filter/read/nested fixtures were unchanged.
+    - The only explicit boolean-group fixture in the compilation corpus, `filter-not-contains-param`, improved by one allocation and about 0.4 KiB: full compile 667 allocs/op / 80.9 KiB -> 666 allocs/op / 80.5 KiB.
+  - Criterion:
+    - `compile/filter-contains-param-insensitive`: regressed about 3.49%.
+    - `compile/filter-contains-param`: regressed about 8.77%.
+    - `compile/filter-not-contains-param`: regressed about 2.73%.
+  - Verification while patched:
+    - `cargo fmt -p query-core`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-core filter_fold`
+  - Decision: reverted. The one-allocation win on the boolean-group row is far too small, and the focused filter Criterion rows regress significantly. Keep the clone-looking `filter_fold` shape unless a broader filter folding redesign has stronger benchmark evidence.
+
 ## Useful Commands
 
 ```sh
