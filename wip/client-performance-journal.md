@@ -709,6 +709,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Radical JS-reference-backed query compiler pipeline.
   - User idea: do not create/own input query data or built SQL strings on the Rust heap; only internal IRs should be Rust-owned. Use wrapper types such as `PrismaString` that can wrap native Rust strings in unit tests and external JS strings/objects in Wasm.
+  - Current code path:
+    - `query-compiler-wasm/src/compiler.rs` exposes `compile(&self, request: String)` and `compileBatch(&self, request: String)`, so the Wasm ABI currently copies a full JSON request string into Wasm memory before parsing starts.
+    - `RequestBody::try_from_str()` calls `serde_json::from_str::<JsonBody>()`.
+    - `JsonBody` / `JsonSingleQuery` own request strings and `FieldQuery.arguments: Option<IndexMap<String, serde_json::Value>>`.
+    - `JsonProtocolAdapter` then builds owned `Operation`, `Selection`, `ArgumentValue`, and `PrismaValue` trees; `Selection` stores `String` names and `Vec<(String, ArgumentValue)>`.
+    - `query_compiler::compile()` then builds the query graph and translates it to owned `Expression`/SQL-template/result-node IRs.
   - Practicality assessment: potentially practical as a project-level redesign, but not as a narrow `serde_wasm_bindgen` substitution. Wrapper types help only if request parsing, schema lookup, validation, SQL rendering, and cache-key generation are all changed to consume borrowed/input-backed values instead of immediately converting into owned `String`/map trees.
   - Potential shape:
     - Client passes the query object as a single JS reference into Wasm.
@@ -725,7 +731,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Caching by JS object identity is unsafe if user query objects are mutable; structural hashing over JS objects without copying is possible but must be deterministic and preserve current cache semantics.
     - Storing `JsValue`/externref handles in Rust caches needs careful lifetime/GC behavior and Cloudflare Workers compatibility verification.
     - Not building SQL strings on Rust heap would require a lower-level SQL/template IR and JS-side or driver-side final rendering, which is much broader than request parsing.
-  - Treat as a project-level design/spike candidate. First useful proof would be a small Wasm prototype that walks a JS query object, computes the existing parameterization cache key, and returns placeholder refs without materializing `serde_json::Value`; second proof would compile a tiny read query into an IR that keeps SQL template strings external until final driver execution.
+  - Suggested spike sequence:
+    1. Add an isolated Wasm prototype that walks a JS query object and computes the existing parameterized cache key plus placeholder map without materializing `serde_json::Value` or stringifying the query in JS. This tests the highest-confidence win and cache semantics before touching query-core.
+    2. Prototype `compileJsValue(request: JsValue)` that builds today's owned `Operation` directly from JS values. This would skip JSON stringify/parse and quantify the ceiling of a lower-risk direct parser, while preserving current `QueryGraphBuilder` and validation behavior.
+    3. If the ceiling justifies it, design a borrowed/arena-backed query document layer (`Selection<'req>`, `ArgumentValue<'req>`, interned schema/action keys, arena-owned converted scalars) and adapt graph building incrementally. This is the first point where a `PrismaString`-style wrapper or arena is likely to pay off.
+    4. Treat "do not own SQL strings" as a separate larger project: it likely requires SQL template/result IR changes so the interpreter/driver can consume interned or JS-owned fragments instead of Rust-owned serialized strings.
 
 - More Cloudflare-specific memory measurement.
   - Current evidence is still mostly Node/V8 local benchmarks.
