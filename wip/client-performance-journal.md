@@ -7,6 +7,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 ## Current Baseline
 
 - Prisma repo current relevant commits:
+  - `8bb3a7e38 Accept compact result object nodes`
   - `33bbd7603 Accept compact template SQL queries`
   - `4c132dfbc Accept compact scalar field nodes`
   - `9f2720873 Accept compact scalar arg types`
@@ -29,6 +30,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `8da0a53dd83 Compact result object nodes`
   - `fe2a4796eaf Compact template SQL queries`
   - `ccaea7b4735 Compact scalar result field nodes`
   - `6fcc107bb5c Compact scalar query arg types`
@@ -72,6 +74,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `8da0a53dd83 Compact result object nodes`
+    - `ResultNode::Object` now serializes as `[serializedName, fields]` when `skipNulls` is false, and `[serializedName, fields, true]` when `skipNulls` is true. This keeps the shape unambiguous for result objects with fields literally named `type`.
+    - Prisma commit `8bb3a7e38 Accept compact result object nodes` makes the TypeScript query-plan type, direct result-set mapper, and serialized-value data mapper accept both legacy object-shaped result objects and compact tuple-shaped result objects.
+    - Same-source local Wasm plan-size savings after compact `templateSql` queries:
+      - `findUnique`: 806 -> 746 bytes, saving 60 bytes.
+      - `findMany filtered`: 891 -> 831 bytes, saving 60 bytes.
+      - `findMany in filter`: 922 -> 862 bytes, saving 60 bytes.
+      - `blog page`: 7,217 -> 6,737 bytes, saving 480 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm moved retained serialized plan shape down again:
+      - Scalar selection / edge default warm: `planJsonRetained` 42.0 KiB -> 36.2 KiB.
+      - Scalar selection / edge default churn: `planJsonRetained` 56.0 KiB -> 50.1 KiB.
+      - Scalar selection / node default warm: `planJsonRetained` 498.3 KiB -> 439.7 KiB.
+      - Blog page / edge default warm: `planJsonRetained` 667.1 KiB -> 620.2 KiB.
+      - Blog page / edge default churn: `planJsonRetained` 675.5 KiB -> 628.6 KiB.
+      - Blog page / node default warm: `planJsonRetained` 6.56 MiB -> 6.11 MiB.
+    - Verification:
+      - `cargo fmt -p query-compiler --check`
+      - `cargo test -p query-compiler --test queries`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+      - Inline compact-result-object interpreter probe based on `packages/client-engine-runtime/bench/sample-query-plans.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `git diff --check` in both repos
+    - Benchmark gate with local rebuilt Wasm was acceptable:
+      - Caching compile rows: about 1,578 / 1,288 / 334 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows stayed in range at about 1,112,456 / 498,463 / 624,850 / 467,915 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Legacy object-shaped interpreter sample plans stayed in range: about 787,073 simple-select ops/sec, 1,006,918 `findUnique` ops/sec, 314,112 join ops/sec, 775,352 sequence ops/sec, and 45,136 deep nested join ops/sec.
+      - A throwaway compact-result-object interpreter probe measured about 782,928 simple-select ops/sec, 1,027,962 `findUnique` ops/sec, 313,084 join ops/sec, 808,818 sequence ops/sec, and 46,270 deep nested join ops/sec.
+      - Decision: keep. Fixed-width `[serializedName, fields]` tuples gave up 5 bytes on the top-level default object versus a one-element tuple, but avoided a tuple-length branch in the data mapper.
   - `fe2a4796eaf Compact template SQL queries`
     - `DbQuery::TemplateSql` now serializes as the compact tuple `[fragments, [prefix, hasNumbering], args, argTypes, chunkable]`. Raw SQL remains object-shaped to preserve the raw-query discriminator and error handling.
     - Prisma commit `33bbd7603 Accept compact template SQL queries` makes the TypeScript query-plan type and renderer accept both legacy object-shaped `templateSql` queries and compact tuple-shaped queries. The renderer keeps separate legacy and compact paths so compatibility plans do not pay generic tuple/object helper overhead.
