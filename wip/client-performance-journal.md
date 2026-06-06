@@ -2646,6 +2646,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile/create-nested-create`: +0.39% within noise threshold.
   - Decision: reverted. Even though this removes a sequence shape that simplification later discards, the focused timing gate regressed the composite nested-create row.
 
+- Rejected experiment: skip `InMemoryOps` cloning for static process nodes.
+  - Hypothesis: compact `p` / legacy `process` interpreter nodes clone their `InMemoryOps` via `klona()` on every cached-plan execution so `evaluateProcessingParameters()` can mutate cursor placeholders. The hot blog-page nested-row process nodes appear to use static pagination/distinct metadata, so static ops could be reused directly while dynamic cursor ops still clone and evaluate.
+  - Temporary patch:
+    - Added `prepareProcessingParameters()` in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - First variant scanned the ops tree each execution and skipped cloning if no cursor placeholder/generator required evaluation.
+    - Second variant cached the static/dynamic decision in a `WeakMap<InMemoryOps, boolean>` keyed by the cached plan's ops object.
+  - Correctness passed for both variants:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter in-memory-processing`
+  - Baseline timing before the patch:
+    - `cached request wrapper blog page / nested rows`: 40.05 us/op.
+    - `direct plan after phase warmup blog page / nested rows`: 23.87 us/op.
+    - `inner plan blog page / nested rows`: 22.16 us/op.
+    - `local executor blog page / nested rows`: 31.44 us/op.
+  - Scan-only variant timing was mixed:
+    - Run 1: cached wrapper 41.60 us/op, direct phase-warmed 24.38, inner plan 22.14, local executor 30.54.
+    - Run 2: cached wrapper 39.66 us/op, direct phase-warmed 24.19, inner plan 22.45, local executor 30.53.
+  - WeakMap-decision variant still did not move the hot rows clearly:
+    - cached wrapper 39.92 us/op, direct phase-warmed 24.82, inner plan 22.18, local executor 30.83.
+  - Decision: reverted. Avoiding `klona()` for static process ops is not enough to improve the nested cached-plan path, and the decision guard can make the phase-warmed direct row worse.
+
 ## Useful Commands
 
 ```sh
