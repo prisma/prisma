@@ -1973,6 +1973,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
 
+- Rejected experiment: no-op in-memory pagination guard.
+  - Hypothesis: `processManyRecords()` could skip `paginate()` when pagination is semantically a no-op (`cursor == null`, `skip` absent/zero, and `take` absent or at least `records.length`). This targeted the comments branch where `take: 10` applies to two rows but still goes through linked pagination grouping/sorting/flatMap.
+  - Correctness checks passed:
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/in-memory-processing.ts packages/client-engine-runtime/src/interpreter/in-memory-processing.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test in-memory-processing.test.ts`
+  - Timing with the spike was mixed and not strong enough to keep:
+    - Run 1: warmed `ClientEngine` nested rows 88.47 us/op, cached request wrapper nested rows 58.53, direct plan nested rows 59.64, precomputed root join children 18.65, tags branch 16.85, comments branch 19.97, inner plan 44.57, direct after phase warmup 46.75, local executor nested rows 53.88.
+    - Run 2: warmed `ClientEngine` nested rows 90.82 us/op, cached request wrapper nested rows 59.57, direct plan nested rows 60.13, precomputed root join children 18.70, tags branch 17.24, comments branch 20.56, inner plan 45.24, direct after phase warmup 48.64, local executor nested rows 61.79.
+    - Interpreter microbench with the spike: simple select 877,045 ops/sec, findUnique 1,196,416, join 333,229, sequence 911,484, deep nested join 43,036.
+  - Decision: reverted. The first run had a small local executor/product-path improvement, but the second run regressed local executor nested rows badly and deep nested interpreter throughput stayed below the recent no-spike band.
+
 ## Useful Commands
 
 ```sh
