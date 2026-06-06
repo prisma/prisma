@@ -71,14 +71,15 @@ CODSPEED_BENCHMARK=true pnpm bench
 
 **Location:** `packages/client/src/__tests__/benchmarks/query-performance/`
 
-| File                         | Description                                                               |
-| ---------------------------- | ------------------------------------------------------------------------- |
-| `query-performance.bench.ts` | End-to-end query benchmarks with SQLite                                   |
-| `caching.bench.ts`           | Query compiler/cache behavior benchmarks                                  |
-| `query-plan-cache-memory.ts` | Query plan cache retained heap probe for scalar and nested relation plans |
-| `schema.prisma`              | Benchmark schema with typical web app models                              |
-| `seed-data.ts`               | Data generation utilities                                                 |
-| `prisma.config.ts`           | Prisma configuration for benchmarks                                       |
+| File                               | Description                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `query-performance.bench.ts`       | End-to-end query benchmarks with SQLite                                   |
+| `caching.bench.ts`                 | Query compiler/cache behavior benchmarks                                  |
+| `query-plan-cache-memory.ts`       | Query plan cache retained heap probe for scalar and nested relation plans |
+| `workerd-query-compiler-memory.ts` | Miniflare/workerd query compiler and retained plan cache memory probe     |
+| `schema.prisma`                    | Benchmark schema with typical web app models                              |
+| `seed-data.ts`                     | Data generation utilities                                                 |
+| `prisma.config.ts`                 | Prisma configuration for benchmarks                                       |
 
 ### Interpreter Benchmarks
 
@@ -261,6 +262,9 @@ node --heap-prof -r esbuild-register packages/client/src/__tests__/benchmarks/qu
 
 # Probe retained query plan cache heap after forced GC
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
+
+# Probe query compiler startup and retained plans in a Miniflare/workerd worker
+pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 ```
 
 ### Using 0x for Flame Graphs

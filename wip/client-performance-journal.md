@@ -730,12 +730,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - More Cloudflare-specific memory measurement.
   - Current evidence is still mostly Node/V8 local benchmarks.
   - First repeatable query-plan-cache retention probe exists at `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
-  - Remaining gap: a true workerd/miniflare memory harness for edge bundle startup, Wasm instance memory, query compiler cache size, and representative query execution.
-  - Current repo state:
-    - `pnpm exec wrangler --help` works from the root.
-    - `pnpm exec workerd` and `pnpm exec miniflare` are not root-exposed binaries.
-    - `require.resolve('miniflare')` is not root-resolvable, but Wrangler's sibling dependency path resolves to `node_modules/.pnpm/miniflare@3.20250718.2/node_modules/miniflare/dist/src/index.js`.
-  - A future harness can likely import Miniflare through Wrangler's package path for local measurement tooling, but that path is brittle and should not be used in production code.
+  - Added `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` as a closer edge-runtime probe for query compiler startup and retained plan cache shape.
+  - Run with:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Harness details:
+    - Imports Miniflare through Wrangler's sibling dependency path because `pnpm exec miniflare` and root `require.resolve('miniflare')` are not available.
+    - Supplies the generated query compiler runtime as an ES module and the decoded Wasm as a Miniflare `CompiledWasm` module.
+    - Dynamic `new WebAssembly.Module(bytes)` inside the worker fails in workerd with `Wasm code generation disallowed by embedder`; static Wasm import is required.
+    - Host RSS includes Miniflare/workerd process effects, so this is a directional Cloudflare-like signal rather than an exact isolate heap measurement.
+  - First local run on the current compact expression-node baseline:
+    - Cold smoke compile: `runtime: Cloudflare-Workers`, compiler init about 65 ms, one `findUnique` compile loop about 51 ms, serialized plan 660 B, host RSS delta about 4.52 MiB.
+    - Retained scalar cache: 100 `user-scalar-selection` plans, compile loop about 58 ms, 100 retained entries, 7.6 KiB cache keys, 29.6 KiB serialized plans, host RSS delta about 2.12 MiB.
+    - Retained blog-page cache: 100 plans, compile loop about 425 ms, 100 retained entries, 48.3 KiB cache keys, 521.6 KiB serialized plans, host RSS delta about 128 KiB after the already-warm worker.
+  - Follow-up: extend the worker probe to instantiate a generated edge client and execute through `ClientEngine` with a mock/adapter path if we need end-to-end query execution memory, not just query compiler and retained plan shape.
 
 ## Useful Commands
 
@@ -752,6 +759,7 @@ pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
+pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
 cd /home/aqrln.guest/prisma-engines
 cargo test -p query-compiler --test queries
