@@ -76,6 +76,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `4dc9111d4cd Compact tuple parameter fragments`
+    - SQL `ParameterTuple` fragments now serialize as `["T", itemPrefix, itemSeparator, itemSuffix]`.
+    - SQL `ParameterTupleList` fragments now serialize as `["L", itemPrefix, itemSeparator, itemSuffix, groupSeparator]`.
+    - This isolates the tuple/list fragment part of the earlier rejected compact-nested-structures experiment; bindings, joins, and other support structures remain object-shaped.
+    - Prisma runtime accepts both legacy tuple/list fragment objects and compact tuple/list arrays in flat rendering rejection, template rendering, and chunking.
+    - Same-source local Wasm plan-size savings:
+      - `findUnique`: unchanged at 612 bytes.
+      - `findMany filtered`: unchanged at 700 bytes.
+      - `findMany in filter`: unchanged at 683 bytes.
+      - `blog page`: 5,423 -> 5,299 bytes, saving 124 bytes.
+      - PostgreSQL fixture `create-m2m.json`: 3,674 -> 3,591 bytes, saving 83 bytes.
+      - PostgreSQL fixture `nested-pagination-query.json`: 972 -> 910 bytes, saving 62 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm moved retained serialized plan shape down for tuple-heavy blog plans:
+      - Scalar-selection scenarios were unchanged from compact parameter fragments.
+      - Blog page / edge default warm: `planJsonRetained` 491.9 KiB -> 479.8 KiB.
+      - Blog page / edge default churn: `planJsonRetained` 500.3 KiB -> 488.2 KiB.
+      - Blog page / node default warm: `planJsonRetained` 4.85 MiB -> 4.74 MiB.
+    - Workerd query compiler memory probe with rebuilt runtime:
+      - Cold `findUnique` average serialized plan unchanged at 612 B.
+      - Retained scalar cache unchanged at 26.5 KiB serialized plans for 100 entries.
+      - Retained blog-page cache: 100 plans, 48.3 KiB keys, 479.8 KiB serialized plans.
+    - Verification:
+      - `cargo fmt -p query-builder --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `git diff --check` in both repos
+    - Benchmark gate with local rebuilt Wasm was acceptable:
+      - Caching compile rows: about 1,579 / 1,309 / 338 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows stayed in range at about 1,115,300 / 486,712 / 613,844 / 446,764 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Interpreter sample-plan rerun measured about 790,473 simple-select ops/sec, 995,232 `findUnique` ops/sec, 309,549 join ops/sec, 769,717 sequence ops/sec, and 46,016 deep nested join ops/sec.
+      - Decision: keep. The byte win is narrower than compact scalar parameters, but the isolated change passed the compile gate that the broader nested-structure experiment failed.
   - `b021a14b2c4 Compact parameter fragments`
     - Scalar SQL `Parameter` fragments now serialize as `null` in `templateSql.fragments`; string chunks stay raw strings and tuple/tuple-list fragments stay object-shaped.
     - This is intentionally different from the previously rejected numeric `0` sentinel. The `null` sentinel is unambiguous in the fragment array, preserves legacy `{ type: "parameter" }` support in the TS renderer, and passed the compile benchmark gate.

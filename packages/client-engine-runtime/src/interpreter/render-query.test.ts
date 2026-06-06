@@ -144,6 +144,55 @@ test('accepts compact parameter fragments', () => {
   ])
 })
 
+test('accepts compact parameter tuple fragments', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id IN ', ['T', '', ',', '']],
+        ['$', true],
+        [[1, 2, 3]],
+        ['int'],
+        true,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id IN ($1,$2,$3)',
+      args: [1, 2, 3],
+      argTypes: Array.from({ length: 3 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+    },
+  ])
+})
+
+test('accepts compact parameter tuple list fragments', () => {
+  expect(
+    renderQuery(
+      [
+        ['INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ', ['L', '(', ',', ')', ',']],
+        ['$', true],
+        [
+          [
+            [1, 2],
+            [3, 4],
+          ],
+        ],
+        Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        true,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ($1,$2),($3,$4)',
+      args: [1, 2, 3, 4],
+      argTypes: Array.from({ length: 4 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+    },
+  ])
+})
+
 test('transforms IN template', () => {
   expect(
     renderQuery(
