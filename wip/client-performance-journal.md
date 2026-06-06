@@ -3107,6 +3107,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Focused allocation profile over nested writes and read controls showed no allocation changes on sampled rows (`create-nested-connectOrCreate-*`, `update-set-nested*`, `create-m2m`, `create-nested-create`, `update-connect`, `query-m2o`, `query-many-m2m`).
   - Decision: reverted without Criterion. The proposed fast path did not hit the sampled hot shapes.
 
+- Accepted engines change: borrow result mapper field selections.
+  - Commit: `30a32a2c9f6 Avoid cloning result mapper selections` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - Added `FieldSelection::as_slice()`.
+    - Changed `query-compiler/src/data_mapper.rs::get_result_node()` to accept `&[SelectedField]`.
+    - Removed the nested relation `FieldSelection::new(f.selections.to_vec())` clone when recursively mapping relation result nodes.
+    - Updated create/update/delete-many result mapping call sites to unwrap selected-field metadata once and pass borrowed slices.
+  - Allocation profile compared to the immediate pre-patch baseline:
+    - `query-m2o`: `translate_ir` 358 -> 357 allocs/op, 47.7 KiB -> 47.0 KiB; full compile 635 -> 634 allocs/op, 109.4 KiB -> 108.8 KiB.
+    - `query-many-m2m`: `translate_ir` 455 -> 454, 48.1 KiB -> 47.4 KiB; full compile 812 -> 811, 109.3 KiB -> 108.7 KiB.
+    - `nested-pagination-query`: `translate_ir` 313 -> 312, 36.2 KiB -> 35.6 KiB; full compile 633 -> 632, 90.4 KiB -> 89.8 KiB.
+    - `create-nested-create`: `translate_ir` 703 -> 702, 79.9 KiB -> 79.0 KiB; full compile 1,310 -> 1,309, 168.5 KiB -> 167.6 KiB.
+    - `create-nested-connectOrCreate-mixed`: `translate_ir` 1,723 -> 1,721, 181.2 KiB -> 179.6 KiB; full compile 2,796 -> 2,794, 363.0 KiB -> 361.4 KiB.
+    - `create-nested-connectOrCreate-one2m`: `translate_ir` 1,555 -> 1,553, 163.5 KiB -> 161.9 KiB; full compile 2,480 -> 2,478, 314.1 KiB -> 312.5 KiB.
+    - `update-set-nested`: `translate_ir` 1,321 -> 1,320, 139.6 KiB -> 138.6 KiB; full compile 2,184 -> 2,183, 287.9 KiB -> 286.9 KiB.
+  - Criterion timing:
+    - `compile/create-nested-connectOrCreate-mixed`: -3.53%, improved.
+    - `compile/create-nested-connectOrCreate-one2m`: -3.36%, improved.
+    - `compile/query-m2o-lateral`: -2.78%, improved.
+    - `compile/query-m2o`: -3.11%, improved.
+    - `compile/update-set-nested`: -1.54%, improved.
+    - `compile/create-nested-create`, `nested-pagination-query`, `query-many-m2m`, `update-set-nested-prisma#27650`, and the pattern-matched `create-nested-create-with-composite-id` were neutral / within noise.
+  - Wasm/product verification:
+    - Local query compiler Wasm build succeeded with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` was run twice. The second run put compile rows back in the expected band: findUnique 1,680 ops/sec, findMany filtered 1,339 ops/sec, blog post page 361 ops/sec.
+  - Verification:
+    - `cargo fmt -p query-compiler -p query-structure`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `git diff --check`
+  - Decision: keep. The allocation win is modest but direct, it removes an avoidable nested selection clone, and focused native timing is neutral-to-positive with clear wins on several relevant compile rows.
+
 ## Useful Commands
 
 ```sh
