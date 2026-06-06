@@ -3516,6 +3516,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This is a small ownership/borrowing cleanup with consistent allocation reductions and no Criterion regressions in the focused row set.
 
+- Accepted engines change: avoid single-filter `And` allocation in one-to-many read translation.
+  - Commit: `677a3d44b68 Avoid single filter wrapper in read translation` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - `build_read_one2m_query()` now builds the relation-link filter with a first/second fast path.
+    - Zero filters keep the previous `Filter::And(Vec::new())` shape, one filter is used directly, and only two or more filters allocate `Filter::And(Vec<Filter>)`.
+  - Allocation profile after the patch, compared to the current baseline:
+    - `nested-pagination-query`: translate 306 allocs / 29.2 KiB -> 305 / 28.7 KiB; full compile 624 / 78.9 KiB -> 623 / 78.4 KiB.
+    - `nested-distinct-pagination-query`: translate 308 / 29.2 KiB -> 307 / 28.7 KiB; full compile 680 / 89.5 KiB -> 679 / 89.0 KiB.
+    - `query-m2o`: translate 349 / 34.5 KiB -> 348 / 34.0 KiB; full compile 624 / 92.4 KiB -> 623 / 91.9 KiB.
+    - `query-many-one2m`: translate 334 / 31.0 KiB -> 333 / 30.4 KiB; full compile 690 / 91.8 KiB -> 689 / 91.3 KiB.
+    - `query-non-unique-one2m-pagination`: translate 364 / 33.0 KiB -> 363 / 32.5 KiB; full compile 811 / 101.5 KiB -> 810 / 101.0 KiB.
+    - `query-unique-one2m-pagination`: translate 368 / 34.6 KiB -> 367 / 34.0 KiB; full compile 738 / 96.0 KiB -> 737 / 95.5 KiB.
+    - M2M and join-strategy controls were unchanged in allocation counts.
+  - Criterion:
+    - Improved: `nested-distinct-pagination-query` about 2.28%, `query-m2o` about 5.72%, `query-many-m2m` about 2.17% despite being a control row, `query-many-one2m` about 3.70%.
+    - No detected change / within noise: `nested-pagination-query`, `query-m2m`, `query-m2o-lateral`, `query-non-unique-one2m-pagination`, `query-unique-one2m-pagination`.
+    - No regressions in the focused row set.
+  - Rejected nearby experiment:
+    - Pre-sizing the nested `JoinExpression` vector in `add_inmemory_join()` reduced allocated bytes by about 1.7 KiB on many read rows but regressed `query-m2o` about 4.70% and `query-many-m2m` about 1.90% in Criterion, so it was reverted. Do not retry that exact broad loop rewrite without a stronger CPU explanation.
+  - Verification:
+    - `cargo fmt -p query-compiler`
+    - `ALLOC_PROFILE_QUERIES='nested-pagination-query,nested-pagination-join,nested-distinct-pagination-query,nested-distinct-pagination-join,query-m2o,query-m2m,query-many-m2m,query-many-one2m,query-one2m-pagination,query-non-unique-one2m-pagination,query-unique-one2m-pagination' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "nested-pagination-query|nested-distinct-pagination-query|query-m2o|query-m2m|query-many-m2m|query-many-one2m|query-non-unique-one2m-pagination|query-unique-one2m-pagination"`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated TypeScript peer lockfile churn, which was reverted.
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `git diff --check`
+  - Decision: keep. The change is a small graph-IR cleanup with a consistent one-allocation reduction on query-load one-to-many rows and no focused Criterion regressions.
+
 - Rejected experiment: defer cloning `ParsedField` in `pairs_to_selections()`.
   - Hypothesis: `pairs_to_selections()` cloned every `ParsedField` before matching whether the selection was scalar, relation, composite, or virtual. Scalar selections do not need the clone, and relation selections only need it when join relation selection is collected, so deferring `pair.parsed_field.clone()` could trim graph-build allocations.
   - Change tried:
