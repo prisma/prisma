@@ -2506,6 +2506,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Existing `cached request wrapper blog page / nested rows`: 40.43 us/op; fused wrapper: 57.07 us/op.
   - Decision: reverted. A JavaScript/TypeScript fused structural JSON writer is worse than the current copy-on-write parameterizer plus native `JSON.stringify()`. This does not reject the larger JS-owned-data/Rust-owned-IR architecture lead, but it does reject a TS-side custom writer as the next step.
 
+- Rejected experiment: frozen singleton placeholder marker objects.
+  - Hypothesis: `parameterizeQuery()` creates fresh `{ $type: 'Param', value: ... }` marker objects for common `%1` / `%2` scalar placeholders on every cache-hit request. Reusing frozen singleton marker objects for common scalar names/types might reduce allocation pressure before `JSON.stringify()`.
+  - Temporary patch:
+    - Added frozen cached markers for `%1` and `%2` across common scalar placeholder types in `packages/client-engine-runtime/src/parameterization/parameterize.ts`.
+    - `createPlaceholder()` returned the cached marker for matching non-list placeholders.
+  - Correctness check passed:
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+    - 10 files / 60 tests passed.
+  - Product-shaped timing was mixed and too small to justify the semantic risk:
+    - `parameterize findUnique`: 3.84 us/op, flat/slightly worse than the prior 3.80 us/op run.
+    - `parameterize findMany`: 1.28 us/op, slightly better than 1.31 us/op.
+    - `parameterize blog page`: 5.19 us/op, flat/slightly worse than 5.15 us/op.
+    - `cache hit key findUnique`: 3.92 us/op, slightly better than 4.07 us/op.
+    - `cache hit key blog page`: 6.46 us/op, flat/slightly worse than 6.41 us/op.
+    - `cached request wrapper blog page / nested rows`: 40.14 us/op, effectively flat versus 40.43 us/op.
+  - Decision: reverted. The timing signal is noise-level and shared frozen objects would change the mutability of objects returned by the exported `parameterizeQuery()` API.
+
 ## Useful Commands
 
 ```sh
