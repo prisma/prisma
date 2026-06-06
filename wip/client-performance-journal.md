@@ -2216,6 +2216,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Query validation and graph building currently expect owned Rust strings/maps/values; wrapper types such as `PrismaString` pay off only if these layers consume borrowed or input-backed values instead of immediately cloning.
     - Avoiding Rust-owned SQL strings is a separate rendering/plan-IR problem. The query builder currently produces SQL string fragments; replacing that with borrowed/interned/template/JS-backed pieces has different lifetimes and cache semantics from request parsing.
     - Native unit tests and Wasm builds would need dual backing stores for wrapper types, which can complicate trait bounds and error reporting.
+    - Treating SQL strings as non-owned means this cannot stop at request parsing: SQL rendering would need a template/fragment IR where cacheable literal fragments are interned or JS-backed and parameter arrays stay external until driver execution.
   - Suggested next spike sequence:
     1. Measure a Wasm-only `JsValue` structural walker that computes the current single-query cache key and parameter map without compiling, comparing against current JS parameterization plus `JSON.stringify` on Node and Miniflare/workerd.
     2. If positive, prototype a borrowed/request-backed query document layer for a narrow read-only shape and feed it into validation/graph building without `JsonBody`.
@@ -2952,6 +2953,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - sequence 882,833 ops/sec.
     - deep nested join 55,111 ops/sec.
   - Decision: keep. The object data-map split improved repeatably from the prior about 2.4 us/op band to about 1.6 us/op, and the direct/local nested-plan rows improved into the 11.6-11.9 us/op band without a repeatable cheap cache-hit regression.
+
+- Rejected experiment: primitive scalar fast path before `mapScalarValue()`.
+  - Hypothesis: `mapMappedField()` and `mapResultSetField()` could bypass the generic `mapScalarValue()` switch for already-typed `unsupported`, `string`, `int`, `float`, and `boolean` scalar values, preserving all fallback conversions and error paths for non-common values.
+  - Change tried:
+    - Added identical pre-switches in `mapMappedField()` and `mapResultSetField()`.
+    - `string`, `float`, and `boolean` returned already-typed values directly.
+    - `int` returned `Math.trunc(value)` for number values to preserve existing numeric truncation behavior.
+  - Correctness checks passed:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+  - Fresh baseline before the patch:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - cached request wrapper 19.32 us/op, direct plan 11.80, inner plan 10.07, outer data map 1.62, interpreter data map precomputed 2.26, direct phase-warmed 11.73, local executor 11.68.
+  - Timing with the patch:
+    - nested rows: cached request wrapper 18.60 us/op, direct plan 11.83, inner plan 10.52, outer data map 1.70, interpreter data map precomputed 2.30, direct phase-warmed 12.03, local executor 11.77.
+    - cached request wrapper filter: findUnique 2.34 us/op, findMany stable 2.38, blog-page value churn 4.84, blog-page nested rows 20.51.
+  - Decision: reverted. The direct data-map rows got slower, and the broader cached request wrapper rerun showed a clear nested-row regression despite a noisy first nested wrapper number.
 
 ## Useful Commands
 
