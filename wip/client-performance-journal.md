@@ -3633,6 +3633,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connect|update-connect|update-connect-child-one2m|update-connect-parent-one2m|update-m2m-disconnect)$"`
   - Decision: reverted. The allocation improvement is real but loses the close timing A/B. Keep `itertools::unique()` in nested `connect` / `disconnect` unless a future change can recover CPU while preserving the allocation win.
 
+- Accepted engines change: reuse child identifiers in nested `connectOrCreate`.
+  - Commit: `3539a109e94 Reuse connect-or-create child identifiers` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - In `connect_or_create_nested.rs::handle_many_to_many()`, compute `child_model.shard_aware_primary_identifier()` once and reuse it for the read node and the projected data dependency.
+    - In `one_to_one_inlined_child()`, reuse the already-built `child_model_identifier` for the read-new-child -> if-node dependency instead of recomputing the same `FieldSelection`.
+  - Allocation profile after the patch:
+    - `create-nested-connectOrCreate-mixed`: graph build 901 allocs / 160.3 KiB -> 899 / 160.2 KiB; full compile 2778 / 343.9 KiB -> 2776 / 343.8 KiB.
+    - `create-nested-connectOrCreate-one2m`: graph build 766 / 130.7 KiB -> 764 / 130.6 KiB; full compile 2462 / 295.0 KiB -> 2460 / 294.9 KiB.
+    - Unchanged allocation counts in the focused profile: `create-nested-connectOrCreate-m2one`, `create-nested-connect`, `create-nested-create`, `update-set-nested`, and `update-set-nested-prisma#27650`.
+  - Criterion:
+    - Affected rows were neutral: `create-nested-connectOrCreate-mixed` no detected change, `create-nested-connectOrCreate-one2m` no detected change.
+    - No regressions in the focused row set: `create-nested-connectOrCreate-m2one`, `create-nested-connect`, `create-nested-create`, `update-set-nested`, and `update-set-nested-prisma#27650` were improved or within noise.
+  - Product/Wasm check:
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` passed.
+    - Local-Wasm `caching.bench.ts` stayed in the expected band: findUnique compile 1,685 ops/sec, filtered findMany compile 1,343 ops/sec, blog post page compile 362 ops/sec, parameterize blog post page 535,787 ops/sec, cache-hit blog post page 310,017 ops/sec.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer lockfile churn, which was reverted.
+  - Verification:
+    - `cargo fmt -p query-core`
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connect,create-nested-create,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-m2one|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connect|create-nested-create|update-set-nested|update-set-nested-prisma#27650)$"`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `git diff --check`
+  - Decision: keep. This is a tiny graph-build allocation cleanup on the largest current `connectOrCreate` fixtures with neutral focused timing and full Rust/Wasm/product verification.
+
 ## Useful Commands
 
 ```sh
