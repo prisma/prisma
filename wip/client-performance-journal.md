@@ -1632,8 +1632,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - render query blog-page first DB query value-scope churn: about 0.28 us/op.
     - data map `findMany` 10 scalar rows: about 1.64 us/op.
   - Interpretation: render-only and simple scalar data-map-only phases do not explain the remaining nested cached-plan cost. The next near-term target should be nested interpreter/join traversal, expression/binding lookup around compact plans, executor async layers, or a broader fused cache-hit path rather than another render-only tweak.
+  - Follow-up added two nested blog-page phase rows to the same probe:
+    - `adapter queryRaw blog page result sets / nested rows`: calls the fake blog-page adapter for the seven SQL result sets used by the nested benchmark.
+    - `serializeSql blog page result sets / nested rows`: runs `serializeSql()` over those same seven result sets.
+  - Final local run after rebuilding `@prisma/client-engine-runtime` from reverted source:
+    - warmed `ClientEngine` blog-page nested rows: 91.86 us/op.
+    - cached request wrapper blog-page nested rows: 60.79 us/op.
+    - direct plan blog-page nested rows: 58.30 us/op.
+    - adapter-only seven result sets: 3.22 us/op.
+    - `serializeSql()` over seven result sets: 3.74 us/op.
+    - inner plan blog-page nested rows: 42.15 us/op.
+    - outer data map blog-page nested rows: 3.69 us/op.
+    - direct plan after phase warmup: 47.61 us/op.
+  - Interpretation update: adapter promise overhead and plain row-object materialization are measurable but not the dominant nested-row sink. Together they explain only about 7 us/op of a roughly 42 us/op inner nested plan in this local probe. The remaining target is more likely recursive interpreter control flow, join attachment, binding/scope evaluation, or a broader plan-shape change that avoids repeated object-graph work while preserving hidden join keys.
   - Verification:
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
 
 - Rust ownership/allocation redesign.
@@ -1785,6 +1799,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 1: cached request wrapper blog-page nested rows 64.93 us/op, local executor blog-page nested rows 60.71 us/op.
     - Run 2: cached request wrapper blog-page nested rows 64.81 us/op, local executor blog-page nested rows 61.50 us/op.
   - Decision: reverted. The extra helper call / shape change does not pay for nested child `q` nodes on the product path.
+
+- Rejected experiment: inline compact `q` single-query fast path.
+  - Hypothesis: the previously rejected `#executeQuery()` reuse may have lost to helper-call shape rather than the fast path itself. A narrower spike inlined the no-comment/no-instrumentation/non-raw/single-query path directly inside the compact `q` case, avoiding the generic result-set merge loop for nested child queries.
+  - Correctness and build checks passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+  - Source-level timing was mixed:
+    - Before the inline spike, same measurement rows showed cached request wrapper blog-page nested rows 59.78 us/op, direct plan nested rows 56.75, inner plan 41.56, direct after phase warmup 48.57, local executor nested rows 60.57.
+    - With the inline spike before rebuild: cached request wrapper nested rows worsened to 62.78, direct plan nested rows 59.19, inner plan 41.76, direct after phase warmup 45.65, local executor nested rows 53.35.
+  - After rebuilding `@prisma/client-engine-runtime`, two runs still did not justify keeping it:
+    - Run 1: warmed `ClientEngine` nested rows 88.29 us/op, cached request wrapper nested rows 61.13, direct plan nested rows 58.16, local executor nested rows 53.52.
+    - Run 2: warmed `ClientEngine` nested rows 88.66 us/op, cached request wrapper nested rows 61.60, direct plan nested rows 58.55, local executor nested rows 54.12.
+  - Reverted. Local executor rows improved relative to some noisy baselines, but warmed `ClientEngine` did not improve and the cached request wrapper row regressed, so this is not an aligned product hot-path win.
 
 - Rejected experiment: specialize `serializeSql()` for 0-5 column rows.
   - Hypothesis: nested blog-page execution serializes several small child result sets with 2-3 columns, so object literals with computed keys for small column counts might beat the generic inner column loop.

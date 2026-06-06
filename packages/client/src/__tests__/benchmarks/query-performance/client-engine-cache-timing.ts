@@ -41,6 +41,7 @@ import {
 import { applyDataMap, applyDataMapToResultSet } from '../../../../../client-engine-runtime/src/interpreter/data-mapper'
 import type { GeneratorRegistrySnapshot } from '../../../../../client-engine-runtime/src/interpreter/generators'
 import { renderQuery } from '../../../../../client-engine-runtime/src/interpreter/render-query'
+import { serializeSql } from '../../../../../client-engine-runtime/src/interpreter/serialize-sql'
 import { ClientEngine } from '../../../runtime/core/engines/client/ClientEngine'
 import { LocalExecutor } from '../../../runtime/core/engines/client/LocalExecutor'
 import { QueryPlanCache } from '../../../runtime/core/engines/client/query-plan-cache'
@@ -138,6 +139,24 @@ const BLOG_PAGE_COMMENT_AUTHOR_RESULT: SqlResultSet = Object.freeze({
     Object.freeze([12, 'Carla', 'carla.png']),
   ]) as unknown[][],
 })
+const BLOG_PAGE_RESULT_SETS: readonly SqlResultSet[] = Object.freeze([
+  BLOG_PAGE_POST_RESULT,
+  BLOG_PAGE_AUTHOR_RESULT,
+  BLOG_PAGE_CATEGORY_RESULT,
+  BLOG_PAGE_POST_TAG_RESULT,
+  BLOG_PAGE_TAG_RESULT,
+  BLOG_PAGE_COMMENT_RESULT,
+  BLOG_PAGE_COMMENT_AUTHOR_RESULT,
+])
+const BLOG_PAGE_QUERY_SELECTORS: readonly SqlQuery[] = Object.freeze([
+  Object.freeze({ sql: 'SELECT * FROM `main`.`Post`', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM `main`.`User`', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM `main`.`Category`', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM `main`.`PostTag`', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM `main`.`Tag`', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM `main`.`Comment`', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM `main`.`User` WHERE `id` IN (?)', args: [], argTypes: [] }),
+])
 
 type Counts = {
   compile: number
@@ -1250,6 +1269,94 @@ function measureDataMapScenario(
   }
 }
 
+function checksumSerializedRows(rows: Record<string, unknown>[]): number {
+  let checksum = rows.length
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
+    const id = row.id
+    if (typeof id === 'number') {
+      checksum += id
+    }
+
+    const postId = row.postId
+    if (typeof postId === 'number') {
+      checksum += postId
+    }
+
+    const name = row.name
+    if (typeof name === 'string') {
+      checksum += name.length
+    }
+  }
+  return checksum
+}
+
+function measureBlogPageSerializeSqlScenario(iterations: number): PlanPhaseMeasurement {
+  for (let i = 0; i < iterations; i++) {
+    for (let resultSetIndex = 0; resultSetIndex < BLOG_PAGE_RESULT_SETS.length; resultSetIndex++) {
+      serializeSql(BLOG_PAGE_RESULT_SETS[resultSetIndex])
+    }
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < iterations; i++) {
+    for (let resultSetIndex = 0; resultSetIndex < BLOG_PAGE_RESULT_SETS.length; resultSetIndex++) {
+      checksum += checksumSerializedRows(serializeSql(BLOG_PAGE_RESULT_SETS[resultSetIndex]))
+    }
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: 'serializeSql blog page result sets / nested rows',
+    iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureBlogPageAdapterOnlyScenario(iterations: number): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const adapter = new BlogPageSqliteAdapter(counts)
+
+  for (let i = 0; i < iterations; i++) {
+    for (let queryIndex = 0; queryIndex < BLOG_PAGE_QUERY_SELECTORS.length; queryIndex++) {
+      await adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[queryIndex])
+    }
+  }
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < iterations; i++) {
+    for (let queryIndex = 0; queryIndex < BLOG_PAGE_QUERY_SELECTORS.length; queryIndex++) {
+      const resultSet = await adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[queryIndex])
+      checksum += resultSet.rows.length + resultSet.columnNames.length
+    }
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: 'adapter queryRaw blog page result sets / nested rows',
+    iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / iterations,
+    checksum: checksum + counts.queryRaw,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 async function measureInnerPlanScenario(compiler: QueryCompiler, paramGraph: ParamGraph, scenario: DirectPlanScenario) {
   const counts: Counts = {
     compile: 0,
@@ -1980,6 +2087,9 @@ async function main(): Promise<void> {
     for (const scenario of directPlanScenarios) {
       printDirectPlanMeasurement(await measureDirectPlanScenario(compiler, paramGraph, scenario))
     }
+
+    printPlanPhaseMeasurement(await measureBlogPageAdapterOnlyScenario(500))
+    printPlanPhaseMeasurement(measureBlogPageSerializeSqlScenario(500))
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
       printDirectPlanMeasurement(
