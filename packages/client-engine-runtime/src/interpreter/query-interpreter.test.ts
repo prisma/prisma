@@ -324,6 +324,41 @@ test('joins single strict keys without scalar key collisions', async () => {
   ])
 })
 
+test('joins tiny single strict keys without scalar key collisions', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const plan = {
+    type: 'join',
+    args: {
+      parent: {
+        type: 'value',
+        args: [{ id: '1' }, { id: 1 }, { id: null }],
+      },
+      children: [
+        {
+          child: {
+            type: 'value',
+            args: [
+              { parentId: '1', value: 'string-one' },
+              { parentId: 1, value: 'number-one' },
+              { parentId: null, value: 'null-value' },
+            ],
+          },
+          on: [['id', 'parentId']],
+          parentField: 'children',
+          isRelationUnique: false,
+        },
+      ],
+      canAssumeStrictEquality: true,
+    },
+  } satisfies QueryPlanNode
+
+  await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
+    { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
+    { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
+    { id: null, children: [{ parentId: null, value: 'null-value' }] },
+  ])
+})
+
 test('interprets compact join tuples', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = [

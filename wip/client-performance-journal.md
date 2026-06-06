@@ -2260,6 +2260,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
 
+- This commit: Direct tiny strict join attachment.
+  - `attachChildrenToParents()` now handles strict single-column joins with fewer than eight total parent+child rows through a direct nested equality loop.
+  - Larger strict single-key joins keep the existing scalar-key map path, and generic/non-strict joins keep the existing `getRecordKey()` path. This preserves the earlier threshold decision where applying the scalar-key map path to tiny joins regressed the dedicated `join (1:N)` interpreter row.
+  - Added focused coverage for tiny strict joins with string, number, and null keys. The existing single strict collision test still covers the thresholded scalar-key path because it has eight total rows.
+  - Product-shaped `client-engine-cache-timing.ts` after the patch:
+    - Run 1: cached request wrapper blog-page nested rows 41.03 us/op; direct plan nested rows 39.44; local executor nested rows 36.42; precomputed query leaves 18.59; inner plan 23.97; late warmed full `ClientEngine` nested rows 49.56.
+    - Run 2: cached request wrapper blog-page nested rows 40.81 us/op; direct plan nested rows 39.25; local executor nested rows 36.46; precomputed query leaves 17.51; inner plan 22.57; late warmed full `ClientEngine` nested rows 49.91.
+  - Interpreter microbench stayed acceptable and the dedicated join row improved in the local sample: simple select 852,689 ops/sec, findUnique 1,175,591, join (1:N) 394,537, sequence 903,239, deep nested join 42,697.
+  - Decision: keep. This is a narrow cached nested-plan win for the small join shapes common in the blog-page benchmark and avoids the known bad tiny-join scalar-key map path.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+
 ## Useful Commands
 
 ```sh

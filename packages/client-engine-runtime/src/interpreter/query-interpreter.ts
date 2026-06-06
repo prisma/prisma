@@ -1103,6 +1103,19 @@ function attachChildrenToParents(
     const on = getJoinExpressionOn(joinExpr)
     const parentField = getJoinExpressionParentField(joinExpr)
     const isRelationUnique = getJoinExpressionIsRelationUnique(joinExpr)
+
+    const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
+    const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]
+
+    if (canAssumeStrictEquality && on.length === 1) {
+      const parentKey = on[0][0]
+      const childKey = on[0][1]
+      if (parentArray.length + childArray.length < 8) {
+        attachSingleStrictKeyChildren(parentArray, childArray, parentKey, childKey, parentField, isRelationUnique)
+        continue
+      }
+    }
+
     const parentKeys = new Array<string>(on.length)
     const childKeys = new Array<string>(on.length)
     for (let i = 0; i < on.length; i++) {
@@ -1112,8 +1125,6 @@ function attachChildrenToParents(
     const parentKey = parentKeys[0]
     const childKey = childKeys[0]
 
-    const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
-    const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]
     const useSingleStrictKey =
       canAssumeStrictEquality && parentKeys.length === 1 && parentArray.length + childArray.length >= 8
     const parentMap = useSingleStrictKey ? (Object.create(null) as Record<string, PrismaObject[]>) : {}
@@ -1162,6 +1173,46 @@ function attachChildrenToParents(
   }
 
   return parentRecords
+}
+
+function attachSingleStrictKeyChildren(
+  parentArray: unknown[],
+  childArray: unknown[],
+  parentKey: string,
+  childKey: string,
+  parentField: string,
+  isRelationUnique: boolean,
+) {
+  for (const parent of parentArray) {
+    const parentRecord = asRecord(parent)
+    if (isRelationUnique) {
+      parentRecord[parentField] = null
+    } else {
+      parentRecord[parentField] = []
+    }
+  }
+
+  for (const childRecord of childArray) {
+    if (childRecord === null) {
+      continue
+    }
+
+    const childRecordObject = asRecord(childRecord)
+    const childKeyValue = childRecordObject[childKey]
+    for (const parent of parentArray) {
+      const parentRecord = asRecord(parent)
+      if (parentRecord[parentKey] !== childKeyValue) {
+        continue
+      }
+
+      if (isRelationUnique) {
+        parentRecord[parentField] = childRecord
+      } else {
+        const childList = parentRecord[parentField] as Value[]
+        childList.push(childRecord)
+      }
+    }
+  }
 }
 
 function getScalarRecordKey(value: Value): string {
