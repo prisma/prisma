@@ -2380,6 +2380,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - generated-client blog-page warmed cache: 123.47 us/op host dispatch upper bound for 1,000 requests.
   - Interpretation: the generated-client blog-page warmed row is modestly better than the previously journaled 126.79 us/op row, but this is a measurement refresh rather than a distinct optimization result. The edge-runtime product path still points at cached-plan execution/rendering and cache-key/parameterization as the main remaining short-term surfaces; the more radical JS-reference-backed pipeline remains a larger project-level lead.
 
+- Rejected experiment: index loops in cached data-map field mappings.
+  - Hypothesis: `mapObjectWithMappings()` and `mapResultSetRow()` iterate cached field-mapping arrays on every mapped row; switching from `for...of` to indexed loops might reduce iterator overhead in leaf and outer mapping.
+  - Correctness check passed: `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts`.
+  - Product timing was not positive: `client-engine-cache-timing.ts` with the spike measured cached request wrapper blog-page nested rows at 42.16 us/op, direct plan nested rows at 32.06 us/op, local executor nested rows at 33.88 us/op, and late warmed full `ClientEngine` nested rows at 41.80 us/op. This is flat-to-worse than the accepted object-data mapper cache band.
+  - Decision: reverted. The loop shape is not a useful standalone mapper optimization on current V8.
+
+- Engines commit: reuse incoming query graph edges during translation (`c3fe406576f` in `/home/aqrln.guest/prisma-engines`).
+  - Rust-side change: `query-compiler/src/translate.rs::process_child_with_dependencies()` now calls `self.graph.incoming_edges(&node)` once and reuses the sorted vector for validation extraction, projected dependency bindings, and the child translator. The previous code rebuilt that same incoming-edge vector three times.
+  - Allocation profile before -> after:
+    - `create-nested-create` `translate_ir`: 713 -> 709 allocs/op.
+    - `create-nested-create` `compile_ir`: 1207 -> 1203.
+    - `create-nested-create` `full_compile`: 1320 -> 1316.
+    - `query-m2o`, `query-many-m2m`, `nested-pagination-query`, and `filter-contains-param` were unchanged.
+  - Criterion evidence:
+    - First focused run reported a 4-5% regression on nested-create rows, but an immediate rerun did not reproduce it.
+    - Rerun: `compile/create-nested-create-with-composite-id` averaged -0.99% and was within the noise threshold; `compile/create-nested-create` averaged +0.03% with no change detected.
+    - Decision: keep as a small allocation cleanup with neutral focused timing on rerun.
+  - Wasm / Prisma repo handoff:
+    - Rebuilt local query compiler Wasm with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer-resolution lockfile churn, so that lockfile noise was removed.
+  - Verification:
+    - `cargo fmt -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "create-nested-create"` twice
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `git diff --check`
+
 ## Useful Commands
 
 ```sh
