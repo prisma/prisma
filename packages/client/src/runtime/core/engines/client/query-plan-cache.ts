@@ -39,6 +39,10 @@ export class QueryPlanCache {
   readonly #maxSize: number
   #head?: CacheEntry
   #tail?: CacheEntry
+  #lastSingleKey?: string
+  #lastSingleEntry?: Extract<CacheEntry, { kind: 'single' }>
+  #lastBatchKey?: string
+  #lastBatchEntry?: Extract<CacheEntry, { kind: 'batch' }>
   #size = 0
 
   constructor(maxSize = 1000) {
@@ -48,8 +52,15 @@ export class QueryPlanCache {
   }
 
   getSingle(key: string): QueryPlanNode | undefined {
+    if (key === this.#lastSingleKey && this.#lastSingleEntry !== undefined) {
+      this.#touch(this.#lastSingleEntry)
+      return this.#lastSingleEntry.value
+    }
+
     const entry = this.#singleCache.get(key)
     if (entry !== undefined) {
+      this.#lastSingleKey = key
+      this.#lastSingleEntry = entry
       this.#touch(entry)
       return entry.value
     }
@@ -77,8 +88,15 @@ export class QueryPlanCache {
   }
 
   getBatch(key: string): BatchResponse | undefined {
+    if (key === this.#lastBatchKey && this.#lastBatchEntry !== undefined) {
+      this.#touch(this.#lastBatchEntry)
+      return this.#lastBatchEntry.value
+    }
+
     const entry = this.#batchCache.get(key)
     if (entry !== undefined) {
+      this.#lastBatchKey = key
+      this.#lastBatchEntry = entry
       this.#touch(entry)
       return entry.value
     }
@@ -117,6 +135,10 @@ export class QueryPlanCache {
     this.#batchCache.clear()
     this.#head = undefined
     this.#tail = undefined
+    this.#lastSingleKey = undefined
+    this.#lastSingleEntry = undefined
+    this.#lastBatchKey = undefined
+    this.#lastBatchEntry = undefined
     this.#size = 0
     this.#stringInterner.clear()
   }
@@ -203,8 +225,16 @@ export class QueryPlanCache {
   #deleteFromCache(entry: CacheEntry): void {
     if (entry.kind === 'single') {
       this.#singleCache.delete(entry.key)
+      if (entry === this.#lastSingleEntry) {
+        this.#lastSingleKey = undefined
+        this.#lastSingleEntry = undefined
+      }
     } else {
       this.#batchCache.delete(entry.key)
+      if (entry === this.#lastBatchEntry) {
+        this.#lastBatchKey = undefined
+        this.#lastBatchEntry = undefined
+      }
     }
     this.#releaseInternedStrings(entry.internedStrings)
     this.#size--

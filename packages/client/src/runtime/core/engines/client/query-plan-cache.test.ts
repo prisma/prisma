@@ -106,6 +106,21 @@ describe('QueryPlanCache', () => {
       expect(cache.getSingle('key2')).toBeUndefined()
       expect(cache.getSingle('key3')).toBeDefined()
     })
+
+    it('clears repeated-hit single entries after eviction', () => {
+      const cache = new QueryPlanCache(1)
+      const plan1 = { type: 'value' as const, args: 1 }
+      const plan2 = { type: 'value' as const, args: 2 }
+
+      cache.setSingle('key1', plan1)
+      expect(cache.getSingle('key1')).toBe(plan1)
+      expect(cache.getSingle('key1')).toBe(plan1)
+
+      cache.setSingle('key2', plan2)
+
+      expect(cache.getSingle('key1')).toBeUndefined()
+      expect(cache.getSingle('key2')).toBe(plan2)
+    })
   })
 
   describe('batch cache', () => {
@@ -237,6 +252,25 @@ describe('QueryPlanCache', () => {
       expect(cache.getBatch('key1')).toBeDefined()
       expect(cache.getBatch('key2')).toBeUndefined()
       expect(cache.getBatch('key3')).toBeDefined()
+    })
+
+    it('clears repeated-hit batch entries after eviction', () => {
+      const cache = new QueryPlanCache(1)
+      const makeResponse = (id: number) => ({
+        type: 'multi' as const,
+        plans: [{ type: 'value' as const, args: id }],
+      })
+      const response1 = makeResponse(1)
+      const response2 = makeResponse(2)
+
+      cache.setBatch('key1', response1)
+      expect(cache.getBatch('key1')).toBe(response1)
+      expect(cache.getBatch('key1')).toBe(response1)
+
+      cache.setBatch('key2', response2)
+
+      expect(cache.getBatch('key1')).toBeUndefined()
+      expect(cache.getBatch('key2')).toBe(response2)
     })
   })
 

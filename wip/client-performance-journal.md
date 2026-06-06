@@ -2794,6 +2794,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision: keep. This directly attacks the profiled `#interpretCompactNode` overhead and improves the relevant nested cached-plan rows without hurting the standalone interpreter bench or package builds.
   - Lead carry-forward: the JS-owned query data / Rust-owned IR idea remains practical only as a larger architecture track. The useful version would pass the JS query object by reference, fuse parameterization, structural cache-keying, cache lookup, and compile-hit handling in one walk, and ideally return a cached JS plan object on hits. A `PrismaString`-style wrapper could help after validation/query graph construction can consume borrowed or input-backed values, but it will not pay off if the path still materializes owned `JsonBody` / `serde_json::Value` maps first. Avoiding Rust-owned SQL strings is likely a separate SQL-template/result-IR project.
 
+- This commit: cache last query-plan cache hit.
+  - Hypothesis: after compiled compact nodes, cached request wrapper rows still spend visible time in `QueryPlanCache.getSingle()` on warmed same-shape requests. Value-churn requests generate new query objects and key strings, but the structural cache key content is repeated, so a last-hit entry can bypass repeated `Map.get()` calls while preserving LRU touch behavior.
+  - CPU profile before the patch:
+    - Profiled `cached request wrapper blog page / nested rows` at 100,000 iterations: 21.58 us/op.
+    - Aggregated self time included `QueryPlanCache.getSingle()` at about 4.3%, plus parameterization, data mapping, SQL serialization/rendering, join attachment, and benchmark wrapper overhead.
+  - Change:
+    - Added last-hit pointers for single and batch cache entries in `packages/client/src/runtime/core/engines/client/query-plan-cache.ts`.
+    - `getSingle()` / `getBatch()` check the last-hit entry before consulting the corresponding `Map`.
+    - Hits still call `#touch()` so alternating keys keep LRU semantics.
+    - `clear()` and eviction clear matching last-hit pointers.
+    - Added focused tests that repeatedly hit a single/batch entry, evict it, and verify the old key returns `undefined`.
+  - Direct A/B, temporarily reversing only the runtime cache patch:
+    - Without patch:
+      - `cached request wrapper findUnique / value churn`: 2.65 us/op.
+      - `cached request wrapper findMany / stable query`: 2.64 us/op.
+      - `cached request wrapper blog page / value churn`: 5.94-6.06 us/op across runs.
+      - `cached request wrapper blog page / nested rows`: 20.71-20.72 us/op across runs.
+    - With patch:
+      - `cached request wrapper findUnique / value churn`: 2.41 us/op.
+      - `cached request wrapper findMany / stable query`: 2.51 us/op.
+      - `cached request wrapper blog page / value churn`: 4.83-4.96 us/op across runs.
+      - `cached request wrapper blog page / nested rows`: 19.32-19.48 us/op across runs.
+  - Interpretation: this is a small but broad cache-hit win, strongest on cheap same-shape cache hits where `Map.get()` is a larger fraction of work. The nested-row win is smaller but repeatably positive in the focused A/B.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/query-plan-cache.ts packages/client/src/runtime/core/engines/client/query-plan-cache.test.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/query-plan-cache.ts packages/client/src/runtime/core/engines/client/query-plan-cache.test.ts`
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - temporary patch reversal and reapply around the same focused timing rows
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+  - Decision: keep.
+
 ## Useful Commands
 
 ```sh
