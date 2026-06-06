@@ -29,6 +29,7 @@ import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-grap
 import {
   type CompactJoinExpression,
   getQueryPlanBindingExpr,
+  getQueryPlanBindingName,
   noopTracingHelper,
   parameterizeQuery,
   QueryInterpreter,
@@ -929,6 +930,130 @@ function isCompactPlanNode(plan: QueryPlanNode): plan is QueryPlanCompactNode {
   return Array.isArray(plan)
 }
 
+function replaceQueryLeavesWithPrecomputedGetters(plan: QueryPlanNode, state: { index: number }): QueryPlanNode {
+  if (!isCompactPlanNode(plan)) {
+    throw new Error('Expected compact query plan')
+  }
+
+  switch (plan[0]) {
+    case 'q': {
+      return ['g', `precomputedQuery${state.index++}`] as unknown as QueryPlanNode
+    }
+
+    case 'x': {
+      throw new Error('Unexpected execute node in precomputed-query phase')
+    }
+
+    case 'v':
+    case 'g':
+    case 'e':
+    case '0': {
+      return plan
+    }
+
+    case 's':
+    case '+':
+    case 'c': {
+      return [
+        plan[0],
+        plan[1].map((child) => replaceQueryLeavesWithPrecomputedGetters(child, state)),
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'l': {
+      return [
+        'l',
+        plan[1].map(
+          (binding) =>
+            [
+              getQueryPlanBindingName(binding),
+              replaceQueryLeavesWithPrecomputedGetters(getQueryPlanBindingExpr(binding), state),
+            ] as QueryPlanBinding,
+        ),
+        replaceQueryLeavesWithPrecomputedGetters(plan[2], state),
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'j': {
+      return [
+        'j',
+        replaceQueryLeavesWithPrecomputedGetters(plan[1], state),
+        (plan[2] as CompactJoinExpression[]).map(
+          (join) =>
+            [
+              replaceQueryLeavesWithPrecomputedGetters(join[0], state),
+              join[1],
+              join[2],
+              join[3],
+            ] as CompactJoinExpression,
+        ),
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'd': {
+      return [
+        'd',
+        replaceQueryLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case '?': {
+      return [
+        '?',
+        replaceQueryLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        replaceQueryLeavesWithPrecomputedGetters(plan[3], state),
+        replaceQueryLeavesWithPrecomputedGetters(plan[4], state),
+      ] as unknown as QueryPlanNode
+    }
+
+    case '-': {
+      return [
+        '-',
+        replaceQueryLeavesWithPrecomputedGetters(plan[1], state),
+        replaceQueryLeavesWithPrecomputedGetters(plan[2], state),
+        plan[3],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'V': {
+      return [
+        'V',
+        replaceQueryLeavesWithPrecomputedGetters(plan[1], state),
+        plan[2],
+        plan[3],
+        plan[4],
+      ] as unknown as QueryPlanNode
+    }
+
+    case 'i':
+    case 'M': {
+      return [plan[0], replaceQueryLeavesWithPrecomputedGetters(plan[1], state), plan[2]] as unknown as QueryPlanNode
+    }
+
+    case 'm': {
+      return ['m', plan[1], replaceQueryLeavesWithPrecomputedGetters(plan[2], state)] as unknown as QueryPlanNode
+    }
+
+    case 'p': {
+      return ['p', replaceQueryLeavesWithPrecomputedGetters(plan[1], state), plan[2]] as unknown as QueryPlanNode
+    }
+
+    case 'r':
+    case 'R':
+    case 't':
+    case 'u': {
+      return [plan[0], replaceQueryLeavesWithPrecomputedGetters(plan[1], state)] as unknown as QueryPlanNode
+    }
+
+    default:
+      throw new Error(`Unexpected compact query plan node: ${plan[0]}`)
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -1353,6 +1478,87 @@ async function measureBlogPageAdapterOnlyScenario(iterations: number): Promise<P
     elapsedMs,
     averageUs: (elapsedMs * 1000) / iterations,
     checksum: checksum + counts.queryRaw,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+function getPrecomputedBlogPageQueryScope(): Record<string, unknown> {
+  const scope = Object.create(null) as Record<string, unknown>
+  for (let i = 0; i < BLOG_PAGE_RESULT_SETS.length; i++) {
+    scope[`precomputedQuery${i}`] = serializeSql(BLOG_PAGE_RESULT_SETS[i])
+  }
+  return scope
+}
+
+async function measurePrecomputedQueryLeavesScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = createAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr } = getRootDataMapPlan(plan)
+  const replacementState = { index: 0 }
+  const precomputedExpr = replaceQueryLeavesWithPrecomputedGetters(expr, replacementState)
+  if (replacementState.index !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} query leaves, got ${replacementState.index}`)
+  }
+
+  const scopes = new Array<Record<string, unknown>>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    scopes[i] = {
+      ...placeholderValues,
+      ...getPrecomputedBlogPageQueryScope(),
+    }
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(precomputedExpr, {
+      queryable: adapter,
+      scope: {
+        ...placeholderValues,
+        ...getPrecomputedBlogPageQueryScope(),
+      },
+      transactionManager: { enabled: false },
+    })
+  }
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogInnerValue(
+      await interpreter.run(precomputedExpr, {
+        queryable: adapter,
+        scope: scopes[i],
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
     heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
   }
 }
@@ -2090,6 +2296,15 @@ async function main(): Promise<void> {
 
     printPlanPhaseMeasurement(await measureBlogPageAdapterOnlyScenario(500))
     printPlanPhaseMeasurement(measureBlogPageSerializeSqlScenario(500))
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measurePrecomputedQueryLeavesScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'precomputed query leaves'),
+        }),
+      )
+    }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
       printDirectPlanMeasurement(

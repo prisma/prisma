@@ -1645,6 +1645,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - outer data map blog-page nested rows: 3.69 us/op.
     - direct plan after phase warmup: 47.61 us/op.
   - Interpretation update: adapter promise overhead and plain row-object materialization are measurable but not the dominant nested-row sink. Together they explain only about 7 us/op of a roughly 42 us/op inner nested plan in this local probe. The remaining target is more likely recursive interpreter control flow, join attachment, binding/scope evaluation, or a broader plan-shape change that avoids repeated object-graph work while preserving hidden join keys.
+  - Follow-up added `precomputed query leaves blog page / nested rows`.
+    - This benchmark-only transform compiles the normal compact blog-page plan, replaces every compact `q` leaf in execution order with `g precomputedQueryN`, and seeds each timed iteration with fresh `serializeSql()` row objects precomputed outside the timer.
+    - It preserves the compiled `let`, `unique`, `mapField`, `process`, and `join` structure while removing SQL rendering, adapter calls, and row-object serialization from the timed path.
+    - Local run:
+      - warmed `ClientEngine` blog-page nested rows: 87.64 us/op.
+      - cached request wrapper blog-page nested rows: 58.88 us/op.
+      - direct plan blog-page nested rows: 56.55 us/op.
+      - adapter-only seven result sets: 3.10 us/op.
+      - `serializeSql()` over seven result sets: 3.81 us/op.
+      - precomputed query leaves blog-page nested rows: 36.97 us/op.
+      - inner plan blog-page nested rows: 49.92 us/op.
+      - direct plan after phase warmup: 46.86 us/op.
+    - Interpretation update: removing DB query leaves from the timed path still leaves roughly 37 us/op in the nested inner expression. Query leaves account for about 13 us/op in this run, but the larger remaining cost is the compiled nested expression itself: `let`/scope evaluation, `unique`, `mapField`, `process`, and join attachment. This strengthens the case for plan-shape work or a lower-overhead interpreter representation for nested joins rather than further `q`/`serializeSql()` micro-optimizations.
   - Verification:
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm --filter @prisma/client-engine-runtime build`
