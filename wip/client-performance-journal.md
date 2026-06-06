@@ -2446,6 +2446,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Measure on workerd as well as Node because externref/property-access costs may differ materially from V8-on-Node microbenchmarks.
     - Keep the prototype scoped to cache-hit latency and memory first; compile-miss wins are lower priority unless plan serialization and Rust-owned parser allocations are also removed.
 
+- Rejected experiment: dedicated mapped-join compact node.
+  - Hypothesis: the compiler-emitted nested read shape `let(parent) -> let(mapField bindings) -> join(get parent)` could become a dedicated compact mapped-join node, avoiding runtime shape matching plus generic `let` / `mapField` traversal for the root and nested relation joins.
+  - Temporary TS-only prototype:
+    - Added an experimental compact `J` node to the interpreter and a benchmark-only transform that rewrote the blog-page direct plan's mapped-join shapes into `J`.
+    - The emitted blog-page plan contains one root mapped join and two nested single-child join shapes: six compact `l` nodes, five `m` nodes, three `j` nodes, seven `q` nodes, and one root `d`.
+  - First same-run timing looked promising only before warmup:
+    - normal direct plan nested rows: 34.44 us/op.
+    - dedicated mapped-join plan nested rows: 27.55 us/op.
+  - Warmup-controlled rerun removed the signal:
+    - early normal direct plan nested rows: 31.64 us/op.
+    - early dedicated mapped-join plan: 27.19 us/op.
+    - late normal direct plan after phase warmup: 25.47 us/op.
+    - late dedicated mapped-join after phase warmup: 25.45 us/op.
+    - local executor nested rows: 28.42 us/op; warmed full `ClientEngine` nested row after phase warmup: 46.43 us/op.
+  - Decision: reverted. A dedicated mapped-join plan-format node is not worth implementing from Rust for the current benchmark shape unless a different design also changes the actual nested join/data-shape work, not just the runtime pattern matching.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice with the temporary prototype.
+
 ## Useful Commands
 
 ```sh
