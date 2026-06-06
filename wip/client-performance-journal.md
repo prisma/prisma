@@ -2904,6 +2904,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `query-m2o-lateral` regressed about +4.9%, `query-m2o` regressed about +3.2%, and `create-nested-create` regressed about +1.3%.
   - Decision: reverted. The extra local bookkeeping reduces allocation counts/bytes but slows hot read/write compile rows.
 
+- Rejected experiment: direct single-query renderer helper.
+  - Hypothesis: the accepted no-comments/no-instrumentation query fast path still calls `renderQuery()` and then unwraps a one-element `SqlQuery[]`. A `renderSingleQuery()` helper could return the flat rendered `SqlQuery` directly for raw SQL and flat template SQL, avoiding the wrapper array on compact `q` / `x` and direct `dataMap(q)` paths.
+  - Change tried:
+    - Added `renderSingleQuery()` in `packages/client-engine-runtime/src/interpreter/render-query.ts`.
+    - The helper only handled raw SQL and flat template SQL where `getFlatTemplateSqlRenderingFromParts()` could prove one query before evaluating args; tuple/chunkable shapes returned `undefined` to avoid evaluating generators twice.
+    - Routed `#executeNode()`, `#executeQueryNode()`, and `#executeQuery()` through the helper when comments and query instrumentation were inactive.
+    - Added focused render tests for compact flat single-query rendering and tuple-fragment decline.
+  - Correctness check passed:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/render-query.ts packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/render-query.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts query-interpreter.test.ts`
+  - Timing with the helper:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Run 1: cached wrapper 21.18 us/op, direct plan 12.92, inner plan 10.38, direct phase-warmed 12.81, local executor 12.86.
+    - Run 2: cached wrapper 19.99 us/op, direct plan 12.75, inner plan 10.33, direct phase-warmed 12.63, local executor 12.70.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`
+    - With helper: findUnique value churn 2.29 us/op, findMany stable query 2.43, blog-page value churn 4.92, blog-page nested rows 19.84.
+  - Direct no-helper baseline after reverting the helper patch:
+    - findUnique value churn 2.34 us/op, findMany stable query 2.44, blog-page value churn 4.88, blog-page nested rows 19.14.
+  - Decision: reverted. The helper was neutral on cheap rows and slower on the nested cached wrapper row; avoiding the one-element array does not beat the current `renderQuery()` + flat-rendering-cache path.
+
 ## Useful Commands
 
 ```sh
