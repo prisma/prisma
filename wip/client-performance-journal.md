@@ -3190,6 +3190,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This is a small graph-build allocation cleanup with enough timing evidence to treat the relevant rows as neutral-to-positive after reruns.
 
+- Rejected experiment: lazy argument path construction in the query document parser.
+  - Hypothesis: `query_document/parser.rs::parse_arguments()` created `argument_path.add(...)` for every schema argument before checking whether an optional argument was present. Moving path construction into the present/default/required-missing branches should avoid success-path `Rc` path-node allocations for omitted optional arguments.
+  - Change tried:
+    - Moved `argument_path.add(input_field.name...)` inside the `Some(value)` and required-missing branches.
+    - Changed `validate_other_required_args` to accept a borrowed `Path`.
+  - Allocation profile while patched:
+    - `query-m2o`: `graph_build` 196 -> 184 allocs/op; full compile 632 -> 620.
+    - `query-many-m2m`: 284 -> 262; full compile 809 -> 787.
+    - `nested-pagination-query`: 233 -> 213; full compile 630 -> 610.
+    - `filter-contains-param`: 322 -> 310; full compile 557 -> 545.
+    - `create-nested-create`: 492 -> 480; full compile 1,307 -> 1,295.
+    - `create-nested-connectOrCreate-mixed`: 901 -> 889; full compile 2,794 -> 2,782.
+    - `create-nested-connectOrCreate-one2m`: 766 -> 754; full compile 2,478 -> 2,466.
+    - `update-set-nested`: 745 -> 733; full compile 2,181 -> 2,169.
+  - Criterion:
+    - Improved `create-nested-create-with-composite-id` by about 3.26% and `query-many-m2m` by about 3.13%.
+    - `create-nested-connectOrCreate-mixed` and `create-nested-create` were neutral/noisy.
+    - Regressed `create-nested-connectOrCreate-one2m` by about 2.17%.
+    - Regressed `delete-one` by about 1.98%.
+    - Regressed `filter-contains-param-insensitive` by about 2.41% and `filter-contains-param` by about 1.52%.
+    - Regressed `nested-pagination-query` by about 1.51%.
+    - Regressed `query-m2o-lateral` by about 8.32% and `query-m2o` by about 2.84%.
+    - Regressed `update-set-nested-prisma#27650` by about 1.36% and `update-set-nested` by about 3.21%.
+  - Decision: reverted. The allocation win is large and broad, but the timing regressions are too broad. The eager argument path construction appears to be better for current compile hot paths.
+
 ## Useful Commands
 
 ```sh
