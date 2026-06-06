@@ -3662,6 +3662,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This is a tiny graph-build allocation cleanup on the largest current `connectOrCreate` fixtures with neutral focused timing and full Rust/Wasm/product verification.
 
+- Accepted engines change: avoid singleton parsed input `Vec` allocation.
+  - Commit: `ffe098e7dbc Avoid singleton parsed input vec allocation` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - Replaced `write::utils::coerce_vec()` with `coerce_values()`, returning a `CoercedParsedInputValues` wrapper that iterates over existing list inputs and stores singleton inputs without allocating a one-element `Vec`.
+    - Updated nested write builders and create-many paths to consume the wrapper through iteration, `len()`, or `pop()`.
+    - Connect-or-create handlers now carry the wrapper through dispatch instead of forcing singleton inputs into `Vec<ParsedInputValue>`.
+  - Allocation profile after the patch:
+    - `create-nested-connectOrCreate-mixed`: graph build 899 allocs / 160.2 KiB -> 897 / 160.0 KiB; full compile 2776 / 343.8 KiB -> 2774 / 343.5 KiB.
+    - `create-nested-connectOrCreate-one2m`: graph build 764 / 130.6 KiB -> 762 / 130.4 KiB; full compile 2460 / 294.9 KiB -> 2458 / 294.6 KiB.
+    - `create-nested-connectOrCreate-m2one` measured at graph build 508 allocs / 90.7 KiB and full compile 1463 / 188.8 KiB after the patch; there was no immediately comparable post-`3539a109e94` baseline in the journal for this row.
+    - Unchanged sampled rows: `create-nested-create`, `update-set-nested`, and `update-set-nested-prisma#27650`.
+  - Criterion:
+    - `create-nested-connectOrCreate-one2m` improved by about 2.7%.
+    - `create-nested-create` improved by about 1.7%, despite no allocation-count movement in this focused profile.
+    - `create-nested-connectOrCreate-mixed` was slightly faster within Criterion's noise threshold.
+    - `create-nested-connectOrCreate-m2one`, `update-set-nested`, and `update-set-nested-prisma#27650` had no detected change or were within noise.
+  - Product/Wasm check:
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` passed.
+    - First local-Wasm `caching.bench.ts` run had slightly low compile rows (findUnique 1,534 ops/sec, filtered findMany 1,304, blog-page 352), but cache-hit rows were normal.
+    - Rerun returned to the expected band: findUnique compile 1,675 ops/sec, filtered findMany compile 1,388, blog-page compile 375, parameterize blog-page 526,578 ops/sec, cache-hit blog-page 305,446 ops/sec.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer lockfile churn, which was reverted.
+  - Verification:
+    - `cargo fmt -p query-core --check`
+    - `cargo check -p query-core`
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-create,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-m2one|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-create|update-set-nested|update-set-nested-prisma#27650)$"`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` twice
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `git diff --check`
+  - Decision: keep. This is a small wrapper/borrowing-style cleanup that removes singleton nested-input vector allocations from common write graph-builder paths and was neutral-to-positive in focused Criterion and product checks.
+
 - Rejected/no-movement experiment: move one-to-one inlined-child `child_link` construction into the non-create branch.
   - Hypothesis: `one_to_one_inlined_child()` built a `child_link` before checking `utils::node_is_create(...)`, but that binding is only consumed later by the non-create disconnect/write-args branch. Moving it into the `else` branch could avoid one unused `linking_fields()` allocation for create-parent connect-or-create graphs.
   - Change tried:
