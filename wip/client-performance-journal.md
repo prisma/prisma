@@ -3294,6 +3294,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep, but treat as a very small allocation-byte cleanup. It is not a general filter speed win.
 
+- Rejected experiment: manual single-pass `incoming_edges` dependency processing.
+  - Hypothesis: `NodeTranslator::process_child_with_dependencies()` scanned `incoming_edges` twice, once for row-count validations and once for projected-data bindings. Replacing the iterator chains with one manual loop could reduce traversal overhead and reserve binding capacity only when projected dependencies were present.
+  - Change tried:
+    - Removed the `Either` / `flat_map` binding iterator.
+    - Built `validations` and `bindings` in one `for edge in &incoming_edges` loop.
+    - Skipped constructing the no-op parent binding for plain `Get { name: source.id() }`.
+    - Reserved additional binding capacity for projected field bindings with `selection.selections().len()`.
+  - Allocation profile while patched:
+    - `create-nested-connectOrCreate-mixed`: `translate_ir` 1,721 -> 1,727 allocs/op; full compile 2,794 -> 2,800.
+    - `create-nested-connectOrCreate-one2m`: `translate_ir` 1,553 -> 1,559; full compile 2,478 -> 2,484.
+    - `update-set-nested`: `translate_ir` 1,320 -> 1,323; full compile 2,181 -> 2,184.
+    - `create-m2m`: `translate_ir` 957 -> 961; full compile 1,716 -> 1,720.
+    - `create-nested-create`: `translate_ir` 702 -> 704; full compile 1,307 -> 1,309.
+    - Common read controls (`query-m2o`, `query-many-m2m`) were unchanged.
+  - Decision: reverted without Criterion. The manual loop worsened allocation counts in exactly the nested write translation rows it was meant to help, with no byte improvement.
+
 ## Useful Commands
 
 ```sh
