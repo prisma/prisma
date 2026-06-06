@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Add direct cached-plan timing rows
+  - This commit: Fast-path connected ClientEngine requests
+  - `b583f51a3 Add direct cached-plan timing rows`
   - `bf3e792ed Add cache-hit key benchmark rows`
   - `b67898099 Warm ClientEngine cache timing probe`
   - `07601310e Tighten ClientEngine timing probes`
@@ -146,6 +147,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm --filter @prisma/client build`
       - `git diff --check`
     - Decision: keep. The generated cached blog plan execution/rendering is about 14 us/op, while warmed `ClientEngine.request()` is about 37 us/op and cache-hit key construction is about 3.2 us/op. That leaves roughly 20 us/op in the `ClientEngine.request()` wrapper and executor handoff path for this empty-adapter nested shape.
+
+  - This commit: Fast-path connected ClientEngine requests
+    - `ClientEngine.request()` and `requestBatch()` now first read a synchronously connected engine via `#getConnectedEngine()` and only call async `#ensureStarted()` when the engine is not already connected.
+    - Reason: warmed clients pay this check on every request, and `#ensureStarted()` was an async function even for the already-connected state.
+    - Local `client-engine-cache-timing.ts` before this patch, after direct-plan rows:
+      - Warmed `ClientEngine` `findUnique`: about 17.12 us/op.
+      - Warmed `ClientEngine` `findMany` 10 scalar rows: about 12.39 us/op.
+      - Warmed `ClientEngine` blog-page: about 37.04 us/op.
+    - Local `client-engine-cache-timing.ts` after this patch:
+      - First run: warmed `findUnique` about 15.23 us/op, warmed `findMany` 10 scalar rows about 12.33 us/op, warmed blog-page about 36.85 us/op.
+      - Rerun: warmed `findUnique` about 15.76 us/op, warmed `findMany` 10 scalar rows about 12.61 us/op, warmed blog-page about 35.63 us/op.
+    - The signal is small but directionally positive on warmed cache-hit rows and removes avoidable async overhead from the hot request path.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+      - `pnpm --filter @prisma/client build`
+      - `pnpm exec prettier --check packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - `git diff --check`
+    - Decision: keep. The change is small, localized, and preserves disconnected/connecting fallback semantics while shaving roughly 1-2 us from simple warmed request rows in local measurements.
 
   - This commit: Add cache-hit key benchmark rows
     - `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` now prebuilds benchmark query objects for parameterization rows and adds `cache hit key ...` rows that run the current single-query cache-hit key path: `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `getSingleQueryCacheKey()`.

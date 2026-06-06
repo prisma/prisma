@@ -292,6 +292,10 @@ export class ClientEngine implements Engine {
     }
   }
 
+  #getConnectedEngine(): ConnectedEngine | undefined {
+    return this.#state.type === 'connected' ? this.#state.engine : undefined
+  }
+
   async #connectExecutor(): Promise<Executor> {
     if (this.#executorKind.remote) {
       return new RemoteExecutor({
@@ -535,9 +539,11 @@ export class ClientEngine implements Engine {
   ): Promise<{ data: T }> {
     debug(`sending request`)
 
-    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, JSON.stringify(query))
-    })
+    const { executor, queryCompiler } =
+      this.#getConnectedEngine() ??
+      (await this.#ensureStarted().catch((err) => {
+        throw this.#transformRequestError(err, JSON.stringify(query))
+      }))
 
     let plan: QueryPlanNode
     let placeholderValues = EMPTY_PLACEHOLDER_VALUES
@@ -627,9 +633,11 @@ export class ClientEngine implements Engine {
     let request: string | undefined
     const stringifyBatchRequest = () => (request ??= JSON.stringify(batchPayload))
 
-    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, stringifyBatchRequest())
-    })
+    const { executor, queryCompiler } =
+      this.#getConnectedEngine() ??
+      (await this.#ensureStarted().catch((err) => {
+        throw this.#transformRequestError(err, stringifyBatchRequest())
+      }))
 
     const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
