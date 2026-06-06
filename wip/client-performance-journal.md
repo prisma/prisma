@@ -7,6 +7,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 ## Current Baseline
 
 - Prisma repo current relevant commits:
+  - `dc8657d7f Accept compact SQL string fragments`
+  - `10585f905 Record result field arity omission`
+  - `af55854c7 Allow omitted result field arity`
+  - `b26bf65d3 Split query plan cache memory probe sizes`
+  - `fe3826c43 Add query plan cache memory probe`
+  - `7474b3c3f Record query arg db type omission`
   - `e7684e6df Document query compiler phase timing`
   - `5745f952b Document query compiler request parsing path`
   - `247eeb701 Return native values from local client engine`
@@ -16,6 +22,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `dd03ee258c9 Serialize SQL string fragments compactly`
+  - `1fe6a7c341b Omit non-list result field arity`
+  - `78dfd45e838 Omit empty query arg db types`
   - `ba4aa725900 Avoid empty exclusion vector allocation`
   - `cc50b6120df Avoid eager argument conversion errors`
   - `b135e3d34b9 Avoid parsed argument value clone`
@@ -50,6 +59,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `dd03ee258c9 Serialize SQL string fragments compactly`
+    - `DbQuery::TemplateSql.fragments` now serializes `Fragment::StringChunk` as a raw string. Other fragment variants (`parameter`, `parameterTuple`, `parameterTupleList`) keep the old tagged-object shape.
+    - Prisma commit `dc8657d7f Accept compact SQL string fragments` makes the TypeScript query-plan type and renderer accept both raw string fragments and the legacy `{ type: 'stringChunk', chunk }` object.
+    - Same-source local Wasm plan-size savings, measured after empty `dbType` and non-list field-arity omissions:
+      - `findUnique`: 1,660 -> 1,567 bytes, saving 93 bytes.
+      - `findMany filtered`: 1,808 -> 1,684 bytes, saving 124 bytes.
+      - `findMany in filter`: 2,028 -> 1,811 bytes, saving 217 bytes.
+      - `blog page`: 11,364 -> 10,713 bytes, saving 651 bytes.
+    - Query-plan cache memory probe with local rebuilt Wasm moved retained serialized plan shape down:
+      - Edge default warm: `planJsonRetained` 87.8 KiB -> 75.9 KiB, heap delta about 245.3 KiB.
+      - Edge default churn: `planJsonRetained` 125.0 KiB -> 107.2 KiB, heap delta about 395.0 KiB.
+      - Node default warm: `planJsonRetained` 1.06 MiB -> 934.3 KiB, heap delta about 2.74 MiB.
+    - Verification:
+      - `cargo fmt -p query-builder --check`
+      - `cargo test -p query-compiler --test queries`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+    - Benchmark gate with local rebuilt Wasm was neutral-to-positive:
+      - `compile findUnique`: about 1,512 ops/sec.
+      - `compile findMany filtered`: about 1,256 ops/sec.
+      - `compile blog post page`: about 323 ops/sec.
   - `1fe6a7c341b Omit non-list result field arity`
     - `FieldType.arity` now serializes only for list fields; required/optional scalar result fields omit arity because the TS data mapper only branches on `arity === 'list'`.
     - Prisma commit `af55854c7 Allow omitted result field arity` makes `FieldType.arity` optional in the query-plan type.
@@ -222,6 +257,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - This is safe because `packages/client-engine-runtime/src/interpreter/data-mapper.ts` only branches on `fieldType.arity === 'list'`; omitted arity is interpreted as non-list.
   - `caching.bench.ts` with rebuilt local Wasm was neutral-to-positive on compile rows: about 1,440 / 1,229 / 323 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
 
+- Compact `templateSql` string fragments:
+  - `StringChunk` fragments are now raw strings in query-plan `templateSql.fragments`.
+  - Parameter and tuple fragments intentionally remain tagged objects for now; this kept the renderer change small and avoided overloading array/number sentinel values.
+  - Same-source local Wasm output had zero `stringChunk` tags in representative plans and saved 93 / 124 / 217 / 651 bytes on `findUnique`, filtered `findMany`, `findMany in filter`, and the blog-page query.
+  - `caching.bench.ts` with rebuilt local Wasm was neutral-to-positive on compile rows: about 1,512 / 1,256 / 323 ops/sec.
+  - The query-plan-cache memory probe showed retained plan JSON down to 75.9 KiB for 100 warm edge entries and 934.3 KiB for 1,000 warm node entries.
+
 - Query plan cache memory probe:
   - Added `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
   - Run with:
@@ -254,8 +296,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Plan serialization shape.
   - The tagged object tree is verbose and `serde_wasm_bindgen` plan serialization is a large release-Wasm phase.
+  - Compact raw string fragments are now kept; remaining compact-shape candidates should be gated because previous default-field omissions had mixed throughput.
   - Larger possible directions:
     - Compact representation for hot `Expression` variants.
+    - Compact representation for `parameter`, tuple, and tuple-list SQL fragments if a readable and type-safe TS representation can be found.
     - Provider-level defaults for repeated SQL-query metadata.
     - Avoid serializing query plans as generic JS objects if the interpreter can consume a more compact representation.
   - Risk: broad TS interpreter contract change.
@@ -274,6 +318,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Radical JS-reference-backed query compiler pipeline.
   - User idea: do not create/own input query data or built SQL strings on the Rust heap; only internal IRs should be Rust-owned. Use wrapper types such as `PrismaString` that can wrap native Rust strings in unit tests and external JS strings/objects in Wasm.
+  - Practicality assessment: potentially practical as a project-level redesign, but not as a narrow `serde_wasm_bindgen` substitution. Wrapper types help only if request parsing, schema lookup, validation, SQL rendering, and cache-key generation are all changed to consume borrowed/input-backed values instead of immediately converting into owned `String`/map trees.
   - Potential shape:
     - Client passes the query object as a single JS reference into Wasm.
     - Rust parameterizes and cache-keys by walking JS objects without cloning the whole request into Wasm memory.
@@ -289,7 +334,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Caching by JS object identity is unsafe if user query objects are mutable; structural hashing over JS objects without copying is possible but must be deterministic and preserve current cache semantics.
     - Storing `JsValue`/externref handles in Rust caches needs careful lifetime/GC behavior and Cloudflare Workers compatibility verification.
     - Not building SQL strings on Rust heap would require a lower-level SQL/template IR and JS-side or driver-side final rendering, which is much broader than request parsing.
-  - Treat as a project-level design/spike candidate. First useful proof would be a small Wasm prototype that walks a JS query object, computes the existing parameterization cache key, and returns placeholder refs without materializing `serde_json::Value`.
+  - Treat as a project-level design/spike candidate. First useful proof would be a small Wasm prototype that walks a JS query object, computes the existing parameterization cache key, and returns placeholder refs without materializing `serde_json::Value`; second proof would compile a tiny read query into an IR that keeps SQL template strings external until final driver execution.
 
 - More Cloudflare-specific memory measurement.
   - Current evidence is still mostly Node/V8 local benchmarks.
