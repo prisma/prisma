@@ -3611,6 +3611,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Regressed: `filter-contains-param` about 1.60%.
   - Reverted. The change has mixed CPU results and no allocation win, so it does not meet the keep bar.
 
+- Rejected experiment: replace nested `connect` / `disconnect` hash-set dedup with manual small-`Vec` dedup.
+  - Hypothesis: `connect_nested.rs` and `disconnect_nested.rs` still built a `Vec<Filter>`, ran `itertools::unique()`, and collected a second vector. The accepted nested `set` change showed that small unique-filter lists can avoid this hash-set path.
+  - Change tried:
+    - Rewrote `nested_connect()` to coerce values once, push extracted unique filters into a pre-sized vector, and skip duplicates with `filters.iter().any(...)`.
+    - Added the same local helper in `nested_disconnect()` for the many-to-many and one-to-many list paths.
+  - Allocation profile while patched:
+    - `create-nested-connect`: graph build 569 allocs / 81.0 KiB -> 567 / 79.8 KiB; full compile 1436 / 166.5 KiB -> 1434 / 165.3 KiB.
+    - `update-connect`: graph build 654 / 101.0 KiB -> 652 / 99.6 KiB; full compile 1474 / 180.1 KiB -> 1472 / 178.6 KiB.
+    - `update-connect-child-one2m`: graph build 482 / 67.9 KiB -> 480 / 66.6 KiB; full compile 1023 / 122.3 KiB -> 1021 / 121.0 KiB.
+    - `update-connect-parent-one2m`: graph build 350 / 54.1 KiB -> 348 / 52.7 KiB; full compile 865 / 108.7 KiB -> 863 / 107.3 KiB.
+    - `update-m2m-disconnect`: graph build 470 / 70.1 KiB -> 468 / 68.7 KiB; full compile 1340 / 148.5 KiB -> 1338 / 147.1 KiB.
+    - Adjacent controls `create-nested-connectOrCreate-mixed` and `update-set-nested` were unchanged.
+  - Close Criterion A/B:
+    - Baseline absolute medians from the immediately reversed patch run: `create-nested-connect` 65.737 us, `update-connect-child-one2m` 47.077 us, `update-connect-parent-one2m` 38.401 us, `update-connect` 71.475 us, `update-m2m-disconnect` 59.131 us.
+    - Patched absolute medians after reapplying the exact patch: `create-nested-connect` 66.856 us, `update-connect-child-one2m` 47.466 us, `update-connect-parent-one2m` 38.925 us, `update-connect` 72.612 us, `update-m2m-disconnect` 60.272 us.
+    - Criterion classified `create-nested-connect`, `update-connect-parent-one2m`, and `update-m2m-disconnect` as regressions in the patched run.
+  - Verification while patched:
+    - `cargo fmt -p query-core`
+    - `ALLOC_PROFILE_QUERIES='create-nested-connect,update-connect,update-connect-child-one2m,update-connect-parent-one2m,update-m2m-disconnect,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connect|update-connect|update-connect-child-one2m|update-connect-parent-one2m|update-m2m-disconnect)$"`
+  - Decision: reverted. The allocation improvement is real but loses the close timing A/B. Keep `itertools::unique()` in nested `connect` / `disconnect` unless a future change can recover CPU while preserving the allocation win.
+
 ## Useful Commands
 
 ```sh
