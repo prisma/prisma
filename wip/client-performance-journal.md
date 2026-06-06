@@ -1381,6 +1381,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Nested update rows were neutral, but read regressions are not acceptable.
   - Reverted. This confirms small allocation-looking changes in translation can still perturb hot compile rows enough to lose.
 
+- Pre-size result-node `IndexMap` field maps.
+  - Rust side added `Object::with_capacity()` / `ResultNodeBuilder::new_object_with_capacity()` and used `selection_order.len()` in `get_result_node()` plus aggregation ordered-set length in `get_result_node_for_aggregation()`.
+  - `cargo test -p query-compiler --test queries` passed.
+  - Allocation profile against the post-linear-lookup baseline improved only slightly:
+    - `query-m2o` `compile_ir`: 561 -> 559 allocations/op and 102.8 -> 101.9 KiB/op.
+    - `query-many-m2m` `compile_ir`: 746 -> 744 allocations/op and 105.6 -> 104.6 KiB/op.
+    - `nested-pagination-query` `compile_ir`: 553 -> 553 allocations/op and 84.4 -> 84.1 KiB/op.
+    - `filter-contains-param` `compile_ir`: unchanged at 490 allocations/op and 63.3 KiB/op.
+    - `create-nested-create` `compile_ir`: 1212 -> 1210 allocations/op and 160.4 -> 159.6 KiB/op.
+  - Focused Criterion gate was mixed-negative:
+    - Improved: `aggregate-custom` about -5.9%, `aggregate-join-lateral` about -1.6%.
+    - Within noise: `aggregate-join`, `aggregate`, `query-m2o`, `query-many-m2m`.
+    - Regressed: `aggregate-nested-m2m` about +5.8%, `create-nested-create` about +3.5%, `filter-contains-param` about +4.7%, `nested-pagination-query` about +4.0%.
+  - Reverted. The allocation savings are too small, and eager `IndexMap::with_capacity()` can slow hot compile rows despite reducing allocation counts.
+
 - `serde_wasm_bindgen::from_value` as a direct replacement for string JSON request parsing.
   - Investigation showed it only removes JS-side parsing/copying unless the Rust request parser is redesigned.
   - Current Rust path deserializes request strings into `JsonBody`, including owned `IndexMap` and `serde_json::Value`, then `JsonProtocolAdapter` walks the tree again into `ArgumentValue`/`Selection`.
@@ -1685,6 +1700,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Removes JS-side `JSON.stringify`/cache-key work and Rust-side `JsonBody`/`serde_json::Value` ownership at the same time.
     - Could reduce retained duplicated query/request data on Cloudflare Workers.
     - Could make parameterization and query-plan caching one pass instead of separate JS parameterization + stringify + Rust parse/adapt.
+    - The most practical first version probably still owns internal IR and may still build SQL strings on compile misses; the bigger near-term win would be avoiding duplicate request trees and returning cached JS plan objects on hits.
   - Main risks/questions:
     - Current `query-core` request parsing and graph building expect owned/cloneable Rust values (`String`, `ArgumentValue`, `PrismaValue`, `Selection`, maps); a real zero-copy path likely requires broad trait/lifetime/arena redesign, not a Wasm entrypoint tweak.
     - Rust schema lookup currently wants Rust string keys; comparing JS strings without copying may require interned IDs, JS-side maps, or a custom abstraction.
