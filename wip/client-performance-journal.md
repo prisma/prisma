@@ -3535,6 +3535,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `query-many-one2m`, `query-m2o`, and `query-m2o-lateral` showed no detected performance change.
   - Reverted. This allocation-count-only cleanup is not worth the compile-time risk. Do not retry this exact `pairs_to_selections()` branch-shape change without a stronger explanation for the Criterion regression.
 
+- Rejected experiment: skip scalar field lookup in `collect_nested_queries()`.
+  - Hypothesis: `collect_nested_queries()` only emits relation nested read queries, but it looked up every selected field in the model, including scalar selections that cannot have nested fields. Returning early when `pair.parsed_field.nested_fields` is absent could reduce scalar-heavy read graph-build CPU.
+  - Change tried:
+    - Added an early `pair.parsed_field.nested_fields.as_ref()?` after the aggregation-selection check and before `model.fields().find_from_all(...)`.
+  - Allocation profile:
+    - No allocation count or byte movement in the sampled profile. This was expected because the change skips lookup work, not allocations.
+  - Criterion:
+    - Improved: `filter-contains-param-insensitive` about 1.86%, `query-m2m` about 1.35%, `query-many-m2m` about 1.95%.
+    - No detected change or within noise: `nested-pagination-query` +1.24% within noise, `query-m2o-lateral` -0.96% within noise, `query-m2o` no change, `query-many-one2m` no change.
+    - Regressed: `filter-contains-param` about 1.60%.
+  - Reverted. The change has mixed CPU results and no allocation win, so it does not meet the keep bar.
+
 ## Useful Commands
 
 ```sh
