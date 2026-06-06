@@ -16,8 +16,11 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
+/**
+ * Prisma schema formatting should write LF-only files on every platform.
+ */
 export function normalizeFormattedSchemaLineEndings(schema: string): string {
-  return schema.replace(/\r\n/g, '\n')
+  return schema.replace(/\r\n?/g, '\n')
 }
 
 /**
