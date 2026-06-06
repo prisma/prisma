@@ -236,6 +236,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile blog post page`: about 300 ops/sec, down from about 323.
   - Reverted. The additional byte savings do not justify the Wasm compile regression and less-readable sentinel representation.
 
+- Compact result field nodes as `[dbName, fieldType]`.
+  - Rust side manually serialized `ResultNode::Field` as a two-element array while keeping object and affected-row nodes compatible.
+  - TypeScript side accepted tuple field nodes in `data-mapper.ts` without normalizing them into duplicate objects, so cached plans would keep the compact shape.
+  - Focused checks passed:
+    - `cargo fmt -p query-compiler && cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts`
+  - Same-source local Wasm plan sizes improved substantially:
+    - `findUnique`: 1,567 -> 1,207 bytes, saving 360 bytes.
+    - `findMany filtered`: 1,684 -> 1,324 bytes, saving 360 bytes.
+    - `findMany in filter`: 1,811 -> 1,451 bytes, saving 360 bytes.
+    - `blog page`: 10,713 -> 9,345 bytes, saving 1,368 bytes.
+  - Benchmark gate failed even after replacing the initial helper-struct/`flatten` serializer with direct `SerializeStruct`:
+    - Direct serializer `compile findUnique`: about 1,380 ops/sec, down from about 1,512.
+    - Direct serializer `compile findMany filtered`: about 1,158 ops/sec, down from about 1,256.
+    - Direct serializer `compile blog post page`: about 297 ops/sec, down from about 323.
+  - Reverted. This suggests array-shaped field nodes or manual result-node serialization are slower through the Wasm/`serde_wasm_bindgen` compile path despite the smaller JS-visible plan.
+
 ## Measurements And Evidence
 
 - Native Rust query compiler Criterion timings on a clean engines tree:
@@ -318,6 +337,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Larger possible directions:
     - Compact representation for hot `Expression` variants.
     - Compact representation for tuple and tuple-list SQL fragments if a readable and type-safe TS representation can be found.
+    - Compact result field metadata only if a different representation can avoid the Wasm compile regression seen with tuple field nodes.
     - Provider-level defaults for repeated SQL-query metadata.
     - Avoid serializing query plans as generic JS objects if the interpreter can consume a more compact representation.
   - Risk: broad TS interpreter contract change.
