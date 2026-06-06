@@ -1136,6 +1136,49 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - local executor nested blog-page: about 59.89 us/op vs 58.83 baseline, worse.
   - Decision: reverted. Keep the existing map-based attach path and row-count threshold until a broader join/data-map strategy wins on the nested benchmark and the interpreter microbench together.
 
+- JS-mode datetime `Date` identity fast path.
+  - Tried returning adapter-provided `Date` objects directly from `mapScalarValue()` in JS result mode instead of cloning them with `new Date(value)`.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts`
+  - Product-path nested rows were mixed and did not show a clear memory win:
+    - First run: cached request wrapper nested blog-page about 57.97 us/op, direct plan nested blog-page about 59.73 us/op, local executor nested blog-page about 64.15 us/op.
+    - Second run: cached request wrapper nested blog-page about 61.10 us/op, direct plan nested blog-page about 59.13 us/op, local executor nested blog-page about 66.66 us/op.
+    - Heap deltas stayed in the same rough range as baseline.
+  - Decision: reverted. Avoid changing Date identity/ownership semantics without clearer product evidence.
+
+- Field-only result-set mapper fast path.
+  - Tried marking field-only result-set mappings in a `WeakSet` and routing those rows through a mapper without the per-field `switch` used by recursive object/value-object mappings.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts`
+  - Interpreter bench was mixed:
+    - `simple select`: 872,313 ops/sec.
+    - `findUnique`: 1,163,405 ops/sec.
+    - `join (1:N)`: 347,600 ops/sec.
+    - `sequence`: 897,909 ops/sec.
+    - `deep nested join`: 46,282 ops/sec.
+  - Product-path rows were not consistently positive:
+    - First run: warmed nested blog-page about 93.41 us/op, cached request wrapper nested blog-page about 62.02 us/op, direct plan nested blog-page about 61.92 us/op, local executor nested blog-page about 60.22 us/op.
+    - Second run: warmed nested blog-page about 92.27 us/op, cached request wrapper nested blog-page about 61.29 us/op, direct plan nested blog-page about 61.67 us/op, local executor nested blog-page about 62.82 us/op.
+    - `data map findMany / 10 scalar rows` stayed around 1.58-1.67 us/op, not clearly better than baseline noise.
+  - Decision: reverted. The extra branch/cache did not pay for itself clearly enough.
+
+- Cached join expression metadata.
+  - Tried caching `parentField`, `isRelationUnique`, `parentKeys`, and `childKeys` per `JoinExpression` with a `WeakMap` so cached plans do not rebuild join key arrays on every `attachChildrenToParents()` call.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+  - Interpreter microbench regressed the join/deep-nested rows:
+    - `simple select`: 872,236 ops/sec.
+    - `findUnique`: 1,155,633 ops/sec.
+    - `join (1:N)`: 342,350 ops/sec.
+    - `sequence`: 900,083 ops/sec.
+    - `deep nested join`: 45,579 ops/sec.
+  - Product-path nested rows did not compensate:
+    - warmed nested blog-page about 92.64 us/op.
+    - cached request wrapper nested blog-page about 62.42 us/op.
+    - direct plan nested blog-page about 63.74 us/op.
+    - local executor nested blog-page about 60.94 us/op.
+  - Decision: reverted. WeakMap lookup and extra indirection are not a win for current join shapes.
+
 - Parameterization traversal object-copy variants.
   - Tried replacing `Object.keys()` plus "copy previous keys on first change" in `parameterizeQuery()` object and selection traversal with `for...in` plus a lazy full object clone on the first changed field.
   - Correctness passed:
