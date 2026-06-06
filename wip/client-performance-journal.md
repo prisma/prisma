@@ -2709,6 +2709,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - client-cache `findUnique` improved 66.46 -> 60.91 us/op, while client-cache blog-page value churn regressed 82.94 -> 86.29 us/op.
   - Interpretation: this supports keeping the single-rendered-query fast path, but the Workers probe is still an upper-bound dispatch signal and not precise enough to claim a large edge-runtime win. The bigger JS-reference-backed cache/parameterization pipeline remains a separate project-level lead.
 
+- Rejected experiment: strict single-parent join attachment helper.
+  - Hypothesis: in `attachChildrenToParents()`, strict single-key joins with a non-array parent could avoid wrapping the parent in a one-element array and avoid repeated `asRecord(parent)` calls inside the child loop. The blog-page root join and some nested branches hit single-parent shapes, so this looked like a narrow nested hot-path cleanup.
+  - Temporary patch:
+    - Added `attachSingleParentStrictKeyChildren()` and `attachSingleParentChild()` in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - The strict single-key branch called the helper when `parentRecords` was not an array; the generic tiny strict-key helper stayed in place for parent arrays.
+  - Correctness passed:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+  - Baseline immediately before the patch:
+    - `cached request wrapper blog page / nested rows`: 40.93 us/op.
+    - `direct plan blog page / nested rows`: 30.22 us/op.
+    - `inner plan blog page / nested rows`: 21.16 us/op.
+    - `local executor blog page / nested rows`: 29.47 us/op.
+    - `direct plan after phase warmup blog page / nested rows`: 23.35 us/op.
+    - `blog page nested rows / warmed cache after phase warmup`: 39.83 us/op.
+  - Timing with the patch:
+    - Run 1: cached wrapper 42.86 us/op, direct plan 33.33, inner plan 21.85, local executor 31.13, direct phase-warmed 23.19, final warmed cache 40.83.
+    - Run 2: cached wrapper 43.13 us/op, direct plan 31.66, inner plan 21.96, local executor 30.35, direct phase-warmed 23.49, final warmed cache 40.28.
+  - Decision: reverted. The helper saves obvious-looking tiny allocations but perturbs the strict join hot path and worsens the relevant cached wrapper/direct/local nested rows. Do not retry this shape without a different plan representation or stronger profiler evidence.
+
 ## Useful Commands
 
 ```sh
