@@ -1702,6 +1702,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `query-compiler/core/src/query_graph_builder/read/utils.rs` deliberately merges relation/linking fields into `selected_fields` via `merge_relation_selections()`, including parent lookback fields and child linking fields needed to attach nested records. A child-side data map must preserve those hidden join fields until after `attachChildrenToParents()`.
   - Practical conclusion: a tiny compiler patch that simply wraps child `q` nodes in `d dataMap` is likely wrong because it would either drop join keys too early or require the outer mapper to understand already-user-shaped child objects. The plausible smaller spike is a new projection/drop-internal-fields node or a child data-map variant that preserves explicit join keys; otherwise this becomes a broader plan/result IR redesign.
 
+- This commit: Warmup-controlled nested data-map timing rows.
+  - `client-engine-cache-timing.ts` now imports direct-plan `QueryInterpreter`/query-plan helpers from `packages/client-engine-runtime/src`, matching its existing source imports for `applyDataMap()` and `renderQuery()`. This avoids comparing the package-entry `dist` interpreter against source-file mapper helpers inside the same phase split.
+  - Added nested-row phase rows:
+    - `interpreter get precomputed blog page / nested rows`: runs compact `['g', 'value']` through `QueryInterpreter.run()` over precomputed joined graphs.
+    - `interpreter data map precomputed blog page / nested rows`: runs compact `['d', ['g', 'value'], structure, enums]` through `QueryInterpreter.run()` over the same precomputed graphs.
+    - `direct plan after phase warmup blog page / nested rows`: reruns the full root plan after the inner/outer phase rows have warmed the compact interpreter shapes.
+  - Results from two local runs:
+    - Run 1: first direct root 56.57 us/op, inner 32.93, outer map 3.63, interpreter get precomputed 1.41, interpreter data-map precomputed 5.10, manual inner+outer 43.69, direct after phase warmup 44.69, local executor 52.94.
+    - Run 2: first direct root 58.31 us/op, interpreter data-map precomputed 5.24, manual inner+outer 47.13, direct after phase warmup 45.09, local executor 52.42.
+  - Interpretation: the earlier "root dataMap is materially slower than manual inner+outer" lead was mostly a warmup/order artifact. Root data-map pushdown is still theoretically possible but no longer has strong benchmark evidence. The next nested-row target should return to the inner expression itself: SQL serialization, join execution, async query loop overhead, or plan-shape changes that reduce row-object work while preserving hidden join keys.
+
 ## Useful Commands
 
 ```sh

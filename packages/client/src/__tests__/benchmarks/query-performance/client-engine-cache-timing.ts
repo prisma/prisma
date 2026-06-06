@@ -9,18 +9,6 @@ import {
   type QueryCompilerConstructor,
   type QueryCompilerOptions,
 } from '@prisma/client-common'
-import {
-  type CompactJoinExpression,
-  getQueryPlanBindingExpr,
-  noopTracingHelper,
-  parameterizeQuery,
-  QueryInterpreter,
-  type QueryPlanBinding,
-  type QueryPlanCompactNode,
-  type QueryPlanDbQuery,
-  type QueryPlanNode,
-  type ResultNode,
-} from '@prisma/client-engine-runtime'
 import { getDMMF } from '@prisma/client-generator-js'
 import type {
   ColumnType,
@@ -38,6 +26,18 @@ import type { JsonQuery } from '@prisma/json-protocol'
 import { ParamGraph } from '@prisma/param-graph'
 import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-graph-builder'
 
+import {
+  type CompactJoinExpression,
+  getQueryPlanBindingExpr,
+  noopTracingHelper,
+  parameterizeQuery,
+  QueryInterpreter,
+  type QueryPlanBinding,
+  type QueryPlanCompactNode,
+  type QueryPlanDbQuery,
+  type QueryPlanNode,
+  type ResultNode,
+} from '../../../../../client-engine-runtime/src'
 import { applyDataMap, applyDataMapToResultSet } from '../../../../../client-engine-runtime/src/interpreter/data-mapper'
 import type { GeneratorRegistrySnapshot } from '../../../../../client-engine-runtime/src/interpreter/generators'
 import { renderQuery } from '../../../../../client-engine-runtime/src/interpreter/render-query'
@@ -1326,6 +1326,140 @@ async function measureOuterDataMapScenario(
   }
 }
 
+async function measureInterpreterGetPrecomputedScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr } = getRootDataMapPlan(plan)
+  const innerValues = new Array<unknown>(scenario.iterations)
+  const scopes = new Array<Record<string, unknown>>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    innerValues[i] = await interpreter.run(expr, {
+      queryable: adapter,
+      scope: placeholderValues,
+      transactionManager: { enabled: false },
+    })
+    scopes[i] = { value: innerValues[i] }
+  }
+
+  const getPlan = ['g', 'value'] as unknown as QueryPlanNode
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(getPlan, {
+      queryable: adapter,
+      scope: scopes[i],
+      transactionManager: { enabled: false },
+    })
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogInnerValue(
+      await interpreter.run(getPlan, {
+        queryable: adapter,
+        scope: scopes[i],
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureInterpreterDataMapPrecomputedScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr, structure, enums } = getRootDataMapPlan(plan)
+  const innerValues = new Array<unknown>(scenario.iterations)
+  const scopes = new Array<Record<string, unknown>>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    innerValues[i] = await interpreter.run(expr, {
+      queryable: adapter,
+      scope: placeholderValues,
+      transactionManager: { enabled: false },
+    })
+    scopes[i] = { value: innerValues[i] }
+  }
+
+  const dataMapPlan = ['d', ['g', 'value'], structure, enums] as unknown as QueryPlanNode
+  for (let i = 0; i < scenario.iterations; i++) {
+    await interpreter.run(dataMapPlan, {
+      queryable: adapter,
+      scope: scopes[i],
+      transactionManager: { enabled: false },
+    })
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogResult(
+      await interpreter.run(dataMapPlan, {
+        queryable: adapter,
+        scope: scopes[i],
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 async function measureManualInnerOuterDataMapScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -1825,10 +1959,37 @@ async function main(): Promise<void> {
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measureInterpreterGetPrecomputedScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'interpreter get precomputed'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measureInterpreterDataMapPrecomputedScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'interpreter data map precomputed'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
       printDirectPlanMeasurement(
         await measureManualInnerOuterDataMapScenario(compiler, paramGraph, {
           ...scenario,
           name: scenario.name.replace('direct plan', 'manual inner+outer'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printDirectPlanMeasurement(
+        await measureDirectPlanScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'direct plan after phase warmup'),
         }),
       )
     }
