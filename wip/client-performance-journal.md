@@ -178,6 +178,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Potentially valuable only if it avoids the owned Rust `JsonBody` / `serde_json::Value` request tree, not if it merely swaps `serde_json::from_str` for `serde_wasm_bindgen::from_value`.
   - Needs a design that preserves validation errors and query-plan cache semantics.
 
+- Radical JS-reference-backed query compiler pipeline.
+  - User idea: do not create/own input query data or built SQL strings on the Rust heap; only internal IRs should be Rust-owned. Use wrapper types such as `PrismaString` that can wrap native Rust strings in unit tests and external JS strings/objects in Wasm.
+  - Potential shape:
+    - Client passes the query object as a single JS reference into Wasm.
+    - Rust parameterizes and cache-keys by walking JS objects without cloning the whole request into Wasm memory.
+    - Query plan cache lives in Rust/Wasm and returns an existing JS query-plan object on hit, or compiles and caches on miss.
+    - Wasm reference types / `JsValue` handles carry JS-owned query values and cached plan objects across the boundary.
+  - Potential upside:
+    - Removes JS-side `JSON.stringify`/cache-key work and Rust-side `JsonBody`/`serde_json::Value` ownership at the same time.
+    - Could reduce retained duplicated query/request data on Cloudflare Workers.
+    - Could make parameterization and query-plan caching one pass instead of separate JS parameterization + stringify + Rust parse/adapt.
+  - Main risks/questions:
+    - Current `query-core` request parsing and graph building expect owned/cloneable Rust values (`String`, `ArgumentValue`, `PrismaValue`, `Selection`, maps); a real zero-copy path likely requires broad trait/lifetime/arena redesign, not a Wasm entrypoint tweak.
+    - Rust schema lookup currently wants Rust string keys; comparing JS strings without copying may require interned IDs, JS-side maps, or a custom abstraction.
+    - Caching by JS object identity is unsafe if user query objects are mutable; structural hashing over JS objects without copying is possible but must be deterministic and preserve current cache semantics.
+    - Storing `JsValue`/externref handles in Rust caches needs careful lifetime/GC behavior and Cloudflare Workers compatibility verification.
+    - Not building SQL strings on Rust heap would require a lower-level SQL/template IR and JS-side or driver-side final rendering, which is much broader than request parsing.
+  - Treat as a project-level design/spike candidate. First useful proof would be a small Wasm prototype that walks a JS query object, computes the existing parameterization cache key, and returns placeholder refs without materializing `serde_json::Value`.
+
 - More Cloudflare-specific memory measurement.
   - Current evidence is mostly Node/V8 local benchmarks.
   - Need a repeatable memory harness for edge bundle startup, Wasm instance, query compiler cache size, and representative query execution.
