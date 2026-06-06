@@ -36,6 +36,7 @@ const resultSetFieldMappingsByShapeCache = new WeakMap<
   Record<string, ResultNode>,
   Map<string, ResultSetFieldMapping[]>
 >()
+const objectFieldMappingsCache = new WeakMap<Record<string, ResultNode>, ObjectFieldMapping[]>()
 
 type ResultSetFieldMapping =
   | {
@@ -56,6 +57,25 @@ type ResultSetFieldMapping =
       type: 'valueObject'
       name: string
       columnIndex: number
+      node: ObjectResultNode
+    }
+
+type ObjectFieldMapping =
+  | {
+      type: 'field'
+      name: string
+      dbName: string
+      node: FieldResultNode
+      fieldType: FieldType
+      scalarTypeName: CanonicalScalarTypeName
+      isList: boolean
+    }
+  | {
+      type: 'object'
+      name: string
+      serializedName: string | null
+      fields: ObjectFieldMapping[]
+      skipNulls: boolean
       node: ObjectResultNode
     }
 
@@ -251,34 +271,147 @@ function mapObject(
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat,
 ): PrismaObject {
+  return mapObjectWithMappings(data, getObjectFieldMappings(fields), enums, resultFormat)
+}
+
+function mapArrayOrObjectWithMappings(
+  data: Value,
+  fieldMappings: ObjectFieldMapping[],
+  enums: Record<string, Record<string, string>>,
+  skipNulls?: boolean,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
+): PrismaObject | PrismaObject[] | null {
+  if (data === null) return null
+
+  if (Array.isArray(data)) {
+    const rows = data as PrismaObject[]
+    if (skipNulls) {
+      const result: PrismaObject[] = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        if (row !== null) {
+          result.push(mapObjectWithMappings(row, fieldMappings, enums, resultFormat))
+        }
+      }
+
+      return result
+    }
+
+    const result = new Array<PrismaObject>(rows.length)
+    for (let i = 0; i < rows.length; i++) {
+      result[i] = mapObjectWithMappings(rows[i], fieldMappings, enums, resultFormat)
+    }
+
+    return result
+  }
+
+  if (typeof data === 'object') {
+    const row = data as PrismaObject
+    return mapObjectWithMappings(row, fieldMappings, enums, resultFormat)
+  }
+
+  if (typeof data === 'string') {
+    let decodedData: Value
+    try {
+      decodedData = JSON.parse(data)
+    } catch (error) {
+      throw new DataMapperError(`Expected an array or object, got a string that is not valid JSON`, {
+        cause: error,
+      })
+    }
+    return mapArrayOrObjectWithMappings(decodedData, fieldMappings, enums, skipNulls, resultFormat)
+  }
+
+  throw new DataMapperError(`Expected an array or an object, got: ${typeof data}`)
+}
+
+function mapObjectWithMappings(
+  data: PrismaObject,
+  fieldMappings: ObjectFieldMapping[],
+  enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat,
+): PrismaObject {
   if (typeof data !== 'object') {
     throw new DataMapperError(`Expected an object, but got '${typeof data}'`)
   }
 
   const result = {}
-  for (const [name, node] of getFieldEntries(fields)) {
+  for (const mapping of fieldMappings) {
+    switch (mapping.type) {
+      case 'field': {
+        if (Object.hasOwn(data, mapping.dbName)) {
+          result[mapping.name] = mapMappedField(data[mapping.dbName], mapping, enums, resultFormat)
+        } else {
+          throw new DataMapperError(
+            `Missing data field (Value): '${mapping.dbName}'; ` +
+              `node: ${JSON.stringify(mapping.node)}; data: ${JSON.stringify(data)}`,
+          )
+        }
+        break
+      }
+
+      case 'object': {
+        if (mapping.serializedName !== null && !Object.hasOwn(data, mapping.serializedName)) {
+          throw new DataMapperError(
+            `Missing data field (Object): '${mapping.name}'; ` +
+              `node: ${JSON.stringify(mapping.node)}; data: ${JSON.stringify(data)}`,
+          )
+        }
+
+        const target = mapping.serializedName !== null ? data[mapping.serializedName] : data
+        result[mapping.name] = mapArrayOrObjectWithMappings(
+          target,
+          mapping.fields,
+          enums,
+          mapping.skipNulls,
+          resultFormat,
+        )
+        break
+      }
+
+      default:
+        assertNever(mapping, `DataMapper: Invalid object field mapping type`)
+    }
+  }
+  return result
+}
+
+function getObjectFieldMappings(fields: Record<string, ResultNode>): ObjectFieldMapping[] {
+  const cached = objectFieldMappingsCache.get(fields)
+  if (cached !== undefined) {
+    return cached
+  }
+
+  const fieldEntries = getFieldEntries(fields)
+  const result = new Array<ObjectFieldMapping>(fieldEntries.length)
+
+  for (let i = 0; i < fieldEntries.length; i++) {
+    const [name, node] = fieldEntries[i]
     if (isFieldNode(node)) {
       const dbName = getDbName(name, node)
-      if (Object.hasOwn(data, dbName)) {
-        result[name] = mapField(data[dbName], dbName, getFieldType(node), enums, resultFormat)
-      } else {
-        throw new DataMapperError(
-          `Missing data field (Value): '${dbName}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
-        )
+      const fieldType = getFieldType(node)
+      result[i] = {
+        type: 'field',
+        name,
+        dbName,
+        node,
+        fieldType,
+        scalarTypeName: getScalarTypeName(fieldType),
+        isList: isListField(fieldType),
       }
       continue
     }
 
     if (isCompactObjectNode(node)) {
-      const serializedName = getObjectSerializedName(node)
-      if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
-        throw new DataMapperError(
-          `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
-        )
+      result[i] = {
+        type: 'object',
+        name,
+        serializedName: getObjectSerializedName(node),
+        fields: getObjectFieldMappings(getObjectFields(node)),
+        skipNulls: getObjectSkipNulls(node),
+        node,
       }
-
-      const target = serializedName !== null ? data[serializedName] : data
-      result[name] = mapArrayOrObject(target, getObjectFields(node), enums, getObjectSkipNulls(node), resultFormat)
       continue
     }
 
@@ -288,15 +421,14 @@ function mapObject(
       }
 
       case 'object': {
-        const { serializedName, fields: nodeFields, skipNulls } = node
-        if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
-          throw new DataMapperError(
-            `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
-          )
+        result[i] = {
+          type: 'object',
+          name,
+          serializedName: node.serializedName,
+          fields: getObjectFieldMappings(node.fields),
+          skipNulls: node.skipNulls,
+          node,
         }
-
-        const target = serializedName !== null ? data[serializedName] : data
-        result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls, resultFormat)
         break
       }
 
@@ -304,6 +436,8 @@ function mapObject(
         assertNever(node as never, `DataMapper: Invalid data mapping node type: '${getResultNodeType(node)}'`)
     }
   }
+
+  objectFieldMappingsCache.set(fields, result)
   return result
 }
 
@@ -505,26 +639,25 @@ function getColumnIndexes(columnNames: string[]): Record<string, number> {
   return columnIndexes
 }
 
-function mapField(
+function mapMappedField(
   value: unknown,
-  columnName: string,
-  fieldType: FieldType,
+  mapping: Extract<ObjectFieldMapping, { type: 'field' }>,
   enums: Record<string, Record<string, string>>,
-  resultFormat: QueryResultFormat = 'jsonProtocol',
+  resultFormat: QueryResultFormat,
 ): unknown {
   if (value === null) {
-    return isListField(fieldType) ? [] : null
+    return mapping.isList ? [] : null
   }
 
-  if (isListField(fieldType)) {
+  if (mapping.isList) {
     const values = value as unknown[]
     const result = new Array<unknown>(values.length)
     for (let i = 0; i < values.length; i++) {
       result[i] = mapScalarValue(
         values[i],
-        `${columnName}[${i}]`,
-        getScalarTypeName(fieldType),
-        fieldType,
+        `${mapping.dbName}[${i}]`,
+        mapping.scalarTypeName,
+        mapping.fieldType,
         enums,
         resultFormat,
       )
@@ -532,7 +665,7 @@ function mapField(
     return result
   }
 
-  return mapScalarValue(value, columnName, getScalarTypeName(fieldType), fieldType, enums, resultFormat)
+  return mapScalarValue(value, mapping.dbName, mapping.scalarTypeName, mapping.fieldType, enums, resultFormat)
 }
 
 function mapResultSetField(

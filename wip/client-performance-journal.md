@@ -2321,6 +2321,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
     - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
 
+- This commit: cache object-data mapper descriptors.
+  - `packages/client-engine-runtime/src/interpreter/data-mapper.ts` now caches an `ObjectFieldMapping[]` per result-node fields object, analogous to the existing result-set field-mapping cache.
+  - The cached descriptors precompute db names, field types, scalar type names, list flags, nested object field descriptors, serialized names, and skip-null flags for `applyDataMap()` over already-materialized JS objects.
+  - This targets the root/outer `dataMap` path in nested query-mode plans. Leaf SQL result sets already use `applyDataMapToResultSet()` and `ResultSetFieldMapping`; this patch covers the later object-to-object projection/remapping phase after joins.
+  - Baseline before the patch from `client-engine-cache-timing.ts`:
+    - cached request wrapper blog-page nested rows: 41.06 us/op.
+    - direct plan blog-page nested rows: 39.63 us/op.
+    - outer data map blog-page nested rows: 3.94 us/op.
+    - local executor blog-page nested rows: 40.39 us/op.
+  - After the patch:
+    - run 1: cached request wrapper blog-page nested rows 40.13 us/op; direct plan nested rows 31.62; outer data map 3.31; local executor nested rows 32.80.
+    - run 2: cached request wrapper blog-page nested rows 40.91 us/op; direct plan nested rows 31.61; outer data map 3.16; local executor nested rows 33.81.
+    - cleaned final run: cached request wrapper blog-page nested rows 40.80 us/op; direct plan nested rows 31.67; outer data map 3.24; local executor nested rows 33.29.
+    - The full warmed `ClientEngine.request()` nested row still has wrapper/handoff overhead, so do not overstate the end-to-end win. The direct/local nested-plan and outer mapper rows are the stronger signal.
+  - Interpreter microbench after the final cleaned patch: simple select 873,537 ops/sec, findUnique 1,224,053, join (1:N) 453,042, sequence 935,508, deep nested join 48,578.
+  - Decision: keep. The object descriptor cache is localized, preserves existing error behavior and mapper contracts, and improves the repeated nested object projection path without touching query compiler semantics.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+
 ## Useful Commands
 
 ```sh
