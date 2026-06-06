@@ -3323,6 +3323,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Read controls were unchanged.
   - Decision: reverted without Criterion. Capacity guesses around `WriteArgsParser` either add allocations to hot nested writes or increase bytes on cheap many-write rows. Do not retry without a more selective scalar-field count or stronger per-parser evidence.
 
+- Workerd memory/timing refresh after latest compiler allocation changes.
+  - Command:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Results:
+    - Cold smoke compile: compiler init 64.0 ms, one findUnique compile loop 48.0 ms, average serialized plan 545 B, host RSS delta 3.55 MiB.
+    - Retained scalar plan cache: 100 entries, 7.6 KiB keys, 24.4 KiB serialized plans, compile loop 56.0 ms, host RSS delta 2.27 MiB.
+    - Retained blog-page plan cache: 100 entries, 48.3 KiB keys, 396.1 KiB serialized plans, compile loop 388.0 ms, host RSS delta 128.0 KiB.
+    - Client-cache findUnique value churn: 100 requests, 99/1 cache hits/misses, host dispatch 6.4 ms total / 64.15 us/op, retained one 138 B key and one 561 B serialized plan.
+    - Client-cache blog-page value churn: 100 requests, 99/1 hits/misses, host dispatch 8.3 ms total / 83.24 us/op, retained one 704 B key and one 4.3 KiB serialized plan.
+    - Generated-client findUnique warmed cache: 5,000 requests, 5,000/0 hits/misses, host dispatch 320.3 ms total / 64.05 us/op upper-bound, queryRaw 5,000.
+    - Generated-client blog-page warmed cache: 1,000 requests, 1,000/0 hits/misses, host dispatch 116.2 ms total / 116.19 us/op upper-bound, queryRaw 7,000.
+  - Interpretation:
+    - Workerd cache-hit retained key/plan memory remains small for one hot shape, but 100 retained blog-page plans still cost about 396 KiB serialized plan bytes plus about 48 KiB keys.
+    - The generated-client warmed-cache rows are upper-bound host dispatch timings because the worker-internal timer is below resolution for the request loops.
+    - The next Cloudflare-specific improvement should still target either retained plan representation for many distinct shapes or cache-hit request execution/parameterization, not Wasm startup alone.
+
 ## Useful Commands
 
 ```sh
