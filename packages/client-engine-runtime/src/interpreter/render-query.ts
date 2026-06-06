@@ -34,6 +34,15 @@ export function renderQuery(
 ): DeepReadonly<SqlQuery>[] {
   if (dbQuery.type === 'templateSql' && dbQuery.args.length === 0) {
     const fragment = dbQuery.fragments.length === 1 ? dbQuery.fragments[0] : undefined
+    if (typeof fragment === 'string') {
+      return [
+        {
+          sql: fragment,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
+    }
     if (fragment?.type === 'stringChunk') {
       return [
         {
@@ -117,6 +126,11 @@ function getFlatTemplateSqlRendering(dbQuery: DeepReadonly<QueryPlanDbQuery>): F
   let paramCount = 0
 
   for (const fragment of dbQuery.fragments) {
+    if (typeof fragment === 'string') {
+      sql += fragment
+      continue
+    }
+
     switch (fragment.type) {
       case 'stringChunk':
         sql += fragment.chunk
@@ -221,6 +235,11 @@ function renderTemplateSql(
   const flattenedArgTypes: ArgType[] = []
 
   for (const fragment of fragments) {
+    if (typeof fragment === 'string') {
+      sql += fragment
+      continue
+    }
+
     switch (fragment.type) {
       case 'stringChunk': {
         sql += fragment.chunk
@@ -387,6 +406,10 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
   let maxParamsPerFragment = 0
   let paramIndex = 0
   for (const fragment of fragments) {
+    if (typeof fragment === 'string') {
+      continue
+    }
+
     let paramSize = 0
     switch (fragment.type) {
       case 'parameter': {
@@ -424,6 +447,10 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
   let chunkedParams: unknown[][] = [[]]
   paramIndex = 0
   for (const fragment of fragments) {
+    if (typeof fragment === 'string') {
+      continue
+    }
+
     switch (fragment.type) {
       case 'parameter': {
         const param = getParam(params, paramIndex++)

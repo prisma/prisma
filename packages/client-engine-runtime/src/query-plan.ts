@@ -65,6 +65,7 @@ export type QueryPlanDbQuery =
 export type DynamicArgType = ArgType | { arity: 'tuple'; elements: ArgType[] }
 
 export type Fragment =
+  | string
   | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
   | {
