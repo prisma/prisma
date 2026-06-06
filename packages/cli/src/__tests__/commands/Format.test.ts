@@ -6,7 +6,7 @@ import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 
-import { Format } from '../../Format'
+import { Format, normalizeFormattedSchemaLineEndings } from '../../Format'
 import { Validate } from '../../Validate'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -263,6 +263,29 @@ describe('format', () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse([], defaultTestConfig())
     expect(fs.readFileSync('schema.prisma', { encoding: 'utf-8' })).toMatchSnapshot()
+  })
+
+  it('normalizes formatter CRLF output before comparing or writing', () => {
+    const formattedSchema = [
+      'generator client {\r\n',
+      '  provider = "prisma-client-js"\r\n',
+      '}\r\n',
+      '\r\n',
+      'model User {\r\n',
+      '  id String @id\r\n',
+      '}\r\n',
+    ].join('')
+
+    expect(normalizeFormattedSchemaLineEndings(formattedSchema)).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      model User {
+        id String @id
+      }
+      "
+    `)
   })
 
   it('should add missing backrelation', async () => {
