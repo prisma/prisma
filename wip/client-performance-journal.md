@@ -1696,6 +1696,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - This explains why tiny join-key micro-optimizations were weak: the bigger nested-row cost is likely row-object serialization plus a second object-graph data-map/projection pass.
   - Next stronger lead: explore query-compiler plan-shape changes that push data-map/projection closer to each SQL result while preserving join keys for attachment, or introduce a cheaper final projection/drop-internal-keys node instead of a full scalar-remapping outer data map.
 
+- 2026-06-06 read-only compiler ownership check for the nested data-map lead.
+  - `query-compiler/query-compiler/src/translate.rs` computes `map_result_structure(&graph, ...)` before node translation and wraps the whole translated root sequence in `Expression::DataMap` if a result structure exists. This confirms the current final response mapper is a graph-level/root-level wrapper, not a per-query-node choice.
+  - `query-compiler/query-compiler/src/translate/query/read.rs` builds nested query-mode relation plans in `add_inmemory_join()` / `build_read_related_records()`. These functions know the child `selected_fields`, relation join metadata, and child nested queries before emitting the child `Expression::Query`, so they are the likely compiler hook for any child-side data-map/projection spike.
+  - `query-compiler/core/src/query_graph_builder/read/utils.rs` deliberately merges relation/linking fields into `selected_fields` via `merge_relation_selections()`, including parent lookback fields and child linking fields needed to attach nested records. A child-side data map must preserve those hidden join fields until after `attachChildrenToParents()`.
+  - Practical conclusion: a tiny compiler patch that simply wraps child `q` nodes in `d dataMap` is likely wrong because it would either drop join keys too early or require the outer mapper to understand already-user-shaped child objects. The plausible smaller spike is a new projection/drop-internal-fields node or a child data-map variant that preserves explicit join keys; otherwise this becomes a broader plan/result IR redesign.
+
 ## Useful Commands
 
 ```sh
