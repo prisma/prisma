@@ -53,6 +53,11 @@ import { disabledTracingHelper } from '../../../runtime/core/tracing/TracingHelp
 import { loadQueryCompiler } from './qc-loader'
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
+const MEASUREMENT_FILTER = process.env.CLIENT_ENGINE_CACHE_TIMING_FILTER
+const ITERATION_OVERRIDE =
+  process.env.CLIENT_ENGINE_CACHE_TIMING_ITERATIONS === undefined
+    ? undefined
+    : Number.parseInt(process.env.CLIENT_ENGINE_CACHE_TIMING_ITERATIONS, 10)
 const EMPTY_RESULT: SqlResultSet = Object.freeze({
   columnNames: [],
   columnTypes: [],
@@ -594,6 +599,14 @@ function formatBytes(bytes: number): string {
   }
 
   return `${sign}${(absolute / (1024 * 1024)).toFixed(2)} MiB`
+}
+
+function benchmarkIterations(defaultIterations: number): number {
+  return ITERATION_OVERRIDE !== undefined && ITERATION_OVERRIDE > 0 ? ITERATION_OVERRIDE : defaultIterations
+}
+
+function shouldRunMeasurement(name: string): boolean {
+  return MEASUREMENT_FILTER === undefined || name.includes(MEASUREMENT_FILTER)
 }
 
 function printMeasurement(measurement: Measurement): void {
@@ -2994,52 +3007,52 @@ async function main(): Promise<void> {
   const scenarios: Scenario[] = [
     {
       name: 'findUnique value churn / cache disabled',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 0,
       query: (iteration) => createFindUniqueQuery(iteration + 1),
     },
     {
       name: 'findUnique value churn / warmed cache',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 100,
       query: (iteration) => createFindUniqueQuery(iteration + 1),
     },
     {
       name: 'findMany 10 scalar rows / cache disabled',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 0,
       query: () => createFindManyUsersQuery(),
       resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'findMany 10 scalar rows / warmed cache',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 100,
       query: () => createFindManyUsersQuery(),
       resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'blog page value churn / cache disabled',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 0,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
     {
       name: 'blog page value churn / warmed cache',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 100,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
     {
       name: 'blog page nested rows / warmed cache',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       cacheMaxSize: 100,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
       adapterFactory: createBlogPageAdapterFactory,
     },
   ]
 
-  for (const scenario of scenarios) {
+  for (const scenario of scenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
     printMeasurement(await measureScenario(baseConfig, scenario))
   }
 
@@ -3054,23 +3067,23 @@ async function main(): Promise<void> {
   const directPlanScenarios: DirectPlanScenario[] = [
     {
       name: 'direct plan findUnique / empty rows',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: createFindUniqueQuery(1),
     },
     {
       name: 'direct plan findMany / 10 scalar rows',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: createFindManyUsersQuery(),
       resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'direct plan blog page / empty rows',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: createBlogPostPageQuery(1),
     },
     {
       name: 'direct plan blog page / nested rows',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: createBlogPostPageQuery(1),
       adapterFactory: createBlogPageAdapterFactory,
     },
@@ -3078,30 +3091,30 @@ async function main(): Promise<void> {
   const directPlanScopeScenarios: DirectPlanScopeScenario[] = [
     {
       name: 'direct plan findUnique / value scope churn',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: (iteration) => createFindUniqueQuery(iteration + 1),
     },
     {
       name: 'direct plan blog page / value scope churn',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
   ]
   const cacheKeyScenarios: CacheKeyScenario[] = [
     {
       name: 'cache hit key findUnique / value churn',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: (iteration) => createFindUniqueQuery(iteration + 1),
     },
     {
       name: 'cache hit key findMany / stable query',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: () => createFindManyUsersQuery(),
       resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'cache hit key blog page / value churn',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
   ]
@@ -3109,7 +3122,7 @@ async function main(): Promise<void> {
     ...cacheKeyScenarios,
     {
       name: 'cache hit key blog page / nested rows',
-      iterations: 500,
+      iterations: benchmarkIterations(500),
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
       adapterFactory: createBlogPageAdapterFactory,
     },
@@ -3117,208 +3130,260 @@ async function main(): Promise<void> {
 
   try {
     for (const scenario of cacheKeyScenarios) {
-      printPhaseMeasurement(
-        measureParameterizeScenario(paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('cache hit key', 'parameterize'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'parameterize'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPhaseMeasurement(measureParameterizeScenario(paramGraph, measuredScenario))
     }
 
     for (const scenario of cacheKeyScenarios) {
-      printPhaseMeasurement(
-        measureStringifyCacheKeyScenario(paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('cache hit key', 'stringify cache key'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'stringify cache key'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPhaseMeasurement(measureStringifyCacheKeyScenario(paramGraph, measuredScenario))
     }
 
-    for (const scenario of cacheKeyScenarios) {
+    for (const scenario of cacheKeyScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
       printCacheKeyMeasurement(measureCacheKeyScenario(paramGraph, scenario))
     }
 
     for (const scenario of cacheKeyScenarios) {
-      printCacheKeyMeasurement(
-        measureRequestAsCacheKeyScenario(paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('cache hit key', 'request as cache key'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'request as cache key'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printCacheKeyMeasurement(measureRequestAsCacheKeyScenario(paramGraph, measuredScenario))
     }
 
     for (const scenario of cachedRequestWrapperScenarios) {
-      printDirectPlanMeasurement(
-        await measureCachedRequestWrapperScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('cache hit key', 'cached request wrapper'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'cached request wrapper'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureCachedRequestWrapperScenario(compiler, paramGraph, measuredScenario))
     }
 
-    for (const scenario of directPlanScenarios) {
+    for (const scenario of directPlanScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
       printDirectPlanMeasurement(await measureDirectPlanScenario(compiler, paramGraph, scenario))
     }
 
-    printPlanPhaseMeasurement(await measureBlogPageAdapterOnlyScenario(500))
-    printPlanPhaseMeasurement(measureBlogPageSerializeSqlScenario(500))
+    if (shouldRunMeasurement('adapter queryRaw blog page result sets / nested rows')) {
+      printPlanPhaseMeasurement(await measureBlogPageAdapterOnlyScenario(benchmarkIterations(500)))
+    }
+    if (shouldRunMeasurement('serializeSql blog page result sets / nested rows')) {
+      printPlanPhaseMeasurement(measureBlogPageSerializeSqlScenario(benchmarkIterations(500)))
+    }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'precomputed query leaves'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(await measurePrecomputedQueryLeavesScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'precomputed join leaves'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(await measurePrecomputedJoinLeavesScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'precomputed root join children'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
       printPlanPhaseMeasurement(
-        await measurePrecomputedQueryLeavesScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'precomputed query leaves'),
-        }),
+        await measurePrecomputedRootJoinChildrenScenario(compiler, paramGraph, measuredScenario),
       )
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printPlanPhaseMeasurement(
-        await measurePrecomputedJoinLeavesScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'precomputed join leaves'),
-        }),
-      )
-    }
-
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printPlanPhaseMeasurement(
-        await measurePrecomputedRootJoinChildrenScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'precomputed root join children'),
-        }),
-      )
-    }
-
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      const measurements = await measurePrecomputedRootJoinChildBranchScenarios(compiler, paramGraph, {
+      const measuredScenario = {
         ...scenario,
         name: scenario.name.replace('direct plan', 'precomputed root join child branch'),
-      })
-      for (const measurement of measurements) {
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      const measurements = await measurePrecomputedRootJoinChildBranchScenarios(compiler, paramGraph, measuredScenario)
+      for (const measurement of measurements.filter((measurement) => shouldRunMeasurement(measurement.name))) {
         printPlanPhaseMeasurement(measurement)
       }
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printDirectPlanMeasurement(
-        await measureInnerPlanScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'inner plan'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'inner plan'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureInnerPlanScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'outer data map'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(await measureOuterDataMapScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'interpreter get precomputed'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(await measureInterpreterGetPrecomputedScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'interpreter unit'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(await measureInterpreterUnitScenario(measuredScenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'interpreter data map precomputed'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
       printPlanPhaseMeasurement(
-        await measureOuterDataMapScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'outer data map'),
-        }),
+        await measureInterpreterDataMapPrecomputedScenario(compiler, paramGraph, measuredScenario),
       )
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printPlanPhaseMeasurement(
-        await measureInterpreterGetPrecomputedScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'interpreter get precomputed'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'manual inner+outer'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureManualInnerOuterDataMapScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printPlanPhaseMeasurement(
-        await measureInterpreterUnitScenario({
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'interpreter unit'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'direct plan after phase warmup'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureDirectPlanScenario(compiler, paramGraph, measuredScenario))
     }
 
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printPlanPhaseMeasurement(
-        await measureInterpreterDataMapPrecomputedScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'interpreter data map precomputed'),
-        }),
-      )
-    }
-
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printDirectPlanMeasurement(
-        await measureManualInnerOuterDataMapScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'manual inner+outer'),
-        }),
-      )
-    }
-
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printDirectPlanMeasurement(
-        await measureDirectPlanScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'direct plan after phase warmup'),
-        }),
-      )
-    }
-
-    for (const scenario of directPlanScopeScenarios) {
+    for (const scenario of directPlanScopeScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
       printDirectPlanMeasurement(await measureDirectPlanScopeScenario(compiler, paramGraph, scenario))
     }
 
     for (const scenario of directPlanScopeScenarios) {
-      printPlanPhaseMeasurement(
-        measureRenderQueryScopeScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'render query'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'render query'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(measureRenderQueryScopeScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
-      printPlanPhaseMeasurement(
-        measureRenderBlogPageQueriesScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'render query all leaves'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'render query all leaves'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(measureRenderBlogPageQueriesScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory === undefined)) {
-      printPlanPhaseMeasurement(
-        measureDataMapScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'data map'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'data map'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPlanPhaseMeasurement(measureDataMapScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScenarios) {
-      printDirectPlanMeasurement(
-        await measureLocalExecutorScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'local executor'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'local executor'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureLocalExecutorScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScopeScenarios) {
-      printDirectPlanMeasurement(
-        await measureLocalExecutorScopeScenario(compiler, paramGraph, {
-          ...scenario,
-          name: scenario.name.replace('direct plan', 'local executor'),
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'local executor'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureLocalExecutorScopeScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of scenarios.filter((scenario) => scenario.name === 'blog page nested rows / warmed cache')) {
-      printMeasurement(
-        await measureScenario(baseConfig, {
-          ...scenario,
-          name: 'blog page nested rows / warmed cache after phase warmup',
-        }),
-      )
+      const measuredScenario = {
+        ...scenario,
+        name: 'blog page nested rows / warmed cache after phase warmup',
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printMeasurement(await measureScenario(baseConfig, measuredScenario))
     }
   } finally {
     compiler.free()

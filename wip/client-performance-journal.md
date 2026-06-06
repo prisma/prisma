@@ -2729,6 +2729,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Run 2: cached wrapper 43.13 us/op, direct plan 31.66, inner plan 21.96, local executor 30.35, direct phase-warmed 23.49, final warmed cache 40.28.
   - Decision: reverted. The helper saves obvious-looking tiny allocations but perturbs the strict join hot path and worsens the relevant cached wrapper/direct/local nested rows. Do not retry this shape without a different plan representation or stronger profiler evidence.
 
+- Measurement harness update: focused cache-timing profiling.
+  - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` now supports two optional environment knobs:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER=<substring>` runs only measurement rows whose final printed name contains the substring.
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=<n>` overrides each scenario's default iteration count.
+  - This keeps the default full probe behavior unchanged, but makes one-row CPU profiles practical.
+  - Verification:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 node --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` printed only the matching row with 1,000 iterations.
+    - Full default mode still emitted 58 rows.
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` passed.
+  - Focused CPU profile command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 node --cpu-prof --cpu-prof-dir /tmp/prisma-focused-profile --cpu-prof-name direct-plan-after-phase-warmup.cpuprofile --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Focused profile result:
+    - Row timing without forced GC: `direct plan after phase warmup blog page / nested rows` ran 50,000 iterations in 824.7 ms, 16.49 us/op.
+    - Aggregated self-time samples were led by compact interpretation (`#interpretCompactNode` 125 samples, `interpretNode` 45), followed by data mapping (`mapArrayOrObjectWithMappings` 37, `mapObjectWithMappings` 36), benchmark adapter result selection (`getBlogPageResultSet` 35), SQL serialization/rendering (`serializeSql` 21, `renderCompactTemplateSqlQuery` 18, `renderTemplateSql` 13), and join attachment (`attachChildrenToParents` 20, `attachSingleStrictKeyChildren` 8).
+  - Interpretation: the next runtime win likely needs either a lower-overhead compact read interpreter / compiled executor or a plan/data-shape change that reduces generic compact interpretation and data mapping together. Isolated strict join micro-helpers and leaf render tweaks have already failed or have low ceiling.
+
 ## Useful Commands
 
 ```sh
