@@ -103,6 +103,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Representative plans saved only 0-11 bytes.
   - Dropped without implementation.
 
+- Optional provider-default `placeholderFormat` omission.
+  - Rust side omitted known provider-default formats (`$` numbered, `?` unnumbered, `@P` numbered).
+  - TS side made `placeholderFormat` optional and resolved defaults from `QueryInterpreter` provider.
+  - Focused checks passed:
+    - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `cargo test -p query-builder`
+    - `cargo test -p query-compiler --test queries`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm --filter @prisma/client build`
+  - First benchmark gate failed:
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - Compile rows regressed to about `1,315` ops/sec for `findUnique`, `1,119` for filtered `findMany`, and `282` for blog page query, below prior current ranges around `1,445`, `1,200`, and `311`.
+  - Reverted. The estimated byte savings (about 55 bytes per `templateSql`) did not justify the compile regression.
+
 - `serde_wasm_bindgen::from_value` as a direct replacement for string JSON request parsing.
   - Investigation showed it only removes JS-side parsing/copying unless the Rust request parser is redesigned.
   - Current Rust path deserializes request strings into `JsonBody`, including owned `IndexMap` and `serde_json::Value`, then `JsonProtocolAdapter` walks the tree again into `ArgumentValue`/`Selection`.
@@ -139,19 +157,6 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - This is a plausible small serialization/memory experiment, but not yet implemented or benchmarked.
 
 ## Leads To Try Next
-
-- Optional provider-default `placeholderFormat`.
-  - Rust side: skip serializing `PlaceholderFormat` when it equals a known provider default (`$` numbered, `?` unnumbered, `@P` numbered).
-  - TS side: make `QueryPlanDbQuery.placeholderFormat` optional and default from `QueryInterpreter` provider in `renderQuery`.
-  - Must verify:
-    - `packages/client-engine-runtime/src/interpreter/render-query.test.ts`
-    - `packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
-    - `pnpm --filter @prisma/client-engine-runtime test`
-    - `pnpm --filter @prisma/client-engine-runtime build`
-    - `pnpm --filter @prisma/client build`
-    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
-    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts`
-  - Revert if compile rows or relation-heavy query-performance rows regress; byte savings alone are not enough.
 
 - Plan serialization shape.
   - The tagged object tree is verbose and `serde_wasm_bindgen` plan serialization is a large release-Wasm phase.
