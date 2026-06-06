@@ -3310,6 +3310,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Common read controls (`query-m2o`, `query-many-m2m`) were unchanged.
   - Decision: reverted without Criterion. The manual loop worsened allocation counts in exactly the nested write translation rows it was meant to help, with no byte improvement.
 
+- Rejected experiment: preallocate `WriteArgs` maps from input data size.
+  - Hypothesis: `WriteArgsParser::from()` inserts scalar/composite writes into an initially empty `IndexMap`. Preallocating the map from the input `data` object size could avoid map growth in nested write graph-build rows.
+  - Changes tried:
+    - First variant added `WriteArgs::with_capacity(data_map.len(), request_now)` and used it for every write-args parse.
+    - Refined variant kept `WriteArgs::new_empty()` and called `args.args.args.reserve(data_map.len())` only when the first scalar/composite write was encountered, avoiding unused args-map allocation for relation-only nested maps.
+  - Allocation profile:
+    - Full-capacity variant was mixed: it trimmed bytes on some connect-or-create rows but increased allocation counts on important nested writes (`update-set-nested` 2,181 -> 2,183, `update-set-nested-prisma#27650` 1,931 -> 1,935, `create-nested-create` 1,307 -> 1,309).
+    - Reserve-on-first-write variant mostly matched the current nested-row baseline, but worsened cheap many-write bytes:
+      - `create-many`: full compile stayed at 327 allocs/op, 37.4 KiB -> 37.7 KiB.
+      - `create-many-and-return`: stayed at 453 allocs/op, 51.2 KiB -> 51.6 KiB.
+    - Read controls were unchanged.
+  - Decision: reverted without Criterion. Capacity guesses around `WriteArgsParser` either add allocations to hot nested writes or increase bytes on cheap many-write rows. Do not retry without a more selective scalar-field count or stronger per-parser evidence.
+
 ## Useful Commands
 
 ```sh
