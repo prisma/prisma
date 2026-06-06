@@ -780,6 +780,157 @@ function getFirstDbQuery(plan: QueryPlanNode): QueryPlanDbQuery {
   return dbQuery
 }
 
+function getDbQueries(plan: QueryPlanNode): QueryPlanDbQuery[] {
+  const dbQueries: QueryPlanDbQuery[] = []
+  collectDbQueries(plan, dbQueries)
+  return dbQueries
+}
+
+function collectDbQueriesInCompactJoins(joins: CompactJoinExpression[], dbQueries: QueryPlanDbQuery[]): void {
+  for (const join of joins) {
+    collectDbQueries(join[0], dbQueries)
+  }
+}
+
+function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanDbQuery[]): void {
+  if (plan === undefined) {
+    return
+  }
+
+  if (isCompactPlanNode(plan)) {
+    switch (plan[0]) {
+      case 'q':
+      case 'x':
+        dbQueries.push(plan[1])
+        return
+
+      case 'd':
+      case 'p':
+      case 'r':
+      case 'R':
+      case 't':
+      case 'u':
+        collectDbQueries(plan[1], dbQueries)
+        return
+
+      case 'm':
+        collectDbQueries(plan[2], dbQueries)
+        return
+
+      case 'j':
+        collectDbQueries(plan[1], dbQueries)
+        collectDbQueriesInCompactJoins(plan[2] as CompactJoinExpression[], dbQueries)
+        return
+
+      case 'V':
+        collectDbQueries(plan[1], dbQueries)
+        return
+
+      case '?':
+        collectDbQueries(plan[1], dbQueries)
+        collectDbQueries(plan[3], dbQueries)
+        collectDbQueries(plan[4], dbQueries)
+        return
+
+      case '-':
+        collectDbQueries(plan[1], dbQueries)
+        collectDbQueries(plan[2], dbQueries)
+        return
+
+      case 'i':
+      case 'M':
+        collectDbQueries(plan[1], dbQueries)
+        return
+
+      case 's':
+      case '+':
+      case 'c':
+        for (const child of plan[1]) {
+          collectDbQueries(child, dbQueries)
+        }
+        return
+
+      case 'l':
+        for (const binding of plan[1] as QueryPlanBinding[]) {
+          collectDbQueries(getQueryPlanBindingExpr(binding), dbQueries)
+        }
+        collectDbQueries(plan[2], dbQueries)
+        return
+
+      case 'g':
+      case 'e':
+      case 'v':
+      case '0':
+        return
+
+      default:
+        throw new Error(`Expected compact query plan with DB queries, got ${plan[0]}`)
+    }
+  }
+
+  switch (plan.type) {
+    case 'query':
+    case 'execute':
+      dbQueries.push(plan.args)
+      return
+
+    case 'unique':
+    case 'required':
+    case 'reverse':
+    case 'transaction':
+      collectDbQueries(plan.args, dbQueries)
+      return
+
+    case 'dataMap':
+    case 'validate':
+    case 'process':
+    case 'mapRecord':
+      collectDbQueries(plan.args.expr, dbQueries)
+      return
+
+    case 'mapField':
+      collectDbQueries(plan.args.records, dbQueries)
+      return
+
+    case 'if':
+      collectDbQueries(plan.args.value, dbQueries)
+      collectDbQueries(plan.args.then, dbQueries)
+      collectDbQueries(plan.args.else, dbQueries)
+      return
+
+    case 'join':
+      collectDbQueries(plan.args.parent, dbQueries)
+      for (const join of plan.args.children) {
+        collectDbQueries('child' in join ? join.child : join[0], dbQueries)
+      }
+      return
+
+    case 'seq':
+    case 'sum':
+    case 'concat':
+      for (const child of plan.args) {
+        collectDbQueries(child, dbQueries)
+      }
+      return
+
+    case 'let':
+      for (const binding of plan.args.bindings) {
+        collectDbQueries('expr' in binding ? binding.expr : binding[1], dbQueries)
+      }
+      collectDbQueries(plan.args.expr, dbQueries)
+      return
+
+    case 'value':
+    case 'get':
+    case 'getFirstNonEmpty':
+    case 'unit':
+      return
+
+    default:
+      throw new Error(`Expected query plan with DB queries, got ${plan['type']}`)
+  }
+}
+
 function findFirstDbQueryInCompactJoins(joins: CompactJoinExpression[]): QueryPlanDbQuery | undefined {
   for (const join of joins) {
     const dbQuery = findFirstDbQuery(join[0])
@@ -1672,6 +1823,62 @@ function measureRenderQueryScopeScenario(
     const queries = renderQuery(dbQuery, placeholderValues[i], generators, 999)
     for (let queryIndex = 0; queryIndex < queries.length; queryIndex++) {
       checksum += queries[queryIndex].sql.length + queries[queryIndex].args.length
+    }
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+function getBlogPageRenderScopes(): Record<string, unknown>[] {
+  return [
+    { '%1': 1 },
+    { '@parent$authorId': 10 },
+    { '@parent$categoryId': 20 },
+    { '@parent$id': 1 },
+    { '@parent$tagId': [100, 101] },
+    { '@parent$id': 1 },
+    { '@parent$authorId': [11, 12] },
+  ]
+}
+
+function measureRenderBlogPageQueriesScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): PlanPhaseMeasurement {
+  const { plan } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const dbQueries = getDbQueries(plan)
+  const scopes = getBlogPageRenderScopes()
+  if (dbQueries.length !== scopes.length) {
+    throw new Error(`Expected ${scopes.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  for (let i = 0; i < scenario.iterations; i++) {
+    for (let queryIndex = 0; queryIndex < dbQueries.length; queryIndex++) {
+      renderQuery(dbQueries[queryIndex], scopes[queryIndex], generators, 999)
+    }
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    for (let queryIndex = 0; queryIndex < dbQueries.length; queryIndex++) {
+      const renderedQueries = renderQuery(dbQueries[queryIndex], scopes[queryIndex], generators, 999)
+      for (let renderedIndex = 0; renderedIndex < renderedQueries.length; renderedIndex++) {
+        const renderedQuery = renderedQueries[renderedIndex]
+        checksum += renderedQuery.sql.length + renderedQuery.args.length + renderedQuery.argTypes.length
+      }
     }
   }
   const elapsedMs = performance.now() - started
@@ -3015,6 +3222,15 @@ async function main(): Promise<void> {
         measureRenderQueryScopeScenario(compiler, paramGraph, {
           ...scenario,
           name: scenario.name.replace('direct plan', 'render query'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        measureRenderBlogPageQueriesScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'render query all leaves'),
         }),
       )
     }

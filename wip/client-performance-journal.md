@@ -2088,6 +2088,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
 
+- Measurement update: render all nested blog-page query leaves.
+  - Added `render query all leaves blog page / nested rows` to `client-engine-cache-timing.ts`.
+  - The row compiles the benchmark blog-page plan, collects all seven DB query leaves, and renders them with representative scopes for root id, author/category ids, post id, tag ids, and comment author ids.
+  - Evidence across two local runs:
+    - Run 1: render all leaves 2.11 us/op, adapter-only seven result sets 3.16, `serializeSql()` seven result sets 3.89, precomputed query leaves 21.18, cached request wrapper nested rows 42.23, local executor nested rows 36.45.
+    - Run 2: render all leaves 2.09 us/op, adapter-only seven result sets 3.09, `serializeSql()` seven result sets 3.93, precomputed query leaves 20.46, cached request wrapper nested rows 42.78, local executor nested rows 38.27.
+  - Interpretation: all-leaf query rendering is measurable but small. The remaining nested-row sink is not `renderQuery()` itself; stronger next leads are nested join/data-shape changes or compiler/runtime plan representation changes.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+
 ## Useful Commands
 
 ```sh
