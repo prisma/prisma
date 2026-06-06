@@ -322,6 +322,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Ceiling was 18 bytes on filtered `findMany`, 18 bytes on the blog-page query, and 0 bytes on the other measured plans.
   - Dropped without implementation.
 
+- Compact scalar `fieldType` objects as strings.
+  - Measured after result field `type` tag omission, before patching.
+  - All representative result field types were compactable single-key objects such as `{ "type": "int" }`.
+  - Estimated JSON size savings:
+    - `findUnique`: 1,239 -> 1,149 bytes, saving 90 bytes.
+    - `findMany filtered`: 1,356 -> 1,266 bytes, saving 90 bytes.
+    - `findMany in filter`: 1,483 -> 1,393 bytes, saving 90 bytes.
+    - `blog page`: 9,484 -> 9,142 bytes, saving 342 bytes.
+  - Not patched yet. This likely needs either direct-result-set mapping normalization or carefully benchmarked `typeof fieldType === "string"` handling in the hot value mapper.
+
 ## Measurements And Evidence
 
 - Native Rust query compiler Criterion timings on a clean engines tree:
