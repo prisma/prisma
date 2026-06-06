@@ -129,6 +129,15 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `112.63-114.25 us`, change about `+1.11%` to `+2.62%`, Criterion reported "Performance has regressed."
   - Reverted. The small allocation savings do not justify the regression on a nested write shape.
 
+- Avoid result-scope binding-name vector in `translate.rs`.
+  - Rust side avoided collecting all result-node refs and all result binding names in `NodeTranslator::fold_result_scopes` for the single-result-node case.
+  - `cargo test -p query-compiler --test queries` passed.
+  - Native Criterion compile benchmark rejected it:
+    - `compile/query-m2m` regressed by about `+1.46%` to `+2.39%`.
+    - `compile/query-m2o` regressed by about `+1.34%` to `+2.59%`.
+    - Nested update rows were neutral, but read regressions are not acceptable.
+  - Reverted. This confirms small allocation-looking changes in translation can still perturb hot compile rows enough to lose.
+
 - `serde_wasm_bindgen::from_value` as a direct replacement for string JSON request parsing.
   - Investigation showed it only removes JS-side parsing/copying unless the Rust request parser is redesigned.
   - Current Rust path deserializes request strings into `JsonBody`, including owned `IndexMap` and `serde_json::Value`, then `JsonProtocolAdapter` walks the tree again into `ArgumentValue`/`Selection`.
