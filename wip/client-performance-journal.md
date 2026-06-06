@@ -218,6 +218,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Release-Wasm phase probe showed JSON request decoding is only about 4-7 microseconds, roughly 4-6% of internal compile+serialize time.
   - Treat as low-ceiling unless combined with removing the owned `JsonBody`/`serde_json::Value` tree and/or the query-plan cache stringify path.
 
+- Compact single-parameter SQL fragments as `0`.
+  - Built on the accepted raw-string fragment shape and serialized `Fragment::Parameter` as numeric sentinel `0`, while keeping tuple fragments as tagged objects.
+  - Focused checks passed:
+    - `cargo fmt -p query-builder && cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm --filter @prisma/client-engine-runtime test render-query.test.ts query-interpreter.test.ts`
+  - Same-source local Wasm plan sizes improved as expected:
+    - `findUnique`: 1,567 -> 1,510 bytes, saving 57 bytes.
+    - `findMany filtered`: 1,684 -> 1,608 bytes, saving 76 bytes.
+    - `findMany in filter`: 1,811 -> 1,678 bytes, saving 133 bytes.
+    - `blog page`: 10,713 -> 10,352 bytes, saving 361 bytes.
+  - Benchmark gate failed:
+    - `compile findUnique`: about 1,330 ops/sec, down from about 1,512.
+    - `compile findMany filtered`: about 1,133 ops/sec, down from about 1,256.
+    - `compile blog post page`: about 300 ops/sec, down from about 323.
+  - Reverted. The additional byte savings do not justify the Wasm compile regression and less-readable sentinel representation.
+
 ## Measurements And Evidence
 
 - Native Rust query compiler Criterion timings on a clean engines tree:
@@ -299,7 +317,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Compact raw string fragments are now kept; remaining compact-shape candidates should be gated because previous default-field omissions had mixed throughput.
   - Larger possible directions:
     - Compact representation for hot `Expression` variants.
-    - Compact representation for `parameter`, tuple, and tuple-list SQL fragments if a readable and type-safe TS representation can be found.
+    - Compact representation for tuple and tuple-list SQL fragments if a readable and type-safe TS representation can be found.
     - Provider-level defaults for repeated SQL-query metadata.
     - Avoid serializing query plans as generic JS objects if the interpreter can consume a more compact representation.
   - Risk: broad TS interpreter contract change.
