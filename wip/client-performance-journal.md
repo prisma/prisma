@@ -3055,6 +3055,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - cache hit key findUnique 751,759 ops/sec, findMany 387,018, findMany in filter 467,072, blog page 313,718.
   - Decision: keep. The allocation reduction is modest, but the native compile timing win is repeatable and broad on unique-selector write/read paths, and the SQL output is simpler.
 
+- Rejected follow-up: special-case single-entry unique selectors before the all-unique fast path.
+  - Hypothesis: after the accepted unique-filter change, one-field unique selectors still did a uniqueness lookup in the `all()` precheck and then resolved the field again in `extract_unique_filter_field()`. Consuming a one-entry map directly could avoid the duplicate lookup.
+  - Change tried:
+    - Added a `value_map.len() == 1` branch in `extract_unique_filter()`.
+    - For unique fields, returned `extract_unique_filter_field()` directly.
+    - For the rare non-unique single-field case, reconstructed the `ParsedInputMap` and preserved its tag before falling back to the unique/rest path.
+  - Measurement:
+    - Allocation profile was unchanged from the accepted version.
+    - Criterion was mixed/noisy against the accepted-version baseline: `create-nested-connectOrCreate-m2one` was +1.3% slower within noise threshold, `mixed` and `one2m` were neutral, `delete-one` and `update-set-nested-prisma#27650` were neutral, `update-set-nested` was -0.95% within noise threshold, and `upsert` improved -1.45%.
+  - Decision: reverted. The extra branch/reconstruction complexity did not have a clear enough timing win and saved no allocations.
+
 ## Useful Commands
 
 ```sh
