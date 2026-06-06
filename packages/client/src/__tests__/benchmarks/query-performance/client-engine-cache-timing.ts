@@ -1818,6 +1818,41 @@ function getPrecomputedBlogPageQueryScope(): Record<string, unknown> {
   return scope
 }
 
+function getPrecomputedRootJoinChildResultSets(parentField: string): readonly SqlResultSet[] {
+  switch (parentField) {
+    case '@nested$author':
+      return [BLOG_PAGE_POST_RESULT, BLOG_PAGE_AUTHOR_RESULT]
+    case '@nested$category':
+      return [BLOG_PAGE_POST_RESULT, BLOG_PAGE_CATEGORY_RESULT]
+    case '@nested$tags':
+      return [BLOG_PAGE_POST_RESULT, BLOG_PAGE_POST_TAG_RESULT, BLOG_PAGE_TAG_RESULT]
+    case '@nested$comments':
+      return [BLOG_PAGE_POST_RESULT, BLOG_PAGE_COMMENT_RESULT, BLOG_PAGE_COMMENT_AUTHOR_RESULT]
+    default:
+      throw new Error(`Unexpected root join child field: ${parentField}`)
+  }
+}
+
+function getPrecomputedQueryScope(resultSets: readonly SqlResultSet[]): Record<string, unknown> {
+  const scope = Object.create(null) as Record<string, unknown>
+  for (let i = 0; i < resultSets.length; i++) {
+    scope[`precomputedQuery${i}`] = serializeSql(resultSets[i])
+  }
+  return scope
+}
+
+function getRootJoinChildLabel(parentField: string): string {
+  return parentField.startsWith('@nested$') ? parentField.slice('@nested$'.length) : parentField
+}
+
+function checksumRootJoinChildValue(value: unknown): number {
+  if (Array.isArray(value)) {
+    return value.length
+  }
+
+  return isRecord(value) ? 1 : 0
+}
+
 async function measurePrecomputedQueryLeavesScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -1889,6 +1924,93 @@ async function measurePrecomputedQueryLeavesScenario(
     checksum,
     heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
   }
+}
+
+async function measurePrecomputedRootJoinChildBranchScenarios(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement[]> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = createAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr } = getRootDataMapPlan(plan)
+  const rootJoin = getRootCompactJoin(expr)
+  const rootJoinChildren = rootJoin[2] as CompactJoinExpression[]
+  const rootJoinChildPlans = getRootCompactJoinChildPlans(expr)
+  if (rootJoinChildPlans.length !== rootJoinChildren.length) {
+    throw new Error(`Expected ${rootJoinChildren.length} root join child plans, got ${rootJoinChildPlans.length}`)
+  }
+
+  const measurements: PlanPhaseMeasurement[] = []
+  for (let childIndex = 0; childIndex < rootJoinChildren.length; childIndex++) {
+    const parentField = rootJoinChildren[childIndex][2]
+    const resultSets = getPrecomputedRootJoinChildResultSets(parentField)
+    const replacementState = { index: 0 }
+    const precomputedChildPlan = replaceQueryLeavesWithPrecomputedGetters(
+      rootJoinChildPlans[childIndex],
+      replacementState,
+    )
+    if (replacementState.index !== resultSets.length) {
+      throw new Error(`Expected ${resultSets.length} query leaves for ${parentField}, got ${replacementState.index}`)
+    }
+
+    const scopes = new Array<Record<string, unknown>>(scenario.iterations)
+    for (let i = 0; i < scenario.iterations; i++) {
+      scopes[i] = {
+        ...placeholderValues,
+        ...getPrecomputedQueryScope(resultSets),
+      }
+    }
+
+    for (let i = 0; i < scenario.iterations; i++) {
+      await interpreter.run(precomputedChildPlan, {
+        queryable: adapter,
+        scope: scopes[i],
+        transactionManager: { enabled: false },
+      })
+    }
+    resetCounts(counts)
+
+    let checksum = 0
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      checksum += checksumRootJoinChildValue(
+        await interpreter.run(precomputedChildPlan, {
+          queryable: adapter,
+          scope: scopes[i],
+          transactionManager: { enabled: false },
+        }),
+      )
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    measurements.push({
+      name: scenario.name.replace('blog page', `blog page ${getRootJoinChildLabel(parentField)}`),
+      iterations: scenario.iterations,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      checksum,
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    })
+  }
+
+  return measurements
 }
 
 async function measurePrecomputedJoinLeavesScenario(
@@ -2818,6 +2940,16 @@ async function main(): Promise<void> {
           name: scenario.name.replace('direct plan', 'precomputed root join children'),
         }),
       )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measurements = await measurePrecomputedRootJoinChildBranchScenarios(compiler, paramGraph, {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'precomputed root join child branch'),
+      })
+      for (const measurement of measurements) {
+        printPlanPhaseMeasurement(measurement)
+      }
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {

@@ -1942,6 +1942,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
 
+- This commit: Precomputed root join child branch timing rows.
+  - Added per-root-child rows to `client-engine-cache-timing.ts`: `precomputed root join child branch blog page author/category/tags/comments / nested rows`.
+  - Each row wraps the child expression in the original outer `let` bindings, replaces compact `q` leaves with fresh precomputed result rows, and times one child branch without root attachment. These rows are not additive because each one includes the parent-scope binding setup needed by that branch.
+  - Local run:
+    - cached request wrapper blog-page nested rows: 59.15 us/op.
+    - direct plan blog-page nested rows: 56.81 us/op.
+    - precomputed query leaves blog-page nested rows: 36.29 us/op.
+    - precomputed join leaves blog-page nested rows: 11.92 us/op.
+    - precomputed root join children blog-page nested rows: 19.57 us/op.
+    - precomputed root join child branch author: 12.08 us/op.
+    - precomputed root join child branch category: 11.49 us/op.
+    - precomputed root join child branch tags: 18.02 us/op.
+    - precomputed root join child branch comments: 20.03 us/op.
+    - inner plan blog-page nested rows: 44.59 us/op.
+    - direct plan after phase warmup: 47.34 us/op.
+    - local executor blog-page nested rows: 54.70 us/op.
+  - Interpretation update: the deeper `tags` and `comments` branches are materially more expensive than simple `author`/`category`, which keeps the strongest lead on nested relation branch shape (`process`, nested one-child joins, and branch-local `let`/`unique`/`mapField` work), not on root attachment alone.
+  - Rejected experiment: static `InMemoryOps` process-node clone skip.
+    - Hypothesis: `process` / compact `p` nodes could skip `klona` and parameter evaluation when pagination/nested operations do not contain placeholders or generator calls.
+    - Correctness checks passed:
+      - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - Timing with the spike was not strong enough to keep:
+      - Run 1: cached request wrapper nested rows 60.33 us/op, direct plan nested rows 60.11, precomputed root join children 18.17, tags branch 15.32, comments branch 20.09, inner plan 44.56, direct after phase warmup 47.16, local executor nested rows 54.55.
+      - Run 2: cached request wrapper nested rows 61.70 us/op, direct plan nested rows 60.06, precomputed root join children 18.07, tags branch 15.19, comments branch 20.78, inner plan 47.43, direct after phase warmup 48.36, local executor nested rows 60.65.
+      - Interpreter microbench with the spike: simple select 856,537 ops/sec, findUnique 1,179,475, join 325,005, sequence 868,934, deep nested join 42,378.
+    - Decision: reverted. The isolated tags-branch improvement did not translate to full nested product rows, and deep nested interpreter throughput was worse.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
 ## Useful Commands
 
 ```sh
