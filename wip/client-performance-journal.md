@@ -3066,6 +3066,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Criterion was mixed/noisy against the accepted-version baseline: `create-nested-connectOrCreate-m2one` was +1.3% slower within noise threshold, `mixed` and `one2m` were neutral, `delete-one` and `update-set-nested-prisma#27650` were neutral, `update-set-nested` was -0.95% within noise threshold, and `upsert` improved -1.45%.
   - Decision: reverted. The extra branch/reconstruction complexity did not have a clear enough timing win and saved no allocations.
 
+- Broad allocation profile after `9b42bd6e3d9`.
+  - Command:
+    - `ALLOC_PROFILE_QUERIES="$(find query-compiler/query-compiler/tests/data -maxdepth 1 -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort | paste -sd, -)" ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release > /tmp/prisma-qc-allocation-profile-post-unique.txt`
+  - Top `full_compile` allocated bytes/op:
+    - `create-nested-connectOrCreate-mixed`: 2,796 allocs / 363.0 KiB.
+    - `create-nested-connectOrCreate-one2m`: 2,480 / 314.1 KiB.
+    - `update-set-nested`: 2,184 / 287.9 KiB.
+    - `update-set-nested-prisma#27650`: 1,931 / 227.2 KiB.
+    - `create-m2m`: 1,719 / 215.4 KiB.
+    - `create-nested-connectOrCreate-m2one`: 1,477 / 203.6 KiB.
+  - Phase split still points at `graph_build` and `translate_ir` for nested writes rather than `parse_json` / `into_doc`, so the remaining Rust-side targets are graph/translation representation choices, not another narrow JSON input conversion.
+
+- Rejected experiment: store `Expression::Validate.rules` in `SmallVec<[DataRule; 1]>`.
+  - Hypothesis: `DataExpectation` stores rules in `SmallVec<[DataRule; 1]>`, but `Expression::validate_expectation()` converted them to a heap `Vec<DataRule>`. Since most validations have one rule, keeping `Expression::Validate.rules` as a `SmallVec` should avoid one allocation per validation expression.
+  - Change tried:
+    - Added `smallvec` to `query-compiler/query-compiler/Cargo.toml`.
+    - Changed `Expression::Validate { rules }` from `Vec<DataRule>` to `SmallVec<[DataRule; 1]>`.
+    - Serialized `rules.as_slice()` to preserve the JSON representation.
+  - Allocation profile:
+    - Saved a few allocations in validation-heavy translation rows:
+      - `create-nested-connectOrCreate-mixed`: full compile 2,796 -> 2,791 allocs/op.
+      - `create-nested-connectOrCreate-one2m`: 2,480 -> 2,474.
+      - `update-set-nested`: 2,184 -> 2,181.
+      - `create-m2m`: 1,719 -> 1,715.
+    - Byte savings were negligible.
+  - Criterion:
+    - Improved `create-m2m` by about 1.7%.
+    - Regressed `create-nested-connectOrCreate-one2m` by about 2.3%.
+    - Regressed `query-many-m2m` by about 2.2%.
+    - Regressed `upsert` by about 2.6%.
+    - Other rows were neutral/noisy: `create-nested-connectOrCreate-mixed`, `m2one`, `delete-one`, `query-m2o`, `update-set-nested`, `update-set-nested-prisma#27650`.
+  - Decision: reverted. The allocation win was too small and timing regressed important rows.
+
 ## Useful Commands
 
 ```sh
