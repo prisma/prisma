@@ -3769,6 +3769,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched run: cached wrapper blog-page nested rows 35.36 us/op, 100 retained shapes 31.73 us/op, phase-warmed product row 35.56 us/op, local executor blog-page nested rows 23.03 us/op.
   - Decision: reverted. The added WeakMap/root-plan check did not improve `LocalExecutor` and worsened the request-wrapper/product rows. Do not retry this exact per-execute transaction-node scan; if this area is revisited, the transaction metadata should be attached to cached/prepared plans rather than checked in `LocalExecutor.execute()`.
 
+- Rejected experiment: skip selector-only `Filter::and(vec![Empty, selector])` in write translation.
+  - Hypothesis: `translate/query/write.rs::build_query_from_record_filter()` always folded optional selectors into the base filter with `Filter::and(vec![acc, f])`. When the base filter is `Filter::Empty`, directly using the selector filter could avoid one `Filter::And(Vec)` wrapper during write IR translation.
+  - Change tried:
+    - Replaced the `.into_iter().fold(record_filter.filter, |acc, f| Filter::and(vec![acc, f]))` shape with a `match` over `(record_filter.filter, record_filter.selectors.map(IntoFilter::filter))`, using the selector filter directly for `(Filter::Empty, Some(selector_filter))`.
+  - Allocation profile while patched:
+    - `update-set-nested-prisma#27650`: `translate_ir` 996 -> 989 allocs/op, `compile_ir` 1859 -> 1852, `full_compile` 1920 -> 1913; bytes moved from about 216.8 KiB/op to 216.3 KiB/op.
+    - Unchanged sampled rows: `update-set-nested`, `update-connect`, `create-nested-connect`, `create-nested-connectOrCreate-mixed`, `create-nested-create`, `query-m2o`, and `filter-contains-param`.
+  - Criterion:
+    - `update-set-nested-prisma#27650`, the only row with an allocation-count win, had no detected performance change: about -0.73% with p = 0.11.
+    - `update-set-nested` improved about 3.4%, but it had no allocation-count movement and is not enough attribution evidence for this patch.
+    - `create-nested-create` regressed about 1.7%, despite no allocation-count movement there.
+    - `create-nested-connect`, mixed connect-or-create, and `update-connect` were improved or within noise, but the directly affected row stayed neutral and the focused set included a regression.
+  - Verification while patched:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo check -p query-compiler`
+    - `ALLOC_PROFILE_QUERIES='update-set-nested,update-set-nested-prisma#27650,update-connect,create-nested-connect,create-nested-connectOrCreate-mixed,create-nested-create,query-m2o,filter-contains-param' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(update-set-nested-prisma#27650|update-set-nested|update-connect|create-nested-connect|create-nested-connectOrCreate-mixed|create-nested-create)$"`
+  - Decision: reverted. The allocation win is real but isolated, and it did not translate into a direct Criterion win on the affected fixture. Do not retry this exact `Filter::Empty` selector-fold special case without a closer A/B or a broader explanation for the create-nested-create regression.
+
 ## Useful Commands
 
 ```sh
