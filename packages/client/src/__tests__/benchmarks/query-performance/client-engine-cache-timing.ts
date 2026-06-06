@@ -38,7 +38,7 @@ import type { JsonQuery } from '@prisma/json-protocol'
 import { ParamGraph } from '@prisma/param-graph'
 import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-graph-builder'
 
-import { applyDataMapToResultSet } from '../../../../../client-engine-runtime/src/interpreter/data-mapper'
+import { applyDataMap, applyDataMapToResultSet } from '../../../../../client-engine-runtime/src/interpreter/data-mapper'
 import type { GeneratorRegistrySnapshot } from '../../../../../client-engine-runtime/src/interpreter/generators'
 import { renderQuery } from '../../../../../client-engine-runtime/src/interpreter/render-query'
 import { ClientEngine } from '../../../runtime/core/engines/client/ClientEngine'
@@ -219,6 +219,7 @@ type PlanPhaseMeasurement = {
 }
 
 type DirectDataMapPlan = {
+  expr: QueryPlanNode
   structure: ResultNode
   enums: Record<string, Record<string, string>>
 }
@@ -734,6 +735,7 @@ function getRootDataMapPlan(plan: QueryPlanNode): DirectDataMapPlan {
     }
 
     return {
+      expr: plan[1],
       structure: plan[2],
       enums: plan[3],
     }
@@ -744,6 +746,7 @@ function getRootDataMapPlan(plan: QueryPlanNode): DirectDataMapPlan {
   }
 
   return {
+    expr: plan.args.expr as QueryPlanNode,
     structure: plan.args.structure,
     enums: plan.args.enums,
   }
@@ -905,6 +908,41 @@ function isObjectResultNode(structure: ResultNode): boolean {
 
 function isCompactPlanNode(plan: QueryPlanNode): plan is QueryPlanCompactNode {
   return Array.isArray(plan)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function arrayLength(value: unknown): number {
+  return Array.isArray(value) ? value.length : 0
+}
+
+function numericField(value: Record<string, unknown>, field: string): number {
+  const fieldValue = value[field]
+  return typeof fieldValue === 'number' ? fieldValue : 0
+}
+
+function checksumNestedBlogInnerValue(value: unknown): number {
+  if (!isRecord(value)) {
+    return 0
+  }
+
+  return (
+    numericField(value, 'id') +
+    arrayLength(value['@nested$tags']) +
+    arrayLength(value['@nested$comments']) +
+    (isRecord(value['@nested$author']) ? 1 : 0) +
+    (isRecord(value['@nested$category']) ? 1 : 0)
+  )
+}
+
+function checksumNestedBlogResult(value: unknown): number {
+  if (!isRecord(value)) {
+    return 0
+  }
+
+  return numericField(value, 'id') + arrayLength(value.tags) + arrayLength(value.comments)
 }
 
 async function measureDirectPlanScenario(
@@ -1178,6 +1216,184 @@ function measureDataMapScenario(
     checksum,
     heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
   }
+}
+
+async function measureInnerPlanScenario(compiler: QueryCompiler, paramGraph: ParamGraph, scenario: DirectPlanScenario) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr } = getRootDataMapPlan(plan)
+
+  await interpreter.run(expr, {
+    queryable: adapter,
+    scope: placeholderValues,
+    transactionManager: { enabled: false },
+  })
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogInnerValue(
+      await interpreter.run(expr, {
+        queryable: adapter,
+        scope: placeholderValues,
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies DirectPlanMeasurement
+}
+
+async function measureOuterDataMapScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<PlanPhaseMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr, structure, enums } = getRootDataMapPlan(plan)
+  const innerValues = new Array<unknown>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    innerValues[i] = await interpreter.run(expr, {
+      queryable: adapter,
+      scope: placeholderValues,
+      transactionManager: { enabled: false },
+    })
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    applyDataMap(innerValues[i] as never, structure, enums, 'js')
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogResult(applyDataMap(innerValues[i] as never, structure, enums, 'js'))
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureManualInnerOuterDataMapScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = await createScenarioAdapter(counts, scenario)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const { expr, structure, enums } = getRootDataMapPlan(plan)
+
+  checksumNestedBlogResult(
+    applyDataMap(
+      (await interpreter.run(expr, {
+        queryable: adapter,
+        scope: placeholderValues,
+        transactionManager: { enabled: false },
+      })) as never,
+      structure,
+      enums,
+      'js',
+    ),
+  )
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogResult(
+      applyDataMap(
+        (await interpreter.run(expr, {
+          queryable: adapter,
+          scope: placeholderValues,
+          transactionManager: { enabled: false },
+        })) as never,
+        structure,
+        enums,
+        'js',
+      ),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies DirectPlanMeasurement
 }
 
 async function measureLocalExecutorScenario(
@@ -1588,6 +1804,33 @@ async function main(): Promise<void> {
 
     for (const scenario of directPlanScenarios) {
       printDirectPlanMeasurement(await measureDirectPlanScenario(compiler, paramGraph, scenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printDirectPlanMeasurement(
+        await measureInnerPlanScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'inner plan'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printPlanPhaseMeasurement(
+        await measureOuterDataMapScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'outer data map'),
+        }),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      printDirectPlanMeasurement(
+        await measureManualInnerOuterDataMapScenario(compiler, paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('direct plan', 'manual inner+outer'),
+        }),
+      )
     }
 
     for (const scenario of directPlanScopeScenarios) {

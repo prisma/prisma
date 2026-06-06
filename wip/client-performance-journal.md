@@ -1117,6 +1117,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
 
+- This commit: Split nested root data-map timing.
+  - Extended `client-engine-cache-timing.ts` with nested blog-page phase rows:
+    - `inner plan blog page / nested rows`: runs the root `dataMap`'s inner expression (`let`/`join` tree) directly through `QueryInterpreter.run()`, before the final response data map.
+    - `outer data map blog page / nested rows`: precomputes one joined graph per iteration, then times only `applyDataMap()` over those joined graphs.
+    - `manual inner+outer blog page / nested rows`: runs the inner expression and immediately applies the same outer data map in the benchmark loop, bypassing the root `dataMap` plan node.
+  - Local run 1 after adding the split:
+    - direct plan blog-page nested rows: about 59.82 us/op.
+    - inner plan blog-page nested rows: about 33.44 us/op.
+    - outer data map blog-page nested rows: about 3.70 us/op.
+    - manual inner+outer blog-page nested rows: about 43.20 us/op.
+  - Local run 2:
+    - direct plan blog-page nested rows: about 62.18 us/op.
+    - inner plan blog-page nested rows: about 35.92 us/op.
+    - outer data map blog-page nested rows: about 3.63 us/op.
+    - manual inner+outer blog-page nested rows: about 42.28 us/op.
+  - Tried a runtime experiment that moved the fallback `interpret expr -> applyDataMap()` branch into a helper; correctness and lint passed, but the direct nested row stayed about 62.07 us/op while manual inner+outer stayed about 41.98 us/op, so the runtime helper was reverted.
+  - Interpretation: the root `dataMap` plan/interpreter shape itself appears to be a significant part of nested-row cost beyond raw SQL serialization/joining and plain `applyDataMap()`. Next serious work should inspect the query compiler expression shape and the TS interpreter's `dataMap` node behavior rather than more small join-key or scalar-mapper tweaks.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
 ## Rejected Experiments
 
 - Single-parent strict-key join attachment fast path.
