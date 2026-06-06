@@ -11,6 +11,7 @@ import {
 } from '@prisma/client-common'
 import { getDMMF } from '@prisma/client-generator-js'
 import type {
+  ColumnType,
   ConnectionInfo,
   IsolationLevel,
   SqlDriverAdapter,
@@ -20,6 +21,7 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
+import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import type { JsonQuery } from '@prisma/json-protocol'
 import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 
@@ -35,6 +37,15 @@ const EMPTY_RESULT: SqlResultSet = Object.freeze({
   columnTypes: [],
   rows: [],
 })
+const USER_SCALAR_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['id', 'email', 'name']),
+  columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]) as ColumnType[],
+  rows: Object.freeze(
+    Array.from({ length: 10 }, (_, index) =>
+      Object.freeze([index + 1, `user${index + 1}@example.test`, `User ${index + 1}`]),
+    ),
+  ) as unknown[][],
+})
 
 type Counts = {
   compile: number
@@ -48,6 +59,7 @@ type Scenario = {
   iterations: number
   query: (iteration: number) => JsonQuery
   cacheMaxSize: number
+  resultSet?: SqlResultSet
 }
 
 type Measurement = Scenario & {
@@ -61,11 +73,14 @@ class EmptySqliteAdapter implements SqlDriverAdapter {
   readonly provider = 'sqlite'
   readonly adapterName = '@prisma/adapter-benchmark-empty'
 
-  constructor(private readonly counts: Counts) {}
+  constructor(
+    private readonly counts: Counts,
+    private readonly resultSet: SqlResultSet = EMPTY_RESULT,
+  ) {}
 
   queryRaw(_query: SqlQuery): Promise<SqlResultSet> {
     this.counts.queryRaw++
-    return Promise.resolve(EMPTY_RESULT)
+    return Promise.resolve(this.resultSet)
   }
 
   executeRaw(_query: SqlQuery): Promise<number> {
@@ -116,11 +131,11 @@ class EmptyTransaction implements Transaction {
   }
 }
 
-function createAdapterFactory(counts: Counts): SqlDriverAdapterFactory {
+function createAdapterFactory(counts: Counts, resultSet?: SqlResultSet): SqlDriverAdapterFactory {
   return {
     provider: 'sqlite',
     adapterName: '@prisma/adapter-benchmark-empty',
-    connect: () => Promise.resolve(new EmptySqliteAdapter(counts)),
+    connect: () => Promise.resolve(new EmptySqliteAdapter(counts, resultSet)),
   }
 }
 
@@ -161,6 +176,23 @@ function createFindUniqueQuery(id: number): JsonQuery {
     query: {
       arguments: {
         where: { id },
+      },
+      selection: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    },
+  }
+}
+
+function createFindManyUsersQuery(): JsonQuery {
+  return {
+    modelName: 'User',
+    action: 'findMany',
+    query: {
+      arguments: {
+        take: 10,
       },
       selection: {
         id: true,
@@ -307,7 +339,7 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
   const engine = new ClientEngine(
     {
       ...config,
-      adapter: createAdapterFactory(counts),
+      adapter: createAdapterFactory(counts, scenario.resultSet),
       queryPlanCacheMaxSize: scenario.cacheMaxSize,
     },
     await createCountingQueryCompilerLoader(counts),
@@ -369,6 +401,20 @@ async function main(): Promise<void> {
       iterations: 500,
       cacheMaxSize: 100,
       query: (iteration) => createFindUniqueQuery(iteration + 1),
+    },
+    {
+      name: 'findMany 10 scalar rows / cache disabled',
+      iterations: 500,
+      cacheMaxSize: 0,
+      query: () => createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
+    },
+    {
+      name: 'findMany 10 scalar rows / cache enabled',
+      iterations: 500,
+      cacheMaxSize: 100,
+      query: () => createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'blog page value churn / cache disabled',
