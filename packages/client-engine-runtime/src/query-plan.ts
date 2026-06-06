@@ -382,7 +382,9 @@ export type InMemoryOps = {
   nested?: Record<string, InMemoryOps>
 }
 
-export type DataRule =
+export type DataRule = LegacyDataRule | CompactDataRule
+
+export type LegacyDataRule =
   | {
       type: 'rowCountEq'
       args: number
@@ -398,6 +400,43 @@ export type DataRule =
   | {
       type: 'never'
     }
+
+export type CompactDataRule =
+  | readonly [type: '=', args: number]
+  | readonly [type: '!', args: number]
+  | readonly [type: 'a', args: number]
+  | 'n'
+
+export function getDataRuleType(rule: DataRule): 'rowCountEq' | 'rowCountNeq' | 'affectedRowCountEq' | 'never' {
+  if (rule === 'n') {
+    return 'never'
+  }
+  if ('type' in rule) {
+    return rule.type
+  }
+  switch (rule[0]) {
+    case '=':
+      return 'rowCountEq'
+    case '!':
+      return 'rowCountNeq'
+    case 'a':
+      return 'affectedRowCountEq'
+  }
+  throw new Error(`Unknown compact data rule type: ${rule[0]}`)
+}
+
+export function getDataRuleArgs(rule: DataRule): number {
+  if (rule === 'n') {
+    throw new Error('Never data rule has no arguments')
+  }
+  if ('type' in rule) {
+    if (rule.type !== 'never') {
+      return rule.args
+    }
+    throw new Error('Never data rule has no arguments')
+  }
+  return rule[1]
+}
 
 export type ValidationError =
   | {

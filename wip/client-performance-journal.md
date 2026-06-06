@@ -37,6 +37,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `48e0b6fbd Skip chunk rebuild within parameter limit`
   - `cc7f692dd Inline SQL template chunk planning`
 - Engines repo current relevant commits:
+  - `da6c7014b90 Compact query plan data rules`
   - `9c98a943d71 Compact query plan support structures`
   - `4debcd05b97 Compact Prisma value placeholders`
   - `4dc9111d4cd Compact tuple parameter fragments`
@@ -86,6 +87,46 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `da6c7014b90 Compact query plan data rules`
+    - Query-plan validation `DataRule` now serializes as compact tags:
+      - `RowCountEq(count)` -> `["=", count]`
+      - `RowCountNeq(count)` -> `["!", count]`
+      - `AffectedRowCountEq(count)` -> `["a", count]`
+      - `Never` -> `"n"`
+    - Prisma runtime accepts both compact and legacy `{ type, args }` rule shapes through `getDataRuleType()` / `getDataRuleArgs()`.
+    - Write-heavy PostgreSQL fixture plan sizes with rebuilt local Wasm:
+      - `create-nested-connectOrCreate-mixed.json`: 5,211 -> 5,045 bytes, saving 166 bytes.
+      - `update-set-nested.json`: 3,512 -> 3,393 bytes, saving 119 bytes.
+      - `update-connect.json`: 2,282 -> 2,203 bytes, saving 79 bytes.
+      - `delete-one.json`: 492 -> 468 bytes, saving 24 bytes.
+    - A/B write compile probe:
+      - Legacy baseline: 2,984 / 1,968 / 1,274 / 289 us per compile for the four fixtures above.
+      - Compact pre-baseline run: 2,956 / 1,878 / 1,263 / 287 us per compile.
+      - Compact post-rebuild run: 3,105 / 1,965 / 1,311 / 301 us per compile.
+      - Interpretation: local dev-Wasm timing is noisy and shows no clear throughput win, but also no decisive regression; the deterministic win is smaller plan objects and slightly smaller compressed Wasm.
+    - Compressed fast Wasm sizes from the legacy -> compact rebuild:
+      - PostgreSQL: 2,685,436 -> 2,683,536 bytes.
+      - SQLite: 2,608,746 -> 2,608,151 bytes.
+      - MySQL: 2,654,005 -> 2,652,944 bytes.
+      - SQL Server: 2,675,097 -> 2,674,191 bytes.
+      - CockroachDB: 2,698,039 -> 2,697,272 bytes.
+    - Verification:
+      - `cargo fmt -p query-core --check`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `cargo test -p query-compiler --test queries`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `pnpm --filter @prisma/client-engine-runtime test validation.test.ts`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client build`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - Benchmark sanity after compact rebuild:
+      - Caching compile rows: about 1,486 / 1,199 / 321 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+      - Parameterization rows: about 1,124,097 / 503,326 / 627,862 / 469,286 ops/sec for `findUnique`, filtered `findMany`, `findMany in filter`, and blog-page query.
+      - Interpreter run measured about 767,422 simple-select ops/sec, 999,728 `findUnique` ops/sec, 310,155 join ops/sec, 790,472 sequence ops/sec, and 44,266 deep nested join ops/sec.
+    - Decision: keep. This trims mutation/read-plan validation metadata and Wasm size with a very small compatibility surface in the TS interpreter.
+
   - `9c98a943d71 Compact query plan support structures`
     - `Binding` now serializes as `[name, expr]` instead of `{ name, expr }`.
     - `JoinExpression` now serializes as `[child, on, parentField, isRelationUnique]` instead of `{ child, on, parentField, isRelationUnique }`.
