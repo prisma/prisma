@@ -42,6 +42,8 @@ type ResultSetFieldMapping =
       dbName: string
       columnIndex: number
       fieldType: FieldType
+      scalarTypeName: FieldScalarType['type']
+      isList: boolean
     }
   | {
       type: 'rowObject'
@@ -89,6 +91,14 @@ function getObjectSkipNulls(node: ObjectResultNode): boolean {
 
 function getFieldType(node: FieldResultNode): FieldType {
   return typeof node === 'string' ? node : node.fieldType
+}
+
+function getScalarTypeName(fieldType: FieldType): FieldScalarType['type'] {
+  return typeof fieldType === 'string' ? fieldType : fieldType.type
+}
+
+function isListField(fieldType: FieldType): boolean {
+  return typeof fieldType !== 'string' && fieldType.arity === 'list'
 }
 
 function getDbName(name: string, node: FieldResultNode): string {
@@ -289,13 +299,7 @@ function mapResultSetRow(
   for (const mapping of fieldMappings) {
     switch (mapping.type) {
       case 'field': {
-        result[mapping.name] = mapField(
-          row[mapping.columnIndex],
-          mapping.dbName,
-          mapping.fieldType,
-          enums,
-          resultFormat,
-        )
+        result[mapping.name] = mapResultSetField(row[mapping.columnIndex], mapping, enums, resultFormat)
         break
       }
 
@@ -379,6 +383,7 @@ function buildResultSetFieldMappings(
     const [name, node] = fieldEntries[i]
     if (isFieldNode(node)) {
       const dbName = getDbName(name, node)
+      const fieldType = getFieldType(node)
       const columnIndex = columnIndexes[dbName]
       if (columnIndex === undefined) {
         throw new DataMapperError(
@@ -392,7 +397,9 @@ function buildResultSetFieldMappings(
         name,
         dbName,
         columnIndex,
-        fieldType: getFieldType(node),
+        fieldType,
+        scalarTypeName: getScalarTypeName(fieldType),
+        isList: isListField(fieldType),
       }
       continue
     }
@@ -488,19 +495,55 @@ function mapField(
   resultFormat: QueryResultFormat = 'jsonProtocol',
 ): unknown {
   if (value === null) {
-    return typeof fieldType !== 'string' && fieldType.arity === 'list' ? [] : null
+    return isListField(fieldType) ? [] : null
   }
 
-  if (typeof fieldType !== 'string' && fieldType.arity === 'list') {
+  if (isListField(fieldType)) {
     const values = value as unknown[]
     const result = new Array<unknown>(values.length)
     for (let i = 0; i < values.length; i++) {
-      result[i] = mapValue(values[i], `${columnName}[${i}]`, fieldType, enums, resultFormat)
+      result[i] = mapScalarValue(
+        values[i],
+        `${columnName}[${i}]`,
+        getScalarTypeName(fieldType),
+        fieldType,
+        enums,
+        resultFormat,
+      )
     }
     return result
   }
 
-  return mapValue(value, columnName, fieldType, enums, resultFormat)
+  return mapScalarValue(value, columnName, getScalarTypeName(fieldType), fieldType, enums, resultFormat)
+}
+
+function mapResultSetField(
+  value: unknown,
+  mapping: Extract<ResultSetFieldMapping, { type: 'field' }>,
+  enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat,
+): unknown {
+  if (value === null) {
+    return mapping.isList ? [] : null
+  }
+
+  if (mapping.isList) {
+    const values = value as unknown[]
+    const result = new Array<unknown>(values.length)
+    for (let i = 0; i < values.length; i++) {
+      result[i] = mapScalarValue(
+        values[i],
+        `${mapping.dbName}[${i}]`,
+        mapping.scalarTypeName,
+        mapping.fieldType,
+        enums,
+        resultFormat,
+      )
+    }
+    return result
+  }
+
+  return mapScalarValue(value, mapping.dbName, mapping.scalarTypeName, mapping.fieldType, enums, resultFormat)
 }
 
 function mapValue(
@@ -510,8 +553,17 @@ function mapValue(
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat = 'jsonProtocol',
 ): unknown {
-  const scalarTypeName = typeof scalarType === 'string' ? scalarType : scalarType.type
+  return mapScalarValue(value, columnName, getScalarTypeName(scalarType), scalarType, enums, resultFormat)
+}
 
+function mapScalarValue(
+  value: unknown,
+  columnName: string,
+  scalarTypeName: FieldScalarType['type'],
+  scalarType: FieldType,
+  enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
+): unknown {
   switch (scalarTypeName) {
     case 'unsupported':
       return value

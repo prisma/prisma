@@ -1021,6 +1021,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`
     - `git diff --check`
 
+- This commit: Cache result-set scalar mapping metadata.
+  - `applyDataMapToResultSet()` already cached result-set field mappings by result fields and column shape. The cached field mapping now also stores scalar type name and list arity, so each mapped result-set cell does not rediscover `typeof fieldType === 'string' ? fieldType : fieldType.type` and `fieldType.arity === 'list'`.
+  - Product-path `client-engine-cache-timing.ts` after the patch:
+    - warmed `findUnique`: about 12.06 us/op.
+    - warmed `findMany`: about 8.36 us/op.
+    - warmed blog-page: about 30.99 us/op.
+    - cached request wrapper blog-page: about 26.66 us/op.
+    - direct plan blog-page value-scope churn: about 15.45 us/op.
+    - local executor blog-page value-scope churn: about 14.97 us/op.
+  - Interpreter benchmark was mixed but acceptable for the product-path target:
+    - First run: simple select 798,608 ops/sec, findUnique 1,047,913, join 317,558, sequence 787,830, deep nested join 44,872.
+    - Second run: simple select 809,137 ops/sec, findUnique 1,059,248, join 315,894, sequence 821,030, deep nested join 45,090.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts query-interpreter.test.ts render-query.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+
 ## Rejected Experiments
 
 - Parameterization traversal object-copy variants.
