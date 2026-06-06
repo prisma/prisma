@@ -94,6 +94,31 @@ test('accepts compact scalar arg types', () => {
   ])
 })
 
+test('accepts compact template SQL queries', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', { type: 'parameter' }, ' AND name = ', { type: 'parameter' }],
+        ['$', true],
+        [1, 'Alice'],
+        ['int', 'string'],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND name = $2',
+      args: [1, 'Alice'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
+    },
+  ])
+})
+
 test('transforms IN template', () => {
   expect(
     renderQuery(
