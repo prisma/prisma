@@ -399,6 +399,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 ## Rejected Experiments
 
+- Compact nested query-plan support structures.
+  - Tried serializing `Binding` as `[name, expr]`, `JoinExpression` as `[child, on, parentField, isRelationUnique]`, and tuple SQL fragments as `["T", itemPrefix, itemSeparator, itemSuffix]` / `["L", itemPrefix, itemSeparator, itemSuffix, groupSeparator]`.
+  - TS side accepted compact and legacy forms in the query-plan type, query interpreter, SQL renderer, and chunk planner.
+  - Focused gates passed:
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts data-mapper.test.ts render-query.test.ts`
+    - `cargo fmt -p query-compiler -p query-builder --check`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+  - Byte and memory wins were real but limited to nested plans:
+    - Representative plan sizes: `findUnique` 660 unchanged, `findMany` 764 unchanged, `findMany in filter` 795 unchanged, blog page 5,727 -> 5,215 bytes.
+    - Query-plan cache probe: scalar retained plan JSON unchanged; blog node-default warm retained plan JSON 5.14 MiB -> 4.66 MiB.
+  - Benchmark gate failed the neutral-to-positive bar:
+    - First caching run: about 1,297 / 1,110 / 309 compile ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+    - Second caching run: about 1,513 / 1,209 / 318 compile ops/sec.
+    - After reordering Rust fragment serialization to handle the hot `Parameter` variant before tuple variants, caching still measured about 1,460 / 1,185 / 309 compile ops/sec.
+    - Interpreter runs were also soft/noisy: first about 723,654 / 973,497 / 304,624 / 748,397 / 46,151 ops/sec; later about 762,090 / 983,512 / 299,666 / 745,374 / 45,518 ops/sec.
+  - Reverted. Future retry should only happen with a lower-overhead TS representation or after proving compile/interpreter neutrality; parameter-fragment compaction remains higher byte ceiling but has already shown compile risk.
+
 - `RequestHandler.unpack` broader allocation patch.
   - Tried replacing `Object.keys`/`Object.values`, using a first-key helper, and skipping `dataPath.filter`/`deepGet` for empty paths.
   - Focused tests and build passed.
