@@ -123,6 +123,7 @@
   - `@prisma/client-common` provides shared client utilities used by both generators and runtime.
   - `@prisma/client-runtime-utils` provides utility types and singletons for Prisma Client.
   - Query-plan SQL `argTypes` are forwarded to driver adapters; `dbType` is optional in `@prisma/driver-adapter-utils`, so absent native database types should be omitted from Wasm plan serialization rather than emitted as `dbType: null`.
+  - Query-plan result `FieldType.arity` is only semantically needed for list fields in the TS data mapper. Omitted arity means non-list; do not reintroduce required/optional scalar arity into Wasm plan serialization.
 
 - **Coding conventions**:
   - Use **kebab-case** for new file names (e.g., `query-utils.ts`, `filter-operators.test.ts`).

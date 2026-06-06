@@ -50,6 +50,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Kept as a render-query/chunking improvement.
 
 - Engines parser/allocation commits kept:
+  - `1fe6a7c341b Omit non-list result field arity`
+    - `FieldType.arity` now serializes only for list fields; required/optional scalar result fields omit arity because the TS data mapper only branches on `arity === 'list'`.
+    - Prisma commit `af55854c7 Allow omitted result field arity` makes `FieldType.arity` optional in the query-plan type.
+    - Same-source local Wasm plan-size savings:
+      - `findUnique`: 1,850 -> 1,660 bytes, saving 190 bytes.
+      - `findMany filtered`: 1,998 -> 1,808 bytes, saving 190 bytes.
+      - `findMany in filter`: 2,218 -> 2,028 bytes, saving 190 bytes.
+      - `blog page`: 12,086 -> 11,364 bytes, saving 722 bytes.
+    - Verification:
+      - `cargo test -p query-compiler --test queries`
+      - `cargo check -p query-compiler-wasm --features sqlite`
+      - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+      - `pnpm --filter @prisma/client-engine-runtime test`
+      - `pnpm --filter @prisma/client-engine-runtime build`
+      - `pnpm --filter @prisma/client build`
+    - Benchmark gate with local rebuilt Wasm was neutral-to-positive:
+      - `compile findUnique`: about 1,440 ops/sec.
+      - `compile findMany filtered`: about 1,229 ops/sec.
+      - `compile blog post page`: about 323 ops/sec.
   - `78dfd45e838 Omit empty query arg db types`
     - `ArgType.db_type: None` now uses `#[serde(skip_serializing_if = "Option::is_none")]`.
     - This removes `dbType: null` from JS-visible query-plan `argTypes`; `@prisma/driver-adapter-utils` already models `dbType` as optional.
@@ -196,6 +216,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Same-source local Wasm A/B showed removing absent native DB type metadata from query-plan `argTypes` saves 42-98 bytes on common read plans and 294 bytes on the blog-page plan.
   - Unlike the rejected `placeholderFormat` omission, this does not require provider-default resolution in the interpreter: `dbType` is already optional in the adapter-facing TypeScript type.
   - `caching.bench.ts` with the rebuilt local Wasm was neutral-to-positive on compile rows: about 1,466 / 1,236 / 320 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
+
+- Non-list `FieldType.arity` omission:
+  - Same-source local Wasm A/B showed omitting required/optional result-field arity saves 190 bytes on common read plans and 722 bytes on the blog-page plan.
+  - This is safe because `packages/client-engine-runtime/src/interpreter/data-mapper.ts` only branches on `fieldType.arity === 'list'`; omitted arity is interpreted as non-list.
+  - `caching.bench.ts` with rebuilt local Wasm was neutral-to-positive on compile rows: about 1,440 / 1,229 / 323 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
 
 - Query plan cache memory probe:
   - Added `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
