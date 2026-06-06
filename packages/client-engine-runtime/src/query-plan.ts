@@ -26,6 +26,7 @@ export type PrismaValue =
   | PrismaValueGenerator
 
 export type ResultNode =
+  | FieldScalarTypeName
   | {
       type: 'affectedRows'
     }

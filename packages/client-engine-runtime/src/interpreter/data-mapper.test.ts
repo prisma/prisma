@@ -30,7 +30,7 @@ test('maps result sets directly like serialized SQL rows', () => {
   )
 })
 
-test('maps field nodes with compact scalar field type', () => {
+test('maps compact scalar field nodes', () => {
   const resultSet = {
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
     columnNames: ['id', 'name'],
@@ -41,8 +41,8 @@ test('maps field nodes with compact scalar field type', () => {
     serializedName: null,
     skipNulls: false,
     fields: {
-      id: { fieldType: 'int' },
-      name: { fieldType: 'string' },
+      id: 'int',
+      name: 'string',
     },
   } satisfies ResultNode
 

@@ -1,7 +1,7 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
-import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
+import { FieldScalarType, FieldScalarTypeName, FieldType, ResultNode } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
@@ -48,10 +48,22 @@ type ResultSetFieldMapping =
       node: Extract<ResultNode, { type: 'object' }>
     }
 
-type FieldResultNode = Extract<ResultNode, { fieldType: FieldType }>
+type FieldResultNode = FieldScalarTypeName | Extract<ResultNode, { fieldType: FieldType }>
 
 function isFieldNode(node: ResultNode): node is FieldResultNode {
-  return 'fieldType' in node
+  return typeof node === 'string' || 'fieldType' in node
+}
+
+function getFieldType(node: FieldResultNode): FieldType {
+  return typeof node === 'string' ? node : node.fieldType
+}
+
+function getDbName(name: string, node: FieldResultNode): string {
+  return typeof node === 'string' ? name : (node.dbName ?? name)
+}
+
+function getResultNodeType(node: ResultNode): string | undefined {
+  return typeof node === 'string' ? 'field' : (node.type ?? 'field')
 }
 
 function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
@@ -70,7 +82,7 @@ export function applyDataMap(
   resultFormat: QueryResultFormat = 'jsonProtocol',
 ): Value {
   if (isFieldNode(structure)) {
-    return mapValue(data, '<result>', structure.fieldType, enums, resultFormat)
+    return mapValue(data, '<result>', getFieldType(structure), enums, resultFormat)
   }
 
   switch (structure.type) {
@@ -84,7 +96,7 @@ export function applyDataMap(
       return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls, resultFormat)
 
     default:
-      assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
+      assertNever(structure as never, `Invalid data mapping type: '${getResultNodeType(structure)}'`)
   }
 }
 
@@ -175,9 +187,9 @@ function mapObject(
   const result = {}
   for (const [name, node] of getFieldEntries(fields)) {
     if (isFieldNode(node)) {
-      const dbName = node.dbName ?? name
+      const dbName = getDbName(name, node)
       if (Object.hasOwn(data, dbName)) {
-        result[name] = mapField(data[dbName], dbName, node.fieldType, enums, resultFormat)
+        result[name] = mapField(data[dbName], dbName, getFieldType(node), enums, resultFormat)
       } else {
         throw new DataMapperError(
           `Missing data field (Value): '${dbName}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
@@ -205,7 +217,7 @@ function mapObject(
       }
 
       default:
-        assertNever(node, `DataMapper: Invalid data mapping node type: '${(node as ResultNode).type}'`)
+        assertNever(node as never, `DataMapper: Invalid data mapping node type: '${getResultNodeType(node)}'`)
     }
   }
   return result
@@ -310,7 +322,7 @@ function buildResultSetFieldMappings(
   for (let i = 0; i < fieldEntries.length; i++) {
     const [name, node] = fieldEntries[i]
     if (isFieldNode(node)) {
-      const dbName = node.dbName ?? name
+      const dbName = getDbName(name, node)
       const columnIndex = columnIndexes[dbName]
       if (columnIndex === undefined) {
         throw new DataMapperError(
@@ -324,7 +336,7 @@ function buildResultSetFieldMappings(
         name,
         dbName,
         columnIndex,
-        fieldType: node.fieldType,
+        fieldType: getFieldType(node),
       }
       continue
     }
@@ -363,7 +375,7 @@ function buildResultSetFieldMappings(
       }
 
       default:
-        assertNever(node, `DataMapper: Invalid data mapping node type: '${(node as ResultNode).type}'`)
+        assertNever(node as never, `DataMapper: Invalid data mapping node type: '${getResultNodeType(node)}'`)
     }
   }
 
