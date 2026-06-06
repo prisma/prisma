@@ -3140,6 +3140,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. The allocation win is modest but direct, it removes an avoidable nested selection clone, and focused native timing is neutral-to-positive with clear wins on several relevant compile rows.
 
+- Rejected experiment: return single write expressions before `Expression::Sum` / `Expression::Concat`.
+  - Hypothesis: write translation often collects a one-element `Vec<Expression>` for `createMany`, `updateMany`, and `deleteMany`, wraps it in `Expression::Sum` or `Expression::Concat`, and relies on `Expression::simplify()` to unwrap it later. A helper that returns the single expression directly could avoid the transient vector allocation.
+  - Change tried:
+    - Added an `expression_list()` helper in `query-compiler/src/translate/query/write.rs`.
+    - Used it for `createMany` inserts, `updateMany` updates, and `deleteMany` deletes.
+  - Allocation profile while patched:
+    - `update-set-nested`: full compile 2,183 -> 2,181 allocs/op after the accepted result-mapper change, 286.9 KiB -> 286.6 KiB.
+    - `create-nested-create`: 1,309 -> 1,308 allocs/op, 167.6 KiB -> 166.9 KiB.
+    - `delete-many-limit`: 239 allocs/op / 28.0 KiB in the patched run; the helper clearly hit the cheap delete-many rows.
+  - Criterion:
+    - Improved `create-many-and-return` by about 3.15%.
+    - Improved `delete-many-limit` by about 6.46% and `delete-many` by about 5.56%.
+    - `create-many` was +1.06% within noise threshold.
+    - Regressed `create-nested-create-with-composite-id` by about 2.25%.
+    - Regressed `create-nested-create` by about 2.01%.
+    - `update-set-nested-prisma#27650` was +0.94% within noise threshold.
+    - Regressed `update-set-nested` by about 3.70%.
+  - Decision: reverted. The helper benefits cheap many-write rows but hurts hotter nested-write rows that matter more for the current goal. Do not retry this construction-path helper without a plan that preserves nested-write timing.
+
 ## Useful Commands
 
 ```sh
