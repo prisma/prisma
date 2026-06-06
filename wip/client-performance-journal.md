@@ -2667,6 +2667,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - cached wrapper 39.92 us/op, direct phase-warmed 24.82, inner plan 22.18, local executor 30.83.
   - Decision: reverted. Avoiding `klona()` for static process ops is not enough to improve the nested cached-plan path, and the decision guard can make the phase-warmed direct row worse.
 
+- This commit: fast path single rendered query execution (`f560552b9`).
+  - Hypothesis: legacy `query` / `execute` and compact `q` / `x` interpreter nodes used the generic rendered-query loop even when `renderQuery()` returned exactly one SQL query and the runtime had no SQL comments or query instrumentation enabled. The private `#executeQuery()` helper already had a one-query fast path for data-map direct query nodes; applying the same shape to generic query/execute nodes should reduce compact nested query-leaf overhead.
+  - Change:
+    - Added guarded one-query fast paths in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` for legacy `query`, legacy `execute`, compact `q`, and compact `x`.
+    - The fast path is skipped when SQL commenter or query instrumentation is active, preserving the existing comment/span behavior.
+    - Raw queries still use `rethrowAsUserFacingRawError`.
+  - Product-shaped timing:
+    - Baseline before the patch: cached request wrapper blog-page nested rows 40.05 us/op; direct plan after phase warmup 23.87; inner plan 22.16; local executor nested rows 31.44; final warmed-cache row after phase warmup 41.28.
+    - Run 1 with patch: cached wrapper 41.55; direct phase-warmed 23.75; inner plan 22.04; local executor 29.46; final warmed-cache after phase warmup 39.85.
+    - Run 2 with patch: cached wrapper 41.24; direct phase-warmed 23.95; inner plan 21.34; local executor 30.18; final warmed-cache after phase warmup 39.86.
+    - Interpretation: early cached wrapper remains warmup/noise-sensitive, but direct/local/inner/final phase-warmed rows are neutral-to-positive and the hot compact `q` path is less generic.
+  - Interpreter microbench stayed healthy:
+    - simple select 893,354 ops/sec.
+    - findUnique 1,197,785 ops/sec.
+    - join (1:N) 474,490 ops/sec.
+    - sequence 946,233 ops/sec.
+    - deep nested join 49,346 ops/sec.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter render-query`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+
 ## Useful Commands
 
 ```sh
