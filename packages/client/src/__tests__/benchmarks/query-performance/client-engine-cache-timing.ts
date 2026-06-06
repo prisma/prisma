@@ -114,6 +114,13 @@ type CacheKeyMeasurement = CacheKeyScenario & {
   heapDelta?: number
 }
 
+type PhaseMeasurement = CacheKeyScenario & {
+  elapsedMs: number
+  averageUs: number
+  checksum: number
+  heapDelta?: number
+}
+
 class EmptySqliteAdapter implements SqlDriverAdapter {
   readonly provider = 'sqlite'
   readonly adapterName = '@prisma/adapter-benchmark-empty'
@@ -433,6 +440,22 @@ function printCacheKeyMeasurement(measurement: CacheKeyMeasurement): void {
   console.log(parts.join(' | '))
 }
 
+function printPhaseMeasurement(measurement: PhaseMeasurement): void {
+  const parts = [
+    measurement.name,
+    `iterations=${measurement.iterations}`,
+    `elapsed=${measurement.elapsedMs.toFixed(1)} ms`,
+    `avg=${measurement.averageUs.toFixed(2)} us/op`,
+    `checksum=${measurement.checksum}`,
+  ]
+
+  if (measurement.heapDelta !== undefined) {
+    parts.push(`heapDelta=${formatBytes(measurement.heapDelta)}`)
+  }
+
+  console.log(parts.join(' | '))
+}
+
 async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>, scenario: Scenario) {
   const counts: Counts = {
     compile: 0,
@@ -580,6 +603,66 @@ function measureCacheKeyScenario(paramGraph: ParamGraph, scenario: CacheKeyScena
     totalKeyBytes,
     heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
   } satisfies CacheKeyMeasurement
+}
+
+function measureParameterizeScenario(paramGraph: ParamGraph, scenario: CacheKeyScenario) {
+  const queries = new Array<JsonQuery>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    queries[i] = scenario.query(i)
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    parameterizeQuery(queries[i], paramGraph)
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const { parameterizedQuery, placeholderValues } = parameterizeQuery(queries[i], paramGraph)
+    checksum += parameterizedQuery.query === queries[i].query ? 0 : 1
+    checksum += placeholderValues['%1'] === undefined ? 0 : 1
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies PhaseMeasurement
+}
+
+function measureStringifyCacheKeyScenario(paramGraph: ParamGraph, scenario: CacheKeyScenario) {
+  const parameterizedQueries = new Array<JsonQuery>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    parameterizedQueries[i] = parameterizeQuery(scenario.query(i), paramGraph).parameterizedQuery
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    const queryPart = JSON.stringify(parameterizedQueries[i].query)
+    getSingleQueryCacheKey(parameterizedQueries[i], queryPart)
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const queryPart = JSON.stringify(parameterizedQueries[i].query)
+    checksum += getSingleQueryCacheKey(parameterizedQueries[i], queryPart).length
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies PhaseMeasurement
 }
 
 async function measureDirectPlanScopeScenario(
@@ -991,6 +1074,24 @@ async function main(): Promise<void> {
   ]
 
   try {
+    for (const scenario of cacheKeyScenarios) {
+      printPhaseMeasurement(
+        measureParameterizeScenario(paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('cache hit key', 'parameterize'),
+        }),
+      )
+    }
+
+    for (const scenario of cacheKeyScenarios) {
+      printPhaseMeasurement(
+        measureStringifyCacheKeyScenario(paramGraph, {
+          ...scenario,
+          name: scenario.name.replace('cache hit key', 'stringify cache key'),
+        }),
+      )
+    }
+
     for (const scenario of cacheKeyScenarios) {
       printCacheKeyMeasurement(measureCacheKeyScenario(paramGraph, scenario))
     }

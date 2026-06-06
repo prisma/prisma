@@ -8,7 +8,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Prisma repo current relevant commits:
   - Current branch: add parameterized plan cache memory scenarios
-  - This commit: Add cached request wrapper timing rows
+  - This commit: Split cache-key timing phases
+  - `7c46ec97d Add cached request wrapper timing rows`
   - `337273d20 Guard disabled ClientEngine debug calls`
   - `44c99869d Fast-path connected ClientEngine requests`
   - `b583f51a3 Add direct cached-plan timing rows`
@@ -216,6 +217,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
       - `git diff --check`
     - Decision: keep as a measurement probe. It narrows the next useful target away from generic `ClientEngine` wrapper work and toward either `parameterizeQuery()`/cache-key construction or cached-plan execution/rendering.
+
+  - This commit: Split cache-key timing phases
+    - `client-engine-cache-timing.ts` now splits exact-shape cache-key work into:
+      - `parameterize ...` rows that run only `parameterizeQuery()`.
+      - `stringify cache key ...` rows that run `JSON.stringify(parameterizedQuery.query)` and cache-key concatenation over pre-parameterized queries.
+      - existing combined `cache hit key ...` rows.
+    - Clean local run:
+      - `parameterize findUnique`: about 3.81 us/op.
+      - `stringify cache key findUnique`: about 0.67 us/op.
+      - combined cache-hit key `findUnique`: about 4.31 us/op.
+      - `parameterize findMany`: about 1.52 us/op.
+      - `stringify cache key findMany`: about 0.42 us/op.
+      - combined cache-hit key `findMany`: about 1.64 us/op.
+      - `parameterize blog-page`: about 4.81 us/op.
+      - `stringify cache key blog-page`: about 1.72 us/op.
+      - combined cache-hit key blog-page: about 6.62 us/op.
+    - Interpretation: for exact product-shaped rows, `parameterizeQuery()` is the dominant cache-key phase. Replacing `JSON.stringify()` alone has low ceiling unless it is part of a fused parameterization/cache-key design.
+    - Verification:
+      - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `git diff --check`
+    - Decision: keep as a measurement probe. This strengthens the next-lead priority: optimize schema-aware parameterization or avoid doing it separately on cache hits, rather than micro-optimizing JSON stringification.
 
   - This commit: Add cache-hit key benchmark rows
     - `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts` now prebuilds benchmark query objects for parameterization rows and adds `cache hit key ...` rows that run the current single-query cache-hit key path: `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `getSingleQueryCacheKey()`.
@@ -1320,9 +1343,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `findMany in filter`: parameterization about 1.90 us, stringify about 0.41 us, key about 0.24 us.
     - nested blog query: parameterization about 2.58 us, stringify about 1.52 us, key about 0.16 us.
   - The later `client-engine-cache-timing.ts` exact-shape rows use explicit scalar selections instead of `$scalars` and are a better split for the current product-path benchmark:
-    - cache-hit key `findUnique` value churn: about 4.5 us/op.
-    - cache-hit key `findMany` stable query: about 1.9 us/op.
-    - cache-hit key blog-page value churn: about 6.4 us/op, with about 324.7 KiB total key bytes across 500 iterations.
+    - cache-hit key `findUnique` value churn: about 4.3 us/op, split into about 3.8 us parameterization and about 0.7 us stringify/key.
+    - cache-hit key `findMany` stable query: about 1.6 us/op, split into about 1.5 us parameterization and about 0.4 us stringify/key.
+    - cache-hit key blog-page value churn: about 6.6 us/op, split into about 4.8 us parameterization and about 1.7 us stringify/key, with about 324.7 KiB total key bytes across 500 iterations.
     - local executor blog-page with precomputed value-scope churn: about 15.3 us/op.
     - cached request wrapper blog-page with real `QueryPlanCache`, `LocalExecutor`, and response wrapping: about 27.3 us/op.
     - warmed `ClientEngine` blog-page after disabled-debug guards: about 31.2 us/op, so generic `ClientEngine` wrapper glue is not the next major target.
