@@ -2053,6 +2053,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
 
+- This commit: Precomputed interpreter max chunk size.
+  - `QueryInterpreter` now computes the SQL max bind/chunk size once in the constructor from `ConnectionInfo.maxBindValues` or provider defaults, then passes the cached field into `renderQuery()` from query leaves. This avoids recomputing the same provider/connection branch on every query leaf in cached-plan execution.
+  - Local product-shaped timing was modestly positive on cached-plan rows:
+    - Run 1: warmed nested rows 67.44 us/op, cached request wrapper nested rows 42.42, direct plan nested rows 40.64, precomputed query leaves 21.17, inner plan 24.91, direct after phase warmup 28.62, local executor nested rows 37.14, late warmed nested rows 52.41.
+    - Run 2: warmed nested rows 67.33 us/op, cached request wrapper nested rows 41.99, direct plan nested rows 40.41, precomputed query leaves 20.45, inner plan 25.55, direct after phase warmup 28.44, local executor nested rows 36.63, late warmed nested rows 53.00.
+  - Interpreter microbench was mixed and slightly soft on deep nested joins:
+    - Run 1: simple select 876,198 ops/sec, findUnique 1,171,475, join 322,285, sequence 903,692, deep nested join 41,483.
+    - Run 2: simple select 900,459 ops/sec, findUnique 1,194,685, join 324,886, sequence 891,822, deep nested join 42,603.
+  - Decision: keep. The change is small, preserves the same adapter/provider precedence, and the product-shaped cached-plan rows are neutral-to-positive; do not overstate it as a major win.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` twice.
+
 ## Useful Commands
 
 ```sh

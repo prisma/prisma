@@ -106,7 +106,7 @@ export class QueryInterpreter {
   readonly #serializer: (results: SqlResultSet) => Value
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
-  readonly #connectionInfo?: ConnectionInfo
+  readonly #maxChunkSize: number | undefined
   readonly #resultFormat: QueryResultFormat
 
   constructor({
@@ -123,7 +123,7 @@ export class QueryInterpreter {
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
-    this.#connectionInfo = connectionInfo
+    this.#maxChunkSize = getMaxChunkSize(provider, connectionInfo)
     this.#resultFormat = resultFormat
   }
 
@@ -227,7 +227,7 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(node.args)
 
         let sum = 0
@@ -250,7 +250,7 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(node.args)
 
         let results: SqlResultSet | undefined
@@ -581,7 +581,7 @@ export class QueryInterpreter {
 
       case 'x': {
         const dbQuery = node[1]
-        const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
+        const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(dbQuery)
 
         let sum = 0
@@ -605,7 +605,7 @@ export class QueryInterpreter {
 
       case 'q': {
         const dbQuery = node[1]
-        const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
+        const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
         const isRaw = isRawSqlQuery(dbQuery)
 
         let results: SqlResultSet | undefined
@@ -797,36 +797,6 @@ export class QueryInterpreter {
     }
   }
 
-  #maxChunkSize(): number | undefined {
-    if (this.#connectionInfo?.maxBindValues !== undefined) {
-      return this.#connectionInfo.maxBindValues
-    }
-    return this.#providerMaxChunkSize()
-  }
-
-  #providerMaxChunkSize(): number | undefined {
-    if (this.#provider === undefined) {
-      return undefined
-    }
-    switch (this.#provider) {
-      case 'cockroachdb':
-      case 'postgres':
-      case 'postgresql':
-      case 'prisma+postgres':
-        return 32766
-      case 'mysql':
-        return 65535
-      case 'sqlite':
-        return 999
-      case 'sqlserver':
-        return 2098
-      case 'mongodb':
-        return undefined
-      default:
-        assertNever(this.#provider, `Unexpected provider: ${this.#provider}`)
-    }
-  }
-
   #withQuerySpanAndEvent<T>(
     query: DeepReadonly<SqlQuery>,
     queryable: SqlQueryable,
@@ -846,7 +816,7 @@ export class QueryInterpreter {
   }
 
   async #executeQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>, context: QueryRuntimeContext): Promise<SqlResultSet> {
-    const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
+    const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize)
     const isRaw = isRawSqlQuery(dbQuery)
 
     if (!context.hasSqlCommenter && !context.usesQueryInstrumentation && queries.length === 1) {
@@ -875,6 +845,33 @@ export class QueryInterpreter {
     }
 
     return results!
+  }
+}
+
+function getMaxChunkSize(provider: SchemaProvider | undefined, connectionInfo: ConnectionInfo | undefined) {
+  if (connectionInfo?.maxBindValues !== undefined) {
+    return connectionInfo.maxBindValues
+  }
+  if (provider === undefined) {
+    return undefined
+  }
+
+  switch (provider) {
+    case 'cockroachdb':
+    case 'postgres':
+    case 'postgresql':
+    case 'prisma+postgres':
+      return 32766
+    case 'mysql':
+      return 65535
+    case 'sqlite':
+      return 999
+    case 'sqlserver':
+      return 2098
+    case 'mongodb':
+      return undefined
+    default:
+      assertNever(provider, `Unexpected provider: ${provider}`)
   }
 }
 
