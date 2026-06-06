@@ -2071,6 +2071,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
     - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` twice.
 
+- Rejected experiment: WeakMap-cached compact join shape matchers.
+  - Hypothesis: the compact mapped-join and nested-single-child-join fast paths still re-detect the same cached plan shapes on every execution, so caching positive/negative matcher results by compact plan node could reduce cached-plan interpreter overhead.
+  - Local `client-engine-cache-timing.ts` looked initially promising:
+    - Run 1: warmed nested rows 65.92 us/op, cached request wrapper nested rows 42.05, direct plan nested rows 40.36, precomputed query leaves 20.60, direct after phase warmup 28.26, local executor nested rows 37.46, late warmed nested rows 52.24.
+    - Run 2: warmed nested rows 65.01 us/op, cached request wrapper nested rows 41.74, direct plan nested rows 39.37, precomputed query leaves 19.27, direct after phase warmup 27.81, local executor nested rows 36.70, late warmed nested rows 51.57.
+  - Interpreter microbench was too negative to keep:
+    - simple select 891,924 ops/sec, findUnique 1,177,430, join 308,601, sequence 866,989, deep nested join 39,809.
+  - Decision: reverted. The WeakMap lookups in generic interpreter benchmarks cost more than the product-shaped rows justified.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+
 ## Useful Commands
 
 ```sh
