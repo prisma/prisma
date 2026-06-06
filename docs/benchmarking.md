@@ -54,7 +54,7 @@ pnpm bench interpreter
 
 # Run a specific benchmark file directly
 node -r esbuild-register packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
-node -r esbuild-register packages/client/src/__tests__/benchmarks/query-performance/compilation.bench.ts
+node -r esbuild-register packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts
 node -r esbuild-register packages/client-engine-runtime/bench/interpreter.bench.ts
 ```
 
@@ -74,7 +74,8 @@ CODSPEED_BENCHMARK=true pnpm bench
 | File                         | Description                                  |
 | ---------------------------- | -------------------------------------------- |
 | `query-performance.bench.ts` | End-to-end query benchmarks with SQLite      |
-| `compilation.bench.ts`       | Query compiler benchmarks                    |
+| `caching.bench.ts`           | Query compiler/cache behavior benchmarks     |
+| `query-plan-cache-memory.ts` | Query plan cache retained heap probe         |
 | `schema.prisma`              | Benchmark schema with typical web app models |
 | `seed-data.ts`               | Data generation utilities                    |
 | `prisma.config.ts`           | Prisma configuration for benchmarks          |
@@ -257,6 +258,9 @@ node --cpu-prof -r esbuild-register packages/client/src/__tests__/benchmarks/que
 ```bash
 # Generate heap snapshots
 node --heap-prof -r esbuild-register packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
+
+# Probe retained query plan cache heap after forced GC
+pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 ```
 
 ### Using 0x for Flame Graphs

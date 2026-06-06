@@ -197,6 +197,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Unlike the rejected `placeholderFormat` omission, this does not require provider-default resolution in the interpreter: `dbType` is already optional in the adapter-facing TypeScript type.
   - `caching.bench.ts` with the rebuilt local Wasm was neutral-to-positive on compile rows: about 1,466 / 1,236 / 320 ops/sec for `findUnique`, filtered `findMany`, and blog-page query.
 
+- Query plan cache memory probe:
+  - Added `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
+  - Run with:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+  - The probe warms the sqlite Wasm query compiler, compiles unique `User.findMany` scalar-selection shapes, stores the resulting plans in `QueryPlanCache`, and reports forced-GC heap deltas.
+  - Stable local Node/V8 results:
+    - Cache disabled, 1,000 compiles, 0 retained: heap delta about 56.2 KiB.
+    - Edge default warm, 100 compiles, 100 retained: heap delta about 258.9 KiB; about 2.6 KiB heap per retained entry; about 95.4 KiB serialized retained shape.
+    - Edge default churn, 1,000 compiles, 100 retained: heap delta about 404.5 KiB; about 4.0 KiB heap per retained entry; about 137.2 KiB serialized retained shape.
+    - Node default warm, 1,000 compiles, 1,000 retained: heap delta about 2.88 MiB; about 2.9 KiB heap per retained entry; about 1.16 MiB serialized retained shape.
+  - This confirms the edge default cache size materially caps retained plan memory for simple unique plans. It is still a Node/V8 proxy, not a true workerd isolate measurement.
+
 - Temporary native allocation profiler over query compiler phases:
   - Implemented as a temporary `query-compiler` example with a counting global allocator, then removed.
   - It measured per-iteration allocation counts/bytes for parse, `into_doc`, graph build, translate, simplify, and native JSON serialization.
@@ -251,8 +263,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Treat as a project-level design/spike candidate. First useful proof would be a small Wasm prototype that walks a JS query object, computes the existing parameterization cache key, and returns placeholder refs without materializing `serde_json::Value`.
 
 - More Cloudflare-specific memory measurement.
-  - Current evidence is mostly Node/V8 local benchmarks.
-  - Need a repeatable memory harness for edge bundle startup, Wasm instance, query compiler cache size, and representative query execution.
+  - Current evidence is still mostly Node/V8 local benchmarks.
+  - First repeatable query-plan-cache retention probe exists at `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
+  - Remaining gap: a true workerd/miniflare memory harness for edge bundle startup, Wasm instance memory, query compiler cache size, and representative query execution.
 
 ## Useful Commands
 
@@ -268,6 +281,7 @@ pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand
 pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
+pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 
 cd /home/aqrln.guest/prisma-engines
 cargo test -p query-compiler --test queries

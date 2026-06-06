@@ -12,8 +12,9 @@
   - `pnpm bench <pattern>` - Run benchmarks matching pattern
   - Benchmark locations:
     - End-to-end query performance: `packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts`
-    - Query compilation: `packages/client/src/__tests__/benchmarks/query-performance/compilation.bench.ts`
+    - Query compilation/cache behavior: `packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
     - Query interpreter/data mapper: `packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - Query plan cache memory probe: `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
     - Client generation: `packages/client/src/__tests__/benchmarks/huge-schema/`, `packages/client/src/__tests__/benchmarks/lots-of-relations/`
   - Benchmarks run automatically on CI via `.github/workflows/benchmark.yml`; CodSpeed tracks performance over time and alerts on >100% regression.
   - The ongoing Prisma Client performance investigation journal is `wip/client-performance-journal.md`; update it after each accepted change, rejected experiment, measurement, and new lead so work survives context compactions and harness restarts.
