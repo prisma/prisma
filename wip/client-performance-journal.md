@@ -1098,7 +1098,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client-engine-runtime build`
     - `pnpm --filter @prisma/client build`
 
+- This commit: Add nested blog-page cache timing rows.
+  - `client-engine-cache-timing.ts` now has a scripted SQLite adapter for the benchmark blog-page query. It returns one post row, one author, one category, two post-tag rows, two tag rows, two comments, and two comment authors.
+  - The nested scenario executes seven SQL calls per request, so it gives a product-path signal for join attachment and nested data mapping instead of only the empty-parent traversal path.
+  - First clean local run after adding the rows:
+    - warmed `ClientEngine` blog-page nested rows: about 94.26 us/op, `queryRaw=3500`, heap delta about 180.3 KiB across 500 iterations.
+    - cached request wrapper blog-page nested rows: about 59.96 us/op, `queryRaw=3500`, heap delta about 124.8 KiB.
+    - direct plan blog-page nested rows: about 60.55 us/op, `queryRaw=3500`, heap delta about 42.4 KiB.
+    - local executor blog-page nested rows: about 58.83 us/op, `queryRaw=3500`, heap delta about 31.1 KiB.
+    - Same run empty-parent rows for comparison: direct plan blog-page about 13.18 us/op; local executor blog-page about 14.08 us/op.
+  - Final post-format verification run was noisier/slower but confirmed the rows execute successfully:
+    - warmed `ClientEngine` blog-page nested rows: about 100.47 us/op.
+    - cached request wrapper blog-page nested rows: about 64.04 us/op.
+    - direct plan blog-page nested rows: about 62.92 us/op.
+    - local executor blog-page nested rows: about 64.34 us/op.
+  - Interpretation: real nested row mapping/join attachment dominates the gap between empty-row and nested-row blog-page execution. The next interpreter target should use the nested rows, not the empty-row blog-page row alone.
+  - Verification:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
 ## Rejected Experiments
+
+- Single-parent strict-key join attachment fast path.
+  - Tried a special case in `attachChildrenToParents()` for `canAssumeStrictEquality`, one join key, and a single parent object. The path initialized the parent relation field and scanned child rows directly, avoiding the parent map, key arrays, wrapper arrays, and `getRecordKey()` for the common one-parent nested blog-page joins.
+  - Correctness passed:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+  - Interpreter microbench was worse than the immediately preceding kept run:
+    - `simple select`: 877,974 ops/sec vs 903,596.
+    - `findUnique`: 1,170,082 ops/sec vs 1,203,571.
+    - `join (1:N)`: 346,103 ops/sec vs 350,013.
+    - `sequence`: 884,173 ops/sec vs 898,907.
+    - `deep nested join`: 45,671 ops/sec vs 46,895.
+  - Product-path nested rows did not justify keeping it:
+    - warmed nested blog-page: about 93.54 us/op vs 94.26 baseline, only noise-level better.
+    - cached request wrapper nested blog-page: about 60.19 us/op vs 59.96 baseline, worse.
+    - direct plan nested blog-page: about 59.92 us/op vs 60.55 baseline, only noise-level better.
+    - local executor nested blog-page: about 59.89 us/op vs 58.83 baseline, worse.
+  - Decision: reverted. Keep the existing map-based attach path and row-count threshold until a broader join/data-map strategy wins on the nested benchmark and the interpreter microbench together.
 
 - Parameterization traversal object-copy variants.
   - Tried replacing `Object.keys()` plus "copy previous keys on first change" in `parameterizeQuery()` object and selection traversal with `for...in` plus a lazy full object clone on the first changed field.

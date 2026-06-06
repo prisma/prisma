@@ -65,6 +65,79 @@ const USER_SCALAR_RESULT: SqlResultSet = Object.freeze({
     ),
   ) as unknown[][],
 })
+const BLOG_PAGE_POST_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze([
+    'id',
+    'title',
+    'slug',
+    'content',
+    'published',
+    'viewCount',
+    'createdAt',
+    'authorId',
+    'categoryId',
+    '_aggr_count_likes',
+    '_aggr_count_comments',
+  ]),
+  columnTypes: Object.freeze([
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.Text,
+    ColumnTypeEnum.Text,
+    ColumnTypeEnum.Text,
+    ColumnTypeEnum.Boolean,
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.DateTime,
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.Int32,
+  ]) as ColumnType[],
+  rows: Object.freeze([
+    Object.freeze([1, 'Hello', 'hello', 'Body', true, 7, new Date('2024-01-01T00:00:00.000Z'), 10, 20, 3, 2]),
+  ]) as unknown[][],
+})
+const BLOG_PAGE_AUTHOR_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['id', 'name', 'avatar']),
+  columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]) as ColumnType[],
+  rows: Object.freeze([Object.freeze([10, 'Alice', 'alice.png'])]) as unknown[][],
+})
+const BLOG_PAGE_CATEGORY_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['id', 'name', 'slug']),
+  columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]) as ColumnType[],
+  rows: Object.freeze([Object.freeze([20, 'Engineering', 'engineering'])]) as unknown[][],
+})
+const BLOG_PAGE_POST_TAG_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['postId', 'tagId']),
+  columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Int32]) as ColumnType[],
+  rows: Object.freeze([Object.freeze([1, 100]), Object.freeze([1, 101])]) as unknown[][],
+})
+const BLOG_PAGE_TAG_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['id', 'name', 'slug']),
+  columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]) as ColumnType[],
+  rows: Object.freeze([Object.freeze([100, 'Rust', 'rust']), Object.freeze([101, 'Wasm', 'wasm'])]) as unknown[][],
+})
+const BLOG_PAGE_COMMENT_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['id', 'content', 'createdAt', 'authorId', 'postId']),
+  columnTypes: Object.freeze([
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.Text,
+    ColumnTypeEnum.DateTime,
+    ColumnTypeEnum.Int32,
+    ColumnTypeEnum.Int32,
+  ]) as ColumnType[],
+  rows: Object.freeze([
+    Object.freeze([200, 'Nice', new Date('2024-01-02T00:00:00.000Z'), 11, 1]),
+    Object.freeze([201, 'Great', new Date('2024-01-03T00:00:00.000Z'), 12, 1]),
+  ]) as unknown[][],
+})
+const BLOG_PAGE_COMMENT_AUTHOR_RESULT: SqlResultSet = Object.freeze({
+  columnNames: Object.freeze(['id', 'name', 'avatar']),
+  columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]) as ColumnType[],
+  rows: Object.freeze([
+    Object.freeze([11, 'Bob', 'bob.png']),
+    Object.freeze([12, 'Carla', 'carla.png']),
+  ]) as unknown[][],
+})
 
 type Counts = {
   compile: number
@@ -73,12 +146,15 @@ type Counts = {
   executeRaw: number
 }
 
+type ScenarioAdapterFactory = (counts: Counts) => SqlDriverAdapterFactory
+
 type Scenario = {
   name: string
   iterations: number
   query: (iteration: number) => JsonQuery
   cacheMaxSize: number
   resultSet?: SqlResultSet
+  adapterFactory?: ScenarioAdapterFactory
 }
 
 type Measurement = Scenario & {
@@ -93,6 +169,7 @@ type DirectPlanScenario = {
   iterations: number
   query: JsonQuery
   resultSet?: SqlResultSet
+  adapterFactory?: ScenarioAdapterFactory
 }
 
 type DirectPlanScopeScenario = {
@@ -100,6 +177,7 @@ type DirectPlanScopeScenario = {
   iterations: number
   query: (iteration: number) => JsonQuery
   resultSet?: SqlResultSet
+  adapterFactory?: ScenarioAdapterFactory
 }
 
 type CacheKeyScenario = {
@@ -107,6 +185,7 @@ type CacheKeyScenario = {
   iterations: number
   query: (iteration: number) => JsonQuery
   resultSet?: SqlResultSet
+  adapterFactory?: ScenarioAdapterFactory
 }
 
 type DirectPlanMeasurement = DirectPlanScenario & {
@@ -206,6 +285,41 @@ class EmptyTransaction implements Transaction {
   }
 }
 
+class BlogPageSqliteAdapter implements SqlDriverAdapter {
+  readonly provider = 'sqlite'
+  readonly adapterName = '@prisma/adapter-benchmark-blog-page'
+
+  constructor(private readonly counts: Counts) {}
+
+  queryRaw(query: SqlQuery): Promise<SqlResultSet> {
+    this.counts.queryRaw++
+    return Promise.resolve(getBlogPageResultSet(query.sql))
+  }
+
+  executeRaw(_query: SqlQuery): Promise<number> {
+    this.counts.executeRaw++
+    return Promise.resolve(0)
+  }
+
+  executeScript(_script: string): Promise<void> {
+    return Promise.resolve()
+  }
+
+  startTransaction(_isolationLevel?: IsolationLevel): Promise<Transaction> {
+    return Promise.resolve(new EmptyTransaction(this))
+  }
+
+  getConnectionInfo(): ConnectionInfo {
+    return {
+      supportsRelationJoins: false,
+    }
+  }
+
+  dispose(): Promise<void> {
+    return Promise.resolve()
+  }
+}
+
 function createAdapterFactory(counts: Counts, resultSet?: SqlResultSet): SqlDriverAdapterFactory {
   return {
     provider: 'sqlite',
@@ -214,8 +328,59 @@ function createAdapterFactory(counts: Counts, resultSet?: SqlResultSet): SqlDriv
   }
 }
 
+function createBlogPageAdapterFactory(counts: Counts): SqlDriverAdapterFactory {
+  return {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-benchmark-blog-page',
+    connect: () => Promise.resolve(new BlogPageSqliteAdapter(counts)),
+  }
+}
+
 function createAdapter(counts: Counts, resultSet?: SqlResultSet): EmptySqliteAdapter {
   return new EmptySqliteAdapter(counts, resultSet)
+}
+
+async function createScenarioAdapter(
+  counts: Counts,
+  scenario: Pick<Scenario, 'adapterFactory' | 'resultSet'>,
+): Promise<SqlDriverAdapter> {
+  if (scenario.adapterFactory !== undefined) {
+    return scenario.adapterFactory(counts).connect()
+  }
+
+  return createAdapter(counts, scenario.resultSet)
+}
+
+function getBlogPageResultSet(sql: string): SqlResultSet {
+  if (sql.includes('FROM `main`.`Post`')) {
+    return BLOG_PAGE_POST_RESULT
+  }
+
+  if (sql.includes('FROM `main`.`Category`')) {
+    return BLOG_PAGE_CATEGORY_RESULT
+  }
+
+  if (sql.includes('FROM `main`.`PostTag`')) {
+    return BLOG_PAGE_POST_TAG_RESULT
+  }
+
+  if (sql.includes('FROM `main`.`Tag`')) {
+    return BLOG_PAGE_TAG_RESULT
+  }
+
+  if (sql.includes('FROM `main`.`Comment`')) {
+    return BLOG_PAGE_COMMENT_RESULT
+  }
+
+  if (sql.includes('FROM `main`.`User`') && sql.includes(' IN ')) {
+    return BLOG_PAGE_COMMENT_AUTHOR_RESULT
+  }
+
+  if (sql.includes('FROM `main`.`User`')) {
+    return BLOG_PAGE_AUTHOR_RESULT
+  }
+
+  throw new Error(`Unexpected blog page benchmark SQL: ${sql}`)
 }
 
 async function createCountingQueryCompilerLoader(counts: Counts) {
@@ -505,7 +670,7 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
   const engine = new ClientEngine(
     {
       ...config,
-      adapter: createAdapterFactory(counts, scenario.resultSet),
+      adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
       queryPlanCacheMaxSize: scenario.cacheMaxSize,
     },
     await createCountingQueryCompilerLoader(counts),
@@ -761,7 +926,7 @@ async function measureDirectPlanScenario(
     },
     resultFormat: 'js',
   })
-  const adapter = createAdapter(counts, scenario.resultSet)
+  const adapter = await createScenarioAdapter(counts, scenario)
   const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
 
   await interpreter.run(plan, {
@@ -903,7 +1068,7 @@ async function measureDirectPlanScopeScenario(
     },
     resultFormat: 'js',
   })
-  const adapter = createAdapter(counts, scenario.resultSet)
+  const adapter = await createScenarioAdapter(counts, scenario)
   const firstQuery = scenario.query(0)
   const { plan } = compileDirectPlan(compiler, paramGraph, firstQuery)
   const placeholderValues = new Array<Record<string, unknown>>(scenario.iterations)
@@ -1027,7 +1192,7 @@ async function measureLocalExecutorScenario(
     executeRaw: 0,
   }
   const executor = await LocalExecutor.connect({
-    driverAdapterFactory: createAdapterFactory(counts, scenario.resultSet),
+    driverAdapterFactory: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     transactionOptions: {
       maxWait: 2000,
       timeout: 5000,
@@ -1087,7 +1252,7 @@ async function measureLocalExecutorScopeScenario(
     executeRaw: 0,
   }
   const executor = await LocalExecutor.connect({
-    driverAdapterFactory: createAdapterFactory(counts, scenario.resultSet),
+    driverAdapterFactory: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     transactionOptions: {
       maxWait: 2000,
       timeout: 5000,
@@ -1153,7 +1318,7 @@ async function measureCachedRequestWrapperScenario(
     executeRaw: 0,
   }
   const executor = await LocalExecutor.connect({
-    driverAdapterFactory: createAdapterFactory(counts, scenario.resultSet),
+    driverAdapterFactory: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     transactionOptions: {
       maxWait: 2000,
       timeout: 5000,
@@ -1304,6 +1469,13 @@ async function main(): Promise<void> {
       cacheMaxSize: 100,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
+    {
+      name: 'blog page nested rows / warmed cache',
+      iterations: 500,
+      cacheMaxSize: 100,
+      query: (iteration) => createBlogPostPageQuery(iteration + 1),
+      adapterFactory: createBlogPageAdapterFactory,
+    },
   ]
 
   for (const scenario of scenarios) {
@@ -1334,6 +1506,12 @@ async function main(): Promise<void> {
       name: 'direct plan blog page / empty rows',
       iterations: 500,
       query: createBlogPostPageQuery(1),
+    },
+    {
+      name: 'direct plan blog page / nested rows',
+      iterations: 500,
+      query: createBlogPostPageQuery(1),
+      adapterFactory: createBlogPageAdapterFactory,
     },
   ]
   const directPlanScopeScenarios: DirectPlanScopeScenario[] = [
@@ -1366,6 +1544,15 @@ async function main(): Promise<void> {
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
     },
   ]
+  const cachedRequestWrapperScenarios: CacheKeyScenario[] = [
+    ...cacheKeyScenarios,
+    {
+      name: 'cache hit key blog page / nested rows',
+      iterations: 500,
+      query: (iteration) => createBlogPostPageQuery(iteration + 1),
+      adapterFactory: createBlogPageAdapterFactory,
+    },
+  ]
 
   try {
     for (const scenario of cacheKeyScenarios) {
@@ -1390,7 +1577,7 @@ async function main(): Promise<void> {
       printCacheKeyMeasurement(measureCacheKeyScenario(paramGraph, scenario))
     }
 
-    for (const scenario of cacheKeyScenarios) {
+    for (const scenario of cachedRequestWrapperScenarios) {
       printDirectPlanMeasurement(
         await measureCachedRequestWrapperScenario(compiler, paramGraph, {
           ...scenario,
@@ -1416,7 +1603,7 @@ async function main(): Promise<void> {
       )
     }
 
-    for (const scenario of directPlanScenarios) {
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory === undefined)) {
       printPlanPhaseMeasurement(
         measureDataMapScenario(compiler, paramGraph, {
           ...scenario,
