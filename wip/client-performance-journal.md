@@ -2693,6 +2693,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`
     - `pnpm build`
 
+- Measurement refresh after harness restart and single-rendered-query fast path.
+  - Restarted `pnpm build` from the Prisma repo root after the harness restart request. Result: 44 successful tasks, 44 cached, 44 total, 1.109s.
+  - Command: `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Current workerd/Miniflare rows:
+    - retained scalar plan cache: 100 entries, 7.6 KiB keys, 24.4 KiB serialized plans, 585.06 us/op host dispatch over compile misses.
+    - retained blog-page plan cache: 100 entries, 48.3 KiB keys, 396.1 KiB serialized plans, 3,937.57 us/op host dispatch over compile misses.
+    - client-cache `findUnique` value churn: 60.91 us/op host dispatch, 99 hits / 1 miss.
+    - client-cache blog-page value churn: 86.29 us/op host dispatch, 99 hits / 1 miss.
+    - generated-client `findUnique` warmed cache: 64.88 us/op host dispatch upper bound for 5,000 requests.
+    - generated-client blog-page warmed cache: 120.77 us/op host dispatch upper bound for 1,000 requests.
+  - Comparison to the previous journaled Workers-shaped refresh:
+    - compile-retention rows improved modestly: scalar 611.61 -> 585.06 us/op, blog-page 4,125.84 -> 3,937.57 us/op.
+    - generated-client warmed rows improved modestly: `findUnique` 67.69 -> 64.88 us/op, blog-page 123.47 -> 120.77 us/op.
+    - client-cache `findUnique` improved 66.46 -> 60.91 us/op, while client-cache blog-page value churn regressed 82.94 -> 86.29 us/op.
+  - Interpretation: this supports keeping the single-rendered-query fast path, but the Workers probe is still an upper-bound dispatch signal and not precise enough to claim a large edge-runtime win. The bigger JS-reference-backed cache/parameterization pipeline remains a separate project-level lead.
+
 ## Useful Commands
 
 ```sh
