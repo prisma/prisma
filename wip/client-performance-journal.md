@@ -2425,6 +2425,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
 
+- Rejected measurement probe: flattened parallel query leaves.
+  - Hypothesis: running all seven compiled blog-page compact `q` leaves under a synthetic compact concat node would isolate query-leaf interpreter overhead while preserving render + adapter + serialization work.
+  - Fresh timing with the temporary probe:
+    - `interpreter parallel query leaves blog page / nested rows`: 29.69 us/op.
+    - Same run comparison rows: `direct plan blog page / nested rows` 31.03 us/op, `direct plan after phase warmup blog page / nested rows` 24.44 us/op, `local executor blog page / nested rows` 30.83 us/op, `precomputed query leaves blog page / nested rows` 18.39 us/op, `inner plan blog page / nested rows` 21.96 us/op, `render query all leaves` 2.03 us/op, adapter-only 3.08 us/op, `serializeSql` 3.90 us/op.
+  - Decision: reverted. The row is too synthetic to keep because it flattens all leaf result sets and bypasses the real plan's join/data-shape work, yet still comes out near full local execution and above the warmed direct-plan row. Prefer the existing `inner plan`, `precomputed query leaves`, root join child branch, render-only, adapter-only, and serialization rows for attribution.
+  - Verification:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+
+- Architecture lead added to todo: JS-owned query data and Rust-owned IR only.
+  - Current boundary: `ClientEngine` still calls `QueryCompiler.compile(request: string)` / `compileBatch(request: string)`, and Rust parses that string with `RequestBody::try_from_str` before converting `JsonBody` into `QueryDocument` / `Operation`.
+  - Assessment: potentially practical only as a larger architecture track, not as a `serde_wasm_bindgen` swap. The useful version would pass the original JS query object as a Wasm reference, fuse parameterization + cache-keying + cache lookup + compile-hit handling while walking JS data once, and return/cache JS plan objects on cache hits without serializing plans through Wasm memory.
+  - Constraints and risks:
+    - A cache-key-only Wasm walker was already measured much slower, so the JS-reference walk must replace more than `JSON.stringify()`.
+    - Wrapper types like `PrismaString` are plausible for unit tests and post-parse internals, but the main win requires validation/query graph construction to consume borrowed/input-backed values without first materializing owned `JsonBody` / `serde_json::Value` maps.
+    - Avoiding Rust-owned SQL strings is a separate and larger rendering/cache design: SQL would need to be represented as templates, interned parts, or JS-backed strings without turning every property/string access across the Wasm boundary into the new bottleneck.
+  - Suggested next investigation:
+    - Prototype a single hot read path that walks `js_sys` query values once, parameterizes and builds a structural cache key in the same pass, checks the cache before building Rust-owned parse structures, and only falls back to existing compile for misses.
+    - Measure on workerd as well as Node because externref/property-access costs may differ materially from V8-on-Node microbenchmarks.
+    - Keep the prototype scoped to cache-hit latency and memory first; compile-miss wins are lower priority unless plan serialization and Rust-owned parser allocations are also removed.
+
 ## Useful Commands
 
 ```sh
