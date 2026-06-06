@@ -2346,6 +2346,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client-engine-runtime build`
     - `pnpm --filter @prisma/client build`
 
+- Engines commit: avoid result-scope binding-name allocations (`5651e93c3a4` in `/home/aqrln.guest/prisma-engines`).
+  - Rust-side change: `query-compiler/src/translate.rs::fold_result_scopes()` no longer collects all result nodes into a `Vec` just to check the count, and no longer builds a binding-name `Vec` for the single-result-node path.
+  - The single-result path now uses `self.graph.result_nodes().take(2).count() == 1` and clones only the last binding name needed by `Expression::Get`. The multi-result fallback still builds the binding-name list for `GetFirstNonEmpty`.
+  - Allocation profile before -> after:
+    - `create-nested-create` `translate_ir`: 715 -> 713 allocs/op.
+    - `create-nested-create` `compile_ir`: 1209 -> 1207.
+    - `create-nested-create` `full_compile`: 1322 -> 1320.
+    - `query-m2o`, `query-many-m2m`, `nested-pagination-query`, and `filter-contains-param` were unchanged, as expected.
+  - Criterion evidence:
+    - `compile/create-nested-create-with-composite-id`: -0.91% average change, reported within noise threshold.
+    - `compile/create-nested-create`: +0.19% average change, no change detected.
+    - Decision: keep. This is a small, localized allocation cleanup for result-scope translation with neutral focused timing.
+  - Wasm / Prisma repo handoff:
+    - Rebuilt local query compiler Wasm with `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer-resolution lockfile churn, so that lockfile noise was removed.
+  - Verification:
+    - `cargo fmt -p query-compiler`
+    - `ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "create-nested-create"`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+
 ## Useful Commands
 
 ```sh
