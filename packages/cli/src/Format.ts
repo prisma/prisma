@@ -16,6 +16,10 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
+export function normalizeFormattedSchemaLineEndings(schema: string): string {
+  return schema.replace(/\r\n/g, '\n')
+}
+
 /**
  * $ prisma format
  */
@@ -88,12 +92,13 @@ Or specify a Prisma schema path
 
     if (args['--check']) {
       for (const [filename, formattedSchema] of formattedDatamodel) {
+        const normalizedFormattedSchema = normalizeFormattedSchemaLineEndings(formattedSchema)
         const originalSchemaTuple = schemas.find((s) => s[0] === filename)
         if (!originalSchemaTuple) {
           return new HelpError(`${bold(red(`!`))} The schema ${underline(filename)} is not found in the schema list.`)
         }
         const [, originalSchema] = originalSchemaTuple
-        if (originalSchema !== formattedSchema) {
+        if (originalSchema !== normalizedFormattedSchema) {
           return new HelpError(
             `${bold(red(`!`))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
           )
@@ -103,7 +108,7 @@ Or specify a Prisma schema path
     }
 
     for (const [filename, data] of formattedDatamodel) {
-      await fs.writeFile(filename, data)
+      await fs.writeFile(filename, normalizeFormattedSchemaLineEndings(data))
     }
 
     const after = Math.round(performance.now())
