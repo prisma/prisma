@@ -4276,6 +4276,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `PrismaString`-style wrappers are plausible for making unit tests and Wasm share parser/validator code, but they only pay if validation/query graph construction can consume borrowed or JS-backed values. If the implementation still builds `JsonBody`, `serde_json::Value`, or `ArgumentValue` maps first, most of the benefit is gone.
     - Avoiding Rust-owned SQL strings is likely a second project. The compile-miss path currently constructs SQL fragments in Rust; keeping SQL JS-owned would require template/interner/string-wrapper IR that does not make cross-boundary string/property access slower than the current JSON transfer.
 
+- Workerd probe refresh after harness restart.
+  - Timestamp: 2026-06-07T03:18:50Z.
+  - Command:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Compile/cache retention rows:
+    - Cold smoke compile: host dispatch 216.1 ms total, compiler init 64.0 ms, compile loop 47.0 ms for one `find-unique`, average serialized plan 532 B, host heap delta 1.61 MiB.
+    - Retained scalar plan cache: host dispatch 612.70 us/op for 100 shapes, compile loop 59.0 ms, retained 100 entries with 7.6 KiB keys and 24.1 KiB serialized plans.
+    - Retained blog-page plan cache: host dispatch 4260.20 us/op for 100 shapes, compile loop 423.0 ms, retained 100 entries with 48.3 KiB keys and 394.8 KiB serialized plans.
+    - `client-cache findUnique` value churn: host dispatch 58.93 us/op for 100 requests, 99/1 cache hits/miss, retained one 548 B plan and 138 B key.
+    - `client-cache blog-page` value churn: host dispatch 80.79 us/op for 100 requests, 99/1 cache hits/miss, retained one 4.3 KiB plan and 704 B key.
+  - Generated-client warmed cache rows:
+    - `findUnique`: host dispatch upper bound 66.20 us/op for 5,000 requests, worker timer below resolution, 5,000/0 cache hits/misses, 5,000 `queryRaw` calls, host heap delta 238.7 KiB.
+    - Blog page by id: host dispatch upper bound 122.09 us/op for 1,000 requests, worker timer below resolution, 1,000/0 cache hits/misses, 7,000 `queryRaw` calls, host heap delta 17.3 KiB.
+  - Interpretation:
+    - Workerd host-dispatch timing remains much coarser than the Node source timing, but the warmed generated-client rows confirm there are no compiles on hits and that blog-page execution is still dominated by seven query leaves plus runtime assembly.
+    - The retained blog-page plan shape is consistent with the Node memory rows: about 4 KiB serialized plan per shape and roughly 0.5 KiB cache key per shape. This supports prioritizing retained plan representation and fused cache-hit architecture for Workers rather than shallow request JSON parsing changes.
+
 ## Useful Commands
 
 ```sh
