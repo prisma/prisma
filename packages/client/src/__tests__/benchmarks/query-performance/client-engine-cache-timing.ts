@@ -37,6 +37,7 @@ import {
   type QueryPlanCompactNode,
   type QueryPlanDbQuery,
   type QueryPlanNode,
+  type RawNestedReadQuery,
   type ResultNode,
 } from '../../../../../client-engine-runtime/src'
 import { applyDataMap, applyDataMapToResultSet } from '../../../../../client-engine-runtime/src/interpreter/data-mapper'
@@ -2533,6 +2534,93 @@ async function measureRawResultSetBlogPagePrototypeScenario(
   }
 }
 
+function buildRawNestedBlogPageQuery(dbQueries: readonly QueryPlanDbQuery[]): RawNestedReadQuery {
+  return [
+    dbQueries[0],
+    RAW_POST_COLUMNS,
+    [
+      ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true],
+      ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true],
+      ['m', 'tags', dbQueries[3], [dbQueries[4], RAW_TAG_COLUMNS], 0, 0, 1, 0, '@parent$id', '@parent$tagId'],
+      [
+        'r',
+        'comments',
+        [
+          dbQueries[5],
+          RAW_COMMENT_COLUMNS,
+          [['r', 'author', [dbQueries[6], RAW_USER_COLUMNS], 3, 0, '@parent$authorId', true]],
+        ],
+        0,
+        4,
+        '@parent$id',
+        false,
+      ],
+    ],
+  ]
+}
+
+async function measureRawResultSetCompactNodeScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const interpreter = QueryInterpreter.forSql({
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+    connectionInfo: {
+      supportsRelationJoins: false,
+    },
+    resultFormat: 'js',
+  })
+  const adapter = new BlogPageSqliteAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const dbQueries = getDbQueries(plan)
+  if (dbQueries.length !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  const rawPlan = ['n', buildRawNestedBlogPageQuery(dbQueries), true] as const satisfies QueryPlanNode
+  await interpreter.run(rawPlan, {
+    queryable: adapter,
+    scope: placeholderValues,
+    transactionManager: { enabled: false },
+  })
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogResult(
+      await interpreter.run(rawPlan, {
+        queryable: adapter,
+        scope: placeholderValues,
+        transactionManager: { enabled: false },
+      }),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 function getPrecomputedBlogPageQueryScope(): Record<string, unknown> {
   const scope = Object.create(null) as Record<string, unknown>
   for (let i = 0; i < BLOG_PAGE_RESULT_SETS.length; i++) {
@@ -3841,6 +3929,17 @@ async function main(): Promise<void> {
       printDirectPlanMeasurement(
         await measureRawResultSetBlogPagePrototypeScenario(compiler, paramGraph, measuredScenario),
       )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set compact node'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(await measureRawResultSetCompactNodeScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {

@@ -235,6 +235,39 @@ export function getJoinExpressionIsRelationUnique(join: JoinExpression): boolean
   return 'isRelationUnique' in join ? join.isRelationUnique : join[3]
 }
 
+export type RawResultColumnMapping = readonly [fieldName: string, columnIndex: number]
+
+export type RawNestedReadQuery = readonly [
+  query: QueryPlanDbQuery,
+  fields: readonly RawResultColumnMapping[],
+  relations?: readonly RawNestedReadRelation[],
+]
+
+export type RawNestedReadRelation = RawNestedReadDirectRelation | RawNestedReadManyToManyRelation
+
+export type RawNestedReadDirectRelation = readonly [
+  type: 'r',
+  fieldName: string,
+  child: RawNestedReadQuery,
+  parentColumnIndex: number,
+  childColumnIndex: number,
+  scopeName: string,
+  isRelationUnique: boolean,
+]
+
+export type RawNestedReadManyToManyRelation = readonly [
+  type: 'm',
+  fieldName: string,
+  joinQuery: QueryPlanDbQuery,
+  child: RawNestedReadQuery,
+  parentColumnIndex: number,
+  joinParentColumnIndex: number,
+  joinChildColumnIndex: number,
+  childColumnIndex: number,
+  joinScopeName: string,
+  childScopeName: string,
+]
+
 export type QueryPlanNode = QueryPlanLegacyNode | QueryPlanCompactNode
 
 export type QueryPlanLegacyNode =
@@ -394,6 +427,7 @@ export type QueryPlanCompactNode =
   | readonly ['i', QueryPlanNode, Record<string, FieldInitializer>]
   | readonly ['M', QueryPlanNode, Record<string, FieldOperation>]
   | readonly ['p', QueryPlanNode, InMemoryOps]
+  | readonly ['n', RawNestedReadQuery, unique: boolean]
 
 export type FieldInitializer = { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }
 

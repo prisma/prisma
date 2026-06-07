@@ -4843,11 +4843,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Same-process nested comparison over 20k iterations: warmed ClientEngine 20.00 us/op; cached request wrapper 17.66; direct plan 10.78; inner plan 9.22; local executor 12.01; raw lower-bound assembly 0.50; generic raw-result prototype 5.47.
   - Interpretation: this is not production code yet, but it is a much stronger proof point than the fixed lower-bound row. Even with current SQL rendering and adapter dispatch included, bypassing serialized intermediate rows and generic data-map/join interpretation roughly halves the local executor nested-row time for this shape. The next production slice should prototype a compact raw-nested-read node/protocol and JS interpreter implementation, then teach Rust `add_inmemory_join()` / `DataMap` translation to emit it for safe query-mode nested reads.
 
+- Accepted runtime prototype: compact raw nested read node.
+  - Change: `@prisma/client-engine-runtime` now understands a compact `['n', rawNestedReadQuery, unique]` plan node. The node executes raw `SqlResultSet` query leaves, maps selected columns directly into JS result objects, and attaches direct or many-to-many child relations without `serializeSql()`, generic `Join`, or an outer `dataMap`. The raw query tree is compiled through the existing compact-node cache so relation descriptors and child executors are prepared once per plan object.
+  - Coverage:
+    - `query-interpreter.test.ts` covers a unique parent with direct unique/list children and a separate many-to-many relation.
+    - `client-engine-cache-timing.ts` includes `raw result-set compact node blog page / nested rows`, built from the real compiled blog-page DB query leaves.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Measurement signal:
+    - Isolated compact-node row after compiling descriptors and using the direct query fast path: 8.82 us/op over 20k iterations.
+    - Same-process nested comparison over 20k iterations: warmed ClientEngine 20.04 us/op; cached request wrapper 17.70; direct plan 10.75; inner plan 9.06; local executor 11.82; external raw prototype 5.42; compact raw node 8.26.
+  - Decision: keep as protocol/runtime groundwork, not as the final win. The compact node is already faster than the current inner plan and local executor on the measured shape, but it captures only part of the external prototype's headroom. Next work should either teach Rust to emit this node for a narrow safe query-mode shape and measure end-to-end, or profile why the generic compact node still trails the external prototype by roughly 2.8 us/op before broadening the protocol.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
   - More radical architecture lead from 2026-06-07: make the query compiler own only true internal IR on the Rust heap. The input query would stay on the JS heap behind wrapper/value traits, and produced SQL could be represented as JS-owned strings or SQL-template/string handles where practical. Rust unit tests could instantiate the same wrapper API with native Rust backing types; Wasm builds could instantiate it over `js_sys`/Wasm reference types.
   - Potential cache-hit shape: Client passes one JS query object reference; Rust parameterizes and computes structural identity directly against JS data without cloning strings/maps into Wasm memory; Rust then either returns a cached JS query-plan object or compiles and stores one. This is probably only practical if planned as an architectural slice, because it touches parser/validator ownership, string/value abstractions, query-plan cache representation, and the JS/Rust test boundary at once.
+  - Concrete spike shape: introduce a tiny `PrismaString`/`PrismaValueRef`-style abstraction in a leaf parser/validator path, with native Rust backing for normal tests and `js_sys`/reference-type backing for Wasm, then measure whether avoiding string/map ownership beats the extra dynamic property access and wrapper dispatch.
 - Investigate plan-shape/data-map pushdown for nested query-mode joins only if it can remove whole row-materialization or outer-mapping phases. The current warmed blog-page row leaves roughly 9-12 us/op in direct/local nested plan execution, while a benchmark-only raw-result-set nested assembly lower bound is about 0.5 us/op. This supports a larger raw-result-set mapping/joining plan shape, not more tiny current-interpreter helper rewrites.
 - Keep Rust allocation work focused on structural graph/translation ownership improvements with allocation-profile plus Criterion gates. Tiny manual rewrites that save allocations have frequently regressed CPU.
 

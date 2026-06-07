@@ -1,7 +1,7 @@
 import { ColumnTypeEnum, type SqlQuery, type SqlQueryable, type SqlResultSet } from '@prisma/driver-adapter-utils'
 import { expect, test } from 'vitest'
 
-import { QueryPlanNode } from '../query-plan'
+import type { PrismaValue, QueryPlanDbQuery, QueryPlanNode } from '../query-plan'
 import { noopTracingHelper } from '../tracing'
 import { UserFacingError } from '../user-facing-error'
 import { QueryInterpreter, QueryRuntimeOptions } from './query-interpreter'
@@ -287,6 +287,185 @@ test('interprets compact mapped join branches', async () => {
   })
 })
 
+test('interprets compact raw nested read nodes', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id, authorId FROM Post WHERE id = ', 1)
+  const authorQuery = templateQuery('SELECT id, name FROM User WHERE id = ', { $p: ['@parent$authorId', 'int'] })
+  const commentsQuery = templateQuery('SELECT id, postId, content FROM Comment WHERE postId = ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [
+        ['id', 0],
+        ['authorId', 1],
+      ],
+      [
+        [
+          'r',
+          'author',
+          [
+            authorQuery,
+            [
+              ['id', 0],
+              ['name', 1],
+            ],
+          ],
+          1,
+          0,
+          '@parent$authorId',
+          true,
+        ],
+        [
+          'r',
+          'comments',
+          [
+            commentsQuery,
+            [
+              ['id', 0],
+              ['postId', 1],
+              ['content', 2],
+            ],
+          ],
+          0,
+          1,
+          '@parent$id',
+          false,
+        ],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  const observedQueries: SqlQuery[] = []
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      observedQueries.push(query)
+      if (query.sql.startsWith('SELECT id, authorId')) {
+        return Promise.resolve({
+          columnNames: ['id', 'authorId'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+          rows: [[1, 10]],
+        })
+      }
+      if (query.sql.startsWith('SELECT id, name')) {
+        return Promise.resolve({
+          columnNames: ['id', 'name'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+          rows: [[10, 'Alice']],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'postId', 'content'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+        rows: [
+          [100, 1, 'Nice'],
+          [101, 1, 'Great'],
+        ],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
+    id: 1,
+    authorId: 10,
+    author: { id: 10, name: 'Alice' },
+    comments: [
+      { id: 100, postId: 1, content: 'Nice' },
+      { id: 101, postId: 1, content: 'Great' },
+    ],
+  })
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [1]])
+})
+
+test('interprets compact raw nested read many-to-many relations', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
+  const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', { $p: ['@parent$id', 'int'] })
+  const tagQuery = templateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 0]],
+      [
+        [
+          'm',
+          'tags',
+          postTagQuery,
+          [
+            tagQuery,
+            [
+              ['id', 0],
+              ['name', 1],
+            ],
+          ],
+          0,
+          0,
+          1,
+          0,
+          '@parent$id',
+          '@parent$tagId',
+        ],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  const observedQueries: SqlQuery[] = []
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      observedQueries.push(query)
+      if (query.sql.startsWith('SELECT id FROM Post')) {
+        return Promise.resolve({
+          columnNames: ['id'],
+          columnTypes: [ColumnTypeEnum.Int32],
+          rows: [[1]],
+        })
+      }
+      if (query.sql.startsWith('SELECT postId')) {
+        return Promise.resolve({
+          columnNames: ['postId', 'tagId'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+          rows: [
+            [1, 10],
+            [1, 11],
+          ],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'name'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+        rows: [
+          [10, 'Rust'],
+          [11, 'Wasm'],
+        ],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
+    id: 1,
+    tags: [
+      { id: 10, name: 'Rust' },
+      { id: 11, name: 'Wasm' },
+    ],
+  })
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
+})
+
 test('joins single strict keys without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
@@ -397,6 +576,10 @@ function emptyResultSet(): SqlResultSet {
     columnTypes: [],
     rows: [],
   }
+}
+
+function templateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
+  return [[sqlPrefix, { type: 'parameter' }], ['?', false], [arg], ['int'], false]
 }
 
 function rejectingQueryable(): SqlQueryable {

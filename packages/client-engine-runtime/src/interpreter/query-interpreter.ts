@@ -26,6 +26,11 @@ import {
   type QueryPlanLegacyNode,
   QueryPlanNode,
   type QueryPlanRawSql,
+  type RawNestedReadDirectRelation,
+  type RawNestedReadManyToManyRelation,
+  type RawNestedReadQuery,
+  type RawNestedReadRelation,
+  type RawResultColumnMapping,
   type ResultNode,
   type ResultObjectNode,
 } from '../query-plan'
@@ -78,6 +83,16 @@ export type QueryInterpreterSqlCommenter = {
 }
 
 type CompiledQueryNode = (context: QueryRuntimeContext) => Promise<IntermediateValue>
+type CompiledRawNestedReadQuery = (
+  context: QueryRuntimeContext,
+  scope: Record<string, unknown>,
+) => Promise<RawNestedReadResult>
+type CompiledRawNestedReadRelation = (
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  context: QueryRuntimeContext,
+  scope: Record<string, unknown>,
+) => Promise<void>
 
 const EMPTY_ENUMS: Record<string, Record<string, string>> = Object.freeze({})
 
@@ -733,6 +748,22 @@ export class QueryInterpreter {
         }
       }
 
+      case 'n': {
+        const compiledQuery = this.#compileRawNestedReadQuery(node[1])
+        const unique = node[2]
+        return async (context) => {
+          const result = await compiledQuery(context, context.scope)
+          if (!unique) {
+            return { value: result.records }
+          }
+
+          if (result.records.length > 1) {
+            throw new Error(`Expected zero or one element, got ${result.records.length}`)
+          }
+          return { value: result.records[0] ?? null }
+        }
+      }
+
       default:
         return (context) => this.#interpretCompactNode(node, context)
     }
@@ -1092,6 +1123,71 @@ export class QueryInterpreter {
     }
   }
 
+  #compileRawNestedReadQuery(query: RawNestedReadQuery): CompiledRawNestedReadQuery {
+    const dbQuery = query[0]
+    const mappings = query[1]
+    const relations = query[2]?.map((relation) => this.#compileRawNestedReadRelation(relation))
+
+    return async (context, scope) => {
+      const resultSet = await this.#executeRawNestedReadDbQuery(dbQuery, context, scope)
+      const records = mapRawNestedRows(resultSet.rows, mappings)
+      if (relations !== undefined && resultSet.rows.length > 0) {
+        for (const relation of relations) {
+          await relation(resultSet.rows, records, context, scope)
+        }
+      }
+
+      return {
+        rows: resultSet.rows,
+        records,
+      }
+    }
+  }
+
+  #compileRawNestedReadRelation(relation: RawNestedReadRelation): CompiledRawNestedReadRelation {
+    if (relation[0] === 'r') {
+      const childQuery = this.#compileRawNestedReadQuery(relation[2])
+
+      return async (parentRows, parentRecords, context, scope) => {
+        const childScope = Object.create(scope) as Record<string, unknown>
+        childScope[relation[5]] = getRawNestedScopeValue(parentRows, relation[3])
+        const childResult = await childQuery(context, childScope)
+        attachRawNestedDirectRelation(parentRows, parentRecords, relation, childResult.rows, childResult.records)
+      }
+    }
+
+    const childQuery = this.#compileRawNestedReadQuery(relation[3])
+
+    return async (parentRows, parentRecords, context, scope) => {
+      const joinScope = Object.create(scope) as Record<string, unknown>
+      joinScope[relation[8]] = getRawNestedScopeValue(parentRows, relation[4])
+      const joinResultSet = await this.#executeRawNestedReadDbQuery(relation[2], context, joinScope)
+      const childScope = Object.create(scope) as Record<string, unknown>
+      childScope[relation[9]] = getRawNestedScopeValue(joinResultSet.rows, relation[6])
+      const childResult = await childQuery(context, childScope)
+
+      attachRawNestedManyToManyRelation(parentRows, parentRecords, relation, joinResultSet.rows, childResult)
+    }
+  }
+
+  async #executeRawNestedReadDbQuery(
+    dbQuery: QueryPlanDbQuery,
+    context: QueryRuntimeContext,
+    scope: Record<string, unknown>,
+  ): Promise<SqlResultSet> {
+    const queries = renderQuery(dbQuery, scope, context.generators, this.#maxChunkSize)
+    if (
+      !isRawSqlQuery(dbQuery) &&
+      !context.hasSqlCommenter &&
+      !context.usesQueryInstrumentation &&
+      queries.length === 1
+    ) {
+      return await context.queryable.queryRaw(asMutable(queries[0]))
+    }
+
+    return this.#executeQuery(dbQuery, { ...context, scope })
+  }
+
   #withQuerySpanAndEvent<T>(
     query: DeepReadonly<SqlQuery>,
     queryable: SqlQueryable,
@@ -1216,6 +1312,124 @@ export class QueryInterpreter {
 
     return results!
   }
+}
+
+type RawNestedReadResult = {
+  rows: readonly unknown[][]
+  records: PrismaObject[]
+}
+
+function mapRawNestedRows(rows: readonly unknown[][], mappings: readonly RawResultColumnMapping[]): PrismaObject[] {
+  const result = new Array<PrismaObject>(rows.length)
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex]
+    const record: PrismaObject = {}
+    for (let mappingIndex = 0; mappingIndex < mappings.length; mappingIndex++) {
+      const [fieldName, columnIndex] = mappings[mappingIndex]
+      record[fieldName] = row[columnIndex]
+    }
+    result[rowIndex] = record
+  }
+  return result
+}
+
+function getRawNestedScopeValue(rows: readonly unknown[][], columnIndex: number): unknown {
+  if (rows.length === 0) {
+    return []
+  }
+  if (rows.length === 1) {
+    return rows[0][columnIndex]
+  }
+
+  const values: unknown[] = []
+  const seen = new Set<unknown>()
+  for (let i = 0; i < rows.length; i++) {
+    const value = rows[i][columnIndex]
+    if (!seen.has(value)) {
+      seen.add(value)
+      values.push(value)
+    }
+  }
+  return values
+}
+
+function attachRawNestedDirectRelation(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  relation: RawNestedReadDirectRelation,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+): void {
+  const fieldName = relation[1]
+  const parentColumnIndex = relation[3]
+  const childColumnIndex = relation[4]
+  const isRelationUnique = relation[6]
+
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    if (isRelationUnique) {
+      parentRecords[parentIndex][fieldName] = findRawNestedChild(parentKey, childRows, childRecords, childColumnIndex)
+      continue
+    }
+
+    const children: PrismaObject[] = []
+    for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+      if (childRows[childIndex][childColumnIndex] === parentKey) {
+        children.push(childRecords[childIndex])
+      }
+    }
+    parentRecords[parentIndex][fieldName] = children
+  }
+}
+
+function attachRawNestedManyToManyRelation(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  relation: RawNestedReadManyToManyRelation,
+  joinRows: readonly unknown[][],
+  childResult: RawNestedReadResult,
+): void {
+  const fieldName = relation[1]
+  const parentColumnIndex = relation[4]
+  const joinParentColumnIndex = relation[5]
+  const joinChildColumnIndex = relation[6]
+  const childColumnIndex = relation[7]
+
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    const children: PrismaObject[] = []
+    for (let joinIndex = 0; joinIndex < joinRows.length; joinIndex++) {
+      const joinRow = joinRows[joinIndex]
+      if (joinRow[joinParentColumnIndex] !== parentKey) {
+        continue
+      }
+
+      const child = findRawNestedChild(
+        joinRow[joinChildColumnIndex],
+        childResult.rows,
+        childResult.records,
+        childColumnIndex,
+      )
+      if (child !== null) {
+        children.push(child)
+      }
+    }
+    parentRecords[parentIndex][fieldName] = children
+  }
+}
+
+function findRawNestedChild(
+  parentKey: unknown,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): PrismaObject | null {
+  for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+    if (childRows[childIndex][childColumnIndex] === parentKey) {
+      return childRecords[childIndex]
+    }
+  }
+  return null
 }
 
 function getMaxChunkSize(provider: SchemaProvider | undefined, connectionInfo: ConnectionInfo | undefined) {
