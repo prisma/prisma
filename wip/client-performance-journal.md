@@ -5283,6 +5283,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Broad patched blog-page nested rows at 100,000 iterations: cached request wrapper 14.49 us/op, direct plan 8.70, local executor 8.72, raw compact lower-bound 7.55.
   - Decision: keep. The change is narrow to a compiler-emitted wrapper shape, preserves generic raw nested semantics, and shows a small but repeatable product-shape improvement where the earlier one-line mapper branch did not.
 
+- Rejected experiment: precompiled numeric raw nested row mappers.
+  - Timestamp: 2026-06-07T18:02:30Z.
+  - Change tried: had `#compileRawNestedReadQuery()` build a per-plan row-mapper closure for numeric raw result column refs, resolving mapping metadata at plan compilation time and calling that closure during execution.
+  - Rationale: current query compiler emits numeric refs for hot raw nested plans, and `mapRawNestedRows()` still performs a WeakMap cache lookup before row mapping. Moving that lookup out of the execution loop looked like a possible small win after numeric mapping caches and exact-wrapper specialization.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Patched direct-plan blog-page nested rows regressed to 8.89 us/op at 300,000 iterations, compared with the just-kept wrapper-specialized baseline of 8.65-8.71 us/op.
+  - Decision: reverted. The extra closure/helper split outweighed removing the existing WeakMap lookup in the product-shaped direct-plan row. Do not retry this exact precompiled mapper shape unless it is part of a broader generated row mapper that removes more per-field work.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
