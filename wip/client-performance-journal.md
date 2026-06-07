@@ -7115,6 +7115,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as an internal product-path prototype and benchmark surface. The request-layer batch path is modest on Node but materially better in Workerd and preserves automatic `findUnique` batching, unlike the direct-engine generated fast path.
     - Caveat: the reconstruction path does not preserve cross-query equal-value placeholder reuse from `parameterizeBatch()`. It intentionally produces correct per-query batch placeholders for this guarded generated-client path, but broader productization needs cache-key/placeholder-shape review and focused tests before this can be considered a general replacement for `parameterizeBatch()`.
 
+- Accepted prototype: precomputed DataLoader batch ids for generated descriptor hits.
+  - Timestamp: 2026-06-07T23:03:00+02:00.
+  - Change:
+    - Added internal `precomputedBatchId` to generated descriptor hits, `InternalRequestParams`, and `RequestHandler.RequestParams`.
+    - `buildLazyDescriptor()` caches `getBatchId(protocolQuery)` once, and request-layer precomputed descriptor hits pass it through `_request()`.
+    - `RequestHandler.batchBy()` now uses `precomputedBatchId` before falling back to `getBatchId(protocolQuery)`.
+    - Added a RequestHandler guard test that batches with `precomputedBatchId` even when the protocol query shape would throw if walked.
+  - Measurement:
+    - Node command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Node rows:
+      - `generated client batched findUnique / warmed cache`: 15.96 us/op, `queryRaw=100000`.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.59 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 11.76 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Workerd command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=100 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Workerd rows:
+      - `generated client batched findUnique warmed cache`: worker loop 17.10 us/op, host dispatch 20.36 us/op, `queryRaw 10000`.
+      - `generated client engine precomputed fast path batched findUnique warmed cache`: worker loop 4.80 us/op, host dispatch 6.65 us/op, `queryRaw 20000`.
+      - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 11.50 us/op, host dispatch 13.42 us/op, `queryRaw 10000`, `precomputedBatchHits 20000`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. This is a narrow internal optimization with a clear reason: descriptor hits already know the stable generated query shape, and `getBatchId()` ignores the changing leaf values. It improves batched request-layer precompute materially while preserving DataLoader batching.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

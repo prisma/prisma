@@ -54,6 +54,7 @@ export type RequestParams = {
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
   precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
+  precomputedBatchId?: string
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
@@ -148,7 +149,7 @@ export class RequestHandler {
         // Note that we only do this for interactive transactions, not for batch transactions, as it can lead to queries
         // being executed out of order in batch transactions.
         if (request.transaction?.kind === 'itx') {
-          const batchId = getBatchId(request.protocolQuery)
+          const batchId = request.precomputedBatchId ?? getBatchId(request.protocolQuery)
           return `itx-${request.transaction.id}${batchId ? `-${batchId}` : ''}`
         }
 
@@ -156,7 +157,7 @@ export class RequestHandler {
           return `transaction-${request.transaction.id}`
         }
 
-        return getBatchId(request.protocolQuery)
+        return request.precomputedBatchId ?? getBatchId(request.protocolQuery)
       },
 
       batchOrder(requestA, requestB) {

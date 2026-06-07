@@ -206,6 +206,7 @@ export type InternalRequestParams = {
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
   protocolQuery?: JsonQuery
   precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
+  precomputedBatchId?: string
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -1039,6 +1040,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       customDataProxyFetch,
       protocolQuery,
       precomputedQueryPlanCacheHit,
+      precomputedBatchId,
     }: InternalRequestParams) {
       try {
         // execute argument transformation before execution
@@ -1100,6 +1102,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           otelChildCtx: this._tracingHelper.getActiveContext(),
           globalOmit: this._globalOmit,
           precomputedQueryPlanCacheHit,
+          precomputedBatchId,
           customDataProxyFetch,
         })
       } catch (e) {

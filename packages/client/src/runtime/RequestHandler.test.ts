@@ -182,3 +182,40 @@ test('does not forward partial precomputed query plan cache hits to batch reques
     }),
   )
 })
+
+test('uses precomputed batch ids without walking the protocol query shape', async () => {
+  const query: JsonQuery = {
+    modelName: 'User',
+    action: 'findUnique',
+    query: undefined as any,
+  }
+  const engine = {
+    requestBatch: jest
+      .fn()
+      .mockResolvedValue([{ data: { findUnique: { id: 1 } } }, { data: { findUnique: { id: 1 } } }]),
+  }
+  const handler = createRequestHandler(engine)
+
+  await Promise.all([
+    handler.request({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findUnique',
+      dataPath: [],
+      clientMethod: 'user.findUnique',
+      extensions,
+      precomputedBatchId: 'precomputed-batch-id',
+    }),
+    handler.request({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findUnique',
+      dataPath: [],
+      clientMethod: 'user.findUnique',
+      extensions,
+      precomputedBatchId: 'precomputed-batch-id',
+    }),
+  ])
+
+  expect(engine.requestBatch).toHaveBeenCalledWith([query, query], expect.any(Object))
+})

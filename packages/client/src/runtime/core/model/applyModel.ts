@@ -12,6 +12,7 @@ import {
 } from '../compositeProxy'
 import type { PrecomputedQueryPlanCacheHit } from '../engines'
 import type { QueryEngineResultData } from '../engines/common/types/QueryEngine'
+import { getBatchId } from '../jsonProtocol/getBatchId'
 import { isWrite } from '../jsonProtocol/isWrite'
 import { serializeJsonQuery } from '../jsonProtocol/serializeJsonQuery'
 import type { PrismaPromise, PrismaPromiseTransaction } from '../request/PrismaPromise'
@@ -30,6 +31,7 @@ type LazyDescriptor = {
   protocolQuery: Parameters<Client['_engine']['request']>[0]
   root: LazyDescriptorNode
   precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit
+  precomputedBatchId?: string
 }
 
 type LazyDescriptorNode =
@@ -347,6 +349,7 @@ function tryRequestPrecomputedFastPath({
         paramOverrides,
         protocolQuery: descriptor.protocolQuery,
         precomputedQueryPlanCacheHit: extraction,
+        precomputedBatchId: descriptor.precomputedBatchId,
       })
     }
   }
@@ -396,6 +399,7 @@ function requestWithPrecomputedQueryPlanCacheHit({
   paramOverrides,
   protocolQuery,
   precomputedQueryPlanCacheHit,
+  precomputedBatchId,
 }: {
   client: Client
   args: unknown
@@ -406,6 +410,7 @@ function requestWithPrecomputedQueryPlanCacheHit({
   paramOverrides: O.Optional<InternalRequestParams>
   protocolQuery: LazyDescriptor['protocolQuery']
   precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit | undefined
+  precomputedBatchId?: string
 }): Promise<unknown> {
   return client._request({
     args: args as UserArgs,
@@ -418,6 +423,7 @@ function requestWithPrecomputedQueryPlanCacheHit({
     callsite: 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat),
     protocolQuery,
     precomputedQueryPlanCacheHit,
+    precomputedBatchId,
   })
 }
 
@@ -437,6 +443,7 @@ function buildLazyDescriptor(
   const descriptor: LazyDescriptor = {
     protocolQuery,
     precomputedQueryPlanCacheHit,
+    precomputedBatchId: getBatchId(protocolQuery),
     root: buildLazyDescriptorNode(args, placeholdersByValue),
   }
   const extraction = tryExtractLazyDescriptor(descriptor, args)
