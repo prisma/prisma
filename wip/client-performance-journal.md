@@ -4439,6 +4439,53 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Using the already passed `child_model` instead of `parent_relation_field.related_model()` in `update_nested.rs`: allocation-neutral on update-set and one-to-many update fixtures. Reverted to avoid churn.
   - Decision: keep. This is a broad, low-risk graph-build allocation cleanup with neutral-to-positive Criterion evidence and no Workerd/product regression.
 
+- Rejected allocation follow-ups after `FieldSelection::merge()` fast path.
+  - Timestamp: 2026-06-07T04:09:46Z.
+  - Refreshed post-merge allocation ranking:
+    - Top full-compile rows remained nested writes: `create-nested-connectOrCreate-mixed` 2746 allocations/op and 320.8 KiB/op; `one2m` 2436 and 277.2 KiB; `update-set-nested` 2148 and 253.5 KiB; `update-set-nested-prisma#27650` 1908 and 210.3 KiB.
+    - Common read controls after the accepted merge fast path: `query-m2m` 797 and 90.2 KiB; `query-many-m2m` 794 and 89.7 KiB; `query-m2o` 613 and 80.9 KiB.
+  - Rejected experiment: implement `FieldSelection::union_iter()` by repeatedly calling `FieldSelection::merge()`.
+    - Hypothesis: query graph dependency normalization still used `FieldSelection::union_iter()`'s old always-`unique()` implementation. Folding through the new `merge()` fast paths could avoid uniqueness-set allocations when later selections are empty or already contained.
+    - Allocation signal:
+      - Main nested write rows were unchanged.
+      - `nested-pagination-join` improved only from 724 allocations / 84.0 KiB to 722 / 81.4 KiB.
+    - Focused Criterion:
+      - `create-nested-connectOrCreate-mixed`: no change.
+      - `nested-pagination-join`: improved by about 2.17%.
+      - `query-m2o-lateral`: improved by about 1.67%.
+      - `query-m2o` and `query-many-m2m`: within noise, slightly slower.
+      - `update-set-nested`: improved by about 1.98%.
+      - `update-set-nested-prisma#27650`: regressed by about 8.66%, with range roughly +6.05% to +12.01%.
+    - Decision: reverted. The small nested-pagination allocation win is not worth a broad union implementation change that regresses a top update row.
+  - Rejected experiment: remove the intermediate scalar-id vector from `Model::shard_aware_primary_identifier()`.
+    - Hypothesis: the current implementation first collects primary identifier scalar IDs and then builds a second `Vec<ScalarFieldRef>`. Most schemas do not have shard keys, so building only the field-ref vector should remove one small allocation per call.
+    - Allocation signal:
+      - `create-nested-connectOrCreate-mixed`: 2746 allocations -> 2729.
+      - `create-nested-connectOrCreate-one2m`: 2436 -> 2421.
+      - `update-set-nested`: 2148 -> 2138.
+      - `update-set-nested-prisma#27650`: 1908 -> 1897.
+      - `create-m2m`: 1695 -> 1684.
+      - `create-nested-connectOrCreate-m2one`: 1444 -> 1436.
+      - `create-nested-create`: 1287 -> 1282.
+      - `query-m2o`: 613 -> 611.
+      - Allocated bytes barely moved because the removed vector is tiny.
+    - Focused Criterion:
+      - `create-m2m`: regressed about 2.11%.
+      - `create-nested-connectOrCreate-mixed`: regressed about 4.54%.
+      - `create-nested-connectOrCreate-one2m`: regressed about 2.24%.
+      - `create-nested-create-with-composite-id`: regressed about 1.87%.
+      - `create-nested-create`: regressed about 2.32%.
+      - `nested-pagination-join`: regressed about 7.60%.
+      - `query-m2o-lateral`: regressed about 8.06%.
+      - `query-m2o`: regressed about 6.42%.
+      - `query-many-m2m`: regressed about 7.60%.
+      - `update-set-nested-prisma#27650`: no change.
+      - `update-set-nested`: regressed about 6.71%.
+    - Decision: reverted. The allocation reduction is real but the two-stage scalar-id shape is faster on Criterion. Keep the current implementation unless a future rewrite can preserve CPU locality while removing the allocation.
+  - Interpretation:
+    - The accepted `merge()` fast path remains the right granularity: it avoids a hash/set path only when the caller is already at a merge boundary.
+    - Broader rewrites that replace compact iterator chains with manual scans can lose CPU badly even when they reduce allocation counts. Continue to require Criterion on top nested-write and read controls before keeping graph/selection allocation patches.
+
 ## Useful Commands
 
 ```sh
