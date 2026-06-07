@@ -54,3 +54,27 @@ test('does not batch requests separated by an await', async () => {
   expect(singleLoader).toHaveBeenCalledTimes(2)
   expect(batchLoader).not.toHaveBeenCalled()
 })
+
+test('rejects single-item batch loader failures', async () => {
+  const error = new Error('single failure')
+  const loader = new DataLoader<string>({
+    singleLoader: () => Promise.reject(error),
+    batchLoader: (requests) => Promise.resolve(requests),
+    batchBy: () => 'batch',
+    batchOrder: () => 0,
+  })
+
+  await expect(loader.request('a')).rejects.toBe(error)
+})
+
+test('rejects every job on batch loader failure', async () => {
+  const error = new Error('batch failure')
+  const loader = new DataLoader<string>({
+    singleLoader: (request) => Promise.resolve(request),
+    batchLoader: () => Promise.reject(error),
+    batchBy: () => 'batch',
+    batchOrder: () => 0,
+  })
+
+  await expect(Promise.all([loader.request('a'), loader.request('b')])).rejects.toBe(error)
+})

@@ -6017,6 +6017,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The source A/B is consistently positive, and the Workerd smoke did not show a material regression.
 
+- Rejected experiment: DataLoader two-argument `.then()` continuations.
+  - Timestamp: 2026-06-07T16:55:20Z.
+  - Change tried:
+    - Changed `DataLoader.dispatchBatches()` from `.then(success).catch(failure)` to `.then(success, failure)` for both single-item and multi-item batch dispatch.
+    - Added DataLoader tests for single-item batch loader rejection and batch-loader rejection; these tests are kept because they cover existing behavior as well.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 9.32 us/op, nested blog-page 32.41 us/op.
+    - Same-session reverted baseline: `findUnique` 9.54 us/op, nested blog-page 32.82 us/op.
+    - Reapplied patched run: `findUnique` 9.52 us/op, nested blog-page 31.94 us/op.
+    - Post-build patched run regressed to `findUnique` 9.61 us/op, nested blog-page 33.57 us/op.
+    - Same-session post-build source baseline after reverting was `findUnique` 9.42 us/op and nested blog-page 32.68 us/op; reapplied patched source was `findUnique` 9.27 us/op and nested blog-page 32.78 us/op.
+    - Workerd after rebuild was effectively flat: host upper bounds `findUnique` 11.27 us/op and nested blog-page 29.92 us/op; worker-internal request-loop timers reported `findUnique` 9.37 us/op and nested blog-page 27.30 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/DataLoader.ts packages/client/src/runtime/DataLoader.test.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/DataLoader.test.ts packages/client/src/runtime/RequestHandler.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Reverted. The source and post-build product-path signal is mixed-to-negative. Keep the expanded DataLoader rejection tests, but keep the original continuation shape.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
