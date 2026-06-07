@@ -7362,6 +7362,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The patch saved allocations but lost CPU on the two rows it was meant to help most. This is a good example of why allocation-only query compiler changes still need Criterion checks.
 
+- Accepted optimization: skip identity placeholder renames in precomputed batches.
+  - Timestamp: 2026-06-07T23:25:33+02:00.
+  - Change:
+    - Updated `packages/client/src/runtime/core/engines/client/ClientEngine.ts::renamePrecomputedPlaceholders()` to detect when the hit's placeholder names already match the requested batch sequence starting at `firstPlaceholderId`.
+    - On identity mappings, the function now returns the original `JsonQuery` and placeholder values without building a placeholder map or walking/cloning the query tree.
+    - Non-identity mappings still use the previous map-and-recursive-rename path.
+  - Rationale:
+    - Generated `findUnique` batches commonly have two precomputed single-query hits, each with a `%1` placeholder. The first hit in the batch is already correctly numbered as `%1`, so the old code walked and cloned it even though no rename was needed.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - Passed with the existing `ClientEngine.ts` unsafe-argument warnings.
+    - `pnpm --filter @prisma/client build`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Patched first run:
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.28 us/op.
+    - Same-session reverted control:
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 11.18 us/op.
+    - Patched final run:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.68 us/op.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.62 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 3.43 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.51 us/op.
+  - Workerd measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 10.60 us/op, host dispatch 12.55 us/op.
+    - Recent journal baseline for the same row after the ordered-key patch was worker loop 10.80 us/op, host dispatch 12.65 us/op.
+  - Decision:
+    - Keep. The change is narrow, preserves the existing fallback path for non-identity renames, and specifically improves the generated request-precomputed batched `findUnique` row while preserving one `queryRaw` per pair.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

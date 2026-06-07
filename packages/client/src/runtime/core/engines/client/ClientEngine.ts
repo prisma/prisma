@@ -195,11 +195,30 @@ function renamePrecomputedPlaceholders(
   values: Record<string, unknown>,
   firstPlaceholderId: number,
 ): { query: JsonQuery; placeholderValues: Record<string, unknown>; nextPlaceholderId: number } {
+  const oldNames = Object.keys(values)
+  let nextPlaceholderId = firstPlaceholderId
+  let isIdentityMapping = true
+
+  for (const oldName of oldNames) {
+    const newName = `%${nextPlaceholderId++}`
+    if (newName !== oldName) {
+      isIdentityMapping = false
+    }
+  }
+
+  if (isIdentityMapping) {
+    return {
+      query,
+      placeholderValues: values,
+      nextPlaceholderId,
+    }
+  }
+
   const placeholderNameMap = new Map<string, string>()
   const placeholderValues: Record<string, unknown> = {}
-  let nextPlaceholderId = firstPlaceholderId
+  nextPlaceholderId = firstPlaceholderId
 
-  for (const oldName of Object.keys(values)) {
+  for (const oldName of oldNames) {
     const newName = `%${nextPlaceholderId++}`
     placeholderNameMap.set(oldName, newName)
     placeholderValues[newName] = values[oldName]
