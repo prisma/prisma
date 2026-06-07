@@ -97,6 +97,10 @@ type CompiledRawNestedReadRelation = (
 
 const EMPTY_ENUMS: Record<string, Record<string, string>> = Object.freeze({})
 const rawResultColumnIndexesCache = new WeakMap<readonly string[], Record<string, number>>()
+const rawResultNumericColumnMappingsCache = new WeakMap<
+  readonly RawResultColumnMapping[],
+  ResolvedRawResultColumnMapping[]
+>()
 const rawResultColumnMappingsCache = new WeakMap<
   readonly RawResultColumnMapping[],
   WeakMap<readonly string[], ResolvedRawResultColumnMapping[]>
@@ -1423,6 +1427,28 @@ function resolveRawResultColumnMappings(
   columnNames: readonly string[],
   mappings: readonly RawResultColumnMapping[],
 ): ResolvedRawResultColumnMapping[] {
+  const cachedNumericMappings = rawResultNumericColumnMappingsCache.get(mappings)
+  if (cachedNumericMappings !== undefined) {
+    return cachedNumericMappings
+  }
+
+  if (usesOnlyNumericRawResultColumnRefs(mappings)) {
+    const resolvedMappings = new Array<ResolvedRawResultColumnMapping>(mappings.length)
+    for (let i = 0; i < mappings.length; i++) {
+      const mapping = mappings[i]
+      const fieldType = mapping[2]
+      resolvedMappings[i] = [
+        mapping[0],
+        mapping[1] as number,
+        getRawNestedMappingName(mapping[0]),
+        fieldType,
+        getRawNestedConvertKind(fieldType),
+      ]
+    }
+    rawResultNumericColumnMappingsCache.set(mappings, resolvedMappings)
+    return resolvedMappings
+  }
+
   let mappingsByColumnNames = rawResultColumnMappingsCache.get(mappings)
   if (mappingsByColumnNames === undefined) {
     mappingsByColumnNames = new WeakMap<readonly string[], ResolvedRawResultColumnMapping[]>()
@@ -1448,6 +1474,15 @@ function resolveRawResultColumnMappings(
   }
   mappingsByColumnNames.set(columnNames, resolvedMappings)
   return resolvedMappings
+}
+
+function usesOnlyNumericRawResultColumnRefs(mappings: readonly RawResultColumnMapping[]): boolean {
+  for (let i = 0; i < mappings.length; i++) {
+    if (typeof mappings[i][1] !== 'number') {
+      return false
+    }
+  }
+  return true
 }
 
 function getRawNestedConvertKind(fieldType: FieldType | undefined): RawNestedConvertKind {

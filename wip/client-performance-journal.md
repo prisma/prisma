@@ -4964,6 +4964,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - After: warmed cache 16.61 us/op, cached request wrapper 15.63, 100 retained shapes 17.17, direct plan 9.08, raw result-set compact node 8.30, local executor 9.54.
   - Decision: keep. The absolute movement is small and should be treated as a micro-optimization, but it removes avoidable hot-path allocation with no behavior change and stayed positive across the relevant nested rows.
 
+- Accepted runtime/cache cleanup: cache numeric raw nested mappings independent of result metadata.
+  - Timestamp: 2026-06-07T17:22:00Z.
+  - Change:
+    - `QueryInterpreter` now keeps a mappings-only `WeakMap` for raw nested result mappings whose column refs are all numeric. Numeric refs do not depend on `SqlResultSet.columnNames`, so fresh column metadata arrays no longer invalidate the resolved mapping descriptors.
+    - `client-engine-cache-timing.ts` has opt-in `CLIENT_ENGINE_CACHE_TIMING_FRESH_BLOG_PAGE_RESULT_METADATA=1`, which returns fresh result-set objects plus fresh `columnNames`/`columnTypes` arrays from the fake blog-page adapter while sharing static rows. This simulates driver adapters that allocate new metadata arrays per query.
+  - Rationale: after compiler-emitted numeric raw nested column refs, descriptor resolution should be per plan mapping array, not per result-set metadata array. The older `mappings -> columnNames -> descriptors` cache was still appropriate for named refs, but it created descriptor churn for numeric refs when adapters returned fresh column metadata.
+  - Verification:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FRESH_BLOG_PAGE_RESULT_METADATA=1 CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Measurement signal:
+    - Fresh metadata before -> after: warmed cache 29.82 -> 22.87 us/op, cached request wrapper 26.15 -> 21.74, 100 retained shapes 27.80 -> 22.94, direct plan 19.54 -> 14.85, raw result-set compact node 17.90 -> 13.80, local executor 20.45 -> 15.08. Adapter-only stayed flat at 5.54 -> 5.43 us/op, so the improvement is not from less fake-adapter metadata cloning.
+    - Stable metadata stayed in band after the patch: warmed cache 16.68 us/op, cached request wrapper 15.33, 100 retained shapes 17.18, direct plan 9.22, raw result-set compact node 8.36, local executor 9.60.
+  - Decision: keep. This makes the numeric-column-ref protocol more robust for real adapters that allocate result metadata per query, with no meaningful regression in the stable-metadata benchmark path. Named raw column refs still use the column-names keyed cache because their descriptors really depend on result metadata.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.

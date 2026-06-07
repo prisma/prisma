@@ -56,6 +56,8 @@ import { loadQueryCompiler } from './qc-loader'
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
 const MEASUREMENT_FILTER = process.env.CLIENT_ENGINE_CACHE_TIMING_FILTER
 const USE_ASYNC_BLOG_PAGE_ADAPTER = process.env.CLIENT_ENGINE_CACHE_TIMING_ASYNC_BLOG_PAGE_ADAPTER === '1'
+const USE_FRESH_BLOG_PAGE_RESULT_METADATA =
+  process.env.CLIENT_ENGINE_CACHE_TIMING_FRESH_BLOG_PAGE_RESULT_METADATA === '1'
 const ITERATION_OVERRIDE =
   process.env.CLIENT_ENGINE_CACHE_TIMING_ITERATIONS === undefined
     ? undefined
@@ -332,7 +334,7 @@ class BlogPageSqliteAdapter implements SqlDriverAdapter {
 
   queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     this.counts.queryRaw++
-    const resultSet = getBlogPageResultSet(query.sql)
+    const resultSet = getBlogPageResultSetForQuery(query.sql)
     if (USE_ASYNC_BLOG_PAGE_ADAPTER) {
       return new Promise((resolve) => setImmediate(resolve, resultSet))
     }
@@ -363,6 +365,20 @@ class BlogPageSqliteAdapter implements SqlDriverAdapter {
 
   dispose(): Promise<void> {
     return Promise.resolve()
+  }
+}
+
+function getBlogPageResultSetForQuery(sql: string): SqlResultSet {
+  const resultSet = getBlogPageResultSet(sql)
+  if (!USE_FRESH_BLOG_PAGE_RESULT_METADATA) {
+    return resultSet
+  }
+
+  return {
+    columnNames: Object.freeze(resultSet.columnNames.slice()),
+    columnTypes: Object.freeze(resultSet.columnTypes.slice()) as ColumnType[],
+    rows: resultSet.rows,
+    lastInsertId: resultSet.lastInsertId,
   }
 }
 
