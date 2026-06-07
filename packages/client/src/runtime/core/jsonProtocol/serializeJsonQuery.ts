@@ -183,9 +183,12 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     if (isSkip(value)) {
       continue
     }
-    const nestedContext = context.nestSelection(key)
-    validateSelectionForUndefined(value, nestedContext)
-    if (value === false || value === undefined) {
+    if (value === undefined) {
+      validateSelectionForUndefined(value, context.nestSelection(key))
+      selectionSet[key] = false
+      continue
+    }
+    if (value === false) {
       selectionSet[key] = false
       continue
     }
@@ -199,6 +202,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
+      const nestedContext = context.nestSelection(key)
       selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
       continue
     }
@@ -212,6 +216,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     // this can either be user error (in that case, qe will respond with an error)
     // or virtual field not present on datamodel (like `_count`).
     // Since we don't know which one cast is, we still attempt to serialize selection
+    const nestedContext = context.nestSelection(key)
     selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
 }
@@ -242,8 +247,9 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
     if (isSkip(value)) {
       continue
     }
-    const nestedContext = context.nestSelection(key)
-    validateSelectionForUndefined(value, nestedContext)
+    if (value === undefined) {
+      validateSelectionForUndefined(value, context.nestSelection(key))
+    }
     const field = context.findField(key)
     if (computedFields?.[key] && !field) {
       continue
@@ -254,12 +260,14 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
     }
     if (value === true) {
       if (field?.kind === 'object') {
+        const nestedContext = context.nestSelection(key)
         selectionSet[key] = serializeFieldSelection({}, nestedContext)
       } else {
         selectionSet[key] = true
       }
       continue
     }
+    const nestedContext = context.nestSelection(key)
     selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
   return selectionSet

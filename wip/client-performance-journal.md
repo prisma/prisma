@@ -5758,6 +5758,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The DataLoader cleanup was plausible but not supported by product-path timing. Do not retry this exact continuation/lookup cleanup without a narrower DataLoader benchmark and a product-path win.
 
+- Accepted experiment: lazy selection contexts in JSON query serialization.
+  - Timestamp: 2026-06-07T13:48:21Z.
+  - Change:
+    - `serializeJsonQuery.ts` now creates nested `SerializeContext` instances lazily in explicit `select` and `include` traversal.
+    - Scalar `true`, `false`, and non-strict `undefined` selections no longer allocate nested context objects or selection path arrays just to serialize the selection.
+    - Relation/object selections and strict-undefined validation still allocate nested contexts when the path is needed.
+  - Rationale:
+    - After generated model action caching, fluent metadata hoisting, and cheaper `getBatchId()`, generated-client profiles still showed `serializeJsonQuery()` hot in `nestSelection()`, `createExplicitSelection()`, and nested context/path creation. Most generated-client selections in the benchmark are scalar `true` fields, especially the nested blog-page public API shape, so delaying context creation removes avoidable per-field allocation while preserving validation paths.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 16.03 us/op, nested blog-page 40.77 us/op.
+    - Same-session reverted baseline: `findUnique` 16.65 us/op, nested blog-page 45.79 us/op.
+    - Reapplied patched run: `findUnique` 15.58 us/op, nested blog-page 40.60 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: `findUnique` 16.96 us/op and nested blog-page 35.24 us/op host upper bounds, improving from the previous 17.33/39.29 us/op smoke.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. This is the largest generated-client public API win since caching model action proxy properties, and it directly lowers allocation-heavy serialization work in both Node/V8 and the Workerd smoke.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
