@@ -4205,6 +4205,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reversed baseline: `create-nested-connectOrCreate-mixed` 130.76 us, `delete-many-limit` 9.852 us, `delete-many` 13.009 us, `update-set-nested-prisma#27650` 90.312 us, `update-set-nested` 101.96 us, `upsert` 34.696 us.
   - Decision: reverted. The allocation savings are too small and limited to two fixtures, while close timings are mixed and include regressions on `delete-many-limit` and `update-set-nested-prisma#27650`. Do not add a selected-fields bypass helper for `read_id(s)_infallible()` without a broader allocation win or a clear timing win.
 
+- Rejected experiment: use `SmallVec<[...; 1]>` for nested create temporary collections.
+  - Timestamp: 2026-06-07T03:01:02Z.
+  - Hypothesis: non-bulk nested creates usually create a single child node, but `nested_create()` collected parsed `(WriteArgs, nested)` pairs and later `NodeRef`s into heap-backed `Vec`s. Using inline-singleton `SmallVec` for `data_maps` and `creates` could remove heap allocations on singleton nested create paths without changing graph order.
+  - Temporary implementation:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/nested/create_nested.rs`, changed `data_maps` and `creates` to `SmallVec<[_; 1]>`.
+    - Updated `handle_many_to_many()`, `handle_one_to_many()`, and `handle_one_to_one()` to accept `SmallVec<[NodeRef; 1]>`.
+  - Verification while patched:
+    - `cargo fmt -p query-core --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+  - Allocation signal:
+    - `create-m2m`: `graph_build` 638 -> 634 allocations/op and 93.6 -> 92.3 KiB; `full_compile` 1705 -> 1701 allocations/op and 201.4 -> 200.1 KiB.
+    - `create-nested-create`: allocation count unchanged at 1297 full-compile allocations/op, with bytes 155.2 -> 154.9 KiB.
+    - `create-nested-connectOrCreate-mixed`, `update-set-nested`, `aggregate-nested-m2m`, and `query-many-m2m` were unchanged.
+  - Close Criterion signal:
+    - Patched: `aggregate-nested-m2m` 66.066 us, `create-m2m` 79.149 us, `create-nested-create-with-composite-id` 59.606 us, `create-nested-create` 60.752 us, `query-many-m2m` 36.630 us.
+    - Reversed baseline: `aggregate-nested-m2m` 65.093 us, `create-m2m` 77.016 us, `create-nested-create-with-composite-id` 59.860 us, `create-nested-create` 59.991 us, `query-many-m2m` 35.981 us.
+  - Decision: reverted. The `create-m2m` allocation savings are real, but close timing regressed on the affected `create-m2m` row and on the unchanged controls. Do not replace nested-create singleton `Vec`s with `SmallVec` without a better CPU story or a larger allocation win.
+
 ## Useful Commands
 
 ```sh
