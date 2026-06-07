@@ -55,7 +55,13 @@ import { clientVersion } from './utils/clientVersion'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
-const debug = Debug('prisma:client')
+const DEBUG_NAMESPACE = 'prisma:client'
+const debug = Debug(DEBUG_NAMESPACE)
+
+function isClientDebugEnabled(): boolean {
+  const globalDebug = (globalThis as { DEBUG?: string }).DEBUG
+  return debug.enabled || (globalDebug !== undefined && globalDebug !== '' && Debug.enabled(DEBUG_NAMESPACE))
+}
 
 declare global {
   // eslint-disable-next-line no-var
@@ -1046,7 +1052,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'
-        if (Debug.enabled('prisma:client')) {
+        if (isClientDebugEnabled()) {
           debug(`Prisma Client call:`)
           debug(`prisma.${clientMethod}(${prettyPrintArguments(args)})`)
           debug(`Generated request:`)

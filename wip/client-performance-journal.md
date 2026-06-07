@@ -5955,6 +5955,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The generated-client A/B is positive, focused tests pin the batching contract, and the Workerd generated-client smoke improved materially on the simple hot row.
 
+- Accepted experiment: cheap disabled-debug guard in `_executeRequest()`.
+  - Timestamp: 2026-06-07T16:06:45Z.
+  - Change:
+    - Added `isClientDebugEnabled()` in `getPrismaClient.ts`, mirroring `ClientEngine`'s `isDebugEnabled()` helper.
+    - `_executeRequest()` now checks the debug instance's static `enabled` flag and only calls `Debug.enabled('prisma:client')` when `globalThis.DEBUG` is non-empty.
+  - Rationale:
+    - Fresh generated-client profiles after `queueMicrotask()` scheduling still showed `@prisma/debug` regex work from `Debug.enabled('prisma:client')` on every request. The expensive pretty-print debug block only needs dynamic namespace matching when debug has actually been configured.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 9.42 us/op, nested blog-page 32.80 us/op.
+    - Same-session reverted baseline: `findUnique` 10.36 us/op, nested blog-page 34.47 us/op.
+    - Reapplied patched run: `findUnique` 9.30 us/op, nested blog-page 33.55 us/op.
+    - Post-build patched verification run: `findUnique` 9.55 us/op, nested blog-page 33.62 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: host upper bounds `findUnique` 11.26 us/op and nested blog-page 29.53 us/op; worker-internal request-loop timers reported `findUnique` 9.39 us/op and nested blog-page 26.85 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/getPrismaClient.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/DataLoader.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. This removes per-request disabled-debug regex work while preserving runtime `Debug.enable(...)` behavior when `globalThis.DEBUG` is set.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
