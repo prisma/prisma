@@ -6200,6 +6200,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The no-transaction inline is pure noise and adds duplicated promise/error handling. Direct handler passthrough is mixed, with a simple `findUnique` regression. Keep the existing prototype-method implementation unchanged.
 
+- Measurement refresh: lower-level nested runtime and Rust allocation surfaces after public-API cleanup.
+  - Timestamp: 2026-06-07T15:58:18Z.
+  - Commands:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp/prisma-profiles --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+  - Nested runtime split with local query compiler Wasm:
+    - generated client nested blog-page: 24.66 us/op.
+    - warmed `ClientEngine` nested blog-page: 12.37 us/op; after phase warmup: 12.42 us/op.
+    - cached request wrapper: 11.99 us/op; 100 retained shapes: 13.44 us/op.
+    - direct plan: 7.20 us/op; direct after phase warmup: 7.49 us/op; local executor: 7.31 us/op.
+    - adapter-only seven result sets: 0.86 us/op; `serializeSql()` seven result sets: 1.66 us/op; render all leaves: 1.07 us/op.
+    - raw result-set assembly lower bound: 0.49 us/op; raw prototype: 5.32 us/op; exact prototype: 5.89 us/op; compiler-emitted raw compact node: 6.79 us/op.
+  - Focused direct-plan CPU profile:
+    - Direct plan after phase warmup measured 7.07 us/op over 200k iterations.
+    - Top self samples were generic raw-nested interpreter closures (~15%), V8 program (~12%), `mapRawNestedRows` (~8%), benchmark result-set lookup (~8%), GC (~4.5%), `renderCompactTemplateSqlQuery` (~4.5%), `renderTemplateSql` (~2%), `evaluateArg` (~1.7%), `attachRawNestedDirectRelation` (~1.3%), and `createRawNestedRelationScope` (~1%).
+  - Rust allocation profile:
+    - Current allocation buckets still match the previous broad pattern: graph build and translate/compile IR are dominated by mid-sized allocations rather than tiny `Arc` clone artifacts.
+    - Representative rows: `query-m2o` full compile 624 allocs / 80.6 KiB; `query-many-m2m` 919 / 100.7 KiB; `nested-pagination-query` 720 / 88.7 KiB; `create-nested-connectOrCreate-mixed` 3081 / 352.6 KiB; `update-set-nested` 2160 / 256.3 KiB.
+    - Top buckets remain 257-384 B, 513-768 B, 1-1.5 KiB, and 385-512 B in the write-heavy graph_build/translate_ir rows.
+  - Interpretation:
+    - The direct/local nested gap to the raw prototype is now roughly 1.4-2.0 us/op, not a single helper. The profile supports the existing conclusion: a larger exact-shape/raw-result-set executor or plan-shape change must remove several generic phases together. More relation-attachment-only, row-mapper-only, or render-array-only micro-spikes are unlikely to move the product row.
+    - The Rust borrowing/arena lead still needs a sharper source-level target. Current allocation evidence does not support a broad `Arc` purge; use allocation profiles or narrower constructor instrumentation to pick a concrete graph_build/translate_ir structure before rewriting ownership.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
