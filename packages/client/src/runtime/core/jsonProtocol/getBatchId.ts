@@ -18,15 +18,24 @@ export function getBatchId(query: JsonQuery): string | undefined {
 }
 
 function buildKeysString(obj: object): string {
-  const keysArray = Object.keys(obj)
-    .sort()
-    .map((key) => {
-      const value = obj[key]
-      if (typeof value === 'object' && value !== null) {
-        return `(${key} ${buildKeysString(value)})`
-      }
-      return key
-    })
+  const object = obj as Record<string, unknown>
+  const keysArray = Object.keys(obj).sort()
+  let result = '('
 
-  return `(${keysArray.join(' ')})`
+  for (let i = 0; i < keysArray.length; i++) {
+    const key = keysArray[i]
+    const value = object[key]
+
+    if (i > 0) {
+      result += ' '
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      result += `(${key} ${buildKeysString(value)})`
+    } else {
+      result += key
+    }
+  }
+
+  return `${result})`
 }

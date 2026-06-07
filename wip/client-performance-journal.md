@@ -5726,6 +5726,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The win is smaller than the model action cache but still repeatable on the generated-client hot rows, applies to edge disabled callsite behavior, and removes avoidable per-request allocations without changing fluent chaining semantics.
 
+- Accepted experiment: loop-based findUnique batch-key builder.
+  - Timestamp: 2026-06-07T13:41:25Z.
+  - Change:
+    - Replaced `getBatchId.ts`'s recursive `Object.keys(obj).sort().map(...).join(' ')` key builder with an explicit sorted-key loop that appends to one string.
+  - Rationale:
+    - After the fluent/callsite cleanup, generated-client `findUnique` profiles still showed `getBatchId()` / `buildKeysString()` in the public API hot path. `findUnique` must still go through the next-tick DataLoader batching path for batching semantics, but the key builder does not need the extra callback array from `.map()`.
+  - Timing signal:
+    - Combined DataLoader + batch-key patched run: `findUnique` 16.39 us/op, nested blog-page 45.85 us/op.
+    - Same-session reverted baseline: `findUnique` 16.49 us/op, nested blog-page 46.66 us/op.
+    - Batch-key-only patched run: `findUnique` 16.30 us/op, nested blog-page 45.56 us/op.
+    - Batch-key-only reverted baseline: `findUnique` 16.27 us/op, nested blog-page 46.63 us/op.
+    - Batch-key-only reapplied run: `findUnique` 16.20 us/op, nested blog-page 46.05 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: `findUnique` 17.33 us/op and nested blog-page 39.29 us/op host upper bounds, slightly better than the previous 17.49/39.84 us/op smoke.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/getBatchId.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The simple generated-client row is noisy, but the nested generated-client row consistently benefits and the change is tiny, local, and covered by existing batch-key snapshots.
+
+- Rejected experiment: DataLoader single-batch continuation cleanup.
+  - Timestamp: 2026-06-07T13:41:25Z.
+  - Change tried:
+    - Temporarily changed `DataLoader` to use `Object.create(null)` for `batches`, keep a local `batch` variable in `request()`, manually build the batch request array, and use `promise.then(success, failure)` instead of `.then(success).catch(failure)` in dispatch.
+  - Timing signal:
+    - Combined with the batch-key loop, this measured `findUnique` 16.39 us/op and nested blog-page 45.85 us/op.
+    - With DataLoader reverted and only the batch-key loop kept, the same-session row improved to `findUnique` 16.30 us/op and nested blog-page 45.56 us/op.
+  - Decision:
+    - Reverted. The DataLoader cleanup was plausible but not supported by product-path timing. Do not retry this exact continuation/lookup cleanup without a narrower DataLoader benchmark and a product-path win.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
