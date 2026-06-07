@@ -5873,6 +5873,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The A/B is strong on both simple and nested generated-client rows, and the change removes a direct public-API allocation source without touching query semantics.
 
+- Accepted experiment: avoid async success frames in RequestHandler single requests.
+  - Timestamp: 2026-06-07T14:58:20Z.
+  - Change:
+    - `RequestHandler.request()` is now a normal method that calls `dataloader.request()` and attaches only an error continuation instead of using `async` / `return await` on the success path.
+    - `RequestHandler` keeps synchronous `dataloader.request()` errors converted into rejected promises, matching the old async method behavior.
+    - The single-query DataLoader path now maps engine responses through `.then(...)` instead of an `async` singleLoader body, while preserving synchronous engine-request throw conversion to a rejected promise.
+  - Rationale:
+    - After moving `PrismaPromise` methods to the prototype, fresh CPU profiles showed `RequestHandler.request()` / DataLoader promise plumbing as a remaining generated-client public API cost. The common successful request path does not need an additional async function frame before DataLoader and another one inside `singleLoader`.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 11.90 us/op, nested blog-page 36.82 us/op.
+    - Same-session reverted baseline: `findUnique` 12.82 us/op, nested blog-page 36.20 us/op.
+    - Reapplied patched run: `findUnique` 12.34 us/op, nested blog-page 38.40 us/op.
+    - Longer request-wrapper-only A/B: patched `findUnique` 10.99 us/op and nested blog-page 36.43 us/op; reverted baseline `findUnique` 11.98 us/op and nested blog-page 36.54 us/op.
+    - Final combined longer A/B after adding the singleLoader promise continuation: reverted baseline `findUnique` 11.88 us/op and nested blog-page 36.51 us/op; patched `findUnique` 11.13 us/op and nested blog-page 35.73 us/op.
+    - Post-build source run with patch: `findUnique` 12.36 us/op, nested blog-page 37.10 us/op. Same-session source baseline after reversing the source patch was `findUnique` 12.87 us/op and nested blog-page 37.18 us/op.
+    - Workerd generated-client smoke after rebuild stayed essentially flat versus the previous committed smoke: `findUnique` 15.30 us/op and nested blog-page 32.99 us/op host upper bounds.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/RequestHandler.ts`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/extensions/applyQueryExtensions.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The source A/B is positive on both generated-client rows, and the Workerd smoke did not show a material regression. Treat this as a public-API/request-wrapper cleanup, not as a proven edge-runtime win.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

@@ -105,17 +105,22 @@ export class RequestHandler {
         })
       }),
 
-      singleLoader: async (request) => {
+      singleLoader: (request) => {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        const response = await this.client._engine.request(request.protocolQuery, {
-          traceparent: this.client._tracingHelper.getTraceParent(),
-          interactiveTransaction,
-          isWrite: isWrite(request.protocolQuery.action),
-          customDataProxyFetch: request.customDataProxyFetch,
-        })
-        return this.mapQueryEngineResult(request, response)
+        try {
+          return this.client._engine
+            .request(request.protocolQuery, {
+              traceparent: this.client._tracingHelper.getTraceParent(),
+              interactiveTransaction,
+              isWrite: isWrite(request.protocolQuery.action),
+              customDataProxyFetch: request.customDataProxyFetch,
+            })
+            .then((response) => this.mapQueryEngineResult(request, response))
+        } catch (error) {
+          return Promise.reject(error)
+        }
       },
 
       batchBy: (request) => {
@@ -144,21 +149,33 @@ export class RequestHandler {
     })
   }
 
-  async request(params: RequestParams) {
+  request(params: RequestParams): Promise<any> {
+    let requestPromise: Promise<any>
+
     try {
-      return await this.dataloader.request(params)
+      requestPromise = this.dataloader.request(params)
     } catch (error) {
-      const { clientMethod, callsite, transaction, args, modelName } = params
-      this.handleAndLogRequestError({
-        error,
-        clientMethod,
-        callsite,
-        transaction,
-        args,
-        modelName,
-        globalOmit: params.globalOmit,
-      })
+      try {
+        this.handleRequestErrorForParams(params, error)
+      } catch (handledError) {
+        return Promise.reject(handledError)
+      }
     }
+
+    return requestPromise.then(undefined, (error) => this.handleRequestErrorForParams(params, error))
+  }
+
+  private handleRequestErrorForParams(params: RequestParams, error: unknown): never {
+    const { clientMethod, callsite, transaction, args, modelName } = params
+    this.handleAndLogRequestError({
+      error,
+      clientMethod,
+      callsite,
+      transaction,
+      args,
+      modelName,
+      globalOmit: params.globalOmit,
+    })
   }
 
   mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResultData<any>) {
