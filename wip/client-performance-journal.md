@@ -6316,6 +6316,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a small generated-client public-API hot-path win with no Workerd regression. It changes `PRISMA_CLIENT_GET_TIME` from a dynamically read per-request flag into a module-load flag, which is appropriate for this internal debug/timing behavior and removes the hot success-path environment lookup.
 
+- Accepted experiment: lazy materialization for serializer validation paths.
+  - Timestamp: 2026-06-07T16:40:17Z.
+  - Change:
+    - In `packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`, replaced hot-path `selectionPath.concat(fieldName)` / `argumentPath.concat(fieldName)` arrays in `SerializeContext` with tiny linked `PathNode`s.
+    - `getSelectionPath()` and `getArgumentPath()` now materialize string arrays only when validation/error rendering asks for them.
+    - `getArgumentName()` keeps the previous runtime behavior for root contexts by casting the optional path leaf to `string`.
+  - Rationale:
+    - After the `PRISMA_CLIENT_GET_TIME` fix, the refreshed generated-client profile still showed `serializeSelectionSet()`, `createExplicitSelection()`, `nestSelection()`, and `nestArgument()` as the dominant public-API costs. Successful serialization should not clone path arrays that are only needed for validation errors.
+  - Timing:
+    - Post-get-time committed profile run before this patch: generated `findUnique` 5.11 us/op, nested blog-page 21.36 us/op.
+    - First linked-path patched run: generated `findUnique` 4.80 us/op, nested blog-page 20.10 us/op.
+    - Same-session reverted control: generated `findUnique` 5.04 us/op, nested blog-page 21.43 us/op.
+    - Reapplied patched run after type fix: generated `findUnique` 4.73 us/op, nested blog-page 19.70 us/op.
+    - Workerd high-iteration smoke after build: worker-internal generated `findUnique` 6.61 us/op and nested blog-page 19.30 us/op, improving from the previous local-Wasm 6.86 / 19.70 us/op rows.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. This removes avoidable successful-serialization allocations and is the strongest generated-client public-API improvement in the current sequence, with both Node/source and Workerd probes moving in the right direction.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

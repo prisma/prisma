@@ -101,8 +101,6 @@ export function serializeJsonQuery({
     rootArgs: args,
     callsite,
     extensions,
-    selectionPath: [],
-    argumentPath: [],
     originalMethod: clientMethod,
     errorFormat,
     clientVersion,
@@ -479,8 +477,8 @@ type ContextParams = {
   originalMethod: string
   rootArgs: JsArgs | undefined
   extensions: MergedExtensionsList
-  selectionPath: string[]
-  argumentPath: string[]
+  selectionPath?: PathNode
+  argumentPath?: PathNode
   modelName?: string
   action: Action
   callsite?: CallSite
@@ -489,6 +487,33 @@ type ContextParams = {
   previewFeatures: string[]
   globalOmit?: GlobalOmitOptions
   wrapRawValues?: boolean
+}
+
+type PathNode = {
+  parent: PathNode | undefined
+  value: string
+  length: number
+}
+
+function appendPath(parent: PathNode | undefined, value: string): PathNode {
+  return {
+    parent,
+    value,
+    length: (parent?.length ?? 0) + 1,
+  }
+}
+
+function pathToArray(path: PathNode | undefined): string[] {
+  if (!path) {
+    return []
+  }
+
+  const result = new Array<string>(path.length)
+  let index = path.length
+  for (let node: PathNode | undefined = path; node; node = node.parent) {
+    result[--index] = node.value
+  }
+  return result
 }
 
 class SerializeContext {
@@ -515,15 +540,15 @@ class SerializeContext {
   }
 
   getSelectionPath() {
-    return this.params.selectionPath
+    return pathToArray(this.params.selectionPath)
   }
 
   getArgumentPath() {
-    return this.params.argumentPath
+    return pathToArray(this.params.argumentPath)
   }
 
-  getArgumentName() {
-    return this.params.argumentPath[this.params.argumentPath.length - 1]
+  getArgumentName(): string {
+    return this.params.argumentPath?.value as string
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
@@ -580,7 +605,7 @@ class SerializeContext {
     return new SerializeContext({
       ...this.params,
       modelName,
-      selectionPath: this.params.selectionPath.concat(fieldName),
+      selectionPath: appendPath(this.params.selectionPath, fieldName),
     })
   }
 
@@ -625,7 +650,7 @@ class SerializeContext {
   nestArgument(fieldName: string) {
     return new SerializeContext({
       ...this.params,
-      argumentPath: this.params.argumentPath.concat(fieldName),
+      argumentPath: appendPath(this.params.argumentPath, fieldName),
     })
   }
 }
