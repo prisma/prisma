@@ -4361,6 +4361,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Affected rows stayed at `create-nested-connectOrCreate-mixed` 2767 allocations/op, `one2m` 2453, and `m2one` 1458.
   - Decision: reverted. The extra clone and removed recompute are allocation-equivalent in these shapes, so this is not worth carrying or timing.
 
+- Measurement refresh: root build and Workerd after serializer commits.
+  - Timestamp: 2026-06-07T03:44:21Z.
+  - Root build:
+    - Command: `pnpm build`
+    - Result: passed, 44/44 tasks successful, 34 cached, 10 rebuilt, 1m37.044s.
+  - Serializer-width follow-up:
+    - Inspected `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` and `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - Current measured result-set widths are 0, 2, 3, 5, and 11. The scalar `USER_SCALAR_RESULT` is 3 columns (`id`, `email`, `name`), not 10 columns.
+    - Decision: no exact 10-column serializer experiment to run against the current hot fixtures. The accepted 0-5 and exact 11 paths cover the measured serializer widths; verify a new hot width before adding more cases.
+  - Workerd command:
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Workerd rows after serializer commits:
+    - Cold smoke compile: host dispatch 213.4 ms total, compiler init 65.0 ms, compile loop 45.0 ms, average serialized plan 532 B.
+    - Retained scalar plan cache: host dispatch 607.84 us/op for 100 shapes, compile loop 58.0 ms, retained 100 entries with 7.6 KiB keys and 24.1 KiB serialized plans.
+    - Retained blog-page plan cache: host dispatch 3913.85 us/op for 100 shapes, compile loop 388.0 ms, retained 100 entries with 48.3 KiB keys and 394.8 KiB serialized plans.
+    - `client-cache findUnique` value churn: host dispatch 59.07 us/op for 100 requests, 99/1 cache hits/miss, retained one 138 B key and 548 B plan.
+    - `client-cache blog-page` value churn: host dispatch 82.60 us/op for 100 requests, 99/1 cache hits/miss, retained one 704 B key and 4.3 KiB plan.
+    - `generated client findUnique warmed cache`: host dispatch upper bound 63.61 us/op for 5,000 requests, 5,000/0 cache hits/misses, 5,000 `queryRaw` calls, host heap delta 236.6 KiB.
+    - `generated client blog-page warmed cache`: host dispatch upper bound 118.85 us/op for 1,000 requests, 1,000/0 cache hits/misses, 7,000 `queryRaw` calls, host heap delta 17.1 KiB.
+  - Interpretation:
+    - Workerd stayed in the same band as the pre-serializer refresh. The generated-client warmed rows moved slightly in the expected direction (`findUnique` 66.20 -> 63.61 us/op upper bound, blog-page 122.09 -> 118.85), while manual `client-cache` rows are effectively noise (`blog-page` 80.79 -> 82.60).
+    - Retained plan/key sizes are unchanged, as expected: the serializer patches affect runtime row-object materialization, not compiled plan serialization or cache retention.
+    - The radical JS-owned query / Rust-owned IR architecture lead remains the higher-ceiling cache-hit path: pass the query object by reference, parameterize and check the structural cache before materializing Rust-owned request maps, and return cached JS plan objects on hits. Avoiding Rust-owned SQL strings should be treated as a separate SQL-template/string-handle project with its own proof point.
+
 ## Useful Commands
 
 ```sh
