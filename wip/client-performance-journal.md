@@ -6131,6 +6131,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as a small product-path serializer cleanup. The Node generated-client A/B is positive; Workerd does not clearly validate it, but it does not show a same-session regression.
 
+- Accepted experiment: compare `Prisma.skip` by singleton identity.
+  - Timestamp: 2026-06-07T15:36:26Z.
+  - Change:
+    - Changed `isSkip(value)` from `value instanceof Skip` to `value === skip`.
+  - Rationale:
+    - `Skip` is guarded by a private module symbol, and supported skip values are produced by the exported singleton or `skip.ifUndefined()`. The generated-client cache-hit profile still showed `isSkip()` inside scalar-heavy selection traversal, so avoiding repeated `instanceof` checks removes a small shared serializer/deep-clone cost.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/types/exported/Skip.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/types/exported/Skip.ts packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts packages/client/src/runtime/utils/deepCloneArgs.ts` (exit 0; existing unsafe-`any` warnings in `deepCloneArgs.ts` remain).
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts packages/client/src/runtime/utils/deepCloneArgs.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Timing:
+    - First patched generated-client run: `findUnique` 6.55 us/op, nested blog-page 23.54 us/op.
+    - Same-session reverted baseline: `findUnique` 6.47 us/op, nested blog-page 23.48 us/op.
+    - Reapplied patched run: `findUnique` 6.38 us/op, nested blog-page 23.15 us/op.
+    - Workerd generated-client smoke after rebuild: host `findUnique` 8.41 us/op, nested blog-page 22.32 us/op; worker-internal `findUnique` 6.57 us/op, nested blog-page 19.85 us/op.
+  - Decision:
+    - Keep. The local signal is modest but net-positive after reapply, and Workerd moved both generated-client rows down relative to the recent band. Existing deep-clone tests already assert real skip values preserve singleton identity.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
