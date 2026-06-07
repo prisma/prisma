@@ -4819,6 +4819,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched: render-all-leaves blog-page nested rows 1.62 us/op; cached request wrapper blog-page nested rows 21.95 us/op.
   - Decision: reverted. The memory premise may still be true after execution, but the hot cached nested-row path regressed by about 15%. Do not disable the flat SQL render cache globally without an opt-in memory mode or a design that preserves the cached flat rendering speed.
 
+- Rejected experiment: serialize flat template SQL as a compact pre-rendered tuple.
+  - Timestamp: 2026-06-07T12:06:40Z.
+  - Change tried:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/query-builder/src/lib.rs`, `DbQuery::TemplateSql` serialization rendered templates containing only `StringChunk` and scalar `Parameter` fragments into `["S", sql, args, argTypes]`, leaving tuple/list parameter fragments on the existing template path.
+    - In `packages/client-engine-runtime/src/query-plan.ts` and `packages/client-engine-runtime/src/interpreter/render-query.ts`, added a `QueryPlanCompactFlatSql` tuple shape and a renderer that reused the plan SQL string while caching normalized arg types in a WeakMap.
+  - Rationale: the plan-size breakdown showed SQL strings dominate serialized nested read plans. Pre-rendering flat SQL removes fragment arrays and avoids retaining a second full SQL string in `flatTemplateSqlCache` after execution.
+  - Verification while patched:
+    - `cargo fmt -p query-builder`
+    - `cargo check -p query-builder`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo test -p query-builder`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - old/new `query-plan-cache-memory.ts`, `compile prebuilt request`, `compile current miss`, `render query all leaves blog page / nested rows`, `cached request wrapper blog page / nested rows`, `direct plan after phase warmup blog page / nested rows`
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'query-m2o|query-many-m2m|nested-pagination-query|nested-pagination-join|filter-contains-param'`
+  - Memory and plan-size signal:
+    - Scalar plan: 154 B -> 128 B; arrays 8 -> 6.
+    - Blog-page plan: 4.3 KiB -> 4.1 KiB; arrays 117 -> 107; repeated string bytes 1010 B -> 921 B.
+    - `query-plan-cache-memory.ts` old -> patched with local Wasm:
+      - `scalar selection / node default warm`: heap 1.73 MiB -> 1.42 MiB; plan JSON 308.2 KiB -> 282.8 KiB.
+      - `blog page / node default warm`: heap 9.87 MiB -> 9.39 MiB; plan JSON 3.90 MiB -> 3.74 MiB.
+      - `blog page parameterized / node default warm`: heap 10.11 MiB -> 9.62 MiB; plan JSON 3.92 MiB -> 3.76 MiB.
+  - Timing signal:
+    - Same-window `compile prebuilt request` 1000 iterations old -> patched: `findUnique` 660.40 -> 693.55 us/op, `findMany` 408.18 -> 420.23 us/op, blog page 3298.63 -> 3330.54 us/op.
+    - Same-window render-all-leaves row old bundled -> patched local Wasm: 1.11 -> 1.14 us/op.
+    - Focused execution was mixed/noisy: cached wrapper nested rows 17.14 -> 17.65 us/op, while direct plan after phase warmup nested rows 13.74 -> 13.14 us/op.
+    - Criterion while patched: `filter-contains-param-insensitive` regressed 6.61%, `filter-contains-param` regressed 6.08%, `nested-pagination-query` regressed 2.09%; `nested-pagination-join` improved 1.96%, `query-many-m2m` improved 3.64%, `query-m2o` was within noise.
+  - Decision: reverted. The retained-memory win is real but modest, and building a full SQL `String` during serialization creates compile CPU regressions in common read/filter rows. The higher-ceiling version would need SQL template/string-handle ownership changes that reduce retained JS heap without adding Rust-side rendered-string construction on every compile.
+
 ## Useful Commands
 
 ```sh
