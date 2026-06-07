@@ -4246,6 +4246,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The current product-shaped blog-page path is much faster than the earlier 40-70 us/op journal bands, so do not compare new patches against those older absolute numbers without a close baseline.
     - The largest remaining measured runtime gap is no longer a single obvious helper. Tiny render/cache/request tweaks are already mostly rejected or low-ceiling. Stronger runtime leads remain plan-shape/data-map pushdown for nested query-mode joins, reducing repeated row-object materialization before the outer data map, or the larger JS-owned query/cache-hit architecture track.
 
+- Restarted harness build/timing refresh and blog-page plan shape.
+  - Timestamp: 2026-06-07T03:15:54Z.
+  - Verification after harness restart:
+    - `pnpm build` in `/home/aqrln.guest/prisma`: passed from Turbo cache, 44/44 tasks successful.
+    - `cargo check -p query-compiler` in `/home/aqrln.guest/prisma-engines`: passed.
+  - Refreshed command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Refreshed key rows:
+    - warmed ClientEngine blog-page nested rows: 20.85 us/op; after phase warmup: 20.10 us/op.
+    - cached request wrapper nested rows: 19.72 us/op; 100 retained shapes: 21.04 us/op.
+    - direct plan nested rows: 12.85 us/op; direct after phase warmup: 13.11 us/op; local executor nested rows: 13.11 us/op.
+    - inner plan nested rows: 10.70 us/op; outer data map: 1.72 us/op; precomputed data map: 2.69 us/op.
+    - precomputed query leaves: 7.63 us/op; precomputed join leaves: 4.58 us/op; precomputed root join children: 4.67 us/op.
+    - per-root-child branches: author 4.54 us/op, category 4.48 us/op, tags 6.01 us/op, comments 5.88 us/op.
+    - render all leaves: 1.06 us/op; adapter-only seven result sets: 2.07 us/op; `serializeSql()` seven result sets: 2.20 us/op.
+    - parameterize blog page value churn: 2.24 us/op; stringify cache key: 1.67 us/op; full cache-hit key: 3.60 us/op; request-as-cache-key: 3.64 us/op.
+  - Blog-page plan shape from the source benchmark query:
+    - Node counts: `d=1`, `g=8`, `j=3`, `l=6`, `m=5`, `q=7`, `u=1`.
+    - Root data map: one outer data-map at `$`, expression `l`, no enums.
+    - Root join at `$.dExpr.letExpr.letExpr`: parent `g`, four children with tags `q`, `q`, `l`, `l`, parent fields `@nested$author`, `@nested$category`, `@nested$tags`, `@nested$comments`, strict relation attachment.
+    - Nested tags join at `$.dExpr.letExpr.letExpr.child[2].letExpr.letExpr`: parent `g`, one `q` child, parent field `@nested$tag`, strict.
+    - Nested comments join at `$.dExpr.letExpr.letExpr.child[3].letExpr.letExpr`: parent `g`, one `q` child, parent field `@nested$author`, strict.
+    - Seven query leaves total; all have six SQL fragments and three args, except the comments parent query is not chunkable.
+    - Serialized plan JSON size for this extracted shape: 3,892 bytes.
+  - Practicality assessment for the user-proposed "Rust owns only IR" architecture:
+    - Potentially practical, but only if it replaces multiple current phases at once. A single `serde_wasm_bindgen::from_value()` swap or a cache-key-only Wasm walker is too shallow.
+    - The viable first proof point is a hot read-only Wasm path that accepts the original JS query object as one reference, walks it once to parameterize and compute structural identity, checks the cache before building owned Rust request maps, and returns an existing cached JS plan object on hits.
+    - `PrismaString`-style wrappers are plausible for making unit tests and Wasm share parser/validator code, but they only pay if validation/query graph construction can consume borrowed or JS-backed values. If the implementation still builds `JsonBody`, `serde_json::Value`, or `ArgumentValue` maps first, most of the benefit is gone.
+    - Avoiding Rust-owned SQL strings is likely a second project. The compile-miss path currently constructs SQL fragments in Rust; keeping SQL JS-owned would require template/interner/string-wrapper IR that does not make cross-boundary string/property access slower than the current JSON transfer.
+
 ## Useful Commands
 
 ```sh
