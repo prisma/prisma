@@ -7395,6 +7395,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The change is narrow, preserves the existing fallback path for non-identity renames, and specifically improves the generated request-precomputed batched `findUnique` row while preserving one `queryRaw` per pair.
 
+- Rejected spikes: follow-up precomputed batch rename micro-optimizations.
+  - Timestamp: 2026-06-07T23:33:45+02:00.
+  - Changes tried:
+    - Direct-fill variant: changed `renamePrecomputedPlaceholders()` to write into the combined batch `placeholderValues` object directly instead of returning a temporary placeholder-value map per query.
+    - One-placeholder variant: added a special recursive helper for the common `%1 -> %2` single-placeholder rename to avoid allocating a `Map<string, string>`.
+  - Verification:
+    - Direct-fill variant:
+      - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - `pnpm --filter @prisma/client build`
+    - One-placeholder variant:
+      - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - `pnpm --filter @prisma/client build`
+  - Measurement command:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Results:
+    - Direct-fill variant:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.87 us/op.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.84 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 3.65 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.55 us/op.
+    - One-placeholder variant:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.43 us/op.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.80 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 3.51 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.36 us/op.
+  - Decision:
+    - Reverted both. The current accepted identity-skip implementation measured the batched row at 10.28-10.62 us/op in same-session Node runs, so neither follow-up justified the extra code complexity.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
