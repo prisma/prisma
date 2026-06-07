@@ -616,6 +616,10 @@ function getSingleQueryCacheKey(query: JsonQuery, queryPart: string): string {
   return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
 }
 
+function checksumCompiledPlan(plan: QueryPlanNode): number {
+  return Array.isArray(plan) ? plan.length : Object.keys(plan).length
+}
+
 function forceGc(): void {
   for (let i = 0; i < 5; i++) {
     globalThis.gc?.()
@@ -1786,6 +1790,76 @@ function measureStringifyCacheKeyScenario(paramGraph: ParamGraph, scenario: Cach
   for (let i = 0; i < scenario.iterations; i++) {
     const queryPart = JSON.stringify(parameterizedQueries[i].query)
     checksum += getSingleQueryCacheKey(parameterizedQueries[i], queryPart).length
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies PhaseMeasurement
+}
+
+function measureCompilePrebuiltRequestScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: CacheKeyScenario,
+) {
+  const requests = new Array<string>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    const { parameterizedQuery } = parameterizeQuery(scenario.query(i), paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    requests[i] = getSingleQueryRequest(parameterizedQuery, queryPart)
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    compiler.compile(requests[i])
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumCompiledPlan(compiler.compile(requests[i]))
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  } satisfies PhaseMeasurement
+}
+
+function measureCompileCurrentMissScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: CacheKeyScenario,
+) {
+  const queries = new Array<JsonQuery>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    queries[i] = scenario.query(i)
+  }
+
+  for (let i = 0; i < scenario.iterations; i++) {
+    const { parameterizedQuery } = parameterizeQuery(queries[i], paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart))
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const { parameterizedQuery } = parameterizeQuery(queries[i], paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    checksum += checksumCompiledPlan(compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)))
   }
   const elapsedMs = performance.now() - started
   const afterHeap = heapUsed()
@@ -3318,6 +3392,28 @@ async function main(): Promise<void> {
         continue
       }
       printCacheKeyMeasurement(measureRequestAsCacheKeyScenario(paramGraph, measuredScenario))
+    }
+
+    for (const scenario of cacheKeyScenarios) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'compile prebuilt request'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPhaseMeasurement(measureCompilePrebuiltRequestScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of cacheKeyScenarios) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'compile current miss'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printPhaseMeasurement(measureCompileCurrentMissScenario(compiler, paramGraph, measuredScenario))
     }
 
     for (const scenario of cachedRequestWrapperScenarios) {

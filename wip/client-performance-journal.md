@@ -4723,6 +4723,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Benchmark.js cache suite stayed in the current band: parameterize blog post page 702,436 ops/sec; cache-hit-key blog post page 364,201 ops/sec.
   - Decision: keep as a small hot-path cleanup. The absolute win is tiny, but it removes redundant primitive type dispatch from every scalar placeholder without adding retained state or protocol churn.
 
+- Accepted benchmark instrumentation: compile miss request-boundary rows.
+  - Timestamp: 2026-06-07T08:42:25Z.
+  - Change: `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` now includes `compile prebuilt request ...` rows that call `QueryCompiler.compile()` with request strings built before the measurement loop, and `compile current miss ...` rows that run the current miss path (`parameterizeQuery()` + query-part stringify + request string construction + `compile()`) inside the measurement loop.
+  - Rationale: the JS-owned query idea needs a clear ceiling. These rows separate the cost of constructing the current JSON request/cache key on the JS side from the opaque Wasm compile call.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile ' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile prebuilt request' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='request as cache key' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cache hit key' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='parameterize' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - First same-process 1,000-iteration compile run, prebuilt request first: prebuilt `findUnique` 475.38 us/op, `findMany` 322.33 us/op, blog page 2404.20 us/op; current miss `findUnique` 403.40 us/op, `findMany` 297.91 us/op, blog page 2332.07 us/op. Ordering/JIT effects were larger than request-building overhead.
+    - Separate 1,000-iteration runs: current miss `findUnique` 563.43 us/op, `findMany` 352.31 us/op, blog page 2699.12 us/op; prebuilt request `findUnique` 537.92 us/op, `findMany` 339.02 us/op, blog page 2630.50 us/op.
+    - Stable 200,000-iteration JS-side request-building rows: request-as-cache-key `findUnique` 1.29 us/op, `findMany` 0.49 us/op, blog page 3.50 us/op; cache-hit-key `findUnique` 1.20 us/op, `findMany` 0.45 us/op, blog page 3.47 us/op; parameterize-only `findUnique` 0.74 us/op, `findMany` 0.14 us/op, blog page 1.77 us/op.
+  - Decision: keep the benchmark rows. Removing JS request string construction alone is not a compile-miss 3x lever; compile misses are dominated by Wasm parse/adapt/graph/translate/serialize work. The JS-owned query architecture remains interesting primarily for cache hits and memory, or if it also bypasses Rust-owned protocol trees before validation.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
