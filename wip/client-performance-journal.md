@@ -5075,6 +5075,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Edge-default blog-page retained keys: 48.3 KiB unparameterized and 53.3 KiB parameterized for 100 entries. Prefix trie savings were only 5.0 KiB and 7.5 KiB respectively.
   - Decision: keep the instrumentation, but do not build a prefix-trie `QueryPlanCache` yet. The exact-key memory surface is real, but the edge-default product win from a prefix trie is small and the largest lower-bound win comes from shared suffixes, not prefixes. Any production cache-key change should either target a combined structural key representation with exact collision handling or be folded into the larger JS-reference/Rust-owned-IR design where the key is computed without retaining full JSON strings.
 
+- Accepted runtime change: run raw nested sibling relation reads concurrently.
+  - Timestamp: 2026-06-07T14:31:40Z.
+  - Change:
+    - `QueryInterpreter.#compileRawNestedReadQuery()` now uses the existing compact-join execution shape for raw nested read siblings: one relation keeps the direct await fast path, while two or more sibling relations are started with `Promise.all`.
+    - `packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts` has a regression test proving two sibling raw nested relation queries are started before either child resolves.
+    - `client-engine-cache-timing.ts` now has opt-in `CLIENT_ENGINE_CACHE_TIMING_ASYNC_BLOG_PAGE_ADAPTER=1`, which inserts a `setImmediate` boundary per blog-page adapter query so timing probes can distinguish immediate in-memory adapter CPU from async-driver scheduling.
+  - Rationale: compact join execution already parallelizes sibling child branches. Raw nested emission had made the same logical shape sequential, which is bad for real async drivers and especially Workers-style runtimes where query latency dominates a few extra promise allocations.
+  - Verification:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_ASYNC_BLOG_PAGE_ADAPTER=1 CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Measurement signal:
+    - Immediate fake adapter, before -> after: raw result-set compact node 7.62 -> 7.76 us/op; cached request wrapper 14.78 -> 14.90 us/op. This is a tiny CPU-only regression from promise fan-out overhead when all queries resolve synchronously.
+    - Async-boundary fake adapter, sequential baseline -> parallel patched: raw result-set compact node 31.38 -> 22.86 us/op; direct plan 27.01 -> 26.11 us/op; local executor 29.90 -> 22.44 us/op.
+  - Decision: keep. The raw nested path now matches the existing compact-join sibling scheduling model, and the async-driver signal is a material win. The immediate fake-adapter CPU regression is small and isolated to a benchmark shape that is less representative of Cloudflare/driver-adapter latency than the async-boundary probe.
+
 ## Useful Commands
 
 ```sh
@@ -5090,6 +5109,7 @@ pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts
+CLIENT_ENGINE_CACHE_TIMING_ASYNC_BLOG_PAGE_ADAPTER=1 CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_KEY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts

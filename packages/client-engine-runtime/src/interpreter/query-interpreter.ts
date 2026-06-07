@@ -1146,8 +1146,10 @@ export class QueryInterpreter {
           columnNames: resultSet.columnNames,
           records,
         }
-        for (const relation of relations) {
-          await relation(result, context, scope)
+        if (relations.length === 1) {
+          await relations[0](result, context, scope)
+        } else {
+          await Promise.all(relations.map((relation) => relation(result, context, scope)))
         }
       }
 

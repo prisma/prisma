@@ -385,6 +385,90 @@ test('interprets compact raw nested read nodes', async () => {
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [1]])
 })
 
+test('starts compact raw nested read sibling relations concurrently', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id, authorId FROM Post WHERE id = ', 1)
+  const authorQuery = templateQuery('SELECT id, name FROM User WHERE id = ', { $p: ['@parent$authorId', 'int'] })
+  const commentsQuery = templateQuery('SELECT id, postId, content FROM Comment WHERE postId = ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [
+        ['id', 0],
+        ['authorId', 1],
+      ],
+      [
+        ['r', 'author', [authorQuery, [['id', 0]]], 1, 0, '@parent$authorId', true],
+        ['r', 'comments', [commentsQuery, [['id', 0]]], 0, 1, '@parent$id', false],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  const observedQueries: string[] = []
+  let resolveAuthor: ((resultSet: SqlResultSet) => void) | undefined
+  let resolveComments: ((resultSet: SqlResultSet) => void) | undefined
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      if (query.sql.startsWith('SELECT id, authorId')) {
+        observedQueries.push('root')
+        return Promise.resolve({
+          columnNames: ['id', 'authorId'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+          rows: [[1, 10]],
+        })
+      }
+      if (query.sql.startsWith('SELECT id, name')) {
+        observedQueries.push('author')
+        return new Promise<SqlResultSet>((resolve) => {
+          resolveAuthor = resolve
+        })
+      }
+      observedQueries.push('comments')
+      return new Promise<SqlResultSet>((resolve) => {
+        resolveComments = resolve
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  const result = interpreter.run(plan, { ...runtimeOptions, queryable })
+  await new Promise((resolve) => setImmediate(resolve))
+
+  expect(observedQueries).toEqual(['root', 'author', 'comments'])
+  if (resolveAuthor === undefined || resolveComments === undefined) {
+    throw new Error('Expected raw nested child queries to start')
+  }
+
+  resolveAuthor({
+    columnNames: ['id', 'name'],
+    columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+    rows: [[10, 'Alice']],
+  })
+  resolveComments({
+    columnNames: ['id', 'postId', 'content'],
+    columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+    rows: [
+      [100, 1, 'Nice'],
+      [101, 1, 'Great'],
+    ],
+  })
+
+  await expect(result).resolves.toEqual({
+    id: 1,
+    authorId: 10,
+    author: { id: 10 },
+    comments: [{ id: 100 }, { id: 101 }],
+  })
+})
+
 test('interprets compact raw nested read many-to-many relations', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)

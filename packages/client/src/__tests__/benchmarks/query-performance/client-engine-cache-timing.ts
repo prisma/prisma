@@ -55,6 +55,7 @@ import { loadQueryCompiler } from './qc-loader'
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
 const MEASUREMENT_FILTER = process.env.CLIENT_ENGINE_CACHE_TIMING_FILTER
+const USE_ASYNC_BLOG_PAGE_ADAPTER = process.env.CLIENT_ENGINE_CACHE_TIMING_ASYNC_BLOG_PAGE_ADAPTER === '1'
 const ITERATION_OVERRIDE =
   process.env.CLIENT_ENGINE_CACHE_TIMING_ITERATIONS === undefined
     ? undefined
@@ -331,11 +332,18 @@ class BlogPageSqliteAdapter implements SqlDriverAdapter {
 
   queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     this.counts.queryRaw++
-    return Promise.resolve(getBlogPageResultSet(query.sql))
+    const resultSet = getBlogPageResultSet(query.sql)
+    if (USE_ASYNC_BLOG_PAGE_ADAPTER) {
+      return new Promise((resolve) => setImmediate(resolve, resultSet))
+    }
+    return Promise.resolve(resultSet)
   }
 
   executeRaw(_query: SqlQuery): Promise<number> {
     this.counts.executeRaw++
+    if (USE_ASYNC_BLOG_PAGE_ADAPTER) {
+      return new Promise((resolve) => setImmediate(resolve, 0))
+    }
     return Promise.resolve(0)
   }
 
