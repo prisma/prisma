@@ -7710,6 +7710,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The delayed payload helper added more overhead than the wrapper allocation it avoided on the target row.
 
+- Rejected experiment: direct row return for matching compacted selection.
+  - Timestamp: 2026-06-08T00:41:00+02:00.
+  - Change:
+    - Temporarily changed the accepted single-key compacted batch fast path to return the matched row object directly when `Object.keys(row)` exactly matched `compiledBatch.nestedSelection`.
+    - Hidden key columns, missing columns, or extra columns still fell back to the existing projection loop.
+  - Rationale:
+    - The hot generated `findUnique` compacted batch likely returns rows whose shape already matches the requested selection. Returning rows directly looked like a way to avoid allocating projected result objects.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/batch.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test batch.test.ts`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 7.66 us/op.
+      - `generated client batched findUnique / warmed cache`: 14.83 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 6.15 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.73 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted single-key compacted demux row was 6.98 us/op. The whole run was noisy, but the target row regressed enough that no repeat was needed.
+  - Decision:
+    - Revert. The `Object.keys(row)` / selection-membership check costs more than the projection it tries to avoid on the target shape.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
