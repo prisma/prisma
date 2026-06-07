@@ -5387,6 +5387,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched focused direct-plan row: 8.84 us/op at 300,000 iterations.
   - Decision: reverted. The change was mixed/noisy and worsened the local executor row in the product-shaped run.
 
+- Profile comparison: production raw nested direct plan vs exact raw-result-set prototype.
+  - Timestamp: 2026-06-07T13:38:00Z.
+  - Commands:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=2000000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp --cpu-prof-name=direct-rawnested.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact prototype blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=2000000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp --cpu-prof-name=exact-prototype.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Production direct raw nested: 8.88 us/op over 2,000,000 iterations.
+    - Exact prototype: 5.20 us/op over 2,000,000 iterations.
+  - Profile signal:
+    - Production profile top self included raw nested anonymous executor/relation closures, `mapRawNestedRows` at about 8.4% self / 10.1% total, fake adapter result-set dispatch, render-query work, and GC at about 7.3% self.
+    - Exact prototype profile moved work into one large `executeRawResultSetBlogPagePrototype` frame, `mapRawRows` / `mapRawRow`, render-query work, and fake adapter dispatch; GC was much lower at about 1.6% self.
+  - Interpretation:
+    - The 3.6 us/op gap is not one scalar branch. It comes from the current generic raw nested execution shape: multiple async query/relation closures, generic row materialization, per-node result wrappers, and more allocation/GC.
+    - This supports a future exact-shape/generated raw-result-set executor, but not more tiny helper branches around the current mapper.
+
+- Rejected experiment: data-driven compiled raw nested executor.
+  - Timestamp: 2026-06-07T13:44:00Z.
+  - Change tried: replaced the compiled raw nested query/relation closure tree with compiled data objects plus `#executeCompiledRawNestedReadQuery()` / `#executeCompiledRawNestedReadRelation()` methods, preserving the same query plan protocol and relation attachment semantics.
+  - Rationale: the CPU profile showed significant time in anonymous raw nested executor/relation closures; a data-driven method executor looked like a way to remove per-relation closure layers without changing the Wasm plan protocol.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Patched focused direct-plan row: 8.85 us/op at 300,000 iterations.
+    - Patched broad row: cached request wrapper 14.33 us/op, direct plan 8.80, raw compact 7.39, local executor 8.97.
+  - Decision: reverted. The focused direct row did not improve, the broad signal was mixed, and the method/data-object interpreter is not a clear route to the exact prototype's 5.2 us/op ceiling.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
