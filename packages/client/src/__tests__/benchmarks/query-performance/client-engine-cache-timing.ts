@@ -1785,6 +1785,22 @@ function checksumNestedBlogResult(value: unknown): number {
   return numericField(value, 'id') + arrayLength(value.tags) + arrayLength(value.comments)
 }
 
+function checksumNestedBlogExactResult(value: unknown): number {
+  const base = checksumNestedBlogResult(value)
+  if (!isRecord(value) || !Array.isArray(value.tags)) {
+    return base
+  }
+
+  let checksum = base
+  for (let i = 0; i < value.tags.length; i++) {
+    const wrapper = value.tags[i]
+    if (isRecord(wrapper) && isRecord(wrapper.tag)) {
+      checksum += numericField(wrapper.tag, 'id')
+    }
+  }
+  return checksum
+}
+
 async function measureDirectPlanScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -2575,6 +2591,40 @@ function attachManyToManyRawChildren(
   }
 }
 
+function attachManyToManyRawWrapperChildren(
+  parentRows: readonly unknown[][],
+  parents: readonly Record<string, unknown>[],
+  parentColumnIndex: number,
+  joinRows: readonly unknown[][],
+  joinParentColumnIndex: number,
+  joinChildColumnIndex: number,
+  childRows: readonly unknown[][],
+  children: readonly Record<string, unknown>[],
+  childColumnIndex: number,
+  fieldName: string,
+  wrapperFieldName: string,
+): void {
+  for (let parentIndex = 0; parentIndex < parents.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    const childList: Record<string, unknown>[] = []
+    for (let joinIndex = 0; joinIndex < joinRows.length; joinIndex++) {
+      const joinRow = joinRows[joinIndex]
+      if (joinRow[joinParentColumnIndex] !== parentKey) {
+        continue
+      }
+
+      const childKey = joinRow[joinChildColumnIndex]
+      for (let childIndex = 0; childIndex < children.length; childIndex++) {
+        if (childRows[childIndex][childColumnIndex] === childKey) {
+          childList.push({ [wrapperFieldName]: children[childIndex] })
+          break
+        }
+      }
+    }
+    parents[parentIndex][fieldName] = childList
+  }
+}
+
 function renderSingleBlogPageQuery(
   dbQuery: QueryPlanDbQuery,
   scope: Record<string, unknown>,
@@ -2592,6 +2642,7 @@ async function executeRawResultSetBlogPagePrototype(
   placeholderValues: Record<string, unknown>,
   adapter: BlogPageSqliteAdapter,
   generators: GeneratorRegistrySnapshot,
+  exactShape = false,
 ): Promise<Record<string, unknown> | null> {
   const postResultSet = await adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[0], placeholderValues, generators))
   const postRows = postResultSet.rows
@@ -2626,7 +2677,23 @@ async function executeRawResultSetBlogPagePrototype(
 
   attachUniqueRawChildren(postRows, posts, 7, authorResultSet.rows, authors, 0, 'author')
   attachUniqueRawChildren(postRows, posts, 8, categoryResultSet.rows, categories, 0, 'category')
-  attachManyToManyRawChildren(postRows, posts, 0, postTagResultSet.rows, 0, 1, tagResultSet.rows, tags, 0, 'tags')
+  if (exactShape) {
+    attachManyToManyRawWrapperChildren(
+      postRows,
+      posts,
+      0,
+      postTagResultSet.rows,
+      0,
+      1,
+      tagResultSet.rows,
+      tags,
+      0,
+      'tags',
+      'tag',
+    )
+  } else {
+    attachManyToManyRawChildren(postRows, posts, 0, postTagResultSet.rows, 0, 1, tagResultSet.rows, tags, 0, 'tags')
+  }
   attachUniqueRawChildren(commentResultSet.rows, comments, 3, commentAuthorResultSet.rows, commentAuthors, 0, 'author')
   attachManyRawChildren(postRows, posts, 0, commentResultSet.rows, comments, 4, 'comments')
 
@@ -2671,6 +2738,54 @@ async function measureRawResultSetBlogPagePrototypeScenario(
   for (let i = 0; i < scenario.iterations; i++) {
     checksum += checksumNestedBlogResult(
       await executeRawResultSetBlogPagePrototype(dbQueries, placeholderValues, adapter, generators),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureRawResultSetBlogPageExactPrototypeScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const adapter = new BlogPageSqliteAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const dbQueries = getDbQueries(plan)
+  if (dbQueries.length !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  checksumNestedBlogExactResult(
+    await executeRawResultSetBlogPagePrototype(dbQueries, placeholderValues, adapter, generators, true),
+  )
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogExactResult(
+      await executeRawResultSetBlogPagePrototype(dbQueries, placeholderValues, adapter, generators, true),
     )
   }
   const elapsedMs = performance.now() - started
@@ -4083,6 +4198,19 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureRawResultSetBlogPagePrototypeScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set exact prototype'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogPageExactPrototypeScenario(compiler, paramGraph, measuredScenario),
       )
     }
 

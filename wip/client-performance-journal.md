@@ -5338,6 +5338,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Broad reverted run recovered those rows relative to the patch: cached request wrapper 14.61 us/op and local executor 8.98, though the whole run was in a slower band than the previous committed wrapper-specialized measurements.
   - Decision: reverted. The tiny direct-plan improvement did not survive the broader product-shaped rows. Do not retry this exact `_count` two-segment setter branch without a generated mapper or lower-overhead exact-shape executor that removes more row-materialization work.
 
+- Accepted benchmark instrumentation: exact-shape raw-result-set prototype row.
+  - Timestamp: 2026-06-07T11:11:54Z.
+  - Change:
+    - `client-engine-cache-timing.ts` now includes `raw result-set exact prototype blog page / nested rows`.
+    - The existing `raw result-set prototype` row is kept as a flattened lower bound, while the new exact row returns `tags: [{ tag: ... }]` and reads those wrappers in its checksum.
+  - Rationale: the old raw-result-set prototype was useful but semantically looser than the product query because it flattened the `PostTag -> Tag` wrapper relation. The new row gives a cleaner ceiling for a production exact-shape raw-result-set executor.
+  - Verification:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact prototype blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `git diff --check`
+  - Measurement signal:
+    - Exact-shape row alone: 5.40 us/op at 100,000 iterations.
+    - Same-run raw-result-set comparison: fixture assembly 0.48 us/op, flattened prototype 5.21, exact prototype 5.33, compact node 7.89.
+  - Interpretation:
+    - Preserving the exact `tags: [{ tag }]` shape costs only about 0.1-0.2 us/op over the flattened prototype in this fixture.
+    - The gap from exact prototype 5.33 us/op to compact node 7.89 us/op remains large enough to justify a production exact-shape executor or generated raw mapper; it is not explained by wrapper semantics alone.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
