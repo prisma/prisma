@@ -4804,6 +4804,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Top contributors were SQL text chunks, especially the root `Post` SELECT at about 1.0 KiB. Child SQL strings were also larger than join/result metadata.
   - Decision: keep the instrumentation. This makes small metadata compaction ideas easier to reject quickly and supports the larger SQL-template/string-handle lead: avoiding Rust-owned/serialized SQL strings is a meaningfully higher-ceiling memory and compile-serialization target than shaving a few tuple fields.
 
+- Rejected experiment: disable flat template SQL render cache.
+  - Timestamp: 2026-06-07T11:31:20Z.
+  - Change tried: in `packages/client-engine-runtime/src/interpreter/render-query.ts`, guarded `flatTemplateSqlCache` lookups and writes behind a disabled constant so each execution re-rendered flat template SQL instead of retaining a WeakMap value from each `QueryPlanDbQuery` object to `{ sql, paramCount, argTypes }`.
+  - Rationale: cached query plans retain SQL template fragments, and executing them can retain an additional rendered SQL string in the flat template cache. Disabling that cache looked like a possible Workers heap reduction for SQL-heavy plans.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/render-query.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='render query all leaves blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test render-query`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+  - Timing signal:
+    - Baseline immediately before patch: render-all-leaves blog-page nested rows 0.97 us/op; cached request wrapper blog-page nested rows 19.00 us/op.
+    - Patched: render-all-leaves blog-page nested rows 1.62 us/op; cached request wrapper blog-page nested rows 21.95 us/op.
+  - Decision: reverted. The memory premise may still be true after execution, but the hot cached nested-row path regressed by about 15%. Do not disable the flat SQL render cache globally without an opt-in memory mode or a design that preserves the cached flat rendering speed.
+
 ## Useful Commands
 
 ```sh
