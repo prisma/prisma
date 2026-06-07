@@ -4063,6 +4063,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Same-session reversed baseline after V8 warmup: cached wrapper 17.83 us/op, direct plan 11.99, local executor 12.13.
   - Decision: reverted. The first baseline was cold/order noise; the close A/B shows no meaningful gain from avoiding the one-element child wrapper. Do not retry this exact helper split without a different benchmark shape or heap evidence.
 
+- Rejected experiment: DateTime `Date` clone via `getTime()`.
+  - Timestamp: 2026-06-07T01:46:16Z.
+  - Hypothesis: the nested blog-page fixture maps `Date` objects for `Post.createdAt` and `Comment.createdAt`. Keeping clone semantics but changing the JS result path from `new Date(value)` to `new Date(value.getTime())` for `Date` inputs might avoid slower generic Date construction.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper.test.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+  - Benchmark signal:
+    - Baseline immediately before this spike, after warmup from the previous A/B: cached wrapper nested blog page 17.83 us/op, direct plan 11.99, outer data map 1.64, local executor 12.13.
+    - Patched run 1: cached wrapper 17.57 us/op, direct plan 11.80, outer data map 1.64, local executor 12.01.
+    - Patched run 2: cached wrapper 17.87 us/op, direct plan 11.87, outer data map 1.62, local executor 12.10.
+  - Decision: reverted. The result stayed in the same warm timing band and the isolated outer data-map row did not move enough to justify changing the mapper.
+
 ## Useful Commands
 
 ```sh
