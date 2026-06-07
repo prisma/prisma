@@ -6224,6 +6224,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The direct/local nested gap to the raw prototype is now roughly 1.4-2.0 us/op, not a single helper. The profile supports the existing conclusion: a larger exact-shape/raw-result-set executor or plan-shape change must remove several generic phases together. More relation-attachment-only, row-mapper-only, or render-array-only micro-spikes are unlikely to move the product row.
     - The Rust borrowing/arena lead still needs a sharper source-level target. Current allocation evidence does not support a broad `Arc` purge; use allocation profiles or narrower constructor instrumentation to pick a concrete graph_build/translate_ir structure before rewriting ownership.
 
+- Build restart and rejected raw-nested relation-dispatch refresh.
+  - Timestamp: 2026-06-07T16:07:11Z.
+  - Verification after harness restart:
+    - `make build-qc-wasm`: passed for all query-compiler Wasm providers.
+    - `pnpm build`: passed, 44/44 tasks successful in 1m11.953s.
+  - Rechecked the already-known `Promise.all(relations.map(...))` raw-nested relation dispatch lead with the current rebuilt harness.
+    - Baseline compact-node blog-page nested row: 6.52 us/op at 300k iterations.
+    - Manual promise-array patch: 6.49 and 6.46 us/op at 300k iterations.
+    - Same-session reverted control: 6.49 us/op at 300k iterations.
+  - Decision: reverted / do not pursue. The manual promise-array shape is noise-level and does not remove the recursive raw-nested execution model. Keep the existing `Promise.all(relations.map(...))` shape unless a real product profile shows this specific allocation has become material.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
