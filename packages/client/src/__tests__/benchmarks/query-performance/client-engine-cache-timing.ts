@@ -413,24 +413,120 @@ function getBlogPageResultSet(sql: string): SqlResultSet {
 
     switch (tableName) {
       case 'Post':
-        return cacheBlogPageResultSet(sql, BLOG_PAGE_POST_RESULT)
+        return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_POST_RESULT))
       case 'Category':
-        return cacheBlogPageResultSet(sql, BLOG_PAGE_CATEGORY_RESULT)
+        return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_CATEGORY_RESULT))
       case 'PostTag':
-        return cacheBlogPageResultSet(sql, BLOG_PAGE_POST_TAG_RESULT)
+        return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_POST_TAG_RESULT))
       case 'Tag':
-        return cacheBlogPageResultSet(sql, BLOG_PAGE_TAG_RESULT)
+        return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_TAG_RESULT))
       case 'Comment':
-        return cacheBlogPageResultSet(sql, BLOG_PAGE_COMMENT_RESULT)
+        return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_COMMENT_RESULT))
       case 'User':
         return cacheBlogPageResultSet(
           sql,
-          sql.includes(' IN ') ? BLOG_PAGE_COMMENT_AUTHOR_RESULT : BLOG_PAGE_AUTHOR_RESULT,
+          projectBlogPageResultSet(
+            sql,
+            sql.includes(' IN ') ? BLOG_PAGE_COMMENT_AUTHOR_RESULT : BLOG_PAGE_AUTHOR_RESULT,
+          ),
         )
     }
   }
 
   throw new Error(`Unexpected blog page benchmark SQL: ${sql}`)
+}
+
+function projectBlogPageResultSet(sql: string, resultSet: SqlResultSet): SqlResultSet {
+  const selectedColumns = getSelectedBlogPageColumns(sql)
+  if (selectedColumns === undefined) {
+    return resultSet
+  }
+
+  if (
+    selectedColumns.length === resultSet.columnNames.length &&
+    selectedColumns.every((columnName, index) => columnName === resultSet.columnNames[index])
+  ) {
+    return resultSet
+  }
+
+  const sourceColumnIndexes = new Map<string, number>()
+  for (let i = 0; i < resultSet.columnNames.length; i++) {
+    sourceColumnIndexes.set(resultSet.columnNames[i], i)
+  }
+
+  const columnIndexes = selectedColumns.map((columnName) => {
+    const columnIndex = sourceColumnIndexes.get(columnName)
+    if (columnIndex === undefined) {
+      throw new Error(`Unexpected blog page benchmark column '${columnName}' in SQL: ${sql}`)
+    }
+    return columnIndex
+  })
+
+  return {
+    columnNames: Object.freeze(selectedColumns.slice()),
+    columnTypes: Object.freeze(columnIndexes.map((columnIndex) => resultSet.columnTypes[columnIndex])) as ColumnType[],
+    rows: Object.freeze(
+      resultSet.rows.map((row) => Object.freeze(columnIndexes.map((columnIndex) => row[columnIndex]))),
+    ),
+  }
+}
+
+function getSelectedBlogPageColumns(sql: string): string[] | undefined {
+  const selectPrefix = 'SELECT '
+  if (!sql.startsWith(selectPrefix)) {
+    return undefined
+  }
+
+  const fromIndex = sql.indexOf(' FROM ')
+  if (fromIndex === -1) {
+    return undefined
+  }
+
+  const selection = sql.slice(selectPrefix.length, fromIndex)
+  if (selection.trim() === '*') {
+    return undefined
+  }
+
+  return splitSqlProjection(selection).map(getSqlProjectionColumnName)
+}
+
+function splitSqlProjection(selection: string): string[] {
+  const projections: string[] = []
+  let depth = 0
+  let start = 0
+  let inBackticks = false
+  for (let i = 0; i < selection.length; i++) {
+    const char = selection[i]
+    if (char === '`') {
+      inBackticks = !inBackticks
+    } else if (!inBackticks) {
+      if (char === '(') {
+        depth++
+      } else if (char === ')') {
+        depth--
+      } else if (char === ',' && depth === 0) {
+        projections.push(selection.slice(start, i).trim())
+        start = i + 1
+      }
+    }
+  }
+  projections.push(selection.slice(start).trim())
+  return projections
+}
+
+function getSqlProjectionColumnName(projection: string): string {
+  const aliasMatch = projection.match(/\sAS\s`([^`]+)`$/)
+  if (aliasMatch !== null) {
+    return aliasMatch[1]
+  }
+
+  const lastBacktickStart = projection.lastIndexOf('`')
+  const previousBacktickStart = projection.lastIndexOf('`', lastBacktickStart - 1)
+  if (lastBacktickStart !== -1 && previousBacktickStart !== -1) {
+    return projection.slice(previousBacktickStart + 1, lastBacktickStart)
+  }
+
+  throw new Error(`Unexpected blog page benchmark projection: ${projection}`)
 }
 
 function cacheBlogPageResultSet(sql: string, resultSet: SqlResultSet): SqlResultSet {

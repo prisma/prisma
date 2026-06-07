@@ -4937,6 +4937,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Timing was mixed/noisy rather than a clear CPU win: focused nested rows measured cached request wrapper around 15.04 us/op, direct plan around 9.03 us/op, raw result-set compact node around 7.75 us/op, and local executor around 8.90 us/op.
   - Decision: keep. This is a clean memory/protocol improvement with no runtime compatibility risk because numeric and named refs already share the same raw nested protocol. It does not solve SQL string ownership, but it removes avoidable column-name duplication from the raw nested plan shape.
 
+- Accepted benchmark harness fix: project blog-page fake result sets to the SQL selection.
+  - Timestamp: 2026-06-07T16:45:00Z.
+  - Trigger: after the numeric raw nested column-ref compiler change, `CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows'` failed in the 100-retained-shapes cached-wrapper row with `_count.likes` reading the static `content` cell. The fake blog-page adapter returned a full static result set for every table, even when the generated SQL selected a masked subset of columns.
+  - Change: `client-engine-cache-timing.ts` now parses the benchmark SQL `SELECT` list, handles aggregate aliases such as `_aggr_count_likes`, and projects the static fixture rows/column metadata to the actual SQL result order before caching the fake `SqlResultSet`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Measurement signal after the fix: warmed cache 17.82 us/op, cached request wrapper 15.85 us/op, cached request wrapper with 100 retained shapes 17.61 us/op, direct plan 9.50 us/op, raw result-set compact node 8.51 us/op, local executor 9.84 us/op.
+  - Decision: keep. Product drivers return rows in SQL projection order, so the benchmark should do the same. This also makes future numeric column-ref and selection-mask experiments test the realistic row shape instead of relying on named-column fallback.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
