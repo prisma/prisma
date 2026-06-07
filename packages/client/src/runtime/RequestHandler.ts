@@ -80,16 +80,31 @@ export class RequestHandler {
     this.dataloader = new DataLoader({
       batchLoader: createApplyBatchExtensionsFunction(async ({ requests, customDataProxyFetch }) => {
         const { transaction, otelParentCtx } = requests[0]
-        const queries = requests.map((r) => r.protocolQuery)
-        const precomputedQueryPlanCacheHits = requests.every((r) => r.precomputedQueryPlanCacheHit !== undefined)
-          ? requests.map((r) => r.precomputedQueryPlanCacheHit!)
-          : undefined
+        let queries: JsonQuery[]
+        let precomputedQueryPlanCacheHits: PrecomputedQueryPlanCacheHit[] | undefined
+        let containsWrite: boolean
+
+        if (requests.length === 2) {
+          const firstRequest = requests[0]
+          const secondRequest = requests[1]
+          queries = [firstRequest.protocolQuery, secondRequest.protocolQuery]
+          precomputedQueryPlanCacheHits =
+            firstRequest.precomputedQueryPlanCacheHit !== undefined &&
+            secondRequest.precomputedQueryPlanCacheHit !== undefined
+              ? [firstRequest.precomputedQueryPlanCacheHit, secondRequest.precomputedQueryPlanCacheHit]
+              : undefined
+          containsWrite = isWrite(firstRequest.protocolQuery.action) || isWrite(secondRequest.protocolQuery.action)
+        } else {
+          queries = requests.map((r) => r.protocolQuery)
+          precomputedQueryPlanCacheHits = requests.every((r) => r.precomputedQueryPlanCacheHit !== undefined)
+            ? requests.map((r) => r.precomputedQueryPlanCacheHit!)
+            : undefined
+          containsWrite = requests.some((r) => isWrite(r.protocolQuery.action))
+        }
         const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
-
-        const containsWrite = requests.some((r) => isWrite(r.protocolQuery.action))
 
         const results = await this.client._engine.requestBatch(queries, {
           traceparent,
@@ -98,6 +113,23 @@ export class RequestHandler {
           precomputedQueryPlanCacheHits,
           customDataProxyFetch,
         })
+
+        if (requests.length === 2) {
+          const mappedResults = new Array(results.length)
+          for (let i = 0; i < results.length; i++) {
+            const result = results[i]
+            if (result instanceof Error) {
+              mappedResults[i] = result
+            } else {
+              try {
+                mappedResults[i] = this.mapQueryEngineResult(requests[i], result)
+              } catch (error) {
+                mappedResults[i] = error
+              }
+            }
+          }
+          return mappedResults
+        }
 
         return results.map((result, i) => {
           if (result instanceof Error) {
