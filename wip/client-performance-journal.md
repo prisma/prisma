@@ -4922,6 +4922,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Result: reverted. Memory moved the wrong way after raw nested subtree interning: blog-page node-default warm worsened from 5.27 MiB to 5.45 MiB without render and from 5.29 MiB to 5.46 MiB with render; edge-default warm also worsened. Cached-wrapper timing stayed in-band, but there was no memory win. The extra fragment arrays/strings outweighed any shared tail.
   - Decision: do not split SQL fragments inside cached plans as a post-processing step without a substantially different representation. If root SQL ownership remains a target, address it at the compiler/protocol level with reusable SQL template/string handles rather than mutating rendered string fragments after compilation.
 
+- Accepted compiler memory cleanup: emit numeric raw nested column refs when indexes are known.
+  - Timestamp: 2026-06-07T16:12:00Z.
+  - Change: `query-compiler/query-compiler/src/translate/query/read.rs` now emits `RawResultColumnRef::Index` for raw nested scalar/virtual mappings and direct parent/child relation columns when the SQL builder already has the column position. Named column refs remain supported by the runtime protocol for fallback and compatibility.
+  - Rationale: Rust was already validating that each mapped column was present, but still serialized DB column names and aliases into the raw nested plan. Numeric indexes avoid repeated column-name strings in cached plans and let the TS interpreter skip name resolution for compiler-emitted raw nested reads.
+  - Verification:
+    - Engines: `cargo fmt -p query-compiler`; `cargo check -p query-compiler`; `cargo check -p query-compiler-wasm --features sqlite`; `cargo test -p query-compiler --test queries`; `make build-qc-wasm`.
+    - Prisma: `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`; restored unrelated lockfile churn; `pnpm build`.
+    - Probes: `QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1`, normal `query-plan-cache-memory.ts`, `QUERY_PLAN_CACHE_MEMORY_RENDER=1`, and focused `client-engine-cache-timing.ts` rows using `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`.
+  - Measurement signal:
+    - Serialized blog-page plan breakdown improved from about 4.1 KiB to 3.7 KiB total, string bytes from 3.4 KiB to 3.0 KiB, and repeated-string bytes from 1009 B to 638 B.
+    - Non-render retained memory improved: blog-page edge warm 760.7 KiB -> 721.0 KiB, edge churn 654.8 KiB -> 613.4 KiB, node warm 5.27 MiB -> 4.88 MiB, and parameterized node warm 5.49 MiB -> 5.10 MiB.
+    - Rendered retained memory stayed in the same improved band: blog-page edge warm 822.7 KiB, edge churn 638.0 KiB, node warm 4.90 MiB, and parameterized node warm 5.09 MiB.
+    - Timing was mixed/noisy rather than a clear CPU win: focused nested rows measured cached request wrapper around 15.04 us/op, direct plan around 9.03 us/op, raw result-set compact node around 7.75 us/op, and local executor around 8.90 us/op.
+  - Decision: keep. This is a clean memory/protocol improvement with no runtime compatibility risk because numeric and named refs already share the same raw nested protocol. It does not solve SQL string ownership, but it removes avoidable column-name duplication from the raw nested plan shape.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
