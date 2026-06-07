@@ -5590,6 +5590,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Precompiled numeric/plain row mappers are not a useful standalone path. The extra closure/helper shape and per-field conversion loop do not close the exact-prototype gap in product rows. Future raw-nested work needs a generated/exact-shape executor that removes more of the relation/data-shape machinery at once, not a generic row-mapper closure.
 
+- Accepted experiment: local scopes for self-contained raw-nested relation queries.
+  - Timestamp: 2026-06-07T14:43:32Z.
+  - Change:
+    - `QueryInterpreter.#compileRawNestedReadRelation()` now analyzes raw-nested child query argument placeholders once at compile time.
+    - If a direct child query, many-to-many join query, or many-to-many child query only references the relation placeholder that the relation itself supplies, the executor uses a small local scope object `{ [relationScopeName]: value }`.
+    - If the child query tree references any outer user placeholder, generator argument placeholder, or other scope name, it keeps the previous `Object.create(parentScope)` inherited-scope behavior.
+    - Added regression coverage for a raw-nested child query that needs both `@parent$id` and an outer `%tenantId` placeholder.
+  - Rationale:
+    - The exact raw-result-set prototype uses one-key child scopes. The generic raw-nested executor always used prototype-inherited scopes even when child queries only needed relation IDs, adding prototype lookup and scope-shape overhead on every nested DB query.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+    - Workerd probe: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Timing signal:
+    - Reverted same-session baseline: cached request wrapper 14.16 us/op, direct plan 8.56, raw compact node 7.42, local executor 8.64.
+    - Patched first run: cached request wrapper 12.15 us/op, direct plan 7.86, raw compact node 6.41, local executor 7.86.
+    - Patched final run: cached request wrapper 12.28 us/op, direct plan 7.89, raw compact node 6.38, local executor 7.85.
+    - Workerd generated client blog-page warmed-cache host-dispatch upper bound: 109.93 us/op after patch, in the same-but-slightly-lower band than the recent 113.72 us/op run. Worker-internal timer remains too coarse for this row.
+  - Decision:
+    - Keep. This is a product-path raw-nested win that moves the current plan closer to the exact raw-result-set prototype without changing the plan protocol. The fallback test covers the main correctness risk: child queries that still need outer placeholders must inherit parent scope.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

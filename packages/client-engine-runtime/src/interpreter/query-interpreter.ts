@@ -15,11 +15,13 @@ import {
   getJoinExpressionParentField,
   getPrismaValueGeneratorArgs,
   getPrismaValueGeneratorName,
+  getPrismaValuePlaceholderName,
   getQueryPlanBindingExpr,
   getQueryPlanBindingName,
   getValidationError,
   InMemoryOps,
   isPrismaValueGenerator,
+  isPrismaValuePlaceholder,
   JoinExpression,
   type QueryPlanBinding,
   type QueryPlanCompactNode,
@@ -1212,11 +1214,16 @@ export class QueryInterpreter {
   ): CompiledRawNestedReadRelation {
     if (relation[0] === 'r') {
       const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
+      const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
 
       return async (parentResult, context, scope) => {
-        const childScope = Object.create(scope) as Record<string, unknown>
         const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[3])
-        childScope[relation[5]] = getRawNestedScopeValue(parentResult.rows, parentColumnIndex)
+        const childScope = createRawNestedRelationScope(
+          scope,
+          relation[5],
+          getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
+          canUseLocalChildScope,
+        )
         const childResult = await childQuery(context, childScope)
         const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
         attachRawNestedDirectRelation(
@@ -1232,15 +1239,25 @@ export class QueryInterpreter {
     }
 
     const childQuery = this.#compileRawNestedReadQuery(relation[3], enums)
+    const canUseLocalJoinScope = rawNestedDbQueryUsesOnlyScopeName(relation[2], relation[8])
+    const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[3], relation[9])
 
     return async (parentResult, context, scope) => {
-      const joinScope = Object.create(scope) as Record<string, unknown>
       const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[4])
-      joinScope[relation[8]] = getRawNestedScopeValue(parentResult.rows, parentColumnIndex)
+      const joinScope = createRawNestedRelationScope(
+        scope,
+        relation[8],
+        getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
+        canUseLocalJoinScope,
+      )
       const joinResultSet = await this.#executeRawNestedReadDbQuery(relation[2], context, joinScope)
-      const childScope = Object.create(scope) as Record<string, unknown>
       const joinChildColumnIndex = resolveRawResultColumnRef(joinResultSet.columnNames, relation[6])
-      childScope[relation[9]] = getRawNestedScopeValue(joinResultSet.rows, joinChildColumnIndex)
+      const childScope = createRawNestedRelationScope(
+        scope,
+        relation[9],
+        getRawNestedScopeValue(joinResultSet.rows, joinChildColumnIndex),
+        canUseLocalChildScope,
+      )
       const childResult = await childQuery(context, childScope)
 
       attachRawNestedManyToManyRelation(
@@ -1454,6 +1471,84 @@ function getRawNestedUniqueWrapperRelation(
   }
 
   return relation
+}
+
+function createRawNestedRelationScope(
+  parentScope: Record<string, unknown>,
+  name: string,
+  value: unknown,
+  canUseLocalScope: boolean,
+): Record<string, unknown> {
+  const scope = canUseLocalScope ? {} : (Object.create(parentScope) as Record<string, unknown>)
+  scope[name] = value
+  return scope
+}
+
+function rawNestedReadQueryCanUseLocalScopes(query: RawNestedReadQuery, scopeName: string): boolean {
+  if (!rawNestedDbQueryUsesOnlyScopeName(query[0], scopeName)) {
+    return false
+  }
+
+  const relations = query[2]
+  if (relations === undefined) {
+    return true
+  }
+
+  for (let i = 0; i < relations.length; i++) {
+    const relation = relations[i]
+    if (relation[0] === 'r') {
+      if (!rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])) {
+        return false
+      }
+      continue
+    }
+
+    if (
+      !rawNestedDbQueryUsesOnlyScopeName(relation[2], relation[8]) ||
+      !rawNestedReadQueryCanUseLocalScopes(relation[3], relation[9])
+    ) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function rawNestedDbQueryUsesOnlyScopeName(dbQuery: QueryPlanDbQuery, scopeName: string): boolean {
+  if (Array.isArray(dbQuery)) {
+    return rawNestedValueUsesOnlyScopeName(dbQuery[2], scopeName)
+  }
+
+  return rawNestedValueUsesOnlyScopeName((dbQuery as { args: readonly unknown[] }).args, scopeName)
+}
+
+function rawNestedValueUsesOnlyScopeName(value: unknown, scopeName: string): boolean {
+  if (isPrismaValuePlaceholder(value)) {
+    return getPrismaValuePlaceholderName(value) === scopeName
+  }
+
+  if (isPrismaValueGenerator(value)) {
+    return rawNestedValueUsesOnlyScopeName(getPrismaValueGeneratorArgs(value), scopeName)
+  }
+
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (!rawNestedValueUsesOnlyScopeName(value[i], scopeName)) {
+        return false
+      }
+    }
+    return true
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    for (const key of Object.keys(value)) {
+      if (!rawNestedValueUsesOnlyScopeName((value as Record<string, unknown>)[key], scopeName)) {
+        return false
+      }
+    }
+  }
+
+  return true
 }
 
 const RAW_NESTED_CONVERT_NONE = 0

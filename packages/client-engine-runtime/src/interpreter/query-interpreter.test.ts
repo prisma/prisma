@@ -385,6 +385,80 @@ test('interprets compact raw nested read nodes', async () => {
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [1]])
 })
 
+test('keeps inherited scope for raw nested child queries with outer placeholders', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', { $p: ['%postId', 'int'] })
+  const commentsQuery = [
+    [
+      'SELECT id, postId FROM Comment WHERE postId = ',
+      { type: 'parameter' },
+      ' AND tenantId = ',
+      { type: 'parameter' },
+    ],
+    ['?', false],
+    [{ $p: ['@parent$id', 'int'] }, { $p: ['%tenantId', 'int'] }],
+    ['int', 'int'],
+    false,
+  ] satisfies QueryPlanDbQuery
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 0]],
+      [
+        [
+          'r',
+          'comments',
+          [
+            commentsQuery,
+            [
+              ['id', 0],
+              ['postId', 1],
+            ],
+          ],
+          0,
+          1,
+          '@parent$id',
+          false,
+        ],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  const observedQueries: SqlQuery[] = []
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      observedQueries.push(query)
+      if (query.sql.startsWith('SELECT id FROM Post')) {
+        return Promise.resolve({
+          columnNames: ['id'],
+          columnTypes: [ColumnTypeEnum.Int32],
+          rows: [[1]],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'postId'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+        rows: [[100, 1]],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  await expect(
+    interpreter.run(plan, { ...runtimeOptions, queryable, scope: { '%postId': 1, '%tenantId': 7 } }),
+  ).resolves.toEqual({
+    id: 1,
+    comments: [{ id: 100, postId: 1 }],
+  })
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1, 7]])
+})
+
 test('starts compact raw nested read sibling relations concurrently', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id, authorId FROM Post WHERE id = ', 1)
