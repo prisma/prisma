@@ -4321,6 +4321,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - simple select 839,827 ops/sec; findUnique 1,143,656 ops/sec; join 638,804 ops/sec; sequence 932,018 ops/sec; deep nested join 59,536 ops/sec.
   - Decision: keep. This is a small hot-path row-materialization cleanup with repeated positive movement on `serializeSql()`, direct/local nested execution, and warmed full-engine nested rows while preserving the exact row object output shape.
 
+- Accepted runtime change: add exact 11-column `serializeSql()` row mapping.
+  - Timestamp: 2026-06-07T03:32:50Z.
+  - Hypothesis: after the 0-5 column serializer win, the blog-page root result set still used the generic loop because it has 11 columns. Adding only an exact 11-column path can test the root-result-set ceiling without committing to broad moderate-width unrolling.
+  - Implementation:
+    - Added a `case 11` path in `packages/client-engine-runtime/src/interpreter/serialize-sql.ts` that hoists 11 column names and assigns them into plain row objects.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/serialize-sql.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test serialize-sql.test.ts data-mapper.test.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice while patched.
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+  - Timing signal versus the 0-5-column serializer commit:
+    - `serializeSql blog page result sets`: 1.84-1.85 us/op before -> 1.75 us/op in both patched runs.
+    - Cached request wrapper nested rows: 19.55 us/op confirmation before -> 19.34 -> 19.35.
+    - Cached request wrapper with 100 retained shapes: 20.71 before -> 20.49 -> 20.56.
+    - Direct plan nested rows: 12.14 before -> 12.14 -> 12.17.
+    - Direct plan after phase warmup: 12.75 before -> 12.80 -> 12.75.
+    - Local executor nested rows: 12.47 before -> 12.52 -> 12.48.
+    - Full warmed ClientEngine after phase warmup: 19.85 before -> 19.78 -> 19.63.
+  - Interpreter benchmark after the patch:
+    - simple select 847,282 ops/sec; findUnique 1,142,080 ops/sec; join 623,925 ops/sec; sequence 928,553 ops/sec; deep nested join 59,640 ops/sec.
+  - Decision: keep. The exact root-width path gives a repeatable isolated serializer win, no confirmed product regression, and slight positive movement on cached wrapper and full warmed ClientEngine rows. Avoid broad 6-12 unrolling until those exact widths have evidence.
+
 ## Useful Commands
 
 ```sh

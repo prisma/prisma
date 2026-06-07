@@ -88,6 +88,37 @@ export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[]
       }
       return result
     }
+
+    case 11: {
+      const column0 = columnNames[0]
+      const column1 = columnNames[1]
+      const column2 = columnNames[2]
+      const column3 = columnNames[3]
+      const column4 = columnNames[4]
+      const column5 = columnNames[5]
+      const column6 = columnNames[6]
+      const column7 = columnNames[7]
+      const column8 = columnNames[8]
+      const column9 = columnNames[9]
+      const column10 = columnNames[10]
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex]
+        const mappedRow: Record<string, unknown> = {}
+        mappedRow[column0] = row[0]
+        mappedRow[column1] = row[1]
+        mappedRow[column2] = row[2]
+        mappedRow[column3] = row[3]
+        mappedRow[column4] = row[4]
+        mappedRow[column5] = row[5]
+        mappedRow[column6] = row[6]
+        mappedRow[column7] = row[7]
+        mappedRow[column8] = row[8]
+        mappedRow[column9] = row[9]
+        mappedRow[column10] = row[10]
+        result[rowIndex] = mappedRow
+      }
+      return result
+    }
   }
 
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
