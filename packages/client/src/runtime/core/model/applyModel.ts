@@ -561,6 +561,17 @@ function hasExactKeys(value: Record<string, unknown>, expectedKeys: readonly str
     return false
   }
 
+  let keysMatchInOrder = true
+  for (let i = 0; i < expectedKeys.length; i++) {
+    if (keys[i] !== expectedKeys[i]) {
+      keysMatchInOrder = false
+      break
+    }
+  }
+  if (keysMatchInOrder) {
+    return true
+  }
+
   for (const key of expectedKeys) {
     if (!Object.hasOwn(value, key)) {
       return false

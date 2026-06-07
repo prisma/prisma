@@ -7250,6 +7250,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. The precomputed path materially helps a generated non-batchable action, but the absolute baseline is already small; this is supportive evidence, not the whole 3x path.
 
+- Accepted optimization: ordered-key fast path for lazy descriptor matching.
+  - Timestamp: 2026-06-08T00:15:00+02:00.
+  - Change:
+    - Updated `packages/client/src/runtime/core/model/applyModel.ts::hasExactKeys()` to return early when `Object.keys(value)` exactly matches the learned descriptor key order.
+    - Kept the previous order-independent `Object.hasOwn()` fallback for user objects with reordered keys.
+  - Rationale:
+    - Generated fast-path descriptor hits usually see the same object construction order as the learned descriptor. Avoiding the per-key `Object.hasOwn()` checks on that path reduces lazy descriptor extraction overhead, especially for nested generated shapes.
+  - Node measurement:
+    - Patched command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Patched rows, second run:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.36 us/op.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.27 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 3.35 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.37 us/op.
+    - Same-session reverted control:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.38 us/op.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.55 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 3.36 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.66 us/op.
+  - Workerd measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `generated client request precomputed fast path findUnique warmed cache`: worker loop 4.40 us/op, host dispatch 6.25 us/op.
+    - `generated client request precomputed fast path findMany users warmed cache`: worker loop 2.40 us/op, host dispatch 4.16 us/op.
+    - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 10.80 us/op, host dispatch 12.65 us/op.
+    - `generated client request precomputed fast path blog-page warmed cache`: worker loop 14.00 us/op, host dispatch 35.23 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. It is small, preserves reordered-key fallback behavior, and same-session Node plus Workerd measurements are neutral-to-positive on the generated request-precomputed rows.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
