@@ -7209,6 +7209,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Existing engines tests are JSON-string based, so Wasm/js_sys behavior needs wasm-bindgen tests or Prisma-side benchmark/integration coverage.
     - Node and Workerd may have different `Reflect::get` costs; the prior naive generic `Reflect` walker was already rejected as too slow, so any retry needs generated/static metadata or a lower-overhead representation.
 
+- Rejected spike: tracing-preserving precomputed request helper.
+  - Timestamp: 2026-06-07T23:39:00+02:00.
+  - Change tried:
+    - Temporarily added `PrismaClient._requestPrecomputed()` that kept `_request()`'s operation span and Node `AsyncResource` wrapper, but sent the precomputed protocol query directly to `RequestHandler.request()` instead of going through `_executeRequest()` serialization.
+    - Temporarily routed generated request-precomputed descriptor hits through that helper instead of direct `RequestHandler.request()`.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client request precomputed fast path findUnique / warmed cache`: 4.09 us/op.
+    - `generated client request precomputed fast path batched findUnique / warmed cache`: 12.06 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 13.40 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm exec eslint packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Reverted. This was worse than both the accepted direct `RequestHandler.request()` descriptor path (3.49 / 10.59 / 12.39 us/op) and the earlier `_request()`-based path. Preserving tracing/AsyncResource this way does not give a useful middle ground.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
