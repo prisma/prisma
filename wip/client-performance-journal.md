@@ -5555,6 +5555,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the instrumentation. Trie-like key sharing still looks low-ceiling for the product-shaped Workerd cache because the repeated nested relation tail is a suffix, not a prefix. A structural key / JS-reference pipeline may still be useful, but the cache-hit memory prize is not mostly prefix-trie key compression in the current benchmark.
 
+- Rejected experiment: JS-side fused structural cache-key prototype.
+  - Timestamp: 2026-06-07T12:48:49Z.
+  - Change tried:
+    - Temporarily added benchmark-only `caching.bench.ts` rows that walked the original `JsonQuery` once with `ParamGraph` raw edge APIs, collected placeholder values, and directly serialized the parameterized cache-key query shape without allocating a cloned `parameterizedQuery` tree first.
+    - The prototype duplicated the current parameterization placeholder naming/reuse rules and had setup assertions that its cache key exactly matched the current `parameterizeQuery()` + `JSON.stringify(parameterizedQuery.query)` key for findUnique, findMany, findMany `in`, and blog-page query shapes.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+  - Timing signal:
+    - Current `cache hit key findUnique`: 951,756 ops/sec; fused prototype: 719,564 ops/sec.
+    - Current `cache hit key findMany`: 490,193 ops/sec; fused prototype: 348,820 ops/sec.
+    - Current `cache hit key findMany in filter`: 552,919 ops/sec; fused prototype: 445,657 ops/sec.
+    - Current `cache hit key blog post page query`: 363,567 ops/sec; fused prototype: 163,134 ops/sec.
+  - Decision:
+    - Reverted. A naive JS-side fused structural-key pass is materially slower than the existing copy-on-write parameterization plus native `JSON.stringify()`. This does not disprove the broader JS-owned query / Rust-owned IR track, but it says the useful wedge is not "replace `JSON.stringify()` with handwritten JS structural serialization." Future work should either keep using native stringify on JS, or move the fusion across the Wasm boundary so Rust can avoid building owned input maps and serialized plan objects on cache hits.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
