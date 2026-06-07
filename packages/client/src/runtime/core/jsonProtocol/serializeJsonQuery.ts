@@ -254,7 +254,7 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
     if (computedFields?.[key] && !field) {
       continue
     }
-    if (value === false || value === undefined || isSkip(value)) {
+    if (value === false || value === undefined) {
       selectionSet[key] = false
       continue
     }

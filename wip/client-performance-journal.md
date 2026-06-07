@@ -5995,6 +5995,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The branch is semantically safe but not performance-supported after build; V8 appears to prefer the unconditional `sort()` shape in the product path.
 
+- Accepted experiment: remove duplicate `isSkip()` check in explicit selection serialization.
+  - Timestamp: 2026-06-07T16:38:15Z.
+  - Change:
+    - Removed the second `isSkip(value)` branch in `createExplicitSelection()` because the first branch already continues for `Prisma.skip` values.
+  - Rationale:
+    - Fresh generated-client profiles still showed `createExplicitSelection()` / `isSkip()` work in scalar-heavy explicit selection traversal. This removes a redundant check from every non-skipped explicit selection field without changing validation or selection semantics.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 9.37 us/op, nested blog-page 31.98 us/op.
+    - Same-session reverted baseline: `findUnique` 9.78 us/op, nested blog-page 33.45 us/op.
+    - Reapplied patched run: `findUnique` 9.37 us/op, nested blog-page 32.41 us/op.
+    - Post-build patched verification run: `findUnique` 9.42 us/op, nested blog-page 33.00 us/op.
+    - Same-session post-build source baseline after reverting was `findUnique` 9.54 us/op and nested blog-page 33.30 us/op; reapplied patched source was `findUnique` 9.44 us/op and nested blog-page 32.73 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild stayed in the same band: host upper bounds `findUnique` 11.47 us/op and nested blog-page 29.93 us/op; worker-internal request-loop timers reported `findUnique` 9.53 us/op and nested blog-page 27.30 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The source A/B is consistently positive, and the Workerd smoke did not show a material regression.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
