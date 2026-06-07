@@ -4911,6 +4911,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Hot timing stayed in-band: broad cached-wrapper rows over 50k iterations completed at findUnique 2.50 us/op, findMany 2.84, blog value churn 5.12, blog nested rows 16.14, and 100 retained nested shapes 18.39.
   - Decision: keep. Raw nested emission made blog-page plans bypass the older join/dataMap cache interning, so this recovers a large retained-memory win with no hot cache-hit regression. Next cache-memory leads should target root SQL/template ownership and cache-key strings; child raw-nested subtree sharing is now covered for raw nested plans.
 
+- Rejected experiment: split cached SQL string fragments at `FROM` boundaries.
+  - Timestamp: 2026-06-07T10:59:00Z.
+  - Change tried: in `QueryPlanCache`, split long template SQL string fragments at the first `FROM` before cache interning, hoping unique root `SELECT ...` lists would share repeated `FROM`/`WHERE`/`LIMIT` tails across raw nested cached plans.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client test query-plan-cache`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Result: reverted. Memory moved the wrong way after raw nested subtree interning: blog-page node-default warm worsened from 5.27 MiB to 5.45 MiB without render and from 5.29 MiB to 5.46 MiB with render; edge-default warm also worsened. Cached-wrapper timing stayed in-band, but there was no memory win. The extra fragment arrays/strings outweighed any shared tail.
+  - Decision: do not split SQL fragments inside cached plans as a post-processing step without a substantially different representation. If root SQL ownership remains a target, address it at the compiler/protocol level with reusable SQL template/string handles rather than mutating rendered string fragments after compilation.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
