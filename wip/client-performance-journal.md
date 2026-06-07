@@ -6062,6 +6062,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The exact key format is preserved, but product-path timing regressed; keep the existing template-literal shape.
 
+- Restarted root build and refreshed raw-nested baseline after harness restart.
+  - Timestamp: 2026-06-07T15:17:24Z.
+  - Verification:
+    - `pnpm build`: passed, 44/44 tasks successful in 1m42.582s.
+  - Fresh nested timing band:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000` with local query compiler Wasm:
+      - generated client warmed cache: 34.29 us/op.
+      - cached request wrapper: 11.22 us/op.
+      - direct plan: 6.86 us/op.
+      - raw result-set prototype: 5.20 us/op.
+      - raw result-set exact prototype: 5.36 us/op.
+      - raw result-set compact node: 6.48 us/op.
+      - direct plan after phase warmup: 6.96 us/op.
+      - render query all leaves: 1.03 us/op.
+      - local executor: 6.98 us/op.
+    - Isolated compact raw-nested node profile at 300k iterations: 6.22 us/op.
+  - Profile read:
+    - Remaining compact-node overhead is spread across row mapping, render, adapter fixture lookup, async/closure frames, and GC.
+    - `attachRawNestedDirectRelation` and `attachRawNestedManyToManyRelation` together were under roughly 2% of the isolated compact-node profile.
+  - Decision:
+    - Do not pursue another relation-attachment-only micro-spike from this profile. The remaining exact-prototype gap likely needs a generated/exact-shape executor or a higher-level plan-shape change that removes several generic raw-nested phases together.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
