@@ -4159,6 +4159,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Connect-or-create direct A/B rejected the patch: `create-nested-connectOrCreate-mixed` 128.36 us baseline versus 132.55 us patched, and `create-nested-connectOrCreate-one2m` 116.40 us baseline versus 121.22 us patched.
   - Decision: reverted. The `update-set-nested` allocation and timing win is real, but the patch adds allocations to other nested-write shapes and materially regresses connect-or-create Criterion rows. Do not retry this broad `Either`/`flat_map` to imperative binding loop without a more selective shape that preserves connect-or-create timing.
 
+- Accepted engines change: reuse child link selections for connect-or-create existence checks.
+  - Timestamp: 2026-06-07T02:35:28Z.
+  - Engines commit: `dd196d58292 Reuse child link for connect-or-create existence checks`.
+  - Hypothesis: several nested connect-or-create branches read child rows using `child_link` but then requested `child_model.shard_aware_primary_identifier()` on the edge into `IfInput`, even though the `If` node only applies `RowCountNeq(0)`. Reusing the already-selected `child_link` for that existence check can avoid extra graph dependency selection work.
+  - Implementation:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs`, changed the `read -> if` projected dependency to use `child_link.clone()` in one-to-many inlined-child, one-to-many inlined-parent, one-to-one inlined-parent, and one-to-one inlined-child connect-or-create paths.
+    - Many-to-many was unchanged because it already reads and checks the child identifier.
+  - Verification:
+    - `cargo fmt -p query-core --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-create,update-set-nested,query-m2o,query-many-m2m,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Focused Criterion patched, reversed baseline, and confirmation patched runs over connect-or-create rows plus create/update controls.
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` (only unrelated `@ark/attest` lockfile churn appeared; reverted)
+    - `pnpm build`
+    - `pnpm --filter @prisma/client build`
+  - Allocation signal:
+    - `create-nested-connectOrCreate-m2one`: `graph_build` 508 -> 506 allocations/op and 90.7 -> 90.6 KiB; `full_compile` 1460 -> 1458 allocations/op and 187.2 -> 187.1 KiB.
+    - `create-nested-connectOrCreate-mixed`: `graph_build` 897 -> 895 allocations/op and 160.0 -> 159.9 KiB; `full_compile` 2769 -> 2767 allocations/op and 340.6 -> 340.5 KiB.
+    - `create-nested-connectOrCreate-one2m`, `create-nested-create`, `update-set-nested`, `query-m2o`, `query-many-m2m`, and `nested-pagination-query` were unchanged.
+  - Timing signal:
+    - First patched run: `create-nested-connectOrCreate-m2one` 67.55 us improved; `create-nested-connectOrCreate-mixed` 131.77 us neutral/slightly better; `create-nested-connectOrCreate-one2m` 117.48 us improved versus saved baseline; create/update controls were mixed/noisy.
+    - Reversed baseline: `m2one` 67.60 us, `mixed` 132.45 us, `one2m` 117.03 us, `create-nested-create-with-composite-id` 61.18 us, `create-nested-create` 62.09 us, `update-set-nested` 101.01 us.
+    - Confirmation patched run: `m2one` 67.50 us, `mixed` 132.09 us, `one2m` 118.03 us, `create-nested-create-with-composite-id` 60.93 us, `create-nested-create` 61.70 us. The affected rows are neutral-to-slightly-positive overall; the one2m timing wobble had no allocation movement.
+  - Decision: keep. This is a narrow graph dependency cleanup with a small allocation win on two of the largest connect-or-create compile rows, no allocation movement elsewhere in the sampled set, neutral close timing, and clean Wasm/product verification.
+
 ## Useful Commands
 
 ```sh
