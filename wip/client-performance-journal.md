@@ -4826,6 +4826,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Isolated raw assembly: 0.45 us/op over 200k iterations.
     - Same-process nested comparison over 20k iterations: warmed ClientEngine 20.32 us/op; cached request wrapper 17.86; direct plan 10.78; inner plan 9.23; outer data map 1.68; local executor 11.83; render all leaves 1.05; adapter-only 0.82; serialize all leaves 1.62; raw result-set assembly 0.50.
   - Interpretation: the benchmark helper is intentionally fixture-specific and not production code, but it shows a real ceiling for a larger plan-shape rewrite: direct raw-result-set mapping/joining could remove serialized intermediate row objects, generic `attachChildrenToParents()` passes, and the outer data-map pass for nested query-mode reads. Small helper rewrites around current serialized row objects are unlikely to capture this headroom.
+  - Feasibility read:
+    - Rust emits the root result mapper in `query-compiler/query-compiler/src/translate.rs` as `Expression::DataMap { expr, structure, enums }` around the translated graph.
+    - Query-mode nested reads are built in `query-compiler/query-compiler/src/translate/query/read.rs::add_inmemory_join()` as `Let(@parent = parent query) -> Let(@parent$link = mapField(...)) -> Join(parent=get(@parent), children=[q/...])`.
+    - The compact JS protocol currently has only `q` query leaves, `j` generic joins, `m` field maps, and `d` data-map nodes for this path. A real production version needs a new raw-result-set mapping/joining compact node or an equivalent compiler-recognized specialization carrying per-query result mapping metadata into the join. Tweaking `attachChildrenToParents()` alone cannot remove the serialized row objects or outer data-map phase.
 
 ## Current Follow-up Leads
 
