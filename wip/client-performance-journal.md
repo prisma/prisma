@@ -7171,6 +7171,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as an internal prototype and benchmarked productization lead. It closes part of the gap while preserving DataLoader batching.
     - Caveat: this is not product-safe as-is. A real path must either preserve `_request()` tracing/AsyncResource/debug semantics cheaply, or explicitly decide which of them can be skipped under the same guard conditions and why.
 
+- Rejected spike: omit fallback callsite after direct RequestHandler routing.
+  - Timestamp: 2026-06-07T23:24:00+02:00.
+  - Change tried:
+    - Temporarily changed the direct `RequestHandler.request()` descriptor-hit helper to pass no fallback callsite when `applyFluent()` did not provide one.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client request precomputed fast path findUnique / warmed cache`: 3.38 us/op.
+    - `generated client request precomputed fast path batched findUnique / warmed cache`: 11.28 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.74 us/op.
+  - Decision:
+    - Reverted. The only positive row was a small simple-query improvement versus 3.49 us/op, while batched `findUnique` and nested blog-page regressed from 10.59 / 12.39 us/op and error context would be worse.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
