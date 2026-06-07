@@ -5933,6 +5933,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a direct public-API hot-path win for the common no-extension client and stays aligned with the edge-runtime generated-client smoke.
 
+- Accepted experiment: queueMicrotask DataLoader scheduling.
+  - Timestamp: 2026-06-07T15:49:20Z.
+  - Change:
+    - `DataLoader` now schedules batch dispatch with `queueMicrotask()` instead of `process.nextTick()`.
+    - Added `DataLoader.test.ts` coverage for immediate non-batchable loading, batching requests made in the same turn, and not batching requests separated by an `await`.
+  - Rationale:
+    - Fresh generated-client profiles after the empty-extension fast path still showed `DataLoader.request()` / `dispatchBatches()` and Node next-tick scheduling as prominent public-API overhead. `queueMicrotask()` is native in both modern Node and Workers, fits the same-turn batching contract, and is cheaper in the product path.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 10.40 us/op, nested blog-page 34.48 us/op.
+    - Same-session reverted baseline: `findUnique` 10.99 us/op, nested blog-page 35.57 us/op.
+    - Reapplied patched run: `findUnique` 10.57 us/op, nested blog-page 34.13 us/op.
+    - Post-build patched verification run: `findUnique` 10.52 us/op, nested blog-page 34.19 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: host upper bounds `findUnique` 12.31 us/op and nested blog-page 32.34 us/op; worker-internal request-loop timers reported `findUnique` 10.41 us/op and nested blog-page 29.75 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/DataLoader.ts packages/client/src/runtime/DataLoader.test.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/DataLoader.test.ts packages/client/src/runtime/RequestHandler.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The generated-client A/B is positive, focused tests pin the batching contract, and the Workerd generated-client smoke improved materially on the simple hot row.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

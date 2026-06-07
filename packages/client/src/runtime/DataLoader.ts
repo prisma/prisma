@@ -31,7 +31,7 @@ export class DataLoader<T = unknown> {
       // make sure, that we only tick once at a time
       if (!this.tickActive) {
         this.tickActive = true
-        process.nextTick(() => {
+        queueMicrotask(() => {
           this.dispatchBatches()
           this.tickActive = false
         })
