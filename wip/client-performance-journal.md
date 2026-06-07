@@ -5433,6 +5433,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The high-churn Rust allocation phases are not mostly tiny `String`/`Arc` clone artifacts. They have substantial mid-sized object/vector allocations, especially 257-384 B and 1-1.5 KiB buckets.
     - The next allocation work should use this histogram to pick concrete graph_build/translate structures or add narrower instrumentation around candidate constructors; a broad ownership/arena rewrite still needs a sharper target.
 
+- Rejected experiment: preallocate raw nested column mappings by selection order length.
+  - Timestamp: 2026-06-07T14:08:00Z.
+  - Change tried in `prisma-engines`: changed `raw_result_column_mappings()` in `query-compiler/src/translate/query/read.rs` from `Vec::new()` to `Vec::with_capacity(selection_order.len())`.
+  - Rationale: raw nested read translation knows the selected field order length, and the allocation-size bucket profile showed non-trivial mid-sized allocations in translate_ir.
+  - Verification while patched:
+    - `cargo fmt --package query-compiler`
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,nested-pagination-join' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|nested-pagination-join"`
+  - Allocation signal:
+    - No allocation-count reductions on the sampled read shapes.
+    - Minor byte reductions only: for example `query-m2o` translate_ir 33.7 KiB -> 33.5 KiB, full_compile 80.6 KiB -> 80.4 KiB; `nested-pagination-query` translate_ir 42.4 KiB -> 42.2 KiB.
+  - Criterion signal:
+    - `nested-pagination-join` improved by ~1.4%.
+    - `nested-pagination-query` regressed by ~1.4%.
+    - `query-m2o` had no detected change.
+    - `query-many-m2m` was within noise threshold but trended slower.
+  - Decision: reverted. The byte savings are too small and the Criterion signal is mixed with one significant read-shape regression.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
