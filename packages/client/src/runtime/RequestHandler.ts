@@ -18,7 +18,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
+import { AccelerateExtensionFetchDecorator, PrecomputedQueryPlanCacheHit } from './core/engines/common/Engine'
 import { QueryEngineResultData, queryEngineResultDataWasDeserialized } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
@@ -53,6 +53,7 @@ export type RequestParams = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
+  precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
@@ -116,6 +117,7 @@ export class RequestHandler {
               traceparent: this.client._tracingHelper.getTraceParent(),
               interactiveTransaction,
               isWrite: isWrite(request.protocolQuery.action),
+              precomputedQueryPlanCacheHit: request.precomputedQueryPlanCacheHit,
               customDataProxyFetch: request.customDataProxyFetch,
             })
             .then((response) => this.mapQueryEngineResult(request, response))

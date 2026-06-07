@@ -59,11 +59,18 @@ export type AccelerateExtensionFetch = (
 
 export type AccelerateExtensionFetchDecorator = (fetch: AccelerateExtensionFetch) => AccelerateExtensionFetch
 
+export type PrecomputedQueryPlanCacheHit = {
+  cacheKey: string
+  placeholderValues: Record<string, unknown>
+  queryInfoQuery?: JsonQuery['query']
+}
+
 export type RequestOptions<InteractiveTransactionPayload> = {
   traceparent?: string
   numTry?: number
   interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
+  precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
   // only used by the data proxy engine
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }

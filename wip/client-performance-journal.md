@@ -6814,6 +6814,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as measurement infrastructure. Descriptor extraction remains plausible on Workerd: the nested static/lazy rows are in the 1-2 us/op range and are cheaper than the current generated-client warmed-cache path even in a noisy reduced-count run.
     - This still only proves extraction. Product work must pass precomputed cache-key/placeholder data through `RequestHandler`/`ClientEngine` safely, including DataLoader batching and `requestBatch()`, or fall back when batching/query extensions/other semantic modifiers make the descriptor unsafe.
 
+- Accepted prototype: single-request precomputed cache-hit transport.
+  - Timestamp: 2026-06-07T19:45:18Z.
+  - Change:
+    - Added an internal `PrecomputedQueryPlanCacheHit` payload with `{ cacheKey, placeholderValues, queryInfoQuery? }`.
+    - `RequestHandler` forwards this payload to `ClientEngine.request()` only through the single-loader path. It is not forwarded to `requestBatch()`.
+    - `ClientEngine.request()` now checks an existing single-plan cache entry with the precomputed key before running `parameterizeQuery()` / `JSON.stringify()`. On cache miss, disabled cache, non-cacheable actions, missing SQL-commenter query info, or any absent payload, it falls back to the previous path.
+    - Added `RequestHandler.test.ts` coverage for single forwarding and batch non-forwarding.
+    - Added `internal request precomputed lazy descriptor ...` rows to `client-engine-cache-timing.ts`. The row warms the normal cache, extracts a lazy descriptor from generated-style args, passes the precomputed payload through `client._request()`, and measures the real `RequestHandler` / `ClientEngine.request()` single path.
+  - Rationale:
+    - The earlier descriptor wrapper rows bypassed the real request contract. This patch proves a minimal single-query contract can carry descriptor-derived cache-key/placeholder data through the real handler and skip engine-side parameterization on cache hits without changing ordinary callers.
+  - Guardrails found during sidecar review:
+    - A production generated descriptor fast path must run after or exactly account for `argsMapper`, query/result extensions, global/nested omit, computed field dependencies, `strictUndefinedChecks`, `Prisma.skip`, action mapping, SQL-commenter query-info, and DataLoader batching.
+    - The safest first generated path is gated to empty extensions, no `argsMapper` / `unpacker`, non-raw CRUD singles, no batch/interactive transaction, and either non-batchable operations or explicit batch-id support. `findUnique` needs special care because automatic batching depends on `protocolQuery`.
+    - `requestBatch()` remains a separate design: the batch path parameterizes the whole batch with one placeholder namespace and can compile compacted responses, so per-query precomputed maps are insufficient without a batch assembler that renumbers placeholders and builds batch query-info consistently.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='internal request precomputed lazy descriptor' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `internal request precomputed lazy descriptor findUnique / warmed cache`: 4.42 us/op, 100,000 `queryRaw` calls.
+      - `internal request precomputed lazy descriptor blog page / nested rows warmed cache`: 16.92 us/op, 700,000 `queryRaw` calls.
+    - Adjacent references:
+      - `generated client findUnique / warmed cache`: 5.63 us/op.
+      - `generated client blog page / nested rows warmed cache`: 18.45 us/op.
+      - `generated client serialize cache key blog page / nested rows warmed cache`: 7.01 us/op.
+      - `generated client lazy descriptor extract blog page / nested rows warmed cache`: 2.48 us/op.
+      - `cached request wrapper lazy descriptor blog page / nested rows`: 9.77 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/runtime/core/engines/index.ts packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/runtime/core/engines/index.ts packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` (passes with pre-existing unsafe-`any` warnings in runtime files).
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+    - Benchmark commands above.
+  - Decision:
+    - Keep as a request-contract proof and benchmark hook. The measured win is smaller than the full descriptor ceiling because the row still goes through `_executeRequest()` serialization before the precomputed payload reaches the engine. The next useful product proof is a generated-call or generated-runtime descriptor path that injects before serialization and falls back on every semantic guardrail; the batch path should remain fallback-only until a batch-aware prepared contract exists.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -6835,7 +6867,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Practicality read: plausible as a project-level redesign if the first proof point is narrow and cache-hit focused. It is risky if implemented as a general wrapper layer first, because dynamic JS property access, rooting/reference lifetime bugs, and poorer validation errors could erase the memory win before query graph construction is even reached.
 
 - Validate descriptor fast paths in Workerd and through the real request contract.
-  - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime. Next productization proof point is a real request-contract wrapper, not another isolated extractor row.
+  - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime.
+  - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits, but it still pays serialization in `_executeRequest()`.
+  - Next productization proof point: inject a generated/lazy descriptor before serialization for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
 
 - Explore memory-management simplification in Rust query compiler.

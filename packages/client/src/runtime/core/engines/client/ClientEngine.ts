@@ -541,7 +541,7 @@ export class ClientEngine implements Engine {
 
   async request<T>(
     query: JsonQuery,
-    { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
+    { interactiveTransaction, precomputedQueryPlanCacheHit, customDataProxyFetch }: RequestOptions<unknown>,
   ): Promise<{ data: T }> {
     const debugEnabled = isDebugEnabled()
     if (debugEnabled) {
@@ -567,34 +567,53 @@ export class ClientEngine implements Engine {
       // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
 
-      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
-      placeholderValues = extractedValues
-      if (hasSqlCommenters) {
-        queryInfoQuery = parameterizedQuery.query
-      }
-
       const queryPlanCache = this.#queryPlanCache
+      const precomputed = precomputedQueryPlanCacheHit
+      const cachedPrecomputedPlan =
+        isCacheable &&
+        queryPlanCache !== undefined &&
+        precomputed !== undefined &&
+        (!hasSqlCommenters || precomputed.queryInfoQuery !== undefined)
+          ? queryPlanCache.getSingle(precomputed.cacheKey)
+          : undefined
 
-      if (isCacheable && queryPlanCache !== undefined) {
-        const queryPart = JSON.stringify(parameterizedQuery.query)
-        const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
-        const cached = queryPlanCache.getSingle(cacheKey)
-        if (cached) {
-          if (debugEnabled) {
-            debug('query plan cache hit')
-          }
-          plan = cached
-        } else {
-          if (debugEnabled) {
-            debug('query plan cache miss')
-          }
-          const request = getSingleQueryRequest(parameterizedQuery, queryPart)
-          plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
-          queryPlanCache.setSingle(cacheKey, plan)
+      if (cachedPrecomputedPlan !== undefined && precomputed !== undefined) {
+        if (debugEnabled) {
+          debug('query plan cache hit')
+        }
+        plan = cachedPrecomputedPlan
+        placeholderValues = precomputed.placeholderValues
+        if (hasSqlCommenters) {
+          queryInfoQuery = precomputed.queryInfoQuery
         }
       } else {
-        const request = JSON.stringify(parameterizedQuery)
-        plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
+        const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
+        placeholderValues = extractedValues
+        if (hasSqlCommenters) {
+          queryInfoQuery = parameterizedQuery.query
+        }
+
+        if (isCacheable && queryPlanCache !== undefined) {
+          const queryPart = JSON.stringify(parameterizedQuery.query)
+          const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
+          const cached = queryPlanCache.getSingle(cacheKey)
+          if (cached) {
+            if (debugEnabled) {
+              debug('query plan cache hit')
+            }
+            plan = cached
+          } else {
+            if (debugEnabled) {
+              debug('query plan cache miss')
+            }
+            const request = getSingleQueryRequest(parameterizedQuery, queryPart)
+            plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
+            queryPlanCache.setSingle(cacheKey, plan)
+          }
+        } else {
+          const request = JSON.stringify(parameterizedQuery)
+          plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
+        }
       }
     }
 

@@ -12,7 +12,11 @@ import { EventEmitter } from 'events'
 import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
-import { AccelerateEngineConfig, AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
+import {
+  AccelerateEngineConfig,
+  AccelerateExtensionFetchDecorator,
+  PrecomputedQueryPlanCacheHit,
+} from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
@@ -198,6 +202,7 @@ export type InternalRequestParams = {
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
+  precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -1025,6 +1030,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       unpacker,
       otelParentCtx,
       customDataProxyFetch,
+      precomputedQueryPlanCacheHit,
     }: InternalRequestParams) {
       try {
         // execute argument transformation before execution
@@ -1078,6 +1084,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           otelParentCtx,
           otelChildCtx: this._tracingHelper.getActiveContext(),
           globalOmit: this._globalOmit,
+          precomputedQueryPlanCacheHit,
           customDataProxyFetch,
         })
       } catch (e) {
