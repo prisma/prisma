@@ -7559,6 +7559,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The win is smaller in Workerd than in Node, but it is directionally positive in both target measurements, preserves ordering semantics for batch transactions, and is scoped to exactly two-job batches.
 
+- Rejected experiment: skip RequestHandler traceparent computation for ClientEngine.
+  - Timestamp: 2026-06-08T00:09:00+02:00.
+  - Change:
+    - Temporarily changed `packages/client/src/runtime/RequestHandler.ts` so `singleLoader` and `batchLoader` passed `traceparent: undefined` when `client._engine.name === 'ClientEngine'`, because `ClientEngine.request()` and `ClientEngine.requestBatch()` do not currently consume `traceparent`.
+    - Added a focused RequestHandler unit test to verify the local-engine batch path did not call `getTraceParent()`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/RequestHandler.test.ts`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts`
+      - Passed with existing unsafe-argument warnings in `RequestHandler.ts`.
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.36 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.58 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.33 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.28 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted DataLoader two-job dispatch row was 7.19 us/op.
+  - Decision:
+    - Revert. The local-engine-only gate did not improve the target request-preserving row, and the traceparent behavior is semantics-adjacent enough that it is not worth keeping without a clear win.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
