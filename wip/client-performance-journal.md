@@ -6846,6 +6846,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as a request-contract proof and benchmark hook. The measured win is smaller than the full descriptor ceiling because the row still goes through `_executeRequest()` serialization before the precomputed payload reaches the engine. The next useful product proof is a generated-call or generated-runtime descriptor path that injects before serialization and falls back on every semantic guardrail; the batch path should remain fallback-only until a batch-aware prepared contract exists.
 
+- Accepted prototype: precomputed protocol query timing row.
+  - Timestamp: 2026-06-07T20:04:26Z.
+  - Change:
+    - Added an internal `protocolQuery?: JsonQuery` override to `InternalRequestParams`.
+    - `_executeRequest()` uses the supplied protocol query only when `argsMapper` is absent, extensions are empty, and global omit is absent; otherwise it serializes through the normal path.
+    - Added `internal request precomputed protocol lazy descriptor ...` rows to `client-engine-cache-timing.ts`. The row extracts the lazy descriptor from generated-style args, builds the equivalent protocol query via benchmark factories, and passes both through `client._request()`.
+  - Rationale:
+    - The first request-contract proof still paid `serializeJsonQuery()` before the precomputed cache-hit payload reached `ClientEngine`. This row estimates the next ceiling if a generated descriptor path injects before serialization while still exercising `_request()` / `RequestHandler` / `ClientEngine.request()`.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='internal request precomputed' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `internal request precomputed lazy descriptor findUnique / warmed cache`: 4.21 us/op.
+      - `internal request precomputed lazy descriptor blog page / nested rows warmed cache`: 16.10 us/op.
+      - `internal request precomputed protocol lazy descriptor findUnique / warmed cache`: 3.16 us/op.
+      - `internal request precomputed protocol lazy descriptor blog page / nested rows warmed cache`: 12.35 us/op.
+    - Adjacent references:
+      - `generated client findUnique / warmed cache`: 5.47 us/op.
+      - `generated client blog page / nested rows warmed cache`: 18.59 us/op.
+      - `generated client serialize blog page / nested rows warmed cache`: 3.50 us/op.
+      - `generated client serialize cache key blog page / nested rows warmed cache`: 6.86 us/op.
+      - `cached request wrapper lazy descriptor blog page / nested rows`: 9.99 us/op.
+  - Decision:
+    - Keep as a benchmark/proof hook. Precomputing both protocol query and cache-hit data recovers about 6.2 us/op on the nested generated-client row and cuts retained heap churn in the local probe, but it still allocates a protocol query per call via the benchmark factory. The next product proof should avoid or reuse that protocol tree where batching is not needed, or synthesize only an exact batch id plus enough metadata for fallback/error reporting.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -6868,8 +6891,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Validate descriptor fast paths in Workerd and through the real request contract.
   - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime.
-  - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits, but it still pays serialization in `_executeRequest()`.
-  - Next productization proof point: inject a generated/lazy descriptor before serialization for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
+  - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits.
+  - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap, but the benchmark still builds a full protocol query per request.
+  - Next productization proof point: avoid or reuse protocol-query construction for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
 
 - Explore memory-management simplification in Rust query compiler.

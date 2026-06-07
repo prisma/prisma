@@ -11,7 +11,7 @@ import { EventEmitter } from 'events'
 
 import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, type JsonQuery, Options } from './core/engines'
 import {
   AccelerateEngineConfig,
   AccelerateExtensionFetchDecorator,
@@ -202,6 +202,7 @@ export type InternalRequestParams = {
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
+  protocolQuery?: JsonQuery
   precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
@@ -1030,6 +1031,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       unpacker,
       otelParentCtx,
       customDataProxyFetch,
+      protocolQuery,
       precomputedQueryPlanCacheHit,
     }: InternalRequestParams) {
       try {
@@ -1040,21 +1042,28 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           name: 'serialize',
         }
 
-        const message = this._tracingHelper.runInChildSpan(spanOptions, () =>
-          serializeJsonQuery({
-            modelName: model,
-            runtimeDataModel: this._runtimeDataModel,
-            action,
-            args,
-            clientMethod,
-            callsite,
-            extensions: this._extensions,
-            errorFormat: this._errorFormat,
-            clientVersion: this._clientVersion,
-            previewFeatures: this._previewFeatures,
-            globalOmit: this._globalOmit,
-          }),
-        )
+        const usePrecomputedProtocolQuery =
+          protocolQuery !== undefined &&
+          argsMapper === undefined &&
+          this._extensions.isEmpty() &&
+          this._globalOmit === undefined
+        const message = usePrecomputedProtocolQuery
+          ? protocolQuery
+          : this._tracingHelper.runInChildSpan(spanOptions, () =>
+              serializeJsonQuery({
+                modelName: model,
+                runtimeDataModel: this._runtimeDataModel,
+                action,
+                args,
+                clientMethod,
+                callsite,
+                extensions: this._extensions,
+                errorFormat: this._errorFormat,
+                clientVersion: this._clientVersion,
+                previewFeatures: this._previewFeatures,
+                globalOmit: this._globalOmit,
+              }),
+            )
 
         // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'

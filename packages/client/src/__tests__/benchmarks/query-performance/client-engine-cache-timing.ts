@@ -221,6 +221,7 @@ type GeneratedClientSerializeScenario = {
   action: 'findUnique'
   clientMethod: string
   args: (iteration: number) => Record<string, unknown>
+  query: (iteration: number) => JsonQuery
   resultSet?: SqlResultSet
   adapterFactory?: ScenarioAdapterFactory
 }
@@ -1628,6 +1629,7 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   paramGraph: ParamGraph,
   scenario: GeneratedClientSerializeScenario,
+  usePrecomputedProtocolQuery: boolean,
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -1666,6 +1668,7 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
     await client._request({
       ...requestBase,
       args: firstArgs,
+      protocolQuery: usePrecomputedProtocolQuery ? scenario.query(0) : undefined,
     })
     resetCounts(counts)
 
@@ -1682,6 +1685,7 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
       const result = await client._request({
         ...requestBase,
         args,
+        protocolQuery: usePrecomputedProtocolQuery ? scenario.query(i) : undefined,
         precomputedQueryPlanCacheHit: extraction,
       })
       checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
@@ -5207,6 +5211,7 @@ async function main(): Promise<void> {
       action: 'findUnique',
       clientMethod: 'user.findUnique',
       args: createGeneratedFindUniqueArgs,
+      query: (iteration) => createFindUniqueQuery(iteration + 1),
       resultSet: USER_UNIQUE_RESULT,
     },
     {
@@ -5216,6 +5221,7 @@ async function main(): Promise<void> {
       action: 'findUnique',
       clientMethod: 'post.findUnique',
       args: createGeneratedBlogPostPageArgs,
+      query: (iteration) => createBlogPostPageQuery(iteration + 1),
       adapterFactory: createBlogPageAdapterFactory,
     },
   ]
@@ -5276,7 +5282,23 @@ async function main(): Promise<void> {
       continue
     }
     printDirectPlanMeasurement(
-      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario),
+      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario, false),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace(
+        'generated client serialize',
+        'internal request precomputed protocol lazy descriptor',
+      ),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario, true),
     )
   }
 
