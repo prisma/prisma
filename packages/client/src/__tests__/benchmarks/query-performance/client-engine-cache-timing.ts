@@ -2148,6 +2148,135 @@ async function measureBlogPageAdapterOnlyScenario(iterations: number): Promise<P
   }
 }
 
+function assembleBlogPageFromRawResultSets(): Record<string, unknown> | null {
+  const postRow = BLOG_PAGE_POST_RESULT.rows[0]
+  if (postRow === undefined) {
+    return null
+  }
+
+  const postId = postRow[0]
+  const tagRows = BLOG_PAGE_TAG_RESULT.rows
+  const postTagRows = BLOG_PAGE_POST_TAG_RESULT.rows
+  const commentRows = BLOG_PAGE_COMMENT_RESULT.rows
+  const commentAuthorRows = BLOG_PAGE_COMMENT_AUTHOR_RESULT.rows
+
+  const result = {
+    id: postRow[0],
+    title: postRow[1],
+    slug: postRow[2],
+    content: postRow[3],
+    published: postRow[4],
+    viewCount: postRow[5],
+    createdAt: postRow[6],
+    author: mapUserRow(BLOG_PAGE_AUTHOR_RESULT.rows[0]),
+    category: mapCategoryRow(BLOG_PAGE_CATEGORY_RESULT.rows[0]),
+    tags: [] as Record<string, unknown>[],
+    comments: [] as Record<string, unknown>[],
+    _count: {
+      likes: postRow[9],
+      comments: postRow[10],
+    },
+  }
+
+  for (let i = 0; i < postTagRows.length; i++) {
+    const postTagRow = postTagRows[i]
+    if (postTagRow[0] !== postId) {
+      continue
+    }
+
+    const tagId = postTagRow[1]
+    for (let tagIndex = 0; tagIndex < tagRows.length; tagIndex++) {
+      const tagRow = tagRows[tagIndex]
+      if (tagRow[0] === tagId) {
+        result.tags.push(mapTagRow(tagRow))
+        break
+      }
+    }
+  }
+
+  for (let i = 0; i < commentRows.length; i++) {
+    const commentRow = commentRows[i]
+    if (commentRow[4] !== postId) {
+      continue
+    }
+
+    let author: Record<string, unknown> | null = null
+    const authorId = commentRow[3]
+    for (let authorIndex = 0; authorIndex < commentAuthorRows.length; authorIndex++) {
+      const authorRow = commentAuthorRows[authorIndex]
+      if (authorRow[0] === authorId) {
+        author = mapUserRow(authorRow)
+        break
+      }
+    }
+
+    result.comments.push({
+      id: commentRow[0],
+      content: commentRow[1],
+      createdAt: commentRow[2],
+      author,
+    })
+  }
+
+  return result
+}
+
+function mapUserRow(row: unknown[] | undefined): Record<string, unknown> | null {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: row[0],
+    name: row[1],
+    avatar: row[2],
+  }
+}
+
+function mapCategoryRow(row: unknown[] | undefined): Record<string, unknown> | null {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: row[0],
+    name: row[1],
+    slug: row[2],
+  }
+}
+
+function mapTagRow(row: unknown[]): Record<string, unknown> {
+  return {
+    id: row[0],
+    name: row[1],
+    slug: row[2],
+  }
+}
+
+function measureRawResultSetBlogPageAssemblyScenario(iterations: number): PlanPhaseMeasurement {
+  for (let i = 0; i < iterations; i++) {
+    assembleBlogPageFromRawResultSets()
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < iterations; i++) {
+    checksum += checksumNestedBlogResult(assembleBlogPageFromRawResultSets())
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: 'raw result-set blog page assembly / nested rows',
+    iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 function getPrecomputedBlogPageQueryScope(): Record<string, unknown> {
   const scope = Object.create(null) as Record<string, unknown>
   for (let i = 0; i < BLOG_PAGE_RESULT_SETS.length; i++) {
@@ -3440,6 +3569,9 @@ async function main(): Promise<void> {
     }
     if (shouldRunMeasurement('serializeSql blog page result sets / nested rows')) {
       printPlanPhaseMeasurement(measureBlogPageSerializeSqlScenario(benchmarkIterations(500)))
+    }
+    if (shouldRunMeasurement('raw result-set blog page assembly / nested rows')) {
+      printPlanPhaseMeasurement(measureRawResultSetBlogPageAssemblyScenario(benchmarkIterations(500)))
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
