@@ -4656,6 +4656,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reversed baseline rejected the patch in direct comparison: old `create-nested-connectOrCreate-m2one` was 66.45 us vs patched 67.92 us; old `create-nested-create-with-composite-id` was 59.28 us vs patched 60.24 us; old `update-set-nested-prisma#27650` was 88.85 us vs patched 89.40 us; old `update-set-nested` was effectively neutral at 99.91 us vs patched 99.72 us.
   - Decision: reverted. Direct outgoing-edge iteration removes meaningful allocation counts from translation, but the old sorted-vector path remains faster or equal on close A/B timing for important rows. Do not retry this exact `subgraph_contains_result()` direct scan without a CPU explanation.
 
+- Rechecked rejected experiment: strict single-parent join attachment helper.
+  - Timestamp: 2026-06-07T05:34:23Z.
+  - Context: while inspecting the nested blog-page plan shape, retried a narrow `attachChildrenToParents()` helper for strict single-key joins with one non-array parent. The helper avoided wrapping the parent in a one-element array and avoided repeated `asRecord(parent)` calls inside the child loop.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Reversed baseline after reverting: same focused 100,000-iteration direct-plan row.
+  - Timing signal:
+    - Broad patched run was mixed: direct nested blog-page plan improved only from 11.88 to 11.75 us/op, while precomputed join leaves regressed from 4.47 to 5.05 us/op and precomputed root join children regressed from 4.66 to 4.84 us/op.
+    - Focused 100,000-iteration direct-plan row was identical within noise: patched 10.81 us/op, reverted baseline 10.82 us/op.
+  - Decision: reverted again. The existing `AGENTS.md` no-go still stands: the generic tiny strict-key helper is better on current V8, and the single-parent split is not worth keeping.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
