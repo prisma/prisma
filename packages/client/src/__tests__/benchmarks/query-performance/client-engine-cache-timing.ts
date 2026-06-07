@@ -221,6 +221,7 @@ type GeneratedClientSerializeScenario = {
   action: 'findUnique'
   clientMethod: string
   args: (iteration: number) => Record<string, unknown>
+  adapterFactory?: ScenarioAdapterFactory
 }
 
 type DirectPlanScopeScenario = {
@@ -283,6 +284,11 @@ type DirectDataMapPlan = {
   expr: QueryPlanNode
   structure: ResultNode
   enums: Record<string, Record<string, string>>
+}
+
+type StaticDescriptorExtraction = {
+  cacheKey: string
+  placeholderValues: Record<string, unknown>
 }
 
 class EmptySqliteAdapter implements SqlDriverAdapter {
@@ -802,6 +808,148 @@ function createGeneratedBlogPostPageArgs(iteration: number): Record<string, unkn
   }
 }
 
+const BLOG_PAGE_ROOT_SELECT_KEYS = [
+  'id',
+  'title',
+  'slug',
+  'content',
+  'published',
+  'viewCount',
+  'createdAt',
+  'author',
+  'category',
+  'tags',
+  'comments',
+  '_count',
+] as const
+const BLOG_PAGE_USER_SELECT_KEYS = ['id', 'name', 'avatar'] as const
+const BLOG_PAGE_SLUG_SELECT_KEYS = ['id', 'name', 'slug'] as const
+const BLOG_PAGE_COMMENT_SELECT_KEYS = ['id', 'content', 'createdAt', 'author'] as const
+const BLOG_PAGE_COUNT_SELECT_KEYS = ['likes', 'comments'] as const
+
+function tryExtractGeneratedBlogPostPageDescriptor(
+  args: Record<string, unknown>,
+  cacheKey: string,
+): StaticDescriptorExtraction | undefined {
+  if (!hasExactKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, BLOG_PAGE_ROOT_SELECT_KEYS)) {
+    return undefined
+  }
+
+  for (const field of BLOG_PAGE_ROOT_SCALAR_FIELDS) {
+    if (select[field] !== true) {
+      return undefined
+    }
+  }
+
+  if (
+    !matchesSelectObject(select.author, BLOG_PAGE_USER_SELECT_KEYS) ||
+    !matchesSelectObject(select.category, BLOG_PAGE_SLUG_SELECT_KEYS) ||
+    !matchesBlogPageTagsSelection(select.tags) ||
+    !matchesBlogPageCommentsSelection(select.comments) ||
+    !matchesSelectObject(select._count, BLOG_PAGE_COUNT_SELECT_KEYS)
+  ) {
+    return undefined
+  }
+
+  return {
+    cacheKey,
+    placeholderValues: { '%1': where.id },
+  }
+}
+
+function matchesBlogPageTagsSelection(value: unknown): boolean {
+  if (!isDescriptorRecord(value) || !hasExactKeys(value, ['select'])) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, ['tag'])) {
+    return false
+  }
+
+  return matchesSelectObject(select.tag, BLOG_PAGE_SLUG_SELECT_KEYS)
+}
+
+function matchesBlogPageCommentsSelection(value: unknown): boolean {
+  if (!isDescriptorRecord(value) || !hasExactKeys(value, ['take', 'orderBy', 'select']) || value.take !== 10) {
+    return false
+  }
+
+  const orderBy = value.orderBy
+  if (!Array.isArray(orderBy) || orderBy.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = orderBy[0]
+  if (
+    !isDescriptorRecord(firstOrderBy) ||
+    !hasExactKeys(firstOrderBy, ['createdAt']) ||
+    firstOrderBy.createdAt !== 'desc'
+  ) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, BLOG_PAGE_COMMENT_SELECT_KEYS)) {
+    return false
+  }
+
+  return (
+    select.id === true &&
+    select.content === true &&
+    select.createdAt === true &&
+    matchesSelectObject(select.author, BLOG_PAGE_USER_SELECT_KEYS)
+  )
+}
+
+function matchesSelectObject(value: unknown, keys: readonly string[]): boolean {
+  if (!isDescriptorRecord(value) || !hasExactKeys(value, ['select'])) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, keys)) {
+    return false
+  }
+
+  for (const key of keys) {
+    if (select[key] !== true) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function isDescriptorRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function hasExactKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
+  const keys = Object.keys(value)
+  if (keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (const key of expectedKeys) {
+    if (!Object.hasOwn(value, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
 function resetCounts(counts: Counts): void {
   counts.compile = 0
   counts.compileBatch = 0
@@ -1205,6 +1353,67 @@ function measureGeneratedClientSerializeCacheKeyScenario(
     const queryPart = JSON.stringify(parameterizedQuery.query)
     checksum += getSingleQueryCacheKey(parameterizedQuery, queryPart).length
     checksum += placeholderValues['%1'] === undefined ? 0 : 1
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+function getGeneratedScenarioParameterizedShape(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  paramGraph: ParamGraph,
+  scenario: GeneratedClientSerializeScenario,
+) {
+  const query = serializeJsonQuery({
+    modelName: scenario.modelName,
+    runtimeDataModel: config.runtimeDataModel,
+    action: scenario.action,
+    args: scenario.args(0),
+    clientMethod: scenario.clientMethod,
+    errorFormat: 'minimal',
+    clientVersion: config.clientVersion,
+    previewFeatures: [],
+  })
+  const { parameterizedQuery } = parameterizeQuery(query, paramGraph)
+  const queryPart = JSON.stringify(parameterizedQuery.query)
+
+  return {
+    query,
+    parameterizedQuery,
+    queryPart,
+    cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+  }
+}
+
+function measureGeneratedBlogPostPageDescriptorExtractScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  paramGraph: ParamGraph,
+  scenario: GeneratedClientSerializeScenario,
+): PlanPhaseMeasurement {
+  const { cacheKey } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
+  const firstExtraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(0), cacheKey)
+  if (firstExtraction === undefined) {
+    throw new Error('Expected generated blog-page descriptor to match first args')
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
+    if (extraction === undefined) {
+      throw new Error('Expected generated blog-page descriptor to match benchmark args')
+    }
+    checksum += extraction.cacheKey.length
+    checksum += extraction.placeholderValues['%1'] === undefined ? 0 : 1
   }
   const elapsedMs = performance.now() - started
   const afterHeap = heapUsed()
@@ -4327,6 +4536,101 @@ async function measureCachedRequestWrapperStaticShapeScenario(
   }
 }
 
+async function measureCachedRequestWrapperGeneratedDescriptorScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  scenario: GeneratedClientSerializeScenario & { adapterFactory: ScenarioAdapterFactory },
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const executor = await LocalExecutor.connect({
+    driverAdapterFactory: scenario.adapterFactory(counts),
+    transactionOptions: {
+      maxWait: 2000,
+      timeout: 5000,
+    },
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+  })
+  const { query, parameterizedQuery, queryPart, cacheKey } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
+  const cache = new QueryPlanCache(100)
+  cache.setSingle(cacheKey, compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)))
+
+  let consumedResults = 0
+  try {
+    for (let i = 0; i < scenario.iterations; i++) {
+      const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
+      if (extraction === undefined) {
+        throw new Error('Expected generated blog-page descriptor to match benchmark args')
+      }
+      const plan = cache.getSingle(extraction.cacheKey)!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues: extraction.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    resetCounts(counts)
+
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
+      if (extraction === undefined) {
+        throw new Error('Expected generated blog-page descriptor to match benchmark args')
+      }
+      const plan = cache.getSingle(extraction.cacheKey)!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues: extraction.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (consumedResults < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      query,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    } satisfies DirectPlanMeasurement
+  } finally {
+    await executor.disconnect()
+  }
+}
+
 async function measureManyShapeCachedRequestWrapperScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4535,6 +4839,7 @@ async function main(): Promise<void> {
       action: 'findUnique',
       clientMethod: 'post.findUnique',
       args: createGeneratedBlogPostPageArgs,
+      adapterFactory: createBlogPageAdapterFactory,
     },
   ]
 
@@ -4555,6 +4860,23 @@ async function main(): Promise<void> {
       continue
     }
     printPlanPhaseMeasurement(measureGeneratedClientSerializeCacheKeyScenario(baseConfig, paramGraph, measuredScenario))
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.clientMethod !== 'post.findUnique') {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client serialize', 'generated client static descriptor extract'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printPlanPhaseMeasurement(
+      measureGeneratedBlogPostPageDescriptorExtractScenario(baseConfig, paramGraph, measuredScenario),
+    )
   }
 
   for (const scenario of generatedClientScenarios) {
@@ -4755,6 +5077,31 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureCachedRequestWrapperStaticShapeScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of generatedClientSerializeScenarios) {
+      if (scenario.adapterFactory === undefined) {
+        continue
+      }
+
+      const measuredScenario = {
+        ...scenario,
+        adapterFactory: scenario.adapterFactory,
+        name: scenario.name
+          .replace('generated client serialize', 'cached request wrapper static descriptor')
+          .replace(' warmed cache', ''),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureCachedRequestWrapperGeneratedDescriptorScenario(
+          compiler,
+          paramGraph,
+          baseConfig,
+          measuredScenario,
+        ),
       )
     }
 

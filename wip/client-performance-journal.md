@@ -6647,6 +6647,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. The generated-client front half is now measured at about 7.2 us/op for the nested target, so static-descriptor work has a real ceiling but must preserve validation/error semantics to be productizable.
 
+- Accepted measurement: guarded static descriptor extractor timing row.
+  - Timestamp: 2026-06-07T19:17:42Z.
+  - Change:
+    - Added benchmark-only `generated client static descriptor extract ...` and `cached request wrapper static descriptor ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The descriptor is hard-coded to the generated blog-page args shape. It verifies exact enumerable `where` / `select` keys, root scalar selections, nested `author` / `category` / `tags` / `comments` / `_count` selections, `comments.take = 10`, and `orderBy[0].createdAt = 'desc'`, then extracts `{ '%1': where.id }` and uses the precomputed cache key.
+  - Rationale:
+    - The static-shape lower bound avoids all serializer/parameterizer/cache-key work but unrealistically trusts the shape. This row measures whether a guarded matcher/extractor can stay close enough to that lower bound to justify a real static-descriptor design.
+  - Timing:
+    - First descriptor run at 300,000 iterations:
+      - `generated client static descriptor extract blog page / nested rows warmed cache`: 1.16 us/op.
+      - `cached request wrapper static descriptor blog page / nested rows`: 8.02 us/op.
+    - Same-process comparison at 300,000 iterations:
+      - `cached request wrapper static shape blog page / nested rows`: 7.05 us/op.
+      - `cached request wrapper static descriptor blog page / nested rows`: 8.06 us/op.
+    - Prior references:
+      - current generated nested row: 18.58 us/op.
+      - generated serialize-to-cache-key nested row: 7.19 us/op.
+  - Sidecar design notes:
+    - Possible insertion points:
+      - `applyModel.ts` model action closure: earliest model/action/user-args point and can skip serialization, but must deal with later middleware/extensions.
+      - `_executeRequest()` before `serializeJsonQuery()`: safer because `argsMapper` and query extensions have resolved to final args.
+      - `RequestHandler` / `RequestParams`: needed if descriptor cache keys or placeholder values should survive DataLoader batching.
+      - `ClientEngine.request()` cache boundary: easiest partial win if precomputed cache key and placeholder values are carried through.
+    - Product fast paths must be guarded and fall back on semantic uncertainty, especially non-empty query/result extensions, `argsMapper` actions, global omit/computed fields, `strictUndefinedChecks`, SQL commenters unless query-info is supplied, and batching unless the descriptor provides the exact batch key.
+    - A lazy descriptor compiled from a successful slow-path request is likely safer than generator-wide descriptor emission at first: the cache entry can store the validated parameterized shape, cache key, placeholder extractor, and fallback matcher.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='static descriptor' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper static' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep as measurement infrastructure. The descriptor validation/extraction overhead is about 1 us/op for the nested target, so a guarded static/lazy descriptor architecture is more promising than the rejected Wasm `Reflect` walker and could recover most of the generated-client front-half cost if wired safely.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:
