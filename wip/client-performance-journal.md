@@ -4076,6 +4076,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched run 2: cached wrapper 17.87 us/op, direct plan 11.87, outer data map 1.62, local executor 12.10.
   - Decision: reverted. The result stayed in the same warm timing band and the isolated outer data-map row did not move enough to justify changing the mapper.
 
+- Rejected experiment: remove owned clones in `filter_fold.rs`.
+  - Timestamp: 2026-06-07T01:50:03Z.
+  - Hypothesis: `query-compiler/core/src/query_graph_builder/extractors/filters/filter_fold.rs` consumes owned `Filter` values but matched on `f.clone()` and cloned again for singleton folded results. Matching by value, returning the singleton with `into_iter().next()`, and pre-sizing temporary vectors could reduce graph-build allocation in filter-heavy fixtures.
+  - Verification while patched:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo test -p query-core filter_fold --lib`
+    - `cargo check -p query-compiler`
+  - Allocation signal:
+    - Focused profile command: `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-create,update-set-nested' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`.
+    - All focused rows were unchanged versus the baseline: `query-m2o` 623 allocs / 91.9 KiB, `query-many-m2m` 803 / 98.1 KiB, `nested-pagination-query` 623 / 78.4 KiB, `create-nested-create` 1299 / 156.5 KiB, `update-set-nested` 2165 / 268.2 KiB.
+  - Decision: reverted. The cleanup is semantically reasonable but irrelevant to the current hot fixtures; do not keep it as a performance result.
+
 ## Useful Commands
 
 ```sh
