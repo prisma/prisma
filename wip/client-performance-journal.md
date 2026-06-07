@@ -4741,6 +4741,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Stable 200,000-iteration JS-side request-building rows: request-as-cache-key `findUnique` 1.29 us/op, `findMany` 0.49 us/op, blog page 3.50 us/op; cache-hit-key `findUnique` 1.20 us/op, `findMany` 0.45 us/op, blog page 3.47 us/op; parameterize-only `findUnique` 0.74 us/op, `findMany` 0.14 us/op, blog page 1.77 us/op.
   - Decision: keep the benchmark rows. Removing JS request string construction alone is not a compile-miss 3x lever; compile misses are dominated by Wasm parse/adapt/graph/translate/serialize work. The JS-owned query architecture remains interesting primarily for cache hits and memory, or if it also bypasses Rust-owned protocol trees before validation.
 
+- Rejected experiment: store validation rules in `SmallVec`.
+  - Timestamp: 2026-06-07T09:22:10Z.
+  - Change tried in `/home/aqrln.guest/prisma-engines`: `query-compiler/query-compiler/src/expression.rs` changed `Expression::Validate.rules` from `Vec<DataRule>` to `SmallVec<[DataRule; 1]>`, serialized `rules.as_slice()` to preserve the compact query-plan wire shape, and added `smallvec.workspace = true` to `query-compiler/query-compiler/Cargo.toml`.
+  - Rationale: graph translation calls `Expression::validate_expectation()` for data dependencies and currently allocates a `Vec<DataRule>` via `expectation.rules().to_vec()`. All current `DataExpectation` constructors use a single rule, so this looked like a low-risk allocation cleanup in nested write translation.
+  - Baseline allocation profile before the spike:
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,nested-pagination-join,filter-contains-param,create-nested-create,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Key rows: `create-nested-create` translate_ir 692 allocs/op, compile_ir 1174, full_compile 1287; `create-nested-connectOrCreate-mixed` translate_ir 1700, compile_ir 2574, full_compile 2746; `update-set-nested` translate_ir 1301, compile_ir 2032, full_compile 2148.
+    - Read/query controls were unaffected targets: `query-m2o` full_compile 613 allocs/op; `query-many-m2m` 794; `nested-pagination-query` 616; `nested-pagination-join` 724; `filter-contains-param` 555.
+  - Verification while patched:
+    - `cargo fmt -p query-compiler`
+    - `cargo check -p query-compiler`
+    - Same allocation profile command as above.
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-create|create-nested-connectOrCreate-mixed|update-set-nested'`
+  - Allocation signal while patched:
+    - Read/query controls were unchanged.
+    - `create-nested-create` translate_ir 692 -> 690 allocs/op, compile_ir 1174 -> 1172, full_compile 1287 -> 1285.
+    - `create-nested-connectOrCreate-mixed` translate_ir 1700 -> 1695, compile_ir 2574 -> 2569, full_compile 2746 -> 2741.
+    - `update-set-nested` translate_ir 1301 -> 1298, compile_ir 2032 -> 2029, full_compile 2148 -> 2145.
+  - Criterion signal while patched:
+    - `compile/create-nested-connectOrCreate-mixed` improved 3.39% (`127.73–129.02 us`).
+    - `compile/create-nested-create` improved 2.05% (`61.325–61.419 us`).
+    - `compile/create-nested-create-with-composite-id` regressed 1.11% inside the noise threshold (`59.792–60.262 us`).
+    - `compile/update-set-nested-prisma#27650` regressed 2.71% (`90.958–92.750 us`), reported as a significant regression.
+    - `compile/update-set-nested` was neutral/noise (`99.418–99.599 us`).
+  - Decision: reverted. The allocation savings are too small to justify a significant `update-set-nested-prisma#27650` CPU regression. Do not retry this exact `Expression::Validate.rules` `SmallVec` swap without a CPU explanation.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
