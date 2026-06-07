@@ -4563,6 +4563,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `/home/aqrln.guest/prisma`: `pnpm build` passed with 44/44 Turbo tasks successful; 42 tasks were cached, while `@prisma/client` and `prisma` rebuilt.
   - Both worktrees were clean after the builds, so there was no generated-file churn to keep or revert.
 
+- Rejected experiment: compact query-protocol input placeholder values.
+  - Timestamp: 2026-06-07T04:47:27Z.
+  - Hypothesis: cache-hit requests still allocate and stringify query-protocol placeholders as `{ "$type": "Param", "value": { "name": "%1", "type": "Int" } }`. Emitting compact placeholder values such as `{ "$type": "Param", "value": ["%1", "Int"] }`, and for lists `["%1", ["List", "Int"]]`, could reduce cache-key bytes, stringify time, and compile-miss request parsing work.
+  - Temporary implementation:
+    - In Prisma, extended `PlaceholderTaggedValue` to accept a compact tuple payload and changed `createPlaceholder()` in `packages/client-engine-runtime/src/parameterization/parameterize.ts` to emit compact scalar/list placeholder values.
+    - In engines, added `query-compiler/request-handlers/src/protocols/json/protocol_adapter.rs` parser support for compact placeholder values while preserving the legacy object payload path.
+  - Verification while patched:
+    - `pnpm exec prettier --check packages/json-protocol/src/index.ts packages/client-engine-runtime/src/parameterization/parameterize.ts`
+    - `pnpm --filter @prisma/json-protocol build`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `cargo fmt -p request-handlers --check`
+    - `cargo check -p request-handlers`
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cache hit key' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Benchmark signal:
+    - Benchmark.js compact scalar+list run: cache-hit-key `findUnique` 989,020 ops/sec, `findMany` 506,474, `findMany in filter` 586,584, blog post page 370,846. This was neutral-to-mixed versus the immediately previous baseline band, with the list-heavy row helped but scalar rows soft in that run.
+    - Focused compact timing over 50,000 iterations: `findUnique` 1.26 us/op and 6.82 MiB total key bytes; `findMany` 0.49 us/op and 4.53 MiB; blog-page 3.35 us/op and 31.04 MiB.
+    - Same-command reversed legacy timing: `findUnique` 1.31 us/op and 7.49 MiB; `findMany` 0.49 us/op and 4.53 MiB; blog-page 3.37 us/op and 31.71 MiB.
+  - Decision: reverted. The compact query-protocol placeholder shape saves roughly 14 cache-key bytes per scalar placeholder but does not materially move the hot timing rows. That is not worth changing the JSON protocol types, snapshots, Rust parser surface, and Wasm package until there is stronger evidence from a larger fused parameterization/cache-key redesign.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
