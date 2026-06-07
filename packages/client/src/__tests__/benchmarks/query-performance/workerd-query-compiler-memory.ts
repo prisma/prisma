@@ -80,6 +80,7 @@ type WorkerRunResult = {
   executeRawCount?: number
   precomputedFastPathHits?: number
   precomputedFastPathLearns?: number
+  precomputedBatchHits?: number
   checksum?: number
   retainedEntries: number
   retainedCacheKeyBytes: number
@@ -238,6 +239,7 @@ const counts = {
   executeRaw: 0,
   precomputedFastPathHits: 0,
   precomputedFastPathLearns: 0,
+  precomputedBatchHits: 0,
 }
 
 function getCompiler() {
@@ -266,6 +268,7 @@ function resetCounts() {
   counts.executeRaw = 0
   counts.precomputedFastPathHits = 0
   counts.precomputedFastPathLearns = 0
+  counts.precomputedBatchHits = 0
 }
 
 function getRuntimeWithCountingCompiler() {
@@ -1082,6 +1085,11 @@ function executeClientScenario(client, scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
       return client.user.findUnique(createClientArgs(scenario, iteration))
+    case 'find-unique-batched':
+      return Promise.all([
+        client.user.findUnique(createFindUniqueArgs(iteration * 2)),
+        client.user.findUnique(createFindUniqueArgs(iteration * 2 + 1)),
+      ])
     case 'blog-page':
     case 'blog-page-by-id':
       return client.post.findUnique(createClientArgs(scenario, iteration))
@@ -1590,6 +1598,14 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
       counts.precomputedFastPathLearns++
       return requestWithPrecomputedQueryPlanCacheHit(query, options)
     }
+
+    const requestBatch = client._engine.requestBatch.bind(client._engine)
+    client._engine.requestBatch = (queries, options) => {
+      if (Array.isArray(options.precomputedQueryPlanCacheHits)) {
+        counts.precomputedBatchHits += options.precomputedQueryPlanCacheHits.length
+      }
+      return requestBatch(queries, options)
+    }
   }
   const startInit = performance.now()
   await client.$connect()
@@ -1631,6 +1647,7 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
       executeRawCount: counts.executeRaw,
       precomputedFastPathHits: usesPrecomputedFastPath ? counts.precomputedFastPathHits : undefined,
       precomputedFastPathLearns: usesPrecomputedFastPath ? counts.precomputedFastPathLearns : undefined,
+      precomputedBatchHits: usesPrecomputedFastPath ? counts.precomputedBatchHits : undefined,
       checksum,
       retainedEntries: 0,
       retainedCacheKeyBytes: 0,
@@ -1805,6 +1822,9 @@ function printMeasurement(measurement: Measurement): void {
     console.log(
       `  precomputed fast path: hits ${worker.precomputedFastPathHits}, learns ${worker.precomputedFastPathLearns}`,
     )
+  }
+  if (worker.precomputedBatchHits !== undefined) {
+    console.log(`  precomputed batch: hits ${worker.precomputedBatchHits}`)
   }
   console.log(`  average serialized plan: ${formatBytes(worker.averagePlanBytes)}`)
   console.log(
@@ -2079,6 +2099,39 @@ async function run(): Promise<void> {
         clientMf,
         'generated client request precomputed fast path findUnique warmed cache',
         'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client batched findUnique warmed cache',
+        'find-unique-batched',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client engine precomputed fast path batched findUnique warmed cache',
+        'find-unique-batched',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path batched findUnique warmed cache',
+        'find-unique-batched',
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-fast-path',

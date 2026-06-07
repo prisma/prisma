@@ -141,6 +141,134 @@ function getIndividualBatchPlanCacheEntries(
   return entries
 }
 
+type PrecomputedBatch = {
+  parameterizedBatch: JsonBatchQuery
+  placeholderValues: Record<string, unknown>
+  queryInfoQueries?: JsonQuery['query'][]
+}
+
+function tryBuildPrecomputedBatch(
+  batch: JsonBatchQuery,
+  hits: PrecomputedQueryPlanCacheHit[] | undefined,
+  hasSqlCommenters: boolean,
+): PrecomputedBatch | undefined {
+  if (hits === undefined || hits.length !== batch.batch.length) {
+    return undefined
+  }
+
+  const parameterizedQueries = new Array<JsonQuery>(batch.batch.length)
+  const placeholderValues: Record<string, unknown> = {}
+  const queryInfoQueries = hasSqlCommenters ? new Array<JsonQuery['query']>(batch.batch.length) : undefined
+  let nextPlaceholderId = 1
+
+  for (let i = 0; i < batch.batch.length; i++) {
+    const hit = hits[i]
+    const parameterizedQuery = hit.parameterizedQuery
+    const originalQuery = batch.batch[i]
+    if (
+      parameterizedQuery === undefined ||
+      parameterizedQuery.modelName !== originalQuery.modelName ||
+      parameterizedQuery.action !== originalQuery.action ||
+      (hasSqlCommenters && hit.queryInfoQuery === undefined)
+    ) {
+      return undefined
+    }
+
+    const renamed = renamePrecomputedPlaceholders(parameterizedQuery, hit.placeholderValues, nextPlaceholderId)
+    parameterizedQueries[i] = renamed.query
+    nextPlaceholderId = renamed.nextPlaceholderId
+    Object.assign(placeholderValues, renamed.placeholderValues)
+    if (queryInfoQueries !== undefined) {
+      queryInfoQueries[i] = hit.queryInfoQuery!
+    }
+  }
+
+  return {
+    parameterizedBatch: { ...batch, batch: parameterizedQueries },
+    placeholderValues,
+    queryInfoQueries,
+  }
+}
+
+function renamePrecomputedPlaceholders(
+  query: JsonQuery,
+  values: Record<string, unknown>,
+  firstPlaceholderId: number,
+): { query: JsonQuery; placeholderValues: Record<string, unknown>; nextPlaceholderId: number } {
+  const placeholderNameMap = new Map<string, string>()
+  const placeholderValues: Record<string, unknown> = {}
+  let nextPlaceholderId = firstPlaceholderId
+
+  for (const oldName of Object.keys(values)) {
+    const newName = `%${nextPlaceholderId++}`
+    placeholderNameMap.set(oldName, newName)
+    placeholderValues[newName] = values[oldName]
+  }
+
+  return {
+    query: {
+      ...query,
+      query: renamePlaceholderValue(query.query, placeholderNameMap) as JsonQuery['query'],
+    },
+    placeholderValues,
+    nextPlaceholderId,
+  }
+}
+
+function renamePlaceholderValue(value: unknown, placeholderNameMap: Map<string, string>): unknown {
+  if (Array.isArray(value)) {
+    let renamed: unknown[] | undefined
+    for (let i = 0; i < value.length; i++) {
+      const nextValue = renamePlaceholderValue(value[i], placeholderNameMap)
+      if (nextValue !== value[i] && renamed === undefined) {
+        renamed = value.slice(0, i)
+      }
+      if (renamed !== undefined) {
+        renamed[i] = nextValue
+      }
+    }
+    return renamed ?? value
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return value
+  }
+
+  const record = value as Record<string, unknown>
+  if (record.$type === 'Param') {
+    const taggedValue = record.value
+    if (typeof taggedValue === 'object' && taggedValue !== null) {
+      const placeholder = taggedValue as Record<string, unknown>
+      const name = placeholder.name
+      if (typeof name === 'string') {
+        const mappedName = placeholderNameMap.get(name)
+        if (mappedName !== undefined) {
+          return {
+            ...record,
+            value: {
+              ...placeholder,
+              name: mappedName,
+            },
+          }
+        }
+      }
+    }
+  }
+
+  let renamed: Record<string, unknown> | undefined
+  for (const key of Object.keys(record)) {
+    const nextValue = renamePlaceholderValue(record[key], placeholderNameMap)
+    if (nextValue !== record[key] && renamed === undefined) {
+      renamed = { ...record }
+    }
+    if (renamed !== undefined) {
+      renamed[key] = nextValue
+    }
+  }
+
+  return renamed ?? value
+}
+
 const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
 
 interface ConnectedEngine {
@@ -686,6 +814,7 @@ export class ClientEngine implements Engine {
     return {
       cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
       placeholderValues,
+      parameterizedQuery,
       queryInfoQuery:
         this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
           ? parameterizedQuery.query
@@ -695,7 +824,7 @@ export class ClientEngine implements Engine {
 
   async requestBatch<T>(
     queries: JsonQuery[],
-    { transaction, customDataProxyFetch }: RequestBatchOptions<unknown>,
+    { transaction, customDataProxyFetch, precomputedQueryPlanCacheHits }: RequestBatchOptions<unknown>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     if (queries.length === 0) {
       return []
@@ -722,12 +851,22 @@ export class ClientEngine implements Engine {
     let queryInfoQueries: JsonQuery['query'][] | undefined
 
     if (!hasRawQueries) {
-      const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
+      const precomputedBatch = tryBuildPrecomputedBatch(
         batchPayload as JsonBatchQuery,
-        this.#paramGraph,
+        precomputedQueryPlanCacheHits,
+        hasSqlCommenters,
       )
-      placeholderValues = extractedValues
-      if (hasSqlCommenters) {
+      let parameterizedBatch: JsonBatchQuery
+      if (precomputedBatch !== undefined) {
+        parameterizedBatch = precomputedBatch.parameterizedBatch
+        placeholderValues = precomputedBatch.placeholderValues
+        queryInfoQueries = precomputedBatch.queryInfoQueries
+      } else {
+        const parameterized = parameterizeBatch(batchPayload as JsonBatchQuery, this.#paramGraph)
+        parameterizedBatch = parameterized.parameterizedBatch
+        placeholderValues = parameterized.placeholderValues
+      }
+      if (hasSqlCommenters && queryInfoQueries === undefined) {
         queryInfoQueries = new Array(parameterizedBatch.batch.length)
         for (let i = 0; i < parameterizedBatch.batch.length; i++) {
           queryInfoQueries[i] = parameterizedBatch.batch[i].query

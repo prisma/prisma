@@ -71,7 +71,66 @@ test('forwards precomputed query plan cache hits to single requests', async () =
   )
 })
 
-test('does not forward precomputed query plan cache hits to batch requests', async () => {
+test('forwards precomputed query plan cache hits to batch requests', async () => {
+  const query: JsonQuery = {
+    modelName: 'User',
+    action: 'findUnique',
+    query: {
+      arguments: {
+        where: {
+          id: 1,
+        },
+      },
+      selection: {
+        id: true,
+      },
+    },
+  }
+  const engine = {
+    requestBatch: jest
+      .fn()
+      .mockResolvedValue([{ data: { findUnique: { id: 1 } } }, { data: { findUnique: { id: 1 } } }]),
+  }
+  const handler = createRequestHandler(engine)
+  const firstPrecomputedQueryPlanCacheHit = {
+    cacheKey: 'cache-key',
+    placeholderValues: { '%1': 1 },
+  }
+  const secondPrecomputedQueryPlanCacheHit = {
+    cacheKey: 'cache-key',
+    placeholderValues: { '%1': 1 },
+  }
+
+  await Promise.all([
+    handler.request({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findUnique',
+      dataPath: [],
+      clientMethod: 'user.findUnique',
+      extensions,
+      precomputedQueryPlanCacheHit: firstPrecomputedQueryPlanCacheHit,
+    }),
+    handler.request({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findUnique',
+      dataPath: [],
+      clientMethod: 'user.findUnique',
+      extensions,
+      precomputedQueryPlanCacheHit: secondPrecomputedQueryPlanCacheHit,
+    }),
+  ])
+
+  expect(engine.requestBatch).toHaveBeenCalledWith(
+    [query, query],
+    expect.objectContaining({
+      precomputedQueryPlanCacheHits: [firstPrecomputedQueryPlanCacheHit, secondPrecomputedQueryPlanCacheHit],
+    }),
+  )
+})
+
+test('does not forward partial precomputed query plan cache hits to batch requests', async () => {
   const query: JsonQuery = {
     modelName: 'User',
     action: 'findUnique',
@@ -113,17 +172,13 @@ test('does not forward precomputed query plan cache hits to batch requests', asy
       dataPath: [],
       clientMethod: 'user.findUnique',
       extensions,
-      precomputedQueryPlanCacheHit: {
-        cacheKey: 'cache-key',
-        placeholderValues: { '%1': 1 },
-      },
     }),
   ])
 
   expect(engine.requestBatch).toHaveBeenCalledWith(
     [query, query],
     expect.not.objectContaining({
-      precomputedQueryPlanCacheHit: expect.anything(),
+      precomputedQueryPlanCacheHits: expect.anything(),
     }),
   )
 })

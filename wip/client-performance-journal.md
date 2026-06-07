@@ -7086,6 +7086,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The stable handler plus `WeakMap` state was worse than the per-call closure handler, likely because the WeakMap lookup and less-specialized handler outweighed saved handler allocation.
 
+- Accepted prototype: batch-aware request-layer precomputed plan payloads.
+  - Timestamp: 2026-06-07T22:49:00+02:00.
+  - Change:
+    - Added `parameterizedQuery` to internal `PrecomputedQueryPlanCacheHit` so the first slow/learning single-query path can retain the parameterized protocol tree together with cache key and placeholder values.
+    - Added `precomputedQueryPlanCacheHits` to `RequestBatchOptions`; `RequestHandler.batchLoader` forwards the array only when every request in the batch has a precomputed payload.
+    - Added a guarded `ClientEngine.requestBatch()` reconstruction path that mechanically renames placeholders from per-query `%1`, `%2`, ... into batch-global placeholders and falls back to `parameterizeBatch()` when any payload is missing, mismatched, or lacks SQL-commenter query info.
+    - Extended Node and Workerd generated-client probes with batched `findUnique` rows and `precomputedBatchHits` counters.
+  - Measurement:
+    - Node command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Node rows:
+      - `generated client batched findUnique / warmed cache`: 16.22 us/op, `queryRaw=100000`.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.56 us/op, `queryRaw=200000`, `precomputedHits=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 14.76 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Workerd command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=100 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Workerd rows:
+      - `generated client batched findUnique warmed cache`: worker loop 17.80 us/op, host dispatch 21.04 us/op, `queryRaw 10000`.
+      - `generated client engine precomputed fast path batched findUnique warmed cache`: worker loop 4.80 us/op, host dispatch 6.70 us/op, `queryRaw 20000`, `hits 20000`.
+      - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 12.90 us/op, host dispatch 14.69 us/op, `queryRaw 10000`, `precomputedBatchHits 20000`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+  - Decision:
+    - Keep as an internal product-path prototype and benchmark surface. The request-layer batch path is modest on Node but materially better in Workerd and preserves automatic `findUnique` batching, unlike the direct-engine generated fast path.
+    - Caveat: the reconstruction path does not preserve cross-query equal-value placeholder reuse from `parameterizeBatch()`. It intentionally produces correct per-query batch placeholders for this guarded generated-client path, but broader productization needs cache-key/placeholder-shape review and focused tests before this can be considered a general replacement for `parameterizeBatch()`.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -7112,7 +7141,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap. Static-protocol lower-bound timing says full protocol-query construction is not the main remaining gap.
   - Surface split timing says `ClientEngine.request()` and PrismaPromise are already near the nested cached-wrapper lower bound with precomputed data; `_request`/tracing/AsyncResource plus DataLoader/RequestHandler are the remaining overhead. Workerd precomputed rows confirm the same split in the target runtime.
   - Next productization proof point: reduce or bypass `_request` / `RequestHandler` / tracing plumbing for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present. Be especially careful with `findUnique`, because direct engine paths bypass automatic DataLoader batching.
-  - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
+  - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching. A first batch-aware precomputed-plan contract now exists, but it mechanically renames per-query placeholders and does not preserve cross-query equal-value placeholder reuse. A product descriptor path must either prove that shape safe for cache keys and SQL commenters, or keep falling back for batchable requests outside guarded generated shapes.
 
 - Explore memory-management simplification in Rust query compiler.
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.

@@ -80,6 +80,9 @@ export class RequestHandler {
       batchLoader: createApplyBatchExtensionsFunction(async ({ requests, customDataProxyFetch }) => {
         const { transaction, otelParentCtx } = requests[0]
         const queries = requests.map((r) => r.protocolQuery)
+        const precomputedQueryPlanCacheHits = requests.every((r) => r.precomputedQueryPlanCacheHit !== undefined)
+          ? requests.map((r) => r.precomputedQueryPlanCacheHit!)
+          : undefined
         const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
         // TODO: pass the child information to QE for it to issue links to queries
@@ -91,6 +94,7 @@ export class RequestHandler {
           traceparent,
           transaction: getTransactionOptions(transaction),
           containsWrite,
+          precomputedQueryPlanCacheHits,
           customDataProxyFetch,
         })
 

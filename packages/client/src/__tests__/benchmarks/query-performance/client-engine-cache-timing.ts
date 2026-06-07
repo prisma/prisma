@@ -184,6 +184,7 @@ type Counts = {
   executeRaw: number
   precomputedFastPathHits?: number
   precomputedFastPathLearns?: number
+  precomputedBatchHits?: number
 }
 
 type ScenarioAdapterFactory = (counts: Counts) => SqlDriverAdapterFactory
@@ -1122,6 +1123,9 @@ function resetCounts(counts: Counts): void {
   if (counts.precomputedFastPathLearns !== undefined) {
     counts.precomputedFastPathLearns = 0
   }
+  if (counts.precomputedBatchHits !== undefined) {
+    counts.precomputedBatchHits = 0
+  }
 }
 
 function getSingleQueryRequest(query: JsonQuery, queryPart: string): string {
@@ -1222,6 +1226,9 @@ function printDirectPlanMeasurement(measurement: DirectPlanMeasurement): void {
   }
   if (measurement.counts.precomputedFastPathLearns !== undefined) {
     parts.push(`precomputedLearns=${measurement.counts.precomputedFastPathLearns}`)
+  }
+  if (measurement.counts.precomputedBatchHits !== undefined) {
+    parts.push(`precomputedBatchHits=${measurement.counts.precomputedBatchHits}`)
   }
 
   if (measurement.heapDelta !== undefined) {
@@ -1346,6 +1353,7 @@ async function measureGeneratedClientScenario(
     executeRaw: 0,
     precomputedFastPathHits: usesPrecomputedFastPath ? 0 : undefined,
     precomputedFastPathLearns: usesPrecomputedFastPath ? 0 : undefined,
+    precomputedBatchHits: usesPrecomputedFastPath ? 0 : undefined,
   }
   const PrismaClient = getPrismaClient({
     runtimeDataModel: config.runtimeDataModel,
@@ -1384,6 +1392,15 @@ async function measureGeneratedClientScenario(
     client._engine.requestWithPrecomputedQueryPlanCacheHit = (query: JsonQuery, options: Record<string, unknown>) => {
       counts.precomputedFastPathLearns!++
       return requestWithPrecomputedQueryPlanCacheHit(query, options)
+    }
+
+    const requestBatch = client._engine.requestBatch.bind(client._engine)
+    client._engine.requestBatch = (queries: JsonQuery[], options: Record<string, unknown>) => {
+      const hits = options.precomputedQueryPlanCacheHits
+      if (Array.isArray(hits)) {
+        counts.precomputedBatchHits! += hits.length
+      }
+      return requestBatch(queries, options)
     }
   }
 
@@ -5361,6 +5378,17 @@ async function main(): Promise<void> {
       query: createFindUniqueQuery(1),
       resultSet: USER_UNIQUE_RESULT,
       operation: (client, iteration) => client.user.findUnique(createGeneratedFindUniqueArgs(iteration)),
+    },
+    {
+      name: 'generated client batched findUnique / warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createFindUniqueQuery(1),
+      resultSet: USER_UNIQUE_RESULT,
+      operation: (client, iteration) =>
+        Promise.all([
+          client.user.findUnique(createGeneratedFindUniqueArgs(iteration * 2)),
+          client.user.findUnique(createGeneratedFindUniqueArgs(iteration * 2 + 1)),
+        ]),
     },
     {
       name: 'generated client blog page / nested rows warmed cache',
