@@ -5241,6 +5241,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Regressed: `nested-pagination-query` about +8.93%, `query-many-m2m` about +13.78%, `query-m2o` about +4.18%, `query-m2o-lateral` about +1.19%.
   - Decision: reverted. The `HashMap` allocation is not the bottleneck here; the current hash lookup is faster enough on key read rows to outweigh tiny byte savings.
 
+- Profile refresh: raw nested exact-shape execution.
+  - Timestamp: 2026-06-07T17:05:00Z.
+  - Commands:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=2000000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp --cpu-prof-name=rawcompact.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp --cpu-prof-name=directplan.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Measurement signal:
+    - Simplified manual compact-node row: 2,000,000 iterations, 7.36 us/op. Top self-sample groups were query-interpreter async closures (~29%), fake adapter result lookup/projection (~12%), `mapRawNestedRows` (~8%), `renderCompactTemplateSqlQuery` (~6%), GC (~6%), `#executeRawNestedReadDbQuery` (~4%), and render/evaluate helpers.
+    - Actual compiler-emitted direct plan: 1,000,000 iterations, 8.92 us/op. Top self-sample groups were query-interpreter async closures (~31%), fake adapter result lookup/projection (~10%), `mapRawNestedRows` (~8%), GC (~7%), `renderCompactTemplateSqlQuery` (~5%), `#executeRawNestedReadDbQuery` (~2%), `evaluateArg` (~2%), and raw nested attachment/scope helpers around ~1% each.
+    - One-off plan summary confirmed the actual product plan is `n` and has an exact wrapper for `tags`: root fields plus relations `author`, `category`, `tags`, `comments`; the `tags` child has no scalar fields and one nested unique `tag` relation. This explains why the simplified compact-node row is a lower bound, not the real output-shape cost.
+  - Interpretation:
+    - The remaining product-shaped raw nested gap is spread across recursive async execution, exact wrapper allocation/mapping, SQL rendering/evaluation, fake adapter projection, and GC. It is not dominated by `getRawNestedScopeValue()`, relation attachment, or mapping descriptor resolution.
+    - The next serious runtime lead should change execution shape at a larger level, for example a specialized compiled raw-nested executor for static relation trees or a compiler-emitted flatter/exact-shape mapping plan. More one-line helper branches are unlikely to move the real row.
+
+- Rejected experiment: zero-mapping raw nested row fast path.
+  - Timestamp: 2026-06-07T17:13:00Z.
+  - Change tried: added a `mappings.length === 0` branch to `mapRawNestedRows()` that returned one empty object per row without resolving column mappings. This targeted exact-wrapper raw nested nodes like the product plan's `tags` intermediate rows, which have no scalar mappings and only a nested `tag` relation.
+  - Verification while patched:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Broad patched run was mixed: cached request wrapper 14.56 us/op, direct plan 8.88, raw compact node 7.62, local executor 9.06.
+    - Focused direct-plan A/B was neutral-to-negative: patched 8.92 us/op vs reverted 8.89 us/op at 300,000 iterations.
+  - Decision: reverted. Skipping mapping resolution for zero-field wrapper rows is too small and perturbs the hot mapper branch. Do not retry this shape unless a larger exact-wrapper specialization removes more of the recursive raw-nested machinery.
+
 ## Useful Commands
 
 ```sh
