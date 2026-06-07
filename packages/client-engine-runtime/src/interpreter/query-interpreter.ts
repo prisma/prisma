@@ -1373,12 +1373,11 @@ function mapRawNestedRows(
       const mapping = resolvedMappings[mappingIndex]
       const fieldNameOrPath = mapping[0]
       const columnIndex = mapping[1]
-      const fieldType = mapping[2]
+      const columnName = mapping[2]
+      const fieldType = mapping[3]
+      const convertKind = mapping[4]
       const value = row[columnIndex]
-      const mappedValue =
-        fieldType === undefined
-          ? value
-          : mapRawNestedFieldValue(value, getRawNestedMappingName(fieldNameOrPath), fieldType, enums, resultFormat)
+      const mappedValue = mapRawNestedFieldValue(value, columnName, fieldType, convertKind, enums, resultFormat)
       if (typeof fieldNameOrPath === 'string') {
         record[fieldNameOrPath] = mappedValue
       } else {
@@ -1390,10 +1389,31 @@ function mapRawNestedRows(
   return result
 }
 
+const RAW_NESTED_CONVERT_NONE = 0
+const RAW_NESTED_CONVERT_STRING = 1
+const RAW_NESTED_CONVERT_INT = 2
+const RAW_NESTED_CONVERT_FLOAT = 3
+const RAW_NESTED_CONVERT_BOOLEAN = 4
+const RAW_NESTED_CONVERT_UNSUPPORTED = 5
+const RAW_NESTED_CONVERT_DATE_JS = 6
+const RAW_NESTED_CONVERT_FULL = 7
+
+type RawNestedConvertKind =
+  | typeof RAW_NESTED_CONVERT_NONE
+  | typeof RAW_NESTED_CONVERT_STRING
+  | typeof RAW_NESTED_CONVERT_INT
+  | typeof RAW_NESTED_CONVERT_FLOAT
+  | typeof RAW_NESTED_CONVERT_BOOLEAN
+  | typeof RAW_NESTED_CONVERT_UNSUPPORTED
+  | typeof RAW_NESTED_CONVERT_DATE_JS
+  | typeof RAW_NESTED_CONVERT_FULL
+
 type ResolvedRawResultColumnMapping = readonly [
   fieldName: string | readonly string[],
   columnIndex: number,
+  columnName: string,
   fieldType?: FieldType,
+  convertKind?: RawNestedConvertKind,
 ]
 
 function resolveRawResultColumnMappings(
@@ -1414,10 +1434,44 @@ function resolveRawResultColumnMappings(
   const resolvedMappings = new Array<ResolvedRawResultColumnMapping>(mappings.length)
   for (let i = 0; i < mappings.length; i++) {
     const mapping = mappings[i]
-    resolvedMappings[i] = [mapping[0], resolveRawResultColumnRef(columnNames, mapping[1]), mapping[2]]
+    const fieldType = mapping[2]
+    resolvedMappings[i] = [
+      mapping[0],
+      resolveRawResultColumnRef(columnNames, mapping[1]),
+      typeof mapping[1] === 'string' ? mapping[1] : getRawNestedMappingName(mapping[0]),
+      fieldType,
+      getRawNestedConvertKind(fieldType),
+    ]
   }
   mappingsByColumnNames.set(columnNames, resolvedMappings)
   return resolvedMappings
+}
+
+function getRawNestedConvertKind(fieldType: FieldType | undefined): RawNestedConvertKind {
+  switch (fieldType) {
+    case undefined:
+      return RAW_NESTED_CONVERT_NONE
+    case 's':
+    case 'string':
+      return RAW_NESTED_CONVERT_STRING
+    case 'i':
+    case 'int':
+      return RAW_NESTED_CONVERT_INT
+    case 'f':
+    case 'float':
+      return RAW_NESTED_CONVERT_FLOAT
+    case 'b':
+    case 'boolean':
+      return RAW_NESTED_CONVERT_BOOLEAN
+    case 'x':
+    case 'unsupported':
+      return RAW_NESTED_CONVERT_UNSUPPORTED
+    case 'D':
+    case 'datetime':
+      return RAW_NESTED_CONVERT_DATE_JS
+    default:
+      return RAW_NESTED_CONVERT_FULL
+  }
 }
 
 function resolveRawResultColumnRef(columnNames: readonly string[], column: RawResultColumnRef): number {
@@ -1451,46 +1505,52 @@ function getRawResultColumnIndexes(columnNames: readonly string[]): Record<strin
 function mapRawNestedFieldValue(
   value: unknown,
   columnName: string,
-  fieldType: FieldType,
+  fieldType: FieldType | undefined,
+  convertKind: RawNestedConvertKind | undefined,
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat,
 ): unknown {
+  if (fieldType === undefined) {
+    return value
+  }
+
   if (value === null && typeof fieldType === 'string') {
     return null
   }
 
-  switch (fieldType) {
-    case 's':
-    case 'string':
+  switch (convertKind) {
+    case RAW_NESTED_CONVERT_STRING:
       if (typeof value === 'string') {
         return value
       }
       break
 
-    case 'i':
-    case 'int':
+    case RAW_NESTED_CONVERT_INT:
       if (typeof value === 'number') {
         return Math.trunc(value)
       }
       break
 
-    case 'f':
-    case 'float':
+    case RAW_NESTED_CONVERT_FLOAT:
       if (typeof value === 'number') {
         return value
       }
       break
 
-    case 'b':
-    case 'boolean':
+    case RAW_NESTED_CONVERT_BOOLEAN:
       if (typeof value === 'boolean') {
         return value
       }
       break
 
-    case 'x':
-    case 'unsupported':
+    case RAW_NESTED_CONVERT_UNSUPPORTED:
       return value
+
+    case RAW_NESTED_CONVERT_DATE_JS:
+      if (resultFormat === 'js' && value instanceof Date) {
+        return new Date(value)
+      }
+      break
   }
 
   return mapRawFieldValue(value, columnName, fieldType, enums, resultFormat)
