@@ -6339,6 +6339,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes avoidable successful-serialization allocations and is the strongest generated-client public-API improvement in the current sequence, with both Node/source and Workerd probes moving in the right direction.
 
+- Rejected experiment: cache `isRawQuery(query)` inside `ClientEngine.request()`.
+  - Timestamp: 2026-06-07T16:44:21Z.
+  - Change tried:
+    - Stored `const rawQuery = isRawQuery(query)` once in `ClientEngine.request()` and reused it for the raw compile branch and the local-JS-result marker check after execution.
+  - Rationale:
+    - The post-serializer profile still showed `ClientEngine.request()` as the top self-sample group, and the non-raw request path calls `isRawQuery(query)` twice.
+  - Timing:
+    - Patched run: generated `findUnique` 4.87 us/op, nested blog-page 19.71 us/op.
+    - Same-session reverted control: generated `findUnique` 4.88 us/op, nested blog-page 20.15 us/op.
+  - Decision:
+    - Reverted. The possible nested win is too small and noisy to justify changing the request code. The simple row was neutral, and the check is only two direct action comparisons.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
