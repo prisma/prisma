@@ -58,6 +58,19 @@ type Measurement = Scenario & {
   retainedPlanSerializedBytes: number
 }
 
+type PlanSizeBreakdown = {
+  totalBytes: number
+  stringBytes: number
+  repeatedStringBytes: number
+  arrayCount: number
+  objectCount: number
+  queryCount: number
+  dataMapCount: number
+  joinCount: number
+  processCount: number
+  topStrings: { value: string; count: number; bytes: number }[]
+}
+
 type RetainedSize = {
   cacheKeyBytes: number
   planSerializedBytes: number
@@ -322,6 +335,104 @@ function printMeasurement(measurement: Measurement): void {
   )
 }
 
+function collectPlanSizeBreakdown(plan: QueryPlanNode): PlanSizeBreakdown {
+  const stringCounts = new Map<string, number>()
+  let arrayCount = 0
+  let objectCount = 0
+  let queryCount = 0
+  let dataMapCount = 0
+  let joinCount = 0
+  let processCount = 0
+
+  function visit(value: unknown): void {
+    if (typeof value === 'string') {
+      stringCounts.set(value, (stringCounts.get(value) ?? 0) + 1)
+      return
+    }
+
+    if (Array.isArray(value)) {
+      arrayCount++
+      const tag = value[0]
+      if (tag === 'q' || tag === 'x') {
+        queryCount++
+      } else if (tag === 'd') {
+        dataMapCount++
+      } else if (tag === 'j') {
+        joinCount++
+      } else if (tag === 'p') {
+        processCount++
+      }
+
+      for (let i = 0; i < value.length; i++) {
+        visit(value[i])
+      }
+      return
+    }
+
+    if (typeof value !== 'object' || value === null) {
+      return
+    }
+
+    objectCount++
+    for (const [key, entry] of Object.entries(value)) {
+      visit(key)
+      visit(entry)
+    }
+  }
+
+  visit(plan)
+
+  let stringBytes = 0
+  let repeatedStringBytes = 0
+  const topStrings: PlanSizeBreakdown['topStrings'] = []
+  for (const [value, count] of stringCounts) {
+    const bytes = JSON.stringify(value).length * count
+    stringBytes += bytes
+    if (count > 1) {
+      repeatedStringBytes += JSON.stringify(value).length * (count - 1)
+    }
+    topStrings.push({ value, count, bytes })
+  }
+  topStrings.sort((a, b) => b.bytes - a.bytes)
+
+  return {
+    totalBytes: JSON.stringify(plan).length,
+    stringBytes,
+    repeatedStringBytes,
+    arrayCount,
+    objectCount,
+    queryCount,
+    dataMapCount,
+    joinCount,
+    processCount,
+    topStrings: topStrings.slice(0, 20),
+  }
+}
+
+function printPlanSizeBreakdown(label: string, plan: QueryPlanNode): void {
+  const breakdown = collectPlanSizeBreakdown(plan)
+
+  console.log(`${label} plan size breakdown`)
+  console.log(
+    [
+      `total=${formatBytes(breakdown.totalBytes)}`,
+      `strings=${formatBytes(breakdown.stringBytes)}`,
+      `repeatedStrings=${formatBytes(breakdown.repeatedStringBytes)}`,
+      `arrays=${breakdown.arrayCount}`,
+      `objects=${breakdown.objectCount}`,
+      `queries=${breakdown.queryCount}`,
+      `dataMaps=${breakdown.dataMapCount}`,
+      `joins=${breakdown.joinCount}`,
+      `process=${breakdown.processCount}`,
+    ].join(' | '),
+  )
+
+  for (const entry of breakdown.topStrings) {
+    const printable = entry.value.length > 120 ? `${entry.value.slice(0, 117)}...` : entry.value
+    console.log(`  ${JSON.stringify(printable)} | count=${entry.count} | bytes=${formatBytes(entry.bytes)}`)
+  }
+}
+
 async function main(): Promise<void> {
   const dmmf = await getDMMF({ datamodel: BENCHMARK_DATAMODEL })
   const paramGraphData = buildParamGraph(dmmf)
@@ -346,6 +457,20 @@ async function main(): Promise<void> {
 
   compileScenarioQuery(compiler, createFindManyQuery(1), paramGraph, false)
   forceGc()
+
+  if (process.env.QUERY_PLAN_CACHE_MEMORY_BREAKDOWN === '1') {
+    printPlanSizeBreakdown(
+      'scalar selection',
+      compileScenarioQuery(compiler, createFindManyQuery(1), paramGraph, false).plan,
+    )
+    printPlanSizeBreakdown(
+      'blog page',
+      compileScenarioQuery(compiler, createBlogPostPageQuery((1 << POST_SCALAR_FIELDS.length) - 1), paramGraph, false)
+        .plan,
+    )
+    compiler.free?.()
+    return
+  }
 
   const scenarios: Scenario[] = [
     { name: 'scalar selection / cache disabled', kind: 'user-scalar-selection', maxSize: 0, compileCount: 1000 },

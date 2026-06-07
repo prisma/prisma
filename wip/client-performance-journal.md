@@ -4791,6 +4791,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Investigate plan-shape/data-map pushdown for nested query-mode joins only if it can remove whole row-materialization or outer-mapping phases. The current warmed blog-page row leaves roughly 12.5 us/op in direct/local nested plan execution, but mapper-only and serializer-only rows are already low.
 - Keep Rust allocation work focused on structural graph/translation ownership improvements with allocation-profile plus Criterion gates. Tiny manual rewrites that save allocations have frequently regressed CPU.
 
+- Accepted benchmark instrumentation: query plan serialized-size breakdown.
+  - Timestamp: 2026-06-07T11:03:45Z.
+  - Change: `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts` now supports `QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1`, which prints a representative scalar-selection and blog-page plan breakdown: total serialized bytes, string/repeated-string bytes, array/object counts, query/dataMap/join/process node counts, and top string contributors.
+  - Rationale: compact plan-size work needed a concrete byte target before changing the protocol. The existing cache-memory probe reported retained serialized bytes, but not whether those bytes came from SQL strings, result mapping, joins, or other metadata.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+  - Measurement signal:
+    - Scalar selection plan: 154 B total; 98 B strings; 8 arrays; 1 object; 1 query; 1 dataMap.
+    - Blog-page plan: 4.3 KiB total; 3.5 KiB strings; 1010 B repeated strings; 117 arrays; 16 objects; 7 query nodes; 1 dataMap; 3 joins; 0 process nodes.
+    - Top contributors were SQL text chunks, especially the root `Post` SELECT at about 1.0 KiB. Child SQL strings were also larger than join/result metadata.
+  - Decision: keep the instrumentation. This makes small metadata compaction ideas easier to reject quickly and supports the larger SQL-template/string-handle lead: avoiding Rust-owned/serialized SQL strings is a meaningfully higher-ceiling memory and compile-serialization target than shaving a few tuple fields.
+
 ## Useful Commands
 
 ```sh
@@ -4807,6 +4820,7 @@ pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching
 pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-performance.bench.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
+QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
 cd /home/aqrln.guest/prisma-engines
