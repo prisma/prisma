@@ -1563,14 +1563,20 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
   }
 }
 
-async function runClientExecuteScenario(scenario, iterations, retain, enginePrecomputedFastPath = false) {
+async function runClientExecuteScenario(scenario, iterations, retain, precomputedFastPath) {
+  const usesPrecomputedFastPath = precomputedFastPath !== undefined
   const Client = getPrismaClientConstructor()
   const client = new Client({
     adapter: createAdapterFactory(),
     queryPlanCacheMaxSize: retain ? 100 : 0,
-    __internal: enginePrecomputedFastPath ? { enginePrecomputedFastPath: true } : undefined,
+    __internal: usesPrecomputedFastPath
+      ? {
+          enginePrecomputedFastPath: precomputedFastPath === 'engine',
+          requestPrecomputedFastPath: precomputedFastPath === 'request',
+        }
+      : undefined,
   })
-  if (enginePrecomputedFastPath) {
+  if (usesPrecomputedFastPath) {
     const request = client._engine.request.bind(client._engine)
     client._engine.request = (query, options) => {
       if (options.precomputedQueryPlanCacheHit !== undefined) {
@@ -1606,7 +1612,12 @@ async function runClientExecuteScenario(scenario, iterations, retain, enginePrec
 
     return {
       scenario,
-      mode: enginePrecomputedFastPath ? 'client-execute-precomputed-fast-path' : 'client-execute',
+      mode:
+        precomputedFastPath === 'engine'
+          ? 'client-execute-engine-precomputed-fast-path'
+          : precomputedFastPath === 'request'
+            ? 'client-execute-request-precomputed-fast-path'
+            : 'client-execute',
       iterations,
       retain,
       initMs: performance.now() - startInit - elapsedMs,
@@ -1618,8 +1629,8 @@ async function runClientExecuteScenario(scenario, iterations, retain, enginePrec
       compileBatchCount: counts.compileBatch,
       queryRawCount: counts.queryRaw,
       executeRawCount: counts.executeRaw,
-      precomputedFastPathHits: enginePrecomputedFastPath ? counts.precomputedFastPathHits : undefined,
-      precomputedFastPathLearns: enginePrecomputedFastPath ? counts.precomputedFastPathLearns : undefined,
+      precomputedFastPathHits: usesPrecomputedFastPath ? counts.precomputedFastPathHits : undefined,
+      precomputedFastPathLearns: usesPrecomputedFastPath ? counts.precomputedFastPathLearns : undefined,
       checksum,
       retainedEntries: 0,
       retainedCacheKeyBytes: 0,
@@ -1651,8 +1662,10 @@ export default {
       let result
       if (mode === 'client-execute') {
         result = await runClientExecuteScenario(scenario, iterations, retain)
-      } else if (mode === 'client-execute-precomputed-fast-path') {
-        result = await runClientExecuteScenario(scenario, iterations, retain, true)
+      } else if (mode === 'client-execute-engine-precomputed-fast-path') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'engine')
+      } else if (mode === 'client-execute-request-precomputed-fast-path') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'request')
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -2057,7 +2070,18 @@ async function run(): Promise<void> {
         'find-unique',
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
-        'client-execute-precomputed-fast-path',
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path findUnique warmed cache',
+        'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
       ),
     )
     console.log('')
@@ -2079,7 +2103,18 @@ async function run(): Promise<void> {
         'blog-page-by-id',
         GENERATED_BLOG_PAGE_ITERATIONS,
         true,
-        'client-execute-precomputed-fast-path',
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path blog-page warmed cache',
+        'blog-page-by-id',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
       ),
     )
   } finally {

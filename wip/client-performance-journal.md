@@ -7038,6 +7038,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as a productization-oriented internal prototype. It is slower than the direct-engine path, but it preserves `_request()` / tracing / error callsite / `RequestHandler` / DataLoader semantics.
     - This path makes automatic `findUnique` batching tractable: generated requests can carry precomputed single-query data, `RequestHandler.singleLoader` forwards it on actual singles, and `requestBatch()` continues to fall back to current batch parameterization because there is still no per-query precomputed batch contract.
 
+- Accepted measurement: Workerd request-layer generated precomputed fast path.
+  - Timestamp: 2026-06-07T22:10:00+02:00.
+  - Change:
+    - Extended `workerd-query-compiler-memory.ts` generated-client rows to distinguish direct-engine versus request-layer precomputed modes.
+    - Added `client-execute-request-precomputed-fast-path` Workerd mode and printed rows for generated findUnique/blog-page shapes.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=100 WORKERD_DESCRIPTOR_ITERATIONS=100 WORKERD_PRECOMPUTED_ITERATIONS=100 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=20000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts | tail -100`
+    - Baseline:
+      - `generated client findUnique warmed cache`: worker loop 7.50 us/op; host dispatch 8.38 us/op.
+      - `generated client blog-page warmed cache`: worker loop 19.20 us/op; host dispatch 23.52 us/op.
+    - Direct-engine internal fast path:
+      - `generated client engine precomputed fast path findUnique warmed cache`: worker loop 2.35 us/op; host dispatch 3.39 us/op; `hits 20000, learns 0`.
+      - `generated client engine precomputed fast path blog-page warmed cache`: worker loop 9.60 us/op; host dispatch 14.02 us/op; `hits 5000, learns 0`.
+    - Request-layer internal fast path:
+      - `generated client request precomputed fast path findUnique warmed cache`: worker loop 4.55 us/op; host dispatch 5.51 us/op; `hits 20000, learns 0`.
+      - `generated client request precomputed fast path blog-page warmed cache`: worker loop 12.20 us/op; host dispatch 16.53 us/op; `hits 5000, learns 0`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep as Workerd measurement infrastructure. The request-layer path keeps the product-safe batching surface and still recovers most of the nested-row gap in the Cloudflare Workers target.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
