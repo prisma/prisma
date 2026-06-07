@@ -6453,6 +6453,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the narrowed variant. It removes duplicated field lookup in relation/object selection branches, improves the Node product rows in same-session A/B, and keeps Workerd within the current band. Do not revive the broader cached object-field-name set unless a future profile shows scalar `true` relation detection dominating.
 
+- Rejected experiment: split explicit selection loops for no-computed-fields clients.
+  - Timestamp: 2026-06-07T17:26:00Z.
+  - Change tried:
+    - Split `createExplicitSelection()` into a no-computed-fields loop and a computed-fields loop.
+    - The no-computed-fields loop skipped `computeEngineSideSelection()` and avoided the per-key `computedFields?.[key]` checks in the hot empty-extension path.
+  - Rationale:
+    - The post-field-lookup profile still showed `serializeSelectionSet()` and `createExplicitSelection()` as visible generated-client costs.
+    - A previous direct guard around `computeEngineSideSelection()` was rejected, but a full loop split could have removed more repeated work from the empty-extension path.
+  - Timing:
+    - Current committed profile before the split: generated `findUnique` 4.71 us/op, nested blog-page 18.45 us/op.
+    - Previous same-session accepted field-lookup run before the split: generated `findUnique` 4.65 us/op, nested blog-page 18.31 us/op.
+    - Split-loop patched run: generated `findUnique` 4.74 us/op, nested blog-page 18.55 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Reverted. The specialization made the generated-client rows slightly worse, so the extra function split and duplicated loop are not justified. Do not retry this shape unless a new profile shows computed-field checks dominating after other serializer changes.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
