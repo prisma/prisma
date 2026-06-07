@@ -6812,6 +6812,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Defer JS-owned SQL strings until after that proof point. Cache hits can prove the main boundary/lifetime/cache story without rebuilding the SQL renderer; compile misses can initially fall back to the current Rust-owned SQL/template builder.
   - Practicality read: plausible as a project-level redesign if the first proof point is narrow and cache-hit focused. It is risky if implemented as a general wrapper layer first, because dynamic JS property access, rooting/reference lifetime bugs, and poorer validation errors could erase the memory win before query graph construction is even reached.
 
+- Validate descriptor fast paths in Workerd and through the real request contract.
+  - Add Workerd-side descriptor extraction/wrapper rows before productizing: Node says guarded static descriptors are promising, but the target runtime is Workers and previous Workerd measurements have shifted conclusions.
+  - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
+
 - Explore memory-management simplification in Rust query compiler.
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
