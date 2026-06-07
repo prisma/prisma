@@ -6276,6 +6276,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Interpretation:
     - A cache-key-only JS rewrite is too low-ceiling on Workerd. The JS-owned query / Rust-owned IR architecture remains interesting only if it replaces multiple phases: generated-client/request overhead, owned Rust request materialization on misses, and plan serialization/cache object transfer. The new row gives a clearer lower bound for the JS-side key/lookup part.
 
+- Rejected experiment: no-extension computed-field lookup short-circuit in JSON serialization.
+  - Timestamp: 2026-06-07T16:22:27Z.
+  - Fresh generated-client CPU profile command:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp/prisma-generated-profiles --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Profile timing:
+    - generated client `findUnique` warmed cache: 6.22 us/op.
+    - generated client blog-page warmed cache: 22.83 us/op.
+  - Top self-sample groups in the main CPU profile:
+    - `ClientEngine.request` ~9.1%, V8 program ~8.3%, `serializeSelectionSet` ~7.6%, raw-nested interpreter closure ~6.9%, `createExplicitSelection` ~4.7%, benchmark adapter result-set lookup ~3.1%, `mapQueryEngineResult` ~3.0%, `nestSelection` ~2.8%, `nestArgument` ~2.5%, `serializeFieldSelection` / `mapRawNestedRows` ~2.4% each.
+  - Change tried and reverted:
+    - Added a `hasExtensions: !extensions.isEmpty()` flag to `SerializeContext` and returned `undefined` from `getComputedFields()` when there are no client extensions, avoiding `extensions.getAllComputedFields(modelName)` in the common no-extension serializer path.
+  - Same-session timing:
+    - Patched: generated `findUnique` 6.13 us/op; nested blog-page 22.33 us/op.
+    - Reverted control: generated `findUnique` 6.05 us/op; nested blog-page 22.28 us/op.
+  - Decision:
+    - Reverted. The short-circuit is neutral-to-negative and not worth carrying another serializer flag. The profiler still shows selection serialization as a distributed hotspot, but the already-tested local shortcuts remain low-ceiling or mixed unless they remove broader generated-client/request phases.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
