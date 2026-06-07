@@ -4783,6 +4783,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reversed baseline after restoring spread: cached request wrapper nested rows 17.37 us/op; direct plan after phase warmup 11.80 us/op; local executor nested rows 12.10 us/op.
   - Decision: reverted. The full cached wrapper row improved slightly, but the direct/local nested interpreter rows regressed materially. Keep the spread context shape unless a future benchmark explains the inner-plan regression.
 
+- Accepted: avoid intermediate node-id strings in projected dependency binding names.
+  - Change in `prisma-engines`: `NodeRef::index()` exposes the raw graph node index, and `binding::projected_dependency()` formats `"{index}${field}"` directly instead of first allocating `source.id()` and then allocating the final placeholder name.
+  - Allocation profile command:
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650,create-m2m,create-nested-create,query-m2o,query-many-m2m,nested-pagination-query,nested-pagination-join' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Allocation deltas vs same-turn baseline:
+    - `create-nested-connectOrCreate-mixed`: `translate_ir` 1700 -> 1688 allocs/op; `full_compile` 2746 -> 2734.
+    - `create-nested-connectOrCreate-one2m`: `translate_ir` 1532 -> 1520; `full_compile` 2436 -> 2424.
+    - `update-set-nested`: `translate_ir` 1301 -> 1291; `full_compile` 2148 -> 2138.
+    - `update-set-nested-prisma#27650`: `translate_ir` 986 -> 974; `full_compile` 1908 -> 1896.
+    - `create-m2m`: `translate_ir` 946 -> 938; `full_compile` 1697 -> 1689.
+    - `create-nested-create`: `translate_ir` 692 -> 688; `full_compile` 1287 -> 1283.
+    - Read/pagination rows were allocation-neutral.
+  - Criterion command:
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-connectOrCreate|update-set-nested|create-m2m|create-nested-create|query-m2o|query-many-m2m|nested-pagination'`
+  - Criterion signal:
+    - Improved: `create-m2m` -2.14%, `create-nested-create-with-composite-id` -1.35%, `nested-pagination-join` -1.81%, `query-m2o-lateral` -2.51%, `query-m2o` -2.31%, `query-many-m2m` -2.21%, `update-set-nested-prisma#27650` -2.97%.
+    - Neutral/noise threshold: `create-nested-connectOrCreate-mixed`, `create-nested-connectOrCreate-one2m`, `create-nested-create`, `nested-pagination-query`, `update-set-nested`.
+    - Regressed: `create-nested-connectOrCreate-m2one` +1.67%.
+  - Verification:
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm build`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=2000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - JS-side probe result:
+    - Compile miss rows stayed in the same broad range as prior measurements: findUnique current miss 398.04 us/op, findMany current miss 289.65 us/op, blog page current miss 2281.79 us/op over 2000 iterations.
+    - Local workerd retained cache probe stayed stable: retained scalar plan cache 100 entries at 24.1 KiB serialized plans; retained blog-page plan cache 100 entries at 394.8 KiB serialized plans; warmed generated client upper-bound host dispatch 90.76 us/op for findUnique and 129.29 us/op for blog page.
+  - Decision: keep. The allocation win is small but deterministic on dependency-heavy write translation, and Criterion is net favorable despite one connect-or-create m2one regression. Do not broaden this into a general `NodeRef::id()` rewrite; only use `NodeRef::index()` where the raw numeric id is being formatted into an existing owned string.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
