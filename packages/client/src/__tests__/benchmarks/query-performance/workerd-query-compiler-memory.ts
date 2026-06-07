@@ -45,6 +45,19 @@ type MemorySnapshot = {
   arrayBuffers: number
 }
 
+type CacheKeyBreakdown = {
+  keyCount: number
+  uniqueKeyCount: number
+  totalBytes: number
+  uniqueBytes: number
+  commonPrefixBytes: number
+  commonSuffixBytes: number
+  prefixSuffixBytes: number
+  trieBytes: number
+  commonPrefixSample: string
+  commonSuffixSample: string
+}
+
 type WorkerRunResult = {
   scenario: string
   mode: string
@@ -63,6 +76,7 @@ type WorkerRunResult = {
   checksum?: number
   retainedEntries: number
   retainedCacheKeyBytes: number
+  retainedCacheKeyBreakdown?: CacheKeyBreakdown
   retainedPlanSerializedBytes: number
   averagePlanBytes: number
   runtime: string
@@ -734,16 +748,119 @@ function parameterizeQueryForClientCache(query) {
   return query
 }
 
+function collectCacheKeyBreakdown(keys) {
+  let totalBytes = 0
+  for (const key of keys) {
+    totalBytes += key.length
+  }
+
+  const uniqueKeys = new Set(keys)
+  let uniqueBytes = 0
+  for (const key of uniqueKeys) {
+    uniqueBytes += key.length
+  }
+
+  const commonPrefixBytes = commonPrefixLength(keys)
+  const commonSuffixBytes = commonSuffixLength(keys, commonPrefixBytes)
+  let prefixSuffixBytes = 0
+  if (keys.length > 0) {
+    prefixSuffixBytes = commonPrefixBytes + commonSuffixBytes
+    for (const key of keys) {
+      prefixSuffixBytes += key.length - commonPrefixBytes - commonSuffixBytes
+    }
+  }
+
+  return {
+    keyCount: keys.length,
+    uniqueKeyCount: uniqueKeys.size,
+    totalBytes,
+    uniqueBytes,
+    commonPrefixBytes,
+    commonSuffixBytes,
+    prefixSuffixBytes,
+    trieBytes: countTrieBytes(keys),
+    commonPrefixSample: keys[0]?.slice(0, commonPrefixBytes) ?? '',
+    commonSuffixSample: commonSuffixBytes === 0 ? '' : (keys[0]?.slice(-commonSuffixBytes) ?? ''),
+  }
+}
+
+function commonPrefixLength(values) {
+  if (values.length === 0) {
+    return 0
+  }
+
+  const first = values[0]
+  let end = first.length
+  for (let i = 1; i < values.length; i++) {
+    const value = values[i]
+    end = Math.min(end, value.length)
+    let index = 0
+    while (index < end && first.charCodeAt(index) === value.charCodeAt(index)) {
+      index++
+    }
+    end = index
+    if (end === 0) {
+      break
+    }
+  }
+  return end
+}
+
+function commonSuffixLength(values, commonPrefixBytes) {
+  if (values.length === 0) {
+    return 0
+  }
+
+  const first = values[0]
+  let end = first.length - commonPrefixBytes
+  for (let i = 1; i < values.length; i++) {
+    const value = values[i]
+    end = Math.min(end, value.length - commonPrefixBytes)
+    let index = 0
+    while (index < end && first.charCodeAt(first.length - 1 - index) === value.charCodeAt(value.length - 1 - index)) {
+      index++
+    }
+    end = index
+    if (end === 0) {
+      break
+    }
+  }
+  return end
+}
+
+function countTrieBytes(keys) {
+  const root = new Map()
+  let bytes = 0
+
+  for (const key of keys) {
+    let node = root
+    for (let i = 0; i < key.length; i++) {
+      const code = key.charCodeAt(i)
+      let child = node.get(code)
+      if (child === undefined) {
+        child = new Map()
+        node.set(code, child)
+        bytes++
+      }
+      node = child
+    }
+  }
+
+  return bytes
+}
+
 function retainedPlanSize() {
   let cacheKeyBytes = 0
   let planSerializedBytes = 0
+  const cacheKeys = []
 
   for (const [key, plan] of retainedPlans) {
     cacheKeyBytes += key.length
+    cacheKeys.push(key)
     planSerializedBytes += JSON.stringify(plan).length
   }
 
-  return { cacheKeyBytes, planSerializedBytes }
+  return { cacheKeyBytes, cacheKeyBreakdown: collectCacheKeyBreakdown(cacheKeys), planSerializedBytes }
 }
 
 function runScenario(scenario, iterations, retain) {
@@ -775,6 +892,7 @@ function runScenario(scenario, iterations, retain) {
     cacheMisses: iterations,
     retainedEntries: retainedPlans.size,
     retainedCacheKeyBytes: retained.cacheKeyBytes,
+    retainedCacheKeyBreakdown: retained.cacheKeyBreakdown,
     retainedPlanSerializedBytes: retained.planSerializedBytes,
     averagePlanBytes: totalPlanBytes / iterations,
     runtime: navigator.userAgent,
@@ -819,6 +937,7 @@ function runClientCacheScenario(scenario, iterations, retain) {
     cacheMisses,
     retainedEntries: retainedPlans.size,
     retainedCacheKeyBytes: retained.cacheKeyBytes,
+    retainedCacheKeyBreakdown: retained.cacheKeyBreakdown,
     retainedPlanSerializedBytes: retained.planSerializedBytes,
     averagePlanBytes: totalPlanBytes / iterations,
     runtime: navigator.userAgent,
@@ -867,6 +986,7 @@ async function runClientExecuteScenario(scenario, iterations, retain) {
       checksum,
       retainedEntries: 0,
       retainedCacheKeyBytes: 0,
+      retainedCacheKeyBreakdown: collectCacheKeyBreakdown([]),
       retainedPlanSerializedBytes: 0,
       averagePlanBytes: 0,
       runtime: navigator.userAgent,
@@ -1020,11 +1140,54 @@ function printMeasurement(measurement: Measurement): void {
       worker.retainedPlanSerializedBytes,
     )} serialized plans`,
   )
+  printCacheKeyBreakdown(worker.retainedCacheKeyBreakdown)
   console.log(
     `  host delta: rss ${formatBytes(hostMemory.delta.rss)}, heap ${formatBytes(hostMemory.delta.heapUsed)}, external ${formatBytes(
       hostMemory.delta.external,
     )}, arrayBuffers ${formatBytes(hostMemory.delta.arrayBuffers)}`,
   )
+}
+
+function printCacheKeyBreakdown(breakdown: CacheKeyBreakdown | undefined): void {
+  if (breakdown === undefined || breakdown.keyCount === 0) {
+    return
+  }
+
+  const prefixSuffixSavings = breakdown.totalBytes - breakdown.prefixSuffixBytes
+  const trieSavings = breakdown.totalBytes - breakdown.trieBytes
+
+  console.log(
+    [
+      `  key shape: keys=${breakdown.keyCount}`,
+      `unique=${breakdown.uniqueKeyCount}`,
+      `uniqueTotal=${formatBytes(breakdown.uniqueBytes)}`,
+      `commonPrefix=${formatBytes(breakdown.commonPrefixBytes)}`,
+      `commonSuffix=${formatBytes(breakdown.commonSuffixBytes)}`,
+      `prefixSuffixBytes=${formatBytes(breakdown.prefixSuffixBytes)}`,
+      `prefixSuffixSavings=${formatBytes(prefixSuffixSavings)}`,
+      `trieBytes=${formatBytes(breakdown.trieBytes)}`,
+      `trieSavings=${formatBytes(trieSavings)}`,
+      `trieSavingsShare=${
+        breakdown.totalBytes === 0 ? '0.0%' : `${((trieSavings / breakdown.totalBytes) * 100).toFixed(1)}%`
+      }`,
+    ].join(' | '),
+  )
+
+  if (breakdown.commonPrefixSample.length > 0) {
+    const prefix =
+      breakdown.commonPrefixSample.length > 120
+        ? `${breakdown.commonPrefixSample.slice(0, 117)}...`
+        : breakdown.commonPrefixSample
+    console.log(`  commonPrefixSample=${JSON.stringify(prefix)}`)
+  }
+
+  if (breakdown.commonSuffixSample.length > 0) {
+    const suffix =
+      breakdown.commonSuffixSample.length > 120
+        ? `...${breakdown.commonSuffixSample.slice(-(120 - 3))}`
+        : breakdown.commonSuffixSample
+    console.log(`  commonSuffixSample=${JSON.stringify(suffix)}`)
+  }
 }
 
 async function run(): Promise<void> {

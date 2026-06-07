@@ -5537,6 +5537,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted: cached request wrapper 14.16 us/op, direct plan 8.57, raw compact node 7.32, direct after phase warmup 8.68, local executor 8.63.
   - Decision: reverted. The specialized root relation path worsened the direct/local product rows in the same session. The extra closure shape and `Promise.all(...map(...))` around root relations likely outweighed the skipped generic helpers. Do not retry this unique-root direct-relation specialization as a standalone change.
 
+- Accepted instrumentation: Workerd cache-key structural breakdown.
+  - Timestamp: 2026-06-07T12:29:02Z.
+  - Change:
+    - `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` now computes retained cache-key shape stats inside the worker and prints them on the host: key count, unique count/bytes, common prefix/suffix lower bound, and prefix-trie lower bound.
+  - Rationale:
+    - The Node cache-memory probe already had key-shape lower bounds, but the Workerd probe only reported total retained key bytes. The missing Workerd-side breakdown made it harder to judge whether JS-owned/structural cache keys could pay off on the target runtime.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `git diff --check`
+  - Measurement with local sqlite query-compiler Wasm:
+    - Retained scalar plan cache, 100 entries: 7.6 KiB keys; common prefix 18 B, common suffix 8 B; prefix/suffix lower bound 5.0 KiB; trie lower bound 4.5 KiB, saving 3.0 KiB / 39.9%.
+    - Retained blog-page plan cache, 100 entries: 48.3 KiB keys, 335.4 KiB serialized plans; common prefix 21 B, common suffix 388 B; prefix/suffix lower bound 8.8 KiB, saving 39.5 KiB; trie lower bound 43.3 KiB, saving 5.0 KiB / 10.4%.
+    - Client-cache findUnique value churn: 1 parameterized retained entry, 138 B key, 548 B serialized plan.
+    - Client-cache blog-page value churn: 1 parameterized retained entry, 704 B key, 3.7 KiB serialized plan.
+  - Decision:
+    - Keep the instrumentation. Trie-like key sharing still looks low-ceiling for the product-shaped Workerd cache because the repeated nested relation tail is a suffix, not a prefix. A structural key / JS-reference pipeline may still be useful, but the cache-hit memory prize is not mostly prefix-trie key compression in the current benchmark.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
