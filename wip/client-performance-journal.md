@@ -7060,6 +7060,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as Workerd measurement infrastructure. The request-layer path keeps the product-safe batching surface and still recovers most of the nested-row gap in the Cloudflare Workers target.
 
+- Rejected spike: omit callsite in request-layer precomputed fast path.
+  - Timestamp: 2026-06-07T22:10:06+02:00.
+  - Change tried:
+    - Temporarily made `applyFluent()` skip eager callsite capture under `__internal.requestPrecomputedFastPath`.
+    - Temporarily passed no fallback callsite from the request-layer precomputed helper.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client request precomputed fast path findUnique / warmed cache`: 3.85 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 13.11 us/op.
+  - Decision:
+    - Reverted. CPU was effectively unchanged from the accepted request-layer path (3.87 / 13.11 us/op), while error context would be worse.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
