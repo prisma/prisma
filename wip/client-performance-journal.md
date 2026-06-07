@@ -6681,6 +6681,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. The descriptor validation/extraction overhead is about 1 us/op for the nested target, so a guarded static/lazy descriptor architecture is more promising than the rejected Wasm `Reflect` walker and could recover most of the generated-client front-half cost if wired safely.
 
+- Accepted measurement: lazy descriptor interpreter timing row.
+  - Timestamp: 2026-06-07T19:35:18Z.
+  - Change:
+    - Added benchmark-only `generated client lazy descriptor extract ...` and `cached request wrapper lazy descriptor ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The lazy descriptor is built from the first generated args object, the slow-path cache key, and the placeholder map produced by `parameterizeQuery()`. It records exact object keys, array lengths, literal constants, and placeholder slots, then interprets that descriptor against later args to extract placeholder values or fall back.
+  - Rationale:
+    - The hard-coded static descriptor proved a specialized matcher can be cheap, but a product implementation likely should learn descriptors from successful slow-path requests before considering generator-wide emission. This row measures the generic lazy-descriptor shape.
+  - Timing:
+    - Extraction row at 300,000 iterations:
+      - `generated client static descriptor extract blog page / nested rows warmed cache`: 1.16 us/op.
+      - `generated client lazy descriptor extract findUnique / warmed cache`: 0.32 us/op.
+      - `generated client lazy descriptor extract blog page / nested rows warmed cache`: 2.40 us/op.
+    - Wrapper rows:
+      - `cached request wrapper lazy descriptor findUnique`: 0.97 us/op.
+      - `cached request wrapper lazy descriptor blog page / nested rows`: 9.46 us/op.
+    - Same-process nested comparison:
+      - `cached request wrapper static descriptor blog page / nested rows`: 8.14 us/op.
+      - `cached request wrapper lazy descriptor blog page / nested rows`: 9.42 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='descriptor extract' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper lazy descriptor' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='descriptor blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep as measurement infrastructure. A generic interpreted descriptor is still much faster than the current full generated path, but the nested overhead is about 1.3 us/op worse than the specialized descriptor. Product work should favor lazy descriptor construction for safety, but the hot matcher should probably be specialized/compiled into a low-overhead shape-specific function or precomputed path table.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:

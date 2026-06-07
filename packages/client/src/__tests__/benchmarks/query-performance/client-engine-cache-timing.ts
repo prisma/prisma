@@ -291,6 +291,31 @@ type StaticDescriptorExtraction = {
   placeholderValues: Record<string, unknown>
 }
 
+type LazyStaticDescriptor = {
+  cacheKey: string
+  root: LazyDescriptorNode
+}
+
+type LazyDescriptorNode =
+  | {
+      kind: 'constant'
+      value: unknown
+    }
+  | {
+      kind: 'placeholder'
+      name: string
+      valueType: string
+    }
+  | {
+      kind: 'array'
+      items: LazyDescriptorNode[]
+    }
+  | {
+      kind: 'object'
+      keys: string[]
+      fields: Record<string, LazyDescriptorNode>
+    }
+
 class EmptySqliteAdapter implements SqlDriverAdapter {
   readonly provider = 'sqlite'
   readonly adapterName = '@prisma/adapter-benchmark-empty'
@@ -867,6 +892,138 @@ function tryExtractGeneratedBlogPostPageDescriptor(
   }
 }
 
+function buildLazyStaticDescriptor(
+  args: Record<string, unknown>,
+  cacheKey: string,
+  placeholderValues: Record<string, unknown>,
+): LazyStaticDescriptor {
+  const placeholdersByValue = new Map<string, string>()
+  for (const [name, value] of Object.entries(placeholderValues)) {
+    const key = lazyDescriptorValueKey(value)
+    if (key !== undefined) {
+      placeholdersByValue.set(key, name)
+    }
+  }
+
+  return {
+    cacheKey,
+    root: buildLazyDescriptorNode(args, placeholdersByValue),
+  }
+}
+
+function buildLazyDescriptorNode(value: unknown, placeholdersByValue: Map<string, string>): LazyDescriptorNode {
+  const valueKey = lazyDescriptorValueKey(value)
+  const placeholderName = valueKey === undefined ? undefined : placeholdersByValue.get(valueKey)
+  if (placeholderName !== undefined) {
+    return {
+      kind: 'placeholder',
+      name: placeholderName,
+      valueType: value === null ? 'null' : typeof value,
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return {
+      kind: 'array',
+      items: value.map((item) => buildLazyDescriptorNode(item, placeholdersByValue)),
+    }
+  }
+
+  if (isDescriptorRecord(value)) {
+    const keys = Object.keys(value)
+    const fields: Record<string, LazyDescriptorNode> = {}
+    for (const key of keys) {
+      fields[key] = buildLazyDescriptorNode(value[key], placeholdersByValue)
+    }
+    return {
+      kind: 'object',
+      keys,
+      fields,
+    }
+  }
+
+  return {
+    kind: 'constant',
+    value,
+  }
+}
+
+function tryExtractLazyStaticDescriptor(
+  descriptor: LazyStaticDescriptor,
+  args: Record<string, unknown>,
+): StaticDescriptorExtraction | undefined {
+  const placeholderValues: Record<string, unknown> = {}
+  if (!matchesLazyDescriptorNode(descriptor.root, args, placeholderValues)) {
+    return undefined
+  }
+
+  return {
+    cacheKey: descriptor.cacheKey,
+    placeholderValues,
+  }
+}
+
+function matchesLazyDescriptorNode(
+  descriptor: LazyDescriptorNode,
+  value: unknown,
+  placeholderValues: Record<string, unknown>,
+): boolean {
+  switch (descriptor.kind) {
+    case 'constant':
+      return Object.is(value, descriptor.value)
+
+    case 'placeholder': {
+      if ((value === null ? 'null' : typeof value) !== descriptor.valueType) {
+        return false
+      }
+
+      if (Object.hasOwn(placeholderValues, descriptor.name)) {
+        return Object.is(placeholderValues[descriptor.name], value)
+      }
+
+      placeholderValues[descriptor.name] = value
+      return true
+    }
+
+    case 'array':
+      if (!Array.isArray(value) || value.length !== descriptor.items.length) {
+        return false
+      }
+      for (let i = 0; i < descriptor.items.length; i++) {
+        if (!matchesLazyDescriptorNode(descriptor.items[i], value[i], placeholderValues)) {
+          return false
+        }
+      }
+      return true
+
+    case 'object':
+      if (!isDescriptorRecord(value) || !hasExactKeys(value, descriptor.keys)) {
+        return false
+      }
+      for (const key of descriptor.keys) {
+        if (!matchesLazyDescriptorNode(descriptor.fields[key], value[key], placeholderValues)) {
+          return false
+        }
+      }
+      return true
+  }
+}
+
+function lazyDescriptorValueKey(value: unknown): string | undefined {
+  switch (typeof value) {
+    case 'string':
+      return `string:${value}`
+    case 'number':
+      return Number.isFinite(value) ? `number:${value}` : undefined
+    case 'boolean':
+      return `boolean:${value ? 'true' : 'false'}`
+    case 'bigint':
+      return `bigint:${value}`
+    default:
+      return undefined
+  }
+}
+
 function matchesBlogPageTagsSelection(value: unknown): boolean {
   if (!isDescriptorRecord(value) || !hasExactKeys(value, ['select'])) {
     return false
@@ -1382,12 +1539,13 @@ function getGeneratedScenarioParameterizedShape(
     clientVersion: config.clientVersion,
     previewFeatures: [],
   })
-  const { parameterizedQuery } = parameterizeQuery(query, paramGraph)
+  const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
   const queryPart = JSON.stringify(parameterizedQuery.query)
 
   return {
     query,
     parameterizedQuery,
+    placeholderValues,
     queryPart,
     cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
   }
@@ -1411,6 +1569,43 @@ function measureGeneratedBlogPostPageDescriptorExtractScenario(
     const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
     if (extraction === undefined) {
       throw new Error('Expected generated blog-page descriptor to match benchmark args')
+    }
+    checksum += extraction.cacheKey.length
+    checksum += extraction.placeholderValues['%1'] === undefined ? 0 : 1
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+function measureGeneratedLazyDescriptorExtractScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  paramGraph: ParamGraph,
+  scenario: GeneratedClientSerializeScenario,
+): PlanPhaseMeasurement {
+  const firstArgs = scenario.args(0)
+  const { cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
+  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const firstExtraction = tryExtractLazyStaticDescriptor(descriptor, firstArgs)
+  if (firstExtraction === undefined) {
+    throw new Error('Expected lazy descriptor to match first args')
+  }
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const extraction = tryExtractLazyStaticDescriptor(descriptor, scenario.args(i))
+    if (extraction === undefined) {
+      throw new Error('Expected lazy descriptor to match benchmark args')
     }
     checksum += extraction.cacheKey.length
     checksum += extraction.placeholderValues['%1'] === undefined ? 0 : 1
@@ -4631,6 +4826,103 @@ async function measureCachedRequestWrapperGeneratedDescriptorScenario(
   }
 }
 
+async function measureCachedRequestWrapperLazyDescriptorScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  scenario: GeneratedClientSerializeScenario,
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const executor = await LocalExecutor.connect({
+    driverAdapterFactory: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts),
+    transactionOptions: {
+      maxWait: 2000,
+      timeout: 5000,
+    },
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+  })
+  const firstArgs = scenario.args(0)
+  const { query, parameterizedQuery, placeholderValues, queryPart, cacheKey } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
+  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const cache = new QueryPlanCache(100)
+  cache.setSingle(cacheKey, compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)))
+
+  let consumedResults = 0
+  try {
+    for (let i = 0; i < scenario.iterations; i++) {
+      const extraction = tryExtractLazyStaticDescriptor(descriptor, scenario.args(i))
+      if (extraction === undefined) {
+        throw new Error('Expected lazy descriptor to match benchmark args')
+      }
+      const plan = cache.getSingle(extraction.cacheKey)!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues: extraction.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    resetCounts(counts)
+
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const extraction = tryExtractLazyStaticDescriptor(descriptor, scenario.args(i))
+      if (extraction === undefined) {
+        throw new Error('Expected lazy descriptor to match benchmark args')
+      }
+      const plan = cache.getSingle(extraction.cacheKey)!
+      const result = await executor.execute({
+        plan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues: extraction.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[query.action] === undefined ? 0 : 1
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (consumedResults < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      query,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    } satisfies DirectPlanMeasurement
+  } finally {
+    await executor.disconnect()
+  }
+}
+
 async function measureManyShapeCachedRequestWrapperScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4879,6 +5171,17 @@ async function main(): Promise<void> {
     )
   }
 
+  for (const scenario of generatedClientSerializeScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client serialize', 'generated client lazy descriptor extract'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printPlanPhaseMeasurement(measureGeneratedLazyDescriptorExtractScenario(baseConfig, paramGraph, measuredScenario))
+  }
+
   for (const scenario of generatedClientScenarios) {
     const measuredScenario = {
       ...scenario,
@@ -5102,6 +5405,22 @@ async function main(): Promise<void> {
           baseConfig,
           measuredScenario,
         ),
+      )
+    }
+
+    for (const scenario of generatedClientSerializeScenarios) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name
+          .replace('generated client serialize', 'cached request wrapper lazy descriptor')
+          .replace(' / warmed cache', '')
+          .replace(' warmed cache', ''),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureCachedRequestWrapperLazyDescriptorScenario(compiler, paramGraph, baseConfig, measuredScenario),
       )
     }
 
