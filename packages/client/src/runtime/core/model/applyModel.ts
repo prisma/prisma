@@ -135,7 +135,6 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 args: userArgs,
                 action: dmmfActionName,
                 model: dmmfModelName,
-                jsModelName,
                 clientMethod: `${jsModelName}.${key}`,
                 paramOverrides,
                 descriptor,
@@ -320,7 +319,6 @@ function tryRequestPrecomputedFastPath({
   args,
   action,
   model,
-  jsModelName,
   clientMethod,
   paramOverrides,
   descriptor,
@@ -330,7 +328,6 @@ function tryRequestPrecomputedFastPath({
   args: unknown
   action: Action
   model: string
-  jsModelName: string
   clientMethod: string
   paramOverrides: O.Optional<InternalRequestParams>
   descriptor: LazyDescriptor | undefined
@@ -344,7 +341,6 @@ function tryRequestPrecomputedFastPath({
         args,
         action,
         model,
-        jsModelName,
         clientMethod,
         paramOverrides,
         protocolQuery: descriptor.protocolQuery,
@@ -381,7 +377,6 @@ function tryRequestPrecomputedFastPath({
     args,
     action,
     model,
-    jsModelName,
     clientMethod,
     paramOverrides,
     protocolQuery: query,
@@ -394,7 +389,6 @@ function requestWithPrecomputedQueryPlanCacheHit({
   args,
   action,
   model,
-  jsModelName,
   clientMethod,
   paramOverrides,
   protocolQuery,
@@ -405,21 +399,19 @@ function requestWithPrecomputedQueryPlanCacheHit({
   args: unknown
   action: Action
   model: string
-  jsModelName: string
   clientMethod: string
   paramOverrides: O.Optional<InternalRequestParams>
   protocolQuery: LazyDescriptor['protocolQuery']
   precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit | undefined
   precomputedBatchId?: string
 }): Promise<unknown> {
-  return client._request({
+  return client._requestHandler.request({
     args: args as UserArgs,
     dataPath: Array.isArray(paramOverrides.dataPath) ? paramOverrides.dataPath : [],
     action,
-    model,
+    modelName: model,
     clientMethod,
-    jsModelName,
-    transaction: undefined,
+    extensions: client._extensions,
     callsite: 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat),
     protocolQuery,
     precomputedQueryPlanCacheHit,

@@ -7143,6 +7143,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow internal optimization with a clear reason: descriptor hits already know the stable generated query shape, and `getBatchId()` ignores the changing leaf values. It improves batched request-layer precompute materially while preserving DataLoader batching.
 
+- Accepted prototype: direct RequestHandler generated precomputed path.
+  - Timestamp: 2026-06-07T23:18:00+02:00.
+  - Change:
+    - Changed the internal generated `requestPrecomputedFastPath` descriptor-hit helper to call `client._requestHandler.request()` directly instead of `client._request()`.
+    - Kept the path behind the existing strict guards: no transaction, empty extensions, no global omit, driver adapter present, root fluent override only, and precomputed descriptor hit.
+    - This still preserves `RequestHandler` error mapping and DataLoader batching, but bypasses `_request()` tracing, AsyncResource, debug logging, args mapper handling, and transaction lock handling.
+  - Measurement:
+    - Node command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Node rows:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.49 us/op, `queryRaw=100000`, `precomputedHits=100000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.59 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.39 us/op, `queryRaw=700000`, `precomputedHits=100000`.
+    - Workerd command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Workerd rows:
+      - `generated client request precomputed fast path findUnique warmed cache`: worker loop 4.70 us/op, host dispatch 6.63 us/op.
+      - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 11.30 us/op, host dispatch 13.19 us/op, `queryRaw 10000`.
+      - `generated client request precomputed fast path blog-page warmed cache`: worker loop 14.00 us/op, host dispatch 34.91 us/op, `queryRaw 7000`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+  - Decision:
+    - Keep as an internal prototype and benchmarked productization lead. It closes part of the gap while preserving DataLoader batching.
+    - Caveat: this is not product-safe as-is. A real path must either preserve `_request()` tracing/AsyncResource/debug semantics cheaply, or explicitly decide which of them can be skipped under the same guard conditions and why.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
