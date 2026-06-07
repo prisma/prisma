@@ -4224,6 +4224,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reversed baseline: `aggregate-nested-m2m` 65.093 us, `create-m2m` 77.016 us, `create-nested-create-with-composite-id` 59.860 us, `create-nested-create` 59.991 us, `query-many-m2m` 35.981 us.
   - Decision: reverted. The `create-m2m` allocation savings are real, but close timing regressed on the affected `create-m2m` row and on the unchanged controls. Do not replace nested-create singleton `Vec`s with `SmallVec` without a better CPU story or a larger allocation win.
 
+- Runtime profile refresh after latest compiler attempts.
+  - Timestamp: 2026-06-07T03:05:30Z.
+  - Filter detail: `CLIENT_ENGINE_CACHE_TIMING_FILTER` is a simple substring match, not a regex. The earlier `a|b` style filter matched no rows.
+  - Current focused command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Key current rows:
+    - warmed ClientEngine blog-page nested rows: 20.78 us/op; after phase warmup: 20.06 us/op.
+    - cached request wrapper nested rows: 19.71 us/op; 100 retained shapes: 21.01 us/op.
+    - direct plan nested rows: 12.82 us/op; direct after phase warmup: 13.22 us/op; local executor nested rows: 13.00 us/op.
+    - inner plan nested rows: 10.65 us/op.
+    - precomputed query leaves: 7.59 us/op; precomputed join leaves: 4.42 us/op; precomputed root join children: 4.60 us/op.
+    - render all leaves: 1.07 us/op; adapter-only seven result sets: 2.01 us/op; `serializeSql()` seven result sets: 2.20 us/op.
+    - parameterize blog page value churn: 2.24 us/op; stringify cache key: 1.66 us/op; full cache-hit key: 3.57 us/op.
+  - CPU profile command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='warmed cache after phase warmup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --cpu-prof --cpu-prof-dir=/tmp --cpu-prof-name=prisma-client-engine-cache.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Profiled row: warmed ClientEngine nested rows 19.59 us/op over 100,000 iterations and 700,000 fake `queryRaw` calls.
+  - Top self-time samples from the profile remained distributed:
+    - GC 295 samples, V8 program 161, `ClientEngine.request` 140, compact interpreter closures in `query-interpreter.ts` 122 and 96, `serializeSql` 54, `mapObjectWithMappings` 36, benchmark `getBlogPageResultSet` 34/30/14, `renderCompactTemplateSqlQuery` 23, `attachChildrenToParents` 21, `parameterizeQuery` 20, `#executeQueryNode` 20, `#parameterizeSelection` 19/18, `QueryPlanCache.getSingle` 16.
+  - Interpretation:
+    - The current product-shaped blog-page path is much faster than the earlier 40-70 us/op journal bands, so do not compare new patches against those older absolute numbers without a close baseline.
+    - The largest remaining measured runtime gap is no longer a single obvious helper. Tiny render/cache/request tweaks are already mostly rejected or low-ceiling. Stronger runtime leads remain plan-shape/data-map pushdown for nested query-mode joins, reducing repeated row-object materialization before the outer data map, or the larger JS-owned query/cache-hit architecture track.
+
 ## Useful Commands
 
 ```sh
