@@ -7183,6 +7183,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The only positive row was a small simple-query improvement versus 3.49 us/op, while batched `findUnique` and nested blog-page regressed from 10.59 / 12.39 us/op and error context would be worse.
 
+- Rejected spike: cache generated precomputed client-level guard booleans.
+  - Timestamp: 2026-06-07T23:31:00+02:00.
+  - Change tried:
+    - Temporarily split the generated precomputed fast-path guards into per-model-action client-level booleans and a smaller per-call transaction/override check.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client request precomputed fast path findUnique / warmed cache`: 3.45 us/op.
+    - `generated client request precomputed fast path batched findUnique / warmed cache`: 10.90 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.85 us/op.
+  - Decision:
+    - Reverted. The simple row was within noise of the accepted direct-RequestHandler descriptor path (3.49 us/op), while batched and nested rows regressed from 10.59 / 12.39 us/op.
+
+- Sidecar confirmation: JS-owned query / Wasm boundary map.
+  - Timestamp: 2026-06-07T23:32:00+02:00.
+  - Result:
+    - Read-only sidecar confirmed the current TS boundary is string-only in `packages/client-common/src/QueryCompiler.ts`, with `ClientEngine.request()` parameterizing and stringifying before `compiler.compile(request: string)`.
+    - Rust entrypoint remains `query-compiler-wasm/src/compiler.rs`; request parsing is `RequestBody::try_from_str()` -> `serde_json::from_str::<JsonBody>()` in `request-handlers/src/protocols/mod.rs`, not `serde_wasm_bindgen::from_value()`.
+    - The first owned layer is `JsonSingleQuery` in `request-handlers/src/protocols/json/body.rs`, with owned strings and `IndexMap<String, serde_json::Value>` for arguments/selection. The second owned layer is `JsonProtocolAdapter` in `request-handlers/src/protocols/json/protocol_adapter.rs`, which converts into owned `Operation` / `Selection` / `ArgumentValue` trees under `query-compiler/core/src/query_document/`.
+  - Practical POC restated:
+    - Best first proof remains cache-hit-only: keep compile misses on the current string path, but register a narrow shape descriptor/cache entry and have a Wasm export walk a JS request or args reference only to validate shape and extract placeholders before returning a cached JS plan object.
+    - Initial scope should be one generated `findUnique({ where: { id } })` shape, no raw queries, SQL commenters, extensions, global omit, batches, or rich validation. The walker must fail closed to the current path.
+  - Blockers:
+    - Rust cannot borrow JS object fields across calls; persistent descriptors must own path/type metadata or explicitly hold/free `JsValue` handles.
+    - Existing engines tests are JSON-string based, so Wasm/js_sys behavior needs wasm-bindgen tests or Prisma-side benchmark/integration coverage.
+    - Node and Workerd may have different `Reflect::get` costs; the prior naive generic `Reflect` walker was already rejected as too slow, so any retry needs generated/static metadata or a lower-overhead representation.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
