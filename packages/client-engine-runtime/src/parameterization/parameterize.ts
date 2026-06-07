@@ -73,8 +73,7 @@ export interface ParameterizeBatchResult {
 export function parameterizeQuery(query: JsonQuery, view: ParamGraph): ParameterizeResult {
   const parameterizer = new Parameterizer(view)
 
-  const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
-  const root = view.rootData(rootKey)
+  const root = view.rootDataFor(query.modelName, query.action)
 
   const parameterizedFieldSelection = parameterizer.parameterizeFieldSelection(
     query.query,
@@ -104,8 +103,7 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraph): Para
   for (let i = 0; i < batch.batch.length; i++) {
     const query = batch.batch[i]
 
-    const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
-    const root = view.rootData(rootKey)
+    const root = view.rootDataFor(query.modelName, query.action)
     const parameterizedFieldSelection = parameterizer.parameterizeFieldSelection(
       query.query,
       root?.argsNodeId,

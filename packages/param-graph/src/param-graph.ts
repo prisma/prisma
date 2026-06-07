@@ -76,6 +76,9 @@ export class ParamGraph {
   readonly #data: ParamGraphData
   readonly #stringIndex: Map<string, number>
   readonly #enumLookup: EnumLookup
+  #lastRootModelName: string | undefined
+  #lastRootAction: string | undefined
+  #lastRootEntry: RootEntryData | undefined
 
   private constructor(data: ParamGraphData, enumLookup: EnumLookup) {
     this.#data = data
@@ -124,6 +127,23 @@ export class ParamGraph {
    */
   rootData(key: string): Readonly<RootEntryData> | undefined {
     return this.#data.roots[key]
+  }
+
+  /**
+   * Look up a root entry by separate model/action fields without constructing
+   * the "Model.action" lookup key again for repeated root accesses.
+   */
+  rootDataFor(modelName: string | undefined, action: string): Readonly<RootEntryData> | undefined {
+    if (modelName === this.#lastRootModelName && action === this.#lastRootAction) {
+      return this.#lastRootEntry
+    }
+
+    const rootKey = modelName ? `${modelName}.${action}` : action
+    const root = this.#data.roots[rootKey]
+    this.#lastRootModelName = modelName
+    this.#lastRootAction = action
+    this.#lastRootEntry = root
+    return root
   }
 
   /**

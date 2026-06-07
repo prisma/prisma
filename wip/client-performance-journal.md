@@ -3926,6 +3926,49 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `client-engine-cache-timing.ts` close A/B as above.
   - Decision: keep. This is the wrapper-free version of the earlier rejected wrapper-cache idea; unlike caching view objects, it reduces hot-path work without increasing retained ParamGraph state.
 
+- Rejected variant: full model/action root index in `ParamGraph`.
+  - Hypothesis: `parameterizeQuery()` still built a `"Model.action"` string for every request. A `ParamGraph`-construction-time model/action root index could avoid that hot-path string allocation.
+  - Change tried:
+    - Added `#modelRoots` / `#actionRoots` maps to `ParamGraph`, populated by splitting every root key at construction time.
+    - Switched parameterization to `view.rootDataFor(query.modelName, query.action)`.
+  - Timing:
+    - Patched `client-engine-cache-timing.ts`: `findUnique` parameterize/cache-hit-key 2.10/1.64 us/op, `findMany` 0.89/0.82, blog-page 2.60/4.30.
+    - Close reversed baseline: `findUnique` 2.27/1.74, `findMany` 1.04/0.91, blog-page 4.72/4.22.
+    - Patched `caching.bench.ts`: parameterize findUnique 1,671,919 ops/sec, findMany 747,478, findMany in filter 800,146, blog-page 694,321; cache-hit-key findUnique 945,535, findMany 484,573, findMany in filter 543,652, blog-page 356,592.
+    - Close reversed `caching.bench.ts`: parameterize findUnique 1,705,574 ops/sec, findMany 757,972, findMany in filter 808,976, blog-page 641,079; cache-hit-key findUnique 865,304, findMany 472,915, findMany in filter 536,507, blog-page 352,923.
+  - Decision: rejected in this shape. It helped cache-hit-key rows in Benchmark.js and helped blog-page parameterization, but it retained duplicate per-root model/action maps and split-key strings for a small/noisy product-path win. Keep the lighter last-root cache instead.
+
+- Accepted change: cache the last `ParamGraph` root lookup.
+  - Change:
+    - `packages/param-graph/src/param-graph.ts` now exposes `rootDataFor(modelName, action)` with a constant-memory last-root cache.
+    - `packages/client-engine-runtime/src/parameterization/parameterize.ts` uses `rootDataFor()` for single and batch queries, avoiding repeated `"Model.action"` string construction when requests keep hitting the same model/action root.
+  - Close A/B:
+    - Reversed baseline `client-engine-cache-timing.ts`: `findUnique` parameterize/cache-hit-key 2.27/1.74 us/op, `findMany` 1.04/0.91, blog-page 4.72/4.22, blog-page warmed cache after phase warmup 26.85.
+    - Patched last-root `client-engine-cache-timing.ts`: `findUnique` parameterize/cache-hit-key 2.12/2.41 us/op, `findMany` 0.82/0.80, blog-page 4.67/4.19, blog-page warmed cache after phase warmup 25.90.
+    - Interpretation: the ad hoc timing row was noisy, including one worse `findUnique` combined key row, so Benchmark.js was used as the deciding signal.
+  - Close `caching.bench.ts` signal:
+    - Reversed baseline: parameterize findUnique 1,705,574 ops/sec, findMany 757,972, findMany in filter 808,976, blog-page 641,079; cache-hit-key findUnique 865,304, findMany 472,915, findMany in filter 536,507, blog-page 352,923.
+    - Patched last-root: parameterize findUnique 1,720,697 ops/sec, findMany 753,437, findMany in filter 804,800, blog-page 686,244; cache-hit-key findUnique 971,412, findMany 496,242, findMany in filter 571,191, blog-page 365,477.
+  - Workerd probe after broad build:
+    - Retained scalar plan cache: 100 entries, 7.6 KiB keys, 24.1 KiB serialized plans.
+    - Retained blog-page plan cache: 100 entries, 48.3 KiB keys, 394.8 KiB serialized plans.
+    - `client-cache findUnique value churn`: host dispatch 62.28 us/op, 99 hits / 1 miss, retained one 138 B key and 548 B plan.
+    - `client-cache blog-page value churn`: host dispatch 83.03 us/op, 99 hits / 1 miss, retained one 704 B key and 4.3 KiB plan.
+    - `generated client findUnique warmed cache`: host dispatch upper bound 63.82 us/op for 5000 requests.
+    - `generated client blog-page warmed cache`: host dispatch upper bound 120.44 us/op for 1000 requests.
+  - Verification:
+    - `pnpm exec prettier --write packages/param-graph/src/param-graph.ts packages/client-engine-runtime/src/parameterization/parameterize.ts`
+    - `pnpm --filter @prisma/param-graph test`
+    - `pnpm --filter @prisma/param-graph build`
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision: keep. The retained state is constant-size on `ParamGraph`, the close Benchmark.js cache-hit-key rows improved across all sampled query shapes, and Workerd stayed in the expected band.
+
 ## Useful Commands
 
 ```sh
