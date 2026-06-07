@@ -4606,10 +4606,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `ALLOC_PROFILE_QUERIES='create-nested-create,create-nested-create-with-composite-id,create-m2m,create-nested-connectOrCreate-mixed' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
     - `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-create'`
     - `cargo test -p query-compiler --test queries`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm build`
   - Benchmark signal:
     - Allocation profile did not move: `create-nested-create` stayed at 482 graph-build allocations and 1287 full-compile allocations, with 64.2 KiB graph-build and 146.4 KiB full-compile allocated per op.
     - Criterion improved the plain `compile/create-nested-create` fixture by about 1.8%: change `[-2.0690% -1.7944% -1.5620%]`, p < 0.05.
     - Criterion detected no change for `compile/create-nested-create-with-composite-id`: change `[-0.4566% +0.0244% +0.5055%]`, p = 0.93.
+  - Build handoff: query-compiler Wasm rebuilt successfully for PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB. Prisma `pnpm build` passed with 44/44 Turbo tasks successful. The local package upgrade only produced unrelated `@ark/attest` TypeScript peer lockfile churn, which was reverted.
   - Decision: keep. This is a small CPU-only metadata-access improvement for multi-child nested creates. It is not evidence that replacing linking-field recomputation with clones generally reduces heap allocation.
 
 ## Current Follow-up Leads
