@@ -6603,6 +6603,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. The warmed-wrapper gap is almost entirely parameterization/stringify/cache-key construction; future cache-hit work should fuse/avoid those phases or move them across the JS/Wasm boundary, not micro-optimize `QueryPlanCache.getSingle()` or response wrapping.
 
+- Accepted measurement: cached wrapper static-shape timing row.
+  - Timestamp: 2026-06-07T18:21:34Z.
+  - Change:
+    - Added `cached request wrapper static shape ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The row compiles/caches one structural query shape, then times cache lookup, dynamic `%1` placeholder-scope construction, `LocalExecutor.execute()`, and response wrapping. It does not run `parameterizeQuery()` or `JSON.stringify()` in the timed loop.
+  - Rationale:
+    - This approximates a generated-shape or JS-owned-query cache-hit design where the structural identity is already known and each call only has to provide the current placeholder values.
+  - Timing:
+    - Same-process comparison at 200,000 iterations:
+      - current cached wrapper nested blog-page: 11.12 us/op.
+      - precomputed-key cached wrapper nested blog-page: 7.70 us/op.
+      - static-shape cached wrapper nested blog-page: 7.24 us/op.
+    - Exact static-shape rerun at 500,000 iterations: 7.16 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper static shape blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Keep as measurement infrastructure. Dynamic placeholder-scope construction is cheap compared with structural parameterization and cache-key generation. This strengthens the case for a generated-shape/fused cache-hit design or the larger JS-owned-query/Rust-owned-IR proof point, because the hot cache-hit target collapses to roughly direct executor cost once structural identity is pre-known.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:
@@ -6620,7 +6642,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Removing the spread allocation made nested serialization slower, likely from less favorable object shapes/property access. Do not retry this as a standalone allocation cleanup.
 
+- Sidecar investigation: JS-owned query / Rust-owned IR proof-point entrypoint.
+  - Timestamp: 2026-06-07T18:25:44Z.
+  - Result:
+    - The current compile path is `serializeJsonQuery()` in Prisma, then `ClientEngine.request()` runs `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, string cache-key construction, and on misses `compiler.compile(request)`.
+    - The Wasm entrypoint is `query-compiler-wasm/src/compiler.rs::QueryCompiler::compile(&self, request: String)`, which parses through `RequestBody::try_from_str`, `serde_json::from_str::<JsonBody>`, and the JSON protocol adapter into owned `Operation` / `ArgumentValue` structures before graph build and SQL translation.
+  - Suggested smallest Rust proof point:
+    - Add a proof-only Wasm method shaped like `lookupParameterizedPlanRef(request: JsValue) -> Result<JsValue, JsCompileError>`.
+    - Start from an already-parameterized single JS `JsonQuery`, walk `modelName`, `action`, and `query` through `js_sys` structural getters, check a Rust-side shape/ref cache before `JsonBody` materialization, and return a cached JS plan object or `undefined`.
+    - Misses can fall back to the current `JSON.stringify(parameterizedQuery)` + `compiler.compile(request)` path, then seed the ref-shape cache.
+  - Blockers to validate:
+    - Full no-copy parsing is much larger because `Selection`, `ArgumentValue`, `Operation`, parser, and graph builder currently expect owned Rust data.
+    - Shape identity must preserve non-parameterizable values, null/raw values, enum semantics, and invalid-value behavior, or cache hits could hide validation errors.
+    - Long-lived cached `JsValue` plans need eviction/rooting/panic cleanup checks in Workers.
+    - `js_sys` property walking overhead must be measured; there is prior structural getter precedent in `libs/driver-adapters/src/wasm/js_object_extern.rs`.
+  - Suggested first patch scope:
+    - Engines: add a proof-only cache field in `query-compiler-wasm/src/compiler.rs` and a new `query-compiler-wasm/src/js_query_shape.rs` walker for already-parameterized single-query shapes.
+    - Prisma: add an optional experimental method to `packages/client-common/src/QueryCompiler.ts` and benchmark-only use near `ClientEngine.ts` cache lookup / `client-engine-cache-timing.ts`.
+  - Decision:
+    - Keep as scouting evidence. This is a stronger first Rust/Wasm proof point than a raw `serde_wasm_bindgen::from_value()` replacement because it can avoid `JsonBody` materialization on cache hits while leaving the compile-miss path intact.
+
 ## Todo / Leads
+
+- Operating guidance for later ambitious work.
+  - User guidance: do not restrict future work to tiny local patches. Large, ambitious architecture spikes are acceptable when the measured ceiling justifies them.
+  - Use subagents for bounded sidecar work and use additional worktrees when parallel experiments would otherwise collide with the main worktree or make revert/measurement hygiene harder.
+  - Keep the main thread on the current critical path: delegate independent scouting, prototype branches, or disjoint write scopes; do not hand off the immediate blocker and then wait idly.
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
   - User idea: `tsify::serde_wasm_bindgen::from_value(request)` only removes JSON conversion on the JS side and still leaves untyped heap-allocated Rust maps before validation/parsing. The larger win may require query parsing and validation to operate directly on JS-heap values, at least until internal query IR construction.
