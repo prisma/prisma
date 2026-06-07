@@ -4293,6 +4293,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Workerd host-dispatch timing remains much coarser than the Node source timing, but the warmed generated-client rows confirm there are no compiles on hits and that blog-page execution is still dominated by seven query leaves plus runtime assembly.
     - The retained blog-page plan shape is consistent with the Node memory rows: about 4 KiB serialized plan per shape and roughly 0.5 KiB cache key per shape. This supports prioritizing retained plan representation and fused cache-hit architecture for Workers rather than shallow request JSON parsing changes.
 
+- Accepted runtime change: unroll small-column `serializeSql()` row mapping.
+  - Timestamp: 2026-06-07T03:26:15Z.
+  - Hypothesis: the nested blog-page cached plan serializes seven SQL result sets per request, and most child result sets have 2-5 columns. `serializeSql()` still ran a dynamic inner loop over `columnNames` for every row. Hoisting column names once and using unrolled assignment for 0-5 column result sets could reduce row-object materialization cost without changing the output shape.
+  - Implementation:
+    - In `packages/client-engine-runtime/src/interpreter/serialize-sql.ts`, added explicit 0, 1, 2, 3, 4, and 5-column paths that assign into plain row objects.
+    - Wider result sets keep the existing generic loop. The accepted shape is not the previously rejected computed-key object-literal specialization.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/serialize-sql.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test serialize-sql.test.ts data-mapper.test.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` twice while patched.
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `git diff --check`
+    - Note: the first focused test command used Jest's `--runInBand` flag and Vitest correctly rejected it; the same tests passed after rerunning without that flag.
+  - Timing signal versus the close restarted baseline from the previous journal entry:
+    - `serializeSql blog page result sets`: 2.20 us/op baseline -> 1.85 us/op first patched run -> 1.84 us/op confirmation.
+    - Cached request wrapper nested rows: 19.72 us/op baseline -> 19.32 -> 19.55.
+    - Cached request wrapper with 100 retained shapes: 21.04 us/op baseline -> 20.47 -> 20.71.
+    - Direct plan nested rows: 12.85 us/op baseline -> 11.98 -> 12.14.
+    - Direct plan after phase warmup: 13.11 us/op baseline -> 12.68 -> 12.75.
+    - Local executor nested rows: 13.11 us/op baseline -> 12.42 -> 12.47.
+    - Full warmed ClientEngine after phase warmup: 20.10 us/op baseline -> 19.80 -> 19.85.
+    - Precomputed query/join leaves stayed effectively unchanged, as expected, because their query leaves are already precomputed.
+  - Interpreter benchmark after the patch:
+    - simple select 839,827 ops/sec; findUnique 1,143,656 ops/sec; join 638,804 ops/sec; sequence 932,018 ops/sec; deep nested join 59,536 ops/sec.
+  - Decision: keep. This is a small hot-path row-materialization cleanup with repeated positive movement on `serializeSql()`, direct/local nested execution, and warmed full-engine nested rows while preserving the exact row object output shape.
+
 ## Useful Commands
 
 ```sh

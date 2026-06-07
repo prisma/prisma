@@ -7,10 +7,92 @@ export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[]
   const columnNames = resultSet.columnNames
   const result = new Array<Record<string, unknown>>(rows.length)
 
+  switch (columnNames.length) {
+    case 0:
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        result[rowIndex] = {}
+      }
+      return result
+
+    case 1: {
+      const column0 = columnNames[0]
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex]
+        const mappedRow: Record<string, unknown> = {}
+        mappedRow[column0] = row[0]
+        result[rowIndex] = mappedRow
+      }
+      return result
+    }
+
+    case 2: {
+      const column0 = columnNames[0]
+      const column1 = columnNames[1]
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex]
+        const mappedRow: Record<string, unknown> = {}
+        mappedRow[column0] = row[0]
+        mappedRow[column1] = row[1]
+        result[rowIndex] = mappedRow
+      }
+      return result
+    }
+
+    case 3: {
+      const column0 = columnNames[0]
+      const column1 = columnNames[1]
+      const column2 = columnNames[2]
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex]
+        const mappedRow: Record<string, unknown> = {}
+        mappedRow[column0] = row[0]
+        mappedRow[column1] = row[1]
+        mappedRow[column2] = row[2]
+        result[rowIndex] = mappedRow
+      }
+      return result
+    }
+
+    case 4: {
+      const column0 = columnNames[0]
+      const column1 = columnNames[1]
+      const column2 = columnNames[2]
+      const column3 = columnNames[3]
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex]
+        const mappedRow: Record<string, unknown> = {}
+        mappedRow[column0] = row[0]
+        mappedRow[column1] = row[1]
+        mappedRow[column2] = row[2]
+        mappedRow[column3] = row[3]
+        result[rowIndex] = mappedRow
+      }
+      return result
+    }
+
+    case 5: {
+      const column0 = columnNames[0]
+      const column1 = columnNames[1]
+      const column2 = columnNames[2]
+      const column3 = columnNames[3]
+      const column4 = columnNames[4]
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex]
+        const mappedRow: Record<string, unknown> = {}
+        mappedRow[column0] = row[0]
+        mappedRow[column1] = row[1]
+        mappedRow[column2] = row[2]
+        mappedRow[column3] = row[3]
+        mappedRow[column4] = row[4]
+        result[rowIndex] = mappedRow
+      }
+      return result
+    }
+  }
+
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     const row = rows[rowIndex]
     const mappedRow: Record<string, unknown> = {}
-
     for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
       mappedRow[columnNames[columnIndex]] = row[columnIndex]
     }
