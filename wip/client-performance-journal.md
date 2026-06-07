@@ -7910,6 +7910,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The allocation profile shows deterministic graph-build savings on aggregate/group-by shapes, query snapshots are unchanged, Wasm/client builds pass, and the final A-B-A Criterion pass is neutral-to-positive after accounting for noisy controls.
 
+- Accepted experiment: emit compact raw nested reads for implicit many-to-many relations.
+  - Timestamp: 2026-06-08T02:58:00+02:00.
+  - Engines commit: `e8854f60bc0 Use raw nested reads for implicit many-to-many`.
+  - Change:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs`, removed the compact raw nested fallback for implicit many-to-many relations when the existing raw-read guardrails still pass.
+    - M:N child queries now use `build_read_m2m_query()` and attach through the existing compact direct-relation tuple using the hidden `linking_field_alias` as the child column.
+    - Added `raw_many_to_many_child_column_indexes()` because `build_get_related_records()` emits scalar model columns, then the hidden M:N linking alias, then virtual selections.
+    - Updated snapshots for `query-m2m`, `query-many-m2m`, and M:N-containing connect-or-create shapes from `dataMap`/`join` plans to compact `rawNestedRead` plans.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2m,query-many-m2m,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,query-m2o,query-many-one2m,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+    - `query-m2m`: `translate_ir` 626 -> 482 allocations/op; `full_compile` 941 -> 797.
+    - `query-many-m2m`: `translate_ir` 573 -> 456; `full_compile` 912 -> 795.
+    - `create-nested-connectOrCreate-mixed`: `translate_ir` 2035 -> 1714; `full_compile` 3067 -> 2746.
+    - `create-nested-connectOrCreate-one2m`: `translate_ir` 1867 -> 1546; `full_compile` 2757 -> 2436.
+    - Controls stayed unchanged: `query-m2o` 617 full allocations/op, `query-many-one2m` 690, `nested-pagination-query` 715.
+  - Criterion:
+    - Command:
+      - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2m|query-many-m2m|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|query-m2o|query-many-one2m|nested-pagination-query"`
+    - Reverse baseline, then patched rerun:
+      - `query-m2m`: 40.625 us -> 36.055 us, about 11.3% faster.
+      - `query-many-m2m`: 40.831 us -> 36.203 us, about 11.0% faster.
+      - `create-nested-connectOrCreate-mixed`: 140.16 us -> 127.17 us, about 9.2% faster.
+      - `create-nested-connectOrCreate-one2m`: 129.80 us -> 116.45 us, about 10.5% faster.
+      - Controls were neutral/noise: `nested-pagination-query` 31.706 -> 31.550 us, `query-m2o` 30.211 -> 29.912 us, `query-many-one2m` 32.841 -> 33.016 us.
+  - Verification:
+    - `cargo fmt --package query-compiler`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. This is a large compile allocation and timing win on M:N nested reads and M:N-containing write-return shapes, with neutral controls and unchanged runtime plan schema.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -7943,21 +7979,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
   - The first two concrete leads from the 2026-06-08 scout are now resolved: `RelationLinkage` SmallVec/sorted-vector storage was rejected, and scalar `selection_order` name movement was accepted.
 
-- Explore raw nested reads for implicit many-to-many relations in the Rust query compiler.
-  - Scout lead: `build_raw_nested_read_relations()` currently bails out on many-to-many, while the TypeScript runtime already has raw nested many-to-many attachment support.
-  - Possible low-churn proof: let implicit many-to-many use `build_read_m2m_query()` and its `linking_field_alias`, then attach through the existing raw direct relation path using that hidden alias as the child column.
-  - Fixture and baseline: `query-compiler/query-compiler/tests/data/query-many-m2m.json`; local scout measured roughly 41 us compile time and 573 `translate_ir` allocations/op.
-  - Guardrails: keep fallback for compound relation keys, in-memory pagination/distinct, explicit join-table wrapper shapes, and any case where the hidden linking alias could leak into user-visible fields.
-  - Suggested commands:
-    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-many-m2m,query-m2o,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
-    - `cargo bench -p query-compiler --bench compilation_bench -- "query-many-m2m|query-m2o|nested-pagination-query"`
-    - `cargo test -p query-compiler --test queries`
-    - `cargo check -p query-compiler-wasm --features postgresql`
-
 - Compile specialized raw nested mappers/attachers for numeric no-conversion plans.
   - Scout lead: compact raw nested nodes are real, but `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` still pays generic tuple mapping, conversion dispatch, relation scope creation, and attachment logic on every request.
   - Baseline from scout: generated blog page about 21.31 us/op; direct plan 7.42; raw compact node 7.14; render all leaves 1.10; adapter-only 0.93; pure raw assembly 0.53. The remaining gap suggests generic raw-node interpretation is still worth profiling.
-  - Proof shape: compile a per-plan mapper for numeric refs and `RAW_NESTED_CONVERT_NONE` fields, with generic fallback for named refs, enum/date conversion, path mappings, and zero-row edge cases.
+  - Proof shape: compile a per-plan row mapper inside `#compileRawNestedReadQuery()` when every mapping has a string field name, numeric column ref, and no field metadata (`RAW_NESTED_CONVERT_NONE`). Capture `fieldNames[]` and `columnIndexes[]`, then map rows with direct `record[fieldNames[i]] = row[columnIndexes[i]]`.
+  - Also consider resolved-index relation attachers inside `#compileRawNestedReadRelation()` when direct relation refs or many-to-many refs are all numeric, preserving the existing threshold, `Map`, strict key semantics, and `.slice()` behavior.
+  - Do not use `new Function` or generated source strings; plain closures keep the path Workers/workerd-compatible.
   - Guardrails: V8 closure specialization has regressed before in descriptor work, so require both Node and Workerd proof; preserve relation concurrency, scalar conversion metadata, empty result handling, and existing raw nested tests.
   - Suggested commands:
     - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
