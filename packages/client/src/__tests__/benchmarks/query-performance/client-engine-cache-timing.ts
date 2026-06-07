@@ -1629,7 +1629,7 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   paramGraph: ParamGraph,
   scenario: GeneratedClientSerializeScenario,
-  usePrecomputedProtocolQuery: boolean,
+  protocolQueryMode: 'none' | 'dynamic' | 'static',
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -1656,19 +1656,26 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
   const firstArgs = scenario.args(0)
   const { query, cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
   const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const staticProtocolQuery = protocolQueryMode === 'static' ? scenario.query(0) : undefined
   const requestBase = {
     dataPath: [],
     action: scenario.action,
     model: scenario.modelName,
     clientMethod: scenario.clientMethod,
   }
+  const protocolQueryForIteration = (iteration: number) =>
+    protocolQueryMode === 'none'
+      ? undefined
+      : protocolQueryMode === 'static'
+        ? staticProtocolQuery
+        : scenario.query(iteration)
 
   try {
     await client.$connect()
     await client._request({
       ...requestBase,
       args: firstArgs,
-      protocolQuery: usePrecomputedProtocolQuery ? scenario.query(0) : undefined,
+      protocolQuery: protocolQueryForIteration(0),
     })
     resetCounts(counts)
 
@@ -1685,7 +1692,7 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
       const result = await client._request({
         ...requestBase,
         args,
-        protocolQuery: usePrecomputedProtocolQuery ? scenario.query(i) : undefined,
+        protocolQuery: protocolQueryForIteration(i),
         precomputedQueryPlanCacheHit: extraction,
       })
       checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
@@ -5282,7 +5289,7 @@ async function main(): Promise<void> {
       continue
     }
     printDirectPlanMeasurement(
-      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario, false),
+      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario, 'none'),
     )
   }
 
@@ -5298,7 +5305,28 @@ async function main(): Promise<void> {
       continue
     }
     printDirectPlanMeasurement(
-      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario, true),
+      await measureInternalRequestPrecomputedLazyDescriptorScenario(
+        baseConfig,
+        paramGraph,
+        measuredScenario,
+        'dynamic',
+      ),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace(
+        'generated client serialize',
+        'internal request precomputed static protocol lazy descriptor',
+      ),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureInternalRequestPrecomputedLazyDescriptorScenario(baseConfig, paramGraph, measuredScenario, 'static'),
     )
   }
 

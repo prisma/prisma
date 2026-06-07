@@ -6869,6 +6869,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as a benchmark/proof hook. Precomputing both protocol query and cache-hit data recovers about 6.2 us/op on the nested generated-client row and cuts retained heap churn in the local probe, but it still allocates a protocol query per call via the benchmark factory. The next product proof should avoid or reuse that protocol tree where batching is not needed, or synthesize only an exact batch id plus enough metadata for fallback/error reporting.
 
+- Accepted measurement: static protocol query lower bound.
+  - Timestamp: 2026-06-07T20:16:03Z.
+  - Change:
+    - Added `internal request precomputed static protocol lazy descriptor ...` rows to `client-engine-cache-timing.ts`.
+    - This row reuses one protocol query object while still extracting descriptor placeholder values from generated-style args and going through `client._request()` / `RequestHandler` / `ClientEngine.request()`.
+  - Rationale:
+    - The dynamic precomputed-protocol row still allocated the equivalent protocol query on every call. This row measures whether protocol tree construction is a large part of the remaining gap to the direct cached-wrapper lower bound.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='internal request precomputed' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `internal request precomputed lazy descriptor findUnique / warmed cache`: 4.12 us/op.
+      - `internal request precomputed lazy descriptor blog page / nested rows warmed cache`: 16.15 us/op.
+      - `internal request precomputed protocol lazy descriptor findUnique / warmed cache`: 3.15 us/op.
+      - `internal request precomputed protocol lazy descriptor blog page / nested rows warmed cache`: 12.23 us/op.
+      - `internal request precomputed static protocol lazy descriptor findUnique / warmed cache`: 3.11 us/op.
+      - `internal request precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 11.82 us/op.
+  - Decision:
+    - Keep as measurement infrastructure. Reusing the protocol tree only saves about 0.04 us/op on the simple row and 0.41 us/op on the nested row compared with dynamic protocol-query construction. The remaining gap to `cached request wrapper lazy descriptor blog page / nested rows` around 9.99 us/op is mostly `_request` / `RequestHandler` / tracing / Promise plumbing rather than protocol tree allocation.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -6892,8 +6910,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Validate descriptor fast paths in Workerd and through the real request contract.
   - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime.
   - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits.
-  - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap, but the benchmark still builds a full protocol query per request.
-  - Next productization proof point: avoid or reuse protocol-query construction for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
+  - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap. Static-protocol lower-bound timing says full protocol-query construction is not the main remaining gap.
+  - Next productization proof point: reduce or bypass `_request` / `RequestHandler` / tracing / Promise plumbing for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
 
 - Explore memory-management simplification in Rust query compiler.
