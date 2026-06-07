@@ -5415,6 +5415,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched broad row: cached request wrapper 14.33 us/op, direct plan 8.80, raw compact 7.39, local executor 8.97.
   - Decision: reverted. The focused direct row did not improve, the broad signal was mixed, and the method/data-object interpreter is not a clear route to the exact prototype's 5.2 us/op ceiling.
 
+- Accepted tooling: query compiler allocation-size bucket profiling.
+  - Timestamp: 2026-06-07T13:58:00Z.
+  - Engines commit: `da30829df76` (`Add query compiler allocation bucket profiling`).
+  - Change:
+    - `query-compiler/query-compiler/examples/allocation_profile.rs` now supports `ALLOC_PROFILE_BUCKETS=1`.
+    - When enabled, each phase prints the top allocation-size buckets by allocated bytes/op in addition to existing alloc/dealloc/byte totals.
+  - Verification:
+    - `cargo fmt --package query-compiler`
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+  - First measurement signal:
+    - `query-m2o` graph_build: 186 allocs/op, 37.0 KiB allocated; top buckets by bytes were 2-4 KiB, 1-1.5 KiB, 769 B-1 KiB, 513-768 B, then 33-48 B.
+    - `create-nested-connectOrCreate-mixed` graph_build: 874 allocs/op, 140.1 KiB allocated; top buckets were 257-384 B (94 allocs/op, 30.6 KiB), 2-4 KiB, 1-1.5 KiB, 513-768 B, then 33-48 B.
+    - `create-nested-connectOrCreate-mixed` translate_ir: 2035 allocs/op, 192.0 KiB allocated; top buckets were 1-1.5 KiB, 257-384 B, 513-768 B, 385-512 B, 129-192 B, then 49-64 B.
+    - `update-set-nested` graph_build/translate_ir showed the same mid-sized bucket pattern, with 257-384 B and 1-1.5 KiB dominating bytes/op.
+  - Interpretation:
+    - The high-churn Rust allocation phases are not mostly tiny `String`/`Arc` clone artifacts. They have substantial mid-sized object/vector allocations, especially 257-384 B and 1-1.5 KiB buckets.
+    - The next allocation work should use this histogram to pick concrete graph_build/translate structures or add narrower instrumentation around candidate constructors; a broad ownership/arena rewrite still needs a sharper target.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
@@ -5457,6 +5475,7 @@ LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-c
 
 cd /home/aqrln.guest/prisma-engines
 ALLOC_PROFILE_QUERIES="$(find query-compiler/query-compiler/tests/data -maxdepth 1 -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort | paste -sd, -)" ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release
+ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release
 cargo test -p query-compiler --test queries
 cargo check -p query-compiler-wasm --features postgresql
 cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-m2m|query-many|filter|nested"
