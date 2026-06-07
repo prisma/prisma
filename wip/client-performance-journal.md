@@ -4949,6 +4949,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Measurement signal after the fix: warmed cache 17.82 us/op, cached request wrapper 15.85 us/op, cached request wrapper with 100 retained shapes 17.61 us/op, direct plan 9.50 us/op, raw result-set compact node 8.51 us/op, local executor 9.84 us/op.
   - Decision: keep. Product drivers return rows in SQL projection order, so the benchmark should do the same. This also makes future numeric column-ref and selection-mask experiments test the realistic row shape instead of relying on named-column fallback.
 
+- Accepted runtime cleanup: reuse raw nested result object.
+  - Timestamp: 2026-06-07T17:08:00Z.
+  - Change: `QueryInterpreter.#compileRawNestedReadQuery()` now allocates the `RawNestedReadResult` object once, uses it while attaching child relations, and returns the same object instead of constructing an identical return object after relation attachment.
+  - Rationale: relation-bearing raw nested nodes used to allocate one result wrapper for child relation attachment and then a second wrapper with the same `rows`, `columnNames`, and `records` for the caller. The root blog-page node and the nested comments node both hit that path.
+  - Verification:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Measurement signal in the same focused run after the benchmark harness fix:
+    - Before: warmed cache 17.82 us/op, cached request wrapper 15.85, 100 retained shapes 17.61, direct plan 9.50, raw result-set compact node 8.51, local executor 9.84.
+    - After: warmed cache 16.61 us/op, cached request wrapper 15.63, 100 retained shapes 17.17, direct plan 9.08, raw result-set compact node 8.30, local executor 9.54.
+  - Decision: keep. The absolute movement is small and should be treated as a micro-optimization, but it removes avoidable hot-path allocation with no behavior change and stayed positive across the relevant nested rows.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.

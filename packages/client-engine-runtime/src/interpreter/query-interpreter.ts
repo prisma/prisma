@@ -1140,12 +1140,12 @@ export class QueryInterpreter {
     return async (context, scope) => {
       const resultSet = await this.#executeRawNestedReadDbQuery(dbQuery, context, scope)
       const records = mapRawNestedRows(resultSet, mappings, enums, this.#resultFormat)
+      const result: RawNestedReadResult = {
+        rows: resultSet.rows,
+        columnNames: resultSet.columnNames,
+        records,
+      }
       if (relations !== undefined && resultSet.rows.length > 0) {
-        const result: RawNestedReadResult = {
-          rows: resultSet.rows,
-          columnNames: resultSet.columnNames,
-          records,
-        }
         if (relations.length === 1) {
           await relations[0](result, context, scope)
         } else {
@@ -1153,11 +1153,7 @@ export class QueryInterpreter {
         }
       }
 
-      return {
-        rows: resultSet.rows,
-        columnNames: resultSet.columnNames,
-        records,
-      }
+      return result
     }
   }
 
