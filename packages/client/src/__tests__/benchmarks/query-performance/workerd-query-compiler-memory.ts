@@ -17,6 +17,7 @@ const GENERATED_FIND_UNIQUE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_F
 const GENERATED_BLOG_PAGE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_BLOG_PAGE_ITERATIONS', 1_000)
 const CLIENT_CACHE_KEY_ITERATIONS = positiveIntegerEnv('WORKERD_CLIENT_CACHE_KEY_ITERATIONS', 20_000)
 const DESCRIPTOR_ITERATIONS = positiveIntegerEnv('WORKERD_DESCRIPTOR_ITERATIONS', 20_000)
+const PRECOMPUTED_ITERATIONS = positiveIntegerEnv('WORKERD_PRECOMPUTED_ITERATIONS', 20_000)
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -727,6 +728,93 @@ function createClientArgs(scenario, iteration) {
   }
 }
 
+function createClientProtocolQuery(scenario, iteration) {
+  switch (scenario) {
+    case 'find-unique':
+      return {
+        modelName: 'User',
+        action: 'findUnique',
+        query: {
+          arguments: { where: { id: iteration + 1 } },
+          selection: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      }
+    case 'blog-page':
+    case 'blog-page-by-id':
+      return {
+        modelName: 'Post',
+        action: 'findUnique',
+        query: {
+          arguments: { where: { id: iteration + 1 } },
+          selection: {
+            id: true,
+            title: true,
+            slug: true,
+            content: true,
+            published: true,
+            viewCount: true,
+            createdAt: true,
+            author: {
+              selection: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+            category: {
+              selection: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            tags: {
+              selection: {
+                tag: {
+                  selection: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+            comments: {
+              arguments: {
+                take: 10,
+                orderBy: [{ createdAt: 'desc' }],
+              },
+              selection: {
+                id: true,
+                content: true,
+                createdAt: true,
+                author: {
+                  selection: {
+                    id: true,
+                    name: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            _count: {
+              selection: {
+                likes: true,
+                comments: true,
+              },
+            },
+          },
+        },
+      }
+    default:
+      throw new Error('Unknown client protocol scenario: ' + scenario)
+  }
+}
+
 function tryExtractStaticDescriptor(scenario, args, cacheKey) {
   switch (scenario) {
     case 'find-unique':
@@ -993,6 +1081,18 @@ function executeClientScenario(client, scenario, iteration) {
       return client.post.findUnique(createClientArgs(scenario, iteration))
     default:
       throw new Error('Unknown client-execute scenario: ' + scenario)
+  }
+}
+
+function clientMethodForScenario(scenario) {
+  switch (scenario) {
+    case 'find-unique':
+      return 'user.findUnique'
+    case 'blog-page':
+    case 'blog-page-by-id':
+      return 'post.findUnique'
+    default:
+      throw new Error('Unknown client scenario: ' + scenario)
   }
 }
 
@@ -1330,6 +1430,117 @@ function runDescriptorExtractScenario(scenario, iterations, kind) {
   }
 }
 
+async function runClientPrecomputedScenario(scenario, iterations, variant) {
+  const Client = getPrismaClientConstructor()
+  const client = new Client({
+    adapter: createAdapterFactory(),
+    queryPlanCacheMaxSize: 100,
+  })
+  const startInit = performance.now()
+  await client.$connect()
+
+  try {
+    await executeClientScenario(client, scenario, 0)
+
+    const firstArgs = createClientArgs(scenario, 0)
+    const warmQuery = parameterizeQueryForClientCache(createClientProtocolQuery(scenario, 0))
+    const warmQueryPart = JSON.stringify(warmQuery.query)
+    const cacheKey = getSingleQueryCacheKey(warmQuery, warmQueryPart)
+    const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, { '%1': firstArgs.where.id })
+    const staticProtocolQuery = createClientProtocolQuery(scenario, 0)
+    const clientMethod = clientMethodForScenario(scenario)
+    const requestBase = {
+      action: staticProtocolQuery.action,
+      model: staticProtocolQuery.modelName,
+      clientMethod,
+      dataPath: [],
+    }
+    const requestHandlerBase = {
+      protocolQuery: staticProtocolQuery,
+      modelName: staticProtocolQuery.modelName,
+      action: staticProtocolQuery.action,
+      dataPath: [],
+      clientMethod,
+      extensions: client._extensions,
+    }
+    const usesStaticProtocol = variant !== 'internal-precomputed-protocol'
+
+    resetCounts()
+    let checksum = 0
+    const start = performance.now()
+
+    for (let i = 0; i < iterations; i++) {
+      const args = createClientArgs(scenario, i)
+      const extraction = tryExtractLazyStaticDescriptor(descriptor, args)
+      if (extraction === undefined) {
+        throw new Error('Expected lazy descriptor to match benchmark args for scenario ' + scenario)
+      }
+
+      const protocolQuery = usesStaticProtocol ? staticProtocolQuery : createClientProtocolQuery(scenario, i)
+      let result
+      switch (variant) {
+        case 'internal-precomputed-protocol':
+        case 'internal-precomputed-static-protocol':
+          result = await client._request({
+            ...requestBase,
+            args,
+            protocolQuery,
+            precomputedQueryPlanCacheHit: extraction,
+          })
+          break
+        case 'request-handler-precomputed-static-protocol':
+          result = await client._requestHandler.request({
+            ...requestHandlerBase,
+            args,
+            precomputedQueryPlanCacheHit: extraction,
+          })
+          break
+        case 'engine-precomputed-static-protocol':
+          result = (
+            await client._engine.request(staticProtocolQuery, {
+              isWrite: false,
+              precomputedQueryPlanCacheHit: extraction,
+            })
+          ).data[staticProtocolQuery.action]
+          break
+        default:
+          throw new Error('Unknown precomputed variant: ' + variant)
+      }
+
+      checksum += checksumResult(result)
+    }
+
+    const elapsedMs = performance.now() - start
+    const compileCount = counts.compile + counts.compileBatch
+    const retained = retainedPlanSize()
+
+    return {
+      scenario,
+      mode: 'client-' + variant,
+      iterations,
+      retain: true,
+      initMs: performance.now() - startInit - elapsedMs,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / iterations,
+      cacheHits: Math.max(0, iterations - compileCount),
+      cacheMisses: compileCount,
+      compileCount: counts.compile,
+      compileBatchCount: counts.compileBatch,
+      queryRawCount: counts.queryRaw,
+      executeRawCount: counts.executeRaw,
+      checksum,
+      retainedEntries: retainedPlans.size,
+      retainedCacheKeyBytes: retained.cacheKeyBytes,
+      retainedCacheKeyBreakdown: retained.cacheKeyBreakdown,
+      retainedPlanSerializedBytes: retained.planSerializedBytes,
+      averagePlanBytes: 0,
+      runtime: navigator.userAgent,
+    }
+  } finally {
+    await client.$disconnect()
+  }
+}
+
 async function runClientExecuteScenario(scenario, iterations, retain) {
   const Client = getPrismaClientConstructor()
   const client = new Client({
@@ -1397,21 +1608,29 @@ export default {
       const retain = url.searchParams.get('retain') === 'true'
       const mode = url.searchParams.get('mode') ?? 'compile'
 
-      return Response.json({
-        ok: true,
-        result:
-          mode === 'client-execute'
-            ? await runClientExecuteScenario(scenario, iterations, retain)
-            : mode === 'client-cache'
-              ? runClientCacheScenario(scenario, iterations, retain)
-              : mode === 'client-cache-key'
-                ? runClientCacheKeyScenario(scenario, iterations)
-                : mode === 'client-static-descriptor-extract'
-                  ? runDescriptorExtractScenario(scenario, iterations, 'static')
-                  : mode === 'client-lazy-descriptor-extract'
-                    ? runDescriptorExtractScenario(scenario, iterations, 'lazy')
-              : runScenario(scenario, iterations, retain),
-      })
+      let result
+      if (mode === 'client-execute') {
+        result = await runClientExecuteScenario(scenario, iterations, retain)
+      } else if (mode === 'client-cache') {
+        result = runClientCacheScenario(scenario, iterations, retain)
+      } else if (mode === 'client-cache-key') {
+        result = runClientCacheKeyScenario(scenario, iterations)
+      } else if (mode === 'client-static-descriptor-extract') {
+        result = runDescriptorExtractScenario(scenario, iterations, 'static')
+      } else if (mode === 'client-lazy-descriptor-extract') {
+        result = runDescriptorExtractScenario(scenario, iterations, 'lazy')
+      } else if (
+        mode === 'client-internal-precomputed-protocol' ||
+        mode === 'client-internal-precomputed-static-protocol' ||
+        mode === 'client-request-handler-precomputed-static-protocol' ||
+        mode === 'client-engine-precomputed-static-protocol'
+      ) {
+        result = await runClientPrecomputedScenario(scenario, iterations, mode.slice('client-'.length))
+      } else {
+        result = runScenario(scenario, iterations, retain)
+      }
+
+      return Response.json({ ok: true, result })
     } catch (error) {
       return Response.json({ ok: false, message: error?.message, stack: error?.stack }, { status: 500 })
     }
@@ -1712,6 +1931,55 @@ async function run(): Promise<void> {
   }
 
   try {
+    const precomputedMeasurements = [
+      [
+        'client-internal-precomputed-protocol findUnique value churn',
+        'find-unique',
+        'client-internal-precomputed-protocol',
+      ],
+      [
+        'client-internal-precomputed-protocol blog-page value churn',
+        'blog-page-by-id',
+        'client-internal-precomputed-protocol',
+      ],
+      [
+        'client-internal-precomputed-static-protocol findUnique value churn',
+        'find-unique',
+        'client-internal-precomputed-static-protocol',
+      ],
+      [
+        'client-internal-precomputed-static-protocol blog-page value churn',
+        'blog-page-by-id',
+        'client-internal-precomputed-static-protocol',
+      ],
+      [
+        'client-request-handler-precomputed-static-protocol findUnique value churn',
+        'find-unique',
+        'client-request-handler-precomputed-static-protocol',
+      ],
+      [
+        'client-request-handler-precomputed-static-protocol blog-page value churn',
+        'blog-page-by-id',
+        'client-request-handler-precomputed-static-protocol',
+      ],
+      [
+        'client-engine-precomputed-static-protocol findUnique value churn',
+        'find-unique',
+        'client-engine-precomputed-static-protocol',
+      ],
+      [
+        'client-engine-precomputed-static-protocol blog-page value churn',
+        'blog-page-by-id',
+        'client-engine-precomputed-static-protocol',
+      ],
+    ] as const
+
+    for (const [label, scenario, mode] of precomputedMeasurements) {
+      console.log('')
+      await clearWorkerCache(clientMf)
+      printMeasurement(await dispatchRun(clientMf, label, scenario, PRECOMPUTED_ITERATIONS, false, mode))
+    }
+
     console.log('')
     printMeasurement(
       await dispatchRun(

@@ -6905,6 +6905,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. With precomputed cache-hit data, `ClientEngine.request()` is already at the direct cached-wrapper nested lower bound; the remaining generated-path gap is outside the engine, mainly `_request()` / tracing / AsyncResource plus DataLoader/RequestHandler. A product fast path can only use this if it is gated away from extensions, arg mappers, result extensions, automatic batching, and SQL-commenter cases, or if those semantics get explicit fast-path support.
 
+- Accepted measurement: Workerd precomputed request surface rows.
+  - Timestamp: 2026-06-07T20:48:41Z.
+  - Change:
+    - Added `WORKERD_PRECOMPUTED_ITERATIONS`.
+    - Added generated-shape protocol-query builders for the Workerd generated-client benchmark shapes so precomputed rows use the same selected fields as generated args.
+    - Added generated-client Miniflare modes:
+      - `client-internal-precomputed-protocol`
+      - `client-internal-precomputed-static-protocol`
+      - `client-request-handler-precomputed-static-protocol`
+      - `client-engine-precomputed-static-protocol`
+    - Kept these rows in the generated-client Miniflare instance rather than the manual compiler instance; mixing both wasm-bindgen query compiler runtimes in one worker instance fails.
+  - Rationale:
+    - Node timing showed that precomputed cache-hit data makes `ClientEngine.request()` effectively reach the nested cached-wrapper lower bound and leaves most remaining overhead in request plumbing. This validates the same split in the Workerd target runtime.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1000 WORKERD_DESCRIPTOR_ITERATIONS=10000 WORKERD_PRECOMPUTED_ITERATIONS=20000 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=500 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=100 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `client-internal-precomputed-protocol findUnique value churn`: worker loop 5.10 us/op; host upper bound 11.22 us/op.
+      - `client-internal-precomputed-protocol blog-page value churn`: worker loop 13.10 us/op; host upper bound 15.56 us/op.
+      - `client-internal-precomputed-static-protocol findUnique value churn`: worker loop 4.35 us/op; host upper bound 5.46 us/op.
+      - `client-internal-precomputed-static-protocol blog-page value churn`: worker loop 12.35 us/op; host upper bound 13.61 us/op.
+      - `client-request-handler-precomputed-static-protocol findUnique value churn`: worker loop 4.20 us/op; host upper bound 5.29 us/op.
+      - `client-request-handler-precomputed-static-protocol blog-page value churn`: worker loop 11.50 us/op; host upper bound 12.86 us/op.
+      - `client-engine-precomputed-static-protocol findUnique value churn`: worker loop 1.55 us/op; host upper bound 2.57 us/op.
+      - `client-engine-precomputed-static-protocol blog-page value churn`: worker loop 8.25 us/op; host upper bound 9.39 us/op.
+  - Decision:
+    - Keep as measurement infrastructure. Workerd supports the same architectural direction as Node: descriptor extraction and precomputed engine cache hits are cheap enough, but a product fast path needs a safe way around `_request`/RequestHandler overhead without breaking extensions, error context, tracing, transactions, SQL commenters, or automatic batching.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -6929,7 +6955,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime.
   - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits.
   - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap. Static-protocol lower-bound timing says full protocol-query construction is not the main remaining gap.
-  - Surface split timing says `ClientEngine.request()` is already at the nested cached-wrapper lower bound with precomputed data; `_request`/tracing/AsyncResource plus DataLoader/RequestHandler are the remaining overhead.
+  - Surface split timing says `ClientEngine.request()` is already at the nested cached-wrapper lower bound with precomputed data; `_request`/tracing/AsyncResource plus DataLoader/RequestHandler are the remaining overhead. Workerd precomputed rows confirm the same split in the target runtime.
   - Next productization proof point: reduce or bypass `_request` / `RequestHandler` / tracing / Promise plumbing for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
 
