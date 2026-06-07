@@ -540,6 +540,41 @@ test('interprets compact raw nested read named column refs', async () => {
   })
 })
 
+test('interprets compact raw nested read empty result sets without column metadata', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
+  const childQuery = templateQuery('SELECT id FROM Comment WHERE postId = ', { $p: ['@parent$id', 'int'] })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 'id', 'i']],
+      [['r', 'comments', [childQuery, [['id', 'id', 'i']]], 'id', 'postId', '@parent$id', false]],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  let queryCount = 0
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw() {
+      queryCount++
+      return Promise.resolve({
+        columnNames: [],
+        columnTypes: [],
+        rows: [],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toBeNull()
+  expect(queryCount).toBe(1)
+})
+
 test('joins single strict keys without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {

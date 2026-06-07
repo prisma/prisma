@@ -13,6 +13,7 @@ import {
   type QueryPlanCompactNode,
   type QueryPlanDbQuery,
   type QueryPlanNode,
+  type RawNestedReadQuery,
 } from '@prisma/client-engine-runtime'
 import { getDMMF } from '@prisma/client-generator-js'
 import type { JsonQuery } from '@prisma/json-protocol'
@@ -78,9 +79,11 @@ type PlanSizeBreakdown = {
   repeatedStringBytes: number
   arrayCount: number
   objectCount: number
+  dbQueryCount: number
   queryCount: number
   dataMapCount: number
   joinCount: number
+  rawNestedCount: number
   processCount: number
   topStrings: { value: string; count: number; bytes: number }[]
 }
@@ -384,6 +387,18 @@ function collectDbQueriesInCompactJoins(joins: CompactJoinExpression[], dbQuerie
   }
 }
 
+function collectDbQueriesInRawNestedRead(query: RawNestedReadQuery, dbQueries: QueryPlanDbQuery[]): void {
+  dbQueries.push(query[0])
+  for (const relation of query[2] ?? []) {
+    if (relation[0] === 'r') {
+      collectDbQueriesInRawNestedRead(relation[2], dbQueries)
+    } else {
+      dbQueries.push(relation[2])
+      collectDbQueriesInRawNestedRead(relation[3], dbQueries)
+    }
+  }
+}
+
 function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanDbQuery[]): void {
   if (plan === undefined) {
     return
@@ -412,6 +427,10 @@ function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanD
       case 'j':
         collectDbQueries(plan[1], dbQueries)
         collectDbQueriesInCompactJoins(plan[2] as CompactJoinExpression[], dbQueries)
+        return
+
+      case 'n':
+        collectDbQueriesInRawNestedRead(plan[1], dbQueries)
         return
 
       case 'V':
@@ -729,6 +748,7 @@ function collectPlanSizeBreakdown(plan: QueryPlanNode): PlanSizeBreakdown {
   let queryCount = 0
   let dataMapCount = 0
   let joinCount = 0
+  let rawNestedCount = 0
   let processCount = 0
 
   function visit(value: unknown): void {
@@ -746,6 +766,8 @@ function collectPlanSizeBreakdown(plan: QueryPlanNode): PlanSizeBreakdown {
         dataMapCount++
       } else if (tag === 'j') {
         joinCount++
+      } else if (tag === 'n') {
+        rawNestedCount++
       } else if (tag === 'p') {
         processCount++
       }
@@ -781,6 +803,8 @@ function collectPlanSizeBreakdown(plan: QueryPlanNode): PlanSizeBreakdown {
     topStrings.push({ value, count, bytes })
   }
   topStrings.sort((a, b) => b.bytes - a.bytes)
+  const dbQueries: QueryPlanDbQuery[] = []
+  collectDbQueries(plan, dbQueries)
 
   return {
     totalBytes: JSON.stringify(plan).length,
@@ -788,9 +812,11 @@ function collectPlanSizeBreakdown(plan: QueryPlanNode): PlanSizeBreakdown {
     repeatedStringBytes,
     arrayCount,
     objectCount,
+    dbQueryCount: dbQueries.length,
     queryCount,
     dataMapCount,
     joinCount,
+    rawNestedCount,
     processCount,
     topStrings: topStrings.slice(0, 20),
   }
@@ -807,9 +833,11 @@ function printPlanSizeBreakdown(label: string, plan: QueryPlanNode): void {
       `repeatedStrings=${formatBytes(breakdown.repeatedStringBytes)}`,
       `arrays=${breakdown.arrayCount}`,
       `objects=${breakdown.objectCount}`,
+      `dbQueries=${breakdown.dbQueryCount}`,
       `queries=${breakdown.queryCount}`,
       `dataMaps=${breakdown.dataMapCount}`,
       `joins=${breakdown.joinCount}`,
+      `rawNested=${breakdown.rawNestedCount}`,
       `process=${breakdown.processCount}`,
     ].join(' | '),
   )

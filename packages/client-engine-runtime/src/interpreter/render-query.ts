@@ -104,7 +104,8 @@ type FlatTemplateSqlRendering = {
   argTypes: ArgType[]
 }
 
-const flatTemplateSqlCache = new WeakMap<object, FlatTemplateSqlRendering | null>()
+const FLAT_TEMPLATE_SQL_SEEN_ONCE = Symbol('flatTemplateSqlSeenOnce')
+const flatTemplateSqlCache = new WeakMap<object, FlatTemplateSqlRendering | null | typeof FLAT_TEMPLATE_SQL_SEEN_ONCE>()
 
 export function renderQuery(
   dbQuery: DeepReadonly<QueryPlanDbQuery>,
@@ -310,7 +311,9 @@ function getFlatTemplateSqlRenderingFromParts(
 ): FlatTemplateSqlRendering | undefined {
   const cached = flatTemplateSqlCache.get(cacheKey)
   if (cached !== undefined) {
-    return cached ?? undefined
+    if (cached !== FLAT_TEMPLATE_SQL_SEEN_ONCE) {
+      return cached ?? undefined
+    }
   }
 
   let sql = ''
@@ -367,7 +370,7 @@ function getFlatTemplateSqlRenderingFromParts(
     paramCount,
     argTypes: copyArgTypes(argTypes, paramCount),
   }
-  flatTemplateSqlCache.set(cacheKey, rendering)
+  flatTemplateSqlCache.set(cacheKey, cached === FLAT_TEMPLATE_SQL_SEEN_ONCE ? rendering : FLAT_TEMPLATE_SQL_SEEN_ONCE)
   return rendering
 }
 

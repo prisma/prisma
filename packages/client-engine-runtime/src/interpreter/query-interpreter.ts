@@ -1364,6 +1364,10 @@ function mapRawNestedRows(
   resultFormat: QueryResultFormat,
 ): PrismaObject[] {
   const rows = resultSet.rows
+  if (rows.length === 0) {
+    return []
+  }
+
   const resolvedMappings = resolveRawResultColumnMappings(resultSet.columnNames, mappings)
   const result = new Array<PrismaObject>(rows.length)
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
