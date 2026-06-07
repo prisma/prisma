@@ -5850,6 +5850,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The nested generated-client row is noisy/mixed, but the simple public API row repeatedly improved and the change removes a clear per-call allocation source from fluent-capable model actions.
 
+- Accepted experiment: prototype-method PrismaPromise implementation.
+  - Timestamp: 2026-06-07T14:36:40Z.
+  - Change:
+    - `createPrismaPromiseFactory()` now returns a `PrismaPromiseImpl` class instance instead of an object literal with fresh `then`, `catch`, `finally`, and `requestTransaction` method closures per generated-client call.
+    - The class keeps the existing lazy callback execution, cached promise behavior for non-batch and interactive-transaction calls, repeated execution for batch transactions, nested `requestTransaction()` support, `spec`, and `Symbol.toStringTag`.
+  - Rationale:
+    - Fresh generated-client CPU profiles after fluent handler cleanup still showed `createPrismaPromise()` / method creation in the public API overhead above `ClientEngine.request()`. Moving stable methods to the prototype removes avoidable per-call function allocations while preserving the thenable contract.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 12.80 us/op, nested blog-page 36.63 us/op.
+    - Same-session reverted baseline: `findUnique` 14.10 us/op, nested blog-page 39.14 us/op.
+    - Reapplied patched run: `findUnique` 12.62 us/op, nested blog-page 36.75 us/op.
+    - Final patched verification run after build: `findUnique` 12.45 us/op, nested blog-page 36.61 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: `findUnique` 15.24 us/op and nested blog-page 32.67 us/op host upper bounds, improving from the previous 16.46/34.24 us/op smoke.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/request/createPrismaPromise.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/request/createPrismaPromise.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/extensions/resolve-result-extension-context.test.ts packages/client/src/runtime/core/compositeProxy/cacheProperties.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The A/B is strong on both simple and nested generated-client rows, and the change removes a direct public-API allocation source without touching query semantics.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
