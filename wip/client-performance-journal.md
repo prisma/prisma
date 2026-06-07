@@ -5373,6 +5373,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted broad row in the same session: cached request wrapper 14.63 us/op, direct plan 8.91, raw compact 7.65, local executor 8.90.
   - Decision: reverted. The signal was mixed and too small, with the end-to-end local executor row slightly worse while patched. Do not add plain-field raw nested mapper branches unless they are part of a generated/exact-shape mapper that removes more than one field-name branch.
 
+- Rejected experiment: DateTime clone via timestamp.
+  - Timestamp: 2026-06-07T13:33:00Z.
+  - Change tried: changed `new Date(value)` to `new Date(value.getTime())` for `Date` instances in both raw nested DateTime mapping and the shared data mapper, preserving the clone but avoiding Date-constructor coercion on an object.
+  - Rationale: the exact raw-result-set prototype does not clone Date values, while production raw nested mapping clones selected DateTime fields. Removing the clone is a semantic change, but cloning from the timestamp looked like a safe low-risk CPU cleanup.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime test data-mapper`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Patched broad row: cached request wrapper 14.56 us/op, direct plan 8.76, raw compact 7.59, local executor 9.01.
+    - Patched focused direct-plan row: 8.84 us/op at 300,000 iterations.
+  - Decision: reverted. The change was mixed/noisy and worsened the local executor row in the product-shaped run.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
