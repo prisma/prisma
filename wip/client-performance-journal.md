@@ -5910,6 +5910,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The profile showed result unpacking, but the added branches/object-key work did not improve the product path and the direct fast path made nested generated-client execution worse.
 
+- Accepted experiment: empty-extension fast path in `_request()`.
+  - Timestamp: 2026-06-07T15:30:30Z.
+  - Change:
+    - `getPrismaClient()._request()` now checks `this._extensions.isEmpty()` immediately after recording the active otel parent context and building the operation span options.
+    - For empty extensions it preserves `runInChildSpan()` and the Node-only `AsyncResource('prisma-client-request')`, but calls `_executeRequest(internalParams)` directly.
+    - The existing middleware-shaped params, async `consumer`, `applyQueryExtensions()`, result-extension context resolution, and `applyAllResultExtensions()` path remains unchanged for clients with extensions.
+  - Rationale:
+    - Generated-client profiles after request-handler cleanup still showed `_request()`, `applyQueryExtensions()`, and result-extension plumbing on the common no-extension path. With no extensions, query extensions and result extensions are semantic no-ops, so building middleware-facing params and resolving result-extension context only adds public-API overhead.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 11.02 us/op, nested blog-page 36.13 us/op.
+    - Same-session reverted baseline: `findUnique` 12.38 us/op, nested blog-page 37.11 us/op.
+    - Reapplied patched run: `findUnique` 10.97 us/op, nested blog-page 35.62 us/op.
+    - Post-build patched verification run: `findUnique` 11.09 us/op, nested blog-page 35.85 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: `findUnique` 14.91 us/op and nested blog-page 32.77 us/op host upper bounds, improving from the previous 15.30/32.99 us/op smoke.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/getPrismaClient.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/extensions/resolve-result-extension-context.test.ts packages/client/src/runtime/core/extensions/applyResultExtensions.test.ts packages/client/src/runtime/core/extensions/resultUtils.test.ts packages/client/src/runtime/core/extensions/visitQueryResult.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. This is a direct public-API hot-path win for the common no-extension client and stays aligned with the edge-runtime generated-client smoke.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

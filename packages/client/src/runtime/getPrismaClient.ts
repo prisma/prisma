@@ -918,6 +918,31 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     _request(internalParams: InternalRequestParams): Promise<any> {
       // this is the otel context that is active at the callsite
       internalParams.otelParentCtx = this._tracingHelper.getActiveContext()
+
+      // span options for opentelemetry instrumentation
+      const spanOptions = {
+        operation: {
+          name: 'operation',
+          attributes: {
+            method: internalParams.action,
+            model: internalParams.model,
+            name: internalParams.model ? `${internalParams.model}.${internalParams.action}` : internalParams.action,
+          },
+        } as ExtendedSpanOptions,
+      }
+
+      if (this._extensions.isEmpty()) {
+        return this._tracingHelper.runInChildSpan(spanOptions.operation, () => {
+          if (NODE_CLIENT) {
+            // https://github.com/prisma/prisma/issues/3148 not for edge client
+            const asyncRes = new AsyncResource('prisma-client-request')
+            return asyncRes.runInAsyncScope(() => this._executeRequest(internalParams))
+          }
+
+          return this._executeRequest(internalParams)
+        })
+      }
+
       const middlewareArgsMapper = internalParams.middlewareArgsMapper ?? noopMiddlewareArgsMapper
 
       // make sure that we don't leak extra properties to users
@@ -927,18 +952,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         runInTransaction: Boolean(internalParams.transaction),
         action: internalParams.action,
         model: internalParams.model,
-      }
-
-      // span options for opentelemetry instrumentation
-      const spanOptions = {
-        operation: {
-          name: 'operation',
-          attributes: {
-            method: params.action,
-            model: params.model,
-            name: params.model ? `${params.model}.${params.action}` : params.action,
-          },
-        } as ExtendedSpanOptions,
       }
 
       // prepare recursive fn that will pipe params through middlewares
