@@ -3982,6 +3982,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched: parameterize findUnique 1,722,769 ops/sec, findMany 736,329, findMany in filter 816,222, blog-page 675,254; cache-hit-key findUnique 923,371, findMany 492,166, findMany in filter 560,792, blog-page 364,338.
   - Decision: reverted. The current string-sentinel-first guard is better on the close Benchmark.js suite, despite the tempting scalar-boolean intuition.
 
+- Architecture lead refined: own only Rust IR; keep input query and possibly SQL JS-owned.
+  - User formulation: avoid creating or owning the input query or built SQL strings on the Rust heap. Rust would own internal IR only. Boundary-facing wrappers such as `PrismaString` could wrap native Rust strings/values in unit tests and `js_sys`/externref-backed values in Wasm.
+  - Practicality verdict: potentially practical, but only as a large architecture track with staged proof points. It is not a narrow replacement for `serde_json::from_str` or `serde_wasm_bindgen::from_value`.
+  - The most practical wedge is cache-hit handling:
+    - Pass the original JS query object as one Wasm reference.
+    - Walk JS values once to parameterize and compute a structural cache identity.
+    - Check the cache before materializing `JsonBody`, `serde_json::Value`, `ArgumentValue`, or parser-owned maps.
+    - Return an existing cached JS query-plan object on hits, ideally without plan serialization or Rust heap ownership of the plan.
+  - Constraints:
+    - A cache-key-only Wasm walker was already measured much slower, so the prototype has to replace the current TS `parameterizeQuery()` plus `JSON.stringify()` plus cache lookup path as a whole.
+    - JS property and string access from Rust can become the bottleneck even with Wasm reference types; measure on workerd as well as Node before trusting local V8 results.
+    - Wrapper types help only if validation/query graph construction can consume borrowed or input-backed values. If the implementation still materializes owned `JsonBody` / `serde_json::Value` maps first, most of the benefit disappears.
+    - Avoiding Rust-owned SQL strings is likely a separate project from avoiding Rust-owned input. The SQL builder currently constructs owned SQL fragments during compile misses; keeping SQL JS-owned would require a template/interner/string-wrapper design that does not make every append or comparison cross the JS/Wasm boundary.
+  - Suggested proof path:
+    - Build a narrow read-only prototype for one hot shape where cache hits never build Rust-owned request structures.
+    - Compare latency, retained JS heap, and retained Wasm heap against current TS parameterization/cache-key rows on Node and workerd.
+    - Only after a cache-hit win, prototype a borrowed/request-backed query document layer feeding validation/graph building on compile misses.
+    - Treat SQL ownership/template work as a separate follow-up, informed by the retained-plan inspection showing large root SQL fragments dominate one blog-page plan's serialized bytes.
+
 ## Useful Commands
 
 ```sh
