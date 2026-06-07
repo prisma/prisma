@@ -5802,6 +5802,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The simple generated-client row is noisier than the nested row, but this removes avoidable successful-serialization allocations, improves the nested product-shaped row, and keeps the Workerd generated-client smoke moving down.
 
+- Rejected experiment: field-selection rest-object skip loop.
+  - Timestamp: 2026-06-07T14:06:20Z.
+  - Change tried:
+    - Replaced `serializeFieldSelection({ select, include, ...args })` with direct `args.select` / `args.include` / `args.omit` reads and a `serializeArgumentsObject(..., skipFieldSelectionKeys=true)` loop that skipped `select`, `include`, and `omit`.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 15.55 us/op, nested blog-page 40.20 us/op.
+    - Same-session reverted baseline: `findUnique` 15.67 us/op, nested blog-page 40.44 us/op.
+    - Reapplied patched run: `findUnique` 15.18 us/op, nested blog-page 40.47 us/op.
+    - Final patched run after build: `findUnique` 15.83 us/op, nested blog-page 40.87 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild was lower at `findUnique` 16.30 us/op and nested blog-page 33.59 us/op, but this was only a coarse smoke signal.
+  - Decision:
+    - Reverted. The local product-path signal was too noisy and weak, and the first version also changed a rare `$type` raw-wrapper edge shape unless it added a special-case clone. Do not retry this exact rest-object removal unless a narrower serializer benchmark proves it and preserves raw-wrapper semantics.
+
+- Rejected experiment: serializer field lookup maps.
+  - Timestamp: 2026-06-07T14:06:20Z.
+  - Change tried:
+    - Added WeakMap-backed field-name maps for `RuntimeModel` lookup during `serializeJsonQuery()` selection traversal.
+    - Tried three variants: always-on map lookup in `SerializeContext.findField()`, a per-context hybrid that switched from array scan to map lookup after four field lookups, and a narrower `createExplicitSelection()` variant that used a field map only for selection objects with more than four entries.
+  - Timing signal:
+    - Always-on field map: patched `findUnique` 15.92 us/op, nested blog-page 39.57 us/op; reverted baseline `findUnique` 15.64 us/op, nested 41.37; reapplied patched `findUnique` 16.32, nested 39.62.
+    - Per-context hybrid: patched `findUnique` 15.80 us/op, nested 39.41; reverted baseline `findUnique` 15.42, nested 40.43; reapplied patched `findUnique` 16.15, nested 39.59.
+    - Wide-selection-only map: patched `findUnique` 15.74 us/op, nested 40.36; reverted baseline `findUnique` 15.52, nested 40.18.
+  - Decision:
+    - Reverted. Field maps can help the nested blog-page shape, but every variant either regressed or failed to improve the simple generated `findUnique` row. The current array scan is cheap for common early scalar fields such as `id`, `email`, and `name`; do not add field maps unless a future design can isolate wide nested selections without adding overhead to small selections.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
