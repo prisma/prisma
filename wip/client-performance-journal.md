@@ -4135,6 +4135,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Confirmation patched run: `create-nested-create-with-composite-id` 58.98 us improved versus reversed baseline; `update-set-nested-prisma#27650` 88.67 us improved; `update-set-nested` 101.15 us no change/noise versus saved baseline and close enough to reversed baseline to accept for the allocation reduction.
   - Decision: keep. This is a small, plan-shape-preserving translation cleanup with measurable allocation reductions on nested writes and no confirmed regression after reversed A/B. The Prisma repo had no package/lockfile diff after refreshing the local Wasm package, and root `pnpm build` passed from cache.
 
+- Rejected experiment: manual projected-dependency binding collection in query compiler translation.
+  - Timestamp: 2026-06-07T02:22:46Z.
+  - Hypothesis: `NodeTranslator::process_child_with_dependencies()` built projected-dependency parent bindings through an `Either`/`flat_map` iterator and then filtered out no-op `Binding { name: source.id(), expr: Get { name: source.id() } }` entries. Rewriting this as an imperative loop could skip those temporary identity bindings and avoid repeated wrapper allocation.
+  - Temporary implementation:
+    - Removed the `Either` import and collected `ProjectedDataDependency` bindings with a `for edge in &incoming_edges` loop.
+    - Computed `requires_unique = sink.is_unique()` and only created the parent binding when uniqueness or an expectation made it observable.
+    - Still created per-field `MapField` bindings for query nodes through `binding::projected_dependency(source, field)`.
+    - A `Vec::with_capacity(incoming_edges.len())` variant was tried briefly and rejected immediately because it worsened the focused allocation profile.
+  - Verification while patched:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+  - Allocation signal:
+    - Read controls stayed unchanged: `query-m2o`, `query-many-m2m`, and `nested-pagination-query`.
+    - `create-nested-create` regressed: full compile 1297 -> 1299 allocations/op, with bytes unchanged at 155.2 KiB.
+    - `create-nested-connectOrCreate-mixed` improved slightly: 2769 -> 2767 allocations/op, bytes unchanged.
+    - `create-nested-connectOrCreate-one2m` regressed: 2453 -> 2457 allocations/op, bytes unchanged.
+    - `update-set-nested` improved: 2160 -> 2150 allocations/op, bytes unchanged at 264.9 KiB.
+    - `update-set-nested-prisma#27650` regressed slightly: 1910 -> 1911 allocations/op, bytes unchanged.
+  - Timing signal:
+    - Reversed baseline versus patched for the original focus rows: `create-nested-create-with-composite-id` 59.17 us baseline versus 58.96 us patched; `create-nested-create` 61.13 us versus 61.21 us; `update-set-nested-prisma#27650` 88.26 us versus 86.65 us; `update-set-nested` 101.92 us versus 101.29 us.
+    - Connect-or-create direct A/B rejected the patch: `create-nested-connectOrCreate-mixed` 128.36 us baseline versus 132.55 us patched, and `create-nested-connectOrCreate-one2m` 116.40 us baseline versus 121.22 us patched.
+  - Decision: reverted. The `update-set-nested` allocation and timing win is real, but the patch adds allocations to other nested-write shapes and materially regresses connect-or-create Criterion rows. Do not retry this broad `Either`/`flat_map` to imperative binding loop without a more selective shape that preserves connect-or-create timing.
+
 ## Useful Commands
 
 ```sh
