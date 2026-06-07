@@ -7666,6 +7666,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The added property and alternate branch did not reduce the target row despite the profiler signal.
 
+- Rejected experiment: manual loop in single-key compacted demux.
+  - Timestamp: 2026-06-08T00:27:00+02:00.
+  - Change:
+    - Temporarily replaced the final `expectedValues.map()` in the accepted single-key compacted batch fast path with a manual `results` array and indexed loop.
+  - Rationale:
+    - The accepted fast path still allocates through a callback-based `map()`. Since the target shape is a two-result compacted batch, a direct loop looked like a cheap follow-up to reduce callback overhead.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/batch.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test batch.test.ts`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.28 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.20 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.44 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.40 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted single-key compacted demux row was 6.98 us/op.
+  - Decision:
+    - Revert. The manual loop is slower than V8's optimized `map()` path here.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
