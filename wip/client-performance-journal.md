@@ -5212,6 +5212,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Exact compact-node A/B was noise-level: patched stable 7.89 vs unpatched stable 7.84 us/op; patched fresh 13.14 vs unpatched fresh 13.37 us/op.
   - Decision: reverted. The branch did not show a clear product-shaped win and makes a hot helper more special-case-heavy. Reconsider only as part of a generated/specialized raw-nested mapper that removes the broader per-relation scope machinery.
 
+- Rejected experiment: manual promise array for raw nested sibling relations.
+  - Timestamp: 2026-06-07T16:13:00Z.
+  - Change tried: replaced `Promise.all(relations.map((relation) => relation(result, context, scope)))` inside `QueryInterpreter.#compileRawNestedReadQuery()` with an explicitly allocated `Promise<void>[]` filled by a `for` loop.
+  - Rationale: raw nested blog-page execution has multiple sibling relation reads. Avoiding `Array.map`'s callback path looked like a possible tiny hot-path allocation cleanup after relation reads were made concurrent.
+  - Verification while patched:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Broad patched run was only noise-level positive: cached request wrapper 14.86 us/op, direct plan 9.08, raw compact node 7.76, local executor 8.97 vs same-session baseline cached request wrapper 14.92, direct 9.18, raw compact 7.78, local 8.92.
+    - Focused compact-node A/B was also noise-level: patched 7.91 us/op, reverted baseline 7.96 us/op at 100,000 iterations.
+  - Decision: reverted. The signal is too small to justify changing this hot async path; keep the clearer `relations.map()` shape unless a real async-driver or product benchmark shows a material win.
+
+- Rejected experiment: linear vector lookup for raw nested column indexes in query compiler.
+  - Timestamp: 2026-06-07T16:31:00Z.
+  - Change tried in `/home/aqrln.guest/prisma-engines`: changed `raw_column_indexes()` in `query-compiler/query-compiler/src/translate/query/read.rs` from `HashMap<String, usize>` to `Vec<(String, usize)>` plus a linear `raw_column_index()` helper.
+  - Rationale: raw nested result selections are usually small, and the compiler only needs a few column-index lookups. A linear vector could remove hash-table allocation while preserving the numeric column-ref plan format.
+  - Verification while patched:
+    - `cargo fmt -p query-compiler`
+    - `cargo check -p query-compiler`
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,nested-pagination-join,filter-contains-param,create-nested-create,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination"`
+  - Allocation signal:
+    - Allocation counts were unchanged.
+    - A few read rows saved only about 0.1-0.2 KiB/op in `translate_ir` / `compile_ir` / `full_compile`; write rows were effectively unchanged.
+  - Criterion signal:
+    - Improved: `nested-pagination-join` about -2.18%.
+    - Regressed: `nested-pagination-query` about +8.93%, `query-many-m2m` about +13.78%, `query-m2o` about +4.18%, `query-m2o-lateral` about +1.19%.
+  - Decision: reverted. The `HashMap` allocation is not the bottleneck here; the current hash lookup is faster enough on key read rows to outweigh tiny byte savings.
+
 ## Useful Commands
 
 ```sh
