@@ -4047,6 +4047,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Final patched run: `nested-pagination-query` no change, `query-m2o-lateral` within noise, `query-m2o` regressed ~2.1%, `update-set-nested-prisma#27650` regressed ~4.1%, and `update-set-nested` improved ~2.2%.
   - Decision: reverted. The byte-allocation reduction is not worth mixed compile timing, especially with a regression on `update-set-nested-prisma#27650`.
 
+- Rejected experiment: direct one-child join attachment helper.
+  - Timestamp: 2026-06-07T01:42:50Z.
+  - Hypothesis: compact query-mode nested joins often have a single child. Routing those paths through a direct `attachChildToParents(parent, joinExpr, childRecords, ...)` helper could avoid allocating a one-element `children` array/object and skip one loop/destructure layer in `attachChildrenToParents()`.
+  - Temporary change:
+    - Split the body of `attachChildrenToParents()` into `attachChildToParents()`.
+    - Changed legacy and compact interpreted/compiled one-child join paths to call the helper directly.
+  - Verification while patched:
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`
+  - Benchmark signal:
+    - Initial baseline before warmup looked slower: cached wrapper nested blog page 19.94 us/op, direct plan 13.82, local executor 14.12.
+    - Patched run 1: cached wrapper 17.61 us/op, direct plan 11.73, local executor 11.90.
+    - Patched run 2: cached wrapper 17.74 us/op, direct plan 11.86, local executor 12.07.
+    - Same-session reversed baseline after V8 warmup: cached wrapper 17.83 us/op, direct plan 11.99, local executor 12.13.
+  - Decision: reverted. The first baseline was cold/order noise; the close A/B shows no meaningful gain from avoiding the one-element child wrapper. Do not retry this exact helper split without a different benchmark shape or heap evidence.
+
 ## Useful Commands
 
 ```sh
