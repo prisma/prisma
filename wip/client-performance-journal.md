@@ -5198,6 +5198,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Generated client findUnique warmed cache regressed/noised from 66.91 to 69.85 us/op; unrelated to raw nested work.
   - Interpretation: the Workerd-like generated-client blog-page row shows a small positive signal after the raw nested runtime work, but the probe's host dispatch timing is coarse. Treat it as directional confirmation, not a precise isolate benchmark.
 
+- Rejected experiment: two-row scope fast path for raw nested parent values.
+  - Timestamp: 2026-06-07T15:28:00Z.
+  - Change tried: added a `rows.length === 2` branch to `getRawNestedScopeValue()` that reads the two parent values directly and returns either `[first]` or `[first, second]`, bypassing the generic `Set` allocation path.
+  - Rationale: the blog-page benchmark often scopes nested child queries by one or two parent rows. A small exact-cardinality branch looked like a low-risk way to reduce per-relation work after numeric result mappings made metadata resolution cheaper.
+  - Verification while patched:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FRESH_BLOG_PAGE_RESULT_METADATA=1 CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=30000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Exact compact-node A/B at 100,000 iterations with and without `CLIENT_ENGINE_CACHE_TIMING_FRESH_BLOG_PAGE_RESULT_METADATA=1`.
+  - Timing signal:
+    - Broad stable metadata run looked mildly positive: warmed cache 16.60 us/op, cached wrapper 15.15, 100 retained 16.71, direct 8.82, compact node 8.10, local executor 9.43.
+    - Broad fresh metadata run was mixed/worse against the previous numeric-cache baseline: warmed cache 23.47 vs 22.87, cached wrapper 21.83 vs 21.74, 100 retained 23.09 vs 22.94, direct 14.50 vs 14.85, compact node 14.93 vs 13.80, local executor 15.28 vs 15.08.
+    - Exact compact-node A/B was noise-level: patched stable 7.89 vs unpatched stable 7.84 us/op; patched fresh 13.14 vs unpatched fresh 13.37 us/op.
+  - Decision: reverted. The branch did not show a clear product-shaped win and makes a hot helper more special-case-heavy. Reconsider only as part of a generated/specialized raw-nested mapper that removes the broader per-relation scope machinery.
+
 ## Useful Commands
 
 ```sh
