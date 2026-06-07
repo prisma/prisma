@@ -7283,6 +7283,54 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. It is small, preserves reordered-key fallback behavior, and same-session Node plus Workerd measurements are neutral-to-positive on the generated request-precomputed rows.
 
+- Rejected spike: direct single request helper for non-batchable generated precomputed hits.
+  - Timestamp: 2026-06-07T23:09:37+02:00.
+  - Change tried:
+    - Temporarily added `RequestHandler.requestPrecomputedSingle()` that called `client._engine.request()` directly with `precomputedQueryPlanCacheHit`, mapped rejected promises through the existing `RequestHandler` error handling, and skipped `DataLoader` plus generic unpack for the empty `dataPath` case.
+    - Temporarily routed generated request-precomputed hits through this helper only for non-batchable actions, leaving `findUnique` / `findUniqueOrThrow` on the existing `RequestHandler.request()` path to preserve automatic batching.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/core/model/applyModel.ts`
+      - Passed with the pre-existing `RequestHandler.ts` unsafe-argument warnings.
+    - `pnpm --filter @prisma/client build`
+      - Passed after typing the direct engine response as `Record<string, unknown>`.
+  - Baseline before patch:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client request precomputed fast path findUnique / warmed cache`: 3.50 us/op.
+    - `generated client request precomputed fast path batched findUnique / warmed cache`: 11.16 us/op.
+    - `generated client request precomputed fast path findMany users / warmed cache`: 3.35 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.30 us/op.
+  - Patched measurement:
+    - Same command.
+    - `generated client request precomputed fast path findUnique / warmed cache`: 3.52 us/op.
+    - `generated client request precomputed fast path batched findUnique / warmed cache`: 11.47 us/op.
+    - `generated client request precomputed fast path findMany users / warmed cache`: 3.31 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.37 us/op.
+  - Decision:
+    - Reverted. The only intended positive row moved by about 0.04 us/op, nested blog regressed, and the helper made result mapping semantics more fragile by bypassing the normal unpack/deserialization path.
+
+- Sidecar refresh: Rust allocation / Arc / arena lead.
+  - Timestamp: 2026-06-07T23:09:37+02:00.
+  - Agent:
+    - Huygens (`019ea3e6-c1e1-7e23-90cc-9f27ba3de57f`), read-only sidecar; no files edited.
+  - Commands:
+    - `rg -n "allocation|alloc|Arc|arena|heap|profile|profiling|graph_build|translate_ir" wip/client-performance-journal.md`
+    - `rg -n "allocation|alloc|Arc|arena|heap|profile|profiling|graph_build|translate_ir" .` in `/home/aqrln.guest/prisma-engines`
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+    - `rg -n "subgraph_contains_result\\(" query-compiler -g '*.rs'`
+  - Fresh narrow release profile:
+    - `query-m2o`: `graph_build` 186 allocs / 37.0 KiB; `translate_ir` 359 allocs / 33.7 KiB; `full_compile` 624 allocs / 80.6 KiB.
+    - `create-nested-connectOrCreate-mixed`: `graph_build` 874 allocs / 140.1 KiB; `translate_ir` 2035 allocs / 192.0 KiB; `full_compile` 3081 allocs / 352.6 KiB.
+    - `update-set-nested`: `graph_build` 731 allocs / 119.2 KiB; `translate_ir` 1313 allocs / 123.9 KiB; `full_compile` 2160 allocs / 256.3 KiB.
+    - Bucket output remains mostly mid-sized allocations (`257..384 B`, `513..768 B`, `1.0..1.5 KiB`, `385..512 B`), not a tiny-allocation profile that would implicate `Arc` clone churn.
+  - Concrete next patch proposal:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs`, `QueryGraph::subgraph_contains_result()` currently calls `outgoing_edges()`, which allocates and sorts a `Vec<EdgeRef>` even though the only current caller, `NodeTranslator::process_children()` in `query-compiler/query-compiler/src/translate.rs`, only needs boolean reachability.
+    - Patch shape: walk `self.graph.edges_directed(node.node_ix, Direction::Outgoing)` directly and recurse through `edge.target()` to avoid the intermediate sorted vector for this boolean-only traversal.
+    - Verification target: rerun the same focused allocation profile plus `cargo test -p query-compiler --test queries`.
+  - Arc / arena read:
+    - A broad `Arc` purge is not justified by the current evidence. Query-structure handles use `Zipper<I>` over `InternalDataModel`, and `InternalDataModel` holds an `Arc<ValidatedSchema>`; those clones may have CPU cost, but this profile does not show heap allocation pressure consistent with `Arc`-owned object churn.
+    - Arenas may still be practical later for compile-local graph/expression construction, but the next allocation work should remove avoidable local `Vec`/map/string allocations in `graph_build` and `translate_ir`, then profile again.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
