@@ -79,6 +79,7 @@ export type SerializeParams = {
 }
 
 const STRICT_UNDEFINED_ERROR_MESSAGE = 'explicitly `undefined` values are not allowed'
+const EMPTY_ARGS: JsArgs = {}
 
 export function serializeJsonQuery({
   modelName,
@@ -115,14 +116,24 @@ export function serializeJsonQuery({
   }
 }
 
-function serializeFieldSelection(
-  { select, include, ...args }: JsArgs = {},
-  context: SerializeContext,
-): JsonFieldSelection {
+function serializeFieldSelection(args: JsArgs = EMPTY_ARGS, context: SerializeContext): JsonFieldSelection {
+  const select = args.select
+  const include = args.include
   const omit = args.omit
-  delete args.omit
+  let argumentArgs: JsArgs | undefined
+  const keys = Object.keys(args)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    if (key === 'select' || key === 'include' || key === 'omit') {
+      continue
+    }
+
+    argumentArgs ??= {}
+    argumentArgs[key] = args[key]
+  }
+
   return {
-    arguments: serializeArgumentsObject(args, context),
+    arguments: serializeArgumentsObject(argumentArgs ?? EMPTY_ARGS, context),
     selection: serializeSelectionSet(select, include, omit, context),
   }
 }
