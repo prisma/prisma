@@ -5356,6 +5356,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Preserving the exact `tags: [{ tag }]` shape costs only about 0.1-0.2 us/op over the flattened prototype in this fixture.
     - The gap from exact prototype 5.33 us/op to compact node 7.89 us/op remains large enough to justify a production exact-shape executor or generated raw mapper; it is not explained by wrapper semantics alone.
 
+- Rejected experiment: plain-field raw nested row mapper specialization.
+  - Timestamp: 2026-06-07T13:28:00Z.
+  - Plan-shape probe:
+    - The actual compiler-emitted blog-page raw nested plan is a compact `n` node with numeric column refs throughout.
+    - Root mappings are seven direct scalar fields plus two path mappings for `_count.likes` / `_count.comments`.
+    - Leaf nodes (`author`, `category`, `tag`, `comments`, comment `author`) use only plain string field names, and `tags` is a zero-scalar wrapper relation with one unique `tag` child.
+  - Change tried: chose a plain-field row mapper at raw nested query compilation time when all mapping output keys were direct strings, avoiding the per-field `typeof fieldNameOrPath` check and `setRawNestedPath()` branch for leaf nodes.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Patched/reverted broad `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000` runs.
+  - Timing signal:
+    - Patched focused direct-plan row: 8.82 us/op at 300,000 iterations, not an improvement over the recent wrapper-specialized baseline.
+    - Patched broad row: cached request wrapper 14.47 us/op, direct plan 8.71, raw compact 7.55, local executor 8.96.
+    - Reverted broad row in the same session: cached request wrapper 14.63 us/op, direct plan 8.91, raw compact 7.65, local executor 8.90.
+  - Decision: reverted. The signal was mixed and too small, with the end-to-end local executor row slightly worse while patched. Do not add plain-field raw nested mapper branches unless they are part of a generated/exact-shape mapper that removes more than one field-name branch.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
