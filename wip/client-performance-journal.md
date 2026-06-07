@@ -5308,6 +5308,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Broad "get rid of Arc" is not yet a concrete allocation fix: many `Arc` clones in schema/model references do not allocate per clone, and schema construction is outside the measured hot compile loop. The measured heap pressure remains concentrated in graph construction and translation data structures.
     - A borrowing/arena redesign may still be valuable, but the next practical Rust target should start from specific graph_build or translate_ir owned data structures visible in allocation profiles and Criterion, not from a repo-wide Arc purge.
 
+- Measurement refresh: Workerd probe after exact-wrapper specialization.
+  - Timestamp: 2026-06-07T11:05:37Z.
+  - Command, run twice:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Key rows:
+    - Retained blog-page plan cache: 100 entries, 48.3 KiB keys, 335.4 KiB serialized plans; host dispatch 387.8 / 389.5 ms total.
+    - Client-cache blog-page value churn: 99/1 hits/misses, one 704 B key, one 3.7 KiB serialized plan; host dispatch 80.13 / 79.35 us/op.
+    - Generated client findUnique warmed cache: 5000/0 hits/misses; host dispatch upper bound 63.45 / 64.97 us/op.
+    - Generated client blog-page warmed cache: 1000/0 hits/misses, 7000 `queryRaw` calls; host dispatch upper bound 111.18 / 114.26 us/op.
+  - Comparison:
+    - Previous Workerd refresh after raw nested runtime changes had client-cache blog-page at 81.80 us/op and generated client blog-page warmed cache at 117.99 us/op.
+    - The exact-wrapper specialization moved the edge-style generated blog-page row directionally down into the 111-114 us/op band, but the probe remains a coarse host-dispatch upper bound.
+  - Interpretation:
+    - The Cloudflare-shaped signal remains consistent with the Node/V8 direct-plan improvement, but it is not precise enough to justify small helper work by itself.
+    - Next higher-ceiling work is still either a lower-overhead exact-shape/raw-result-set executor or the larger JS-owned query/cache-hit architecture path.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
