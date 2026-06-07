@@ -385,6 +385,7 @@ export type QueryPlanCompactNode =
   | readonly ['j', QueryPlanNode, JoinExpression[], boolean]
   | readonly ['m', string, QueryPlanNode]
   | readonly ['t', QueryPlanNode]
+  | readonly ['d', QueryPlanNode, ResultNode]
   | readonly ['d', QueryPlanNode, ResultNode, Record<string, Record<string, string>>]
   | readonly ['V', QueryPlanNode, DataRule[], QueryPlanValidationErrorIdentifier, QueryPlanValidationErrorContext]
   | readonly ['?', QueryPlanNode, DataRule, QueryPlanNode, QueryPlanNode]

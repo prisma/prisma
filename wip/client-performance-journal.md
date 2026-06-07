@@ -3825,6 +3825,69 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision: keep. This is the source-level version of the earlier write-filter wrapper idea: it removes singleton selector wrappers broadly, has direct allocation wins in nested writes, and close Criterion/product gates stayed neutral-to-positive.
 
+- Restarted-harness baseline refresh and JS-reference architecture assessment.
+  - Date: 2026-06-07.
+  - Node product timing after the harness restart:
+    - `findUnique value churn / warmed cache`: 10.80 us/op.
+    - `findMany 10 scalar rows / warmed cache`: 6.63 us/op.
+    - `blog page value churn / warmed cache`: 16.43 us/op.
+    - `blog page nested rows / warmed cache`: 50.44 us/op.
+    - `parameterize blog page`: 6.22 us/op.
+    - `cache hit key blog page`: 6.90 us/op.
+    - `cached request wrapper blog page / nested rows`: 35.77 us/op.
+    - `direct plan blog page / nested rows`: 25.67 us/op.
+    - `direct plan after phase warmup blog page`: 20.18 us/op.
+    - `local executor blog page / nested rows`: 26.10 us/op.
+    - `blog page nested rows / warmed cache after phase warmup`: 38.75 us/op.
+  - Node retained cache memory after the harness restart:
+    - Scalar edge warm: heap 200.5 KiB, key 7.6 KiB, plan JSON 24.4 KiB, serialized/entry 327 B.
+    - Blog edge warm: heap 1.27 MiB, key 48.3 KiB, plan JSON 395.1 KiB, serialized/entry 4.4 KiB.
+    - Blog node warm 1000: heap 10.05 MiB, key 512.2 KiB, plan JSON 3.90 MiB, serialized/entry 4.5 KiB.
+    - Blog parameterized node warm 1000: heap 10.28 MiB, key 562.0 KiB, plan JSON 3.92 MiB, serialized/entry 4.6 KiB.
+  - Workerd probe after the harness restart:
+    - Retained scalar plan cache: 100 entries, 7.6 KiB keys, 24.4 KiB serialized plans.
+    - Retained blog-page plan cache: 100 entries, 48.3 KiB keys, 395.1 KiB serialized plans.
+    - `client-cache findUnique value churn`: host dispatch 70.89 us/op, 99 hits / 1 miss, retained one 138 B key and 551 B plan.
+    - `client-cache blog-page value churn`: host dispatch 95.38 us/op, 99 hits / 1 miss, retained one 704 B key and 4.3 KiB plan.
+    - `generated client findUnique warmed cache`: host dispatch upper bound 70.88 us/op for 5000 requests.
+    - `generated client blog-page warmed cache`: host dispatch upper bound 125.44 us/op for 1000 requests.
+  - Practicality assessment for the radical JS-owned-data idea:
+    - Potentially practical, but only if it eliminates multiple current costs together: request serialization, Rust-owned untyped request maps, parameterization/cache-key construction duplication, cache-hit plan serialization, and eventually some retained plan/string duplication.
+    - A `serde_wasm_bindgen::from_value()` substitution is too shallow: it removes the JS-side JSON parse/string transfer but still builds untyped Rust-owned maps before validation and parsing.
+    - A `js_sys` cache-key-only walker is also the wrong target because prior evidence showed Wasm property traversal alone was much slower than TypeScript parameterization plus native `JSON.stringify()`.
+    - The first viable spike should be a single hot read-only Wasm path that accepts one JS request reference, walks it once to extract placeholders and structural identity, checks the cache before constructing owned Rust request data, and returns an existing cached JS plan object on hits.
+    - `PrismaString`-style wrappers are plausible support infrastructure only after validation/query graph construction can consume borrowed/input-backed strings. They will not pay off if the path immediately clones into `JsonBody`, `ArgumentValue`, or `ParsedInputValue`.
+    - Avoiding Rust-owned SQL strings is probably a second project: query plans would need SQL templates, interned fragments, or JS-backed string handles that the JS interpreter/driver can consume without turning cross-boundary property/string access into the new bottleneck.
+
+- Accepted compact-plan change: omit empty `dataMap` enum maps.
+  - Change:
+    - `Expression::DataMap` in `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/expression.rs` now serializes compact `["d", expr, structure]` when the enum map is empty, and keeps the previous four-slot tuple when enums are present.
+    - `packages/client-engine-runtime/src/query-plan.ts` accepts the three-slot compact `dataMap` tuple.
+    - `QueryInterpreter` defaults missing compact `dataMap` enums to a frozen empty map.
+  - Measurement with `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`:
+    - Node scalar edge warm plan JSON: 24.4 KiB -> 24.1 KiB for 100 retained entries, serialized/entry 327 B -> 324 B.
+    - Node scalar node warm 1000 plan JSON: 311.1 KiB -> 308.2 KiB, serialized/entry 423 B -> 420 B.
+    - Node blog edge warm plan JSON: 395.1 KiB -> 394.8 KiB for 100 retained entries.
+    - Node blog node warm 1000 heap: 10.05 MiB -> 9.99 MiB in this run, with plan JSON still rounded to 3.90 MiB.
+    - Workerd retained plan counters rounded to the same KiB values: scalar 100 entries at 7.6 KiB keys / 24.4 KiB plans and blog 100 entries at 48.3 KiB keys / 395.1 KiB plans.
+    - Blog-page timing rows stayed neutral in the warmup-controlled run: direct phase-warmed plan 17.09 us/op baseline vs 17.06 us/op patched, local executor 17.59 vs 17.58, warmed product after phase warmup 31.19 vs 31.27.
+  - Verification:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm exec prettier --check packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `git diff --check` in both repos
+    - local-Wasm `query-plan-cache-memory.ts`, `client-engine-cache-timing.ts`, and `workerd-query-compiler-memory.ts`
+    - local-Wasm `caching.bench.ts`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` lockfile churn, which was reverted.
+  - Decision: keep. The win is intentionally small, about 3 serialized bytes per enum-free plan and one fewer empty enum object in the compact plan, but it is a simple protocol compaction with neutral timing and clean compatibility with enum-bearing plans.
+
 ## Useful Commands
 
 ```sh
