@@ -7072,6 +7072,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. CPU was effectively unchanged from the accepted request-layer path (3.87 / 13.11 us/op), while error context would be worse.
 
+- Rejected spike: cached `applyFluent()` proxy handler with `WeakMap` state.
+  - Timestamp: 2026-06-07T22:15:13+02:00.
+  - Change tried:
+    - Moved the fluent proxy handler object out of the per-call path and stored per-call `dataPath` / args in a `WeakMap` keyed by the underlying PrismaPromise.
+    - Kept the proxy and relation access semantics intact.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client ' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client promise construction findUnique / warmed cache`: 0.61 us/op, heapDelta 2.03 MiB.
+    - `generated client promise construction blog page / nested rows warmed cache`: 1.17 us/op, heapDelta 1.01 MiB.
+    - `generated client engine precomputed fast path findUnique / warmed cache`: 3.06 us/op.
+    - `generated client request precomputed fast path findUnique / warmed cache`: 4.17 us/op.
+  - Decision:
+    - Reverted. The stable handler plus `WeakMap` state was worse than the per-call closure handler, likely because the WeakMap lookup and less-specialized handler outweighed saved handler allocation.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
