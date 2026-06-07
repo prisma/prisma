@@ -6047,6 +6047,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The change is semantically safe, but the nested generated-client row was not positive and the simple row movement was tiny/noisy.
 
+- Rejected experiment: direct string concatenation in recursive batch-key builder.
+  - Timestamp: 2026-06-07T17:18:45Z.
+  - Change tried:
+    - Replaced `result += \`(${key} ${buildKeysString(value)})\``with`result += '(' + key + ' ' + buildKeysString(value) + ')'`.
+    - Replaced the final `` `${result})` `` with `result + ')'`.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 9.37 us/op, nested blog-page 32.47 us/op.
+    - Same-session reverted baseline: `findUnique` 9.27 us/op, nested blog-page 32.58 us/op.
+    - Reapplied patched run: `findUnique` 9.39 us/op, nested blog-page 33.15 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/getBatchId.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+  - Decision:
+    - Reverted. The exact key format is preserved, but product-path timing regressed; keep the existing template-literal shape.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
