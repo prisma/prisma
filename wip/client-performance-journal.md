@@ -7687,6 +7687,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The manual loop is slower than V8's optimized `map()` path here.
 
+- Rejected experiment: delay ClientEngine batch payload allocation.
+  - Timestamp: 2026-06-08T00:36:00+02:00.
+  - Change:
+    - Temporarily changed `ClientEngine.requestBatch()` to delay `getBatchRequestPayload(queries, transaction)` until after the precomputed batch cache-hit check.
+    - Changed `tryBuildPrecomputedBatchCacheHit()` to read `queries` and `transaction` directly instead of taking a `JsonBatchQuery`, so warmed precomputed batch cache hits could skip constructing the wrapper payload object.
+  - Rationale:
+    - A fresh CPU profile after the accepted single-key compacted demux still showed `tryBuildPrecomputedBatchCacheHit()` and `requestBatch()` near the top. Avoiding the batch payload object on hits looked like a small allocation win with unchanged fallback behavior.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - Passed with existing unsafe-argument warnings in `ClientEngine.ts`.
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 3.25 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.54 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.44 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.36 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted single-key compacted demux row was 6.98 us/op.
+  - Decision:
+    - Revert. The delayed payload helper added more overhead than the wrapper allocation it avoided on the target row.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
