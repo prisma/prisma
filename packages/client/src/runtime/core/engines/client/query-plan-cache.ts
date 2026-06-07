@@ -336,6 +336,11 @@ export class QueryPlanCache {
         return
       }
 
+      if (tag === 'n' && value.length > 1) {
+        this.#internRawNestedReadChildQueries(value[1], counts)
+        return
+      }
+
       for (let i = 0; i < value.length; i++) {
         this.#internJoinChildQueriesInner(value[i], inJoinChild, counts)
       }
@@ -369,6 +374,37 @@ export class QueryPlanCache {
 
     for (const key of Object.keys(record)) {
       this.#internJoinChildQueriesInner(record[key], inJoinChild, counts)
+    }
+  }
+
+  #internRawNestedReadChildQueries(value: unknown, counts: InternedQueryCounts): void {
+    if (!Array.isArray(value)) {
+      return
+    }
+
+    const relations = value[2]
+    if (!Array.isArray(relations)) {
+      return
+    }
+
+    for (let i = 0; i < relations.length; i++) {
+      const relation = relations[i]
+      if (!Array.isArray(relation)) {
+        continue
+      }
+
+      if (relation[0] === 'r') {
+        if (Array.isArray(relation[2])) {
+          relation[2][0] = this.#internQuery(relation[2][0], counts)
+          this.#internRawNestedReadChildQueries(relation[2], counts)
+        }
+      } else if (relation[0] === 'm') {
+        relation[2] = this.#internQuery(relation[2], counts)
+        if (Array.isArray(relation[3])) {
+          relation[3][0] = this.#internQuery(relation[3][0], counts)
+          this.#internRawNestedReadChildQueries(relation[3], counts)
+        }
+      }
     }
   }
 
@@ -554,7 +590,7 @@ export class QueryPlanCache {
 
 function shouldInternStrings(value: unknown): boolean {
   if (Array.isArray(value)) {
-    if (value[0] === 'j') {
+    if (value[0] === 'j' || value[0] === 'n') {
       return true
     }
 

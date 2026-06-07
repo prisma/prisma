@@ -151,6 +151,49 @@ describe('QueryPlanCache', () => {
       expect(plan1[2][0][0][1]).toBe(plan2[2][0][0][1])
     })
 
+    it('shares repeated child query templates under raw nested reads', () => {
+      const cache = new QueryPlanCache(2)
+      const createDbQuery = (sql: string) => [[sql], ['?', true], [], [], false]
+      const createPlan = (rootSql: string): QueryPlanNode =>
+        [
+          'n',
+          [
+            createDbQuery(rootSql),
+            [['id', 'id', 'i']],
+            [
+              [
+                'r',
+                'children',
+                [createDbQuery('SELECT child WHERE parentId = '), [['id', 'id', 'i']]],
+                'id',
+                'parentId',
+                '@parent$id',
+                false,
+              ],
+            ],
+          ],
+          true,
+        ] as unknown as QueryPlanNode
+
+      cache.setSingle('key1', createPlan('SELECT root one WHERE id = '))
+      cache.setSingle('key2', createPlan('SELECT root two WHERE id = '))
+
+      type InspectableRawNestedPlan = readonly [
+        'n',
+        readonly [
+          unknown,
+          unknown,
+          readonly [readonly ['r', string, readonly [unknown, unknown], string, string, string, boolean]],
+        ],
+        boolean,
+      ]
+      const plan1 = cache.getSingle('key1') as unknown as InspectableRawNestedPlan
+      const plan2 = cache.getSingle('key2') as unknown as InspectableRawNestedPlan
+
+      expect(plan1[1][0]).not.toBe(plan2[1][0])
+      expect(plan1[1][2][0][2][0]).toBe(plan2[1][2][0][2][0])
+    })
+
     it('shares repeated nested result structures under data maps', () => {
       const cache = new QueryPlanCache(2)
       const createDbQuery = (sql: string) => [[sql], ['?', true], [], [], false]
