@@ -4583,6 +4583,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Same-command reversed legacy timing: `findUnique` 1.31 us/op and 7.49 MiB; `findMany` 0.49 us/op and 4.53 MiB; blog-page 3.37 us/op and 31.71 MiB.
   - Decision: reverted. The compact query-protocol placeholder shape saves roughly 14 cache-key bytes per scalar placeholder but does not materially move the hot timing rows. That is not worth changing the JSON protocol types, snapshots, Rust parser surface, and Wasm package until there is stronger evidence from a larger fused parameterization/cache-key redesign.
 
+- Rejected experiment: cache `ClientEngine` SQL-commenter presence.
+  - Timestamp: 2026-06-07T04:53:10Z.
+  - Hypothesis: `ClientEngine.request()` and `requestBatch()` recompute `this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0` on every request. A private constructor-initialized boolean could shave a small amount from cache-hit wrapper overhead.
+  - Temporary implementation:
+    - Added `#hasSqlCommenters` to `packages/client/src/runtime/core/engines/client/ClientEngine.ts`, initialized it from constructor config, and used it in single and batch request paths.
+  - Verification while patched:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm --filter @prisma/client build`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='warmed cache after phase warmup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Benchmark signal:
+    - Patched broad blog-page run looked slightly better on the late full-engine nested row: 19.14 us/op versus the immediately previous 19.55 us/op baseline, but unrelated direct/local rows also moved in the same noise band.
+    - Same-command isolated late row at 100,000 iterations rejected the patch: patched 17.61 us/op, then temporary legacy reverse 17.46 us/op.
+  - Decision: reverted. The repeated config check is not a useful target on current Node/V8; do not keep a cached field for this without stronger evidence.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
