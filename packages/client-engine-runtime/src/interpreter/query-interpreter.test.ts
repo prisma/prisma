@@ -550,6 +550,95 @@ test('interprets compact raw nested read many-to-many relations', async () => {
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
 })
 
+test('interprets compact raw nested read wrapper relations', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
+  const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', { $p: ['@parent$id', 'int'] })
+  const tagQuery = templateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 0]],
+      [
+        [
+          'r',
+          'tags',
+          [
+            postTagQuery,
+            [],
+            [
+              [
+                'r',
+                'tag',
+                [
+                  tagQuery,
+                  [
+                    ['id', 0],
+                    ['name', 1],
+                  ],
+                ],
+                1,
+                0,
+                '@parent$tagId',
+                true,
+              ],
+            ],
+          ],
+          0,
+          0,
+          '@parent$id',
+          false,
+        ],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  const observedQueries: SqlQuery[] = []
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      observedQueries.push(query)
+      if (query.sql.startsWith('SELECT id FROM Post')) {
+        return Promise.resolve({
+          columnNames: ['id'],
+          columnTypes: [ColumnTypeEnum.Int32],
+          rows: [[1]],
+        })
+      }
+      if (query.sql.startsWith('SELECT postId')) {
+        return Promise.resolve({
+          columnNames: ['postId', 'tagId'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+          rows: [
+            [1, 10],
+            [1, 11],
+          ],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'name'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+        rows: [
+          [10, 'Rust'],
+          [11, 'Wasm'],
+        ],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
+    id: 1,
+    tags: [{ tag: { id: 10, name: 'Rust' } }, { tag: { id: 11, name: 'Wasm' } }],
+  })
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
+})
+
 test('interprets compact raw nested read indexed direct relations without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Parent WHERE id IN ', [1, '1', null, 2])

@@ -1139,7 +1139,13 @@ export class QueryInterpreter {
   ): CompiledRawNestedReadQuery {
     const dbQuery = query[0]
     const mappings = query[1]
-    const relations = query[2]?.map((relation) => this.#compileRawNestedReadRelation(relation, enums))
+    const rawRelations = query[2]
+    const uniqueWrapperRelation = getRawNestedUniqueWrapperRelation(mappings, rawRelations)
+    if (uniqueWrapperRelation !== undefined) {
+      return this.#compileRawNestedUniqueWrapperReadQuery(dbQuery, uniqueWrapperRelation, enums)
+    }
+
+    const relations = rawRelations?.map((relation) => this.#compileRawNestedReadRelation(relation, enums))
 
     return async (context, scope) => {
       const resultSet = await this.#executeRawNestedReadDbQuery(dbQuery, context, scope)
@@ -1158,6 +1164,45 @@ export class QueryInterpreter {
       }
 
       return result
+    }
+  }
+
+  #compileRawNestedUniqueWrapperReadQuery(
+    dbQuery: QueryPlanDbQuery,
+    relation: RawNestedReadDirectRelation,
+    enums: Record<string, Record<string, string>>,
+  ): CompiledRawNestedReadQuery {
+    const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
+
+    return async (context, scope) => {
+      const resultSet = await this.#executeRawNestedReadDbQuery(dbQuery, context, scope)
+      const rows = resultSet.rows
+      if (rows.length === 0) {
+        return {
+          rows,
+          columnNames: resultSet.columnNames,
+          records: [],
+        }
+      }
+
+      const childScope = Object.create(scope) as Record<string, unknown>
+      const parentColumnIndex = resolveRawResultColumnRef(resultSet.columnNames, relation[3])
+      childScope[relation[5]] = getRawNestedScopeValue(rows, parentColumnIndex)
+      const childResult = await childQuery(context, childScope)
+      const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
+
+      return {
+        rows,
+        columnNames: resultSet.columnNames,
+        records: mapRawNestedUniqueWrapperRows(
+          rows,
+          parentColumnIndex,
+          relation[1],
+          childResult.rows,
+          childResult.records,
+          childColumnIndex,
+        ),
+      }
     }
   }
 
@@ -1393,6 +1438,22 @@ function mapRawNestedRows(
     result[rowIndex] = record
   }
   return result
+}
+
+function getRawNestedUniqueWrapperRelation(
+  mappings: readonly RawResultColumnMapping[],
+  relations: readonly RawNestedReadRelation[] | undefined,
+): RawNestedReadDirectRelation | undefined {
+  if (mappings.length !== 0 || relations?.length !== 1) {
+    return undefined
+  }
+
+  const relation = relations[0]
+  if (relation[0] !== 'r' || !relation[6]) {
+    return undefined
+  }
+
+  return relation
 }
 
 const RAW_NESTED_CONVERT_NONE = 0
@@ -1675,6 +1736,40 @@ function attachRawNestedDirectRelation(
     }
     parentRecords[parentIndex][fieldName] = children
   }
+}
+
+function mapRawNestedUniqueWrapperRows(
+  rows: readonly unknown[][],
+  parentColumnIndex: number,
+  fieldName: string,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): PrismaObject[] {
+  const records = new Array<PrismaObject>(rows.length)
+  if (rows.length + childRows.length >= RAW_NESTED_INDEX_THRESHOLD) {
+    const childByKey = new Map<unknown, PrismaObject>()
+    for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+      const childKey = childRows[childIndex][childColumnIndex]
+      if (!childByKey.has(childKey)) {
+        childByKey.set(childKey, childRecords[childIndex])
+      }
+    }
+
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const record: PrismaObject = {}
+      record[fieldName] = childByKey.get(rows[rowIndex][parentColumnIndex]) ?? null
+      records[rowIndex] = record
+    }
+    return records
+  }
+
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const record: PrismaObject = {}
+    record[fieldName] = findRawNestedChild(rows[rowIndex][parentColumnIndex], childRows, childRecords, childColumnIndex)
+    records[rowIndex] = record
+  }
+  return records
 }
 
 function attachIndexedRawNestedDirectRelation(

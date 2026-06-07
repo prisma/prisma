@@ -5265,6 +5265,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Focused direct-plan A/B was neutral-to-negative: patched 8.92 us/op vs reverted 8.89 us/op at 300,000 iterations.
   - Decision: reverted. Skipping mapping resolution for zero-field wrapper rows is too small and perturbs the hot mapper branch. Do not retry this shape unless a larger exact-wrapper specialization removes more of the recursive raw-nested machinery.
 
+- Accepted runtime change: specialize raw nested exact-wrapper relations.
+  - Timestamp: 2026-06-07T17:56:00Z.
+  - Change:
+    - `QueryInterpreter.#compileRawNestedReadQuery()` now recognizes raw nested nodes with no scalar mappings and exactly one unique direct child relation, such as compiler-emitted join wrapper rows for `tags: [{ tag: ... }]`.
+    - The specialized compiled query skips creating an empty wrapper record and then attaching the child through the generic relation path. It executes the child relation and maps wrapper records directly as `{ [fieldName]: childOrNull }`.
+    - `query-interpreter.test.ts` now covers the exact zero-field wrapper shape emitted for `Post -> PostTag -> Tag`.
+  - Rationale: the actual compiler-emitted blog-page product plan has a `tags` intermediate node with zero scalar fields and one unique `tag` child. A tiny zero-mapping mapper branch was too small to matter, so this larger specialization removes more of the recursive raw-nested machinery for the same shape.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Measurement signal:
+    - Focused patched direct-plan blog-page nested rows: 8.71 us/op, then 8.65 us/op at 300,000 iterations. Recent reverted zero-mapping direct-plan baseline was 8.89-8.92 us/op.
+    - Broad patched blog-page nested rows at 100,000 iterations: cached request wrapper 14.49 us/op, direct plan 8.70, local executor 8.72, raw compact lower-bound 7.55.
+  - Decision: keep. The change is narrow to a compiler-emitted wrapper shape, preserves generic raw nested semantics, and shows a small but repeatable product-shape improvement where the earlier one-line mapper branch did not.
+
+## Todo / Leads
+
+- Spike `js_sys` / Wasm-reference parsing for query input and validation.
+  - User idea: `tsify::serde_wasm_bindgen::from_value(request)` only removes JSON conversion on the JS side and still leaves untyped heap-allocated Rust maps before validation/parsing. The larger win may require query parsing and validation to operate directly on JS-heap values, at least until internal query IR construction.
+  - Practicality note: likely possible as a serious architectural spike, but the difficult pieces are typed validation over `js_sys` values, wrapper lifetimes across Wasm calls, unit-test ergonomics, and preserving current error quality.
+
+- Explore Rust-owned IR only, with JS-owned input and plan/cache objects.
+  - User idea: avoid creating/owning input query data and built SQL strings on the Rust heap. The Client would pass the query object as a reference; Rust would parameterize it without cloning strings into Wasm memory and would either return an existing cached JS plan object or compile and cache one.
+  - Possible shape: wrapper types such as `PrismaString` / `PrismaValueRef` backed by native Rust values in unit tests and by external JS values in Wasm builds. Parameterization and cache lookup would be implemented in Rust but would operate through borrowed/reference-backed wrappers.
+  - Constraints to validate: SQL text and driver parameters still need JS-owned representations for adapter execution, reference-type support and GC behavior need measurement in the target runtimes, and any cache key must remain exact/collision-safe.
+
+- Explore memory-management simplification in Rust query compiler.
+  - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
+  - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
+
 ## Useful Commands
 
 ```sh
