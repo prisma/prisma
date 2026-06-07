@@ -4557,6 +4557,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Top samples were still distributed across compiled compact interpreter closures, `ClientEngine.request`, `#executeQueryNode`, mapper/join/serializer/rendering helpers, and parameterization. `getBlogPageResultSet()` still appears as a helper frame, but it is now the SQL-result cache lookup path rather than repeated substring scanning.
   - Decision: keep. This is benchmark-harness cleanup rather than product runtime optimization, but it makes nested blog-page phase rows less polluted by fake adapter SQL classification and gives cleaner evidence for future product work.
 
+- Build restart after harness reset.
+  - Timestamp: 2026-06-07T04:35:03Z.
+  - `/home/aqrln.guest/prisma-engines`: `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` passed, rebuilding fast and small query-compiler Wasm bundles for PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB.
+  - `/home/aqrln.guest/prisma`: `pnpm build` passed with 44/44 Turbo tasks successful; 42 tasks were cached, while `@prisma/client` and `prisma` rebuilt.
+  - Both worktrees were clean after the builds, so there was no generated-file churn to keep or revert.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
