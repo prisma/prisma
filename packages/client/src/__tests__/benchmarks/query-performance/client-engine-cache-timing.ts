@@ -2277,6 +2277,262 @@ function measureRawResultSetBlogPageAssemblyScenario(iterations: number): PlanPh
   }
 }
 
+type RawColumnMapping = readonly [fieldName: string, columnIndex: number]
+
+const RAW_POST_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
+  ['id', 0],
+  ['title', 1],
+  ['slug', 2],
+  ['content', 3],
+  ['published', 4],
+  ['viewCount', 5],
+  ['createdAt', 6],
+])
+const RAW_USER_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
+  ['id', 0],
+  ['name', 1],
+  ['avatar', 2],
+])
+const RAW_CATEGORY_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
+  ['id', 0],
+  ['name', 1],
+  ['slug', 2],
+])
+const RAW_TAG_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
+  ['id', 0],
+  ['name', 1],
+  ['slug', 2],
+])
+const RAW_COMMENT_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
+  ['id', 0],
+  ['content', 1],
+  ['createdAt', 2],
+])
+
+function mapRawRows(rows: readonly unknown[][], mappings: readonly RawColumnMapping[]): Record<string, unknown>[] {
+  const result = new Array<Record<string, unknown>>(rows.length)
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    result[rowIndex] = mapRawRow(rows[rowIndex], mappings)
+  }
+  return result
+}
+
+function mapRawRow(row: readonly unknown[], mappings: readonly RawColumnMapping[]): Record<string, unknown> {
+  const result = {}
+  for (let i = 0; i < mappings.length; i++) {
+    const [fieldName, columnIndex] = mappings[i]
+    result[fieldName] = row[columnIndex]
+  }
+  return result
+}
+
+function uniqueColumnValues(rows: readonly unknown[][], columnIndex: number): unknown[] {
+  if (rows.length === 0) {
+    return []
+  }
+
+  const values: unknown[] = []
+  const seen = new Set<unknown>()
+  for (let i = 0; i < rows.length; i++) {
+    const value = rows[i][columnIndex]
+    if (!seen.has(value)) {
+      seen.add(value)
+      values.push(value)
+    }
+  }
+  return values
+}
+
+function attachUniqueRawChildren(
+  parentRows: readonly unknown[][],
+  parents: readonly Record<string, unknown>[],
+  parentColumnIndex: number,
+  childRows: readonly unknown[][],
+  children: readonly Record<string, unknown>[],
+  childColumnIndex: number,
+  fieldName: string,
+): void {
+  for (let parentIndex = 0; parentIndex < parents.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    let child: Record<string, unknown> | null = null
+    for (let childIndex = 0; childIndex < children.length; childIndex++) {
+      if (childRows[childIndex][childColumnIndex] === parentKey) {
+        child = children[childIndex]
+        break
+      }
+    }
+    parents[parentIndex][fieldName] = child
+  }
+}
+
+function attachManyRawChildren(
+  parentRows: readonly unknown[][],
+  parents: readonly Record<string, unknown>[],
+  parentColumnIndex: number,
+  childRows: readonly unknown[][],
+  children: readonly Record<string, unknown>[],
+  childColumnIndex: number,
+  fieldName: string,
+): void {
+  for (let parentIndex = 0; parentIndex < parents.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    const childList: Record<string, unknown>[] = []
+    for (let childIndex = 0; childIndex < children.length; childIndex++) {
+      if (childRows[childIndex][childColumnIndex] === parentKey) {
+        childList.push(children[childIndex])
+      }
+    }
+    parents[parentIndex][fieldName] = childList
+  }
+}
+
+function attachManyToManyRawChildren(
+  parentRows: readonly unknown[][],
+  parents: readonly Record<string, unknown>[],
+  parentColumnIndex: number,
+  joinRows: readonly unknown[][],
+  joinParentColumnIndex: number,
+  joinChildColumnIndex: number,
+  childRows: readonly unknown[][],
+  children: readonly Record<string, unknown>[],
+  childColumnIndex: number,
+  fieldName: string,
+): void {
+  for (let parentIndex = 0; parentIndex < parents.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    const childList: Record<string, unknown>[] = []
+    for (let joinIndex = 0; joinIndex < joinRows.length; joinIndex++) {
+      const joinRow = joinRows[joinIndex]
+      if (joinRow[joinParentColumnIndex] !== parentKey) {
+        continue
+      }
+
+      const childKey = joinRow[joinChildColumnIndex]
+      for (let childIndex = 0; childIndex < children.length; childIndex++) {
+        if (childRows[childIndex][childColumnIndex] === childKey) {
+          childList.push(children[childIndex])
+          break
+        }
+      }
+    }
+    parents[parentIndex][fieldName] = childList
+  }
+}
+
+function renderSingleBlogPageQuery(
+  dbQuery: QueryPlanDbQuery,
+  scope: Record<string, unknown>,
+  generators: GeneratorRegistrySnapshot,
+): SqlQuery {
+  const queries = renderQuery(dbQuery, scope, generators, 999)
+  if (queries.length !== 1) {
+    throw new Error(`Expected one rendered blog-page query, got ${queries.length}`)
+  }
+  return queries[0]
+}
+
+async function executeRawResultSetBlogPagePrototype(
+  dbQueries: readonly QueryPlanDbQuery[],
+  placeholderValues: Record<string, unknown>,
+  adapter: BlogPageSqliteAdapter,
+  generators: GeneratorRegistrySnapshot,
+): Promise<Record<string, unknown> | null> {
+  const postResultSet = await adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[0], placeholderValues, generators))
+  const postRows = postResultSet.rows
+  if (postRows.length === 0) {
+    return null
+  }
+
+  const postIds = uniqueColumnValues(postRows, 0)
+  const authorIds = uniqueColumnValues(postRows, 7)
+  const categoryIds = uniqueColumnValues(postRows, 8)
+
+  const [authorResultSet, categoryResultSet, postTagResultSet, commentResultSet] = await Promise.all([
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[1], { '@parent$authorId': authorIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[2], { '@parent$categoryId': categoryIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[3], { '@parent$id': postIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[5], { '@parent$id': postIds }, generators)),
+  ])
+
+  const tagIds = uniqueColumnValues(postTagResultSet.rows, 1)
+  const commentAuthorIds = uniqueColumnValues(commentResultSet.rows, 3)
+  const [tagResultSet, commentAuthorResultSet] = await Promise.all([
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[4], { '@parent$tagId': tagIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[6], { '@parent$authorId': commentAuthorIds }, generators)),
+  ])
+
+  const posts = mapRawRows(postRows, RAW_POST_COLUMNS)
+  const authors = mapRawRows(authorResultSet.rows, RAW_USER_COLUMNS)
+  const categories = mapRawRows(categoryResultSet.rows, RAW_CATEGORY_COLUMNS)
+  const tags = mapRawRows(tagResultSet.rows, RAW_TAG_COLUMNS)
+  const comments = mapRawRows(commentResultSet.rows, RAW_COMMENT_COLUMNS)
+  const commentAuthors = mapRawRows(commentAuthorResultSet.rows, RAW_USER_COLUMNS)
+
+  attachUniqueRawChildren(postRows, posts, 7, authorResultSet.rows, authors, 0, 'author')
+  attachUniqueRawChildren(postRows, posts, 8, categoryResultSet.rows, categories, 0, 'category')
+  attachManyToManyRawChildren(postRows, posts, 0, postTagResultSet.rows, 0, 1, tagResultSet.rows, tags, 0, 'tags')
+  attachUniqueRawChildren(commentResultSet.rows, comments, 3, commentAuthorResultSet.rows, commentAuthors, 0, 'author')
+  attachManyRawChildren(postRows, posts, 0, commentResultSet.rows, comments, 4, 'comments')
+
+  for (let i = 0; i < posts.length; i++) {
+    const postRow = postRows[i]
+    posts[i]._count = {
+      likes: postRow[9],
+      comments: postRow[10],
+    }
+  }
+
+  return posts[0]
+}
+
+async function measureRawResultSetBlogPagePrototypeScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const adapter = new BlogPageSqliteAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const dbQueries = getDbQueries(plan)
+  if (dbQueries.length !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  checksumNestedBlogResult(
+    await executeRawResultSetBlogPagePrototype(dbQueries, placeholderValues, adapter, generators),
+  )
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogResult(
+      await executeRawResultSetBlogPagePrototype(dbQueries, placeholderValues, adapter, generators),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 function getPrecomputedBlogPageQueryScope(): Record<string, unknown> {
   const scope = Object.create(null) as Record<string, unknown>
   for (let i = 0; i < BLOG_PAGE_RESULT_SETS.length; i++) {
@@ -3572,6 +3828,19 @@ async function main(): Promise<void> {
     }
     if (shouldRunMeasurement('raw result-set blog page assembly / nested rows')) {
       printPlanPhaseMeasurement(measureRawResultSetBlogPageAssemblyScenario(benchmarkIterations(500)))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set prototype'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogPagePrototypeScenario(compiler, paramGraph, measuredScenario),
+      )
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {

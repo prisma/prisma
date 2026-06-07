@@ -4831,6 +4831,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Query-mode nested reads are built in `query-compiler/query-compiler/src/translate/query/read.rs::add_inmemory_join()` as `Let(@parent = parent query) -> Let(@parent$link = mapField(...)) -> Join(parent=get(@parent), children=[q/...])`.
     - The compact JS protocol currently has only `q` query leaves, `j` generic joins, `m` field maps, and `d` data-map nodes for this path. A real production version needs a new raw-result-set mapping/joining compact node or an equivalent compiler-recognized specialization carrying per-query result mapping metadata into the join. Tweaking `attachChildrenToParents()` alone cannot remove the serialized row objects or outer data-map phase.
 
+- Accepted benchmark prototype: generic raw result-set nested execution shape.
+  - Change: `client-engine-cache-timing.ts` now includes `raw result-set prototype blog page / nested rows`, a benchmark-only executor that still uses the real compiled query leaves, `renderQuery()`, and seven adapter `queryRaw()` calls, but maps raw result rows to JS objects and attaches nested children directly instead of using `serializeSql()`, generic `Join`, and the outer `dataMap`.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set prototype blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Measurement signal:
+    - Isolated prototype row: 5.80 us/op over 20k iterations, with 140k `queryRaw` calls.
+    - Same-process nested comparison over 20k iterations: warmed ClientEngine 20.00 us/op; cached request wrapper 17.66; direct plan 10.78; inner plan 9.22; local executor 12.01; raw lower-bound assembly 0.50; generic raw-result prototype 5.47.
+  - Interpretation: this is not production code yet, but it is a much stronger proof point than the fixed lower-bound row. Even with current SQL rendering and adapter dispatch included, bypassing serialized intermediate rows and generic data-map/join interpretation roughly halves the local executor nested-row time for this shape. The next production slice should prototype a compact raw-nested-read node/protocol and JS interpreter implementation, then teach Rust `add_inmemory_join()` / `DataMap` translation to emit it for safe query-mode nested reads.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
