@@ -5500,6 +5500,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - If compile-miss allocation remains a priority, factor the raw-nested eligibility predicate out of `translate/query/read.rs` so `translate()` can skip `map_result_structure()` only when the same predicate guarantees the root will become `RawNestedRead`.
     - Measure before implementing: use `ALLOC_PROFILE_QUERIES` on raw-nested read fixtures plus Criterion compile benches, because the query graph translation path has several previous low-byte/noisy allocation traps.
 
+- Rejected experiment: clone-based pre-translation raw-nested root fast path.
+  - Timestamp: 2026-06-07T12:06:49Z.
+  - Change tried in `prisma-engines`:
+    - Added `try_translate_raw_nested_read_root()` before `map_result_structure()` in `query-compiler/src/translate.rs`.
+    - The precheck was limited to a single root `Node::Query` with no graph children and cloned the root `ReadQuery` so fallback could still use the original graph/query if raw-nested emission returned `None`.
+  - Rationale:
+    - If the cloned precheck returned `RawNestedRead`, translation could skip building the generic result `dataMap` that raw-nested roots discard.
+  - Verification while patched:
+    - `cargo fmt --package query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - Patched allocation profile: `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-o2m,query-one2m,query-many-one2m,query-unique-one2m-pagination' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Same-session reverted baseline with the same allocation profile command.
+  - Allocation signal:
+    - Allocation counts dropped for raw-nested translate/full compile, but allocated bytes were mixed or worse because the precheck cloned the root read query.
+    - `query-m2o`: translate_ir 359 allocs / 33.7 KiB baseline -> 351 allocs / 35.4 KiB patched; full_compile 624 / 80.6 KiB -> 616 / 82.3 KiB.
+    - `query-o2m`: translate_ir 359 / 35.1 KiB -> 354 / 38.2 KiB; full_compile 665 / 87.9 KiB -> 660 / 91.0 KiB.
+    - `query-one2m`: translate_ir 380 / 33.6 KiB -> 363 / 34.1 KiB; full_compile 702 / 84.3 KiB -> 685 / 84.8 KiB.
+    - `query-many-one2m`: translate_ir 354 / 31.9 KiB -> 337 / 32.4 KiB; full_compile 700 / 83.9 KiB -> 683 / 84.5 KiB.
+    - `query-unique-one2m-pagination`: translate_ir 381 / 34.6 KiB -> 368 / 34.4 KiB; full_compile 742 / 87.9 KiB -> 729 / 87.7 KiB.
+  - Decision: reverted. The count drop is real, but the byte signal is too mixed and the implementation duplicates raw-nested root translation work. A better version would need to consume the root read query without cloning, which requires an exact structural proof that raw-nested emission cannot fall back, or a consume-with-rollback refactor. Do not add the clone-based precheck.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
