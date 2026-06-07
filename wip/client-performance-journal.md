@@ -4616,6 +4616,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Build handoff: query-compiler Wasm rebuilt successfully for PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB. Prisma `pnpm build` passed with 44/44 Turbo tasks successful. The local package upgrade only produced unrelated `@ark/attest` TypeScript peer lockfile churn, which was reverted.
   - Decision: keep. This is a small CPU-only metadata-access improvement for multi-child nested creates. It is not evidence that replacing linking-field recomputation with clones generally reduces heap allocation.
 
+- Rejected experiment: direct incoming-edge scan in `normalize_if_nodes()`.
+  - Timestamp: 2026-06-07T05:14:15Z.
+  - Hypothesis: `QueryGraph::normalize_if_nodes()` checked whether each sibling was already an if-node child by calling `incoming_edges(&sibling)`, which allocated and sorted an `EdgeRef` vector even though the code only needed an `any()` over incoming edges.
+  - Temporary implementation:
+    - Replaced the `self.incoming_edges(&sibling).into_iter().any(...)` check with direct `self.graph.edges_directed(sibling.node_ix, Direction::Incoming).any(...)` iteration over petgraph edges.
+  - Verification while patched:
+    - `cargo fmt -p query-core --check` initially reported formatting only, then `cargo fmt -p query-core` was run.
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650,create-m2m,create-nested-connectOrCreate-m2one,create-nested-connect,create-nested-create,query-m2o' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-connectOrCreate|update-set-nested|create-m2m|create-nested-create|query-m2o'`
+    - Reversed baseline after restoring the old implementation: `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-connectOrCreate-m2one|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-mixed|create-nested-create|update-set-nested'`
+  - Allocation signal:
+    - `create-nested-connectOrCreate-mixed`: graph_build 874 -> 869 allocations/op; full_compile 2746 -> 2741.
+    - `create-nested-connectOrCreate-one2m`: graph_build 745 -> 743; full_compile 2436 -> 2434.
+    - `update-set-nested`: graph_build 731 -> 727; full_compile 2148 -> 2144.
+    - `create-nested-connectOrCreate-m2one`: graph_build 492 -> 489; full_compile 1444 -> 1441.
+    - `create-m2m`, `create-nested-connect`, `create-nested-create`, `query-m2o`, and `update-set-nested-prisma#27650` were unchanged.
+  - Timing signal:
+    - Patched run improved `create-nested-connectOrCreate-mixed` by about 1.8%, `update-set-nested-prisma#27650` by about 5.7%, `update-set-nested` by about 6.3%, and `query-m2o-lateral` by about 3.0%.
+    - The same patched run regressed `create-nested-connectOrCreate-m2one` by about 3.3%, `create-nested-connectOrCreate-one2m` by about 4.1%, `create-nested-create-with-composite-id` by about 2.2%, and `create-nested-create` by about 3.8%.
+    - Reversed baseline confirmed the risk: the old implementation was faster on `create-nested-connectOrCreate-one2m` (117.46 us vs patched 119.85 us) and `create-nested-create` (60.81 us vs patched 61.81 us). The old `update-set-nested` row was slower (103.15 us vs patched 99.06 us), but that single win does not offset the create/connectOrCreate regressions.
+  - Decision: reverted. Avoiding the sibling `incoming_edges()` allocation is real, but direct petgraph iteration changes enough CPU behavior to hurt several important nested-create/connectOrCreate rows. Do not retry this exact `normalize_if_nodes()` direct incoming-edge scan unless a future change can preserve the create rows.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower. The more radical version is to avoid owning either the input query or SQL string data on the Rust heap except where data becomes true internal IR; treat SQL-string ownership as a related but separate SQL-template/string-handle project.
