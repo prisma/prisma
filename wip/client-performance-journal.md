@@ -3788,6 +3788,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(update-set-nested-prisma#27650|update-set-nested|update-connect|create-nested-connect|create-nested-connectOrCreate-mixed|create-nested-create)$"`
   - Decision: reverted. The allocation win is real but isolated, and it did not translate into a direct Criterion win on the affected fixture. Do not retry this exact `Filter::Empty` selector-fold special case without a closer A/B or a broader explanation for the create-nested-create regression.
 
+- Accepted engines change: avoid singleton selection filter wrappers.
+  - Commit: `4bf96034dd3 Avoid single selection filter wrappers` in `/home/aqrln.guest/prisma-engines`.
+  - Change:
+    - `query_structure::filter::IntoFilter for SelectionResult` now returns a direct scalar filter for one selected scalar instead of collecting a one-element `Vec<Filter>` and wrapping it in `Filter::And`.
+    - `IntoFilter for Vec<SelectionResult>` now has a direct single-result placeholder path and avoids the old `exactly_one().and_then(SelectionResult::as_placeholders)` allocation before building the selector filter.
+    - Empty and multi-field semantics are preserved: empty results still produce an empty `And`, multi-field results still produce `Filter::And`, and non-placeholder selector vectors still fall back to `Filter::Or(ids.map(filter))`.
+  - Allocation profile after the patch:
+    - Broad singleton selector win: `create-nested-connect`, `update-connect`, `create-nested-connectOrCreate-m2one`, `create-nested-connectOrCreate-mixed`, `create-nested-connectOrCreate-one2m`, and `create-nested-create` each dropped one `translate_ir` / `compile_ir` / `full_compile` allocation.
+    - `update-set-nested`: `full_compile` 2166 -> 2165 allocs/op.
+    - `update-set-nested-prisma#27650`: `translate_ir` 996 -> 991, `compile_ir` 1859 -> 1854, `full_compile` 1920 -> 1915; bytes about 216.8 KiB -> 216.2 KiB.
+    - Unchanged sampled controls: `delete-one`, `upsert`, `query-m2o`, and `filter-contains-param`.
+  - Criterion:
+    - First focused run had mixed stale-baseline output: direct wins on `delete-one`, `filter-contains-param`, `update-connect`, `update-set-nested-prisma#27650`, and `upsert`, but a regression on `create-nested-connectOrCreate-one2m` and a suspicious `query-m2o` control regression despite no allocation movement.
+    - Close A/B was then run by reverting and reapplying the exact patch over the same rows.
+    - Close baseline medians: `create-nested-connectOrCreate-one2m` 113.66 us, `query-m2o` 31.10 us, `update-set-nested-prisma#27650` 89.16 us, `delete-one` 14.77 us, `upsert` 33.16 us, `filter-contains-param` 24.12 us, `update-connect` 70.81 us.
+    - Patched rerun medians: `create-nested-connectOrCreate-one2m` 114.39 us, `query-m2o` 31.19 us, `update-set-nested-prisma#27650` 89.54 us, `delete-one` 14.89 us, `upsert` 32.74 us, `filter-contains-param` 23.87 us, `update-connect` 71.08 us.
+    - Close A/B interpretation: rows were within noise overall, with small wins on `upsert` and `filter-contains-param`, and no repeat of the large `query-m2o` regression. The allocation win survived without a material compile-time regression.
+  - Product/Wasm check:
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` passed.
+    - Local-Wasm `caching.bench.ts` stayed in the expected band: findUnique compile 1,689 ops/sec, filtered findMany compile 1,307 ops/sec, blog-page compile 362 ops/sec, blog-page parameterization 540,057 ops/sec, and blog-page cache-key 312,927 ops/sec.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` TypeScript peer lockfile churn, which was reverted.
+  - Verification:
+    - `cargo fmt -p query-structure --check`
+    - `cargo check -p query-structure`
+    - `ALLOC_PROFILE_QUERIES='delete-one,upsert,update-set-nested,update-set-nested-prisma#27650,create-nested-connect,update-connect,create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-create,query-m2o,filter-contains-param' ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(delete-one|upsert|update-set-nested|update-set-nested-prisma#27650|create-nested-connect|update-connect|create-nested-connectOrCreate-m2one|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-create|query-m2o|filter-contains-param)$"`
+    - Close baseline/patched A/B: `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-one2m|query-m2o|update-set-nested-prisma#27650|delete-one|upsert|filter-contains-param|update-connect)$"`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `git diff --check`
+  - Decision: keep. This is the source-level version of the earlier write-filter wrapper idea: it removes singleton selector wrappers broadly, has direct allocation wins in nested writes, and close Criterion/product gates stayed neutral-to-positive.
+
 ## Useful Commands
 
 ```sh
