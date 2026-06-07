@@ -564,12 +564,17 @@ function getFieldsByName(modelOrType: RuntimeModel): Record<string, RuntimeModel
 
 class SerializeContext {
   public readonly modelOrType: RuntimeModel | undefined
+  private readonly fieldsByName: Record<string, RuntimeModel['fields'][number]> | undefined
+
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
       this.modelOrType =
         this.params.runtimeDataModel.models[this.params.modelName] ??
         this.params.runtimeDataModel.types[this.params.modelName]
+      if (this.modelOrType) {
+        this.fieldsByName = getFieldsByName(this.modelOrType)
+      }
     }
   }
 
@@ -641,7 +646,7 @@ class SerializeContext {
   }
 
   findField(name: string) {
-    return this.modelOrType ? getFieldsByName(this.modelOrType)[name] : undefined
+    return this.fieldsByName?.[name]
   }
 
   nestSelection(fieldName: string) {

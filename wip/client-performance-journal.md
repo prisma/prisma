@@ -6538,6 +6538,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The isolated simple serializer row regresses, but it is sub-microsecond and did not translate into a consistent full generated `findUnique` regression. Nested serializer and full generated nested rows improve materially, and Workerd stays within the accepted band.
 
+- Accepted experiment: cache field lookup table on serializer context.
+  - Timestamp: 2026-06-07T17:48:49Z.
+  - Change:
+    - `SerializeContext` now stores the WeakMap-resolved field-name table for its `modelOrType`.
+    - `findField()` reads from the context-local table instead of calling `getFieldsByName()` for every lookup.
+  - Rationale:
+    - The post-field-map profile still showed `getFieldsByName()` at about 0.9% self samples, meaning the WeakMap lookup/helper call was visible during nested serializer traversal.
+    - Each context can resolve the table once at construction and use direct property reads for the several field checks inside that context.
+  - Timing:
+    - Current post-field-map profile refresh before this patch: serializer `findUnique` 0.41 us/op, nested blog-page 3.58 us/op; full generated `findUnique` 5.16 us/op, nested blog-page 18.00 us/op.
+    - First patched serializer-only run: `findUnique` 0.39 us/op, nested blog-page 3.38 us/op.
+    - First patched full generated run: `findUnique` 5.08 us/op, nested blog-page 17.67 us/op.
+    - Exact full-row patched checks: nested blog-page 17.77 us/op, `findUnique` 4.82 us/op.
+    - Workerd high-iteration smoke after build: first point `findUnique` 6.21 us/op, nested blog-page 19.10 us/op; second point `findUnique` 6.16 us/op, nested blog-page 17.85 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The Node serializer and generated nested rows improved, exact simple row stayed in the current band, and the second Workerd point was positive enough to discount the first nested spike as probe noise.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:
