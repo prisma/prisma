@@ -628,7 +628,13 @@ test('interprets compact raw nested read wrapper relations', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
   const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', { $p: ['@parent$id', 'int'] })
-  const tagQuery = templateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const tagQuery = [
+    ['SELECT id, name FROM Tag WHERE id IN ', { type: 'parameter' }, ' AND tenantId = ', { type: 'parameter' }],
+    ['?', false],
+    [{ $p: ['@parent$tagId', 'int'] }, { $p: ['%tenantId', 'int'] }],
+    ['int', 'int'],
+    false,
+  ] satisfies QueryPlanDbQuery
   const plan = [
     'n',
     [
@@ -706,11 +712,11 @@ test('interprets compact raw nested read wrapper relations', async () => {
     },
   }
 
-  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable, scope: { '%tenantId': 7 } })).resolves.toEqual({
     id: 1,
     tags: [{ tag: { id: 10, name: 'Rust' } }, { tag: { id: 11, name: 'Wasm' } }],
   })
-  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11], 7]])
 })
 
 test('interprets compact raw nested read indexed direct relations without scalar key collisions', async () => {

@@ -1175,6 +1175,7 @@ export class QueryInterpreter {
     enums: Record<string, Record<string, string>>,
   ): CompiledRawNestedReadQuery {
     const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
+    const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
 
     return async (context, scope) => {
       const resultSet = await this.#executeRawNestedReadDbQuery(dbQuery, context, scope)
@@ -1187,9 +1188,13 @@ export class QueryInterpreter {
         }
       }
 
-      const childScope = Object.create(scope) as Record<string, unknown>
       const parentColumnIndex = resolveRawResultColumnRef(resultSet.columnNames, relation[3])
-      childScope[relation[5]] = getRawNestedScopeValue(rows, parentColumnIndex)
+      const childScope = createRawNestedRelationScope(
+        scope,
+        relation[5],
+        getRawNestedScopeValue(rows, parentColumnIndex),
+        canUseLocalChildScope,
+      )
       const childResult = await childQuery(context, childScope)
       const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
 

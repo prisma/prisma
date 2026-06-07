@@ -5615,6 +5615,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a product-path raw-nested win that moves the current plan closer to the exact raw-result-set prototype without changing the plan protocol. The fallback test covers the main correctness risk: child queries that still need outer placeholders must inherit parent scope.
 
+- Accepted experiment: local scopes for self-contained raw-nested unique-wrapper child queries.
+  - Timestamp: 2026-06-07T14:56:46Z.
+  - Change:
+    - `QueryInterpreter.#compileRawNestedUniqueWrapperReadQuery()` now uses the same compile-time placeholder analysis as regular raw-nested relations.
+    - If the unique wrapper's child query only needs the wrapper relation placeholder, it uses a one-key local scope instead of `Object.create(parentScope)`.
+    - If the child query still references outer placeholders, it keeps inherited-scope behavior.
+    - Extended wrapper-relation coverage so the specialized wrapper path has to render a child query using both `@parent$tagId` and outer `%tenantId`.
+  - Rationale:
+    - The compiler-emitted blog-page plan uses the exact-wrapper specialization for shapes like `tags: [{ tag: ... }]`. The previous local-scope change improved regular relation scopes, but this specialized wrapper path still allocated inherited prototype scopes for the inner unique child query.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - Workerd probe: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Timing signal:
+    - Patched first run: cached request wrapper 12.03 us/op, direct plan 6.88, raw compact node 6.47, local executor 6.88.
+    - Reverted same-session baseline: cached request wrapper 12.40 us/op, direct plan 8.01, raw compact node 6.43, local executor 8.00.
+    - Patched final run: cached request wrapper 11.00 us/op, direct plan 6.85, raw compact node 6.40, local executor 6.86.
+    - Workerd generated client blog-page warmed-cache host-dispatch upper bound was neutral at 109.97 us/op, effectively the same as the previous 109.93 us/op run and still too coarse for this narrow runtime-path change.
+  - Decision:
+    - Keep. This is a narrow extension of the accepted local-scope optimization to the exact-wrapper path that the product-shaped blog-page plan actually exercises. The direct/local A/B is repeatable and the fallback test covers the key correctness risk.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
