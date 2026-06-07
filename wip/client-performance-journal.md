@@ -4886,6 +4886,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rendered `blog page parameterized / node default warm`: heap 10.35 MiB; rendered 7,000 DB queries.
   - Decision: keep the instrumentation. The executed-plan render cache retains measurable extra heap, but in this run it was only about +0.2 MiB for 1,000 scalar cached plans and about +0.25 to +0.3 MiB for 1,000 blog-page cached plans. That confirms disabling `flatTemplateSqlCache` was not a high-ceiling memory lever; SQL/template ownership and the cached plan shape itself remain larger targets.
 
+- Measurement refresh: current blog-page runtime split after render-cache probe.
+  - Timestamp: 2026-06-07T13:12:50Z.
+  - Command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Key rows:
+    - `blog page nested rows / warmed cache`: 19.31 us/op; after phase warmup: 18.89 us/op.
+    - `cached request wrapper blog page / nested rows`: 18.55 us/op; 100 retained shapes: 19.80 us/op.
+    - `direct plan blog page / nested rows`: 11.61 us/op; after phase warmup: 12.01 us/op; local executor nested rows: 11.92 us/op.
+    - `inner plan blog page / nested rows`: 9.44 us/op.
+    - `precomputed query leaves`: 7.61 us/op; `precomputed join leaves`: 4.50 us/op; `precomputed root join children`: 4.80 us/op.
+    - `render query all leaves`: 1.10 us/op; adapter-only seven result sets: 0.90 us/op; `serializeSql()` seven result sets: 1.76 us/op.
+    - `parameterize blog page`: 2.61 us/op; stringify cache key: 1.60 us/op; cache-hit key: 3.61 us/op.
+    - `compile prebuilt request blog page`: 2129.23 us/op; current miss: 2123.52 us/op.
+  - Interpretation: the current Node/V8 product-shaped nested cache-hit path still leaves most runtime headroom in nested plan interpretation and row-object/join work, not SQL rendering or adapter dispatch. Compile misses remain dominated by Rust/Wasm compiler work rather than JS request construction.
+
 ## Useful Commands
 
 ```sh
