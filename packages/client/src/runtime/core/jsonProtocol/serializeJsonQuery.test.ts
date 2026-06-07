@@ -69,7 +69,6 @@ test('findMany', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -85,7 +84,6 @@ test('create', () => {
       "modelName": "User",
       "action": "createOne",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -100,7 +98,6 @@ test('createMany', () => {
       "modelName": "User",
       "action": "createMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -116,7 +113,6 @@ test('createManyAndReturn', () => {
       "modelName": "User",
       "action": "createManyAndReturn",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -132,7 +128,6 @@ test('updateMany', () => {
       "modelName": "User",
       "action": "updateMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -148,7 +143,6 @@ test('updateManyAndReturn', () => {
       "modelName": "User",
       "action": "updateManyAndReturn",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -164,7 +158,6 @@ test('delete', () => {
       "modelName": "User",
       "action": "deleteOne",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -180,7 +173,6 @@ test('upsert', () => {
       "modelName": "User",
       "action": "upsertOne",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -242,7 +234,6 @@ test('findRaw', () => {
       "modelName": "User",
       "action": "findRaw",
       "query": {
-        "arguments": {},
         "selection": {}
       }
     }"
@@ -276,7 +267,6 @@ test('no args', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -917,12 +907,10 @@ test('1 level include', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true
@@ -942,7 +930,6 @@ test('include with arguments', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
@@ -975,17 +962,14 @@ test('multiple level include', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true,
               "attachments": {
-                "arguments": {},
                 "selection": {
                   "$composites": true,
                   "$scalars": true
@@ -1011,11 +995,9 @@ test('explicit selection', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "title": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true
@@ -1039,14 +1021,11 @@ test('explicit nested selection', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "name": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "attachments": {
-                "arguments": {},
                 "selection": {
                   "fileName": true
                 }
@@ -1071,7 +1050,6 @@ test('explicit nested selection with arguments', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "name": true,
           "posts": {
@@ -1103,16 +1081,13 @@ test('mixed include and select', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "name": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true,
               "attachments": {
-                "arguments": {},
                 "selection": {
                   "$composites": true,
                   "$scalars": true
@@ -1148,7 +1123,6 @@ test('explicit selection with extension', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "id": true,
           "name": true
@@ -1180,7 +1154,6 @@ test('explicit selection shadowing a field', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "id": true,
           "name": true
@@ -1202,7 +1175,6 @@ test('omit', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
@@ -1225,7 +1197,6 @@ test('omit(false)', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
@@ -1248,12 +1219,10 @@ test('omit + include', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true
@@ -1278,12 +1247,10 @@ test('nested omit', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true,
@@ -1318,7 +1285,6 @@ test('exclusion with extension', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -1350,7 +1316,6 @@ test('exclusion with extension while excluding computed field too', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
@@ -1377,7 +1342,6 @@ test('globalOmit', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
@@ -1409,7 +1373,6 @@ test('globalOmit + local omit', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
@@ -1441,7 +1404,6 @@ test('globalOmit + local select', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "name": true
         }
@@ -1467,12 +1429,10 @@ test('nested globalOmit (include)', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true,
@@ -1502,10 +1462,8 @@ test('nested globalOmit (select)', () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true,
@@ -1530,7 +1488,6 @@ test(`Prisma.skip in arguments`, () => {
       "modelName": "User",
       "action": "findMany",
       "query": {
-        "arguments": {},
         "selection": {
           "$composites": true,
           "$scalars": true
@@ -1587,7 +1544,6 @@ test(`Prisma.skip in include`, () => {
           "$composites": true,
           "$scalars": true,
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true
@@ -1618,7 +1574,6 @@ test(`Prisma.skip in select`, () => {
         },
         "selection": {
           "posts": {
-            "arguments": {},
             "selection": {
               "$composites": true,
               "$scalars": true

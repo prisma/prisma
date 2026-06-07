@@ -6374,6 +6374,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The signal is now stronger after the preceding serializer path cleanup, and Workerd moved in the right direction on both generated-client rows. Future retries of previously weak serializer ideas should require similarly fresh profile evidence after intervening changes.
 
+- Accepted experiment: omit empty JSON protocol `arguments`.
+  - Timestamp: 2026-06-07T17:01:58Z.
+  - Change:
+    - `serializeFieldSelection()` now omits the `arguments` property when serialized arguments are empty.
+    - Non-empty `arguments` still appear before `selection` in object insertion order to avoid unnecessary cache-key and snapshot churn.
+    - Raw-tagged argument payloads still force the `arguments` property to preserve raw query behavior.
+    - Updated inline JSON protocol snapshots to reflect omitted empty `arguments`.
+  - Rationale:
+    - `JsonFieldSelection.arguments` is already optional in `packages/json-protocol`, Rust `FieldQuery.arguments` is `Option<IndexMap<...>>`, and the Rust JSON protocol adapter treats `None` as an empty argument list.
+    - Empty `arguments: {}` objects were emitted for every selection-only node. They increased serializer allocation, parameterization traversal, cache-key JSON, and Wasm request size without semantic value.
+  - Timing:
+    - First patched generated-client run: `findUnique` 4.50 us/op, nested blog-page 19.17 us/op, nested heap delta 299.9 KiB.
+    - Same-session reverted control: `findUnique` 4.64 us/op, nested blog-page 19.37 us/op, nested heap delta 312.8 KiB.
+    - Reapplied current-form run after preserving non-empty argument order: `findUnique` 4.73 us/op, nested blog-page 19.51 us/op, nested heap delta 310.8 KiB.
+    - Workerd high-iteration smoke after build: worker-internal generated `findUnique` 6.03 us/op and nested blog-page 17.95 us/op. This is mixed versus the previous accepted 5.96 / 18.30 us/op row, but nested moved in the right direction.
+    - Current-form `caching.bench.ts`:
+      - compile rows: `findUnique` 1,696 ops/sec, filtered `findMany` 1,347 ops/sec, blog-page 362 ops/sec.
+      - parameterization rows: `findUnique` 1,727,922 ops/sec, filtered `findMany` 748,614 ops/sec, `findMany in filter` 817,448 ops/sec, blog-page 692,159 ops/sec.
+      - cache-hit key rows: `findUnique` 969,166 ops/sec, filtered `findMany` 499,926 ops/sec, `findMany in filter` 571,666 ops/sec, blog-page 362,443 ops/sec.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec jest --silent --runTestsByPath src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts --runInBand -u` from `packages/client`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+  - Decision:
+    - Keep. Product-path generated-client timing is noisy/mixed on the simple row, but the protocol shape removes many empty objects, materially improves parameterization benchmarks, reduces request/cache-key JSON for selection-heavy shapes, and improves the Workerd nested generated-client row.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
