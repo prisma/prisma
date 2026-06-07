@@ -6186,6 +6186,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The optional-chaining/direct-global shape is materially worse on both generated-client rows. Keep the existing `this.getTracingHelper()` helper unless a different tracing fast path has stronger evidence.
 
+- Rejected experiment: `PrismaPromise.then()` no-transaction and handler passthrough variants.
+  - Timestamp: 2026-06-07T15:55:36Z.
+  - Change tried:
+    - First added a no-transaction fast path inside `PrismaPromiseImpl.then()` that directly invoked `this.callback()` and cached `this.promise` when neither the call nor the instance had a transaction.
+    - Then tried the smaller cleanup of passing `onFulfilled` / `onRejected` directly to native `Promise.then()` instead of normalizing `null` to `undefined`.
+  - Rationale:
+    - Generated-client profiles still show `then()` / `callbackWithTransaction()` in public API overhead. The common awaited no-transaction query only executes once, so bypassing the helper or dropping handler normalization looked like a possible hot-path cleanup.
+  - Timing:
+    - No-transaction inline patched run: `findUnique` 5.88 us/op, nested blog-page 22.10 us/op.
+    - Same-session baseline: `findUnique` 5.89 us/op, nested blog-page 22.12 us/op.
+    - Direct handler passthrough run: `findUnique` 5.94 us/op, nested blog-page 21.93 us/op.
+  - Decision:
+    - Reverted. The no-transaction inline is pure noise and adds duplicated promise/error handling. Direct handler passthrough is mixed, with a simple `findUnique` regression. Keep the existing prototype-method implementation unchanged.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
