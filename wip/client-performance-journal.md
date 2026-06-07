@@ -5061,6 +5061,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Generated client warmed blog-page cache: 1000/0 hits/misses; host dispatch 121.10 us/op upper bound; 7000 `queryRaw` calls; host heap delta 17.3 KiB.
   - Interpretation: the rebuilt local Wasm is usable in the Workers-like probe again. The retained blog-page plan cache still shows key bytes (~48 KiB per 100 entries) and serialized plan bytes (~363 KiB per 100 entries) as separate memory surfaces; cache-key retention remains a plausible follow-up, but any hash-only key shortcut would need exact collision handling.
 
+- Accepted benchmark instrumentation: query plan cache-key breakdown.
+  - Timestamp: 2026-06-07T14:04:10Z.
+  - Change: `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts` now supports `QUERY_PLAN_CACHE_KEY_BREAKDOWN=1`, which reports retained key count, unique key bytes, common prefix/suffix lengths, a prefix+suffix lower-bound representation, and a trie-character lower-bound representation for the same retained scenarios used by the memory probe.
+  - Rationale: cache-key strings are a visible retained-memory surface, but a safe product change cannot use hash-only keys without exact collision handling. Before implementing a trie or other exact structure, the probe needed to show whether repeated key text is large enough and in the right shape.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts wip/client-performance-journal.md`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg QUERY_PLAN_CACHE_KEY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+  - Measurement signal:
+    - Scalar selection node-default warm: 1000 unique keys, 101.9 KiB total; prefix trie lower bound 47.7 KiB, saving 54.2 KiB (53.2%).
+    - Blog-page node-default warm: 1000 unique keys, 512.2 KiB total; prefix trie lower bound 424.4 KiB, saving 87.8 KiB (17.1%). A theoretical common-prefix+common-suffix representation would be 113.2 KiB and save 399.0 KiB, because the nested relation tail is identical across these generated shapes.
+    - Blog-page parameterized node-default warm: 1000 unique keys, 562.0 KiB total; prefix trie lower bound 429.8 KiB, saving 132.2 KiB (23.5%). The common-prefix+common-suffix lower bound again saves 399.0 KiB.
+    - Edge-default blog-page retained keys: 48.3 KiB unparameterized and 53.3 KiB parameterized for 100 entries. Prefix trie savings were only 5.0 KiB and 7.5 KiB respectively.
+  - Decision: keep the instrumentation, but do not build a prefix-trie `QueryPlanCache` yet. The exact-key memory surface is real, but the edge-default product win from a prefix trie is small and the largest lower-bound win comes from shared suffixes, not prefixes. Any production cache-key change should either target a combined structural key representation with exact collision handling or be folded into the larger JS-reference/Rust-owned-IR design where the key is computed without retaining full JSON strings.
+
 ## Useful Commands
 
 ```sh
@@ -5078,6 +5092,7 @@ pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-p
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
+QUERY_PLAN_CACHE_KEY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts

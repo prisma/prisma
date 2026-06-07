@@ -88,6 +88,19 @@ type PlanSizeBreakdown = {
   topStrings: { value: string; count: number; bytes: number }[]
 }
 
+type CacheKeyBreakdown = {
+  keyCount: number
+  uniqueKeyCount: number
+  totalBytes: number
+  uniqueBytes: number
+  commonPrefixBytes: number
+  commonSuffixBytes: number
+  prefixSuffixBytes: number
+  trieBytes: number
+  commonPrefixSample: string
+  commonSuffixSample: string
+}
+
 type RetainedSize = {
   cacheKeyBytes: number
   planSerializedBytes: number
@@ -264,6 +277,13 @@ function retainedSerializedSize(retainedSizes: RetainedSize[]): RetainedSize {
   return { cacheKeyBytes, planSerializedBytes }
 }
 
+function createScenarioCacheKey(query: JsonQuery, paramGraph: ParamGraph, parameterized: boolean): string {
+  const parameterizedResult = parameterized ? parameterizeQuery(query, paramGraph) : undefined
+  const cacheQuery = parameterizedResult?.parameterizedQuery ?? query
+  const queryPart = JSON.stringify(cacheQuery.query)
+  return getSingleQueryCacheKey(cacheQuery, queryPart)
+}
+
 function compileScenarioQuery(
   compiler: QueryCompiler,
   query: JsonQuery,
@@ -284,6 +304,25 @@ function compileScenarioQuery(
     planSerializedBytes: JSON.stringify(plan).length,
     plan,
   }
+}
+
+function collectRetainedCacheKeys(paramGraph: ParamGraph, scenario: Scenario): string[] {
+  const retainedKeys: string[] = []
+
+  if (scenario.maxSize <= 0) {
+    return retainedKeys
+  }
+
+  for (let i = 0; i < scenario.compileCount; i++) {
+    retainedKeys.push(
+      createScenarioCacheKey(createScenarioQuery(scenario, i), paramGraph, scenario.parameterized === true),
+    )
+    while (retainedKeys.length > scenario.maxSize) {
+      retainedKeys.shift()
+    }
+  }
+
+  return retainedKeys
 }
 
 function measureScenario(
@@ -848,6 +887,144 @@ function printPlanSizeBreakdown(label: string, plan: QueryPlanNode): void {
   }
 }
 
+function collectCacheKeyBreakdown(keys: string[]): CacheKeyBreakdown {
+  const totalBytes = keys.reduce((total, key) => total + key.length, 0)
+  const uniqueKeys = new Set(keys)
+  let uniqueBytes = 0
+  for (const key of uniqueKeys) {
+    uniqueBytes += key.length
+  }
+
+  const commonPrefixBytes = commonPrefixLength(keys)
+  const commonSuffixBytes = commonSuffixLength(keys, commonPrefixBytes)
+  const prefixSuffixBytes =
+    keys.length === 0
+      ? 0
+      : commonPrefixBytes +
+        commonSuffixBytes +
+        keys.reduce((total, key) => total + key.length - commonPrefixBytes - commonSuffixBytes, 0)
+  const trieBytes = countTrieBytes(keys)
+
+  return {
+    keyCount: keys.length,
+    uniqueKeyCount: uniqueKeys.size,
+    totalBytes,
+    uniqueBytes,
+    commonPrefixBytes,
+    commonSuffixBytes,
+    prefixSuffixBytes,
+    trieBytes,
+    commonPrefixSample: keys[0]?.slice(0, commonPrefixBytes) ?? '',
+    commonSuffixSample: commonSuffixBytes === 0 ? '' : (keys[0]?.slice(-commonSuffixBytes) ?? ''),
+  }
+}
+
+function commonPrefixLength(values: string[]): number {
+  if (values.length === 0) {
+    return 0
+  }
+
+  const first = values[0]
+  let end = first.length
+  for (let i = 1; i < values.length; i++) {
+    const value = values[i]
+    end = Math.min(end, value.length)
+    let index = 0
+    while (index < end && first.charCodeAt(index) === value.charCodeAt(index)) {
+      index++
+    }
+    end = index
+    if (end === 0) {
+      break
+    }
+  }
+  return end
+}
+
+function commonSuffixLength(values: string[], commonPrefixBytes: number): number {
+  if (values.length === 0) {
+    return 0
+  }
+
+  const first = values[0]
+  let end = first.length - commonPrefixBytes
+  for (let i = 1; i < values.length; i++) {
+    const value = values[i]
+    end = Math.min(end, value.length - commonPrefixBytes)
+    let index = 0
+    while (index < end && first.charCodeAt(first.length - 1 - index) === value.charCodeAt(value.length - 1 - index)) {
+      index++
+    }
+    end = index
+    if (end === 0) {
+      break
+    }
+  }
+  return end
+}
+
+function countTrieBytes(keys: string[]): number {
+  type TrieNode = Map<number, TrieNode>
+
+  const root: TrieNode = new Map()
+  let bytes = 0
+
+  for (const key of keys) {
+    let node = root
+    for (let i = 0; i < key.length; i++) {
+      const code = key.charCodeAt(i)
+      let child = node.get(code)
+      if (child === undefined) {
+        child = new Map()
+        node.set(code, child)
+        bytes++
+      }
+      node = child
+    }
+  }
+
+  return bytes
+}
+
+function printCacheKeyBreakdown(scenario: Scenario, keys: string[]): void {
+  const breakdown = collectCacheKeyBreakdown(keys)
+  const prefixSuffixSavings = breakdown.totalBytes - breakdown.prefixSuffixBytes
+  const trieSavings = breakdown.totalBytes - breakdown.trieBytes
+
+  console.log(`${scenario.name} cache-key breakdown`)
+  console.log(
+    [
+      `keys=${breakdown.keyCount}`,
+      `unique=${breakdown.uniqueKeyCount}`,
+      `total=${formatBytes(breakdown.totalBytes)}`,
+      `uniqueTotal=${formatBytes(breakdown.uniqueBytes)}`,
+      `commonPrefix=${formatBytes(breakdown.commonPrefixBytes)}`,
+      `commonSuffix=${formatBytes(breakdown.commonSuffixBytes)}`,
+      `prefixSuffixBytes=${formatBytes(breakdown.prefixSuffixBytes)}`,
+      `prefixSuffixSavings=${formatBytes(prefixSuffixSavings)}`,
+      `trieBytes=${formatBytes(breakdown.trieBytes)}`,
+      `trieSavings=${formatBytes(trieSavings)}`,
+      `trieSavingsShare=${breakdown.totalBytes === 0 ? '0.0%' : `${((trieSavings / breakdown.totalBytes) * 100).toFixed(1)}%`}`,
+    ].join(' | '),
+  )
+
+  if (breakdown.commonPrefixSample.length > 0) {
+    const prefix =
+      breakdown.commonPrefixSample.length > 120
+        ? `${breakdown.commonPrefixSample.slice(0, 117)}...`
+        : breakdown.commonPrefixSample
+    console.log(`  commonPrefixSample=${JSON.stringify(prefix)}`)
+  }
+
+  if (breakdown.commonSuffixSample.length > 0) {
+    const suffix =
+      breakdown.commonSuffixSample.length > 120
+        ? `...${breakdown.commonSuffixSample.slice(-(120 - 3))}`
+        : breakdown.commonSuffixSample
+    console.log(`  commonSuffixSample=${JSON.stringify(suffix)}`)
+  }
+}
+
 async function main(): Promise<void> {
   const dmmf = await getDMMF({ datamodel: BENCHMARK_DATAMODEL })
   const paramGraphData = buildParamGraph(dmmf)
@@ -919,6 +1096,16 @@ async function main(): Promise<void> {
       parameterized: true,
     },
   ]
+
+  if (process.env.QUERY_PLAN_CACHE_KEY_BREAKDOWN === '1') {
+    for (const scenario of scenarios) {
+      if (scenario.maxSize > 0) {
+        printCacheKeyBreakdown(scenario, collectRetainedCacheKeys(paramGraph, scenario))
+      }
+    }
+    compiler.free?.()
+    return
+  }
 
   for (const scenario of scenarios) {
     printMeasurement(measureScenario(compiler, paramGraph, scenario, { renderPlans }))
