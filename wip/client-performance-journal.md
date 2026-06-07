@@ -5899,6 +5899,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The source A/B is positive on both generated-client rows, and the Workerd smoke did not show a material regression. Treat this as a public-API/request-wrapper cleanup, not as a proven edge-runtime win.
 
+- Rejected experiment: root already-deserialized result fast path in RequestHandler.
+  - Timestamp: 2026-06-07T15:16:35Z.
+  - Change tried:
+    - First changed `unpack()` to use `data[operation]` instead of `Object.values(data)[0]` and to skip `dataPath.filter(...)` / `deepGet()` when `dataPath.length === 0`.
+    - Then added a `mapQueryEngineResult()` fast path for local JS results where `response[queryEngineResultDataWasDeserialized] === true`, `dataPath.length === 0`, and `unpacker === undefined`, returning the root operation payload without calling `unpack()`.
+  - Timing signal:
+    - `unpack()`-only pair: baseline `findUnique` 12.08 us/op and nested blog-page 36.65 us/op; patched `findUnique` 12.05 us/op and nested blog-page 36.80 us/op.
+    - Direct `mapQueryEngineResult()` fast-path pair: baseline `findUnique` 12.06 us/op and nested blog-page 37.19 us/op; patched `findUnique` 12.20 us/op and nested blog-page 38.75 us/op.
+  - Decision:
+    - Reverted. The profile showed result unpacking, but the added branches/object-key work did not improve the product path and the direct fast path made nested generated-client execution worse.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
