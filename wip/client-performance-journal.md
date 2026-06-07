@@ -3969,6 +3969,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
   - Decision: keep. The retained state is constant-size on `ParamGraph`, the close Benchmark.js cache-hit-key rows improved across all sampled query shapes, and Workerd stayed in the expected band.
 
+- Rejected experiment: check boolean selection values before sentinel selection keys.
+  - Hypothesis: `parameterize.ts` selection traversal sees many scalar selections as `boolean` values, so changing the guard from `key !== '$scalars' && key !== '$composites' && typeof value !== 'boolean'` to `typeof value !== 'boolean' && ...` might skip two string comparisons for common scalar fields.
+  - Focused test while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize` passed.
+  - Ad hoc `client-engine-cache-timing.ts` signal was mixed:
+    - Patched: `findUnique` parameterize/cache-hit-key 0.84/1.34 us/op, `findMany` 0.33/0.85, blog-page 3.27/5.06, blog-page warmed cache after phase warmup 24.98.
+    - Close reversed baseline: `findUnique` 1.64/1.33, `findMany` 0.42/0.82, blog-page 3.50/5.25, blog-page warmed cache after phase warmup 25.51.
+    - Interpretation: isolated parameterization moved in the intended direction, but combined cache-key/simple product rows were flat-to-worse enough to require the Benchmark.js gate.
+  - Close `caching.bench.ts` rejected it:
+    - Baseline: parameterize findUnique 1,734,873 ops/sec, findMany 752,213, findMany in filter 833,075, blog-page 704,100; cache-hit-key findUnique 982,941, findMany 508,057, findMany in filter 578,992, blog-page 367,787.
+    - Patched: parameterize findUnique 1,722,769 ops/sec, findMany 736,329, findMany in filter 816,222, blog-page 675,254; cache-hit-key findUnique 923,371, findMany 492,166, findMany in filter 560,792, blog-page 364,338.
+  - Decision: reverted. The current string-sentinel-first guard is better on the close Benchmark.js suite, despite the tempting scalar-boolean intuition.
+
 ## Useful Commands
 
 ```sh
