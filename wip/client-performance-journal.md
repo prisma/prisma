@@ -4028,6 +4028,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Current per-op `full_compile` allocation counts/bytes: `query-m2o` 623 allocs / 91.9 KiB, `query-many-m2m` 803 / 98.1 KiB, `nested-pagination-query` 623 / 78.4 KiB, `create-nested-create` 1299 / 156.5 KiB, `update-set-nested` 2165 / 268.2 KiB.
     - The largest allocation phases remain `graph_build` and `translate_ir`, especially nested writes. This supports keeping future Rust allocation work focused on graph/translation data ownership, not shallow request JSON conversion.
 
+- Rejected experiment: store `Pagination.cursor` as a vector of pairs instead of a `HashMap`.
+  - Hypothesis: in-memory pagination cursors are usually tiny. Replacing `Pagination.cursor: Option<HashMap<String, PrismaValue>>` with `Option<Vec<(String, PrismaValue)>>` and serializing that vector as a map could avoid hash-map overhead while preserving the JS-visible query-plan shape.
+  - Temporary change:
+    - `query-compiler/query-compiler/src/expression.rs` stored the cursor as a vector and added a small `Serialize` wrapper that emitted object-map entries.
+    - `translate/query/read/in_memory_processing.rs::extract_pagination()` collected cursor pairs into `Vec<_>`.
+  - Focused checks while patched:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+  - Allocation signal was real but only byte-level:
+    - `nested-pagination-query` `full_compile` allocated bytes dropped 78.4 KiB -> 78.2 KiB with the same 623 allocs/op.
+    - `query-m2o` `full_compile` allocated bytes dropped 91.9 KiB -> 91.7 KiB with the same 623 allocs/op.
+    - `update-set-nested` `full_compile` allocated bytes dropped 268.2 KiB -> 265.5 KiB with the same 2165 allocs/op.
+  - Criterion was mixed and rejected it:
+    - First patched focused run: `nested-pagination-query` and `query-m2o-lateral` no change, `query-m2o` improved ~6.8%, `update-set-nested-prisma#27650` no change, `update-set-nested` improved ~1.8%.
+    - Close reversed baseline was noisy and included its own unrelated improvements/regressions against Criterion's saved baseline.
+    - Final patched run: `nested-pagination-query` no change, `query-m2o-lateral` within noise, `query-m2o` regressed ~2.1%, `update-set-nested-prisma#27650` regressed ~4.1%, and `update-set-nested` improved ~2.2%.
+  - Decision: reverted. The byte-allocation reduction is not worth mixed compile timing, especially with a regression on `update-set-nested-prisma#27650`.
+
 ## Useful Commands
 
 ```sh
