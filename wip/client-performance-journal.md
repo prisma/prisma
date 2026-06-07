@@ -6511,6 +6511,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. Nested serializer work remains a material generated-client target, while simple scalar serialization is already small; future serializer work should be judged primarily against nested explicit-selection rows and Workerd, not just simple `findUnique`.
 
+- Accepted experiment: cache serializer field lookup by runtime model.
+  - Timestamp: 2026-06-07T17:42:17Z.
+  - Change:
+    - In `packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`, added a module-level `WeakMap<RuntimeModel, Record<string, RuntimeModel['fields'][number]>>`.
+    - `SerializeContext.findField()` now uses that cached table instead of scanning `modelOrType.fields` on every lookup.
+  - Rationale:
+    - Earlier field-map attempts were rejected because they helped nested rows while repeatedly regressing simple generated `findUnique`.
+    - The new `generated client serialize ...` row gives a narrower signal: simple serializer cost is already tiny, while nested serializer cost is still material.
+  - Timing:
+    - Isolated serializer first patched run: `findUnique` 0.40 us/op, nested blog-page 3.51 us/op.
+    - Full generated first patched run: `findUnique` 4.87 us/op, nested blog-page 18.05 us/op.
+    - Same-session reverted control: serializer `findUnique` 0.32 us/op, nested blog-page 4.24 us/op; full generated `findUnique` 4.95 us/op, nested blog-page 19.33 us/op.
+    - Reapplied patched confirmation: serializer `findUnique` 0.40 us/op, nested blog-page 3.55 us/op; full generated `findUnique` 4.99 us/op, nested blog-page 18.58 us/op.
+    - Exact full-row patched checks: nested blog-page 18.14 us/op, `findUnique` 4.81 us/op.
+    - Workerd high-iteration smoke after build: worker-internal generated `findUnique` 6.21 / 6.16 us/op and nested blog-page 18.20 / 18.05 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The isolated simple serializer row regresses, but it is sub-microsecond and did not translate into a consistent full generated `findUnique` regression. Nested serializer and full generated nested rows improve materially, and Workerd stays within the accepted band.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:

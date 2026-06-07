@@ -80,6 +80,7 @@ export type SerializeParams = {
 
 const STRICT_UNDEFINED_ERROR_MESSAGE = 'explicitly `undefined` values are not allowed'
 const EMPTY_ARGS: JsArgs = {}
+const fieldsByModel = new WeakMap<RuntimeModel, Record<string, RuntimeModel['fields'][number]>>()
 
 export function serializeJsonQuery({
   modelName,
@@ -547,6 +548,20 @@ function pathToArray(path: PathNode | undefined): string[] {
   return result
 }
 
+function getFieldsByName(modelOrType: RuntimeModel): Record<string, RuntimeModel['fields'][number]> {
+  let fieldsByName = fieldsByModel.get(modelOrType)
+  if (fieldsByName) {
+    return fieldsByName
+  }
+
+  fieldsByName = Object.create(null) as Record<string, RuntimeModel['fields'][number]>
+  for (const field of modelOrType.fields) {
+    fieldsByName[field.name] = field
+  }
+  fieldsByModel.set(modelOrType, fieldsByName)
+  return fieldsByName
+}
+
 class SerializeContext {
   public readonly modelOrType: RuntimeModel | undefined
   constructor(private params: ContextParams) {
@@ -626,7 +641,7 @@ class SerializeContext {
   }
 
   findField(name: string) {
-    return this.modelOrType?.fields.find((field) => field.name === name)
+    return this.modelOrType ? getFieldsByName(this.modelOrType)[name] : undefined
   }
 
   nestSelection(fieldName: string) {
