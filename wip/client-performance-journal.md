@@ -5780,6 +5780,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is the largest generated-client public API win since caching model action proxy properties, and it directly lowers allocation-heavy serialization work in both Node/V8 and the Workerd smoke.
 
+- Accepted experiment: primitive argument serialization fast path.
+  - Timestamp: 2026-06-07T13:55:48Z.
+  - Change:
+    - `serializeArgumentsObject()` and `serializeArgumentsArray()` now serialize `null`, primitive scalar values, and bigint arguments without first allocating nested `SerializeContext` instances and argument path arrays.
+    - Object/array recursion, strict-undefined errors, invalid value errors, and special tagged values still allocate nested contexts when the path is needed.
+  - Rationale:
+    - After lazy selection contexts, generated-client profiles still showed `nestArgument()` and argument serialization on the simple `findUnique` path. The common value-churn cache-hit shape has primitive values such as `where.id`, `take`, and `orderBy.createdAt`, where successful serialization does not need a validation path.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 15.65 us/op, nested blog-page 39.96 us/op.
+    - Same-session reverted baseline: `findUnique` 15.74 us/op, nested blog-page 41.26 us/op.
+    - Reapplied patched runs: `findUnique` 16.06 then 15.35 us/op, nested blog-page 40.84 then 40.86 us/op.
+    - Final patched verification run after build: `findUnique` 15.77 us/op, nested blog-page 40.68 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: `findUnique` 16.43 us/op and nested blog-page 34.96 us/op host upper bounds, slightly improving from the previous 16.96/35.24 us/op smoke.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The simple generated-client row is noisier than the nested row, but this removes avoidable successful-serialization allocations, improves the nested product-shaped row, and keeps the Workerd generated-client smoke moving down.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

@@ -374,13 +374,28 @@ function serializeArgumentsObject(
   const result: Record<string, JsonArgumentValue> = {}
   for (const key in object) {
     const value = object[key]
-    const nestedContext = context.nestArgument(key)
     if (isSkip(value)) {
       continue
     }
     if (value !== undefined) {
+      if (value === null) {
+        result[key] = null
+        continue
+      }
+
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        result[key] = value
+        continue
+      }
+      if (typeof value === 'bigint') {
+        result[key] = { $type: 'BigInt', value: String(value) }
+        continue
+      }
+
+      const nestedContext = context.nestArgument(key)
       result[key] = serializeArgumentsValue(value, nestedContext)
     } else if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
+      const nestedContext = context.nestArgument(key)
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
         argumentPath: nestedContext.getArgumentPath(),
@@ -396,9 +411,9 @@ function serializeArgumentsObject(
 function serializeArgumentsArray(array: JsInputValue[], context: SerializeContext): JsonArgumentValue[] {
   const result: JsonArgumentValue[] = []
   for (let i = 0; i < array.length; i++) {
-    const itemContext = context.nestArgument(String(i))
     const value = array[i]
     if (value === undefined || isSkip(value)) {
+      const itemContext = context.nestArgument(String(i))
       const valueName = value === undefined ? 'undefined' : `Prisma.skip`
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
@@ -411,6 +426,22 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
         underlyingError: `Can not use \`${valueName}\` value within array. Use \`null\` or filter out \`${valueName}\` values`,
       })
     }
+
+    if (value === null) {
+      result.push(null)
+      continue
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      result.push(value)
+      continue
+    }
+    if (typeof value === 'bigint') {
+      result.push({ $type: 'BigInt', value: String(value) })
+      continue
+    }
+
+    const itemContext = context.nestArgument(String(i))
     result.push(serializeArgumentsValue(value, itemContext))
   }
   return result
