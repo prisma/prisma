@@ -713,6 +713,30 @@ function mapValue(
   return mapScalarValue(value, columnName, getScalarTypeName(scalarType), scalarType, enums, resultFormat)
 }
 
+export function mapRawFieldValue(
+  value: unknown,
+  columnName: string,
+  scalarType: FieldType,
+  enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat = 'jsonProtocol',
+): unknown {
+  const isList = isListField(scalarType)
+  if (value === null) {
+    return isList ? [] : null
+  }
+
+  if (isList) {
+    const values = value as unknown[]
+    const result = new Array<unknown>(values.length)
+    for (let i = 0; i < values.length; i++) {
+      result[i] = mapValue(values[i], `${columnName}[${i}]`, scalarType, enums, resultFormat)
+    }
+    return result
+  }
+
+  return mapValue(value, columnName, scalarType, enums, resultFormat)
+}
+
 function mapScalarValue(
   value: unknown,
   columnName: string,

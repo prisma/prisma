@@ -466,6 +466,44 @@ test('interprets compact raw nested read many-to-many relations', async () => {
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
 })
 
+test('interprets compact raw nested read scalar conversion metadata', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper, resultFormat: 'js' })
+  const rootQuery = templateQuery('SELECT createdAt, count FROM Post WHERE id = ', 1)
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [
+        ['createdAt', 0, 'D'],
+        [['_count', 'comments'], 1, 'i'],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw() {
+      return Promise.resolve({
+        columnNames: ['createdAt', 'count'],
+        columnTypes: [ColumnTypeEnum.DateTime, ColumnTypeEnum.Int32],
+        rows: [['2024-01-01T00:00:00.000', '2']],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
+    createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    _count: {
+      comments: 2,
+    },
+  })
+})
+
 test('joins single strict keys without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {

@@ -854,6 +854,18 @@ function collectDbQueriesInCompactJoins(joins: CompactJoinExpression[], dbQuerie
   }
 }
 
+function collectDbQueriesInRawNestedRead(query: RawNestedReadQuery, dbQueries: QueryPlanDbQuery[]): void {
+  dbQueries.push(query[0])
+  for (const relation of query[2] ?? []) {
+    if (relation[0] === 'r') {
+      collectDbQueriesInRawNestedRead(relation[2], dbQueries)
+    } else {
+      dbQueries.push(relation[2])
+      collectDbQueriesInRawNestedRead(relation[3], dbQueries)
+    }
+  }
+}
+
 function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanDbQuery[]): void {
   if (plan === undefined) {
     return
@@ -882,6 +894,10 @@ function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanD
       case 'j':
         collectDbQueries(plan[1], dbQueries)
         collectDbQueriesInCompactJoins(plan[2] as CompactJoinExpression[], dbQueries)
+        return
+
+      case 'n':
+        collectDbQueriesInRawNestedRead(plan[1], dbQueries)
         return
 
       case 'V':
@@ -1003,6 +1019,10 @@ function findFirstDbQueryInCompactJoins(joins: CompactJoinExpression[]): QueryPl
   return undefined
 }
 
+function findFirstDbQueryInRawNestedRead(query: RawNestedReadQuery): QueryPlanDbQuery {
+  return query[0]
+}
+
 function findFirstDbQuery(plan: QueryPlanNode | undefined): QueryPlanDbQuery | undefined {
   if (plan === undefined) {
     return undefined
@@ -1025,6 +1045,9 @@ function findFirstDbQuery(plan: QueryPlanNode | undefined): QueryPlanDbQuery | u
 
       case 'j':
         return findFirstDbQuery(plan[1]) ?? findFirstDbQueryInCompactJoins(plan[2] as CompactJoinExpression[])
+
+      case 'n':
+        return findFirstDbQueryInRawNestedRead(plan[1])
 
       case 'V':
         return findFirstDbQuery(plan[1])
@@ -1141,6 +1164,18 @@ function isObjectResultNode(structure: ResultNode): boolean {
 
 function isCompactPlanNode(plan: QueryPlanNode): plan is QueryPlanCompactNode {
   return Array.isArray(plan)
+}
+
+function isRawNestedReadPlan(plan: QueryPlanNode): boolean {
+  return isCompactPlanNode(plan) && plan[0] === 'n'
+}
+
+function scenarioCompilesToRawNestedRead(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): boolean {
+  return isRawNestedReadPlan(compileDirectPlan(compiler, paramGraph, scenario.query).plan)
 }
 
 function replaceQueryLeavesWithPrecomputedGetters(plan: QueryPlanNode, state: { index: number }): QueryPlanNode {
@@ -3950,6 +3985,9 @@ async function main(): Promise<void> {
       if (!shouldRunMeasurement(measuredScenario.name)) {
         continue
       }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
+        continue
+      }
       printPlanPhaseMeasurement(await measurePrecomputedQueryLeavesScenario(compiler, paramGraph, measuredScenario))
     }
 
@@ -3959,6 +3997,9 @@ async function main(): Promise<void> {
         name: scenario.name.replace('direct plan', 'precomputed join leaves'),
       }
       if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
         continue
       }
       printPlanPhaseMeasurement(await measurePrecomputedJoinLeavesScenario(compiler, paramGraph, measuredScenario))
@@ -3972,6 +4013,9 @@ async function main(): Promise<void> {
       if (!shouldRunMeasurement(measuredScenario.name)) {
         continue
       }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
+        continue
+      }
       printPlanPhaseMeasurement(
         await measurePrecomputedRootJoinChildrenScenario(compiler, paramGraph, measuredScenario),
       )
@@ -3983,6 +4027,9 @@ async function main(): Promise<void> {
         name: scenario.name.replace('direct plan', 'precomputed root join child branch'),
       }
       if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
         continue
       }
       const measurements = await measurePrecomputedRootJoinChildBranchScenarios(compiler, paramGraph, measuredScenario)
@@ -3999,6 +4046,9 @@ async function main(): Promise<void> {
       if (!shouldRunMeasurement(measuredScenario.name)) {
         continue
       }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
+        continue
+      }
       printDirectPlanMeasurement(await measureInnerPlanScenario(compiler, paramGraph, measuredScenario))
     }
 
@@ -4010,6 +4060,9 @@ async function main(): Promise<void> {
       if (!shouldRunMeasurement(measuredScenario.name)) {
         continue
       }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
+        continue
+      }
       printPlanPhaseMeasurement(await measureOuterDataMapScenario(compiler, paramGraph, measuredScenario))
     }
 
@@ -4019,6 +4072,9 @@ async function main(): Promise<void> {
         name: scenario.name.replace('direct plan', 'interpreter get precomputed'),
       }
       if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
         continue
       }
       printPlanPhaseMeasurement(await measureInterpreterGetPrecomputedScenario(compiler, paramGraph, measuredScenario))
@@ -4043,6 +4099,9 @@ async function main(): Promise<void> {
       if (!shouldRunMeasurement(measuredScenario.name)) {
         continue
       }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
+        continue
+      }
       printPlanPhaseMeasurement(
         await measureInterpreterDataMapPrecomputedScenario(compiler, paramGraph, measuredScenario),
       )
@@ -4054,6 +4113,9 @@ async function main(): Promise<void> {
         name: scenario.name.replace('direct plan', 'manual inner+outer'),
       }
       if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      if (scenarioCompilesToRawNestedRead(compiler, paramGraph, scenario)) {
         continue
       }
       printDirectPlanMeasurement(await measureManualInnerOuterDataMapScenario(compiler, paramGraph, measuredScenario))
