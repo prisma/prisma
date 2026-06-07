@@ -123,6 +123,18 @@ export class RequestHandler {
         }
       },
 
+      canBatch: (request) => {
+        if (request.transaction?.kind === 'itx') {
+          return true
+        }
+
+        if (request.transaction?.id) {
+          return true
+        }
+
+        return request.protocolQuery.action === 'findUnique' || request.protocolQuery.action === 'findUniqueOrThrow'
+      },
+
       batchBy: (request) => {
         // If the request is part of an interactive transaction, we want to group all requests with the same
         // protocolQuery together to take advantage of automatic batching in the engine.

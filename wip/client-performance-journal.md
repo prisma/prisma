@@ -6084,6 +6084,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Do not pursue another relation-attachment-only micro-spike from this profile. The remaining exact-prototype gap likely needs a generated/exact-shape executor or a higher-level plan-shape change that removes several generic raw-nested phases together.
 
+- Accepted experiment: defer structural batch-key computation for single batchable requests.
+  - Timestamp: 2026-06-07T15:23:48Z.
+  - Change:
+    - Added an optional cheap `canBatch` predicate to `DataLoader`.
+    - `RequestHandler` marks transactions and `findUnique` / `findUniqueOrThrow` requests as batch candidates without immediately calling `getBatchId()`.
+    - Candidate requests still wait until the microtask boundary so same-turn batching semantics are preserved.
+    - At dispatch, a single candidate goes straight to `singleLoader` without computing a structural batch key; multiple candidates compute the real `batchBy` keys and group exactly as before.
+  - Rationale:
+    - Generated-client cache-hit profiles showed `buildKeysString()` / `getBatchId()` as the largest remaining public-API frame for single `findUnique` requests. The old path paid the full recursive sorted selection-key cost even when dispatch later saw a one-request batch and fell back to `singleLoader`.
+  - Tests:
+    - Added `DataLoader.test.ts` coverage proving a single deferred candidate never calls `batchBy`, while multiple same-turn candidates do call `batchBy` and batch.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/DataLoader.ts packages/client/src/runtime/DataLoader.test.ts packages/client/src/runtime/RequestHandler.ts`
+    - `pnpm exec eslint packages/client/src/runtime/DataLoader.ts packages/client/src/runtime/DataLoader.test.ts packages/client/src/runtime/RequestHandler.ts` (exit 0; existing unsafe-`any` warnings remain).
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/DataLoader.test.ts packages/client/src/runtime/RequestHandler.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Timing:
+    - First patched generated-client run: `findUnique` 6.59 us/op, nested blog-page 24.20 us/op.
+    - Same-session reverted baseline: `findUnique` 9.10 us/op, nested blog-page 32.63 us/op.
+    - Reapplied patched run: `findUnique` 6.77 us/op, nested blog-page 24.18 us/op.
+    - Workerd generated-client smoke after rebuild:
+      - host upper bounds: `findUnique` 8.75 us/op, nested blog-page 24.70 us/op.
+      - worker-internal request loop: `findUnique` 6.85 us/op, nested blog-page 21.90 us/op.
+  - Decision:
+    - Keep. This removes a large wasted cache-hit cost while preserving same-turn batching behavior for real multi-request batches.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
