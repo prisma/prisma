@@ -4385,6 +4385,60 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Retained plan/key sizes are unchanged, as expected: the serializer patches affect runtime row-object materialization, not compiled plan serialization or cache retention.
     - The radical JS-owned query / Rust-owned IR architecture lead remains the higher-ceiling cache-hit path: pass the query object by reference, parameterize and check the structural cache before materializing Rust-owned request maps, and return cached JS plan objects on hits. Avoiding Rust-owned SQL strings should be treated as a separate SQL-template/string-handle project with its own proof point.
 
+- Accepted engines change: fast-path contained `FieldSelection::merge()` calls.
+  - Timestamp: 2026-06-07T03:58:52Z.
+  - Engines commit: `87c6a6f6df0 Fast-path contained field selection merges`.
+  - Hypothesis: graph build repeatedly merges primary identifiers, linking fields, cursor fields, and selected fields. `FieldSelection::merge()` always fell through to `itertools::unique()`, allocating a uniqueness set even when the RHS was empty, the LHS was empty, or all RHS selections were already present in the LHS. Fast paths for those cases should remove common graph-build allocations without changing selection order.
+  - Implementation:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field_selection.rs`, `FieldSelection::merge(self, other)` now returns early when `other` is empty, `self` is empty, or every `other` selection is already contained in `self`.
+    - The general merge still uses the existing `self.selections.into_iter().chain(other.selections).unique().collect()` path.
+  - Allocation profile before -> after on sampled rows:
+    - `create-nested-connectOrCreate-mixed`: full compile 2767 allocations / 340.5 KiB -> 2746 / 320.8 KiB; graph build 895 / 159.9 KiB -> 874 / 140.1 KiB.
+    - `create-nested-connectOrCreate-one2m`: 2453 / 291.8 KiB -> 2436 / 277.2 KiB.
+    - `update-set-nested`: 2160 / 264.9 KiB -> 2148 / 253.5 KiB.
+    - `update-set-nested-prisma#27650`: 1910 / 212.9 KiB -> 1908 / 210.3 KiB.
+    - `create-m2m`: 1705 / 201.4 KiB -> 1695 / 192.6 KiB.
+    - `create-nested-connectOrCreate-m2one`: 1458 / 187.1 KiB -> 1444 / 173.2 KiB.
+    - `create-nested-connect`: 1433 / 164.9 KiB -> 1423 / 156.1 KiB.
+    - `create-nested-create`: 1297 / 155.2 KiB -> 1287 / 146.4 KiB.
+    - `query-many-m2m`: 803 / 98.1 KiB -> 794 / 89.7 KiB.
+    - `query-m2o`: 623 / 91.9 KiB -> 613 / 80.9 KiB.
+  - Focused Criterion after the patch:
+    - `create-m2m`: 76.51-76.86 us, change -0.57%, within noise.
+    - `create-nested-connectOrCreate-m2one`: 66.99-67.15 us, change -0.74%, within noise.
+    - `create-nested-connectOrCreate-mixed`: 129.29-129.59 us, change -1.81%, improved.
+    - `create-nested-connectOrCreate-one2m`: 115.10-117.09 us, change -2.18%, improved.
+    - `create-nested-create-with-composite-id`: 58.87-59.24 us, change -1.45%, within noise.
+    - `create-nested-create`: 59.30-59.41 us, change -1.00%, within noise.
+    - `nested-pagination-join`: 32.60-32.64 us, no change.
+    - `query-m2o-lateral`: 29.20-29.84 us, change -3.29%, improved.
+    - `query-m2o`: 28.74-28.79 us, change -5.13%, improved.
+    - `query-many-m2m`: 34.05-34.17 us, change -5.02%, improved.
+    - `update-set-nested-prisma#27650`: 88.28-88.50 us, change -1.99%, improved.
+    - `update-set-nested`: 98.57-99.24 us, no change.
+  - Rust verification:
+    - `cargo fmt -p query-structure --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-connectOrCreate|update-set-nested|create-m2m|create-nested-create|query-m2o|query-many-m2m|nested-pagination-join'`
+  - Wasm/product refresh:
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` passed in `/home/aqrln.guest/prisma-engines`.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` updated the local package in `node_modules`; the only lockfile diff was unrelated `@ark/attest` TypeScript peer-resolution churn, so it was reverted and Prisma repo remained clean before journal updates.
+    - `pnpm --filter @prisma/client build` passed after the local Wasm refresh.
+    - Workerd probe after rebuild:
+      - Cold smoke compile: host dispatch 211.4 ms, compiler init 65.0 ms, compile loop 45.0 ms.
+      - Retained scalar plan cache: host dispatch 589.48 us/op, compile loop 56.0 ms, 7.6 KiB keys, 24.1 KiB plans.
+      - Retained blog-page plan cache: host dispatch 3818.86 us/op, compile loop 378.0 ms, 48.3 KiB keys, 394.8 KiB plans.
+      - `client-cache findUnique`: host dispatch 63.83 us/op, 99/1 hits/miss.
+      - `client-cache blog-page`: host dispatch 80.48 us/op, 99/1 hits/miss.
+      - `generated client findUnique warmed cache`: host dispatch upper bound 63.58 us/op, 5,000/0 hits/misses.
+      - `generated client blog-page warmed cache`: host dispatch upper bound 117.75 us/op, 1,000/0 hits/misses.
+  - Rejected side spikes during this pass:
+    - `Selection::dedup()` no-name-clone scan: replaced `unique_by(|s| s.name.clone())` with a small scan that avoids cloned keys. Allocation profile over connect-or-create, update-set, create, and read controls was exactly unchanged. Reverted.
+    - Hoisting `child_model.shard_aware_primary_identifier()` out of `connect_or_create_nested::handle_many_to_many()`'s loop: worsened `create-nested-connectOrCreate-mixed` and `one2m` by one allocation/op because the outer retained identifier required an extra clone for the projected edge. Reverted.
+    - Using the already passed `child_model` instead of `parent_relation_field.related_model()` in `update_nested.rs`: allocation-neutral on update-set and one-to-many update fixtures. Reverted to avoid churn.
+  - Decision: keep. This is a broad, low-risk graph-build allocation cleanup with neutral-to-positive Criterion evidence and no Workerd/product regression.
+
 ## Useful Commands
 
 ```sh
