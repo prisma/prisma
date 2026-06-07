@@ -6267,6 +6267,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `client-cache-key findUnique value churn`: worker request loop 22.0 ms for 50,000 requests, 0.44 us/op; host dispatch upper bound 0.53 us/op; 50,000/0 hits/misses; one retained 138 B key and 548 B plan.
     - `client-cache-key blog-page value churn`: worker request loop 77.0 ms for 50,000 requests, 1.54 us/op; host dispatch upper bound 1.68 us/op; 50,000/0 hits/misses; one retained 704 B key and 3.7 KiB plan.
     - Generated-client warmed-cache rows in the same low-iteration run were coarse/noisy but much larger: `findUnique` 19.00 us/op over 1,000 requests; blog-page 55.00 us/op over 200 requests.
+  - High-iteration follow-up:
+    - Command: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=50000 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `client-cache-key findUnique value churn`: worker request loop 23.0 ms for 50,000 requests, 0.46 us/op; host dispatch upper bound 0.54 us/op.
+    - `client-cache-key blog-page value churn`: worker request loop 76.0 ms for 50,000 requests, 1.52 us/op; host dispatch upper bound 1.71 us/op.
+    - `generated client findUnique warmed cache`: worker request loop 692.0 ms for 100,000 requests, 6.92 us/op; host dispatch upper bound 8.89 us/op; 100,000/0 cache hits/misses.
+    - `generated client blog-page warmed cache`: worker request loop 398.0 ms for 20,000 requests, 19.90 us/op; host dispatch upper bound 22.49 us/op; 20,000/0 cache hits/misses.
   - Interpretation:
     - A cache-key-only JS rewrite is too low-ceiling on Workerd. The JS-owned query / Rust-owned IR architecture remains interesting only if it replaces multiple phases: generated-client/request overhead, owned Rust request materialization on misses, and plan serialization/cache object transfer. The new row gives a clearer lower bound for the JS-side key/lookup part.
 
