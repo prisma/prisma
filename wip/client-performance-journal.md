@@ -5977,6 +5977,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes per-request disabled-debug regex work while preserving runtime `Debug.enable(...)` behavior when `globalThis.DEBUG` is set.
 
+- Rejected experiment: skip sorting singleton batch-key objects.
+  - Timestamp: 2026-06-07T16:24:05Z.
+  - Change tried:
+    - Changed `buildKeysString()` in `getBatchId.ts` to call `keysArray.sort()` only when `Object.keys(obj).length > 1`.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 9.20 us/op, nested blog-page 33.50 us/op.
+    - Same-session reverted baseline: `findUnique` 9.58 us/op, nested blog-page 33.29 us/op.
+    - Reapplied patched run: `findUnique` 9.50 us/op, nested blog-page 32.72 us/op.
+    - Post-build patched run regressed to `findUnique` 10.47 us/op, nested blog-page 35.40 us/op.
+    - Same-session post-build source baseline after reverting was `findUnique` 9.45 us/op, nested blog-page 33.47 us/op; reapplied patched source was `findUnique` 9.63 us/op, nested blog-page 34.38 us/op.
+    - Workerd after rebuild was mixed versus the previous committed smoke: generated-client `findUnique` host upper bound 11.55 us/op / worker 9.63 us/op, nested blog-page host 30.81 us/op / worker 28.15 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/getBatchId.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Reverted. The branch is semantically safe but not performance-supported after build; V8 appears to prefer the unconditional `sort()` shape in the product path.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
