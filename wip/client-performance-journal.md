@@ -7643,6 +7643,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. It improves the target request-preserving batched row on Node and the stable Workerd rerun, preserves compacted-batch matching semantics through the shared value matcher, and falls back for non-single-key argument shapes.
 
+- Rejected experiment: carry precomputed placeholder names.
+  - Timestamp: 2026-06-08T00:24:00+02:00.
+  - Change:
+    - Temporarily added optional `placeholderNames` to `PrecomputedQueryPlanCacheHit`.
+    - `ClientEngine.getPrecomputedQueryPlanCacheHit()` populated it with `Object.keys(placeholderValues)`, and `tryBuildPrecomputedBatchCacheHit()` reused it instead of calling `Object.keys(hit.placeholderValues)` on warmed descriptor hits.
+  - Rationale:
+    - A fresh CPU profile after the accepted single-key compacted demux still showed `tryBuildPrecomputedBatchCacheHit()` as the largest runtime-owned self-time sample. Avoiding repeated placeholder-key extraction looked like a smaller, safer version of the rejected two-hit cache-key builder.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - Passed with existing unsafe-argument warnings in `ClientEngine.ts`.
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.20 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.50 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.94 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.16 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted single-key compacted demux row was 6.98 us/op.
+  - Decision:
+    - Revert. The added property and alternate branch did not reduce the target row despite the profiler signal.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
