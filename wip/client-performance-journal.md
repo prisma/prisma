@@ -6792,6 +6792,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted all Rust and Prisma prototype code. Do not retry generic Wasm `Reflect`/`Object.keys` structural walking as the cache-hit path.
     - The broader JS-owned-query/Rust-owned-IR architecture remains plausible only with a lower-overhead access strategy, such as generated/static shape metadata, compact JS-side descriptors, or a representation that lets Rust avoid repeated dynamic property lookup across the Wasm boundary.
 
+- Accepted measurement: Workerd descriptor extraction timing rows.
+  - Timestamp: 2026-06-07T19:07:43Z.
+  - Change:
+    - Added `client-static-descriptor-extract ...` and `client-lazy-descriptor-extract ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - These rows run guarded descriptor validation/extraction inside the Miniflare/workerd worker over generated-style args. The static row uses exact hard-coded matchers for the benchmark shapes; the lazy row builds an interpreted descriptor from the first slow-path-shaped args object and placeholder values.
+  - Rationale:
+    - Node/V8 descriptor rows looked promising, but the target hot runtime is Cloudflare Workers and previous Workerd measurements changed the priority ordering. This validates the descriptor idea on the worker isolate before wiring it into the real request path.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=2000 WORKERD_DESCRIPTOR_ITERATIONS=50000 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=300 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `client-static-descriptor-extract findUnique value churn`: worker request loop 7.0 ms for 50,000 requests, 0.14 us/op; host dispatch upper bound 0.20 us/op.
+    - `client-static-descriptor-extract blog-page value churn`: worker request loop 43.0 ms for 50,000 requests, 0.86 us/op; host dispatch upper bound 0.93 us/op.
+    - `client-lazy-descriptor-extract findUnique value churn`: worker request loop 11.0 ms for 50,000 requests, 0.22 us/op; host dispatch upper bound 0.29 us/op.
+    - `client-lazy-descriptor-extract blog-page value churn`: worker request loop 74.0 ms for 50,000 requests, 1.48 us/op; host dispatch upper bound 1.54 us/op.
+    - Same-run references with reduced generated-client counts:
+      - `client-cache-key findUnique value churn`: worker request loop 0.50 us/op; host dispatch upper bound 2.58 us/op.
+      - `client-cache-key blog-page value churn`: worker request loop 2.00 us/op; host dispatch upper bound 5.38 us/op.
+      - `generated client findUnique warmed cache`: worker request loop 16.00 us/op; host dispatch upper bound 208.04 us/op.
+      - `generated client blog-page warmed cache`: worker request loop 40.00 us/op; host dispatch upper bound 205.23 us/op.
+  - Decision:
+    - Keep as measurement infrastructure. Descriptor extraction remains plausible on Workerd: the nested static/lazy rows are in the 1-2 us/op range and are cheaper than the current generated-client warmed-cache path even in a noisy reduced-count run.
+    - This still only proves extraction. Product work must pass precomputed cache-key/placeholder data through `RequestHandler`/`ClientEngine` safely, including DataLoader batching and `requestBatch()`, or fall back when batching/query extensions/other semantic modifiers make the descriptor unsafe.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -6813,7 +6835,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Practicality read: plausible as a project-level redesign if the first proof point is narrow and cache-hit focused. It is risky if implemented as a general wrapper layer first, because dynamic JS property access, rooting/reference lifetime bugs, and poorer validation errors could erase the memory win before query graph construction is even reached.
 
 - Validate descriptor fast paths in Workerd and through the real request contract.
-  - Add Workerd-side descriptor extraction/wrapper rows before productizing: Node says guarded static descriptors are promising, but the target runtime is Workers and previous Workerd measurements have shifted conclusions.
+  - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime. Next productization proof point is a real request-contract wrapper, not another isolated extractor row.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
 
 - Explore memory-management simplification in Rust query compiler.

@@ -16,6 +16,7 @@ const LOCAL_QC_BUILD_DIRECTORY = process.env.LOCAL_QC_BUILD_DIRECTORY
 const GENERATED_FIND_UNIQUE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS', 5_000)
 const GENERATED_BLOG_PAGE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_BLOG_PAGE_ITERATIONS', 1_000)
 const CLIENT_CACHE_KEY_ITERATIONS = positiveIntegerEnv('WORKERD_CLIENT_CACHE_KEY_ITERATIONS', 20_000)
+const DESCRIPTOR_ITERATIONS = positiveIntegerEnv('WORKERD_DESCRIPTOR_ITERATIONS', 20_000)
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -694,6 +695,275 @@ function createBlogPostPageArgs(iteration) {
   }
 }
 
+const blogPageRootSelectKeys = [
+  'id',
+  'title',
+  'slug',
+  'content',
+  'published',
+  'viewCount',
+  'createdAt',
+  'author',
+  'category',
+  'tags',
+  'comments',
+  '_count',
+]
+const blogPageRootScalarFields = ['id', 'title', 'slug', 'content', 'published', 'viewCount', 'createdAt']
+const blogPageUserSelectKeys = ['id', 'name', 'avatar']
+const blogPageSlugSelectKeys = ['id', 'name', 'slug']
+const blogPageCommentSelectKeys = ['id', 'content', 'createdAt', 'author']
+const blogPageCountSelectKeys = ['likes', 'comments']
+
+function createClientArgs(scenario, iteration) {
+  switch (scenario) {
+    case 'find-unique':
+      return createFindUniqueArgs(iteration)
+    case 'blog-page':
+    case 'blog-page-by-id':
+      return createBlogPostPageArgs(iteration)
+    default:
+      throw new Error('Unknown client args scenario: ' + scenario)
+  }
+}
+
+function tryExtractStaticDescriptor(scenario, args, cacheKey) {
+  switch (scenario) {
+    case 'find-unique':
+      return tryExtractFindUniqueDescriptor(args, cacheKey)
+    case 'blog-page':
+    case 'blog-page-by-id':
+      return tryExtractBlogPostPageDescriptor(args, cacheKey)
+    default:
+      throw new Error('Unknown static descriptor scenario: ' + scenario)
+  }
+}
+
+function tryExtractFindUniqueDescriptor(args, cacheKey) {
+  if (!hasExactKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, ['id', 'email', 'name'])) {
+    return undefined
+  }
+
+  if (select.id !== true || select.email !== true || select.name !== true) {
+    return undefined
+  }
+
+  return { cacheKey, placeholderValues: { '%1': where.id } }
+}
+
+function tryExtractBlogPostPageDescriptor(args, cacheKey) {
+  if (!hasExactKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, blogPageRootSelectKeys)) {
+    return undefined
+  }
+
+  for (const field of blogPageRootScalarFields) {
+    if (select[field] !== true) {
+      return undefined
+    }
+  }
+
+  if (
+    !matchesSelectObject(select.author, blogPageUserSelectKeys) ||
+    !matchesSelectObject(select.category, blogPageSlugSelectKeys) ||
+    !matchesBlogPageTagsSelection(select.tags) ||
+    !matchesBlogPageCommentsSelection(select.comments) ||
+    !matchesSelectObject(select._count, blogPageCountSelectKeys)
+  ) {
+    return undefined
+  }
+
+  return { cacheKey, placeholderValues: { '%1': where.id } }
+}
+
+function matchesBlogPageTagsSelection(value) {
+  if (!isDescriptorRecord(value) || !hasExactKeys(value, ['select'])) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, ['tag'])) {
+    return false
+  }
+
+  return matchesSelectObject(select.tag, blogPageSlugSelectKeys)
+}
+
+function matchesBlogPageCommentsSelection(value) {
+  if (!isDescriptorRecord(value) || !hasExactKeys(value, ['take', 'orderBy', 'select']) || value.take !== 10) {
+    return false
+  }
+
+  const orderBy = value.orderBy
+  if (!Array.isArray(orderBy) || orderBy.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = orderBy[0]
+  if (!isDescriptorRecord(firstOrderBy) || !hasExactKeys(firstOrderBy, ['createdAt']) || firstOrderBy.createdAt !== 'desc') {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, blogPageCommentSelectKeys)) {
+    return false
+  }
+
+  return select.id === true && select.content === true && select.createdAt === true && matchesSelectObject(select.author, blogPageUserSelectKeys)
+}
+
+function matchesSelectObject(value, keys) {
+  if (!isDescriptorRecord(value) || !hasExactKeys(value, ['select'])) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, keys)) {
+    return false
+  }
+
+  for (const key of keys) {
+    if (select[key] !== true) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function buildLazyStaticDescriptor(args, cacheKey, placeholderValues) {
+  const placeholdersByValue = new Map()
+  for (const name of Object.keys(placeholderValues)) {
+    const key = lazyDescriptorValueKey(placeholderValues[name])
+    if (key !== undefined) {
+      placeholdersByValue.set(key, name)
+    }
+  }
+
+  return { cacheKey, root: buildLazyDescriptorNode(args, placeholdersByValue) }
+}
+
+function buildLazyDescriptorNode(value, placeholdersByValue) {
+  const valueKey = lazyDescriptorValueKey(value)
+  const placeholderName = valueKey === undefined ? undefined : placeholdersByValue.get(valueKey)
+  if (placeholderName !== undefined) {
+    return { kind: 'placeholder', name: placeholderName, valueType: value === null ? 'null' : typeof value }
+  }
+
+  if (Array.isArray(value)) {
+    return { kind: 'array', items: value.map((item) => buildLazyDescriptorNode(item, placeholdersByValue)) }
+  }
+
+  if (isDescriptorRecord(value)) {
+    const keys = Object.keys(value)
+    const fields = {}
+    for (const key of keys) {
+      fields[key] = buildLazyDescriptorNode(value[key], placeholdersByValue)
+    }
+    return { kind: 'object', keys, fields }
+  }
+
+  return { kind: 'constant', value }
+}
+
+function tryExtractLazyStaticDescriptor(descriptor, args) {
+  const placeholderValues = {}
+  if (!matchesLazyDescriptorNode(descriptor.root, args, placeholderValues)) {
+    return undefined
+  }
+
+  return { cacheKey: descriptor.cacheKey, placeholderValues }
+}
+
+function matchesLazyDescriptorNode(descriptor, value, placeholderValues) {
+  switch (descriptor.kind) {
+    case 'constant':
+      return Object.is(value, descriptor.value)
+    case 'placeholder':
+      if ((value === null ? 'null' : typeof value) !== descriptor.valueType) {
+        return false
+      }
+      if (Object.hasOwn(placeholderValues, descriptor.name)) {
+        return Object.is(placeholderValues[descriptor.name], value)
+      }
+      placeholderValues[descriptor.name] = value
+      return true
+    case 'array':
+      if (!Array.isArray(value) || value.length !== descriptor.items.length) {
+        return false
+      }
+      for (let i = 0; i < descriptor.items.length; i++) {
+        if (!matchesLazyDescriptorNode(descriptor.items[i], value[i], placeholderValues)) {
+          return false
+        }
+      }
+      return true
+    case 'object':
+      if (!isDescriptorRecord(value) || !hasExactKeys(value, descriptor.keys)) {
+        return false
+      }
+      for (const key of descriptor.keys) {
+        if (!matchesLazyDescriptorNode(descriptor.fields[key], value[key], placeholderValues)) {
+          return false
+        }
+      }
+      return true
+  }
+}
+
+function lazyDescriptorValueKey(value) {
+  switch (typeof value) {
+    case 'string':
+      return 'string:' + value
+    case 'number':
+      return Number.isFinite(value) ? 'number:' + value : undefined
+    case 'boolean':
+      return 'boolean:' + (value ? 'true' : 'false')
+    case 'bigint':
+      return 'bigint:' + value
+    default:
+      return undefined
+  }
+}
+
+function isDescriptorRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function hasExactKeys(value, expectedKeys) {
+  const keys = Object.keys(value)
+  if (keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (const key of expectedKeys) {
+    if (!Object.hasOwn(value, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
 function checksumResult(result) {
   if (result == null) {
     return 0
@@ -717,10 +987,10 @@ function checksumResult(result) {
 function executeClientScenario(client, scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
-      return client.user.findUnique(createFindUniqueArgs(iteration))
+      return client.user.findUnique(createClientArgs(scenario, iteration))
     case 'blog-page':
     case 'blog-page-by-id':
-      return client.post.findUnique(createBlogPostPageArgs(iteration))
+      return client.post.findUnique(createClientArgs(scenario, iteration))
     default:
       throw new Error('Unknown client-execute scenario: ' + scenario)
   }
@@ -1006,6 +1276,60 @@ function runClientCacheKeyScenario(scenario, iterations) {
   }
 }
 
+function runDescriptorExtractScenario(scenario, iterations, kind) {
+  const firstArgs = createClientArgs(scenario, 0)
+  const cacheKey = 'descriptor:' + scenario
+  const lazyDescriptor =
+    kind === 'lazy' ? buildLazyStaticDescriptor(firstArgs, cacheKey, { '%1': firstArgs.where.id }) : undefined
+
+  const firstExtraction =
+    kind === 'lazy'
+      ? tryExtractLazyStaticDescriptor(lazyDescriptor, firstArgs)
+      : tryExtractStaticDescriptor(scenario, firstArgs, cacheKey)
+  if (firstExtraction === undefined) {
+    throw new Error('Expected descriptor to match first args for scenario ' + scenario)
+  }
+
+  let checksum = 0
+  const start = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    const args = createClientArgs(scenario, i)
+    const extraction =
+      kind === 'lazy'
+        ? tryExtractLazyStaticDescriptor(lazyDescriptor, args)
+        : tryExtractStaticDescriptor(scenario, args, cacheKey)
+
+    if (extraction === undefined) {
+      throw new Error('Expected descriptor to match benchmark args for scenario ' + scenario)
+    }
+
+    checksum += extraction.cacheKey.length
+    checksum += extraction.placeholderValues['%1'] === undefined ? 0 : 1
+  }
+
+  const elapsedMs = performance.now() - start
+  const retained = retainedPlanSize()
+  return {
+    scenario,
+    mode: 'client-' + kind + '-descriptor-extract',
+    iterations,
+    retain: false,
+    initMs,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / iterations,
+    cacheHits: iterations,
+    cacheMisses: 0,
+    checksum,
+    retainedEntries: retainedPlans.size,
+    retainedCacheKeyBytes: retained.cacheKeyBytes,
+    retainedCacheKeyBreakdown: retained.cacheKeyBreakdown,
+    retainedPlanSerializedBytes: retained.planSerializedBytes,
+    averagePlanBytes: 0,
+    runtime: navigator.userAgent,
+  }
+}
+
 async function runClientExecuteScenario(scenario, iterations, retain) {
   const Client = getPrismaClientConstructor()
   const client = new Client({
@@ -1082,6 +1406,10 @@ export default {
               ? runClientCacheScenario(scenario, iterations, retain)
               : mode === 'client-cache-key'
                 ? runClientCacheKeyScenario(scenario, iterations)
+                : mode === 'client-static-descriptor-extract'
+                  ? runDescriptorExtractScenario(scenario, iterations, 'static')
+                  : mode === 'client-lazy-descriptor-extract'
+                    ? runDescriptorExtractScenario(scenario, iterations, 'lazy')
               : runScenario(scenario, iterations, retain),
       })
     } catch (error) {
@@ -1318,6 +1646,59 @@ async function run(): Promise<void> {
         CLIENT_CACHE_KEY_ITERATIONS,
         true,
         'client-cache-key',
+      ),
+    )
+
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'client-static-descriptor-extract findUnique value churn',
+        'find-unique',
+        DESCRIPTOR_ITERATIONS,
+        false,
+        'client-static-descriptor-extract',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'client-static-descriptor-extract blog-page value churn',
+        'blog-page-by-id',
+        DESCRIPTOR_ITERATIONS,
+        false,
+        'client-static-descriptor-extract',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'client-lazy-descriptor-extract findUnique value churn',
+        'find-unique',
+        DESCRIPTOR_ITERATIONS,
+        false,
+        'client-lazy-descriptor-extract',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'client-lazy-descriptor-extract blog-page value churn',
+        'blog-page-by-id',
+        DESCRIPTOR_ITERATIONS,
+        false,
+        'client-lazy-descriptor-extract',
       ),
     )
   } finally {
