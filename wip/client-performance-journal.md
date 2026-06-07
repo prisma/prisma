@@ -5639,6 +5639,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow extension of the accepted local-scope optimization to the exact-wrapper path that the product-shaped blog-page plan actually exercises. The direct/local A/B is repeatable and the fallback test covers the key correctness risk.
 
+- Rejected experiment: computed object literal for local raw-nested scopes.
+  - Timestamp: 2026-06-07T15:01:28Z.
+  - Change tried:
+    - Replaced the local-scope branch in `createRawNestedRelationScope()` from allocating `{}` and then assigning `scope[name] = value` with `return { [name]: value }`.
+  - Rationale:
+    - After the regular relation and unique-wrapper local-scope wins, relation scope construction became hotter. Building the one-key scope directly looked like a possible smaller allocation/property-write cleanup.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - Patched/reverted timing with `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Patched: cached request wrapper 11.73 us/op, direct plan 7.49, raw compact node 7.10, local executor 7.52.
+    - Reverted same-session baseline: cached request wrapper 10.95 us/op, direct plan 6.92, raw compact node 6.44, local executor 6.90.
+  - Decision:
+    - Reverted. On current V8, the computed property literal is materially worse than `{}` followed by the dynamic assignment. Keep the existing helper shape unless new runtime evidence appears.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
