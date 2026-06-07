@@ -7331,6 +7331,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - A broad `Arc` purge is not justified by the current evidence. Query-structure handles use `Zipper<I>` over `InternalDataModel`, and `InternalDataModel` holds an `Arc<ValidatedSchema>`; those clones may have CPU cost, but this profile does not show heap allocation pressure consistent with `Arc`-owned object churn.
     - Arenas may still be practical later for compile-local graph/expression construction, but the next allocation work should remove avoidable local `Vec`/map/string allocations in `graph_build` and `translate_ir`, then profile again.
 
+- Rejected engines spike: direct edge traversal in `subgraph_contains_result()`.
+  - Timestamp: 2026-06-07T23:34:00+02:00.
+  - Change tried in `/home/aqrln.guest/prisma-engines`:
+    - Temporarily changed `query-compiler/core/src/query_graph/mod.rs::QueryGraph::subgraph_contains_result()` from `self.outgoing_edges(node).into_iter()` to direct `self.graph.edges_directed(node.node_ix, Direction::Outgoing)` traversal.
+    - Goal: avoid `outgoing_edges()` allocating and sorting a `Vec<EdgeRef>` for a boolean reachability check used by `NodeTranslator::process_children()`.
+  - Verification:
+    - `cargo fmt`
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|create-nested-connectOrCreate-mixed|update-set-nested"`
+  - Allocation result:
+    - `query-m2o`: unchanged at `full_compile` 624 allocs/op / 80.6 KiB.
+    - `create-nested-connectOrCreate-mixed`: `translate_ir` 2035 -> 2026 allocs/op; `full_compile` 3081 -> 3072 allocs/op.
+    - `update-set-nested`: `translate_ir` 1313 -> 1292 allocs/op; `full_compile` 2160 -> 2139 allocs/op.
+  - Same-session Criterion A/B:
+    - Patched direct traversal:
+      - `compile/create-nested-connectOrCreate-mixed`: 143.41 us midpoint.
+      - `compile/query-m2o-lateral`: 29.473 us.
+      - `compile/query-m2o`: 30.479 us.
+      - `compile/update-set-nested-prisma#27650`: 96.861 us.
+      - `compile/update-set-nested`: 109.37 us.
+    - Reverted sorted `outgoing_edges()` traversal:
+      - `compile/create-nested-connectOrCreate-mixed`: 140.55 us midpoint.
+      - `compile/query-m2o-lateral`: 29.600 us.
+      - `compile/query-m2o`: 30.828 us.
+      - `compile/update-set-nested-prisma#27650`: 89.325 us.
+      - `compile/update-set-nested`: 101.33 us.
+  - Decision:
+    - Reverted. The patch saved allocations but lost CPU on the two rows it was meant to help most. This is a good example of why allocation-only query compiler changes still need Criterion checks.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
