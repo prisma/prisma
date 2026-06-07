@@ -5472,6 +5472,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Async fake-adapter sanity run while patched at 20,000 iterations: cached request wrapper 21.42 us/op, direct plan 13.66, exact prototype 10.02, raw compact 12.59, local executor 13.99.
   - Decision: keep. This is a small cleanup, not a major performance lever, but the same-session broad A/B is neutral-to-positive across the product-shaped rows and the semantic risk is low.
 
+- Rejected experiment: skip indexed raw nested list-array copies for a single parent.
+  - Timestamp: 2026-06-07T11:57:03Z.
+  - Change tried:
+    - In `attachIndexedRawNestedDirectRelation()` and `attachIndexedRawNestedManyToManyRelation()`, added a `parentRows.length === 1` branch that assigned the grouped child array directly instead of `.slice()`ing it for the only parent.
+  - Rationale:
+    - List relation attachment must keep fresh arrays for duplicate parent rows, but if there is exactly one parent row there is no second result record to alias. This looked like a low-risk allocation reduction for `findUnique` / page-detail shapes with large child lists.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - Synthetic direct raw nested plan against `packages/client-engine-runtime/dist/index.mjs`: one parent, 100 direct children, 100,000 iterations.
+    - Synthetic many-to-many raw nested plan against `packages/client-engine-runtime/dist/index.mjs`: one parent, 100 join rows, 100 children, 100,000 iterations.
+  - Timing signal:
+    - Direct relation: patched 4.93 us/op, reverted 5.00 us/op. This is only about 1.4% on a synthetic shape and does not affect the current blog-page fixture because it stays below the indexing threshold.
+    - Many-to-many relation: patched 11.70 us/op, reverted 11.71 us/op. Effectively neutral.
+  - Decision: reverted. The direct-relation signal is too small and too synthetic, and the many-to-many path is neutral. Preserve the fresh per-parent array invariant; do not add the single-parent indexed slice skip unless a real product profile shows large indexed list relations where this copy is material.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
