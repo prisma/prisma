@@ -7425,6 +7425,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted both. The current accepted identity-skip implementation measured the batched row at 10.28-10.62 us/op in same-session Node runs, so neither follow-up justified the extra code complexity.
 
+- Accepted optimization: precomputed batch cache key.
+  - Timestamp: 2026-06-07T23:42:20+02:00.
+  - Change:
+    - Added a precomputed-specific batch cache key path in `packages/client/src/runtime/core/engines/client/ClientEngine.ts`.
+    - `requestBatch()` now validates the per-query precomputed hits against the original batch, builds a cache key from the per-query hit `cacheKey`s plus the batch transaction payload, and checks `QueryPlanCache.getBatch()` before constructing the full renamed `JsonBatchQuery`.
+    - On a cache hit, the path only rebuilds sequential placeholder values and optional SQL commenter query-info from the hits.
+    - On a cache miss, the path falls back to the existing `tryBuildPrecomputedBatch()` behavior, compiles the renamed parameterized batch, and stores individual plan entries as before.
+  - Rationale:
+    - The warmed generated `findUnique` batch path still spent time renaming/cloning query trees and stringifying a canonical batch cache key before discovering the batch plan was already cached. The per-hit cache keys already identify the parameterized per-query shapes used by the precomputed batch assembler, so a precomputed batch key can hit earlier while preserving the current request-layer batching contract.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - Passed with the existing `ClientEngine.ts` unsafe-argument warnings.
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.74 us/op.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 9.15 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 3.49 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.26 us/op.
+    - Focused command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Focused rows:
+      - `generated client batched findUnique / warmed cache`: 15.22 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.48 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 8.37 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+  - Workerd measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 10.50 us/op, host dispatch 12.46 us/op, `queryRaw 10000`, `precomputed batch: hits 20000`.
+  - Decision:
+    - Keep. This is a larger internal change than the rename micro-optimizations, but it directly removes warmed-cache-hit work, preserves the request-layer batching contract and one `queryRaw` per pair, and improves the Cloudflare-target row.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

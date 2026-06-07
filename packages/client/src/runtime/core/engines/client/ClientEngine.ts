@@ -147,6 +147,55 @@ type PrecomputedBatch = {
   queryInfoQueries?: JsonQuery['query'][]
 }
 
+type PrecomputedBatchCacheHit = {
+  cacheKey: string
+  placeholderValues: Record<string, unknown>
+  queryInfoQueries?: JsonQuery['query'][]
+}
+
+function tryBuildPrecomputedBatchCacheHit(
+  batch: JsonBatchQuery,
+  hits: PrecomputedQueryPlanCacheHit[] | undefined,
+  hasSqlCommenters: boolean,
+): PrecomputedBatchCacheHit | undefined {
+  if (hits === undefined || hits.length !== batch.batch.length) {
+    return undefined
+  }
+
+  const cacheKeys = new Array<string>(hits.length)
+  const placeholderValues: Record<string, unknown> = {}
+  const queryInfoQueries = hasSqlCommenters ? new Array<JsonQuery['query']>(hits.length) : undefined
+  let nextPlaceholderId = 1
+
+  for (let i = 0; i < hits.length; i++) {
+    const hit = hits[i]
+    const parameterizedQuery = hit.parameterizedQuery
+    const originalQuery = batch.batch[i]
+    if (
+      parameterizedQuery === undefined ||
+      parameterizedQuery.modelName !== originalQuery.modelName ||
+      parameterizedQuery.action !== originalQuery.action ||
+      (hasSqlCommenters && hit.queryInfoQuery === undefined)
+    ) {
+      return undefined
+    }
+
+    cacheKeys[i] = hit.cacheKey
+    for (const oldName of Object.keys(hit.placeholderValues)) {
+      placeholderValues[`%${nextPlaceholderId++}`] = hit.placeholderValues[oldName]
+    }
+    if (queryInfoQueries !== undefined) {
+      queryInfoQueries[i] = hit.queryInfoQuery!
+    }
+  }
+
+  return {
+    cacheKey: `p:${JSON.stringify([cacheKeys, batch.transaction ?? null])}`,
+    placeholderValues,
+    queryInfoQueries,
+  }
+}
+
 function tryBuildPrecomputedBatch(
   batch: JsonBatchQuery,
   hits: PrecomputedQueryPlanCacheHit[] | undefined,
@@ -864,43 +913,78 @@ export class ClientEngine implements Engine {
       }))
 
     const hasRawQueries = firstModelName === undefined
-    let batchResponse: BatchResponse
+    let batchResponse: BatchResponse | undefined
     let placeholderValues = EMPTY_PLACEHOLDER_VALUES
     const hasSqlCommenters = this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
     let queryInfoQueries: JsonQuery['query'][] | undefined
 
     if (!hasRawQueries) {
-      const precomputedBatch = tryBuildPrecomputedBatch(
-        batchPayload as JsonBatchQuery,
+      const queryPlanCache = this.#queryPlanCache
+      const jsonBatchPayload = batchPayload as JsonBatchQuery
+      const precomputedBatchCacheHit = tryBuildPrecomputedBatchCacheHit(
+        jsonBatchPayload,
         precomputedQueryPlanCacheHits,
         hasSqlCommenters,
       )
-      let parameterizedBatch: JsonBatchQuery
-      if (precomputedBatch !== undefined) {
-        parameterizedBatch = precomputedBatch.parameterizedBatch
-        placeholderValues = precomputedBatch.placeholderValues
-        queryInfoQueries = precomputedBatch.queryInfoQueries
-      } else {
-        const parameterized = parameterizeBatch(batchPayload as JsonBatchQuery, this.#paramGraph)
-        parameterizedBatch = parameterized.parameterizedBatch
-        placeholderValues = parameterized.placeholderValues
-      }
-      if (hasSqlCommenters && queryInfoQueries === undefined) {
-        queryInfoQueries = new Array(parameterizedBatch.batch.length)
-        for (let i = 0; i < parameterizedBatch.batch.length; i++) {
-          queryInfoQueries[i] = parameterizedBatch.batch[i].query
-        }
-      }
-
-      const queryPlanCache = this.#queryPlanCache
-      if (queryPlanCache !== undefined) {
-        const cacheKey = getBatchQueryCacheKey(parameterizedBatch)
-        const cached = queryPlanCache.getBatch(cacheKey)
+      if (queryPlanCache !== undefined && precomputedBatchCacheHit !== undefined) {
+        const cached = queryPlanCache.getBatch(precomputedBatchCacheHit.cacheKey)
         if (cached) {
           if (debugEnabled) {
             debug('batch query plan cache hit')
           }
           batchResponse = cached
+          placeholderValues = precomputedBatchCacheHit.placeholderValues
+          queryInfoQueries = precomputedBatchCacheHit.queryInfoQueries
+        }
+      }
+
+      if (batchResponse === undefined) {
+        const precomputedBatch = tryBuildPrecomputedBatch(
+          jsonBatchPayload,
+          precomputedQueryPlanCacheHits,
+          hasSqlCommenters,
+        )
+        let parameterizedBatch: JsonBatchQuery
+        if (precomputedBatch !== undefined) {
+          parameterizedBatch = precomputedBatch.parameterizedBatch
+          placeholderValues = precomputedBatch.placeholderValues
+          queryInfoQueries = precomputedBatch.queryInfoQueries
+        } else {
+          const parameterized = parameterizeBatch(jsonBatchPayload, this.#paramGraph)
+          parameterizedBatch = parameterized.parameterizedBatch
+          placeholderValues = parameterized.placeholderValues
+        }
+        if (hasSqlCommenters && queryInfoQueries === undefined) {
+          queryInfoQueries = new Array(parameterizedBatch.batch.length)
+          for (let i = 0; i < parameterizedBatch.batch.length; i++) {
+            queryInfoQueries[i] = parameterizedBatch.batch[i].query
+          }
+        }
+
+        if (queryPlanCache !== undefined) {
+          const cacheKey = precomputedBatchCacheHit?.cacheKey ?? getBatchQueryCacheKey(parameterizedBatch)
+          const cached = queryPlanCache.getBatch(cacheKey)
+          if (cached) {
+            if (debugEnabled) {
+              debug('batch query plan cache hit')
+            }
+            batchResponse = cached
+          } else {
+            if (debugEnabled) {
+              debug('batch query plan cache miss')
+            }
+            try {
+              const request = JSON.stringify(parameterizedBatch)
+              batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
+              queryPlanCache.setBatch(
+                cacheKey,
+                batchResponse,
+                getIndividualBatchPlanCacheEntries(parameterizedBatch, batchResponse, queryPlanCache),
+              )
+            } catch (error) {
+              throw this.#transformCompileError(error)
+            }
+          }
         } else {
           if (debugEnabled) {
             debug('batch query plan cache miss')
@@ -908,21 +992,9 @@ export class ClientEngine implements Engine {
           try {
             const request = JSON.stringify(parameterizedBatch)
             batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
-            queryPlanCache.setBatch(
-              cacheKey,
-              batchResponse,
-              getIndividualBatchPlanCacheEntries(parameterizedBatch, batchResponse, queryPlanCache),
-            )
           } catch (error) {
             throw this.#transformCompileError(error)
           }
-        }
-      } else {
-        try {
-          const request = JSON.stringify(parameterizedBatch)
-          batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
-        } catch (error) {
-          throw this.#transformCompileError(error)
         }
       }
     } else {
@@ -934,6 +1006,10 @@ export class ClientEngine implements Engine {
       }
 
       batchResponse = this.#compileBatch(queries, stringifyBatchRequest(), queryCompiler)
+    }
+
+    if (batchResponse === undefined) {
+      throw new Error('Internal error: batch response was not initialized.')
     }
 
     try {
