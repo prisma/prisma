@@ -80,6 +80,25 @@ test('computes deferred batch keys when multiple requests share a turn', async (
   expect(batchLoader).toHaveBeenCalledWith(['a', 'b'])
 })
 
+test('orders two-item batches and resolves the original requests', async () => {
+  const singleLoader = jest.fn((request: string) => Promise.resolve(`${request}-single`))
+  const batchLoader = jest.fn((requests: string[]) => Promise.resolve(requests.map((request) => `${request}-batch`)))
+
+  const loader = new DataLoader<string>({
+    singleLoader,
+    batchLoader,
+    batchBy: () => 'batch',
+    batchOrder: (requestA, requestB) => requestA.localeCompare(requestB),
+  })
+
+  const first = loader.request('b')
+  const second = loader.request('a')
+
+  await expect(Promise.all([first, second])).resolves.toEqual(['b-batch', 'a-batch'])
+  expect(singleLoader).not.toHaveBeenCalled()
+  expect(batchLoader).toHaveBeenCalledWith(['a', 'b'])
+})
+
 test('does not batch requests separated by an await', async () => {
   const singleLoader = jest.fn((request: string) => Promise.resolve(`${request}-single`))
   const batchLoader = jest.fn((requests: string[]) => Promise.resolve(requests.map((request) => `${request}-batch`)))

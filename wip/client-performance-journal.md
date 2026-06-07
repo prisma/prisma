@@ -7525,6 +7525,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. It is narrowly gated to two requests, keeps the same `requestBatch()` and result-mapping semantics, passes the focused request-handler test, and improves both Node and Workerd batched rows.
 
+- Accepted optimization: DataLoader two-job dispatch batch fast path.
+  - Timestamp: 2026-06-08T00:00:51+02:00.
+  - Change:
+    - Updated `packages/client/src/runtime/DataLoader.ts` so exactly two-job batches use a dedicated `dispatchTwoJobBatch()` helper.
+    - The helper preserves `batchOrder` with one comparator, builds the two-request array directly, and resolves/rejects the two promises directly.
+    - Larger batches keep the existing `sort` + `map` + loop path.
+    - Added `packages/client/src/runtime/DataLoader.test.ts` coverage for a reversed two-item batch, verifying that `batchLoader` receives sorted requests and the original promises resolve to their own results.
+  - Rationale:
+    - The current generated `Promise.all([findUnique, findUnique])` precomputed path now reaches DataLoader as an exact two-job batch. The previous dispatch still paid `Array.sort()`, `batch.map()`, and result loops after the earlier deferred-batch shortcut had already grouped the pair.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/DataLoader.ts packages/client/src/runtime/DataLoader.test.ts`
+    - `pnpm --filter @prisma/client test DataLoader.test.ts --runInBand`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+    - `pnpm exec eslint packages/client/src/runtime/DataLoader.ts`
+      - Passed with existing unsafe-argument warnings in `DataLoader.ts`.
+    - `pnpm --filter @prisma/client build`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.34 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.71 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.48 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.19 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted RequestHandler two-request focused row was 7.66 us/op.
+  - Workerd measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `generated client batched findUnique warmed cache`: worker loop 14.40 us/op, host dispatch 17.59 us/op.
+    - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 9.10 us/op, host dispatch 11.07 us/op, `queryRaw 10000`, `precomputed batch: hits 20000`.
+    - Previous accepted RequestHandler two-request Workerd row was 9.20 us/op worker loop / 11.13 us/op host dispatch.
+  - Decision:
+    - Keep. The win is smaller in Workerd than in Node, but it is directionally positive in both target measurements, preserves ordering semantics for batch transactions, and is scoped to exactly two-job batches.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

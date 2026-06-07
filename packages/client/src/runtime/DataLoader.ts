@@ -87,6 +87,8 @@ export class DataLoader<T = unknown> {
       // this might occur, if there's e.g. only 1 findUnique in the batch
       if (batch.length === 1) {
         this.dispatchSingle(batch[0])
+      } else if (batch.length === 2) {
+        this.dispatchTwoJobBatch(batch[0], batch[1])
       } else {
         this.dispatchBatch(batch)
       }
@@ -107,7 +109,7 @@ export class DataLoader<T = unknown> {
       return false
     }
 
-    this.dispatchBatch([firstJob, secondJob])
+    this.dispatchTwoJobBatch(firstJob, secondJob)
     return true
   }
 
@@ -127,6 +129,42 @@ export class DataLoader<T = unknown> {
 
     const batch = (this.batches[hash] ??= [])
     batch.push(job)
+  }
+
+  private dispatchTwoJobBatch(firstJob: Job, secondJob: Job) {
+    const order = this.options.batchOrder(firstJob.request, secondJob.request)
+    if (order > 0) {
+      const previousFirstJob = firstJob
+      firstJob = secondJob
+      secondJob = previousFirstJob
+    }
+
+    this.options
+      .batchLoader([firstJob.request, secondJob.request])
+      .then((results) => {
+        if (results instanceof Error) {
+          firstJob.reject(results)
+          secondJob.reject(results)
+        } else {
+          const firstValue = results[0]
+          if (firstValue instanceof Error) {
+            firstJob.reject(firstValue)
+          } else {
+            firstJob.resolve(firstValue)
+          }
+
+          const secondValue = results[1]
+          if (secondValue instanceof Error) {
+            secondJob.reject(secondValue)
+          } else {
+            secondJob.resolve(secondValue)
+          }
+        }
+      })
+      .catch((e) => {
+        firstJob.reject(e)
+        secondJob.reject(e)
+      })
   }
 
   private dispatchBatch(batch: Job[]) {
