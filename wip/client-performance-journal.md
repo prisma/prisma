@@ -5571,6 +5571,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. A naive JS-side fused structural-key pass is materially slower than the existing copy-on-write parameterization plus native `JSON.stringify()`. This does not disprove the broader JS-owned query / Rust-owned IR track, but it says the useful wedge is not "replace `JSON.stringify()` with handwritten JS structural serialization." Future work should either keep using native stringify on JS, or move the fusion across the Wasm boundary so Rust can avoid building owned input maps and serialized plan objects on cache hits.
 
+- Rejected experiment: compiled plain-numeric raw nested row mappers.
+  - Timestamp: 2026-06-07T13:34:49Z.
+  - Change tried:
+    - `#compileRawNestedReadQuery()` captured a row-mapper closure once per raw nested query.
+    - First variant activated only for plain string field names, numeric column refs, and no scalar conversion metadata. It used unrolled assignment functions for common widths 1-5, 7, and 11, with a generic plain loop fallback.
+    - Second variant also activated for plain numeric mappings with field-type conversion metadata, skipping column-ref resolution/path checks but still calling `mapRawNestedFieldValue()` per field.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - Patched and reverted timing with `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Pre-patch baseline: cached request wrapper 14.12 us/op, direct plan 8.60, raw compact node 7.32, local executor 8.63.
+    - Plain/no-conversion mapper: cached request wrapper 14.30, direct plan 8.53, raw compact node 7.13, local executor 8.75. The only clear movement was the synthetic compact-node lower-bound row, while product-shaped wrapper/local rows worsened.
+    - Converted mapper variant: cached request wrapper 15.07, direct plan 9.04, raw compact node 7.45, local executor 9.10. This was a clear regression.
+    - Reverted same-session baseline: cached request wrapper 14.38, direct plan 8.71, raw compact node 7.45, local executor 8.81.
+  - Decision:
+    - Reverted. Precompiled numeric/plain row mappers are not a useful standalone path. The extra closure/helper shape and per-field conversion loop do not close the exact-prototype gap in product rows. Future raw-nested work needs a generated/exact-shape executor that removes more of the relation/data-shape machinery at once, not a generic row-mapper closure.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
