@@ -6625,6 +6625,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. Dynamic placeholder-scope construction is cheap compared with structural parameterization and cache-key generation. This strengthens the case for a generated-shape/fused cache-hit design or the larger JS-owned-query/Rust-owned-IR proof point, because the hot cache-hit target collapses to roughly direct executor cost once structural identity is pre-known.
 
+- Accepted measurement: generated serializer-to-cache-key timing row.
+  - Timestamp: 2026-06-07T18:58:12Z.
+  - Change:
+    - Added `generated client serialize cache key ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The row constructs generated-style args, runs `serializeJsonQuery()`, `parameterizeQuery()`, native `JSON.stringify(parameterizedQuery.query)`, and single-query cache-key construction. It excludes PrismaPromise construction, DataLoader, cache lookup, executor work, and response wrapping.
+  - Rationale:
+    - Static-shape wrapper rows showed that structural identity/keying is the cache-hit wedge, but the generated-client hot path also pays serializer validation/traversal before parameterization. This row measures the full front half that a static descriptor or fused serializer/parameterizer would need to replace.
+  - Timing:
+    - `generated client serialize findUnique / warmed cache`: 0.41 us/op.
+    - `generated client serialize blog page / nested rows warmed cache`: 3.57 us/op.
+    - `generated client serialize cache key findUnique / warmed cache`: 1.71 us/op.
+    - `generated client serialize cache key blog page / nested rows warmed cache`: 7.19 us/op.
+    - Adjacent full generated nested row: 18.58 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client serialize' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep as measurement infrastructure. The generated-client front half is now measured at about 7.2 us/op for the nested target, so static-descriptor work has a real ceiling but must preserve validation/error semantics to be productizable.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:

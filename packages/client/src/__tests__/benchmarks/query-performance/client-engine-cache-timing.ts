@@ -1169,6 +1169,56 @@ function measureGeneratedClientSerializeScenario(
   }
 }
 
+function measureGeneratedClientSerializeCacheKeyScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  paramGraph: ParamGraph,
+  scenario: GeneratedClientSerializeScenario,
+): PlanPhaseMeasurement {
+  const firstQuery = serializeJsonQuery({
+    modelName: scenario.modelName,
+    runtimeDataModel: config.runtimeDataModel,
+    action: scenario.action,
+    args: scenario.args(0),
+    clientMethod: scenario.clientMethod,
+    errorFormat: 'minimal',
+    clientVersion: config.clientVersion,
+    previewFeatures: [],
+  })
+  const { parameterizedQuery: firstParameterizedQuery } = parameterizeQuery(firstQuery, paramGraph)
+  getSingleQueryCacheKey(firstParameterizedQuery, JSON.stringify(firstParameterizedQuery.query))
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const query = serializeJsonQuery({
+      modelName: scenario.modelName,
+      runtimeDataModel: config.runtimeDataModel,
+      action: scenario.action,
+      args: scenario.args(i),
+      clientMethod: scenario.clientMethod,
+      errorFormat: 'minimal',
+      clientVersion: config.clientVersion,
+      previewFeatures: [],
+    })
+    const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    checksum += getSingleQueryCacheKey(parameterizedQuery, queryPart).length
+    checksum += placeholderValues['%1'] === undefined ? 0 : 1
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
 function compileDirectPlan(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4494,6 +4544,17 @@ async function main(): Promise<void> {
 
   for (const scenario of generatedClientSerializeScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
     printPlanPhaseMeasurement(measureGeneratedClientSerializeScenario(baseConfig, scenario))
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client serialize', 'generated client serialize cache key'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printPlanPhaseMeasurement(measureGeneratedClientSerializeCacheKeyScenario(baseConfig, paramGraph, measuredScenario))
   }
 
   for (const scenario of generatedClientScenarios) {
