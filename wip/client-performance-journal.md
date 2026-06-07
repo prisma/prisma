@@ -4685,6 +4685,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Do not treat pure root data-map pushdown as a high-ceiling target: the measured outer data map is only about 1.7 us/op on this product-shaped nested row. A meaningful nested plan-shape project would need to remove row-object materialization or ownership, not just move the final remap.
     - The radical JS-owned query idea is plausible only as a new Wasm entrypoint plus borrowed/lazy protocol adapter. A `serde_wasm_bindgen::from_value()` swap still materializes the same owned `JsonBody`/map/value tree and then `ArgumentValue`/`Selection`, so it does not address the main Rust-heap ownership cost.
 
+- Accepted experiment: raise `QueryPlanCache` string interning threshold.
+  - Timestamp: 2026-06-07T06:16:40Z.
+  - Change: `packages/client/src/runtime/core/engines/client/query-plan-cache.ts` now interns only strings with length >= 32 instead of length >= 8.
+  - Rationale: retained join-plan caches still share large repeated SQL fragments, child query templates, and nested result structures, but many short field/path strings add per-entry interner bookkeeping. A one-off plan profile over 100 blog-page shapes showed the largest repeated strings are SQL fragments; the remaining short metadata has much smaller byte weight.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/engines/client/query-plan-cache.ts`
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper blog page / 100 retained shapes nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Benchmark signal:
+    - Node cache-memory baseline before this patch: blog edge warm 1.26 MiB, blog edge churn 1.20 MiB, blog node warm 9.99 MiB, blog parameterized edge warm 1.10 MiB, blog parameterized churn 1.24 MiB, blog parameterized node warm 10.23 MiB.
+    - Threshold 32 rerun: blog edge warm 1.25 MiB, blog edge churn 1.19 MiB, blog node warm 9.87 MiB, blog parameterized edge warm 1.09 MiB, blog parameterized churn 1.22 MiB, blog parameterized node warm 10.11 MiB.
+    - Workerd after rebuilding stayed in the expected band: retained blog-page plan cache compile loop 386.0 ms / 100 plans with 394.8 KiB serialized plans; client-cache blog-page value churn 82.92 us/op host dispatch; generated-client blog-page warmed cache 118.64 us/op host dispatch upper bound.
+    - Cached request wrapper with 100 retained blog-page shapes stayed healthy at 18.24 us/op over 100,000 iterations.
+  - Rejected sub-experiments:
+    - Threshold 1 worsened retained heap: blog edge warm 1.29 MiB, blog edge churn 1.24 MiB, blog node warm 10.32 MiB, blog parameterized node warm 10.51 MiB.
+    - Skipping string interning inside root compact `q`/`x` query templates also worsened retained heap: blog edge warm 1.31 MiB, blog edge churn 1.24 MiB, blog node warm 10.60 MiB, blog parameterized node warm 10.84 MiB.
+  - Decision: keep. This is a small retained-memory cleanup for Workers-style nested plan caches with no observed cache-hit cost.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.

@@ -48,7 +48,7 @@ export type IndividualQueryPlanCacheEntry = {
   plan: QueryPlanNode
 }
 
-const MIN_INTERNED_STRING_LENGTH = 8
+const MIN_INTERNED_STRING_LENGTH = 32
 
 export class QueryPlanCache {
   readonly #singleCache: Map<string, Extract<CacheEntry, { kind: 'single' }>>
