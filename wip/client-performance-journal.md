@@ -7732,6 +7732,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The `Object.keys(row)` / selection-membership check costs more than the projection it tries to avoid on the target shape.
 
+- Rejected experiment: direct param override guard loop.
+  - Timestamp: 2026-06-08T00:46:00+02:00.
+  - Change:
+    - Temporarily replaced `canIgnorePrecomputedFastPathParamOverrides()`'s `Object.keys()` checks with a direct `for...in` loop guarded by `Object.hasOwn()`.
+    - The hot root fluent shape still accepted only empty overrides or empty `dataPath` plus optional `callsite`.
+  - Rationale:
+    - CPU profiles still showed `canIgnorePrecomputedFastPathParamOverrides()` on the warmed descriptor-hit path. Avoiding a `keys` array allocation looked like a low-risk request-path cleanup.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 3.33 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.55 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.76 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.02 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted single-key compacted demux row was 6.98 us/op.
+  - Decision:
+    - Revert. This is noise-level at best and slightly worse than the accepted baseline.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
