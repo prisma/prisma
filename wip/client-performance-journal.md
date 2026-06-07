@@ -4345,6 +4345,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - simple select 847,282 ops/sec; findUnique 1,142,080 ops/sec; join 623,925 ops/sec; sequence 928,553 ops/sec; deep nested join 59,640 ops/sec.
   - Decision: keep. The exact root-width path gives a repeatable isolated serializer win, no confirmed product regression, and slight positive movement on cached wrapper and full warmed ClientEngine rows. Avoid broad 6-12 unrolling until those exact widths have evidence.
 
+- Rejected/no-movement experiment: reuse one-to-many connect-or-create `child_link` for both parent edges.
+  - Timestamp: 2026-06-07T03:37:35Z.
+  - Hypothesis: `one_to_many_inlined_child()` in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs` computed `parent_relation_field.related_field().linking_fields()` as `child_link`, moved it into the parent-to-create edge, then recomputed the same linking fields for the parent-to-update edge. Reusing the first `child_link` with one extra clone might avoid the second `linking_fields()` allocation.
+  - Temporary implementation:
+    - Changed the parent-to-create edge to use `RowSink::ExactlyOneWriteArgs(child_link.clone(), ...)`.
+    - Removed the second `let child_link = parent_relation_field.related_field().linking_fields();` before the parent-to-update edge.
+  - Verification while patched:
+    - `cargo fmt -p query-core --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,create-nested-create,update-set-nested,query-m2o' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Allocation signal:
+    - No sampled row changed allocation count or allocated bytes versus the current baseline.
+    - Affected rows stayed at `create-nested-connectOrCreate-mixed` 2767 allocations/op, `one2m` 2453, and `m2one` 1458.
+  - Decision: reverted. The extra clone and removed recompute are allocation-equivalent in these shapes, so this is not worth carrying or timing.
+
 ## Useful Commands
 
 ```sh
