@@ -6235,6 +6235,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Same-session reverted control: 6.49 us/op at 300k iterations.
   - Decision: reverted / do not pursue. The manual promise-array shape is noise-level and does not remove the recursive raw-nested execution model. Keep the existing `Promise.all(relations.map(...))` shape unless a real product profile shows this specific allocation has become material.
 
+- Measurement-only Rust allocation bound: skipping result-map construction for raw-nested translation.
+  - Timestamp: 2026-06-07T16:11:08Z.
+  - Baseline allocation profile command:
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-one2m,query-many-one2m,query-many-m2m,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=3 cargo run -p query-compiler --example allocation_profile --release`
+  - Temporary patch tried:
+    - In `query-compiler/query-compiler/src/translate.rs`, forced `let structure = None` to bound the maximum possible allocation win from avoiding `map_result_structure(&graph, ...)`.
+    - Reverted immediately after measurement. This patch is not correct for general queries because non-raw-nested fallback reads still need the data-map.
+  - Translate/full-compile allocation deltas from disabling result-map construction:
+    - `query-m2o`: `translate_ir` 359 allocs / 33.7 KiB -> 335 / 31.4 KiB; `full_compile` 624 / 80.6 KiB -> 600 / 78.3 KiB.
+    - `query-one2m`: `translate_ir` 380 / 33.6 KiB -> 345 / 30.1 KiB; `full_compile` 702 / 84.3 KiB -> 667 / 80.8 KiB.
+    - `query-many-one2m`: `translate_ir` 354 / 31.9 KiB -> 319 / 28.4 KiB; `full_compile` 700 / 83.9 KiB -> 665 / 80.5 KiB.
+    - `query-many-m2m`: `translate_ir` 573 / 51.7 KiB -> 548 / 49.2 KiB; `full_compile` 919 / 100.7 KiB -> 894 / 98.2 KiB.
+    - `nested-pagination-query`: `translate_ir` 409 / 42.4 KiB -> 392 / 41.1 KiB; `full_compile` 720 / 88.7 KiB -> 703 / 87.4 KiB.
+  - Decision:
+    - Do not prioritize an exact raw-nested precheck solely to skip `map_result_structure()`. The upper bound is real but modest, roughly 17-35 allocations/op and 1.3-3.5 KiB/op on these read fixtures, and safe implementation requires either an exact no-clone pre-translation eligibility predicate or a consume-with-rollback translation refactor.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
