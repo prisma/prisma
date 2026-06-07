@@ -4767,6 +4767,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile/update-set-nested` was neutral/noise (`99.418–99.599 us`).
   - Decision: reverted. The allocation savings are too small to justify a significant `update-set-nested-prisma#27650` CPU regression. Do not retry this exact `Expression::Validate.rules` `SmallVec` swap without a CPU explanation.
 
+- Rejected experiment: explicit `QueryInterpreter.run()` runtime context object.
+  - Timestamp: 2026-06-07T10:18:30Z.
+  - Change tried: in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, replaced the per-run context literal `{ ...options, generators, hasSqlCommenter, usesQueryInstrumentation }` with an explicit object assigning `queryable`, `transactionManager`, `scope`, and `sqlCommenter` from `options`.
+  - Rationale: cached-plan execution constructs a runtime context for every request. Avoiding object spread might keep a tighter context shape and avoid copying unrelated option fields.
+  - Verification while patched:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='local executor blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Patched: cached request wrapper nested rows 16.92 us/op; direct plan after phase warmup 13.49 us/op; local executor nested rows 13.72 us/op.
+    - Reversed baseline after restoring spread: cached request wrapper nested rows 17.37 us/op; direct plan after phase warmup 11.80 us/op; local executor nested rows 12.10 us/op.
+  - Decision: reverted. The full cached wrapper row improved slightly, but the direct/local nested interpreter rows regressed materially. Keep the spread context shape unless a future benchmark explains the inner-plan regression.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
