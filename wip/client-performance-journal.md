@@ -6980,6 +6980,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as an internal benchmark prototype and measurement result, not as product behavior. It proves that a real generated call can recover about half the simple-row CPU gap and most of the nested-row request-surface gap once descriptor hits are hot.
     - Productization still needs a safe request contract for batching, extensions, tracing/error callsites, SQL commenters, transaction handling, args mappers, global/nested omit, strict undefined checks, `Prisma.skip`, and unsupported value serialization. Direct engine calls are especially risky for `findUnique` because the current request path deliberately supports automatic DataLoader batching.
 
+- Rejected spike: skip root fluent proxy under internal precomputed fast path.
+  - Timestamp: 2026-06-07T22:02:00+02:00.
+  - Change tried:
+    - Temporarily returned the PrismaPromise directly from `applyFluent()` for root calls when `__internal.enginePrecomputedFastPath` was enabled and `dataPath` was empty.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client engine precomputed fast path findUnique / warmed cache`: 2.29 us/op, `precomputedHits=100000`, `precomputedLearns=0`.
+    - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 11.17 us/op, `precomputedHits=100000`, `precomputedLearns=0`.
+  - Decision:
+    - Reverted. The result quantifies root fluent proxy overhead at roughly 0.5-0.6 us/op on these rows, but the change breaks relation chaining under the internal flag. A product-safe version needs a way to preserve lazy relation access while avoiding per-call proxy allocation for the common await-only path.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
