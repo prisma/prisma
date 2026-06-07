@@ -5043,6 +5043,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `compile prebuilt request blog page`: 2129.23 us/op; current miss: 2123.52 us/op.
   - Interpretation: the current Node/V8 product-shaped nested cache-hit path still leaves most runtime headroom in nested plan interpretation and row-object/join work, not SQL rendering or adapter dispatch. Compile misses remain dominated by Rust/Wasm compiler work rather than JS request construction.
 
+- Measurement refresh: Workerd probe after harness restart and local query-compiler Wasm rebuild.
+  - Timestamp: 2026-06-07T13:46:30Z.
+  - Environment repair: the reset harness did not have `jq` on `PATH`, so `make build-qc-wasm` initially failed before Rust compilation. A temporary local Python shim in `~/.local/bin/jq` was enough for the build script's `cargo metadata | jq -r .target_directory` lookup and package-version rewrite. The repo trees were left clean after the build refresh.
+  - Verification:
+    - `make build-qc-wasm` in `/home/aqrln.guest/prisma-engines`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Workerd signal:
+    - Cold smoke compile: compiler init 63.0 ms; compile loop 46.0 ms for 1 find-unique query; average serialized plan 532 B.
+    - Retained scalar plan cache: compile loop 61.0 ms for 100 scalar-selection queries; retained 100 entries, 7.6 KiB keys, 24.1 KiB serialized plans; average serialized plan 246.59 B.
+    - Retained blog-page plan cache: compile loop 426.0 ms for 100 blog-page queries; retained 100 entries, 48.3 KiB keys, 362.7 KiB serialized plans; average serialized plan 3.6 KiB.
+    - Client-cache findUnique value churn: 99/1 cache hits/misses over 100 queries; host dispatch 60.81 us/op; retained one 138 B key and one 548 B serialized plan.
+    - Client-cache blog-page value churn: 99/1 cache hits/misses over 100 queries; host dispatch 85.78 us/op; retained one 704 B key and one 4.1 KiB serialized plan.
+    - Generated client warmed findUnique cache: 5000/0 hits/misses; host dispatch 66.91 us/op upper bound; 5000 `queryRaw` calls; host heap delta 237.7 KiB.
+    - Generated client warmed blog-page cache: 1000/0 hits/misses; host dispatch 121.10 us/op upper bound; 7000 `queryRaw` calls; host heap delta 17.3 KiB.
+  - Interpretation: the rebuilt local Wasm is usable in the Workers-like probe again. The retained blog-page plan cache still shows key bytes (~48 KiB per 100 entries) and serialized plan bytes (~363 KiB per 100 entries) as separate memory surfaces; cache-key retention remains a plausible follow-up, but any hash-only key shortcut would need exact collision handling.
+
 ## Useful Commands
 
 ```sh
