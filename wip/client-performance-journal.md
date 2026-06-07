@@ -6251,6 +6251,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Do not prioritize an exact raw-nested precheck solely to skip `map_result_structure()`. The upper bound is real but modest, roughly 17-35 allocations/op and 1.3-3.5 KiB/op on these read fixtures, and safe implementation requires either an exact no-clone pre-translation eligibility predicate or a consume-with-rollback translation refactor.
 
+- Measurement probe: pure Workerd client-cache key/lookup timing.
+  - Timestamp: 2026-06-07T16:15:55Z.
+  - Change:
+    - Added `client-cache-key` mode to `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - Added `WORKERD_CLIENT_CACHE_KEY_ITERATIONS`.
+    - The new mode warms one cached plan, then times only query construction, the probe's hand-parameterization, `JSON.stringify(query.query)`, exact cache-key construction, and `Map.get`. It intentionally does not serialize the cached plan on hits.
+  - Rationale:
+    - Existing Workerd `client-cache` mode computes `totalPlanBytes += JSON.stringify(plan).length` on every hit, so it is not a pure cache-hit key/lookup timing row. The JS-owned query / Rust-owned IR proof point needs a Workerd-side lower bound for the current JS cache-key work.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=50000 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=200 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Workerd rows from the local-Wasm run:
+    - `client-cache-key findUnique value churn`: worker request loop 22.0 ms for 50,000 requests, 0.44 us/op; host dispatch upper bound 0.53 us/op; 50,000/0 hits/misses; one retained 138 B key and 548 B plan.
+    - `client-cache-key blog-page value churn`: worker request loop 77.0 ms for 50,000 requests, 1.54 us/op; host dispatch upper bound 1.68 us/op; 50,000/0 hits/misses; one retained 704 B key and 3.7 KiB plan.
+    - Generated-client warmed-cache rows in the same low-iteration run were coarse/noisy but much larger: `findUnique` 19.00 us/op over 1,000 requests; blog-page 55.00 us/op over 200 requests.
+  - Interpretation:
+    - A cache-key-only JS rewrite is too low-ceiling on Workerd. The JS-owned query / Rust-owned IR architecture remains interesting only if it replaces multiple phases: generated-client/request overhead, owned Rust request materialization on misses, and plan serialization/cache object transfer. The new row gives a clearer lower bound for the JS-side key/lookup part.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

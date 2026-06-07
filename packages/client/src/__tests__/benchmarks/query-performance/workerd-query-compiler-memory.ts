@@ -15,6 +15,7 @@ const WASM_COMPILER_EDGE_PATH = path.join(RUNTIME_BASE, 'wasm-compiler-edge.mjs'
 const LOCAL_QC_BUILD_DIRECTORY = process.env.LOCAL_QC_BUILD_DIRECTORY
 const GENERATED_FIND_UNIQUE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS', 5_000)
 const GENERATED_BLOG_PAGE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_BLOG_PAGE_ITERATIONS', 1_000)
+const CLIENT_CACHE_KEY_ITERATIONS = positiveIntegerEnv('WORKERD_CLIENT_CACHE_KEY_ITERATIONS', 20_000)
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -960,6 +961,51 @@ function runClientCacheScenario(scenario, iterations, retain) {
   }
 }
 
+function runClientCacheKeyScenario(scenario, iterations) {
+  const compiler = getCompiler()
+  const warmQuery = parameterizeQueryForClientCache(createQuery(scenario, 0))
+  const warmQueryPart = JSON.stringify(warmQuery.query)
+  const warmCacheKey = getSingleQueryCacheKey(warmQuery, warmQueryPart)
+  retainedPlans.set(warmCacheKey, compiler.compile(getSingleQueryRequest(warmQuery, warmQueryPart)))
+
+  let cacheHits = 0
+  let checksum = 0
+  const start = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    const query = parameterizeQueryForClientCache(createQuery(scenario, i))
+    const queryPart = JSON.stringify(query.query)
+    const cacheKey = getSingleQueryCacheKey(query, queryPart)
+    const plan = retainedPlans.get(cacheKey)
+
+    if (plan !== undefined) {
+      cacheHits++
+      checksum += 1
+    }
+  }
+
+  const elapsedMs = performance.now() - start
+  const retained = retainedPlanSize()
+  return {
+    scenario,
+    mode: 'client-cache-key',
+    iterations,
+    retain: true,
+    initMs,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / iterations,
+    cacheHits,
+    cacheMisses: iterations - cacheHits,
+    checksum,
+    retainedEntries: retainedPlans.size,
+    retainedCacheKeyBytes: retained.cacheKeyBytes,
+    retainedCacheKeyBreakdown: retained.cacheKeyBreakdown,
+    retainedPlanSerializedBytes: retained.planSerializedBytes,
+    averagePlanBytes: 0,
+    runtime: navigator.userAgent,
+  }
+}
+
 async function runClientExecuteScenario(scenario, iterations, retain) {
   const Client = getPrismaClientConstructor()
   const client = new Client({
@@ -1034,6 +1080,8 @@ export default {
             ? await runClientExecuteScenario(scenario, iterations, retain)
             : mode === 'client-cache'
               ? runClientCacheScenario(scenario, iterations, retain)
+              : mode === 'client-cache-key'
+                ? runClientCacheKeyScenario(scenario, iterations)
               : runScenario(scenario, iterations, retain),
       })
     } catch (error) {
@@ -1245,6 +1293,32 @@ async function run(): Promise<void> {
     await clearWorkerCache(mf)
     printMeasurement(
       await dispatchRun(mf, 'client-cache blog-page value churn', 'blog-page-by-id', 100, true, 'client-cache'),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'client-cache-key findUnique value churn',
+        'find-unique',
+        CLIENT_CACHE_KEY_ITERATIONS,
+        true,
+        'client-cache-key',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'client-cache-key blog-page value churn',
+        'blog-page-by-id',
+        CLIENT_CACHE_KEY_ITERATIONS,
+        true,
+        'client-cache-key',
+      ),
     )
   } finally {
     await mf.dispose()
