@@ -4486,6 +4486,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The accepted `merge()` fast path remains the right granularity: it avoids a hash/set path only when the caller is already at a merge boundary.
     - Broader rewrites that replace compact iterator chains with manual scans can lose CPU badly even when they reduce allocation counts. Continue to require Criterion on top nested-write and read controls before keeping graph/selection allocation patches.
 
+- Measurement refresh: restarted broad build and current nested runtime profile.
+  - Timestamp: 2026-06-07T04:31:00Z.
+  - `pnpm build` passed from Turbo cache after the harness restart: 44/44 tasks successful, 44 cached, 1.119s.
+  - Focused Node runtime row:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - `blog page nested rows / warmed cache after phase warmup`: 19.80 us/op.
+    - `cached request wrapper blog page / nested rows`: 19.48 us/op.
+    - `direct plan blog page / nested rows`: 12.17 us/op.
+    - `direct plan after phase warmup blog page / nested rows`: 12.60 us/op.
+    - `local executor blog page / nested rows`: 12.51 us/op.
+    - `parameterize blog page / value churn`: 2.25 us/op.
+    - `cache hit key blog page / value churn`: 3.60 us/op.
+    - `serializeSql blog page result sets / nested rows`: 1.75 us/op.
+    - `outer data map blog page / nested rows`: 1.68 us/op.
+    - `precomputed query leaves blog page / nested rows`: 7.54 us/op.
+    - `precomputed join leaves blog page / nested rows`: 4.56 us/op.
+  - CPU profile command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='warmed cache after phase warmup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --cpu-prof --cpu-prof-dir=/tmp --cpu-prof-name=prisma-client-engine-cache.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Profiled row stayed in band at 19.54 us/op for 100,000 warmed nested blog-page requests.
+    - Top repo samples were spread across compiled compact interpreter closures, `ClientEngine.request`, `mapObjectWithMappings`, `#executeQueryNode`, parameterization, rendering, `serializeSql`, join attachment, and `QueryPlanCache.getSingle`.
+    - The largest non-product helper sample was `getBlogPageResultSet()` in the fake benchmark adapter; the adapter-only row was 2.07 us/op. Treat that as measurement harness overhead, not Prisma runtime overhead.
+  - Interpretation:
+    - The refreshed profile does not expose a new single hot helper. It reinforces that the remaining Node nested cache-hit cost is a combination of query-leaf execution, row serialization, data mapping, join attachment, request/cache-key work, and benchmark fake-adapter classification.
+    - Continue avoiding already-rejected runtime micro-spikes around join child arrays, `Promise.all` loop rewrites, primitive mapper fast paths, `renderSingleQuery()`, cache-touch shortcuts, and placeholder singleton objects unless a new benchmark shape changes the evidence.
+    - Higher-ceiling work remains architectural: plan-shape/data-map pushdown for nested query-mode joins, reducing repeated row-object materialization before outer mapping, or the JS-owned query / Rust-owned IR cache-hit prototype.
+
+## Current Follow-up Leads
+
+- Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
+- Investigate plan-shape/data-map pushdown for nested query-mode joins only if it can remove whole row-materialization or outer-mapping phases. The current warmed blog-page row leaves roughly 12.5 us/op in direct/local nested plan execution, but mapper-only and serializer-only rows are already low.
+- Keep Rust allocation work focused on structural graph/translation ownership improvements with allocation-profile plus Criterion gates. Tiny manual rewrites that save allocations have frequently regressed CPU.
+- If future runtime profiling needs cleaner interpreter numbers, consider a benchmark-only replacement for `getBlogPageResultSet()`'s repeated SQL substring scanning. This would improve measurement isolation, not product performance.
+
 ## Useful Commands
 
 ```sh
