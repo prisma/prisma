@@ -5521,6 +5521,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `query-unique-one2m-pagination`: translate_ir 381 / 34.6 KiB -> 368 / 34.4 KiB; full_compile 742 / 87.9 KiB -> 729 / 87.7 KiB.
   - Decision: reverted. The count drop is real, but the byte signal is too mixed and the implementation duplicates raw-nested root translation work. A better version would need to consume the root read query without cloning, which requires an exact structural proof that raw-nested emission cannot fall back, or a consume-with-rollback refactor. Do not add the clone-based precheck.
 
+- Rejected experiment: unique-root direct raw-nested relation executor.
+  - Timestamp: 2026-06-07T12:10:46Z.
+  - Change tried:
+    - Passed the top-level `['n', ..., unique]` flag into `#compileRawNestedReadQuery()`.
+    - When a unique raw-nested node had only direct relations and returned exactly one parent row, attached root child relations through a specialized per-relation closure. This bypassed generic `getRawNestedScopeValue()` and `attachRawNestedDirectRelation()` for the root relations while preserving the generic path for zero or unexpected multi-row results.
+  - Rationale:
+    - The actual blog-page product shape is a unique root with direct raw-nested relations. A flatter root executor looked like a way to remove a chunk of generic relation machinery without changing the Wasm plan protocol.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - Patched broad timing: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Same-session reverted broad timing with the same command.
+  - Timing signal:
+    - Patched: cached request wrapper 14.16 us/op, direct plan 8.68, raw compact node 7.45, direct after phase warmup 8.77, local executor 8.87.
+    - Reverted: cached request wrapper 14.16 us/op, direct plan 8.57, raw compact node 7.32, direct after phase warmup 8.68, local executor 8.63.
+  - Decision: reverted. The specialized root relation path worsened the direct/local product rows in the same session. The extra closure shape and `Promise.all(...map(...))` around root relations likely outweighed the skipped generic helpers. Do not retry this unique-root direct-relation specialization as a standalone change.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
