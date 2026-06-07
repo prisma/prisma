@@ -5123,6 +5123,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched: cached request wrapper blog-page nested rows 15.00 us/op; raw result-set compact node 7.50 us/op.
   - Decision: reverted. The direct compact-node signal was only noise-level positive, while the product-shaped cached wrapper row moved the wrong way and the loop became larger. Do not retry this exact helper-inline shape without a broader mapper specialization that shows a clear product-path win.
 
+- Measurement refresh: Workerd probe after raw nested runtime changes.
+  - Timestamp: 2026-06-07T15:08:20Z.
+  - Command:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Key rows:
+    - Retained blog-page plan cache: host dispatch 426.8 ms total, 4267.72 us/op; compile loop 424.0 ms for 100 queries; retained 48.3 KiB keys and 362.7 KiB serialized plans.
+    - Client-cache blog-page value churn: host dispatch 8.2 ms total, 81.80 us/op; 99/1 hits/misses; retained one 704 B key and one 4.1 KiB serialized plan.
+    - Generated client findUnique warmed cache: host dispatch 349.3 ms total, 69.85 us/op upper bound; 5000/0 hits/misses.
+    - Generated client blog-page warmed cache: host dispatch 118.0 ms total, 117.99 us/op upper bound; 1000/0 hits/misses; 7000 `queryRaw` calls.
+  - Comparison to the 2026-06-07T13:46:30Z Workerd refresh:
+    - Client-cache blog-page value churn improved from 85.78 to 81.80 us/op.
+    - Generated client blog-page warmed cache improved from 121.10 to 117.99 us/op.
+    - Generated client findUnique warmed cache regressed/noised from 66.91 to 69.85 us/op; unrelated to raw nested work.
+  - Interpretation: the Workerd-like generated-client blog-page row shows a small positive signal after the raw nested runtime work, but the probe's host dispatch timing is coarse. Treat it as directional confirmation, not a precise isolate benchmark.
+
 ## Useful Commands
 
 ```sh
