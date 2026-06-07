@@ -4088,6 +4088,109 @@ async function measureCachedRequestWrapperScenario(
   }
 }
 
+async function measureCachedRequestWrapperPrecomputedKeyScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: CacheKeyScenario,
+) {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const executor = await LocalExecutor.connect({
+    driverAdapterFactory: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
+    transactionOptions: {
+      maxWait: 2000,
+      timeout: 5000,
+    },
+    tracingHelper: noopTracingHelper,
+    provider: 'sqlite',
+  })
+  const firstQuery = scenario.query(0)
+  const cache = new QueryPlanCache(100)
+  const { parameterizedQuery: firstParameterizedQuery } = parameterizeQuery(firstQuery, paramGraph)
+  const firstQueryPart = JSON.stringify(firstParameterizedQuery.query)
+  const firstCacheKey = getSingleQueryCacheKey(firstParameterizedQuery, firstQueryPart)
+  cache.setSingle(firstCacheKey, compiler.compile(getSingleQueryRequest(firstParameterizedQuery, firstQueryPart)))
+
+  const requests = new Array<{
+    query: JsonQuery
+    cacheKey: string
+    placeholderValues: Record<string, unknown>
+  }>(scenario.iterations)
+  for (let i = 0; i < scenario.iterations; i++) {
+    const query = scenario.query(i)
+    const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+    requests[i] = {
+      query,
+      cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+      placeholderValues,
+    }
+  }
+
+  let consumedResults = 0
+  try {
+    for (let i = 0; i < scenario.iterations; i++) {
+      const request = requests[i]
+      const plan = cache.getSingle(request.cacheKey)!
+      const result = await executor.execute({
+        plan,
+        model: request.query.modelName,
+        operation: request.query.action,
+        placeholderValues: request.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [request.query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[request.query.action] === undefined ? 0 : 1
+    }
+    resetCounts(counts)
+
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const request = requests[i]
+      const plan = cache.getSingle(request.cacheKey)!
+      const result = await executor.execute({
+        plan,
+        model: request.query.modelName,
+        operation: request.query.action,
+        placeholderValues: request.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+      })
+      const response = {
+        data: { [request.query.action]: result },
+        [queryEngineResultDataWasDeserialized]: true,
+      }
+      consumedResults += response.data[request.query.action] === undefined ? 0 : 1
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (consumedResults < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      query: firstQuery,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    } satisfies DirectPlanMeasurement
+  } finally {
+    await executor.disconnect()
+  }
+}
+
 async function measureManyShapeCachedRequestWrapperScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4472,6 +4575,19 @@ async function main(): Promise<void> {
         continue
       }
       printDirectPlanMeasurement(await measureCachedRequestWrapperScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of cachedRequestWrapperScenarios) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('cache hit key', 'cached request wrapper precomputed key'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureCachedRequestWrapperPrecomputedKeyScenario(compiler, paramGraph, measuredScenario),
+      )
     }
 
     for (const scenario of manyShapeCachedRequestScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {

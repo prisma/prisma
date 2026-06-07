@@ -6584,6 +6584,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The simple row improved but the nested row worsened versus adjacent control, so the extra branch is not justified for the target relation-heavy shape.
 
+- Accepted measurement: cached wrapper precomputed-key timing row.
+  - Timestamp: 2026-06-07T17:59:59Z.
+  - Change:
+    - Added `cached request wrapper precomputed key ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The row precomputes each iteration's parameterized query, placeholder values, and single-query cache key before timing. The timed loop only performs `QueryPlanCache.getSingle()`, `LocalExecutor.execute()`, and the lightweight response wrapper.
+  - Rationale:
+    - The nested phase split showed cached request wrapper around 11.3 us/op and direct/local executor around 7.0 us/op.
+    - Existing `cache hit key` rows showed parameterization/stringify/cache-key work around 3.1 us/op, but we lacked a direct wrapper row proving cache lookup and response wrapping were not another large hidden gap.
+  - Timing:
+    - `cached request wrapper precomputed key blog page / nested rows`: 7.27 us/op at 100,000 iterations.
+    - Same-session reference rows from the nested split: cached request wrapper 11.35 us/op, direct plan 7.04 us/op, local executor 7.07 us/op.
+    - Earlier cache-key phase rows for blog-page value churn at 300,000 iterations: parameterize 1.62 us/op, stringify cache key 1.56 us/op, cache hit key 3.12 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper precomputed key blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Keep as measurement infrastructure. The warmed-wrapper gap is almost entirely parameterization/stringify/cache-key construction; future cache-hit work should fuse/avoid those phases or move them across the JS/Wasm boundary, not micro-optimize `QueryPlanCache.getSingle()` or response wrapping.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:
