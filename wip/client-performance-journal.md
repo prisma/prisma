@@ -6511,6 +6511,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. Nested serializer work remains a material generated-client target, while simple scalar serialization is already small; future serializer work should be judged primarily against nested explicit-selection rows and Workerd, not just simple `findUnique`.
 
+- Rejected experiment: shared root params for nested serializer contexts.
+  - Timestamp: 2026-06-07T17:36:05Z.
+  - Change tried:
+    - Changed `SerializeContext` so nested contexts reused the root `ContextParams` object and stored only `modelName`, `selectionPath`, and `argumentPath` as per-context fields.
+    - This removed the `{ ...this.params, modelName, selectionPath }` and `{ ...this.params, argumentPath }` object spreads in `nestSelection()` / `nestArgument()`.
+  - Rationale:
+    - After path-array allocation removal, nested serializer cost was still material. Context spreading looked like a plausible remaining allocation source.
+  - Timing:
+    - Committed generated serializer row before the spike: `findUnique` 0.32 us/op, nested blog-page 4.17 us/op.
+    - Shared-root-params patched row: `findUnique` 0.31 us/op, nested blog-page 4.39 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client serialize' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Reverted. Removing the spread allocation made nested serialization slower, likely from less favorable object shapes/property access. Do not retry this as a standalone allocation cleanup.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
