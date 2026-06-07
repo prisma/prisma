@@ -281,21 +281,28 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
     if (value === undefined) {
       validateSelectionForUndefined(value, context.nestSelection(key))
     }
-    const field = context.findField(key)
-    if (computedFields?.[key] && !field) {
-      continue
-    }
+    const computedField = computedFields?.[key]
     if (value === false || value === undefined) {
+      if (computedField && !context.findField(key)) {
+        continue
+      }
       selectionSet[key] = false
       continue
     }
     if (value === true) {
+      const field = context.findField(key)
+      if (computedField && !field) {
+        continue
+      }
       if (field?.kind === 'object') {
         const nestedContext = context.nestSelection(key)
         selectionSet[key] = serializeFieldSelection({}, nestedContext)
       } else {
         selectionSet[key] = true
       }
+      continue
+    }
+    if (computedField && !context.findField(key)) {
       continue
     }
     const nestedContext = context.nestSelection(key)

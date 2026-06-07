@@ -6429,6 +6429,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The Node nested row and adjacent Workerd control both support the change, and the implementation is a small output-preserving removal of work enabled by the accepted optional-`arguments` protocol shape.
 
+- Accepted experiment: avoid duplicate field lookup for object-valued selections.
+  - Timestamp: 2026-06-07T17:21:08Z.
+  - Change:
+    - In `packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`, `createExplicitSelection()` now only performs the pre-branch `findField()` lookup when computed-field skipping needs it or when `value === true` needs to distinguish relation fields from scalar fields.
+    - Object-valued selection branches now rely on `nestSelection()` to perform the field lookup once, instead of doing one lookup for computed-field handling and another inside `nestSelection()`.
+    - Scalar `true` selections stay on the direct `findField()` path to preserve relation-true behavior without adding a new object-field-name set lookup.
+  - Rationale:
+    - The refreshed CPU profile after the previous serializer commit still showed `serializeSelectionSet()` and `createExplicitSelection()` as the largest generated-client source costs.
+    - The nested blog-page shape has many relation/object selection branches. In the no-computed-fields hot path, the eager lookup was redundant because `nestSelection()` already resolves the relation model name.
+  - Timing:
+    - Current commit profile refresh before this patch: generated `findUnique` 4.80 us/op, nested blog-page 19.19 us/op.
+    - First broader spike with cached object-field-name sets: generated `findUnique` 4.81 us/op, nested blog-page 18.19 us/op.
+    - Same-session reverted control: generated `findUnique` 4.75 us/op, nested blog-page 18.98 us/op.
+    - Narrowed accepted variant: generated `findUnique` 4.65 us/op, nested blog-page 18.31 us/op.
+    - Workerd high-iteration smoke after build: worker-internal generated `findUnique` 6.24 us/op and nested blog-page 18.00 us/op, in the recent committed band.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep the narrowed variant. It removes duplicated field lookup in relation/object selection branches, improves the Node product rows in same-session A/B, and keeps Workerd within the current band. Do not revive the broader cached object-field-name set unless a future profile shows scalar `true` relation detection dominating.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
