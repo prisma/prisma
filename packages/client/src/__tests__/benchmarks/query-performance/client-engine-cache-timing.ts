@@ -164,6 +164,7 @@ const BLOG_PAGE_QUERY_SELECTORS: readonly SqlQuery[] = Object.freeze([
   Object.freeze({ sql: 'SELECT * FROM `main`.`User` WHERE `id` IN (?)', args: [], argTypes: [] }),
 ])
 const BLOG_PAGE_ROOT_SCALAR_FIELDS = ['id', 'title', 'slug', 'content', 'published', 'viewCount', 'createdAt'] as const
+const BLOG_PAGE_RESULT_SET_BY_SQL = new Map<string, SqlResultSet>()
 
 type Counts = {
   compile: number
@@ -388,6 +389,11 @@ async function createScenarioAdapter(
 }
 
 function getBlogPageResultSet(sql: string): SqlResultSet {
+  const cached = BLOG_PAGE_RESULT_SET_BY_SQL.get(sql)
+  if (cached !== undefined) {
+    return cached
+  }
+
   const fromMain = 'FROM `main`.`'
   const tableStart = sql.indexOf(fromMain)
 
@@ -398,21 +404,29 @@ function getBlogPageResultSet(sql: string): SqlResultSet {
 
     switch (tableName) {
       case 'Post':
-        return BLOG_PAGE_POST_RESULT
+        return cacheBlogPageResultSet(sql, BLOG_PAGE_POST_RESULT)
       case 'Category':
-        return BLOG_PAGE_CATEGORY_RESULT
+        return cacheBlogPageResultSet(sql, BLOG_PAGE_CATEGORY_RESULT)
       case 'PostTag':
-        return BLOG_PAGE_POST_TAG_RESULT
+        return cacheBlogPageResultSet(sql, BLOG_PAGE_POST_TAG_RESULT)
       case 'Tag':
-        return BLOG_PAGE_TAG_RESULT
+        return cacheBlogPageResultSet(sql, BLOG_PAGE_TAG_RESULT)
       case 'Comment':
-        return BLOG_PAGE_COMMENT_RESULT
+        return cacheBlogPageResultSet(sql, BLOG_PAGE_COMMENT_RESULT)
       case 'User':
-        return sql.includes(' IN ') ? BLOG_PAGE_COMMENT_AUTHOR_RESULT : BLOG_PAGE_AUTHOR_RESULT
+        return cacheBlogPageResultSet(
+          sql,
+          sql.includes(' IN ') ? BLOG_PAGE_COMMENT_AUTHOR_RESULT : BLOG_PAGE_AUTHOR_RESULT,
+        )
     }
   }
 
   throw new Error(`Unexpected blog page benchmark SQL: ${sql}`)
+}
+
+function cacheBlogPageResultSet(sql: string, resultSet: SqlResultSet): SqlResultSet {
+  BLOG_PAGE_RESULT_SET_BY_SQL.set(sql, resultSet)
+  return resultSet
 }
 
 async function createCountingQueryCompilerLoader(counts: Counts) {
