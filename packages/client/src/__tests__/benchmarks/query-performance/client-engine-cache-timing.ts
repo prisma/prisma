@@ -50,6 +50,7 @@ import { QueryPlanCache } from '../../../runtime/core/engines/client/query-plan-
 import type { EngineConfig } from '../../../runtime/core/engines/common/Engine'
 import type { LogEmitter } from '../../../runtime/core/engines/common/types/Events'
 import { queryEngineResultDataWasDeserialized } from '../../../runtime/core/engines/common/types/QueryEngine'
+import { serializeJsonQuery } from '../../../runtime/core/jsonProtocol/serializeJsonQuery'
 import { disabledTracingHelper } from '../../../runtime/core/tracing/TracingHelper'
 import { getPrismaClient } from '../../../runtime/getPrismaClient'
 import { getQueryCompilerWasmConfig, loadQueryCompiler } from './qc-loader'
@@ -211,6 +212,15 @@ type DirectPlanScenario = {
 
 type GeneratedClientScenario = DirectPlanScenario & {
   operation: (client: any, iteration: number) => Promise<unknown>
+}
+
+type GeneratedClientSerializeScenario = {
+  name: string
+  iterations: number
+  modelName: string
+  action: 'findUnique'
+  clientMethod: string
+  args: (iteration: number) => Record<string, unknown>
 }
 
 type DirectPlanScopeScenario = {
@@ -1111,6 +1121,50 @@ async function measureGeneratedClientPromiseConstructionScenario(
     }
   } finally {
     await client.$disconnect()
+  }
+}
+
+function measureGeneratedClientSerializeScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  scenario: GeneratedClientSerializeScenario,
+): PlanPhaseMeasurement {
+  serializeJsonQuery({
+    modelName: scenario.modelName,
+    runtimeDataModel: config.runtimeDataModel,
+    action: scenario.action,
+    args: scenario.args(0),
+    clientMethod: scenario.clientMethod,
+    errorFormat: 'minimal',
+    clientVersion: config.clientVersion,
+    previewFeatures: [],
+  })
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    const message = serializeJsonQuery({
+      modelName: scenario.modelName,
+      runtimeDataModel: config.runtimeDataModel,
+      action: scenario.action,
+      args: scenario.args(i),
+      clientMethod: scenario.clientMethod,
+      errorFormat: 'minimal',
+      clientVersion: config.clientVersion,
+      previewFeatures: [],
+    })
+    checksum += message.query.selection === undefined ? 0 : 1
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  return {
+    name: scenario.name,
+    iterations: scenario.iterations,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    checksum,
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
   }
 }
 
@@ -4226,9 +4280,31 @@ async function main(): Promise<void> {
       operation: (client, iteration) => client.post.findUnique(createGeneratedBlogPostPageArgs(iteration)),
     },
   ]
+  const generatedClientSerializeScenarios: GeneratedClientSerializeScenario[] = [
+    {
+      name: 'generated client serialize findUnique / warmed cache',
+      iterations: benchmarkIterations(500),
+      modelName: 'User',
+      action: 'findUnique',
+      clientMethod: 'user.findUnique',
+      args: createGeneratedFindUniqueArgs,
+    },
+    {
+      name: 'generated client serialize blog page / nested rows warmed cache',
+      iterations: benchmarkIterations(500),
+      modelName: 'Post',
+      action: 'findUnique',
+      clientMethod: 'post.findUnique',
+      args: createGeneratedBlogPostPageArgs,
+    },
+  ]
 
   for (const scenario of scenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
     printMeasurement(await measureScenario(baseConfig, scenario))
+  }
+
+  for (const scenario of generatedClientSerializeScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
+    printPlanPhaseMeasurement(measureGeneratedClientSerializeScenario(baseConfig, scenario))
   }
 
   for (const scenario of generatedClientScenarios) {
