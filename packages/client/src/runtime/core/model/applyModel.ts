@@ -43,7 +43,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
   const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName) ?? {}
 
   const layers = [
-    modelActionsLayer(client, dmmfModelName),
+    cacheProperties(modelActionsLayer(client, dmmfModelName)),
     fieldsPropertyLayer(client, dmmfModelName),
     addObjectProperties(modelExtensions),
     addProperty('name', () => dmmfModelName),

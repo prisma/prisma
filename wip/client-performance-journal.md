@@ -5682,6 +5682,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Interpretation:
     - The old 5,000/1,000-request generated-client rows materially overestimated warmed request cost because host dispatch overhead was not amortized enough. The Workerd generated-client blog-page upper bound is now roughly 2x the simple findUnique upper bound, not ~7x despite seven fake `queryRaw` calls. Future Workerd comparisons should use high generated-client iteration counts and treat worker-internal request timing as unavailable in this Miniflare setup.
 
+- Accepted experiment: cache generated model action proxy properties.
+  - Timestamp: 2026-06-07T13:21:29Z.
+  - Change:
+    - Wrapped `modelActionsLayer(client, dmmfModelName)` in `cacheProperties()` inside `packages/client/src/runtime/core/model/applyModel.ts`.
+    - Added generated-client source rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` for warmed-cache `user.findUnique()` and nested blog-page `post.findUnique()` public API calls.
+    - Refactored `qc-loader.ts` so generated-client rows can reuse the same local/bundled query compiler Wasm loader and honor `LOCAL_QC_BUILD_DIRECTORY`.
+  - Rationale:
+    - After setting generated-client benchmark rows to `errorFormat: 'minimal'` to avoid Node callsite-capture overhead, CPU profiles showed repeated `applyFluent()` / model action function construction dominating the simple generated-client hot path. The action functions are stable per model proxy and still create fresh `PrismaPromise` / callsite data on each invocation, so caching the property value removes proxy lookup work without changing request semantics.
+  - Timing signal:
+    - Before caching with `errorFormat: 'minimal'`: generated client `findUnique` about 22.62 us/op and generated client blog-page nested rows about 52.71 us/op in a same-session reverted run.
+    - After caching: generated client `findUnique` about 17.85-18.13 us/op and generated client blog-page nested rows about 47.46-48.17 us/op.
+    - The win is roughly 20-21% on simple generated-client `findUnique` and roughly 9-10% on the nested generated-client blog-page shape.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/qc-loader.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/extensions/resolve-result-extension-context.test.ts packages/client/src/runtime/core/compositeProxy/cacheProperties.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Keep. This is the first accepted optimization in this investigation that directly reduces real generated PrismaClient proxy/public-API overhead rather than only the lower-level `ClientEngine.request()` or interpreter path. Future generated-client comparisons should keep `errorFormat: 'minimal'` when comparing Node source rows to edge/Workerd behavior because default Node callsite capture otherwise hides this signal.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

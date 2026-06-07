@@ -51,7 +51,8 @@ import type { EngineConfig } from '../../../runtime/core/engines/common/Engine'
 import type { LogEmitter } from '../../../runtime/core/engines/common/types/Events'
 import { queryEngineResultDataWasDeserialized } from '../../../runtime/core/engines/common/types/QueryEngine'
 import { disabledTracingHelper } from '../../../runtime/core/tracing/TracingHelper'
-import { loadQueryCompiler } from './qc-loader'
+import { getPrismaClient } from '../../../runtime/getPrismaClient'
+import { getQueryCompilerWasmConfig, loadQueryCompiler } from './qc-loader'
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
 const MEASUREMENT_FILTER = process.env.CLIENT_ENGINE_CACHE_TIMING_FILTER
@@ -75,6 +76,11 @@ const USER_SCALAR_RESULT: SqlResultSet = Object.freeze({
       Object.freeze([index + 1, `user${index + 1}@example.test`, `User ${index + 1}`]),
     ),
   ) as unknown[][],
+})
+const USER_UNIQUE_RESULT: SqlResultSet = Object.freeze({
+  columnNames: USER_SCALAR_RESULT.columnNames,
+  columnTypes: USER_SCALAR_RESULT.columnTypes,
+  rows: Object.freeze([USER_SCALAR_RESULT.rows[0]]) as unknown[][],
 })
 const BLOG_PAGE_POST_RESULT: SqlResultSet = Object.freeze({
   columnNames: Object.freeze([
@@ -201,6 +207,10 @@ type DirectPlanScenario = {
   query: JsonQuery
   resultSet?: SqlResultSet
   adapterFactory?: ScenarioAdapterFactory
+}
+
+type GeneratedClientScenario = DirectPlanScenario & {
+  operation: (client: any, iteration: number) => Promise<unknown>
 }
 
 type DirectPlanScopeScenario = {
@@ -708,6 +718,79 @@ function createBlogPostPageRootMaskQuery(mask: number, id: number): JsonQuery {
   return createBlogPostPageQueryWithSelection(id, selection)
 }
 
+function createGeneratedFindUniqueArgs(iteration: number): Record<string, unknown> {
+  return {
+    where: { id: iteration + 1 },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  }
+}
+
+function createGeneratedBlogPostPageArgs(iteration: number): Record<string, unknown> {
+  return {
+    where: { id: iteration + 1 },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      content: true,
+      published: true,
+      viewCount: true,
+      createdAt: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+      tags: {
+        select: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      },
+      comments: {
+        take: 10,
+        orderBy: [{ createdAt: 'desc' }],
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+    },
+  }
+}
+
 function resetCounts(counts: Counts): void {
   counts.compile = 0
   counts.compileBatch = 0
@@ -914,6 +997,63 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
     } satisfies Measurement
   } finally {
     await engine.stop()
+  }
+}
+
+async function measureGeneratedClientScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  scenario: GeneratedClientScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const PrismaClient = getPrismaClient({
+    runtimeDataModel: config.runtimeDataModel,
+    previewFeatures: [],
+    clientVersion: config.clientVersion,
+    engineVersion: '0000000000000000000000000000000000000000',
+    activeProvider: 'sqlite',
+    inlineSchema: BENCHMARK_DATAMODEL,
+    compilerWasm: getQueryCompilerWasmConfig('sqlite'),
+    parameterizationSchema: config.parameterizationSchema,
+  })
+  const client = new PrismaClient({
+    adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
+    errorFormat: 'minimal',
+    queryPlanCacheMaxSize: 100,
+  }) as any
+
+  try {
+    await client.$connect()
+    await scenario.operation(client, 0)
+    resetCounts(counts)
+
+    let checksum = 0
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const result = await scenario.operation(client, i)
+      checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (checksum < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    }
+  } finally {
+    await client.$disconnect()
   }
 }
 
@@ -4013,9 +4153,29 @@ async function main(): Promise<void> {
       adapterFactory: createBlogPageAdapterFactory,
     },
   ]
+  const generatedClientScenarios: GeneratedClientScenario[] = [
+    {
+      name: 'generated client findUnique / warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createFindUniqueQuery(1),
+      resultSet: USER_UNIQUE_RESULT,
+      operation: (client, iteration) => client.user.findUnique(createGeneratedFindUniqueArgs(iteration)),
+    },
+    {
+      name: 'generated client blog page / nested rows warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createBlogPostPageQuery(1),
+      adapterFactory: createBlogPageAdapterFactory,
+      operation: (client, iteration) => client.post.findUnique(createGeneratedBlogPostPageArgs(iteration)),
+    },
+  ]
 
   for (const scenario of scenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
     printMeasurement(await measureScenario(baseConfig, scenario))
+  }
+
+  for (const scenario of generatedClientScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
+    printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, scenario))
   }
 
   const QueryCompilerClass = await loadQueryCompiler('sqlite')
