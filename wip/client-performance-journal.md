@@ -7824,6 +7824,54 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow compile-miss allocation win with unit coverage and a clean Wasm/client rebuild. It does not address the larger JS-owned input/cache-hit architecture, but it removes avoidable Rust heap churn from a hot plan serialization primitive.
 
+- Accepted experiment: move selection-order names when the parsed field list is consumed.
+  - Timestamp: 2026-06-08T01:23:12+02:00.
+  - Engines commit: `1beea2f3261 Move selection order names when possible`.
+  - Change:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/utils.rs`, replaced the separate borrowed `collect_selection_order()` + consuming `collect_nested_queries()` pass with `collect_selection_order_and_nested_queries()` for read selections.
+    - Scalar/composite/aggregation selections now move `ParsedField.alias.unwrap_or(name)` into `selection_order` once the selected-field pass has already borrowed the list.
+    - Relation selections still clone their alias/name for `selection_order` because the full `ParsedField` must be moved into `find_related()`.
+    - Returning scalar write paths now call `collect_selection_order_owned()` after `collect_selected_scalars()`, moving names instead of cloning them.
+    - Relation selection result-field order in `extract_relation_selection()` also uses the owned helper after nested selections have been built.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-many-and-return,update-one-returning,delete-one,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+    - `graph_build` allocations moved:
+      - `query-m2o`: 186 -> 179.
+      - `query-many-m2m`: 275 -> 268.
+      - `nested-pagination-query`: 226 -> 221.
+      - `create-many-and-return`: 168 -> 165.
+      - `update-one-returning`: 243 -> 242.
+      - `delete-one`: 148 -> 145.
+      - `create-nested-connectOrCreate-mixed`: 874 -> 860.
+      - `update-set-nested`: 731 -> 717.
+    - `full_compile` allocation counts also moved down on the same rows, while allocated bytes were mixed/slightly higher in some rows because fewer small string clones changed later allocator bucket distribution.
+  - Criterion:
+    - First patched run was contaminated by the immediately preceding rejected `RelationLinkage` benchmark baseline, so it was treated as provisional only.
+    - Reverse A/B command after reverting the patch:
+      - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|create-many-and-return|update-one-returning|delete-one|create-nested-connectOrCreate-mixed|update-set-nested"`
+    - Reverse run showed the unpatched code was neutral-to-slightly slower than the patched state, with no regressed rows:
+      - `create-many-and-return`: +1.0691%, within noise threshold.
+      - `create-nested-connectOrCreate-mixed`: +0.5045%, within noise threshold.
+      - `delete-one`: +0.2334%, within noise threshold.
+      - `nested-pagination-query`: no change.
+      - `query-m2o-lateral`: +0.9000%, within noise threshold.
+      - `query-m2o`: no change.
+      - `query-many-m2m`: +0.6220%, within noise threshold.
+      - `update-one-returning`: no change.
+      - `update-set-nested-prisma#27650`: +1.7162%, within noise threshold.
+      - `update-set-nested`: -0.1842%, within noise threshold.
+  - Verification:
+    - `cargo fmt --package query-core`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. The allocation win is deterministic in graph building and full compile, query snapshots/tests are unchanged, Wasm/client builds pass, and focused Criterion is neutral-to-positive after reverse A/B. This closes the selection-order TODO lead.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -7855,10 +7903,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Explore memory-management simplification in Rust query compiler.
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
-  - Fresh lead: inspect scalar `selection_order` cloning in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/utils.rs` and call sites such as `read/many.rs`. A consuming helper might move scalar/composite/aggregation names into `selection_order` after `collect_selected_fields()` has borrowed the list, while relation selections may still need cloning because `ParsedField` is moved into `find_related()`.
-  - Suggested lead-validation command:
-    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
-    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|update-set-nested|update-set-nested-prisma#27650"`
+  - The first two concrete leads from the 2026-06-08 scout are now resolved: `RelationLinkage` SmallVec/sorted-vector storage was rejected, and scalar `selection_order` name movement was accepted.
 
 ## Useful Commands
 
