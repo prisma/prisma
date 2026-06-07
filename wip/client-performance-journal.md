@@ -6151,6 +6151,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The local signal is modest but net-positive after reapply, and Workerd moved both generated-client rows down relative to the recent band. Existing deep-clone tests already assert real skip values preserve singleton identity.
 
+- Accepted experiment: switch-based raw-action check in JSON query serialization.
+  - Timestamp: 2026-06-07T15:47:55Z.
+  - Change:
+    - Changed `SerializeContext.isRawAction()` from constructing an action array and calling `.includes()` to a switch over the raw actions.
+  - Rationale:
+    - Fresh generated-client profiles still showed `serializeSelectionSet()` / implicit selection work near the top. Successful non-raw model reads call `isRawAction()` while building implicit `$scalars` / `$composites` selections, so the hot path should not allocate an action array for that check.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Timing:
+    - First combined spike with relation-field reuse: `findUnique` 5.87 us/op, nested blog-page 21.73 us/op.
+    - Same-session reverted baseline: `findUnique` 5.94 us/op, nested blog-page 22.31 us/op.
+    - Relation-field-reuse-only split: `findUnique` 6.12 us/op, nested blog-page 21.69 us/op.
+    - Switch-only split: `findUnique` 5.79 us/op, nested blog-page 22.15 us/op.
+    - Final switch-only verification: `findUnique` 5.84 us/op, nested blog-page 22.16 us/op.
+    - Workerd generated-client smoke after rebuild: host `findUnique` 8.51 us/op, nested blog-page 22.32 us/op; worker-internal `findUnique` 6.69 us/op, nested blog-page 19.80 us/op.
+  - Decision:
+    - Keep the switch only. It removes an avoidable per-implicit-selection allocation and has a small positive Node product-path signal with Workerd in the current band. Do not keep the relation-field reuse split: it improved nested rows but made the simple generated-client row noisier/worse and is not a clean broad win.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

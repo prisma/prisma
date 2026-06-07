@@ -541,7 +541,16 @@ class SerializeContext {
   }
 
   isRawAction() {
-    return ['executeRaw', 'queryRaw', 'runCommandRaw', 'findRaw', 'aggregateRaw'].includes(this.params.action)
+    switch (this.params.action) {
+      case 'executeRaw':
+      case 'queryRaw':
+      case 'runCommandRaw':
+      case 'findRaw':
+      case 'aggregateRaw':
+        return true
+      default:
+        return false
+    }
   }
 
   isPreviewFeatureOn(previewFeature: string) {
