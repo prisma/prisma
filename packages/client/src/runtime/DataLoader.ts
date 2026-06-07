@@ -72,24 +72,9 @@ export class DataLoader<T = unknown> {
     if (deferredBatch !== undefined) {
       if (deferredBatch.length === 1) {
         this.dispatchSingle(deferredBatch[0])
-      } else {
+      } else if (deferredBatch.length !== 2 || !this.dispatchTwoDeferredJobs(deferredBatch[0], deferredBatch[1])) {
         for (let i = 0; i < deferredBatch.length; i++) {
-          const job = deferredBatch[i]
-          let hash: string | undefined
-          try {
-            hash = this.options.batchBy(job.request)
-          } catch (error) {
-            job.reject(error)
-            continue
-          }
-
-          if (!hash) {
-            this.dispatchSingle(job)
-            continue
-          }
-
-          const batch = (this.batches[hash] ??= [])
-          batch.push(job)
+          this.enqueueBatchJob(deferredBatch[i])
         }
       }
     }
@@ -103,32 +88,72 @@ export class DataLoader<T = unknown> {
       if (batch.length === 1) {
         this.dispatchSingle(batch[0])
       } else {
-        batch.sort((a, b) => this.options.batchOrder(a.request, b.request))
-        this.options
-          .batchLoader(batch.map((j) => j.request))
-          .then((results) => {
-            if (results instanceof Error) {
-              for (let i = 0; i < batch.length; i++) {
-                batch[i].reject(results)
-              }
-            } else {
-              for (let i = 0; i < batch.length; i++) {
-                const value = results[i]
-                if (value instanceof Error) {
-                  batch[i].reject(value)
-                } else {
-                  batch[i].resolve(value)
-                }
-              }
-            }
-          })
-          .catch((e) => {
-            for (let i = 0; i < batch.length; i++) {
-              batch[i].reject(e)
-            }
-          })
+        this.dispatchBatch(batch)
       }
     }
+  }
+
+  private dispatchTwoDeferredJobs(firstJob: Job, secondJob: Job): boolean {
+    let firstHash: string | undefined
+    let secondHash: string | undefined
+    try {
+      firstHash = this.options.batchBy(firstJob.request)
+      secondHash = this.options.batchBy(secondJob.request)
+    } catch {
+      return false
+    }
+
+    if (!firstHash || firstHash !== secondHash) {
+      return false
+    }
+
+    this.dispatchBatch([firstJob, secondJob])
+    return true
+  }
+
+  private enqueueBatchJob(job: Job) {
+    let hash: string | undefined
+    try {
+      hash = this.options.batchBy(job.request)
+    } catch (error) {
+      job.reject(error)
+      return
+    }
+
+    if (!hash) {
+      this.dispatchSingle(job)
+      return
+    }
+
+    const batch = (this.batches[hash] ??= [])
+    batch.push(job)
+  }
+
+  private dispatchBatch(batch: Job[]) {
+    batch.sort((a, b) => this.options.batchOrder(a.request, b.request))
+    this.options
+      .batchLoader(batch.map((j) => j.request))
+      .then((results) => {
+        if (results instanceof Error) {
+          for (let i = 0; i < batch.length; i++) {
+            batch[i].reject(results)
+          }
+        } else {
+          for (let i = 0; i < batch.length; i++) {
+            const value = results[i]
+            if (value instanceof Error) {
+              batch[i].reject(value)
+            } else {
+              batch[i].resolve(value)
+            }
+          }
+        }
+      })
+      .catch((e) => {
+        for (let i = 0; i < batch.length; i++) {
+          batch[i].reject(e)
+        }
+      })
   }
 
   private dispatchSingle(job: Job) {

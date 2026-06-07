@@ -7461,6 +7461,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a larger internal change than the rename micro-optimizations, but it directly removes warmed-cache-hit work, preserves the request-layer batching contract and one `queryRaw` per pair, and improves the Cloudflare-target row.
 
+- Accepted optimization: DataLoader two-job batch dispatch fast path.
+  - Timestamp: 2026-06-07T23:47:36+02:00.
+  - Change:
+    - Updated `packages/client/src/runtime/DataLoader.ts` so exactly two deferred jobs with the same non-empty batch key dispatch directly through `dispatchBatch()`.
+    - Extracted `enqueueBatchJob()` and `dispatchBatch()` helpers so the optimized and generic paths share resolution/rejection handling.
+    - Fallback behavior remains unchanged for one deferred job, missing batch keys, differing batch keys, `batchBy()` errors, and larger batches.
+  - Rationale:
+    - The generated `Promise.all([findUnique, findUnique])` benchmark is a common two-request batch. The previous generic deferred path grouped those two jobs through the `batches` object before immediately draining that object in the same microtask.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/DataLoader.ts`
+    - `pnpm --filter @prisma/client test DataLoader.test.ts --runInBand`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+    - `pnpm exec eslint packages/client/src/runtime/DataLoader.ts`
+      - Passed with warnings from the existing `Job.request: any` typing.
+    - `pnpm --filter @prisma/client build`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.42 us/op.
+      - `generated client batched findUnique / warmed cache`: 13.80 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.66 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 8.08 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted precomputed batch cache-key focused row was 8.37 us/op.
+  - Workerd measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `generated client batched findUnique warmed cache`: worker loop 16.40 us/op, host dispatch 20.01 us/op.
+    - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 9.70 us/op, host dispatch 11.63 us/op, `queryRaw 10000`, `precomputed batch: hits 20000`.
+    - Previous accepted precomputed batch cache-key Workerd row was 10.50 us/op worker loop / 12.46 us/op host dispatch.
+  - Decision:
+    - Keep. This is a shared DataLoader change, but it is guarded to the common two-job same-key case, reuses the existing batch result handling, passes direct DataLoader/RequestHandler tests, and improves both Node and Workerd batched generated-client rows.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
