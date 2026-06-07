@@ -4669,6 +4669,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Focused 100,000-iteration direct-plan row was identical within noise: patched 10.81 us/op, reverted baseline 10.82 us/op.
   - Decision: reverted again. The existing `AGENTS.md` no-go still stands: the generic tiny strict-key helper is better on current V8, and the single-parent split is not worth keeping.
 
+- Investigation note: nested blog-page plan-shape ceiling and JS-owned query boundary.
+  - Timestamp: 2026-06-07T05:42:18Z.
+  - Verification:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Inspected `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/src/compiler.rs`, `/home/aqrln.guest/prisma-engines/query-compiler/request-handlers/src/protocols/mod.rs`, `/home/aqrln.guest/prisma-engines/query-compiler/request-handlers/src/protocols/json/body.rs`, and `/home/aqrln.guest/prisma-engines/query-compiler/request-handlers/src/protocols/json/protocol_adapter.rs`.
+  - Timing signal:
+    - Current broad nested rows: warmed full engine 19.35 us/op early and 19.04 us/op after phase warmup; cached request wrapper 18.53 us/op; direct plan 11.88 us/op; local executor 11.94 us/op.
+    - Phase rows: adapter-only seven result sets 0.91 us/op; `serializeSql()` over those result sets 1.79 us/op; `renderQuery()` over all leaves 1.06 us/op; inner plan 9.63 us/op; outer data map 1.69 us/op; precomputed query leaves 7.59 us/op; precomputed join leaves 4.47 us/op; precomputed root join children 4.66 us/op.
+  - Boundary finding:
+    - Wasm `QueryCompiler.compile()` and `compileBatch()` currently take a JSON request `String`; `RequestBody::try_from_str()` deserializes it into owned `JsonBody` values.
+    - `JsonSingleQuery` owns `model_name`, `action`, and `FieldQuery`; `FieldQuery.arguments` is `Option<IndexMap<String, serde_json::Value>>`; `SelectionSet` is an `IndexMap<String, SelectionSetValue>`.
+    - `JsonProtocolAdapter` then walks that owned protocol tree again into `ArgumentValue` and `Selection` before query graph building and IR translation.
+  - Decision:
+    - Do not treat pure root data-map pushdown as a high-ceiling target: the measured outer data map is only about 1.7 us/op on this product-shaped nested row. A meaningful nested plan-shape project would need to remove row-object materialization or ownership, not just move the final remap.
+    - The radical JS-owned query idea is plausible only as a new Wasm entrypoint plus borrowed/lazy protocol adapter. A `serde_wasm_bindgen::from_value()` swap still materializes the same owned `JsonBody`/map/value tree and then `ArgumentValue`/`Selection`, so it does not address the main Rust-heap ownership cost.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
