@@ -13,6 +13,8 @@ const RUNTIME_PATH = path.join(RUNTIME_BASE, 'query_compiler_fast_bg.sqlite.mjs'
 const WASM_BASE64_PATH = path.join(RUNTIME_BASE, 'query_compiler_fast_bg.sqlite.wasm-base64.mjs')
 const WASM_COMPILER_EDGE_PATH = path.join(RUNTIME_BASE, 'wasm-compiler-edge.mjs')
 const LOCAL_QC_BUILD_DIRECTORY = process.env.LOCAL_QC_BUILD_DIRECTORY
+const GENERATED_FIND_UNIQUE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS', 5_000)
+const GENERATED_BLOG_PAGE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_BLOG_PAGE_ITERATIONS', 1_000)
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -91,6 +93,20 @@ type Measurement = {
     after: MemorySnapshot
     delta: MemorySnapshot
   }
+}
+
+function positiveIntegerEnv(name: string, defaultValue: number): number {
+  const value = process.env[name]
+  if (value === undefined) {
+    return defaultValue
+  }
+
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive integer, got ${JSON.stringify(value)}`)
+  }
+
+  return parsed
 }
 
 function formatBytes(bytes: number): string {
@@ -1247,7 +1263,7 @@ async function run(): Promise<void> {
         clientMf,
         'generated client findUnique warmed cache',
         'find-unique',
-        5_000,
+        GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute',
       ),
@@ -1258,7 +1274,7 @@ async function run(): Promise<void> {
         clientMf,
         'generated client blog-page warmed cache',
         'blog-page-by-id',
-        1_000,
+        GENERATED_BLOG_PAGE_ITERATIONS,
         true,
         'client-execute',
       ),

@@ -5655,6 +5655,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. On current V8, the computed property literal is materially worse than `{}` followed by the dynamic assignment. Keep the existing helper shape unless new runtime evidence appears.
 
+- Accepted benchmark instrumentation: generated-client iteration controls in the Workerd probe.
+  - Timestamp: 2026-06-07T15:18:05Z.
+  - Change:
+    - `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` now accepts `WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS` and `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS`.
+    - Defaults stay at 5,000 findUnique warmed-cache requests and 1,000 blog-page warmed-cache requests.
+  - Rationale:
+    - Miniflare/workerd's worker-internal `performance.now()` still reports zero elapsed time for generated-client warmed request loops, even when query counters prove work happened. The old 1,000-request generated blog-page row was dominated by host dispatch overhead and remained a very coarse upper bound. Raising only the generated-client iterations lets us amortize dispatch without changing compile/cache memory scenarios.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Measurement:
+    - Generated client blog-page warmed cache with 20,000 requests: host dispatch 964.0 ms total, 48.20 us/op upper bound; 20,000/0 cache hits/misses; 140,000 `queryRaw` calls; checksum 300,000; host heap delta 17.0 KiB.
+    - The worker-side request loop still reported below timer resolution, so this is still a host-dispatch upper bound, just a much better-amortized one than the old 1,000-request ~110 us/op row.
+  - Decision:
+    - Keep the instrumentation. Future Workerd comparisons for generated-client blog-page warmed-cache work should use a higher generated iteration count when wall time allows.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
@@ -5694,6 +5710,7 @@ QUERY_PLAN_CACHE_KEY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx package
 QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
+LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
 cd /home/aqrln.guest/prisma-engines
 ALLOC_PROFILE_QUERIES="$(find query-compiler/query-compiler/tests/data -maxdepth 1 -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort | paste -sd, -)" ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release
