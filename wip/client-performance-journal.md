@@ -4512,6 +4512,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Continue avoiding already-rejected runtime micro-spikes around join child arrays, `Promise.all` loop rewrites, primitive mapper fast paths, `renderSingleQuery()`, cache-touch shortcuts, and placeholder singleton objects unless a new benchmark shape changes the evidence.
     - Higher-ceiling work remains architectural: plan-shape/data-map pushdown for nested query-mode joins, reducing repeated row-object materialization before outer mapping, or the JS-owned query / Rust-owned IR cache-hit prototype.
 
+- Rejected/no-movement experiment: pass `child_model` through nested `set` handlers.
+  - Timestamp: 2026-06-07T04:39:00Z.
+  - Hypothesis: `nested_set()` already receives `child_model`, but `handle_many_to_many()` and `handle_one_to_many()` recomputed `parent_relation_field.related_model()` before deriving identifiers and update/read nodes. Passing the existing `child_model` through might avoid small graph-build allocations in top `update-set` fixtures.
+  - Temporary implementation:
+    - Added `child_model: &Model` parameters to the two `set_nested.rs` handlers.
+    - Replaced the recomputed related-model calls with `child_model.shard_aware_primary_identifier()` and owned `child_model.clone()` where utilities require `Model`.
+  - Verification while patched:
+    - `cargo fmt -p query-core --check`
+    - `ALLOC_PROFILE_QUERIES='update-set-nested,update-set-nested-prisma#27650,create-nested-connectOrCreate-mixed,create-m2m,query-m2o' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Allocation signal:
+    - No sampled row changed allocation count or allocated bytes.
+    - `update-set-nested` stayed at 2148 full-compile allocations / 253.5 KiB.
+    - `update-set-nested-prisma#27650` stayed at 1908 / 210.3 KiB.
+    - Controls stayed unchanged: `create-nested-connectOrCreate-mixed` 2746 / 320.8 KiB, `create-m2m` 1695 / 192.6 KiB, `query-m2o` 613 / 80.9 KiB.
+  - Decision: reverted. Like the earlier `update_nested.rs` `child_model` substitution, avoiding these `related_model()` calls is allocation-neutral and not worth churn.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
