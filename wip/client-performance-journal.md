@@ -6709,6 +6709,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. A generic interpreted descriptor is still much faster than the current full generated path, but the nested overhead is about 1.3 us/op worse than the specialized descriptor. Product work should favor lazy descriptor construction for safety, but the hot matcher should probably be specialized/compiled into a low-overhead shape-specific function or precomputed path table.
 
+- Rejected experiment: closure-compiled lazy descriptor matcher.
+  - Timestamp: 2026-06-07T19:45:06Z.
+  - Change tried:
+    - Added a benchmark-only step that compiled the generic lazy descriptor tree into nested JavaScript matcher closures. This avoided the per-node `switch` in the interpreted descriptor without using `eval` / `new Function`.
+  - Timing:
+    - Descriptor extraction at 300,000 iterations:
+      - interpreted lazy `findUnique`: 0.32 us/op.
+      - compiled lazy `findUnique`: 0.33-0.35 us/op.
+      - interpreted lazy nested blog-page: 2.39 us/op.
+      - compiled lazy nested blog-page: 2.42-2.43 us/op.
+    - Wrapper row:
+      - interpreted lazy nested blog-page: 9.42-9.46 us/op.
+      - compiled lazy nested blog-page: 9.79 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='descriptor extract' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='compiled lazy descriptor' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Reverted. Closure compilation did not close the gap to the specialized static descriptor and was slightly slower than the interpreted lazy descriptor. If descriptor specialization is revisited, it likely needs a different shape such as generated/static matchers, compact path tables with less allocation, or integration into generated runtime code rather than a closure tree over the same descriptor.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:
