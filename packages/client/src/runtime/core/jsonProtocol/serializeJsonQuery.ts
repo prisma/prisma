@@ -132,7 +132,13 @@ function serializeFieldSelection(args: JsArgs = EMPTY_ARGS, context: SerializeCo
     argumentArgs[key] = args[key]
   }
 
-  const serializedArguments = serializeArgumentsObject(argumentArgs ?? EMPTY_ARGS, context)
+  if (argumentArgs === undefined) {
+    return {
+      selection: serializeSelectionSet(select, include, omit, context),
+    }
+  }
+
+  const serializedArguments = serializeArgumentsObject(argumentArgs, context)
   if (serializedArguments.$type === 'Raw' || Object.keys(serializedArguments).length > 0) {
     return {
       arguments: serializedArguments,

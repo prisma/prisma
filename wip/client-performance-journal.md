@@ -6404,6 +6404,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. Product-path generated-client timing is noisy/mixed on the simple row, but the protocol shape removes many empty objects, materially improves parameterization benchmarks, reduces request/cache-key JSON for selection-heavy shapes, and improves the Workerd nested generated-client row.
 
+- Accepted experiment: skip empty serializer argument pass for selection-only nodes.
+  - Timestamp: 2026-06-07T17:11:37Z.
+  - Change:
+    - In `packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`, `serializeFieldSelection()` now returns `{ selection }` immediately when there are no non-selection argument keys.
+    - This avoids calling `serializeArgumentsObject(EMPTY_ARGS)` and then checking that the serialized argument object is empty for selection-only nodes.
+    - Non-empty argument objects still pass through `serializeArgumentsObject()` so raw-tagged payloads and validation/error behavior stay unchanged.
+  - Rationale:
+    - After empty `arguments` omission, selection-only nodes no longer need the empty serialized argument object at all. The previous code still performed the empty argument serialization pass before omitting it.
+    - This is a narrower follow-up to the existing optional-`arguments` protocol shape; it removes hot successful-work without changing serialized output.
+  - Timing:
+    - Current committed profile refresh before this patch: generated `findUnique` 5.01 us/op, nested blog-page 20.02 us/op.
+    - First patched run: generated `findUnique` 4.79 us/op, nested blog-page 19.52 us/op.
+    - Same-session reverted Node control: generated `findUnique` 4.76 us/op, nested blog-page 19.77 us/op.
+    - Reapplied patched confirmation: generated `findUnique` 4.62 us/op, nested blog-page 19.11 us/op.
+    - Workerd high-iteration patched runs: worker-internal generated `findUnique` 6.23 / 6.35 us/op and nested blog-page 17.95 / 18.20 us/op.
+    - Adjacent reverted Workerd control: worker-internal generated `findUnique` 6.45 us/op and nested blog-page 18.25 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The Node nested row and adjacent Workerd control both support the change, and the implementation is a small output-preserving removal of work enabled by the accepted optional-`arguments` protocol shape.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
