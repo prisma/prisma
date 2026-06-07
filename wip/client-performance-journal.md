@@ -7754,6 +7754,49 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. This is noise-level at best and slightly worse than the accepted baseline.
 
+- Accepted experiment: avoid scalar placeholder type string allocation during plan serialization.
+  - Timestamp: 2026-06-08T01:02:53+02:00.
+  - Change:
+    - In `/home/aqrln.guest/prisma-engines/libs/prisma-value/src/lib.rs`, `PrismaValue::Placeholder` compact serialization now borrows the `PrismaValueType` and serializes scalar type names through a small custom `Serialize` wrapper.
+    - Scalar placeholder types no longer allocate a temporary Rust `String` via `PrismaValueType::to_string()` during native JSON plan serialization. `List(_)` still falls back to `to_string()` because list type names are composed recursively.
+    - Added `serializes_compact_placeholders` unit coverage for scalar and list compact placeholder JSON.
+  - Rationale:
+    - The allocation profile showed native plan serialization as a visible part of compile misses. Parameterized plans contain many scalar placeholders, and each scalar placeholder type was paying for a short temporary string even though the emitted type name is static.
+    - This is intentionally narrower than the larger `serde_wasm_bindgen` / JS-owned-query ideas: it reduces one Rust-side plan serialization allocation without changing request parsing, cache keys, or TS runtime compatibility.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=3 cargo run -p query-compiler --example allocation_profile --release`
+    - `query-m2o` `serialize_json`: 7 -> 6 allocations/op; bytes stayed around 1.9 KiB.
+    - `create-nested-connectOrCreate-mixed` `serialize_json`: 28 -> 24 allocations/op; bytes stayed around 8.2 KiB.
+    - `update-set-nested` `serialize_json`: 21 -> 15 allocations/op; bytes moved about 8.1 -> 8.0 KiB.
+    - Compile, graph-build, and translate phases were unchanged, as expected.
+  - Timing:
+    - Same-session temporary baseline after reverting the patch:
+      - `compile prebuilt request`: findUnique 529.91 us/op, findMany 343.58 us/op, blog-page 2648.81 us/op.
+      - `compile current miss`: findUnique 551.49 us/op, findMany 340.71 us/op, blog-page 2652.79 us/op.
+    - Final patched clean rerun:
+      - `compile prebuilt request`: findUnique 448.83 us/op, findMany 306.31 us/op, blog-page 2369.88 us/op.
+      - `compile current miss`: findUnique 442.62 us/op, findMany 312.85 us/op, blog-page 2365.54 us/op.
+    - Cached generated-client rows are not expected to move because the changed code only runs on compile/plan-serialization misses. The final warmed batched `request precomputed fast path` row was 7.61 us/op versus a prior best around 6.98 us/op, which is treated as unrelated noise rather than a regression signal.
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Cold smoke compile: compile loop 44 ms for one findUnique query; average serialized plan 532 B.
+    - Retained scalar plan cache: compile loop 57 ms for 100 queries; average serialized plan 246.59 B.
+    - Retained blog-page plan cache: compile loop 393 ms for 100 queries; average serialized plan 3.4 KiB.
+    - Generated-client warmed cache rows stayed sane: batched findUnique worker 14.70 us/op normal, 4.70 us/op engine precomputed, 9.10 us/op request precomputed; blog-page worker 25.00 us/op normal, 12.00 us/op engine precomputed, 15.00 us/op request precomputed.
+  - Verification:
+    - `cargo fmt --package prisma-value`
+    - `cargo test -p prisma-value serializes_compact_placeholders --lib`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm build`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. This is a narrow compile-miss allocation win with unit coverage and a clean Wasm/client rebuild. It does not address the larger JS-owned input/cache-hit architecture, but it removes avoidable Rust heap churn from a hot plan serialization primitive.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -7785,6 +7828,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Explore memory-management simplification in Rust query compiler.
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
+  - Fresh lead: inspect `RelationLinkage` in `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/query-builder/src/lib.rs` and its use from `query-compiler/query-compiler/src/translate/query/read.rs`. `ConditionalLink::new(child_scalar.clone(), vec![condition])` allocates singleton vectors, then `RelationLinkage::new()` collects into `BTreeMap<ScalarField, Vec<ScalarCondition>>`. A measured spike could try `SmallVec<[ScalarCondition; 1]>` and a sorted `Vec<(ScalarField, SmallVec<_>)>` instead of `BTreeMap`, with deterministic ordering preserved before `into_parent_field_and_conditions()`.
+  - Fresh lead: inspect scalar `selection_order` cloning in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/utils.rs` and call sites such as `read/many.rs`. A consuming helper might move scalar/composite/aggregation names into `selection_order` after `collect_selected_fields()` has borrowed the list, while relation selections may still need cloning because `ParsedField` is moved into `find_related()`.
+  - Suggested lead-validation command:
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|update-set-nested|update-set-nested-prisma#27650"`
 
 ## Useful Commands
 
