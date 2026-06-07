@@ -5112,6 +5112,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Synthetic 100-parent shape with 5 direct children per parent and 3 many-to-many links per parent: stale pre-index dist baseline 208.0 us/op; rebuilt indexed dist 79.7 us/op over 5,000 iterations. This is about a 2.6x win for attachment-heavy raw nested reads.
   - Decision: keep. This improves the scaling shape of raw nested reads without changing the tiny-relation path used by the current blog-page benchmark.
 
+- Rejected experiment: inline raw nested scalar conversion in the row-mapping loop.
+  - Timestamp: 2026-06-07T15:03:30Z.
+  - Change tried: replaced the per-field `mapRawNestedFieldValue()` call inside `mapRawNestedRows()` with an inline `switch` on `RawNestedConvertKind`, keeping the same fallback to `mapRawFieldValue()` for slow conversions.
+  - Rationale: current emitted raw nested mappings carry scalar type tags such as `i`, `s`, `b`, and `D`, plus occasional nested paths for `_count`. Inlining looked like a possible way to remove one helper call per mapped column without changing plan format.
+  - Verification while patched:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing signal:
+    - Current baseline before patch: cached request wrapper blog-page nested rows 14.88 us/op; raw result-set compact node 7.53 us/op.
+    - Patched: cached request wrapper blog-page nested rows 15.00 us/op; raw result-set compact node 7.50 us/op.
+  - Decision: reverted. The direct compact-node signal was only noise-level positive, while the product-shaped cached wrapper row moved the wrong way and the loop became larger. Do not retry this exact helper-inline shape without a broader mapper specialization that shows a clear product-path win.
+
 ## Useful Commands
 
 ```sh
