@@ -7011,6 +7011,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. Workerd shows a larger relative win than Node on the simple row and a similar nested-row ceiling, supporting the generated fast-path direction for the Cloudflare Workers target.
 
+- Accepted prototype: generated-client request-layer precomputed fast path.
+  - Timestamp: 2026-06-07T22:05:29+02:00.
+  - Change:
+    - Added internal `__internal.requestPrecomputedFastPath` plumbing.
+    - Refactored `ClientEngine.requestWithPrecomputedQueryPlanCacheHit()` so `ClientEngine.getPrecomputedQueryPlanCacheHit()` can compute a single-query precomputed payload without executing the request.
+    - Added a generated model action path that learns/reuses the lazy descriptor but still calls `client._request()` with `protocolQuery` and `precomputedQueryPlanCacheHit` instead of bypassing `RequestHandler`.
+    - Added `generated client request precomputed fast path ...` rows to `client-engine-cache-timing.ts`.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client ' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Baseline:
+      - `generated client findUnique / warmed cache`: 5.63 us/op, heapDelta 438.7 KiB.
+      - `generated client blog page / nested rows warmed cache`: 18.29 us/op, heapDelta 262.3 KiB.
+    - Direct-engine internal fast path:
+      - `generated client engine precomputed fast path findUnique / warmed cache`: 2.81 us/op, `precomputedHits=100000`, `precomputedLearns=0`.
+      - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 11.67 us/op, `precomputedHits=100000`, `precomputedLearns=0`.
+    - Request-layer internal fast path:
+      - `generated client request precomputed fast path findUnique / warmed cache`: 3.87 us/op, `precomputedHits=100000`, `precomputedLearns=0`, heapDelta 120.0 KiB.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 13.11 us/op, `precomputedHits=100000`, `precomputedLearns=0`, heapDelta 132.7 KiB.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/utils/validatePrismaClientOptions.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/utils/validatePrismaClientOptions.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+  - Decision:
+    - Keep as a productization-oriented internal prototype. It is slower than the direct-engine path, but it preserves `_request()` / tracing / error callsite / `RequestHandler` / DataLoader semantics.
+    - This path makes automatic `findUnique` batching tractable: generated requests can carry precomputed single-query data, `RequestHandler.singleLoader` forwards it on actual singles, and `requestBatch()` continues to fall back to current batch parameterization because there is still no per-query precomputed batch contract.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

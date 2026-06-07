@@ -1336,15 +1336,16 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
 async function measureGeneratedClientScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   scenario: GeneratedClientScenario,
-  enginePrecomputedFastPath = false,
+  precomputedFastPath?: 'engine' | 'request',
 ): Promise<DirectPlanMeasurement> {
+  const usesPrecomputedFastPath = precomputedFastPath !== undefined
   const counts: Counts = {
     compile: 0,
     compileBatch: 0,
     queryRaw: 0,
     executeRaw: 0,
-    precomputedFastPathHits: enginePrecomputedFastPath ? 0 : undefined,
-    precomputedFastPathLearns: enginePrecomputedFastPath ? 0 : undefined,
+    precomputedFastPathHits: usesPrecomputedFastPath ? 0 : undefined,
+    precomputedFastPathLearns: usesPrecomputedFastPath ? 0 : undefined,
   }
   const PrismaClient = getPrismaClient({
     runtimeDataModel: config.runtimeDataModel,
@@ -1360,14 +1361,15 @@ async function measureGeneratedClientScenario(
     adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     errorFormat: 'minimal',
     queryPlanCacheMaxSize: 100,
-    __internal: enginePrecomputedFastPath
+    __internal: usesPrecomputedFastPath
       ? {
-          enginePrecomputedFastPath: true,
+          enginePrecomputedFastPath: precomputedFastPath === 'engine',
+          requestPrecomputedFastPath: precomputedFastPath === 'request',
         }
       : undefined,
   }) as any
 
-  if (enginePrecomputedFastPath) {
+  if (usesPrecomputedFastPath) {
     const request = client._engine.request.bind(client._engine)
     client._engine.request = (query: JsonQuery, options: Record<string, unknown>) => {
       if (options.precomputedQueryPlanCacheHit !== undefined) {
@@ -5574,7 +5576,18 @@ async function main(): Promise<void> {
     if (!shouldRunMeasurement(measuredScenario.name)) {
       continue
     }
-    printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, measuredScenario, true))
+    printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, measuredScenario, 'engine'))
+  }
+
+  for (const scenario of generatedClientScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client request precomputed fast path'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, measuredScenario, 'request'))
   }
 
   const QueryCompilerClass = await loadQueryCompiler('sqlite')

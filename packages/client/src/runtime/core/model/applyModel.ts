@@ -46,6 +46,9 @@ type EngineWithPrecomputed = Client['_engine'] & {
     response: QueryEngineResultData<T>
     precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
   }>
+  getPrecomputedQueryPlanCacheHit?: (
+    query: Parameters<Client['_engine']['request']>[0],
+  ) => PrecomputedQueryPlanCacheHit | undefined
 }
 
 const fluentProps = [
@@ -113,6 +116,26 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 action: dmmfActionName,
                 model: dmmfModelName,
                 clientMethod: `${jsModelName}.${key}`,
+                descriptor,
+                setDescriptor: (nextDescriptor) => {
+                  descriptor = nextDescriptor
+                },
+              })
+
+              if (fastPath !== undefined) {
+                return fastPath
+              }
+            }
+
+            if (canUseRequestPrecomputedFastPath(client, paramOverrides, transaction)) {
+              const fastPath = tryRequestPrecomputedFastPath({
+                client,
+                args: userArgs,
+                action: dmmfActionName,
+                model: dmmfModelName,
+                jsModelName,
+                clientMethod: `${jsModelName}.${key}`,
+                paramOverrides,
                 descriptor,
                 setDescriptor: (nextDescriptor) => {
                   descriptor = nextDescriptor
@@ -210,6 +233,22 @@ function canIgnorePrecomputedFastPathParamOverrides(paramOverrides: O.Optional<I
   return false
 }
 
+function canUseRequestPrecomputedFastPath(
+  client: Client,
+  paramOverrides: O.Optional<InternalRequestParams>,
+  transaction: PrismaPromiseTransaction | undefined,
+): boolean {
+  return (
+    client._requestPrecomputedFastPath === true &&
+    transaction === undefined &&
+    canIgnorePrecomputedFastPathParamOverrides(paramOverrides) &&
+    client._extensions.isEmpty() &&
+    client._globalOmit === undefined &&
+    client._engineConfig.adapter !== undefined &&
+    typeof (client._engine as EngineWithPrecomputed).getPrecomputedQueryPlanCacheHit === 'function'
+  )
+}
+
 function tryEnginePrecomputedFastPath({
   client,
   args,
@@ -272,6 +311,114 @@ function tryEnginePrecomputedFastPath({
 
       return response.data[query.action]
     })
+}
+
+function tryRequestPrecomputedFastPath({
+  client,
+  args,
+  action,
+  model,
+  jsModelName,
+  clientMethod,
+  paramOverrides,
+  descriptor,
+  setDescriptor,
+}: {
+  client: Client
+  args: unknown
+  action: Action
+  model: string
+  jsModelName: string
+  clientMethod: string
+  paramOverrides: O.Optional<InternalRequestParams>
+  descriptor: LazyDescriptor | undefined
+  setDescriptor: (descriptor: LazyDescriptor) => void
+}): Promise<unknown> | undefined {
+  if (descriptor !== undefined) {
+    const extraction = tryExtractLazyDescriptor(descriptor, args)
+    if (extraction !== undefined) {
+      return requestWithPrecomputedQueryPlanCacheHit({
+        client,
+        args,
+        action,
+        model,
+        jsModelName,
+        clientMethod,
+        paramOverrides,
+        protocolQuery: descriptor.protocolQuery,
+        precomputedQueryPlanCacheHit: extraction,
+      })
+    }
+  }
+
+  const query = serializeJsonQuery({
+    modelName: model,
+    runtimeDataModel: client._runtimeDataModel,
+    action,
+    args: args as UserArgs,
+    clientMethod,
+    extensions: client._extensions,
+    errorFormat: client._errorFormat,
+    clientVersion: client._clientVersion,
+    previewFeatures: client._previewFeatures,
+    globalOmit: client._globalOmit,
+  })
+  const precomputedQueryPlanCacheHit = (client._engine as EngineWithPrecomputed).getPrecomputedQueryPlanCacheHit?.(
+    query,
+  )
+  if (precomputedQueryPlanCacheHit !== undefined) {
+    const learned = buildLazyDescriptor(args, query, precomputedQueryPlanCacheHit)
+    if (learned !== undefined) {
+      setDescriptor(learned)
+    }
+  }
+
+  return requestWithPrecomputedQueryPlanCacheHit({
+    client,
+    args,
+    action,
+    model,
+    jsModelName,
+    clientMethod,
+    paramOverrides,
+    protocolQuery: query,
+    precomputedQueryPlanCacheHit,
+  })
+}
+
+function requestWithPrecomputedQueryPlanCacheHit({
+  client,
+  args,
+  action,
+  model,
+  jsModelName,
+  clientMethod,
+  paramOverrides,
+  protocolQuery,
+  precomputedQueryPlanCacheHit,
+}: {
+  client: Client
+  args: unknown
+  action: Action
+  model: string
+  jsModelName: string
+  clientMethod: string
+  paramOverrides: O.Optional<InternalRequestParams>
+  protocolQuery: LazyDescriptor['protocolQuery']
+  precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit | undefined
+}): Promise<unknown> {
+  return client._request({
+    args: args as UserArgs,
+    dataPath: Array.isArray(paramOverrides.dataPath) ? paramOverrides.dataPath : [],
+    action,
+    model,
+    clientMethod,
+    jsModelName,
+    transaction: undefined,
+    callsite: 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat),
+    protocolQuery,
+    precomputedQueryPlanCacheHit,
+  })
 }
 
 function buildLazyDescriptor(

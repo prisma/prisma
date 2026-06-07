@@ -171,6 +171,7 @@ export type PrismaClientOptions = PrismaClientMutuallyExclusiveOptions & {
   __internal?: {
     debug?: boolean
     enginePrecomputedFastPath?: boolean
+    requestPrecomputedFastPath?: boolean
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
@@ -339,6 +340,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     _engine: Engine
     _enginePrecomputedFastPath: boolean
+    _requestPrecomputedFastPath: boolean
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
@@ -419,6 +421,7 @@ constructor() {
 
         const useDebug = internal.debug === true
         this._enginePrecomputedFastPath = internal.enginePrecomputedFastPath === true
+        this._requestPrecomputedFastPath = internal.requestPrecomputedFastPath === true
         if (useDebug) {
           Debug.enable('prisma:client')
         }

@@ -669,23 +669,27 @@ export class ClientEngine implements Engine {
   }> {
     const response = await this.request<T>(query, options)
 
+    return {
+      response,
+      precomputedQueryPlanCacheHit: this.getPrecomputedQueryPlanCacheHit(query),
+    }
+  }
+
+  getPrecomputedQueryPlanCacheHit(query: JsonQuery): PrecomputedQueryPlanCacheHit | undefined {
     if (isRawQuery(query) || query.action === 'createMany' || query.action === 'createManyAndReturn') {
-      return { response }
+      return undefined
     }
 
     const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, this.#paramGraph)
     const queryPart = JSON.stringify(parameterizedQuery.query)
 
     return {
-      response,
-      precomputedQueryPlanCacheHit: {
-        cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
-        placeholderValues,
-        queryInfoQuery:
-          this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
-            ? parameterizedQuery.query
-            : undefined,
-      },
+      cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+      placeholderValues,
+      queryInfoQuery:
+        this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+          ? parameterizedQuery.query
+          : undefined,
     }
   }
 
