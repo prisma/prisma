@@ -6110,6 +6110,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes a large wasted cache-hit cost while preserving same-turn batching behavior for real multi-request batches.
 
+- Accepted experiment: use keys loops for selection traversal.
+  - Timestamp: 2026-06-07T15:30:07Z.
+  - Change:
+    - Replaced `Object.entries()` loops in `addIncludedRelations()`, `omitFields()`, and `createExplicitSelection()` with `Object.keys()` plus indexed value lookup.
+  - Rationale:
+    - After lazy batch-keying, generated-client profiles shifted to selection serialization. `Object.keys()` preserves own enumerable string-key traversal semantics while avoiding the per-entry pair arrays and destructuring cost from `Object.entries()`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.test.ts packages/client/src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Timing:
+    - First patched generated-client run: `findUnique` 6.49 us/op, nested blog-page 24.07 us/op.
+    - Same-session reverted baseline: `findUnique` 7.01 us/op, nested blog-page 24.75 us/op.
+    - Reapplied patched run: `findUnique` 6.72 us/op, nested blog-page 23.39 us/op.
+    - Workerd generated-client smokes after rebuild were neutral-to-slightly-positive for blog-page and neutral for simple `findUnique`:
+      - patched runs: worker-internal `findUnique` 7.10 / 6.97 us/op, nested blog-page 21.40 / 20.40 us/op.
+      - same-session reverted baseline: worker-internal `findUnique` 6.97 us/op, nested blog-page 20.50 us/op.
+  - Decision:
+    - Keep as a small product-path serializer cleanup. The Node generated-client A/B is positive; Workerd does not clearly validate it, but it does not show a same-session regression.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

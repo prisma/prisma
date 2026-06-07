@@ -179,7 +179,10 @@ function createImplicitSelection(
 }
 
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
-  for (const [key, value] of Object.entries(include)) {
+  const keys = Object.keys(include)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = include[key]
     if (isSkip(value)) {
       continue
     }
@@ -225,7 +228,10 @@ function omitFields(selectionSet: JsonSelectionSet, localOmit: Omission | undefi
   const computedFields = context.getComputedFields()
   const combinedOmits = { ...context.getGlobalOmit(), ...localOmit }
   const omitWithComputedFields = computeEngineSideOmissions(combinedOmits, computedFields)
-  for (const [key, value] of Object.entries(omitWithComputedFields)) {
+  const keys = Object.keys(omitWithComputedFields)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = omitWithComputedFields[key]
     if (isSkip(value)) {
       continue
     }
@@ -243,7 +249,10 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
   const computedFields = context.getComputedFields()
   const selectWithComputedFields = computeEngineSideSelection(select, computedFields)
 
-  for (const [key, value] of Object.entries(selectWithComputedFields)) {
+  const keys = Object.keys(selectWithComputedFields)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = selectWithComputedFields[key]
     if (isSkip(value)) {
       continue
     }
