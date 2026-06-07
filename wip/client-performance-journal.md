@@ -4598,6 +4598,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Same-command isolated late row at 100,000 iterations rejected the patch: patched 17.61 us/op, then temporary legacy reverse 17.46 us/op.
   - Decision: reverted. The repeated config check is not a useful target on current Node/V8; do not keep a cached field for this without stronger evidence.
 
+- Accepted experiment: hoist one-to-many nested-create linking fields.
+  - Timestamp: 2026-06-07T05:02:40Z.
+  - Change: in `query-compiler/core/src/query_graph_builder/write/nested/create_nested.rs`, `handle_one_to_many()` now fetches the parent and child linking field selections once for the inlined-in-child branch and clones those selections per child edge instead of recomputing them inside the loop.
+  - Verification:
+    - `cargo fmt -p query-compiler --check`
+    - `ALLOC_PROFILE_QUERIES='create-nested-create,create-nested-create-with-composite-id,create-m2m,create-nested-connectOrCreate-mixed' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-create'`
+    - `cargo test -p query-compiler --test queries`
+  - Benchmark signal:
+    - Allocation profile did not move: `create-nested-create` stayed at 482 graph-build allocations and 1287 full-compile allocations, with 64.2 KiB graph-build and 146.4 KiB full-compile allocated per op.
+    - Criterion improved the plain `compile/create-nested-create` fixture by about 1.8%: change `[-2.0690% -1.7944% -1.5620%]`, p < 0.05.
+    - Criterion detected no change for `compile/create-nested-create-with-composite-id`: change `[-0.4566% +0.0244% +0.5055%]`, p = 0.93.
+  - Decision: keep. This is a small CPU-only metadata-access improvement for multi-child nested creates. It is not evidence that replacing linking-field recomputation with clones generally reduces heap allocation.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower. The more radical version is to avoid owning either the input query or SQL string data on the Rust heap except where data becomes true internal IR; treat SQL-string ownership as a related but separate SQL-template/string-handle project.
