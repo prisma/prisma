@@ -4186,6 +4186,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Confirmation patched run: `m2one` 67.50 us, `mixed` 132.09 us, `one2m` 118.03 us, `create-nested-create-with-composite-id` 60.93 us, `create-nested-create` 61.70 us. The affected rows are neutral-to-slightly-positive overall; the one2m timing wobble had no allocation movement.
   - Decision: keep. This is a narrow graph dependency cleanup with a small allocation win on two of the largest connect-or-create compile rows, no allocation movement elsewhere in the sampled set, neutral close timing, and clean Wasm/product verification.
 
+- Rejected experiment: bypass `read_id(s)_infallible()` primary-id merging for callers that already have selected fields.
+  - Timestamp: 2026-06-07T02:52:44Z.
+  - Hypothesis: several write graph builders compute `model.shard_aware_primary_identifier()` and then pass it to `read_id_infallible()` / `read_ids_infallible()`, whose internal `get_selected_fields()` recomputes the same primary identifier before deciding there is nothing to merge. A helper that accepts already-final `selected_fields` could avoid redundant `FieldSelection` construction/comparison.
+  - Temporary implementation:
+    - Added `read_id_infallible_with_selected_fields()` and `read_ids_infallible_with_selected_fields()` in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/utils.rs`.
+    - Used the helper only for call sites that already selected the shard-aware primary identifier: top-level upsert/delete/update, many-to-many connect, many-to-many connect-or-create, and nested set. Relation-link reads stayed on the original helper because they still need automatic primary-id merging.
+  - Verification while patched:
+    - `cargo fmt -p query-core --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+  - Allocation signal:
+    - `create-nested-connectOrCreate-mixed`: `graph_build` 895 -> 892 allocations/op and `full_compile` 2767 -> 2764 allocations/op, about 0.4 KiB/op less.
+    - `update-set-nested`: `graph_build` 743 -> 740 allocations/op and `full_compile` 2160 -> 2157 allocations/op, about 0.4 KiB/op less.
+    - `upsert`, `delete-many`, `delete-many-limit`, `update-connect`, `create-nested-connect`, and `update-set-nested-prisma#27650` were unchanged.
+  - Close Criterion signal:
+    - Patched: `create-nested-connectOrCreate-mixed` 130.42 us, `delete-many-limit` 10.007 us, `delete-many` 13.051 us, `update-set-nested-prisma#27650` 91.135 us, `update-set-nested` 102.20 us, `upsert` 34.488 us.
+    - Reversed baseline: `create-nested-connectOrCreate-mixed` 130.76 us, `delete-many-limit` 9.852 us, `delete-many` 13.009 us, `update-set-nested-prisma#27650` 90.312 us, `update-set-nested` 101.96 us, `upsert` 34.696 us.
+  - Decision: reverted. The allocation savings are too small and limited to two fixtures, while close timings are mixed and include regressions on `delete-many-limit` and `update-set-nested-prisma#27650`. Do not add a selected-fields bypass helper for `read_id(s)_infallible()` without a broader allocation win or a clear timing win.
+
 ## Useful Commands
 
 ```sh
