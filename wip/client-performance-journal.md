@@ -7604,6 +7604,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The extra branch and direct string/placeholder handling lost clearly on the target Node row, so a Workerd run was not justified.
 
+- Accepted optimization: single-key compacted batch demux fast path.
+  - Timestamp: 2026-06-08T00:19:35+02:00.
+  - Change:
+    - Updated `packages/client-engine-runtime/src/batch.ts::convertCompactedRows()` so compacted batches with exactly one key try a single-key path before falling back to the generic converter.
+    - The fast path pre-resolves each argument's one key, pre-deserializes each row's one key, compares with `doKeyValuesMatch()`, and projects selected fields with a direct loop.
+    - Extracted `doKeyValuesMatch()` from `packages/client-engine-runtime/src/utils.ts::doKeysMatch()` so the fast path keeps the same Decimal / Bytes / Date / BigInt / number / deep-object comparison semantics.
+    - The fast path falls back to the generic converter if any compacted argument lacks the single key.
+  - Rationale:
+    - CPU profiling of the accepted request-precomputed batched `findUnique` row showed visible self time in compacted batch demux: `convertCompactedRows()` plus `resolveArgPlaceholders()`.
+    - The generated two-`findUnique` batch is a compacted single-key shape, but the generic converter builds key objects for every row, constructs a `Set` for projection, resolves placeholders with `Object.entries()`, scans key objects with `doKeysMatch()`, and projects via `Object.entries().filter()` / `Object.fromEntries()`.
+  - Intermediate result:
+    - A first version that still called `doKeysMatch({ [key]: ... }, resolvedArgs)` for each candidate row passed focused tests but regressed the Node request-precomputed batched row to 7.41 us/op. It was refined before keeping.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/batch.ts packages/client-engine-runtime/src/utils.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test batch.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm exec eslint packages/client-engine-runtime/src/batch.ts packages/client-engine-runtime/src/utils.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.54 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.14 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.50 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 6.98 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted DataLoader two-job dispatch row was 7.19 us/op.
+  - Workerd measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - First run while `@prisma/client` build was still in progress measured target row worse at 9.60 us/op, so it was not used for the keep/revert decision.
+    - Stable rerun after `@prisma/client` build:
+      - `generated client batched findUnique warmed cache`: worker loop 15.70 us/op, host dispatch 19.14 us/op.
+      - `generated client request precomputed fast path batched findUnique warmed cache`: worker loop 8.80 us/op, host dispatch 10.89 us/op, `queryRaw 10000`, `precomputed batch: hits 20000`.
+    - Previous accepted DataLoader two-job dispatch Workerd row was 9.10 us/op worker loop / 11.07 us/op host dispatch.
+  - Decision:
+    - Keep. It improves the target request-preserving batched row on Node and the stable Workerd rerun, preserves compacted-batch matching semantics through the shared value matcher, and falls back for non-single-key argument shapes.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
