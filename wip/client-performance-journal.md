@@ -7872,6 +7872,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The allocation win is deterministic in graph building and full compile, query snapshots/tests are unchanged, Wasm/client builds pass, and focused Criterion is neutral-to-positive after reverse A/B. This closes the selection-order TODO lead.
 
+- Accepted experiment: move aggregation selection tree names while resolving selectors.
+  - Timestamp: 2026-06-08T02:20:00+02:00.
+  - Engines commit: `cc75ecb1ae7 Move aggregation selection tree names`.
+  - Change:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/aggregations/mod.rs`, replaced the separate borrowed `collect_selection_tree()` pass and consuming selector resolution pass with `collect_selection_tree_and_selectors()`.
+    - Aggregation outer field names and nested scalar names are now moved from consumed `ParsedField`s into `selection_order`.
+    - `_count._all` detection now happens while consuming nested fields, preserving `_all` in the result selection tree while excluding it from scalar field selectors.
+    - `aggregate.rs` and `group_by.rs` both use the combined helper.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='aggregate,aggregate-custom,aggregate-join,aggregate-join-lateral,aggregate-nested-m2m,group-by,query-m2o,create-nested-connectOrCreate-mixed' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=3 cargo run -p query-compiler --example allocation_profile --release`
+    - `aggregate`: `graph_build` 326 -> 322 allocations/op, `full_compile` 655 -> 651; graph-build bytes about 44.7 -> 43.8 KiB.
+    - `aggregate-custom`: `graph_build` 200 -> 187 allocations/op, `full_compile` 724 -> 711; graph-build bytes about 28.9 -> 24.3 KiB.
+    - `group-by`: `graph_build` 360 -> 356 allocations/op, `full_compile` 656 -> 652; graph-build bytes about 46.8 -> 45.9 KiB.
+    - `aggregate-join`, `aggregate-join-lateral`, `aggregate-nested-m2m`, `query-m2o`, and `create-nested-connectOrCreate-mixed` allocation counts were unchanged.
+  - Criterion:
+    - First patched run was mixed and had control movement, so it was treated as contaminated:
+      - `aggregate`: -2.80%, `group-by`: -3.62%, `aggregate-join`: -2.56%, `aggregate-join-lateral`: -2.86%.
+      - `aggregate-custom`: +1.90%, `aggregate-nested-m2m`: +5.79%, `create-nested-connectOrCreate-mixed`: +5.25%, while `query-m2o`: -5.17%.
+    - Reverse run after reverting the patch showed controls still moved, confirming noise:
+      - `aggregate-custom`: 31.699 us, `aggregate-nested-m2m`: 67.848 us, `aggregate`: 27.011 us, `group-by`: 27.250 us, `create-nested-connectOrCreate-mixed`: 148.89 us, `query-m2o`: 29.991 us.
+    - Final patched A-B-A confirmation:
+      - `aggregate-custom`: 31.266 us, within noise but slightly better than reverse baseline.
+      - `aggregate-nested-m2m`: 67.804 us, no change.
+      - `aggregate`: 26.290 us, performance improved versus reverse baseline.
+      - `group-by`: 27.132 us, no change.
+      - Controls stayed within noise: `create-nested-connectOrCreate-mixed` 147.71 us, `query-m2o` 30.350 us.
+  - Verification:
+    - `cargo fmt --package query-core`
+    - `cargo check -p query-core -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. The allocation profile shows deterministic graph-build savings on aggregate/group-by shapes, query snapshots are unchanged, Wasm/client builds pass, and the final A-B-A Criterion pass is neutral-to-positive after accounting for noisy controls.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -7904,6 +7942,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
   - The first two concrete leads from the 2026-06-08 scout are now resolved: `RelationLinkage` SmallVec/sorted-vector storage was rejected, and scalar `selection_order` name movement was accepted.
+
+- Explore raw nested reads for implicit many-to-many relations in the Rust query compiler.
+  - Scout lead: `build_raw_nested_read_relations()` currently bails out on many-to-many, while the TypeScript runtime already has raw nested many-to-many attachment support.
+  - Possible low-churn proof: let implicit many-to-many use `build_read_m2m_query()` and its `linking_field_alias`, then attach through the existing raw direct relation path using that hidden alias as the child column.
+  - Fixture and baseline: `query-compiler/query-compiler/tests/data/query-many-m2m.json`; local scout measured roughly 41 us compile time and 573 `translate_ir` allocations/op.
+  - Guardrails: keep fallback for compound relation keys, in-memory pagination/distinct, explicit join-table wrapper shapes, and any case where the hidden linking alias could leak into user-visible fields.
+  - Suggested commands:
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-many-m2m,query-m2o,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- "query-many-m2m|query-m2o|nested-pagination-query"`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+
+- Compile specialized raw nested mappers/attachers for numeric no-conversion plans.
+  - Scout lead: compact raw nested nodes are real, but `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` still pays generic tuple mapping, conversion dispatch, relation scope creation, and attachment logic on every request.
+  - Baseline from scout: generated blog page about 21.31 us/op; direct plan 7.42; raw compact node 7.14; render all leaves 1.10; adapter-only 0.93; pure raw assembly 0.53. The remaining gap suggests generic raw-node interpretation is still worth profiling.
+  - Proof shape: compile a per-plan mapper for numeric refs and `RAW_NESTED_CONVERT_NONE` fields, with generic fallback for named refs, enum/date conversion, path mappings, and zero-row edge cases.
+  - Guardrails: V8 closure specialization has regressed before in descriptor work, so require both Node and Workerd proof; preserve relation concurrency, scalar conversion metadata, empty result handling, and existing raw nested tests.
+  - Suggested commands:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts data-mapper.test.ts`
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
 
 ## Useful Commands
 
