@@ -6472,6 +6472,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The specialization made the generated-client rows slightly worse, so the extra function split and duplicated loop are not justified. Do not retry this shape unless a new profile shows computed-field checks dominating after other serializer changes.
 
+- Accepted measurement: generated client promise construction timing row.
+  - Timestamp: 2026-06-07T17:30:11Z.
+  - Change:
+    - Added `generated client promise construction ...` rows to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The row constructs the same generated PrismaPromise/proxy objects as the full generated-client scenarios but intentionally does not await them, so serialization/DataLoader/execution are not triggered.
+  - Rationale:
+    - The refreshed nested split still shows a large gap between full generated-client execution and warmed `ClientEngine`/cached-wrapper execution.
+    - Before attempting more public-API changes, we need to know whether proxy/PrismaPromise construction itself is material.
+  - Timing:
+    - `generated client promise construction findUnique / warmed cache`: 0.27 us/op, `queryRaw=0`.
+    - `generated client promise construction blog page / nested rows warmed cache`: 0.49 us/op, `queryRaw=0`.
+    - Same run full generated rows: `findUnique` 4.86 us/op and nested blog-page 18.51 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Keep as measurement infrastructure. Proxy/PrismaPromise construction is not the main generated-client gap at current timings; focus future public-API work after promise construction, especially serialization, DataLoader/request handling, cache-key work, and executor/runtime phases.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

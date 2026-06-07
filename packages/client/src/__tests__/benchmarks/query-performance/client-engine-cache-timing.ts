@@ -1057,6 +1057,63 @@ async function measureGeneratedClientScenario(
   }
 }
 
+async function measureGeneratedClientPromiseConstructionScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  scenario: GeneratedClientScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const PrismaClient = getPrismaClient({
+    runtimeDataModel: config.runtimeDataModel,
+    previewFeatures: [],
+    clientVersion: config.clientVersion,
+    engineVersion: '0000000000000000000000000000000000000000',
+    activeProvider: 'sqlite',
+    inlineSchema: BENCHMARK_DATAMODEL,
+    compilerWasm: getQueryCompilerWasmConfig('sqlite'),
+    parameterizationSchema: config.parameterizationSchema,
+  })
+  const client = new PrismaClient({
+    adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
+    errorFormat: 'minimal',
+    queryPlanCacheMaxSize: 100,
+  }) as any
+
+  try {
+    await client.$connect()
+    void scenario.operation(client, 0)
+    resetCounts(counts)
+
+    let checksum = 0
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const promise = scenario.operation(client, i)
+      checksum += promise === undefined ? 0 : 1
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (checksum < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      ...scenario,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    }
+  } finally {
+    await client.$disconnect()
+  }
+}
+
 function compileDirectPlan(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4172,6 +4229,17 @@ async function main(): Promise<void> {
 
   for (const scenario of scenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
     printMeasurement(await measureScenario(baseConfig, scenario))
+  }
+
+  for (const scenario of generatedClientScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client promise construction'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(await measureGeneratedClientPromiseConstructionScenario(baseConfig, measuredScenario))
   }
 
   for (const scenario of generatedClientScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
