@@ -6564,6 +6564,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The Node serializer and generated nested rows improved, exact simple row stayed in the current band, and the second Workerd point was positive enough to discount the first nested spike as probe noise.
 
+- Rejected experiment: fluent proxy promise-property fast path.
+  - Timestamp: 2026-06-07T17:53:14Z.
+  - Change tried:
+    - Added a `get` trap fast path in `packages/client/src/runtime/core/model/applyFluent.ts` for `then`, `catch`, `finally`, `requestTransaction`, and `spec`.
+    - The intent was to avoid a relation-key `Set.has()` check when awaited generated PrismaPromises expose their promise methods through the fluent proxy.
+  - Rationale:
+    - The post-serializer profile still showed `applyFluent()` and composite proxy access in the full generated rows, while the promise-construction row showed that construction alone was not the main gap. Awaited thenable property access was a plausible remaining proxy cost.
+  - Timing:
+    - First patched full generated run: `findUnique` 4.97 us/op, nested blog-page 17.65 us/op.
+    - Exact patched rows: `findUnique` 4.83 us/op, nested blog-page 17.62 us/op.
+    - Same-session reverted exact control: `findUnique` 4.94 us/op, nested blog-page 17.43 us/op.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/model/applyFluent.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyFluent.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Decision:
+    - Reverted. The simple row improved but the nested row worsened versus adjacent control, so the extra branch is not justified for the target relation-heavy shape.
+
 - Rejected experiment: shared root params for nested serializer contexts.
   - Timestamp: 2026-06-07T17:36:05Z.
   - Change tried:
