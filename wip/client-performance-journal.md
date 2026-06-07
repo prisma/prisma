@@ -7226,6 +7226,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. This was worse than both the accepted direct `RequestHandler.request()` descriptor path (3.49 / 10.59 / 12.39 us/op) and the earlier `_request()`-based path. Preserving tracing/AsyncResource this way does not give a useful middle ground.
 
+- Accepted measurement: generated `findMany` precomputed rows.
+  - Timestamp: 2026-06-08T00:02:00+02:00.
+  - Change:
+    - Added generated `findMany users` rows to `client-engine-cache-timing.ts` and `workerd-query-compiler-memory.ts`.
+    - Shape: `client.user.findMany({ take: 10, select: { id: true, email: true, name: true } })`.
+  - Rationale:
+    - `findMany` is a useful non-fluent/non-batchable generated-client shape for judging precomputed productization. Unlike `findUnique`, direct-engine precompute does not break automatic DataLoader batching for this action.
+  - Node measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='findMany users' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `generated client findMany users / warmed cache`: 4.23 us/op, `queryRaw=100000`.
+    - `generated client engine precomputed fast path findMany users / warmed cache`: 3.00 us/op, `queryRaw=100000`, `precomputedHits=100000`.
+    - `generated client request precomputed fast path findMany users / warmed cache`: 3.20 us/op, `queryRaw=100000`, `precomputedHits=100000`.
+    - Lower-bound rows in the same run: serializer 0.29 us/op, serialize+cache-key 0.72 us/op, request-handler precomputed static protocol 2.46 us/op, client-engine precomputed static protocol 2.16 us/op.
+  - Workerd measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=100 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `generated client findMany users warmed cache`: worker loop 3.50 us/op, host dispatch 5.44 us/op, `queryRaw 10000`.
+    - `generated client engine precomputed fast path findMany users warmed cache`: worker loop 2.10 us/op, host dispatch 3.96 us/op, `queryRaw 10000`, `hits 10000`.
+    - `generated client request precomputed fast path findMany users warmed cache`: worker loop 2.50 us/op, host dispatch 4.27 us/op, `queryRaw 10000`, `hits 10000`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep as measurement infrastructure. The precomputed path materially helps a generated non-batchable action, but the absolute baseline is already small; this is supportive evidence, not the whole 3x path.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

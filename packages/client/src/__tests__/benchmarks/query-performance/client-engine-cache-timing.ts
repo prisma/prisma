@@ -776,6 +776,17 @@ function createGeneratedFindUniqueArgs(iteration: number): Record<string, unknow
   }
 }
 
+function createGeneratedFindManyUsersArgs(): Record<string, unknown> {
+  return {
+    take: 10,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  }
+}
+
 function createGeneratedBlogPostPageArgs(iteration: number): Record<string, unknown> {
   return {
     where: { id: iteration + 1 },
@@ -5391,6 +5402,13 @@ async function main(): Promise<void> {
         ]),
     },
     {
+      name: 'generated client findMany users / warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
+      operation: (client) => client.user.findMany(createGeneratedFindManyUsersArgs()),
+    },
+    {
       name: 'generated client blog page / nested rows warmed cache',
       iterations: benchmarkIterations(500),
       query: createBlogPostPageQuery(1),
@@ -5408,6 +5426,16 @@ async function main(): Promise<void> {
       args: createGeneratedFindUniqueArgs,
       query: (iteration) => createFindUniqueQuery(iteration + 1),
       resultSet: USER_UNIQUE_RESULT,
+    },
+    {
+      name: 'generated client serialize findMany users / warmed cache',
+      iterations: benchmarkIterations(500),
+      modelName: 'User',
+      action: 'findMany',
+      clientMethod: 'user.findMany',
+      args: createGeneratedFindManyUsersArgs,
+      query: () => createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
     },
     {
       name: 'generated client serialize blog page / nested rows warmed cache',

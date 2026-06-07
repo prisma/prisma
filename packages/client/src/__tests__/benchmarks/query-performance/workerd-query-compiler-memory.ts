@@ -643,6 +643,17 @@ function createFindUniqueArgs(iteration) {
   }
 }
 
+function createFindManyUsersArgs() {
+  return {
+    take: 10,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  }
+}
+
 function createBlogPostPageArgs(iteration) {
   return {
     where: { id: iteration + 1 },
@@ -729,6 +740,8 @@ function createClientArgs(scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
       return createFindUniqueArgs(iteration)
+    case 'find-many-users':
+      return createFindManyUsersArgs()
     case 'blog-page':
     case 'blog-page-by-id':
       return createBlogPostPageArgs(iteration)
@@ -745,6 +758,21 @@ function createClientProtocolQuery(scenario, iteration) {
         action: 'findUnique',
         query: {
           arguments: { where: { id: iteration + 1 } },
+          selection: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      }
+    case 'find-many-users':
+      return {
+        modelName: 'User',
+        action: 'findMany',
+        query: {
+          arguments: {
+            take: 10,
+          },
           selection: {
             id: true,
             email: true,
@@ -1085,6 +1113,8 @@ function executeClientScenario(client, scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
       return client.user.findUnique(createClientArgs(scenario, iteration))
+    case 'find-many-users':
+      return client.user.findMany(createFindManyUsersArgs())
     case 'find-unique-batched':
       return Promise.all([
         client.user.findUnique(createFindUniqueArgs(iteration * 2)),
@@ -1102,6 +1132,8 @@ function clientMethodForScenario(scenario) {
   switch (scenario) {
     case 'find-unique':
       return 'user.findUnique'
+    case 'find-many-users':
+      return 'user.findMany'
     case 'blog-page':
     case 'blog-page-by-id':
       return 'post.findUnique'
@@ -2099,6 +2131,39 @@ async function run(): Promise<void> {
         clientMf,
         'generated client request precomputed fast path findUnique warmed cache',
         'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client findMany users warmed cache',
+        'find-many-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client engine precomputed fast path findMany users warmed cache',
+        'find-many-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path findMany users warmed cache',
+        'find-many-users',
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-fast-path',
