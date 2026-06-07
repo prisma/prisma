@@ -5671,6 +5671,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the instrumentation. Future Workerd comparisons for generated-client blog-page warmed-cache work should use a higher generated iteration count when wall time allows.
 
+- Measurement refresh: high-iteration generated-client Workerd rows.
+  - Timestamp: 2026-06-07T15:33:11Z.
+  - Command:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Results:
+    - Generated client findUnique warmed cache: host dispatch 2250.0 ms total, 22.50 us/op upper bound; 100,000/0 cache hits/misses; 100,000 `queryRaw` calls; checksum 400,000.
+    - Generated client blog-page warmed cache: host dispatch 888.1 ms total, 44.40 us/op upper bound; 20,000/0 cache hits/misses; 140,000 `queryRaw` calls; checksum 300,000.
+    - Matching Node/V8 source rows with `CLIENT_ENGINE_CACHE_TIMING_FILTER='warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000`: findUnique warmed cache 2.34 us/op, blog-page nested rows warmed cache 11.51 us/op, and blog-page nested rows after phase warmup 11.31 us/op.
+  - Interpretation:
+    - The old 5,000/1,000-request generated-client rows materially overestimated warmed request cost because host dispatch overhead was not amortized enough. The Workerd generated-client blog-page upper bound is now roughly 2x the simple findUnique upper bound, not ~7x despite seven fake `queryRaw` calls. Future Workerd comparisons should use high generated-client iteration counts and treat worker-internal request timing as unavailable in this Miniflare setup.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
