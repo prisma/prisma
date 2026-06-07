@@ -5827,6 +5827,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Field maps can help the nested blog-page shape, but every variant either regressed or failed to improve the simple generated `findUnique` row. The current array scan is cheap for common early scalar fields such as `id`, `email`, and `name`; do not add field maps unless a future design can isolate wide nested selections without adding overhead to small selections.
 
+- Accepted experiment: reuse fluent proxy handler defaults.
+  - Timestamp: 2026-06-07T14:11:52Z.
+  - Change:
+    - `applyFluent()` now precomputes the non-`get` proxy traps for each fluent function instead of calling `defaultProxyHandlers(proxyOwnKeys)` for every returned PrismaPromise.
+    - The relation-aware `get` trap remains per returned promise because it captures the current `nextDataPath` and `nextUserArgs`.
+    - The reused traps preserve relation/promise key visibility and also account for properties reflected on the target promise.
+  - Rationale:
+    - Fresh generated-client profiles after serializer work still showed `defaultProxyHandlers()` and proxy machinery on the simple warmed `findUnique` path. The old code rebuilt a `Set` and handler object for every fluent-capable model action call, even though the non-`get` trap behavior is stable for a given fluent function.
+  - Timing signal:
+    - First patched run: `findUnique` 14.37 us/op, nested blog-page 39.13 us/op.
+    - Same-session reverted baseline: `findUnique` 15.73 us/op, nested blog-page 40.81 us/op.
+    - Reapplied patched runs: `findUnique` 15.06 then 14.61 us/op; nested blog-page 41.88 then 41.07 us/op.
+    - Final patched run after build: `findUnique` 14.12 us/op, nested blog-page 41.71 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild was mixed: `findUnique` 16.46 us/op and nested blog-page 34.24 us/op host upper bounds, versus the previous smoke around 16.43/34.96 us/op.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyFluent.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/core/extensions/resolve-result-extension-context.test.ts packages/client/src/runtime/utils/CallSite.test.ts packages/client/src/runtime/core/compositeProxy/cacheProperties.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The nested generated-client row is noisy/mixed, but the simple public API row repeatedly improved and the change removes a clear per-call allocation source from fluent-capable model actions.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

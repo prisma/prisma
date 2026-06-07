@@ -5,7 +5,7 @@ import { getCallSite } from '../../utils/CallSite'
 import { deepSet } from '../../utils/deep-set'
 import type { UserArgs } from '../request/UserArgs'
 import type { ModelAction } from './applyModel'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
+import { defaultPropertyDescriptor } from './utils/defaultProxyHandlers'
 
 const emptyDataPath: string[] = []
 const prismaPromiseOwnKeys = ['spec', 'then', 'catch', 'finally', 'requestTransaction'] as const
@@ -95,6 +95,24 @@ export function applyFluent(
   const ownKeys = getOwnKeys(client, dmmfModelName)
   const ownKeysSet = new Set(ownKeys)
   const proxyOwnKeys = [...ownKeys, ...prismaPromiseOwnKeys]
+  const proxyOwnKeysSet = new Set<string | symbol>(proxyOwnKeys)
+  const proxyHandlerDefaults = {
+    getPrototypeOf: () => Object.prototype,
+    getOwnPropertyDescriptor: () => defaultPropertyDescriptor,
+    has: (target: object, prop: string | symbol) => proxyOwnKeysSet.has(prop) || Reflect.has(target, prop),
+    set: (target: object, prop: string | symbol, value: unknown) => Reflect.set(target, prop, value),
+    ownKeys: (target: object) => {
+      const targetKeys = Reflect.ownKeys(target)
+      let keys: (string | symbol)[] | undefined
+      for (const targetKey of targetKeys) {
+        if (!proxyOwnKeysSet.has(targetKey)) {
+          keys ??= proxyOwnKeys.slice()
+          keys.push(targetKey)
+        }
+      }
+      return keys ?? proxyOwnKeys
+    },
+  } as const
 
   // we return a regular model action but proxy its return
   return (userArgs?: UserArgs) => {
@@ -120,7 +138,7 @@ export function applyFluent(
         // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      ...defaultProxyHandlers(proxyOwnKeys),
+      ...proxyHandlerDefaults,
     })
   }
 }
