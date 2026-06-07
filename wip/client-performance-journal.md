@@ -6662,6 +6662,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as scouting evidence. This is a stronger first Rust/Wasm proof point than a raw `serde_wasm_bindgen::from_value()` replacement because it can avoid `JsonBody` materialization on cache hits while leaving the compile-miss path intact.
 
+- Rejected experiment: naive Wasm `js_sys` structural ref-cache lookup.
+  - Timestamp: 2026-06-07T18:41:18Z.
+  - Change tried:
+    - In `/home/aqrln.guest/prisma-engines`, added proof-only `QueryCompiler.cacheParameterizedPlanRef(request, plan)` and `QueryCompiler.lookupParameterizedPlanRef(request)` methods backed by a Rust `HashMap<String, JsValue>`.
+    - Added a temporary `query-compiler-wasm/src/js_query_shape.rs` walker that accepted an already-parameterized JS `JsonQuery`, walked it with `js_sys::Reflect` / `Object.keys`, built the same broad structural shape string, and returned the cached JS plan reference on hits.
+    - In Prisma, temporarily added optional compiler methods plus benchmark-only rows for isolated `wasm ref cache lookup ...` and cached-wrapper Wasm-ref lookup variants.
+  - Rationale:
+    - Static-shape cached-wrapper rows showed that once structural identity is known, dynamic placeholder-scope construction is cheap. This spike tested whether moving structural keying into Wasm over JS-owned values could beat or approach `parameterizeQuery()` + native `JSON.stringify()` cache-key construction without building `JsonBody`.
+  - Verification before measurement:
+    - `cargo fmt -- query-compiler/query-compiler-wasm/src/compiler.rs query-compiler/query-compiler-wasm/src/lib.rs query-compiler/query-compiler-wasm/src/js_query_shape.rs`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm-fast`
+    - `pnpm exec prettier --write packages/client-common/src/QueryCompiler.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client-common/src/QueryCompiler.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Timing:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='wasm ref cache lookup' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Isolated lookup rows:
+      - `wasm ref cache lookup findUnique / value churn`: 39.92 us/op.
+      - `wasm ref cache lookup findMany / stable query`: 24.20 us/op.
+      - `wasm ref cache lookup blog page / value churn`: 163.59 us/op.
+    - Current cache-key phase references in the same benchmark family are low single-digit microseconds for these shapes; this prototype was too slow before even adding executor work.
+  - Decision:
+    - Reverted all Rust and Prisma prototype code. Do not retry generic Wasm `Reflect`/`Object.keys` structural walking as the cache-hit path.
+    - The broader JS-owned-query/Rust-owned-IR architecture remains plausible only with a lower-overhead access strategy, such as generated/static shape metadata, compact JS-side descriptors, or a representation that lets Rust avoid repeated dynamic property lookup across the Wasm boundary.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
