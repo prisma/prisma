@@ -5488,6 +5488,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Many-to-many relation: patched 11.70 us/op, reverted 11.71 us/op. Effectively neutral.
   - Decision: reverted. The direct-relation signal is too small and too synthetic, and the many-to-many path is neutral. Preserve the fresh per-parent array invariant; do not add the single-parent indexed slice skip unless a real product profile shows large indexed list relations where this copy is material.
 
+- Investigation note: skipping discarded `dataMap` construction for raw nested roots.
+  - Timestamp: 2026-06-07T11:59:06Z.
+  - Observation:
+    - `query-compiler/src/translate.rs::translate()` currently builds `map_result_structure(&graph, ...)` before root translation, then discards the structure when the translated root is `Expression::RawNestedRead`.
+    - This looks like avoidable compile-miss allocation for raw nested reads because raw nested nodes carry their own column mappings and enum map.
+  - Safety check:
+    - A simple reorder is not safe. `NodeTranslator::translate_query()` calls `translate_children()`, then `graph.pluck_node(&self.node)`, so after root translation the graph has been consumed enough that `map_result_structure()` cannot be run on the same authoritative graph.
+    - Any production skip needs a pre-translation raw-nested eligibility path that is exact enough to avoid suppressing the generic `dataMap` when raw nested translation later falls back.
+  - Follow-up:
+    - If compile-miss allocation remains a priority, factor the raw-nested eligibility predicate out of `translate/query/read.rs` so `translate()` can skip `map_result_structure()` only when the same predicate guarantees the root will become `RawNestedRead`.
+    - Measure before implementing: use `ALLOC_PROFILE_QUERIES` on raw-nested read fixtures plus Criterion compile benches, because the query graph translation path has several previous low-byte/noisy allocation traps.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
