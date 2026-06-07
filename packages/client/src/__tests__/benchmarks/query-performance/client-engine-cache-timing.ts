@@ -1722,7 +1722,7 @@ async function measurePrecomputedLazyDescriptorRequestSurfaceScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   paramGraph: ParamGraph,
   scenario: GeneratedClientSerializeScenario,
-  surface: 'request-handler' | 'client-engine',
+  surface: 'request-handler' | 'client-engine' | 'prisma-promise-engine',
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -1781,19 +1781,36 @@ async function measurePrecomputedLazyDescriptorRequestSurfaceScenario(
         throw new Error('Expected lazy descriptor to match benchmark args')
       }
 
-      const result =
-        surface === 'request-handler'
-          ? await client._requestHandler.request({
-              ...requestBase,
-              args,
-              precomputedQueryPlanCacheHit: extraction,
-            })
-          : (
-              await client._engine.request(protocolQuery, {
+      let result
+      if (surface === 'request-handler') {
+        result = await client._requestHandler.request({
+          ...requestBase,
+          args,
+          precomputedQueryPlanCacheHit: extraction,
+        })
+      } else if (surface === 'prisma-promise-engine') {
+        result = await client._createPrismaPromise(
+          () =>
+            client._engine
+              .request(protocolQuery, {
                 isWrite: false,
                 precomputedQueryPlanCacheHit: extraction,
               })
-            ).data[scenario.action]
+              .then((response) => response.data[scenario.action]),
+          {
+            action: scenario.action,
+            args,
+            model: scenario.modelName,
+          },
+        )
+      } else {
+        result = (
+          await client._engine.request(protocolQuery, {
+            isWrite: false,
+            precomputedQueryPlanCacheHit: extraction,
+          })
+        ).data[scenario.action]
+      }
 
       checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
     }
@@ -5468,6 +5485,27 @@ async function main(): Promise<void> {
         paramGraph,
         measuredScenario,
         'client-engine',
+      ),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace(
+        'generated client serialize',
+        'prisma promise engine precomputed static protocol lazy descriptor',
+      ),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measurePrecomputedLazyDescriptorRequestSurfaceScenario(
+        baseConfig,
+        paramGraph,
+        measuredScenario,
+        'prisma-promise-engine',
       ),
     )
   }

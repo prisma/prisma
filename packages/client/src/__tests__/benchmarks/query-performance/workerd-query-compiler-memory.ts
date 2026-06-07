@@ -1503,6 +1503,22 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
             })
           ).data[staticProtocolQuery.action]
           break
+        case 'prisma-promise-engine-precomputed-static-protocol':
+          result = await client._createPrismaPromise(
+            () =>
+              client._engine
+                .request(staticProtocolQuery, {
+                  isWrite: false,
+                  precomputedQueryPlanCacheHit: extraction,
+                })
+                .then((response) => response.data[staticProtocolQuery.action]),
+            {
+              action: staticProtocolQuery.action,
+              args,
+              model: staticProtocolQuery.modelName,
+            },
+          )
+          break
         default:
           throw new Error('Unknown precomputed variant: ' + variant)
       }
@@ -1623,7 +1639,8 @@ export default {
         mode === 'client-internal-precomputed-protocol' ||
         mode === 'client-internal-precomputed-static-protocol' ||
         mode === 'client-request-handler-precomputed-static-protocol' ||
-        mode === 'client-engine-precomputed-static-protocol'
+        mode === 'client-engine-precomputed-static-protocol' ||
+        mode === 'client-prisma-promise-engine-precomputed-static-protocol'
       ) {
         result = await runClientPrecomputedScenario(scenario, iterations, mode.slice('client-'.length))
       } else {
@@ -1971,6 +1988,16 @@ async function run(): Promise<void> {
         'client-engine-precomputed-static-protocol blog-page value churn',
         'blog-page-by-id',
         'client-engine-precomputed-static-protocol',
+      ],
+      [
+        'client-prisma-promise-engine-precomputed-static-protocol findUnique value churn',
+        'find-unique',
+        'client-prisma-promise-engine-precomputed-static-protocol',
+      ],
+      [
+        'client-prisma-promise-engine-precomputed-static-protocol blog-page value churn',
+        'blog-page-by-id',
+        'client-prisma-promise-engine-precomputed-static-protocol',
       ],
     ] as const
 

@@ -6931,6 +6931,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. Workerd supports the same architectural direction as Node: descriptor extraction and precomputed engine cache hits are cheap enough, but a product fast path needs a safe way around `_request`/RequestHandler overhead without breaking extensions, error context, tracing, transactions, SQL commenters, or automatic batching.
 
+- Accepted measurement: PrismaPromise direct-engine precomputed path.
+  - Timestamp: 2026-06-07T21:00:12Z.
+  - Change:
+    - Added `prisma promise engine precomputed static protocol lazy descriptor ...` rows to `client-engine-cache-timing.ts`.
+    - Added `client-prisma-promise-engine-precomputed-static-protocol ...` rows to `workerd-query-compiler-memory.ts`.
+    - These rows wrap the direct `client._engine.request(... precomputedQueryPlanCacheHit ...)` call in `client._createPrismaPromise()`, then await it, preserving the generated API's promise surface while bypassing `_request()` and `RequestHandler`.
+  - Rationale:
+    - Direct engine rows are an optimistic lower bound. A product generated fast path still needs to return a PrismaPromise. This measures whether PrismaPromise itself materially changes the ceiling.
+  - Measurement:
+    - Node:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='precomputed static protocol lazy descriptor' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `client engine precomputed static protocol lazy descriptor findUnique / warmed cache`: 1.47 us/op.
+      - `client engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 10.05 us/op.
+      - `prisma promise engine precomputed static protocol lazy descriptor findUnique / warmed cache`: 1.70 us/op.
+      - `prisma promise engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 10.34 us/op.
+    - Workerd:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=100 WORKERD_DESCRIPTOR_ITERATIONS=100 WORKERD_PRECOMPUTED_ITERATIONS=20000 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=50 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `client-engine-precomputed-static-protocol findUnique value churn`: worker loop 1.65 us/op; host upper bound 2.64 us/op.
+      - `client-engine-precomputed-static-protocol blog-page value churn`: worker loop 8.50 us/op; host upper bound 9.65 us/op.
+      - `client-prisma-promise-engine-precomputed-static-protocol findUnique value churn`: worker loop 1.65 us/op; host upper bound 2.63 us/op.
+      - `client-prisma-promise-engine-precomputed-static-protocol blog-page value churn`: worker loop 8.60 us/op; host upper bound 9.72 us/op.
+  - Decision:
+    - Keep as measurement infrastructure. PrismaPromise adds little to the precomputed direct-engine path on both Node and Workerd. The product blocker is not the promise wrapper; it is safely bypassing `_request()` / `RequestHandler` without losing extensions, tracing/error context, transaction handling, SQL commenters, or automatic batching.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -6955,8 +6979,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime.
   - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits.
   - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap. Static-protocol lower-bound timing says full protocol-query construction is not the main remaining gap.
-  - Surface split timing says `ClientEngine.request()` is already at the nested cached-wrapper lower bound with precomputed data; `_request`/tracing/AsyncResource plus DataLoader/RequestHandler are the remaining overhead. Workerd precomputed rows confirm the same split in the target runtime.
-  - Next productization proof point: reduce or bypass `_request` / `RequestHandler` / tracing / Promise plumbing for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present.
+  - Surface split timing says `ClientEngine.request()` and PrismaPromise are already near the nested cached-wrapper lower bound with precomputed data; `_request`/tracing/AsyncResource plus DataLoader/RequestHandler are the remaining overhead. Workerd precomputed rows confirm the same split in the target runtime.
+  - Next productization proof point: reduce or bypass `_request` / `RequestHandler` / tracing plumbing for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present. Be especially careful with `findUnique`, because direct engine paths bypass automatic DataLoader batching.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching, while `ClientEngine.requestBatch()` has no per-query precomputed cache-key/placeholder channel. A product descriptor path must either carry descriptor data through batching safely, fall back for batchable requests, or add a batch-aware precomputed-plan contract.
 
 - Explore memory-management simplification in Rust query compiler.
