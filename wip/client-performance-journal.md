@@ -4001,6 +4001,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Only after a cache-hit win, prototype a borrowed/request-backed query document layer feeding validation/graph building on compile misses.
     - Treat SQL ownership/template work as a separate follow-up, informed by the retained-plan inspection showing large root SQL fragments dominate one blog-page plan's serialized bytes.
 
+- Rejected experiment: cache-side splitting of long SQL template string fragments.
+  - Hypothesis: retained blog-page plans still carry large root SQL strings that vary only in selected scalar columns. If `QueryPlanCache` split long `templateSql.fragments` strings before interning them, existing cache-local string interning might share repeated SQL tails or selected-column chunks across cached root-shape variants without changing compiler output.
+  - Inspection before the patch:
+    - One- and many-shape blog-page plans have root SQL as the longest string. Across 100 root scalar masks, root SQL length was 759-881 bytes, average 824.9 bytes.
+    - Those 100 root SQL strings shared a 42-byte prefix and a 735-byte suffix. The common suffix includes hidden relation keys, aggregate count joins, `FROM`, and the `WHERE id =` prefix.
+    - Large SQL strings across the 100 plans had 700 occurrences, 57 unique values, 180,589 total bytes, and 43,022 unique bytes. Repeated child SQL strings were already mostly handled by the existing child-query/string interning.
+  - Temporary variants tried:
+    - Split long template SQL strings once at `FROM` before string interning.
+    - Broadened that to split long `SELECT ... FROM ...` strings at comma boundaries plus `FROM`, so individual selected-column chunks and common tails could be interned.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand` passed for both variants.
+  - Memory signal rejected both variants:
+    - Baseline `query-plan-cache-memory.ts`: blog edge warm 1.26 MiB, blog edge churn 1.20 MiB, blog node warm 9.99 MiB, blog parameterized edge warm 1.10 MiB, blog parameterized node warm 10.23 MiB.
+    - `FROM` split: blog edge warm 1.28 MiB, blog edge churn 1.21 MiB, blog node warm 10.00 MiB, blog parameterized edge warm 1.10 MiB, blog parameterized node warm 10.24 MiB.
+    - Comma/`FROM` split: blog edge warm 1.27 MiB, blog edge churn 1.22 MiB, blog node warm 10.18 MiB, blog parameterized edge warm 1.09 MiB, blog parameterized node warm 10.42 MiB.
+  - Decision: reverted. The suffix-sharing intuition is real at the string-content level, but cache-side fragment splitting does not reduce retained V8 heap in this probe and can make larger cache shapes worse. Do not retry this as a `QueryPlanCache` mutation without a different string representation or a heap snapshot proving where V8 retains the original SQL strings.
+
+- Measurement refresh after SQL-split rejection:
+  - Focused CPU profile:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --cpu-prof --cpu-prof-dir /tmp/prisma-profile --cpu-prof-name cached-wrapper-blog-focused.cpuprofile --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Row result: `cached request wrapper blog page / nested rows` 18.74 us/op for 100,000 iterations.
+    - Self-time samples remained distributed: compact interpreter frame about 14.6%, GC about 10.5%, V8 program about 9.7%, benchmark wrapper about 8.5%, benchmark `getBlogPageResultSet()` about 4.5%, `mapObjectWithMappings()` about 3.2%, `serializeSql()` about 2.9%, `#executeQueryNode` about 2.8%, `#parameterizeSelection` about 1.9%, `attachChildrenToParents()` about 1.7%, and `QueryPlanCache.getSingle()` only about 0.4%.
+  - Focused Rust allocation profile:
+    - Command: `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-create,update-set-nested' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`.
+    - Current per-op `full_compile` allocation counts/bytes: `query-m2o` 623 allocs / 91.9 KiB, `query-many-m2m` 803 / 98.1 KiB, `nested-pagination-query` 623 / 78.4 KiB, `create-nested-create` 1299 / 156.5 KiB, `update-set-nested` 2165 / 268.2 KiB.
+    - The largest allocation phases remain `graph_build` and `translate_ir`, especially nested writes. This supports keeping future Rust allocation work focused on graph/translation data ownership, not shallow request JSON conversion.
+
 ## Useful Commands
 
 ```sh
