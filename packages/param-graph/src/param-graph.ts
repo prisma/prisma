@@ -120,6 +120,13 @@ export class ParamGraph {
   }
 
   /**
+   * Look up a root entry without allocating a readable wrapper object.
+   */
+  rootData(key: string): Readonly<RootEntryData> | undefined {
+    return this.#data.roots[key]
+  }
+
+  /**
    * Get an input node by ID.
    */
   inputNode(id: number | undefined): InputNode | undefined {
@@ -171,6 +178,27 @@ export class ParamGraph {
   }
 
   /**
+   * Get an input edge by node id without allocating readable wrapper objects.
+   */
+  inputEdgeData(nodeId: number | undefined, fieldName: string): Readonly<InputEdgeData> | undefined {
+    if (nodeId === undefined || nodeId < 0 || nodeId >= this.#data.inputNodes.length) {
+      return undefined
+    }
+
+    const nodeData = this.#data.inputNodes[nodeId]
+    if (!nodeData) {
+      return undefined
+    }
+
+    const fieldIndex = this.#stringIndex.get(fieldName)
+    if (fieldIndex === undefined) {
+      return undefined
+    }
+
+    return nodeData.edges[fieldIndex]
+  }
+
+  /**
    * Get an output edge for a field name within a node.
    */
   outputEdge(node: OutputNode | undefined, fieldName: string): OutputEdge | undefined {
@@ -200,6 +228,27 @@ export class ParamGraph {
   }
 
   /**
+   * Get an output edge by node id without allocating readable wrapper objects.
+   */
+  outputEdgeData(nodeId: number | undefined, fieldName: string): Readonly<OutputEdgeData> | undefined {
+    if (nodeId === undefined || nodeId < 0 || nodeId >= this.#data.outputNodes.length) {
+      return undefined
+    }
+
+    const nodeData = this.#data.outputNodes[nodeId]
+    if (!nodeData) {
+      return undefined
+    }
+
+    const fieldIndex = this.#stringIndex.get(fieldName)
+    if (fieldIndex === undefined) {
+      return undefined
+    }
+
+    return nodeData.edges[fieldIndex]
+  }
+
+  /**
    * Get enum values for an edge that references a user enum.
    * Returns undefined if the edge doesn't reference an enum.
    */
@@ -209,6 +258,22 @@ export class ParamGraph {
     }
 
     const enumName = this.#data.strings[edge.enumNameIndex]
+    if (!enumName) {
+      return undefined
+    }
+
+    return this.#enumLookup(enumName)
+  }
+
+  /**
+   * Get enum values by string-table index without allocating an edge wrapper.
+   */
+  enumValuesByIndex(enumNameIndex: number | undefined): Readonly<EnumNameToValueMap> | undefined {
+    if (enumNameIndex === undefined) {
+      return undefined
+    }
+
+    const enumName = this.#data.strings[enumNameIndex]
     if (!enumName) {
       return undefined
     }

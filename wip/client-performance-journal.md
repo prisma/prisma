@@ -3888,6 +3888,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` produced only unrelated `@ark/attest` lockfile churn, which was reverted.
   - Decision: keep. The win is intentionally small, about 3 serialized bytes per enum-free plan and one fewer empty enum object in the compact plan, but it is a simple protocol compaction with neutral timing and clean compatibility with enum-bearing plans.
 
+- Accepted change: use wrapper-free ParamGraph access in parameterization.
+  - Change:
+    - `packages/param-graph/src/param-graph.ts` now exposes `rootData()`, `inputEdgeData()`, `outputEdgeData()`, and `enumValuesByIndex()` for hot callers that can work with readonly graph data directly.
+    - `packages/client-engine-runtime/src/parameterization/parameterize.ts` now carries input/output node ids through the traversal instead of allocating readable `{ id }`, edge, and root wrapper objects on every request.
+    - Existing wrapper-returning ParamGraph methods remain available for other callers.
+  - Close A/B over `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=2000`:
+    - Baseline: `parameterize blog page` 5.77 us/op, `cache hit key blog page` 7.73 us/op, cached request wrapper nested rows 29.21 us/op, 100 retained shapes nested rows 26.00 us/op, phase-warmed product nested rows 27.97 us/op.
+    - Patched run 1: `parameterize blog page` 4.73 us/op, `cache hit key blog page` 6.59 us/op, cached request wrapper nested rows 28.55 us/op, 100 retained shapes nested rows 24.73 us/op, phase-warmed product nested rows 26.46 us/op.
+    - Patched run 2: `parameterize blog page` 4.71 us/op, `cache hit key blog page` 6.54 us/op, cached request wrapper nested rows 28.11 us/op, 100 retained shapes nested rows 24.68 us/op, phase-warmed product nested rows 26.60 us/op.
+  - Simple-shape patched checks:
+    - `findUnique`: parameterize 2.42 us/op, cache-hit key 3.10 us/op, cached request wrapper 5.63 us/op, warmed cache 6.47 us/op.
+    - `findMany`: parameterize 0.91 us/op, cache-hit key 1.33 us/op, cached request wrapper 4.83 us/op, warmed cache 5.13 us/op.
+  - Workerd probe after broad build:
+    - Retained scalar plan cache: 100 entries, 7.6 KiB keys, 24.1 KiB serialized plans.
+    - Retained blog-page plan cache: 100 entries, 48.3 KiB keys, 394.8 KiB serialized plans.
+    - `client-cache findUnique value churn`: host dispatch 62.10 us/op, 99 hits / 1 miss, retained one 138 B key and 548 B plan.
+    - `client-cache blog-page value churn`: host dispatch 83.31 us/op, 99 hits / 1 miss, retained one 704 B key and 4.3 KiB plan.
+    - `generated client findUnique warmed cache`: host dispatch upper bound 64.99 us/op for 5000 requests.
+    - `generated client blog-page warmed cache`: host dispatch upper bound 120.38 us/op for 1000 requests.
+  - `caching.bench.ts` after broad build:
+    - Compile rows stayed in band: findUnique 1,634 ops/sec, filtered findMany 1,323 ops/sec, blog post page 359 ops/sec.
+    - Parameterization rows: findUnique 1,662,345 ops/sec, findMany 720,970 ops/sec, findMany in filter 795,184 ops/sec, blog post page query 643,488 ops/sec.
+    - Cache-hit-key rows: findUnique 860,810 ops/sec, findMany 468,157 ops/sec, findMany in filter 527,797 ops/sec, blog post page query 342,657 ops/sec.
+  - Verification:
+    - `pnpm exec prettier --check packages/param-graph/src/param-graph.ts packages/client-engine-runtime/src/parameterization/parameterize.ts`
+    - `pnpm --filter @prisma/param-graph test`
+    - `pnpm --filter @prisma/param-graph build`
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm build`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `git diff --check`
+    - `client-engine-cache-timing.ts` close A/B as above.
+  - Decision: keep. This is the wrapper-free version of the earlier rejected wrapper-cache idea; unlike caching view objects, it reduces hot-path work without increasing retained ParamGraph state.
+
 ## Useful Commands
 
 ```sh

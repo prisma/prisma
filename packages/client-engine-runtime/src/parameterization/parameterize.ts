@@ -16,8 +16,8 @@ import type {
   PlaceholderTaggedValue,
 } from '@prisma/json-protocol'
 import { PlaceholderType } from '@prisma/json-protocol'
-import type { InputEdge, InputNode } from '@prisma/param-graph'
-import { EdgeFlag, getScalarMask, hasFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
+import type { InputEdgeData } from '@prisma/param-graph'
+import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 
 import { deserializeJsonObject } from '../json-protocol'
 import { safeJsonStringify } from '../utils'
@@ -74,7 +74,7 @@ export function parameterizeQuery(query: JsonQuery, view: ParamGraph): Parameter
   const parameterizer = new Parameterizer(view)
 
   const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
-  const root = view.root(rootKey)
+  const root = view.rootData(rootKey)
 
   const parameterizedFieldSelection = parameterizer.parameterizeFieldSelection(
     query.query,
@@ -105,7 +105,7 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraph): Para
     const query = batch.batch[i]
 
     const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
-    const root = view.root(rootKey)
+    const root = view.rootData(rootKey)
     const parameterizedFieldSelection = parameterizer.parameterizeFieldSelection(
       query.query,
       root?.argsNodeId,
@@ -211,16 +211,14 @@ class Parameterizer {
     let result: JsonFieldSelection | undefined
 
     if (sel.arguments && sel.arguments.$type !== 'Raw') {
-      const argsNode = this.#view.inputNode(argsNodeId)
-      const argumentsResult = this.#parameterizeObject(sel.arguments as Record<string, unknown>, argsNode)
+      const argumentsResult = this.#parameterizeObject(sel.arguments as Record<string, unknown>, argsNodeId)
       if (argumentsResult !== sel.arguments) {
         result = { ...sel, arguments: argumentsResult }
       }
     }
 
     if (sel.selection) {
-      const outNode = this.#view.outputNode(outNodeId)
-      const selection = this.#parameterizeSelection(sel.selection, outNode)
+      const selection = this.#parameterizeSelection(sel.selection, outNodeId)
       if (selection !== sel.selection) {
         result = { ...(result ?? sel), selection }
       }
@@ -232,8 +230,8 @@ class Parameterizer {
   /**
    * Parameterizes an object by traversing its fields with the input node.
    */
-  #parameterizeObject(obj: Record<string, unknown>, node: InputNode | undefined): Record<string, JsonArgumentValue> {
-    if (!node) {
+  #parameterizeObject(obj: Record<string, unknown>, nodeId: number | undefined): Record<string, JsonArgumentValue> {
+    if (nodeId === undefined) {
       // No parameterizable fields in this subtree - return as-is
       return obj as Record<string, JsonArgumentValue>
     }
@@ -243,7 +241,7 @@ class Parameterizer {
 
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i]
-      const edge = this.#view.inputEdge(node, key)
+      const edge = this.#view.inputEdgeData(nodeId, key)
       const value = obj[key]
       const nextValue = edge ? this.#parameterizeValue(value, edge) : value
 
@@ -266,7 +264,7 @@ class Parameterizer {
   /**
    * Core parameterization logic for a single value.
    */
-  #parameterizeValue(value: unknown, edge: InputEdge): unknown {
+  #parameterizeValue(value: unknown, edge: Readonly<InputEdgeData>): unknown {
     if (value === null || value === undefined) {
       // Null values are never parameterized - they affect query semantics
       return value
@@ -303,9 +301,9 @@ class Parameterizer {
   /**
    * Handles parameterization of primitive values (string, number, boolean).
    */
-  #handlePrimitive(value: string | number | boolean, edge: InputEdge): JsonArgumentValue {
+  #handlePrimitive(value: string | number | boolean, edge: Readonly<InputEdgeData>): JsonArgumentValue {
     if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.enumNameIndex !== undefined && typeof value === 'string') {
-      const enumValues = this.#view.enumValues(edge)
+      const enumValues = this.#view.enumValuesByIndex(edge.enumNameIndex)
       if (enumValues && Object.hasOwn(enumValues, value)) {
         return this.#getOrCreatePlaceholder(enumValues[value], ENUM_PLACEHOLDER)
       }
@@ -335,7 +333,11 @@ class Parameterizer {
   /**
    * Handles parameterization of tagged scalar values (DateTime, Decimal, etc.).
    */
-  #handleTaggedScalar(tagged: JsonInputTaggedValue, tag: JsonInputTaggedValue['$type'], edge: InputEdge): unknown {
+  #handleTaggedScalar(
+    tagged: JsonInputTaggedValue,
+    tag: JsonInputTaggedValue['$type'],
+    edge: Readonly<InputEdgeData>,
+  ): unknown {
     if (!hasFlag(edge, EdgeFlag.ParamScalar)) {
       return tagged
     }
@@ -354,14 +356,14 @@ class Parameterizer {
   /**
    * Handles parameterization of array values.
    */
-  #handleArray(items: unknown[], originalValue: unknown, edge: InputEdge): unknown {
+  #handleArray(items: unknown[], originalValue: unknown, edge: Readonly<InputEdgeData>): unknown {
     if (hasFlag(edge, EdgeFlag.ParamScalar) && getScalarMask(edge) & ScalarMask.Json) {
       const jsonValue = safeJsonStringify(deserializeJsonObject(items))
       return this.#getOrCreatePlaceholder(jsonValue, JSON_PLACEHOLDER)
     }
 
     if (hasFlag(edge, EdgeFlag.ParamEnum)) {
-      const enumValues = this.#view.enumValues(edge)
+      const enumValues = this.#view.enumValuesByIndex(edge.enumNameIndex)
       if (enumValues) {
         let allEnumValues = true
         for (let i = 0; i < items.length; i++) {
@@ -388,12 +390,12 @@ class Parameterizer {
     }
 
     if (hasFlag(edge, EdgeFlag.ListObject)) {
-      const childNode = this.#view.inputNode(edge.childNodeId)
-      if (childNode) {
+      const childNodeId = edge.childNodeId
+      if (childNodeId !== undefined) {
         let result: unknown[] | undefined
         for (let i = 0; i < items.length; i++) {
           const item = items[i]
-          const nextItem = isPlainObject(item) ? this.#parameterizeObject(item, childNode) : item
+          const nextItem = isPlainObject(item) ? this.#parameterizeObject(item, childNodeId) : item
 
           if (nextItem !== item && result === undefined) {
             result = items.slice(0, i)
@@ -412,11 +414,11 @@ class Parameterizer {
   /**
    * Handles parameterization of object values.
    */
-  #handleObject(obj: Record<string, unknown>, edge: InputEdge): unknown {
+  #handleObject(obj: Record<string, unknown>, edge: Readonly<InputEdgeData>): unknown {
     if (hasFlag(edge, EdgeFlag.Object)) {
-      const childNode = this.#view.inputNode(edge.childNodeId)
-      if (childNode) {
-        return this.#parameterizeObject(obj, childNode)
+      const childNodeId = edge.childNodeId
+      if (childNodeId !== undefined) {
+        return this.#parameterizeObject(obj, childNodeId)
       }
     }
 
@@ -432,8 +434,8 @@ class Parameterizer {
   /**
    * Parameterizes a selection set using output nodes.
    */
-  #parameterizeSelection(selection: JsonSelectionSet, node: ReturnType<ParamGraph['outputNode']>): JsonSelectionSet {
-    if (!selection || !node) {
+  #parameterizeSelection(selection: JsonSelectionSet, nodeId: number | undefined): JsonSelectionSet {
+    if (!selection || nodeId === undefined) {
       return selection
     }
 
@@ -446,16 +448,16 @@ class Parameterizer {
       let nextValue = value
 
       if (key !== '$scalars' && key !== '$composites' && typeof value !== 'boolean') {
-        const edge = this.#view.outputEdge(node, key)
+        const edge = this.#view.outputEdgeData(nodeId, key)
 
         if (edge) {
           const nested = value as { arguments?: Record<string, unknown>; selection?: JsonSelectionSet }
 
           const processedSelection = nested.selection
-            ? this.#parameterizeSelection(nested.selection, this.#view.outputNode(edge.outputNodeId))
+            ? this.#parameterizeSelection(nested.selection, edge.outputNodeId)
             : {}
           const processedArguments = nested.arguments
-            ? this.#parameterizeObject(nested.arguments, this.#view.inputNode(edge.argsNodeId))
+            ? this.#parameterizeObject(nested.arguments, edge.argsNodeId)
             : undefined
 
           if (processedSelection !== nested.selection || processedArguments !== nested.arguments) {
@@ -487,6 +489,14 @@ class Parameterizer {
 
     return result ?? selection
   }
+}
+
+function hasFlag(edge: Readonly<InputEdgeData>, flag: number): boolean {
+  return (edge.flags & flag) !== 0
+}
+
+function getScalarMask(edge: Readonly<InputEdgeData>): number {
+  return edge.scalarMask ?? 0
 }
 
 /**
@@ -608,7 +618,10 @@ interface ScalarListParameterization {
   innerType: PlaceholderType
 }
 
-function getScalarListParameterization(items: unknown[], edge: InputEdge): ScalarListParameterization | undefined {
+function getScalarListParameterization(
+  items: unknown[],
+  edge: Readonly<InputEdgeData>,
+): ScalarListParameterization | undefined {
   if (items.length === 0) {
     return undefined
   }
