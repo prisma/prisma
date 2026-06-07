@@ -7581,6 +7581,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The local-engine-only gate did not improve the target request-preserving row, and the traceparent behavior is semantics-adjacent enough that it is not worth keeping without a clear win.
 
+- Rejected experiment: two-query precomputed batch cache-hit builder.
+  - Timestamp: 2026-06-08T00:19:00+02:00.
+  - Change:
+    - Temporarily added a guarded branch in `packages/client/src/runtime/core/engines/client/ClientEngine.ts::tryBuildPrecomputedBatchCacheHit()` for the generated hot shape: two precomputed hits, no batch transaction, no SQL commenters, and one placeholder per query.
+    - The branch built the batch cache key with direct string interpolation and built `%1` / `%2` placeholder values directly, falling back to the generic path for every other shape.
+  - Rationale:
+    - The warmed request-precomputed two-`findUnique` batch still allocates `cacheKeys`, uses `JSON.stringify([cacheKeys, transaction])`, and loops over placeholder maps before the `QueryPlanCache.getBatch()` hit. This looked like a higher-ceiling engine-side cache-hit target than more DataLoader tweaks.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+      - Passed with existing unsafe-argument warnings in `ClientEngine.ts`.
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='batched findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows:
+      - `generated client promise construction batched findUnique / warmed cache`: 2.60 us/op.
+      - `generated client batched findUnique / warmed cache`: 12.50 us/op.
+      - `generated client engine precomputed fast path batched findUnique / warmed cache`: 5.85 us/op, `queryRaw=200000`.
+      - `generated client request precomputed fast path batched findUnique / warmed cache`: 7.55 us/op, `queryRaw=100000`, `precomputedBatchHits=200000`.
+    - Previous accepted DataLoader two-job dispatch row was 7.19 us/op.
+  - Decision:
+    - Revert. The extra branch and direct string/placeholder handling lost clearly on the target Node row, so a Workerd run was not justified.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
