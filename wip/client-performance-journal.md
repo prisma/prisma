@@ -4088,6 +4088,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - All focused rows were unchanged versus the baseline: `query-m2o` 623 allocs / 91.9 KiB, `query-many-m2m` 803 / 98.1 KiB, `nested-pagination-query` 623 / 78.4 KiB, `create-nested-create` 1299 / 156.5 KiB, `update-set-nested` 2165 / 268.2 KiB.
   - Decision: reverted. The cleanup is semantically reasonable but irrelevant to the current hot fixtures; do not keep it as a performance result.
 
+- Rejected experiment: one-pass `QueryGraph` child-pair collection.
+  - Timestamp: 2026-06-07T01:59:18Z.
+  - Hypothesis: `QueryGraph::direct_child_pairs()` allocated a sorted `outgoing_edges()` vector and then collected filtered child pairs into a second vector. Collecting `(EdgeRef, NodeRef)` pairs in one pass, sorting only the final pair vector, and making `EdgeRef` `Copy` could reduce traversal allocations in graph translation.
+  - Temporary variants:
+    - First variant used pair sorting with a comparator. It saved allocations but regressed several Criterion rows.
+    - Second variant made `EdgeRef` `Clone + Copy`, used `sort_unstable_by_key()` for pair lists, and changed `collect_edges()` to `sort_unstable()`.
+  - Verification while patched:
+    - `cargo fmt -p query-core --check`
+    - `cargo check -p query-compiler`
+  - Allocation signal:
+    - `update-set-nested` improved from 2165 to 2154 full-compile allocations/op; phase split was `graph_build` 743 -> 741 and `translate_ir` 1306 -> 1297.
+    - `create-nested-create` improved from 1299 to 1298 full-compile allocations/op.
+    - `query-m2o`, `query-many-m2m`, and `nested-pagination-query` were unchanged.
+  - Timing signal:
+    - First patched Criterion run was unacceptable: `nested-pagination-query`, `query-m2o-lateral`, `query-many-m2m`, and `update-set-nested` regressed, while only `update-set-nested-prisma#27650` improved.
+    - Cheaper sorting variant absolute patched means: `nested-pagination-query` 27.13 us, `query-m2o-lateral` 29.87 us, `query-many-m2m` 35.68 us, `update-set-nested-prisma#27650` 88.16 us, `update-set-nested` 100.12 us.
+    - Reversed baseline means: `nested-pagination-query` 27.18 us, `query-m2o-lateral` 29.89 us, `query-many-m2m` 35.19 us, `update-set-nested-prisma#27650` 88.31 us, `update-set-nested` 98.53 us.
+  - Decision: reverted. The allocation reduction is real but too small and did not translate into compile-time wins; the target write row was faster unpatched.
+
 ## Useful Commands
 
 ```sh
