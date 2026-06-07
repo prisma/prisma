@@ -1266,7 +1266,7 @@ export class QueryInterpreter {
       !context.usesQueryInstrumentation &&
       queries.length === 1
     ) {
-      return await context.queryable.queryRaw(asMutable(queries[0]))
+      return context.queryable.queryRaw(asMutable(queries[0]))
     }
 
     return this.#executeQuery(dbQuery, { ...context, scope })

@@ -5451,6 +5451,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `query-many-m2m` was within noise threshold but trended slower.
   - Decision: reverted. The byte savings are too small and the Criterion signal is mixed with one significant read-shape regression.
 
+- Accepted experiment: return the driver promise directly on the raw nested single-query fast path.
+  - Timestamp: 2026-06-07T11:48:27Z.
+  - Change:
+    - `QueryInterpreter.#executeRawNestedReadDbQuery()` now returns `context.queryable.queryRaw(...)` directly on the no-raw-SQL/no-comments/no-instrumentation/single-rendered-query fast path instead of `return await`ing it.
+  - Rationale:
+    - The helper is already awaited by its callers, and `QueryInterpreter.run()` wraps the whole interpretation in the user-facing error mapper. Returning the driver promise avoids one extra async continuation on each raw nested DB leaf while preserving rejection handling through the outer `await this.interpretNode(...)`.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Timing signal:
+    - Focused patched direct-plan run at 300,000 iterations: 8.86 us/op. This alone was not a clear win.
+    - Same-session broad A/B at 100,000 iterations:
+      - Patched: cached request wrapper 14.17 us/op, direct plan 8.60, raw compact 7.41, local executor 8.61.
+      - Reverted: cached request wrapper 14.53 us/op, direct plan 8.75, raw compact 7.60, local executor 8.97.
+      - Repatched: cached request wrapper 14.20 us/op, direct plan 8.61, raw compact 7.42, local executor 8.63.
+    - Async fake-adapter sanity run while patched at 20,000 iterations: cached request wrapper 21.42 us/op, direct plan 13.66, exact prototype 10.02, raw compact 12.59, local executor 13.99.
+  - Decision: keep. This is a small cleanup, not a major performance lever, but the same-session broad A/B is neutral-to-positive across the product-shaped rows and the semantic risk is low.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
