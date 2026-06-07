@@ -388,32 +388,28 @@ async function createScenarioAdapter(
 }
 
 function getBlogPageResultSet(sql: string): SqlResultSet {
-  if (sql.includes('FROM `main`.`Post`')) {
-    return BLOG_PAGE_POST_RESULT
-  }
+  const fromMain = 'FROM `main`.`'
+  const tableStart = sql.indexOf(fromMain)
 
-  if (sql.includes('FROM `main`.`Category`')) {
-    return BLOG_PAGE_CATEGORY_RESULT
-  }
+  if (tableStart !== -1) {
+    const tableNameStart = tableStart + fromMain.length
+    const tableNameEnd = sql.indexOf('`', tableNameStart)
+    const tableName = tableNameEnd === -1 ? sql.slice(tableNameStart) : sql.slice(tableNameStart, tableNameEnd)
 
-  if (sql.includes('FROM `main`.`PostTag`')) {
-    return BLOG_PAGE_POST_TAG_RESULT
-  }
-
-  if (sql.includes('FROM `main`.`Tag`')) {
-    return BLOG_PAGE_TAG_RESULT
-  }
-
-  if (sql.includes('FROM `main`.`Comment`')) {
-    return BLOG_PAGE_COMMENT_RESULT
-  }
-
-  if (sql.includes('FROM `main`.`User`') && sql.includes(' IN ')) {
-    return BLOG_PAGE_COMMENT_AUTHOR_RESULT
-  }
-
-  if (sql.includes('FROM `main`.`User`')) {
-    return BLOG_PAGE_AUTHOR_RESULT
+    switch (tableName) {
+      case 'Post':
+        return BLOG_PAGE_POST_RESULT
+      case 'Category':
+        return BLOG_PAGE_CATEGORY_RESULT
+      case 'PostTag':
+        return BLOG_PAGE_POST_TAG_RESULT
+      case 'Tag':
+        return BLOG_PAGE_TAG_RESULT
+      case 'Comment':
+        return BLOG_PAGE_COMMENT_RESULT
+      case 'User':
+        return sql.includes(' IN ') ? BLOG_PAGE_COMMENT_AUTHOR_RESULT : BLOG_PAGE_AUTHOR_RESULT
+    }
   }
 
   throw new Error(`Unexpected blog page benchmark SQL: ${sql}`)

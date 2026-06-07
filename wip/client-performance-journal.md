@@ -4528,6 +4528,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Controls stayed unchanged: `create-nested-connectOrCreate-mixed` 2746 / 320.8 KiB, `create-m2m` 1695 / 192.6 KiB, `query-m2o` 613 / 80.9 KiB.
   - Decision: reverted. Like the earlier `update_nested.rs` `child_model` substitution, avoiding these `related_model()` calls is allocation-neutral and not worth churn.
 
+- Accepted measurement improvement: table-name classifier for the blog-page fake adapter.
+  - Timestamp: 2026-06-07T05:02:00Z.
+  - Change:
+    - `getBlogPageResultSet()` in `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` now parses the table name after `FROM \`main\`.\``once and switches on that name instead of running up to seven`sql.includes(...)` scans per fake adapter call.
+    - The `User` table still checks `IN` to distinguish direct author rows from comment-author rows.
+  - Same-session A/B:
+    - Patched focused confirmation:
+      - `adapter queryRaw blog page result sets / nested rows`: 1.50 us/op over 100,000 iterations.
+      - `direct plan blog page / nested rows`: 11.85 us/op over 50,000 iterations.
+      - `blog page nested rows / warmed cache after phase warmup`: 18.15 us/op over 50,000 iterations.
+    - Reversed baseline with the old repeated substring scans:
+      - `adapter queryRaw blog page result sets / nested rows`: 1.86 us/op.
+      - `direct plan blog page / nested rows`: 12.04 us/op.
+      - `blog page nested rows / warmed cache after phase warmup`: 18.67 us/op.
+    - Full patched blog-page run before the reversed baseline showed the same direction: adapter-only 1.65 us/op vs previous 2.07 us/op, direct nested 11.51 vs 12.17, local executor nested 11.93 vs 12.51, and late warmed product row 19.00 vs 19.80.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Decision: keep. This is benchmark-harness cleanup rather than product runtime optimization, but it makes nested blog-page phase rows less polluted by fake adapter SQL classification and gives cleaner evidence for future product work.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.
