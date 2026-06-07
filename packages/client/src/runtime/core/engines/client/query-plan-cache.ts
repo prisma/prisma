@@ -299,7 +299,7 @@ export class QueryPlanCache {
     const internedQueries = new Map<InternedQuery, number>()
     const internedResultNodes = new Map<InternedResultNode, number>()
     const internedStrings = new Map<string, number>()
-    const withSharedQueries = this.#internJoinChildQueries(value, internedQueries)
+    const withSharedQueries = this.#internSharedQueries(value, internedQueries)
     const withSharedResultNodes = this.#internNestedResultNodes(withSharedQueries, internedResultNodes)
     return {
       value: this.#internStrings(withSharedResultNodes, internedStrings),
@@ -309,12 +309,12 @@ export class QueryPlanCache {
     }
   }
 
-  #internJoinChildQueries<T>(value: T, counts: InternedQueryCounts): T {
-    this.#internJoinChildQueriesInner(value, false, counts)
+  #internSharedQueries<T>(value: T, counts: InternedQueryCounts): T {
+    this.#internSharedQueriesInner(value, false, counts)
     return value
   }
 
-  #internJoinChildQueriesInner(value: unknown, inJoinChild: boolean, counts: InternedQueryCounts): void {
+  #internSharedQueriesInner(value: unknown, inJoinChild: boolean, counts: InternedQueryCounts): void {
     if (Array.isArray(value)) {
       const tag = value[0]
       if ((tag === 'q' || tag === 'x') && inJoinChild && value.length > 1) {
@@ -323,13 +323,13 @@ export class QueryPlanCache {
       }
 
       if (tag === 'j') {
-        this.#internJoinChildQueriesInner(value[1], inJoinChild, counts)
+        this.#internSharedQueriesInner(value[1], inJoinChild, counts)
         const children = value[2]
         if (Array.isArray(children)) {
           for (let i = 0; i < children.length; i++) {
             const child = children[i]
             if (Array.isArray(child)) {
-              this.#internJoinChildQueriesInner(child[0], true, counts)
+              this.#internSharedQueriesInner(child[0], true, counts)
             }
           }
         }
@@ -337,12 +337,12 @@ export class QueryPlanCache {
       }
 
       if (tag === 'n' && value.length > 1) {
-        this.#internRawNestedReadChildQueries(value[1], counts)
+        this.#internRawNestedReadQueryRelations(value[1], counts)
         return
       }
 
       for (let i = 0; i < value.length; i++) {
-        this.#internJoinChildQueriesInner(value[i], inJoinChild, counts)
+        this.#internSharedQueriesInner(value[i], inJoinChild, counts)
       }
       return
     }
@@ -360,12 +360,12 @@ export class QueryPlanCache {
     if (record.type === 'join') {
       const args = record.args as Record<string, unknown> | undefined
       if (args !== undefined) {
-        this.#internJoinChildQueriesInner(args.parent, inJoinChild, counts)
+        this.#internSharedQueriesInner(args.parent, inJoinChild, counts)
         const children = args.children
         if (Array.isArray(children)) {
           for (let i = 0; i < children.length; i++) {
             const child = children[i] as { child?: unknown }
-            this.#internJoinChildQueriesInner(child.child, true, counts)
+            this.#internSharedQueriesInner(child.child, true, counts)
           }
         }
       }
@@ -373,11 +373,16 @@ export class QueryPlanCache {
     }
 
     for (const key of Object.keys(record)) {
-      this.#internJoinChildQueriesInner(record[key], inJoinChild, counts)
+      this.#internSharedQueriesInner(record[key], inJoinChild, counts)
     }
   }
 
-  #internRawNestedReadChildQueries(value: unknown, counts: InternedQueryCounts): void {
+  #internRawNestedReadQuery(value: unknown, counts: InternedQueryCounts): unknown {
+    this.#internRawNestedReadQueryRelations(value, counts)
+    return this.#internQuery(value, counts)
+  }
+
+  #internRawNestedReadQueryRelations(value: unknown, counts: InternedQueryCounts): void {
     if (!Array.isArray(value)) {
       return
     }
@@ -395,14 +400,12 @@ export class QueryPlanCache {
 
       if (relation[0] === 'r') {
         if (Array.isArray(relation[2])) {
-          relation[2][0] = this.#internQuery(relation[2][0], counts)
-          this.#internRawNestedReadChildQueries(relation[2], counts)
+          relation[2] = this.#internRawNestedReadQuery(relation[2], counts)
         }
       } else if (relation[0] === 'm') {
         relation[2] = this.#internQuery(relation[2], counts)
         if (Array.isArray(relation[3])) {
-          relation[3][0] = this.#internQuery(relation[3][0], counts)
-          this.#internRawNestedReadChildQueries(relation[3], counts)
+          relation[3] = this.#internRawNestedReadQuery(relation[3], counts)
         }
       }
     }

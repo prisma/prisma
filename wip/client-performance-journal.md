@@ -4897,8 +4897,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision: keep. This is a better tradeoff than disabling the flat SQL render cache globally: cold cached shapes retain less SQL-string memory, while hot repeated shapes still graduate to the old cached rendering after the second render. Continue to watch many-shape workloads, because a shape used exactly twice pays one extra flat render.
 
 - Accepted cache-memory cleanup: raw nested plans use query-plan cache interning.
-  - Change: `QueryPlanCache` now activates its existing plan interning path for compact raw nested read (`n`) plans. It interns repeated child DB query templates under direct and many-to-many raw nested relations, while leaving each root DB query owned by its plan because root scalar masks often make it unique. The existing long-string interner now also walks `n` plans.
-  - Coverage: `query-plan-cache.test.ts` now verifies that two raw nested plans with different root queries share the repeated child query object after insertion.
+  - Change: `QueryPlanCache` now activates its existing plan interning path for compact raw nested read (`n`) plans. It interns repeated child raw-nested subtrees under direct and many-to-many raw nested relations, while leaving each root DB query owned by its plan because root scalar masks often make it unique. The existing long-string interner now also walks `n` plans.
+  - Coverage: `query-plan-cache.test.ts` now verifies that two raw nested plans with different root queries share the repeated child raw-nested subtree after insertion.
   - Verification:
     - `pnpm --filter @prisma/client test query-plan-cache`
     - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
@@ -4906,10 +4906,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
     - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
   - Measurement signal:
-    - Non-render plan-cache memory: blog-page edge-default warm 1.81 MiB -> 1.22 MiB; edge-default churn 1.72 MiB -> 1.12 MiB; node-default warm 16.80 MiB -> 10.13 MiB; parameterized node-default warm 17.02 MiB -> 10.35 MiB.
-    - Rendered plan-cache memory after the previous two-hit render cache: blog-page edge-default warm 1.88 MiB -> 1.32 MiB; edge-default churn 1.94 MiB -> 1.14 MiB; node-default warm 16.62 MiB -> 10.14 MiB; parameterized node-default warm 16.82 MiB -> 10.34 MiB.
-    - Hot timing stayed in-band: broad cached-wrapper rows over 50k iterations completed at findUnique 2.86 us/op, findMany 2.73, blog value churn 5.01, blog nested rows 16.53, and 100 retained nested shapes 17.83. The full nested comparison over 20k had noisy first warmed-cache timing, but after phase warmup stayed at 17.60 us/op; direct plan 9.74, raw compact node 8.61, and local executor 10.38 remained in the expected band.
-  - Decision: keep. Raw nested emission made blog-page plans bypass the older join/dataMap cache interning, so this recovers a large retained-memory win with no hot cache-hit regression. Next cache-memory leads should target root SQL/template ownership and cache-key strings; child query sharing is now covered for raw nested plans.
+    - Non-render plan-cache memory: blog-page edge-default warm 1.81 MiB -> 760.7 KiB; edge-default churn 1.72 MiB -> 654.8 KiB; node-default warm 16.80 MiB -> 5.27 MiB; parameterized node-default warm 17.02 MiB -> 5.49 MiB.
+    - Rendered plan-cache memory after the previous two-hit render cache: blog-page edge-default warm 1.88 MiB -> 859.6 KiB; edge-default churn 1.94 MiB -> 679.1 KiB; node-default warm 16.62 MiB -> 5.29 MiB; parameterized node-default warm 16.82 MiB -> 5.48 MiB.
+    - Hot timing stayed in-band: broad cached-wrapper rows over 50k iterations completed at findUnique 2.50 us/op, findMany 2.84, blog value churn 5.12, blog nested rows 16.14, and 100 retained nested shapes 18.39.
+  - Decision: keep. Raw nested emission made blog-page plans bypass the older join/dataMap cache interning, so this recovers a large retained-memory win with no hot cache-hit regression. Next cache-memory leads should target root SQL/template ownership and cache-key strings; child raw-nested subtree sharing is now covered for raw nested plans.
 
 ## Current Follow-up Leads
 

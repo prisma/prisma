@@ -191,7 +191,7 @@ describe('QueryPlanCache', () => {
       const plan2 = cache.getSingle('key2') as unknown as InspectableRawNestedPlan
 
       expect(plan1[1][0]).not.toBe(plan2[1][0])
-      expect(plan1[1][2][0][2][0]).toBe(plan2[1][2][0][2][0])
+      expect(plan1[1][2][0][2]).toBe(plan2[1][2][0][2])
     })
 
     it('shares repeated nested result structures under data maps', () => {
