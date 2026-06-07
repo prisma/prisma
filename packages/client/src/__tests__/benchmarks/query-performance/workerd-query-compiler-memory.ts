@@ -12,6 +12,7 @@ const RUNTIME_BASE = path.join(__dirname, '..', '..', '..', '..', 'runtime')
 const RUNTIME_PATH = path.join(RUNTIME_BASE, 'query_compiler_fast_bg.sqlite.mjs')
 const WASM_BASE64_PATH = path.join(RUNTIME_BASE, 'query_compiler_fast_bg.sqlite.wasm-base64.mjs')
 const WASM_COMPILER_EDGE_PATH = path.join(RUNTIME_BASE, 'wasm-compiler-edge.mjs')
+const LOCAL_QC_BUILD_DIRECTORY = process.env.LOCAL_QC_BUILD_DIRECTORY
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -146,8 +147,20 @@ async function loadMiniflare(): Promise<MiniflareConstructor | undefined> {
 }
 
 async function loadWasmBytes(): Promise<Uint8Array> {
+  if (LOCAL_QC_BUILD_DIRECTORY !== undefined) {
+    return fs.promises.readFile(path.join(LOCAL_QC_BUILD_DIRECTORY, 'sqlite', 'query_compiler_fast_bg.wasm'))
+  }
+
   const wasmModule = (await import(pathToFileURL(WASM_BASE64_PATH).href)) as { wasm: string }
   return new Uint8Array(Buffer.from(wasmModule.wasm, 'base64'))
+}
+
+function loadRuntimeModuleContents(): string {
+  if (LOCAL_QC_BUILD_DIRECTORY !== undefined) {
+    return fs.readFileSync(path.join(LOCAL_QC_BUILD_DIRECTORY, 'sqlite', 'query_compiler_fast_bg.js'), 'utf-8')
+  }
+
+  return fs.readFileSync(RUNTIME_PATH, 'utf-8')
 }
 
 function buildWorkerModule(config: {
@@ -908,7 +921,7 @@ async function createMiniflare(config: {
   return new Miniflare({
     modules: [
       { type: 'ESModule', path: 'worker.mjs', contents: buildWorkerModule(config) },
-      { type: 'ESModule', path: 'query_compiler_fast_bg.sqlite.mjs', contents: fs.readFileSync(RUNTIME_PATH, 'utf-8') },
+      { type: 'ESModule', path: 'query_compiler_fast_bg.sqlite.mjs', contents: loadRuntimeModuleContents() },
       { type: 'ESModule', path: 'wasm-compiler-edge.mjs', contents: fs.readFileSync(WASM_COMPILER_EDGE_PATH, 'utf-8') },
       {
         type: 'ESModule',

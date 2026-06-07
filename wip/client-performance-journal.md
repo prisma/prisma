@@ -4849,6 +4849,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Criterion while patched: `filter-contains-param-insensitive` regressed 6.61%, `filter-contains-param` regressed 6.08%, `nested-pagination-query` regressed 2.09%; `nested-pagination-join` improved 1.96%, `query-many-m2m` improved 3.64%, `query-m2o` was within noise.
   - Decision: reverted. The retained-memory win is real but modest, and building a full SQL `String` during serialization creates compile CPU regressions in common read/filter rows. The higher-ceiling version would need SQL template/string-handle ownership changes that reduce retained JS heap without adding Rust-side rendered-string construction on every compile.
 
+- Accepted benchmark instrumentation: local query-compiler Wasm support in Workerd probe.
+  - Timestamp: 2026-06-07T12:35:15Z.
+  - Change: `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` now honors `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`, loading the sqlite `query_compiler_fast_bg.js` and `query_compiler_fast_bg.wasm` from that directory into Miniflare under the same provider-suffixed module names used by the bundled runtime.
+  - Rationale: Node-side probes already support local query-compiler Wasm builds, but the Workerd probe previously required the checked-in `packages/client/runtime` bundle. This made Workers-specific validation slower after Rust/Wasm experiments and increased the chance of accidentally measuring stale bundled code.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm` in `/home/aqrln.guest/prisma-engines`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Smoke signal:
+    - Bundled run: retained blog-page plan cache compile loop 407.0 ms for 100 queries; retained 48.3 KiB keys and 394.8 KiB serialized plans.
+    - Local-Wasm run: retained blog-page plan cache compile loop 408.0 ms for 100 queries; retained 48.3 KiB keys and 394.8 KiB serialized plans.
+    - The matching retained serialized-plan numbers confirm the loader switch is not changing benchmark semantics when pointed at an equivalent local build.
+  - Decision: keep. This is not a production performance change, but it materially improves the ability to test future query-compiler memory/latency changes in the Cloudflare-like probe without rebundling Prisma runtime assets first.
+
 ## Useful Commands
 
 ```sh
@@ -4867,6 +4882,7 @@ pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
+LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
 cd /home/aqrln.guest/prisma-engines
 ALLOC_PROFILE_QUERIES="$(find query-compiler/query-compiler/tests/data -maxdepth 1 -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort | paste -sd, -)" ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release
