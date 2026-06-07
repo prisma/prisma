@@ -6036,6 +6036,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The source and post-build product-path signal is mixed-to-negative. Keep the expanded DataLoader rejection tests, but keep the original continuation shape.
 
+- Rejected experiment: guard no-computed-fields explicit selection.
+  - Timestamp: 2026-06-07T17:09:50Z.
+  - Change tried:
+    - Changed `createExplicitSelection()` to call `computeEngineSideSelection(select, computedFields)` only when `computedFields` was truthy, otherwise iterating the original `select` object directly.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 9.46 us/op, nested blog-page 32.96 us/op.
+    - Same-session reverted baseline: `findUnique` 9.36 us/op, nested blog-page 32.31 us/op.
+    - Reapplied patched run: `findUnique` 9.30 us/op, nested blog-page 32.48 us/op.
+  - Decision:
+    - Reverted. The change is semantically safe, but the nested generated-client row was not positive and the simple row movement was tiny/noisy.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
