@@ -5094,6 +5094,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Async-boundary fake adapter, sequential baseline -> parallel patched: raw result-set compact node 31.38 -> 22.86 us/op; direct plan 27.01 -> 26.11 us/op; local executor 29.90 -> 22.44 us/op.
   - Decision: keep. The raw nested path now matches the existing compact-join sibling scheduling model, and the async-driver signal is a material win. The immediate fake-adapter CPU regression is small and isolated to a benchmark shape that is less representative of Cloudflare/driver-adapter latency than the async-boundary probe.
 
+- Accepted runtime change: index raw nested relation attachment for larger relation sets.
+  - Timestamp: 2026-06-07T14:47:30Z.
+  - Change:
+    - `attachRawNestedDirectRelation()` keeps the existing linear scan for tiny inputs, but when `parentRows.length + childRows.length >= 8`, it builds a child-key index. Unique relations preserve first-child-wins behavior; list relations still assign a fresh array per parent.
+    - `attachRawNestedManyToManyRelation()` keeps the existing linear scan for tiny inputs, but when `parentRows.length + joinRows.length + childRows.length >= 8`, it indexes children by child key and groups children by parent key through the join rows.
+    - `query-interpreter.test.ts` now covers indexed direct and many-to-many raw nested relations with number/string/null keys to guard scalar-key behavior.
+  - Rationale: raw nested reads can now cover `findMany` parent sets, not only one-row page queries. The old attachment loops were O(parent _ child) for direct relations and O(parent _ join \* child) for many-to-many relations. The threshold preserves the tiny blog-page fixture's fast linear path.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Synthetic multi-parent raw nested timing via `node --input-type=module` against `packages/client-engine-runtime/dist/index.mjs` after rebuilding dist.
+  - Measurement signal:
+    - Tiny blog-page immediate fake-adapter row stayed in band after the thresholded patch: raw result-set compact node 7.73 us/op, cached request wrapper 14.88 us/op.
+    - Synthetic 100-parent shape with 5 direct children per parent and 3 many-to-many links per parent: stale pre-index dist baseline 208.0 us/op; rebuilt indexed dist 79.7 us/op over 5,000 iterations. This is about a 2.6x win for attachment-heavy raw nested reads.
+  - Decision: keep. This improves the scaling shape of raw nested reads without changing the tiny-relation path used by the current blog-page benchmark.
+
 ## Useful Commands
 
 ```sh

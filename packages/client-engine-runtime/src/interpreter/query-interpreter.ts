@@ -1403,6 +1403,7 @@ const RAW_NESTED_CONVERT_BOOLEAN = 4
 const RAW_NESTED_CONVERT_UNSUPPORTED = 5
 const RAW_NESTED_CONVERT_DATE_JS = 6
 const RAW_NESTED_CONVERT_FULL = 7
+const RAW_NESTED_INDEX_THRESHOLD = 8
 
 type RawNestedConvertKind =
   | typeof RAW_NESTED_CONVERT_NONE
@@ -1614,6 +1615,19 @@ function attachRawNestedDirectRelation(
 ): void {
   const fieldName = relation[1]
   const isRelationUnique = relation[6]
+  if (parentRows.length + childRows.length >= RAW_NESTED_INDEX_THRESHOLD) {
+    attachIndexedRawNestedDirectRelation(
+      parentRows,
+      parentRecords,
+      fieldName,
+      isRelationUnique,
+      parentColumnIndex,
+      childRows,
+      childRecords,
+      childColumnIndex,
+    )
+    return
+  }
 
   for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
     const parentKey = parentRows[parentIndex][parentColumnIndex]
@@ -1632,6 +1646,47 @@ function attachRawNestedDirectRelation(
   }
 }
 
+function attachIndexedRawNestedDirectRelation(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  isRelationUnique: boolean,
+  parentColumnIndex: number,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): void {
+  if (isRelationUnique) {
+    const childByKey = new Map<unknown, PrismaObject>()
+    for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+      const childKey = childRows[childIndex][childColumnIndex]
+      if (!childByKey.has(childKey)) {
+        childByKey.set(childKey, childRecords[childIndex])
+      }
+    }
+
+    for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+      parentRecords[parentIndex][fieldName] = childByKey.get(parentRows[parentIndex][parentColumnIndex]) ?? null
+    }
+    return
+  }
+
+  const childrenByKey = new Map<unknown, PrismaObject[]>()
+  for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+    const childKey = childRows[childIndex][childColumnIndex]
+    let children = childrenByKey.get(childKey)
+    if (children === undefined) {
+      children = []
+      childrenByKey.set(childKey, children)
+    }
+    children.push(childRecords[childIndex])
+  }
+
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    parentRecords[parentIndex][fieldName] = childrenByKey.get(parentRows[parentIndex][parentColumnIndex])?.slice() ?? []
+  }
+}
+
 function attachRawNestedManyToManyRelation(
   parentRows: readonly unknown[][],
   parentRecords: readonly PrismaObject[],
@@ -1645,6 +1700,21 @@ function attachRawNestedManyToManyRelation(
   const joinParentColumnIndex = resolveRawResultColumnRef(joinResultSet.columnNames, relation[5])
   const joinChildColumnIndex = resolveRawResultColumnRef(joinResultSet.columnNames, relation[6])
   const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[7])
+  if (parentRows.length + joinRows.length + childResult.rows.length >= RAW_NESTED_INDEX_THRESHOLD) {
+    attachIndexedRawNestedManyToManyRelation(
+      parentRows,
+      parentRecords,
+      fieldName,
+      parentColumnIndex,
+      joinRows,
+      joinParentColumnIndex,
+      joinChildColumnIndex,
+      childResult.rows,
+      childResult.records,
+      childColumnIndex,
+    )
+    return
+  }
 
   for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
     const parentKey = parentRows[parentIndex][parentColumnIndex]
@@ -1666,6 +1736,49 @@ function attachRawNestedManyToManyRelation(
       }
     }
     parentRecords[parentIndex][fieldName] = children
+  }
+}
+
+function attachIndexedRawNestedManyToManyRelation(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  parentColumnIndex: number,
+  joinRows: readonly unknown[][],
+  joinParentColumnIndex: number,
+  joinChildColumnIndex: number,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): void {
+  const childByKey = new Map<unknown, PrismaObject>()
+  for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+    const childKey = childRows[childIndex][childColumnIndex]
+    if (!childByKey.has(childKey)) {
+      childByKey.set(childKey, childRecords[childIndex])
+    }
+  }
+
+  const childrenByParentKey = new Map<unknown, PrismaObject[]>()
+  for (let joinIndex = 0; joinIndex < joinRows.length; joinIndex++) {
+    const joinRow = joinRows[joinIndex]
+    const child = childByKey.get(joinRow[joinChildColumnIndex])
+    if (child === undefined) {
+      continue
+    }
+
+    const parentKey = joinRow[joinParentColumnIndex]
+    let children = childrenByParentKey.get(parentKey)
+    if (children === undefined) {
+      children = []
+      childrenByParentKey.set(parentKey, children)
+    }
+    children.push(child)
+  }
+
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    parentRecords[parentIndex][fieldName] =
+      childrenByParentKey.get(parentRows[parentIndex][parentColumnIndex])?.slice() ?? []
   }
 }
 
