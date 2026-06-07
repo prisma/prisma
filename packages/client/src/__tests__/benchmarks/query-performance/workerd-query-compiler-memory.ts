@@ -78,6 +78,8 @@ type WorkerRunResult = {
   compileBatchCount?: number
   queryRawCount?: number
   executeRawCount?: number
+  precomputedFastPathHits?: number
+  precomputedFastPathLearns?: number
   checksum?: number
   retainedEntries: number
   retainedCacheKeyBytes: number
@@ -234,6 +236,8 @@ const counts = {
   compileBatch: 0,
   queryRaw: 0,
   executeRaw: 0,
+  precomputedFastPathHits: 0,
+  precomputedFastPathLearns: 0,
 }
 
 function getCompiler() {
@@ -260,6 +264,8 @@ function resetCounts() {
   counts.compileBatch = 0
   counts.queryRaw = 0
   counts.executeRaw = 0
+  counts.precomputedFastPathHits = 0
+  counts.precomputedFastPathLearns = 0
 }
 
 function getRuntimeWithCountingCompiler() {
@@ -1557,12 +1563,28 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
   }
 }
 
-async function runClientExecuteScenario(scenario, iterations, retain) {
+async function runClientExecuteScenario(scenario, iterations, retain, enginePrecomputedFastPath = false) {
   const Client = getPrismaClientConstructor()
   const client = new Client({
     adapter: createAdapterFactory(),
     queryPlanCacheMaxSize: retain ? 100 : 0,
+    __internal: enginePrecomputedFastPath ? { enginePrecomputedFastPath: true } : undefined,
   })
+  if (enginePrecomputedFastPath) {
+    const request = client._engine.request.bind(client._engine)
+    client._engine.request = (query, options) => {
+      if (options.precomputedQueryPlanCacheHit !== undefined) {
+        counts.precomputedFastPathHits++
+      }
+      return request(query, options)
+    }
+
+    const requestWithPrecomputedQueryPlanCacheHit = client._engine.requestWithPrecomputedQueryPlanCacheHit.bind(client._engine)
+    client._engine.requestWithPrecomputedQueryPlanCacheHit = (query, options) => {
+      counts.precomputedFastPathLearns++
+      return requestWithPrecomputedQueryPlanCacheHit(query, options)
+    }
+  }
   const startInit = performance.now()
   await client.$connect()
 
@@ -1584,7 +1606,7 @@ async function runClientExecuteScenario(scenario, iterations, retain) {
 
     return {
       scenario,
-      mode: 'client-execute',
+      mode: enginePrecomputedFastPath ? 'client-execute-precomputed-fast-path' : 'client-execute',
       iterations,
       retain,
       initMs: performance.now() - startInit - elapsedMs,
@@ -1596,6 +1618,8 @@ async function runClientExecuteScenario(scenario, iterations, retain) {
       compileBatchCount: counts.compileBatch,
       queryRawCount: counts.queryRaw,
       executeRawCount: counts.executeRaw,
+      precomputedFastPathHits: enginePrecomputedFastPath ? counts.precomputedFastPathHits : undefined,
+      precomputedFastPathLearns: enginePrecomputedFastPath ? counts.precomputedFastPathLearns : undefined,
       checksum,
       retainedEntries: 0,
       retainedCacheKeyBytes: 0,
@@ -1627,6 +1651,8 @@ export default {
       let result
       if (mode === 'client-execute') {
         result = await runClientExecuteScenario(scenario, iterations, retain)
+      } else if (mode === 'client-execute-precomputed-fast-path') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, true)
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -1760,6 +1786,11 @@ function printMeasurement(measurement: Measurement): void {
   if (worker.compileCount !== undefined) {
     console.log(
       `  operations: compiles ${worker.compileCount}, compileBatch ${worker.compileBatchCount}, queryRaw ${worker.queryRawCount}, executeRaw ${worker.executeRawCount}, checksum ${worker.checksum}`,
+    )
+  }
+  if (worker.precomputedFastPathHits !== undefined) {
+    console.log(
+      `  precomputed fast path: hits ${worker.precomputedFastPathHits}, learns ${worker.precomputedFastPathLearns}`,
     )
   }
   console.log(`  average serialized plan: ${formatBytes(worker.averagePlanBytes)}`)
@@ -2022,11 +2053,33 @@ async function run(): Promise<void> {
     printMeasurement(
       await dispatchRun(
         clientMf,
+        'generated client engine precomputed fast path findUnique warmed cache',
+        'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
         'generated client blog-page warmed cache',
         'blog-page-by-id',
         GENERATED_BLOG_PAGE_ITERATIONS,
         true,
         'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client engine precomputed fast path blog-page warmed cache',
+        'blog-page-by-id',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-precomputed-fast-path',
       ),
     )
   } finally {

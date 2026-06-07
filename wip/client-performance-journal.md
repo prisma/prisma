@@ -6991,6 +6991,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The result quantifies root fluent proxy overhead at roughly 0.5-0.6 us/op on these rows, but the change breaks relation chaining under the internal flag. A product-safe version needs a way to preserve lazy relation access while avoiding per-call proxy allocation for the common await-only path.
 
+- Accepted measurement: Workerd generated-client internal precomputed fast path.
+  - Timestamp: 2026-06-07T22:14:00+02:00.
+  - Change:
+    - Added `client-execute-precomputed-fast-path` mode to `workerd-query-compiler-memory.ts`.
+    - The Workerd generated-client rows now include the internal `__internal.enginePrecomputedFastPath` path and print precomputed hit/relearn counters.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=100 WORKERD_DESCRIPTOR_ITERATIONS=100 WORKERD_PRECOMPUTED_ITERATIONS=100 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=20000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Baseline:
+      - `generated client findUnique warmed cache`: worker loop 7.45 us/op; host dispatch 8.37 us/op.
+      - `generated client blog-page warmed cache`: worker loop 19.00 us/op; host dispatch 23.54 us/op.
+    - Internal fast path:
+      - `generated client engine precomputed fast path findUnique warmed cache`: worker loop 2.40 us/op; host dispatch 3.44 us/op; `precomputed fast path: hits 20000, learns 0`.
+      - `generated client engine precomputed fast path blog-page warmed cache`: worker loop 10.20 us/op; host dispatch 14.63 us/op; `precomputed fast path: hits 5000, learns 0`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Smoke after label fix: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_CLIENT_CACHE_KEY_ITERATIONS=10 WORKERD_DESCRIPTOR_ITERATIONS=10 WORKERD_PRECOMPUTED_ITERATIONS=10 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=500 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts | tail -70`
+  - Decision:
+    - Keep as measurement infrastructure. Workerd shows a larger relative win than Node on the simple row and a similar nested-row ceiling, supporting the generated fast-path direction for the Cloudflare Workers target.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
