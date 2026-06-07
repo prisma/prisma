@@ -182,6 +182,8 @@ type Counts = {
   compileBatch: number
   queryRaw: number
   executeRaw: number
+  precomputedFastPathHits?: number
+  precomputedFastPathLearns?: number
 }
 
 type ScenarioAdapterFactory = (counts: Counts) => SqlDriverAdapterFactory
@@ -1114,6 +1116,12 @@ function resetCounts(counts: Counts): void {
   counts.compileBatch = 0
   counts.queryRaw = 0
   counts.executeRaw = 0
+  if (counts.precomputedFastPathHits !== undefined) {
+    counts.precomputedFastPathHits = 0
+  }
+  if (counts.precomputedFastPathLearns !== undefined) {
+    counts.precomputedFastPathLearns = 0
+  }
 }
 
 function getSingleQueryRequest(query: JsonQuery, queryPart: string): string {
@@ -1208,6 +1216,13 @@ function printDirectPlanMeasurement(measurement: DirectPlanMeasurement): void {
     `queryRaw=${measurement.counts.queryRaw}`,
     `executeRaw=${measurement.counts.executeRaw}`,
   ]
+
+  if (measurement.counts.precomputedFastPathHits !== undefined) {
+    parts.push(`precomputedHits=${measurement.counts.precomputedFastPathHits}`)
+  }
+  if (measurement.counts.precomputedFastPathLearns !== undefined) {
+    parts.push(`precomputedLearns=${measurement.counts.precomputedFastPathLearns}`)
+  }
 
   if (measurement.heapDelta !== undefined) {
     parts.push(`heapDelta=${formatBytes(measurement.heapDelta)}`)
@@ -1321,12 +1336,15 @@ async function measureScenario(config: Omit<EngineConfig, 'adapter' | 'queryPlan
 async function measureGeneratedClientScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   scenario: GeneratedClientScenario,
+  enginePrecomputedFastPath = false,
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
     compileBatch: 0,
     queryRaw: 0,
     executeRaw: 0,
+    precomputedFastPathHits: enginePrecomputedFastPath ? 0 : undefined,
+    precomputedFastPathLearns: enginePrecomputedFastPath ? 0 : undefined,
   }
   const PrismaClient = getPrismaClient({
     runtimeDataModel: config.runtimeDataModel,
@@ -1342,7 +1360,30 @@ async function measureGeneratedClientScenario(
     adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     errorFormat: 'minimal',
     queryPlanCacheMaxSize: 100,
+    __internal: enginePrecomputedFastPath
+      ? {
+          enginePrecomputedFastPath: true,
+        }
+      : undefined,
   }) as any
+
+  if (enginePrecomputedFastPath) {
+    const request = client._engine.request.bind(client._engine)
+    client._engine.request = (query: JsonQuery, options: Record<string, unknown>) => {
+      if (options.precomputedQueryPlanCacheHit !== undefined) {
+        counts.precomputedFastPathHits!++
+      }
+      return request(query, options)
+    }
+
+    const requestWithPrecomputedQueryPlanCacheHit = client._engine.requestWithPrecomputedQueryPlanCacheHit.bind(
+      client._engine,
+    )
+    client._engine.requestWithPrecomputedQueryPlanCacheHit = (query: JsonQuery, options: Record<string, unknown>) => {
+      counts.precomputedFastPathLearns!++
+      return requestWithPrecomputedQueryPlanCacheHit(query, options)
+    }
+  }
 
   try {
     await client.$connect()
@@ -5523,6 +5564,17 @@ async function main(): Promise<void> {
 
   for (const scenario of generatedClientScenarios.filter((scenario) => shouldRunMeasurement(scenario.name))) {
     printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, scenario))
+  }
+
+  for (const scenario of generatedClientScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client engine precomputed fast path'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, measuredScenario, true))
   }
 
   const QueryCompilerClass = await loadQueryCompiler('sqlite')

@@ -116,11 +116,14 @@ export function applyFluent(
 
   // we return a regular model action but proxy its return
   return (userArgs?: UserArgs) => {
-    const callsite = getCallSite(client._errorFormat)
     // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
-    const prismaPromise = modelAction({ dataPath: nextDataPath, callsite })(nextUserArgs)
+    const paramOverrides =
+      client._enginePrecomputedFastPath === true
+        ? { dataPath: nextDataPath }
+        : { dataPath: nextDataPath, callsite: getCallSite(client._errorFormat) }
+    const prismaPromise = modelAction(paramOverrides)(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
     // TODO: once it's done we can deprecate the use of dataPath
 

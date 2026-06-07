@@ -26,7 +26,13 @@ import { ParamGraph } from '@prisma/param-graph'
 
 import { version as clientVersion } from '../../../../../package.json'
 import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
-import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
+import type {
+  BatchQueryEngineResult,
+  EngineConfig,
+  PrecomputedQueryPlanCacheHit,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import {
@@ -651,6 +657,35 @@ export class ClientEngine implements Engine {
       return response
     } catch (e: any) {
       throw this.#transformRequestError(e, JSON.stringify(query))
+    }
+  }
+
+  async requestWithPrecomputedQueryPlanCacheHit<T>(
+    query: JsonQuery,
+    options: RequestOptions<unknown>,
+  ): Promise<{
+    response: { data: T }
+    precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
+  }> {
+    const response = await this.request<T>(query, options)
+
+    if (isRawQuery(query) || query.action === 'createMany' || query.action === 'createManyAndReturn') {
+      return { response }
+    }
+
+    const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, this.#paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+
+    return {
+      response,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+        placeholderValues,
+        queryInfoQuery:
+          this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+            ? parameterizedQuery.query
+            : undefined,
+      },
     }
   }
 

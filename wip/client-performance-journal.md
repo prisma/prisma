@@ -6955,6 +6955,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as measurement infrastructure. PrismaPromise adds little to the precomputed direct-engine path on both Node and Workerd. The product blocker is not the promise wrapper; it is safely bypassing `_request()` / `RequestHandler` without losing extensions, tracing/error context, transaction handling, SQL commenters, or automatic batching.
 
+- Accepted prototype: generated-client internal precomputed engine fast path.
+  - Timestamp: 2026-06-07T21:50:51+02:00.
+  - Change:
+    - Added internal `__internal.enginePrecomputedFastPath` plumbing for benchmark-only generated-client experiments.
+    - Added `ClientEngine.requestWithPrecomputedQueryPlanCacheHit()` to learn a single-query precomputed cache-hit payload from the first request.
+    - Added a generated model action fast path that reuses a lazy descriptor over raw user args and calls `client._engine.request(... precomputedQueryPlanCacheHit ...)` directly on descriptor hits.
+    - Added generated-client benchmark rows plus hit/relearn counters.
+    - Important fix during the experiment: root `findUnique` calls pass through `applyFluent()`, which supplies `{ dataPath: [], callsite }`. The fast-path guard initially rejected this, producing zero hits and nearly no CPU win. The accepted internal path allows only empty-root `dataPath` overrides and defers eager fluent callsite capture when the internal flag is set.
+  - Measurement:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client ' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Baseline generated client:
+      - `generated client findUnique / warmed cache`: 5.44 us/op, heapDelta 430.2 KiB.
+      - `generated client blog page / nested rows warmed cache`: 18.53 us/op, heapDelta 253.2 KiB.
+    - Internal fast path:
+      - `generated client engine precomputed fast path findUnique / warmed cache`: 2.80 us/op, `precomputedHits=100000`, `precomputedLearns=0`, heapDelta 123.5 KiB.
+      - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 11.79 us/op, `precomputedHits=100000`, `precomputedLearns=0`, heapDelta 120.0 KiB.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/model/applyFluent.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/utils/validatePrismaClientOptions.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/model/applyFluent.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/utils/validatePrismaClientOptions.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+  - Decision:
+    - Keep as an internal benchmark prototype and measurement result, not as product behavior. It proves that a real generated call can recover about half the simple-row CPU gap and most of the nested-row request-surface gap once descriptor hits are hot.
+    - Productization still needs a safe request contract for batching, extensions, tracing/error callsites, SQL commenters, transaction handling, args mappers, global/nested omit, strict undefined checks, `Prisma.skip`, and unsupported value serialization. Direct engine calls are especially risky for `findUnique` because the current request path deliberately supports automatic DataLoader batching.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
