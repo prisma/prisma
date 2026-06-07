@@ -4706,6 +4706,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Skipping string interning inside root compact `q`/`x` query templates also worsened retained heap: blog edge warm 1.31 MiB, blog edge churn 1.24 MiB, blog node warm 10.60 MiB, blog parameterized node warm 10.84 MiB.
   - Decision: keep. This is a small retained-memory cleanup for Workers-style nested plan caches with no observed cache-hit cost.
 
+- Accepted experiment: direct primitive scalar parameterization.
+  - Timestamp: 2026-06-07T07:54:20Z.
+  - Change: `packages/client-engine-runtime/src/parameterization/parameterize.ts` now handles primitive `string` / `number` / `boolean` scalar placeholders directly against the scalar mask instead of first returning a `PlaceholderType` from `getPrimitivePlaceholderType()` and then switching again in `matchesPrimitiveMask()`. The existing rare `ScalarMask.Json` primitive stringification behavior is preserved.
+  - Verification:
+    - `pnpm exec prettier --check packages/client-engine-runtime/src/parameterization/parameterize.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/caching.bench.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='parameterize' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cache hit key' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Benchmark signal:
+    - Focused patched 200k run before preserving Json-mask stringification: parameterize `findUnique` 0.68 us/op, `findMany` 0.13 us/op, blog page 1.67 us/op; cache-hit-key `findUnique` 1.17 us/op, `findMany` 0.44 us/op, blog page 3.16 us/op.
+    - Same-command reversed baseline: parameterize `findUnique` 0.69 us/op, `findMany` 0.14 us/op, blog page 1.69 us/op; cache-hit-key `findUnique` 1.19 us/op, `findMany` 0.44 us/op, blog page 3.17 us/op.
+    - Final semantic-preserving patched run: parameterize `findUnique` 0.72 us/op, `findMany` 0.13 us/op, blog page 1.67 us/op; cache-hit-key `findUnique` 1.21 us/op, `findMany` 0.44 us/op, blog page 3.15 us/op. The simple row is noisy; the blog-page parameterize/cache-key rows stayed slightly better than the reversed baseline.
+    - Benchmark.js cache suite stayed in the current band: parameterize blog post page 702,436 ops/sec; cache-hit-key blog post page 364,201 ops/sec.
+  - Decision: keep as a small hot-path cleanup. The absolute win is tiny, but it removes redundant primitive type dispatch from every scalar placeholder without adding retained state or protocol churn.
+
 ## Current Follow-up Leads
 
 - Build a narrow JS-owned query / Rust-owned IR proof point for one read-only cache-hit shape: pass one JS request reference, walk it once to parameterize and compute structural identity, check the plan cache before building owned Rust request maps, and return an already cached JS plan object on hits. This must replace multiple current phases at once; prior `serde_wasm_bindgen`, `js_sys` cache-key-only, and TypeScript fused-writer spikes were too shallow or slower.

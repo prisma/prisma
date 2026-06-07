@@ -316,16 +316,34 @@ class Parameterizer {
       return value
     }
 
-    const type = getPrimitivePlaceholderType(value)
-    if (!matchesPrimitiveMask(type, mask)) {
-      return value
-    }
+    const shouldJsonEncode = (mask & ScalarMask.Json) !== 0
 
-    if (mask & ScalarMask.Json) {
-      value = JSON.stringify(value)
-    }
+    switch (typeof value) {
+      case 'boolean':
+        return (mask & ScalarMask.Boolean) !== 0
+          ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, BOOLEAN_PLACEHOLDER)
+          : value
 
-    return this.#getOrCreatePlaceholder(value, type)
+      case 'number':
+        if (!Number.isInteger(value)) {
+          return (mask & ScalarMask.Float) !== 0
+            ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, FLOAT_PLACEHOLDER)
+            : value
+        }
+        if (MIN_INT <= value && value <= MAX_INT) {
+          return (mask & (ScalarMask.Int | ScalarMask.BigInt | ScalarMask.Float)) !== 0
+            ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, INT_PLACEHOLDER)
+            : value
+        }
+        return (mask & ScalarMask.BigInt) !== 0
+          ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, BIGINT_PLACEHOLDER)
+          : value
+
+      case 'string':
+        return (mask & ScalarMask.String) !== 0
+          ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, STRING_PLACEHOLDER)
+          : value
+    }
   }
 
   /**
