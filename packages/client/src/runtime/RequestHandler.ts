@@ -36,6 +36,7 @@ import { deepGet } from './utils/deep-set'
 import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
 
 const debug = Debug('prisma:client:request_handler')
+const clientGetTime = typeof process !== 'undefined' && Boolean(process.env.PRISMA_CLIENT_GET_TIME)
 
 export type RequestParams = {
   modelName?: string
@@ -197,7 +198,7 @@ export class RequestHandler {
      * Unpack
      */
     const result = this.unpack(data, dataPath, unpacker, response?.[queryEngineResultDataWasDeserialized] === true)
-    if (process.env.PRISMA_CLIENT_GET_TIME) {
+    if (clientGetTime) {
       return { data: result }
     }
     return result

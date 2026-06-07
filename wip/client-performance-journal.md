@@ -6293,6 +6293,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The short-circuit is neutral-to-negative and not worth carrying another serializer flag. The profiler still shows selection serialization as a distributed hotspot, but the already-tested local shortcuts remain low-ceiling or mixed unless they remove broader generated-client/request phases.
 
+- Accepted experiment: hoist `PRISMA_CLIENT_GET_TIME` success-path check.
+  - Timestamp: 2026-06-07T16:32:29Z.
+  - Change:
+    - In `packages/client/src/runtime/RequestHandler.ts`, replaced the per-result `process.env.PRISMA_CLIENT_GET_TIME` lookup in `mapQueryEngineResult()` with an edge-safe module-level boolean:
+      - `const clientGetTime = typeof process !== 'undefined' && Boolean(process.env.PRISMA_CLIENT_GET_TIME)`.
+  - Rationale:
+    - The refreshed generated-client profile still showed `mapQueryEngineResult()` around 2.6% self samples. The common successful request path should not perform a dynamic `process.env` lookup after every unpacked result.
+    - The guarded `typeof process` form keeps module evaluation safe in edge runtimes that do not expose `process`.
+  - Timing:
+    - Fresh pre-patch CPU-profile run: generated `findUnique` 5.91 us/op, nested blog-page 22.31 us/op.
+    - First patched run: generated `findUnique` 5.06 us/op, nested blog-page 21.09 us/op.
+    - Same-session reverted control: generated `findUnique` 5.66 us/op, nested blog-page 22.05 us/op.
+    - Reapplied edge-safe patched run: generated `findUnique` 4.98 us/op, nested blog-page 21.60 us/op.
+    - Workerd high-iteration smoke after build: worker-internal generated `findUnique` 6.86 us/op and nested blog-page 19.70 us/op, both in the recent band and slightly positive against the previous 6.92 / 19.90 us/op rows.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/RequestHandler.ts`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts` (exit 0; existing unsafe-`any` warnings remain in lower error-handling code).
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. This is a small generated-client public-API hot-path win with no Workerd regression. It changes `PRISMA_CLIENT_GET_TIME` from a dynamically read per-request flag into a module-load flag, which is appropriate for this internal debug/timing behavior and removes the hot success-path environment lookup.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
