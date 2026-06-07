@@ -6174,6 +6174,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the switch only. It removes an avoidable per-implicit-selection allocation and has a small positive Node product-path signal with Workerd in the current band. Do not keep the relation-field reuse split: it improved nested rows but made the simple generated-client row noisier/worse and is not a clean broad win.
 
+- Rejected experiment: inline disabled tracing fallback.
+  - Timestamp: 2026-06-07T15:51:19Z.
+  - Change tried:
+    - In `packages/client/src/runtime/core/tracing/TracingHelper.ts`, changed `DynamicTracingHelper` methods to call `getGlobalTracingHelper()?.method(...)` directly and fall back with `?? false`, `?? callback()`, or the disabled traceparent string instead of routing through `this.getTracingHelper() ?? disabledTracingHelper`.
+  - Rationale:
+    - Generated-client profiles still show request/instrumentation glue, and the no-tracing path calls `getActiveContext()` / `runInChildSpan()` on every request. Inlining the disabled fallback looked like it could avoid an extra disabled-helper method call while preserving dynamic global instrumentation lookup.
+  - Timing:
+    - Patched generated-client run: `findUnique` 6.46 us/op, nested blog-page 24.51 us/op.
+    - Current committed band immediately before the spike was roughly `findUnique` 5.84 us/op, nested blog-page 22.16 us/op.
+  - Decision:
+    - Reverted. The optional-chaining/direct-global shape is materially worse on both generated-client rows. Keep the existing `this.getTracingHelper()` helper unless a different tracing fast path has stronger evidence.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
