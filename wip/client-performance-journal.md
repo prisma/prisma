@@ -4864,6 +4864,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The matching retained serialized-plan numbers confirm the loader switch is not changing benchmark semantics when pointed at an equivalent local build.
   - Decision: keep. This is not a production performance change, but it materially improves the ability to test future query-compiler memory/latency changes in the Cloudflare-like probe without rebundling Prisma runtime assets first.
 
+- Accepted benchmark instrumentation: executed-plan render-cache memory mode.
+  - Timestamp: 2026-06-07T13:02:10Z.
+  - Change: `packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts` now supports `QUERY_PLAN_CACHE_MEMORY_RENDER=1`. In this mode, each compiled/cached plan has its DB query leaves rendered once through `renderQuery()` before heap measurement, populating the runtime `flatTemplateSqlCache` for retained `QueryPlanDbQuery` objects. The probe preserves normal output when the flag is unset and reports `renderedDbQueries` when enabled.
+  - Implementation notes:
+    - The probe reuses an explicit compact/legacy query-plan walker to collect only executable DB query leaves.
+    - It carries `parameterizeQuery()` placeholder values through parameterized scenarios and fills missing relation placeholders such as `@parent$id` with type-shaped dummy values so child query rendering can populate caches without executing adapters.
+    - Tuple and tuple-list SQL fragments get array-shaped dummy values when needed, so future relation query shapes are less likely to fail the measurement early.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `pnpm --filter @prisma/client build`
+  - Measurement signal from the paired run:
+    - Normal `scalar selection / node default warm`: heap 1.73 MiB; plan JSON 308.2 KiB.
+    - Rendered `scalar selection / node default warm`: heap 1.93 MiB; rendered 1,000 DB queries.
+    - Normal `blog page / node default warm`: heap 9.87 MiB; plan JSON 3.90 MiB.
+    - Rendered `blog page / node default warm`: heap 10.15 MiB; rendered 7,000 DB queries.
+    - Normal `blog page parameterized / node default warm`: heap 10.09 MiB; plan JSON 3.92 MiB.
+    - Rendered `blog page parameterized / node default warm`: heap 10.35 MiB; rendered 7,000 DB queries.
+  - Decision: keep the instrumentation. The executed-plan render cache retains measurable extra heap, but in this run it was only about +0.2 MiB for 1,000 scalar cached plans and about +0.25 to +0.3 MiB for 1,000 blog-page cached plans. That confirms disabling `flatTemplateSqlCache` was not a high-ceiling memory lever; SQL/template ownership and the cached plan shape itself remain larger targets.
+
 ## Useful Commands
 
 ```sh
@@ -4881,6 +4903,7 @@ pnpm exec tsx packages/client/src/__tests__/benchmarks/query-performance/query-p
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
+QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 

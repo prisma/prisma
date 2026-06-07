@@ -2,17 +2,30 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { dmmfToRuntimeDataModel, type QueryCompiler } from '@prisma/client-common'
-import { parameterizeQuery, type QueryPlanNode } from '@prisma/client-engine-runtime'
+import {
+  type CompactJoinExpression,
+  getPrismaValuePlaceholderName,
+  getPrismaValuePlaceholderType,
+  getQueryPlanBindingExpr,
+  isPrismaValuePlaceholder,
+  parameterizeQuery,
+  type QueryPlanBinding,
+  type QueryPlanCompactNode,
+  type QueryPlanDbQuery,
+  type QueryPlanNode,
+} from '@prisma/client-engine-runtime'
 import { getDMMF } from '@prisma/client-generator-js'
 import type { JsonQuery } from '@prisma/json-protocol'
 import type { ParamGraph } from '@prisma/param-graph'
 import { ParamGraph as ParamGraphClass } from '@prisma/param-graph'
 import { buildParamGraph } from '@prisma/param-graph-builder'
 
+import { renderQuery } from '../../../../../client-engine-runtime/src/interpreter/render-query'
 import { QueryPlanCache } from '../../../runtime/core/engines/client/query-plan-cache'
 import { loadQueryCompiler } from './qc-loader'
 
 const BENCHMARK_DATAMODEL = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
+const EMPTY_GENERATORS = Object.freeze(Object.create(null)) as Parameters<typeof renderQuery>[2]
 const USER_SCALAR_FIELDS = [
   'id',
   'email',
@@ -54,6 +67,7 @@ type Scenario = {
 type Measurement = Scenario & {
   retainedEntries: number
   heapDelta: number
+  renderedDbQueries: number
   retainedCacheKeyBytes: number
   retainedPlanSerializedBytes: number
 }
@@ -78,7 +92,12 @@ type RetainedSize = {
 
 type CompiledScenarioQuery = RetainedSize & {
   cacheKey: string
+  placeholderValues: Record<string, unknown>
   plan: QueryPlanNode
+}
+
+type RenderOptions = {
+  renderPlans: boolean
 }
 
 function getStringCacheKeyPart(value: string | null | undefined): string {
@@ -248,7 +267,8 @@ function compileScenarioQuery(
   paramGraph: ParamGraph,
   parameterized: boolean,
 ): CompiledScenarioQuery {
-  const cacheQuery = parameterized ? parameterizeQuery(query, paramGraph).parameterizedQuery : query
+  const parameterizedResult = parameterized ? parameterizeQuery(query, paramGraph) : undefined
+  const cacheQuery = parameterizedResult?.parameterizedQuery ?? query
   const queryPart = JSON.stringify(cacheQuery.query)
   const request = getSingleQueryRequest(cacheQuery, queryPart)
   const cacheKey = getSingleQueryCacheKey(cacheQuery, queryPart)
@@ -257,19 +277,26 @@ function compileScenarioQuery(
   return {
     cacheKey,
     cacheKeyBytes: cacheKey.length,
+    placeholderValues: parameterizedResult?.placeholderValues ?? {},
     planSerializedBytes: JSON.stringify(plan).length,
     plan,
   }
 }
 
-function measureScenario(compiler: QueryCompiler, paramGraph: ParamGraph, scenario: Scenario): Measurement {
+function measureScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: Scenario,
+  options: RenderOptions,
+): Measurement {
   const cache = new QueryPlanCache(scenario.maxSize)
   const retainedSizes: RetainedSize[] = []
+  let renderedDbQueries = 0
   const before = heapUsed()
 
   for (let i = 0; i < scenario.compileCount; i++) {
     const query = createScenarioQuery(scenario, i)
-    const { cacheKey, cacheKeyBytes, planSerializedBytes, plan } = compileScenarioQuery(
+    const { cacheKey, cacheKeyBytes, placeholderValues, planSerializedBytes, plan } = compileScenarioQuery(
       compiler,
       query,
       paramGraph,
@@ -277,6 +304,9 @@ function measureScenario(compiler: QueryCompiler, paramGraph: ParamGraph, scenar
     )
 
     cache.setSingle(cacheKey, plan)
+    if (options.renderPlans) {
+      renderedDbQueries += renderDbQueriesInPlan(plan, placeholderValues)
+    }
 
     if (scenario.maxSize > 0) {
       retainedSizes.push({
@@ -295,6 +325,7 @@ function measureScenario(compiler: QueryCompiler, paramGraph: ParamGraph, scenar
     ...scenario,
     retainedEntries: cache.singleCacheSize,
     heapDelta: after - before,
+    renderedDbQueries,
     retainedCacheKeyBytes: retainedSerialized.cacheKeyBytes,
     retainedPlanSerializedBytes: retainedSerialized.planSerializedBytes,
   }
@@ -327,12 +358,368 @@ function printMeasurement(measurement: Measurement): void {
       `retained=${measurement.retainedEntries}`,
       `heapDelta=${formatBytes(measurement.heapDelta)}`,
       `heapPerEntry=${formatBytes(heapPerEntry)}`,
+      ...(measurement.renderedDbQueries === 0 ? [] : [`renderedDbQueries=${measurement.renderedDbQueries}`]),
       `keyRetained=${formatBytes(measurement.retainedCacheKeyBytes)}`,
       `planJsonRetained=${formatBytes(measurement.retainedPlanSerializedBytes)}`,
       `keyShare=${(keyShare * 100).toFixed(1)}%`,
       `serializedPerEntry=${formatBytes(serializedPerEntry)}`,
     ].join(' | '),
   )
+}
+
+function renderDbQueriesInPlan(plan: QueryPlanNode, placeholderValues: Record<string, unknown>): number {
+  const dbQueries: QueryPlanDbQuery[] = []
+  collectDbQueries(plan, dbQueries)
+
+  for (const dbQuery of dbQueries) {
+    renderQuery(dbQuery, createRenderScope(dbQuery, placeholderValues), EMPTY_GENERATORS, 999)
+  }
+
+  return dbQueries.length
+}
+
+function collectDbQueriesInCompactJoins(joins: CompactJoinExpression[], dbQueries: QueryPlanDbQuery[]): void {
+  for (const join of joins) {
+    collectDbQueries(join[0], dbQueries)
+  }
+}
+
+function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanDbQuery[]): void {
+  if (plan === undefined) {
+    return
+  }
+
+  if (isCompactPlanNode(plan)) {
+    switch (plan[0]) {
+      case 'q':
+      case 'x':
+        dbQueries.push(plan[1])
+        return
+
+      case 'd':
+      case 'p':
+      case 'r':
+      case 'R':
+      case 't':
+      case 'u':
+        collectDbQueries(plan[1], dbQueries)
+        return
+
+      case 'm':
+        collectDbQueries(plan[2], dbQueries)
+        return
+
+      case 'j':
+        collectDbQueries(plan[1], dbQueries)
+        collectDbQueriesInCompactJoins(plan[2] as CompactJoinExpression[], dbQueries)
+        return
+
+      case 'V':
+        collectDbQueries(plan[1], dbQueries)
+        return
+
+      case '?':
+        collectDbQueries(plan[1], dbQueries)
+        collectDbQueries(plan[3], dbQueries)
+        collectDbQueries(plan[4], dbQueries)
+        return
+
+      case '-':
+        collectDbQueries(plan[1], dbQueries)
+        collectDbQueries(plan[2], dbQueries)
+        return
+
+      case 'i':
+      case 'M':
+        collectDbQueries(plan[1], dbQueries)
+        return
+
+      case 's':
+      case '+':
+      case 'c':
+        for (const child of plan[1]) {
+          collectDbQueries(child, dbQueries)
+        }
+        return
+
+      case 'l':
+        for (const binding of plan[1] as QueryPlanBinding[]) {
+          collectDbQueries(getQueryPlanBindingExpr(binding), dbQueries)
+        }
+        collectDbQueries(plan[2], dbQueries)
+        return
+
+      case 'g':
+      case 'e':
+      case 'v':
+      case '0':
+        return
+
+      default:
+        throw new Error(`Expected compact query plan with DB queries, got ${plan[0]}`)
+    }
+  }
+
+  switch (plan.type) {
+    case 'query':
+    case 'execute':
+      dbQueries.push(plan.args)
+      return
+
+    case 'unique':
+    case 'required':
+    case 'reverse':
+    case 'transaction':
+      collectDbQueries(plan.args, dbQueries)
+      return
+
+    case 'dataMap':
+    case 'validate':
+    case 'process':
+    case 'mapRecord':
+      collectDbQueries(plan.args.expr, dbQueries)
+      return
+
+    case 'mapField':
+      collectDbQueries(plan.args.records, dbQueries)
+      return
+
+    case 'if':
+      collectDbQueries(plan.args.value, dbQueries)
+      collectDbQueries(plan.args.then, dbQueries)
+      collectDbQueries(plan.args.else, dbQueries)
+      return
+
+    case 'join':
+      collectDbQueries(plan.args.parent, dbQueries)
+      for (const join of plan.args.children) {
+        collectDbQueries('child' in join ? join.child : join[0], dbQueries)
+      }
+      return
+
+    case 'seq':
+    case 'sum':
+    case 'concat':
+      for (const child of plan.args) {
+        collectDbQueries(child, dbQueries)
+      }
+      return
+
+    case 'let':
+      for (const binding of plan.args.bindings) {
+        collectDbQueries('expr' in binding ? binding.expr : binding[1], dbQueries)
+      }
+      collectDbQueries(plan.args.expr, dbQueries)
+      return
+
+    case 'value':
+    case 'get':
+    case 'getFirstNonEmpty':
+    case 'unit':
+      return
+
+    default:
+      throw new Error(`Expected query plan with DB queries, got ${plan['type']}`)
+  }
+}
+
+function isCompactPlanNode(plan: QueryPlanNode): plan is QueryPlanCompactNode {
+  return Array.isArray(plan)
+}
+
+function createRenderScope(
+  dbQuery: QueryPlanDbQuery,
+  placeholderValues: Record<string, unknown>,
+): Record<string, unknown> {
+  const scope: Record<string, unknown> = { ...placeholderValues }
+  collectDbQueryPlaceholderDefaults(dbQuery, scope)
+  return scope
+}
+
+function collectDbQueryPlaceholderDefaults(dbQuery: QueryPlanDbQuery, scope: Record<string, unknown>): void {
+  if (Array.isArray(dbQuery)) {
+    collectQueryArgPlaceholderDefaults(dbQuery[2], dbQuery[3], dbQuery[0], scope)
+    return
+  }
+
+  collectQueryArgPlaceholderDefaults(
+    dbQuery.args,
+    dbQuery.argTypes,
+    dbQuery.type === 'templateSql' ? dbQuery.fragments : undefined,
+    scope,
+  )
+}
+
+function collectQueryArgPlaceholderDefaults(
+  args: readonly unknown[],
+  argTypes: readonly unknown[],
+  fragments: readonly unknown[] | undefined,
+  scope: Record<string, unknown>,
+): void {
+  if (fragments === undefined) {
+    for (let i = 0; i < args.length; i++) {
+      collectPlaceholderDefaults(args[i], scope, argTypes[i], 'scalar')
+    }
+    return
+  }
+
+  let argIndex = 0
+  for (const fragment of fragments) {
+    const kind = getFragmentArgKind(fragment)
+    if (kind === undefined) {
+      continue
+    }
+    collectPlaceholderDefaults(args[argIndex], scope, argTypes[argIndex], kind)
+    argIndex++
+  }
+}
+
+function getFragmentArgKind(fragment: unknown): 'scalar' | 'tuple' | 'tupleList' | undefined {
+  if (fragment === null) {
+    return 'scalar'
+  }
+
+  if (Array.isArray(fragment)) {
+    switch (fragment[0]) {
+      case 'T':
+        return 'tuple'
+      case 'L':
+        return 'tupleList'
+      default:
+        return undefined
+    }
+  }
+
+  if (typeof fragment !== 'object' || fragment === null) {
+    return undefined
+  }
+
+  switch ((fragment as { type?: unknown }).type) {
+    case 'parameter':
+      return 'scalar'
+    case 'parameterTuple':
+      return 'tuple'
+    case 'parameterTupleList':
+      return 'tupleList'
+    default:
+      return undefined
+  }
+}
+
+function collectPlaceholderDefaults(
+  value: unknown,
+  scope: Record<string, unknown>,
+  argType: unknown,
+  kind: 'scalar' | 'tuple' | 'tupleList',
+): void {
+  if (isPrismaValuePlaceholder(value)) {
+    const name = getPrismaValuePlaceholderName(value)
+    if (scope[name] === undefined) {
+      scope[name] = placeholderDefaultValue(getPrismaValuePlaceholderType(value), argType, kind)
+    }
+    return
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectPlaceholderDefaults(item, scope, argType, 'scalar')
+    }
+    return
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return
+  }
+
+  for (const entry of Object.values(value)) {
+    collectPlaceholderDefaults(entry, scope, argType, 'scalar')
+  }
+}
+
+function placeholderDefaultValue(
+  placeholderType: string,
+  argType: unknown,
+  kind: 'scalar' | 'tuple' | 'tupleList',
+): unknown {
+  switch (kind) {
+    case 'tuple':
+      return tupleDefaultValue(placeholderType, argType)
+    case 'tupleList':
+      return [tupleDefaultValue(placeholderType, argType)]
+    case 'scalar':
+      return scalarDefaultValue(placeholderType)
+  }
+}
+
+function tupleDefaultValue(placeholderType: string, argType: unknown): unknown[] {
+  if (isTupleArgType(argType)) {
+    return argType.elements.map((element) => scalarDefaultValueFromArgType(element, placeholderType))
+  }
+
+  return [scalarDefaultValue(placeholderType)]
+}
+
+function isTupleArgType(argType: unknown): argType is { arity: 'tuple'; elements: unknown[] } {
+  return (
+    typeof argType === 'object' &&
+    argType !== null &&
+    !Array.isArray(argType) &&
+    (argType as { arity?: unknown }).arity === 'tuple'
+  )
+}
+
+function scalarDefaultValueFromArgType(argType: unknown, fallbackType: string): unknown {
+  if (typeof argType !== 'string') {
+    return scalarDefaultValue(fallbackType)
+  }
+
+  switch (argType) {
+    case 's':
+      return scalarDefaultValue('String')
+    case 'i':
+      return scalarDefaultValue('Int')
+    case 'I':
+      return scalarDefaultValue('BigInt')
+    case 'f':
+    case 'd':
+      return scalarDefaultValue('Float')
+    case 'b':
+      return scalarDefaultValue('Boolean')
+    case 'u':
+      return scalarDefaultValue('String')
+    case 'j':
+      return scalarDefaultValue('Json')
+    case 'D':
+      return scalarDefaultValue('DateTime')
+    case 'B':
+      return scalarDefaultValue('Bytes')
+    default:
+      return scalarDefaultValue(fallbackType)
+  }
+}
+
+function scalarDefaultValue(type: string): unknown {
+  switch (type) {
+    case 'Boolean':
+      return true
+    case 'Float':
+    case 'Decimal':
+      return 1.5
+    case 'DateTime':
+      return new Date(0)
+    case 'Bytes':
+      return new Uint8Array(0)
+    case 'Json':
+      return {}
+    case 'String':
+    case 'Enum':
+      return 'x'
+    case 'BigInt':
+      return 1n
+    case 'Int':
+    default:
+      return 1
+  }
 }
 
 function collectPlanSizeBreakdown(plan: QueryPlanNode): PlanSizeBreakdown {
@@ -458,6 +845,8 @@ async function main(): Promise<void> {
   compileScenarioQuery(compiler, createFindManyQuery(1), paramGraph, false)
   forceGc()
 
+  const renderPlans = process.env.QUERY_PLAN_CACHE_MEMORY_RENDER === '1'
+
   if (process.env.QUERY_PLAN_CACHE_MEMORY_BREAKDOWN === '1') {
     printPlanSizeBreakdown(
       'scalar selection',
@@ -504,7 +893,7 @@ async function main(): Promise<void> {
   ]
 
   for (const scenario of scenarios) {
-    printMeasurement(measureScenario(compiler, paramGraph, scenario))
+    printMeasurement(measureScenario(compiler, paramGraph, scenario, { renderPlans }))
   }
 
   compiler.free?.()
