@@ -5294,6 +5294,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Patched direct-plan blog-page nested rows regressed to 8.89 us/op at 300,000 iterations, compared with the just-kept wrapper-specialized baseline of 8.65-8.71 us/op.
   - Decision: reverted. The extra closure/helper split outweighed removing the existing WeakMap lookup in the product-shaped direct-plan row. Do not retry this exact precompiled mapper shape unless it is part of a broader generated row mapper that removes more per-field work.
 
+- Measurement refresh: query compiler phase allocation profile.
+  - Timestamp: 2026-06-07T18:10:00Z.
+  - Command:
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,nested-pagination-join,filter-contains-param,create-nested-create,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Key rows:
+    - `query-m2o`: graph_build 186 allocs / 37.0 KiB; translate_ir 359 allocs / 33.7 KiB; full_compile 624 allocs / 80.6 KiB.
+    - `query-many-m2m`: graph_build 275 allocs / 41.9 KiB; translate_ir 573 allocs / 51.7 KiB; full_compile 919 allocs / 100.7 KiB.
+    - `nested-pagination-query`: graph_build 226 allocs / 36.9 KiB; translate_ir 409 allocs / 42.4 KiB; full_compile 720 allocs / 88.7 KiB.
+    - `create-nested-connectOrCreate-mixed`: graph_build 874 allocs / 140.1 KiB; translate_ir 2035 allocs / 192.0 KiB; full_compile 3081 allocs / 352.6 KiB.
+    - `update-set-nested`: graph_build 731 allocs / 119.2 KiB; translate_ir 1313 allocs / 123.9 KiB; full_compile 2160 allocs / 256.3 KiB.
+  - Interpretation:
+    - Broad "get rid of Arc" is not yet a concrete allocation fix: many `Arc` clones in schema/model references do not allocate per clone, and schema construction is outside the measured hot compile loop. The measured heap pressure remains concentrated in graph construction and translation data structures.
+    - A borrowing/arena redesign may still be valuable, but the next practical Rust target should start from specific graph_build or translate_ir owned data structures visible in allocation profiles and Criterion, not from a repo-wide Arc purge.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
