@@ -4107,6 +4107,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reversed baseline means: `nested-pagination-query` 27.18 us, `query-m2o-lateral` 29.89 us, `query-many-m2m` 35.19 us, `update-set-nested-prisma#27650` 88.31 us, `update-set-nested` 98.53 us.
   - Decision: reverted. The allocation reduction is real but too small and did not translate into compile-time wins; the target write row was faster unpatched.
 
+- Accepted change: avoid singleton dependency `Seq` wrappers in query compiler translation.
+  - Timestamp: 2026-06-07T02:08:21Z.
+  - Engines commit: `1260018b67b Avoid singleton dependency seq wrappers`.
+  - Hypothesis: `NodeTranslator::process_child_with_dependencies()` built `Expression::Seq(vec![Expression::Let { ... }])` when a child had projected dependency bindings but no row-count validations, and `Expression::simplify()` later unwrapped the singleton sequence. Returning the `Expression::Let` directly in that no-validation case avoids allocating the temporary singleton `Vec` and removes simplification work without changing the serialized plan.
+  - Implementation:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate.rs`, after translating the child node, return `expr` directly when there are no validations and no bindings, or return `Expression::Let { bindings, expr }` directly when there are bindings but no validations.
+    - Preserve the existing `Expression::Seq(validations + child)` path when validations exist, because validations must execute before the child expression.
+  - Verification:
+    - `cargo fmt -p query-compiler --check`
+    - `cargo check -p query-compiler`
+    - `cargo test -p query-compiler --test queries`
+    - `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-create,update-set-nested' ALLOC_PROFILE_ITERATIONS=30 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- 'query-m2o|query-many-m2m|nested-pagination-query|create-nested-create|update-set-nested'`
+    - Reversed baseline: `cargo bench -p query-compiler --bench compilation_bench -- 'create-nested-create|nested-pagination-query|update-set-nested'`
+    - Confirmation patched run: `cargo bench -p query-compiler --bench compilation_bench -- 'update-set-nested-prisma#27650|update-set-nested|create-nested-create-with-composite-id'`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg` (only unrelated `@ark/attest` peer-resolution lockfile churn appeared; reverted, because the local file dependency path was already unchanged)
+    - `pnpm build`
+  - Allocation signal:
+    - `query-m2o`, `query-many-m2m`, and `nested-pagination-query` unchanged.
+    - `create-nested-create`: `translate_ir` 694 -> 692 allocations, 71.1 -> 69.8 KiB; `full_compile` 1299 -> 1297 allocations, 156.5 -> 155.2 KiB.
+    - `update-set-nested`: `translate_ir` 1306 -> 1301 allocations, 124.5 -> 121.2 KiB; `full_compile` 2165 -> 2160 allocations, 268.2 -> 264.9 KiB.
+  - Timing signal:
+    - First patched focused Criterion: `create-nested-create-with-composite-id` 58.86 us and improved; `create-nested-create` 61.48 us neutral; `nested-pagination-query` 27.82 us had a saved-baseline regression label but was not conclusive; `query-m2o-lateral`, `query-m2o`, `query-many-m2m`, and `update-set-nested-prisma#27650` were neutral/noise; `update-set-nested` 101.89 us regressed against the saved baseline.
+    - Reversed baseline: `create-nested-create-with-composite-id` 59.51 us; `create-nested-create` 61.27 us; `nested-pagination-query` 28.01 us; `update-set-nested-prisma#27650` 90.50 us; `update-set-nested` 100.09 us.
+    - Confirmation patched run: `create-nested-create-with-composite-id` 58.98 us improved versus reversed baseline; `update-set-nested-prisma#27650` 88.67 us improved; `update-set-nested` 101.15 us no change/noise versus saved baseline and close enough to reversed baseline to accept for the allocation reduction.
+  - Decision: keep. This is a small, plan-shape-preserving translation cleanup with measurable allocation reductions on nested writes and no confirmed regression after reversed A/B. The Prisma repo had no package/lockfile diff after refreshing the local Wasm package, and root `pnpm build` passed from cache.
+
 ## Useful Commands
 
 ```sh
