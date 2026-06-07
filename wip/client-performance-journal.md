@@ -7754,6 +7754,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. This is noise-level at best and slightly worse than the accepted baseline.
 
+- Rejected experiment: SmallVec/sorted-vector `RelationLinkage` storage.
+  - Timestamp: 2026-06-08T01:24:00+02:00.
+  - Change tried:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/query-builder/src/lib.rs`, replaced `RelationLinkage`'s `BTreeMap<ScalarField, Vec<ScalarCondition>>` with sorted `Vec<(ScalarField, SmallVec<[ScalarCondition; 2]>)>`.
+    - Changed `ConditionalLink::new()` to take a single `ScalarCondition` and store it in a `SmallVec`, removing the `vec![condition]` allocation at the two relation-read call sites.
+    - Added `smallvec` to `query-builder`.
+  - Rationale:
+    - Fresh scouting found singleton condition vectors and map-node allocation in nested read translation. Relation scalar counts are tiny, so a sorted vector plus inline small condition storage looked like a plausible local allocation cleanup.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+    - Saved small counts in `translate_ir` / `compile_ir` / `full_compile`: `query-m2o` 624 -> 623 full allocations, `query-many-m2m` 919 -> 918, `nested-pagination-query` 720 -> 718, `create-nested-connectOrCreate-mixed` 3081 -> 3078, `create-nested-connectOrCreate-one2m` 2771 -> 2768, `update-set-nested` 2160 -> 2158, `update-set-nested-prisma#27650` 1896 -> 1894.
+    - Allocated bytes moved down only slightly, mostly in 513-768 B buckets.
+  - Criterion:
+    - Command:
+      - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|update-set-nested|update-set-nested-prisma#27650"`
+    - Regressed read/nested rows despite allocation savings:
+      - `create-nested-connectOrCreate-one2m`: +10.574%, performance regressed.
+      - `nested-pagination-query`: +2.2686%, performance regressed.
+      - `query-m2o-lateral`: +1.3120%, performance regressed.
+      - `query-m2o`: +1.4579%, performance regressed.
+      - `query-many-m2m`: +3.1219%, performance regressed.
+      - `create-nested-connectOrCreate-mixed`: +1.0962%, within noise threshold.
+      - `update-set-nested` and `update-set-nested-prisma#27650`: -1.30% / -1.10%, within noise threshold.
+  - Decision:
+    - Reverted. The code removed a few allocations but made key read and one-to-many connect-or-create compile rows slower. Do not retry this storage rewrite without a different design and fresh timing evidence.
+
 - Accepted experiment: avoid scalar placeholder type string allocation during plan serialization.
   - Timestamp: 2026-06-08T01:02:53+02:00.
   - Change:
@@ -7828,7 +7855,6 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Explore memory-management simplification in Rust query compiler.
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
-  - Fresh lead: inspect `RelationLinkage` in `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/query-builder/src/lib.rs` and its use from `query-compiler/query-compiler/src/translate/query/read.rs`. `ConditionalLink::new(child_scalar.clone(), vec![condition])` allocates singleton vectors, then `RelationLinkage::new()` collects into `BTreeMap<ScalarField, Vec<ScalarCondition>>`. A measured spike could try `SmallVec<[ScalarCondition; 1]>` and a sorted `Vec<(ScalarField, SmallVec<_>)>` instead of `BTreeMap`, with deterministic ordering preserved before `into_parent_field_and_conditions()`.
   - Fresh lead: inspect scalar `selection_order` cloning in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/utils.rs` and call sites such as `read/many.rs`. A consuming helper might move scalar/composite/aggregation names into `selection_order` after `collect_selected_fields()` has borrowed the list, while relation selections may still need cloning because `ParsedField` is moved into `find_related()`.
   - Suggested lead-validation command:
     - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
