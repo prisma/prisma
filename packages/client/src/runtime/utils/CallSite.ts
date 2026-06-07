@@ -27,6 +27,8 @@ class DisabledCallSite implements CallSite {
   }
 }
 
+const disabledCallSite = new DisabledCallSite()
+
 export class EnabledCallSite implements CallSite {
   private _error: Error
   constructor() {
@@ -77,7 +79,7 @@ export function getCallSite(errorFormat: ErrorFormat): CallSite {
     if (typeof $EnabledCallSite === 'function' && errorFormat !== 'minimal') {
       return new $EnabledCallSite()
     } else {
-      return new DisabledCallSite()
+      return disabledCallSite
     }
   } else {
     return new EnabledCallSite()

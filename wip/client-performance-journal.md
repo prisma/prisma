@@ -5702,6 +5702,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is the first accepted optimization in this investigation that directly reduces real generated PrismaClient proxy/public-API overhead rather than only the lower-level `ClientEngine.request()` or interpreter path. Future generated-client comparisons should keep `errorFormat: 'minimal'` when comparing Node source rows to edge/Workerd behavior because default Node callsite capture otherwise hides this signal.
 
+- Accepted experiment: reduce fluent callsite and proxy metadata churn.
+  - Timestamp: 2026-06-07T13:32:54Z.
+  - Change:
+    - `getCallSite('minimal')` and edge disabled-callsite paths now return a shared disabled callsite instead of allocating a new no-op object per request.
+    - `modelActionsLayer()` reuses a callsite supplied by `applyFluent()` instead of computing a second callsite that the fluent override immediately replaces.
+    - `applyFluent()` hoists stable relation key metadata, proxy own-key metadata, and the root empty data path out of the per-request fluent function.
+    - Added `packages/client/src/runtime/utils/CallSite.test.ts` to lock in disabled callsite reuse while preserving distinct enabled callsites.
+  - Rationale:
+    - After the generated model action cache, a fresh generated-client `findUnique` CPU profile still showed `applyFluent()`, `createPrismaPromise()`, and callsite/request setup in the public API overhead above `ClientEngine.request()`. The fluent proxy wrapper is still required for chaining, but its stable metadata does not need to be rebuilt on every root request.
+  - Timing signal:
+    - First patched generated-client run: `findUnique` 17.14 us/op, nested blog-page 47.49 us/op.
+    - Same-session reverted baseline: `findUnique` 17.65 us/op, nested blog-page 47.85 us/op.
+    - Reapplied patched run: `findUnique` 16.85 us/op, nested blog-page 46.74 us/op.
+    - Final patched verification run: `findUnique` 16.62 us/op, nested blog-page 46.15 us/op.
+    - Workerd high-iteration generated-client smoke after rebuild: `findUnique` host-dispatch upper bound 17.49 us/op and nested blog-page 39.84 us/op. This moved in the right direction versus the prior recorded high-iteration Workerd upper bounds, but it is not a same-session revert A/B because the Workerd timer remains coarse.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/utils/CallSite.test.ts packages/client/src/runtime/utils/CallSite.ts packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/model/applyFluent.ts`
+    - `pnpm --filter @prisma/client test -- --runTestsByPath packages/client/src/runtime/utils/CallSite.test.ts packages/client/src/runtime/RequestHandler.test.ts packages/client/src/runtime/core/extensions/resolve-result-extension-context.test.ts packages/client/src/runtime/core/compositeProxy/cacheProperties.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=100000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Decision:
+    - Keep. The win is smaller than the model action cache but still repeatable on the generated-client hot rows, applies to edge disabled callsite behavior, and removes avoidable per-request allocations without changing fluent chaining semantics.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.

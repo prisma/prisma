@@ -76,7 +76,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
-        const callSite = getCallSite(client._errorFormat) // used for showing better errors
+        const callSite = 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat)
 
         return client._createPrismaPromise(
           (transaction) => {

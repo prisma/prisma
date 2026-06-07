@@ -7,6 +7,9 @@ import type { UserArgs } from '../request/UserArgs'
 import type { ModelAction } from './applyModel'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
+const emptyDataPath: string[] = []
+const prismaPromiseOwnKeys = ['spec', 'then', 'catch', 'finally', 'requestTransaction'] as const
+
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
  * helper for writing `select` statements on relations with a chaining api.
@@ -18,7 +21,7 @@ import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
  * @returns
  */
 function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
-  if (fluentPropName === undefined || prevDataPath === undefined) return []
+  if (fluentPropName === undefined || prevDataPath === undefined) return emptyDataPath
 
   return [...prevDataPath, 'select', fluentPropName]
 }
@@ -89,6 +92,9 @@ export function applyFluent(
     (acc, field) => ({ ...acc, [field.name]: field }),
     {} as { [dmmfModelFieldName: string]: DMMF.Field },
   )
+  const ownKeys = getOwnKeys(client, dmmfModelName)
+  const ownKeysSet = new Set(ownKeys)
+  const proxyOwnKeys = [...ownKeys, ...prismaPromiseOwnKeys]
 
   // we return a regular model action but proxy its return
   return (userArgs?: UserArgs) => {
@@ -99,13 +105,12 @@ export function applyFluent(
     const prismaPromise = modelAction({ dataPath: nextDataPath, callsite })(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
     // TODO: once it's done we can deprecate the use of dataPath
-    const ownKeys = getOwnKeys(client, dmmfModelName)
 
     // we take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {
       get(target, prop: string) {
         // fluent api only works on fields that are relational
-        if (!ownKeys.includes(prop)) return target[prop]
+        if (!ownKeysSet.has(prop)) return target[prop]
 
         // here we are sure that prop is a field of type object
         const dmmfModelName = dmmfModelFieldMap[prop].type
@@ -115,7 +120,7 @@ export function applyFluent(
         // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      ...defaultProxyHandlers([...ownKeys, ...Object.getOwnPropertyNames(prismaPromise)]),
+      ...defaultProxyHandlers(proxyOwnKeys),
     })
   }
 }
