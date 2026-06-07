@@ -5324,6 +5324,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The Cloudflare-shaped signal remains consistent with the Node/V8 direct-plan improvement, but it is not precise enough to justify small helper work by itself.
     - Next higher-ceiling work is still either a lower-overhead exact-shape/raw-result-set executor or the larger JS-owned query/cache-hit architecture path.
 
+- Rejected experiment: two-segment raw nested path setter fast path.
+  - Timestamp: 2026-06-07T11:08:09Z.
+  - Change tried: added a `path.length === 2` branch to `setRawNestedPath()` to materialize `_count.likes` / `_count.comments` without entering the generic path loop.
+  - Rationale: the product blog-page raw nested root maps two `_count` paths per post row, so this looked like a narrow exact-shape object-allocation cleanup that had not been covered by earlier row-mapper experiments.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - Focused A/B: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Broad patched/reverted nested-row runs at 100,000 iterations.
+  - Timing signal:
+    - Same-session focused direct-plan baseline was 8.81 us/op; patched focused direct-plan was 8.71 us/op.
+    - Broad patched run moved the relevant product rows the wrong way: cached request wrapper 14.78 us/op, local executor 9.02, phase-warmed direct 9.12.
+    - Broad reverted run recovered those rows relative to the patch: cached request wrapper 14.61 us/op and local executor 8.98, though the whole run was in a slower band than the previous committed wrapper-specialized measurements.
+  - Decision: reverted. The tiny direct-plan improvement did not survive the broader product-shaped rows. Do not retry this exact `_count` two-segment setter branch without a generated mapper or lower-overhead exact-shape executor that removes more row-materialization work.
+
 ## Todo / Leads
 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
