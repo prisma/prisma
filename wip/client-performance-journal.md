@@ -9320,6 +9320,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
   - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
+  - Rejected side spike: generic flat raw nested schedule.
+    - Timestamp: 2026-06-08.
+    - Worktree: `/home/aqrln.guest/prisma-raw-nested-compiled-schedule-spike`, branch `raw-nested-compiled-schedule-spike`, side commit `fe6abb427 Add flat raw nested schedule benchmark spike`.
+    - Prototype: benchmark-only `client-engine-cache-timing.ts` rows compiled a numeric `RawNestedReadQuery` into nodes, levels, and bottom-up relation edges. Runtime executed each level with `Promise.all`, rendered the existing DB queries, stored result sets in arrays, mapped all node records, then attached direct and many-to-many edges bottom-up. It supported the current blog-page raw shape, exact wrapper children, direct relations, m2m relations, and local one-key scopes.
+    - Measurements at 100k Node iterations:
+      - Hand-written `raw result-set prototype blog page / nested rows`: 5.46 us/op.
+      - Hand-written exact prototype: 5.55 us/op.
+      - Flat schedule: 7.07 us/op.
+      - Exact flat schedule: 7.27 us/op.
+      - Current compact node: 6.20 us/op.
+      - Current exact compact node: 6.39 us/op.
+    - Rerun at 200k iterations:
+      - Hand-written prototype: 5.20 us/op.
+      - Hand-written exact prototype: 5.24 us/op.
+      - Flat schedule: 7.00 us/op.
+      - Exact flat schedule: 7.02 us/op.
+      - Current compact node: 6.00 us/op.
+      - Current exact compact node: 6.32 us/op.
+    - Verification:
+      - `pnpm install --offline --ignore-scripts`
+      - `pnpm build`
+      - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `git diff --check`
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Decision: rejected as a product direction by itself. Flattening into generic node/edge arrays loses to the current compact closure tree; the remaining 5.2 us/op ceiling probably requires a true compiler-emitted/direct assembler that avoids generic descriptor loops and per-run result/record/scope arrays, or a broader plan shape that avoids building intermediate child record arrays.
   - Better next proof points: exact-shape object builders for the full blog-page tree, flatter compiler-emitted raw result-set plans, or a plan shape that avoids per-relation child record arrays when the target result shape can be assembled directly.
 
 ## Useful Commands
