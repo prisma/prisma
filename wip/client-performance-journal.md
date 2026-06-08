@@ -8642,6 +8642,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reject and revert. Even with one hard-coded generated shape and optimized Wasm, repeated `Reflect` / `Object.keys` access from Rust is an order of magnitude slower than the existing JS static/lazy descriptor extractors.
     - Do not retry the JS-owned-query cache-hit proof as a Wasm `Reflect`/`Object.keys` validator over ordinary JS objects, even with static shape ids. A viable architecture needs a lower-overhead representation/access strategy, for example generated JS-side descriptors, compact JS-owned shape handles, or a boundary design that avoids repeated dynamic property lookup from Wasm.
 
+- Rejected experiment: fail-fast `FieldSelection::as_scalar_fields()`.
+  - Timestamp: 2026-06-08T05:27:56+02:00.
+  - Context:
+    - User asked to eventually explore getting rid of Arc-heavy ownership and excessive heap allocations with references/borrowing/arenas.
+    - Sidecar scout warned not to start with a broad `Arc` rewrite: many apparent `*Ref` clones are `Zipper { id, dm }` handles where `dm` carries the shared schema. Better first targets are success-path parser `Path` allocations, expression container churn in translation, and relation scalar helper `Vec<ScalarFieldRef>` churn.
+    - Local allocation baseline over valid fixtures showed simple reads around 617-797 allocs/op and 81-89.5 KiB/op full compile, while nested writes were much larger: `create-nested-connectOrCreate-mixed` 2746 allocs/op / 325.2 KiB and `update-set-nested` 2146 allocs/op / 257.1 KiB.
+  - Change tried:
+    - In `query-compiler/query-structure/src/field_selection.rs`, rewrote `FieldSelection::as_scalar_fields()` from `filter_map(...).collect()` plus length comparison to a fail-fast loop that returns `None` as soon as it sees a non-scalar selection.
+  - Eager-capacity version:
+    - Used `Vec::with_capacity(self.selections.len())`.
+    - Allocation profiles were directionally but modestly better:
+      - `query-m2m` full compile allocated 89.5 -> 89.0 KiB.
+      - `query-many-m2m` 89.2 -> 88.6 KiB.
+      - `nested-pagination-query` 89.1 -> 88.9 KiB.
+      - `create-nested-connectOrCreate-mixed` 325.2 -> 323.5 KiB.
+      - `update-set-nested` 257.1 -> 256.6 KiB.
+    - Criterion was mixed and not safe to keep:
+      - `filter-contains-param`: improved about 3.0%.
+      - `query-many-m2m`: improved about 2.6%.
+      - `query-m2o-lateral`: regressed about 4.5%.
+      - `query-many-one2m`: regressed about 3.4%.
+      - `create-nested-connectOrCreate-mixed`: +1.3%, within noise threshold.
+  - Refined version:
+    - Changed the loop to `Vec::new()` to avoid eager allocation on mixed selections.
+    - The focused allocation profile lost the useful signal and returned to baseline on target rows:
+      - `query-m2o` full compile 81.0 KiB.
+      - `query-many-one2m` 83.8 KiB.
+      - `query-many-m2m` 89.2 KiB.
+      - `nested-pagination-query` 89.1 KiB.
+      - `filter-contains-param` 64.5 KiB.
+      - `update-set-nested` 257.1 KiB.
+  - Verification:
+    - `cargo test -p query-compiler --test queries` passed.
+    - `cargo check -p query-compiler-wasm --features sqlite` passed.
+    - `cargo test -p query-structure --lib` passed.
+    - `cargo test -p query-structure` / `--all-features` still failed in `datamodel_converter_tests` because this invocation does not know providers such as `postgres` and has unrelated composite setup failures; not used as a verdict for this helper change.
+  - Decision:
+    - Revert. The eager version traded tiny allocation savings for real timing risk, and the no-eager-allocation version had no allocation win. Future ownership/allocation work should move to the sidecar's larger candidates: parser `Path` allocation on the success path, expression container churn in `translate_ir`, or relation scalar helper vector churn.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -8675,6 +8714,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
   - The first two concrete leads from the 2026-06-08 scout are now resolved: `RelationLinkage` SmallVec/sorted-vector storage was rejected, and scalar `selection_order` name movement was accepted.
+  - 2026-06-08 sidecar scout says the next better targets are:
+    - Parser success-path `Path::add()` allocation in `core/src/query_document/parser.rs`; use a borrowed push/pop path stack and materialize only for validation errors.
+    - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
+    - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
+  - Do not spend more time on `FieldSelection::as_scalar_fields()` fail-fast cleanup unless a new benchmark suggests it matters; it was rejected in the same run.
 
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
