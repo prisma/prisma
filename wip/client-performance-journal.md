@@ -8569,6 +8569,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The simple and batched rows were neutral-to-positive, but the target nested row was better in the adjacent reverted control. Descriptor matching remains visible, but it likely needs a generated/static descriptor shape or a broader validation strategy, not another tiny generic node specialization.
 
+- Accepted measurement / rejected product hook: direct cached-result engine surface split.
+  - Timestamp: 2026-06-08T05:03:59+02:00.
+  - Context:
+    - Sidecar lead proposed a direct cache-key cached-result engine method that would execute `{ model, action, cacheKey, placeholderValues }` without requiring a hot-hit `protocolQuery`.
+    - The immediate goal was a lower-bound measurement for "known cache identity + known placeholders + cached JS plan" before attempting a larger JS-owned-query / Rust-owned-IR shape.
+  - Temporary change tried:
+    - Added `ClientEngine.requestCachedResultByKey(model, action, cacheKey, placeholderValues, customDataProxyFetch?)`.
+    - Added a benchmark row named `client engine cache-key precomputed lazy descriptor ...`.
+  - Comparison row kept:
+    - Added `client engine cached-result precomputed static protocol lazy descriptor ...` in `client-engine-cache-timing.ts`.
+    - This row uses the existing `ClientEngine.requestPrecomputedCachedResult(protocolQuery, hit, { isWrite: false })` method directly, so it measures the same direct cached-plan execution surface without adding a new production hook.
+  - Measurements:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='findMany users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `client engine precomputed static protocol lazy descriptor findMany users / warmed cache`: 2.06 us/op.
+      - `client engine cache-key precomputed lazy descriptor findMany users / warmed cache`: 2.02 us/op.
+      - `generated client engine precomputed fast path findMany users / warmed cache`: 2.52 us/op.
+      - `generated client request precomputed fast path findMany users / warmed cache`: 2.51 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `client engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 9.66 us/op.
+      - `client engine cache-key precomputed lazy descriptor blog page / nested rows warmed cache`: 9.37 us/op.
+      - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 10.70 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 11.62 us/op.
+    - Broad direct comparison with the temporary hook still present:
+      - `client engine cache-key precomputed lazy descriptor findUnique / warmed cache`: 1.40 us/op.
+      - `client engine cached-result precomputed static protocol lazy descriptor findUnique / warmed cache`: 1.59 us/op.
+      - `client engine cache-key precomputed lazy descriptor findMany users / warmed cache`: 2.21 us/op.
+      - `client engine cached-result precomputed static protocol lazy descriptor findMany users / warmed cache`: 2.23 us/op.
+      - `client engine cache-key precomputed lazy descriptor blog page / nested rows warmed cache`: 9.58 us/op.
+      - `client engine cached-result precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 9.59 us/op.
+    - Final retained-row verification after deleting `requestCachedResultByKey`:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='client engine cached-result precomputed static protocol lazy descriptor' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `findUnique`: 1.49 us/op.
+      - `findMany users`: 2.34 us/op.
+      - `blog page / nested rows`: 9.84 us/op.
+  - Decision:
+    - Keep the benchmark row that uses the existing `requestPrecomputedCachedResult()` method.
+    - Revert the new `requestCachedResultByKey()` production method. It duplicated the direct cached-result surface and had no material target-shape advantage over the existing method; the bigger gap is still descriptor/argument validation plus generated/request plumbing, not the presence of a static `protocolQuery` object on a cache hit.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
