@@ -9754,6 +9754,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep the broader accepted `ModelProjection::as_columns()` cleanup (`a05eab3fec2`) because it preserved SQL-builder relation paths and had stronger timing evidence.
     - Do not revisit direct `left_scalars().as_columns()` SQL-builder detours unless a different shape can prove CPU wins on current Criterion.
 
+- Rejected runtime spike: generic raw-nested writer execution tree.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-runtime-writer-program-spike`, branch `raw-nested-runtime-writer-program-spike`.
+  - Prototype:
+    - Added a strict numeric/no-wrapper fallback-gated path in `query-interpreter.ts` that compiled eligible `RawNestedReadQuery` nodes into `RawNestedWriterNode` objects.
+    - Relation writers executed child base queries, mapped child rows, attached child records/wrappers to parent records immediately, then recursively ran child relations on those attached records.
+    - This avoided returning through the full generic child-query relation pipeline for each nested relation, but still built child record arrays and used generic attach helpers.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - Side worktree: `pnpm --filter @prisma/client-engine-runtime... build`.
+    - Side worktree: `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree and main control: `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree and main control: same benchmark with `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000`.
+  - Evidence:
+    - Side 100k: compact node 6.89 us/op, exact compact node 6.76; main control 100k: compact node 7.26, exact compact node 7.48.
+    - Side 300k: compact node 6.49 us/op, exact compact node 6.59; main control 300k: compact node 6.80, exact compact node 6.96.
+    - The gain is real but narrow, roughly 5-10% on this benchmark row, while the benchmark-only writer program remains much closer to the lower bound at about 4.1-4.3 us/op.
+    - The implementation added about 337 lines to `query-interpreter.ts`, so the complexity-to-win ratio is poor for product runtime code.
+  - Decision: reject and remove. The product path should not be another generic execution-object tree; it needs compiler-emitted or compile-time-built writer schedules that mutate final owner objects directly and avoid child record arrays created only for later attachment.
+  - Follow-up lead:
+    - Compile flat/raw-nested writer programs with explicit phase waves and relation-specific writer closures or instruction arrays.
+    - Preserve strict fallback gates for numeric refs, scalar metadata/path mappings, enum/date conversion, wrapper semantics, unique handling, and SQL commenter/instrumentation.
+    - Benchmark the writer-program shape in Workerd before accepting runtime code, because Cloudflare Workers are the priority target.
+
 ## Useful Commands
 
 ```sh
