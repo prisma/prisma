@@ -1242,6 +1242,23 @@ function findRowByColumn(rows, columnIndex, key) {
   return undefined
 }
 
+function uniqueColumnValues(rows, columnIndex) {
+  if (rows.length === 0) {
+    return []
+  }
+
+  const values = []
+  const seen = new Set()
+  for (let i = 0; i < rows.length; i++) {
+    const value = rows[i][columnIndex]
+    if (!seen.has(value)) {
+      seen.add(value)
+      values.push(value)
+    }
+  }
+  return values
+}
+
 function assembleBlogPageFromRawResultSets() {
   const postRow = BLOG_PAGE_POST_RESULT.rows[0]
   if (postRow === undefined) {
@@ -1362,6 +1379,154 @@ async function executeRawResultSetBlogPageDirectAssembler(adapter) {
   }
 }
 
+function compileBlogPageWriterProgram(querySelectors) {
+  return {
+    rootQuery: querySelectors[0],
+    writeRoot: (rootRow) => {
+      const root = {
+        id: rootRow[0],
+        title: rootRow[1],
+        slug: rootRow[2],
+        content: rootRow[3],
+        published: rootRow[4],
+        viewCount: rootRow[5],
+        createdAt: rootRow[6],
+        author: null,
+        category: null,
+        tags: [],
+        comments: [],
+        _count: {
+          likes: rootRow[9],
+          comments: rootRow[10],
+        },
+      }
+
+      return {
+        rootRow,
+        rootId: rootRow[0],
+        root,
+        postTagRows: [],
+        tagIds: [],
+        commentAuthorTargets: [],
+        commentAuthorIds: [],
+      }
+    },
+    phaseWaves: [
+      [
+        {
+          query: querySelectors[1],
+          scope: () => ({}),
+          write: (state, resultSet) => {
+            state.root.author = mapUserRow(findRowByColumn(resultSet.rows, 0, state.rootRow[7]))
+          },
+        },
+        {
+          query: querySelectors[2],
+          scope: () => ({}),
+          write: (state, resultSet) => {
+            state.root.category = mapCategoryRow(findRowByColumn(resultSet.rows, 0, state.rootRow[8]))
+          },
+        },
+        {
+          query: querySelectors[3],
+          scope: () => ({}),
+          write: (state, resultSet) => {
+            state.postTagRows = resultSet.rows
+            state.tagIds = uniqueColumnValues(resultSet.rows, 1)
+          },
+        },
+        {
+          query: querySelectors[5],
+          scope: () => ({}),
+          write: (state, resultSet) => {
+            const seenAuthorIds = new Set()
+            for (let i = 0; i < resultSet.rows.length; i++) {
+              const commentRow = resultSet.rows[i]
+              if (commentRow[4] !== state.rootId) {
+                continue
+              }
+
+              const comment = {
+                id: commentRow[0],
+                content: commentRow[1],
+                createdAt: commentRow[2],
+                author: null,
+              }
+              state.root.comments.push(comment)
+
+              const authorId = commentRow[3]
+              state.commentAuthorTargets.push({ authorId, comment })
+              if (!seenAuthorIds.has(authorId)) {
+                seenAuthorIds.add(authorId)
+                state.commentAuthorIds.push(authorId)
+              }
+            }
+          },
+        },
+      ],
+      [
+        {
+          query: querySelectors[4],
+          scope: (state) => (state.tagIds.length === 0 ? undefined : {}),
+          write: (state, resultSet) => {
+            for (let i = 0; i < state.postTagRows.length; i++) {
+              const postTagRow = state.postTagRows[i]
+              if (postTagRow[0] !== state.rootId) {
+                continue
+              }
+
+              state.root.tags.push({ tag: mapTagRowOrNull(findRowByColumn(resultSet.rows, 0, postTagRow[1])) })
+            }
+          },
+        },
+        {
+          query: querySelectors[6],
+          scope: (state) => (state.commentAuthorIds.length === 0 ? undefined : {}),
+          write: (state, resultSet) => {
+            for (let i = 0; i < state.commentAuthorTargets.length; i++) {
+              const target = state.commentAuthorTargets[i]
+              target.comment.author = mapUserRow(findRowByColumn(resultSet.rows, 0, target.authorId))
+            }
+          },
+        },
+      ],
+    ],
+  }
+}
+
+async function executeCompiledBlogPageWriterProgram(program, adapter) {
+  const rootResultSet = await adapter.queryRaw(program.rootQuery)
+  const rootRow = rootResultSet.rows[0]
+  if (rootRow === undefined) {
+    return null
+  }
+
+  const state = program.writeRoot(rootRow)
+  for (let waveIndex = 0; waveIndex < program.phaseWaves.length; waveIndex++) {
+    const wave = program.phaseWaves[waveIndex]
+    const phases = []
+    const pending = []
+    for (let phaseIndex = 0; phaseIndex < wave.length; phaseIndex++) {
+      const phase = wave[phaseIndex]
+      const scope = phase.scope(state)
+      if (scope === undefined) {
+        phase.write(state, EMPTY_RESULT)
+        continue
+      }
+
+      phases.push(phase)
+      pending.push(adapter.queryRaw(phase.query))
+    }
+
+    const resultSets = await Promise.all(pending)
+    for (let resultIndex = 0; resultIndex < resultSets.length; resultIndex++) {
+      phases[resultIndex].write(state, resultSets[resultIndex])
+    }
+  }
+
+  return state.root
+}
+
 function rawResultSetBaseResult(mode, iterations, elapsedMs, checksum) {
   const retained = retainedPlanSize()
   return {
@@ -1415,6 +1580,22 @@ async function runRawResultSetDirectAssemblerScenario(iterations) {
   }
 
   return rawResultSetBaseResult('raw-result-set-direct-assembler', iterations, performance.now() - start, checksum)
+}
+
+async function runRawResultSetWriterProgramScenario(iterations) {
+  const adapter = new BenchmarkAdapter()
+  const program = compileBlogPageWriterProgram(BLOG_PAGE_QUERY_SELECTORS)
+  checksumNestedBlogExactResult(await executeCompiledBlogPageWriterProgram(program, adapter))
+  resetCounts()
+
+  let checksum = 0
+  const start = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    checksum += checksumNestedBlogExactResult(await executeCompiledBlogPageWriterProgram(program, adapter))
+  }
+
+  return rawResultSetBaseResult('raw-result-set-writer-program', iterations, performance.now() - start, checksum)
 }
 
 function executeClientScenario(client, scenario, iteration) {
@@ -2054,6 +2235,8 @@ export default {
         result = runRawResultSetAssemblyScenario(iterations)
       } else if (mode === 'raw-result-set-direct-assembler') {
         result = await runRawResultSetDirectAssemblerScenario(iterations)
+      } else if (mode === 'raw-result-set-writer-program') {
+        result = await runRawResultSetWriterProgramScenario(iterations)
       } else if (
         mode === 'client-internal-precomputed-protocol' ||
         mode === 'client-internal-precomputed-static-protocol' ||
@@ -2388,6 +2571,19 @@ async function run(): Promise<void> {
         RAW_RESULT_SET_ITERATIONS,
         false,
         'raw-result-set-direct-assembler',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'raw result-set writer program blog page / nested rows',
+        'blog-page-by-id',
+        RAW_RESULT_SET_ITERATIONS,
+        false,
+        'raw-result-set-writer-program',
       ),
     )
   } finally {

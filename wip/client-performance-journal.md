@@ -9780,6 +9780,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Preserve strict fallback gates for numeric refs, scalar metadata/path mappings, enum/date conversion, wrapper semantics, unique handling, and SQL commenter/instrumentation.
     - Benchmark the writer-program shape in Workerd before accepting runtime code, because Cloudflare Workers are the priority target.
 
+- Accepted benchmark: Workerd raw result-set writer program lower-bound row.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-workerd-writer-program-benchmark`, branch `workerd-writer-program-benchmark`.
+  - Change:
+    - Added `raw-result-set-writer-program` mode to `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - The mode mirrors the Node benchmark-only writer schedule for the blog-page raw result-set shape: root query first, a first wave for author/category/post-tags/comments, and a second wave for tags/comment authors.
+    - This remains benchmark-only lower-bound coverage; the worker adapter uses static query selectors and ignores scopes just like the existing direct assembler row.
+  - Verification:
+    - `pnpm install --offline --ignore-scripts` in the side worktree.
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - `pnpm --filter @prisma/client... build`.
+    - `git diff --check`.
+    - `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Evidence from the Workerd smoke:
+    - `raw-result-set-assembly`: host 0.95 us/op, worker loop 0.80 us/op, 0 queryRaw, checksum 4120000.
+    - `raw-result-set-direct-assembler`: host 2.41 us/op, worker loop 2.25 us/op, 140000 queryRaw, checksum 4120000.
+    - `raw-result-set-writer-program`: host 2.69 us/op, worker loop 2.55 us/op, 140000 queryRaw, checksum 4120000.
+  - Decision: keep. This closes the missing Worker-facing evidence gap for the writer-program lead and confirms the shape stays near the direct assembler lower bound in a Worker runtime.
+  - Follow-up lead:
+    - The writer-program product prototype should target this shape, not the rejected generic runtime writer tree.
+    - A generated schedule should avoid per-run generic `phases`/`pending` arrays where the plan's waves are known, which may close part of the remaining Worker gap to the direct assembler row.
+
 ## Useful Commands
 
 ```sh
