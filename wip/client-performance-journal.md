@@ -9214,6 +9214,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Do not spend more time on a `Cow<'a, str>` immutable `Path` cons-list variant; it reduced allocation counts but regressed compile Criterion. The useful parser-path version was the now-accepted mutable stack design that removes the `Rc` node allocation itself.
   - Do not spend more time on the tested relation helper detours unless a different shape has stronger evidence: carrying non-M:N join field names through read translation was too small, and direct `left_scalars().as_columns()` in SQL join builder regressed join Criterion despite allocation wins.
 
+- Rejected generated cache-hit local-executor shortcut.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-local-executor-fast-result-spike`, branch `local-executor-fast-result-spike`; removed after rejection.
+  - Baseline source rows at 100k iterations:
+    - `generated client findMany users / warmed cache`: 3.05 us/op.
+    - `generated client request precomputed fast path findMany users / warmed cache`: 2.93 us/op.
+    - `generated client engine precomputed fast path findMany users / warmed cache`: 2.94 us/op.
+    - `generated client blog page / nested rows warmed cache`: 12.79 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 13.14 us/op.
+    - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 11.79 us/op.
+    - `direct plan blog page / nested rows`: 7.10 us/op.
+    - `local executor blog page / nested rows`: 7.20 us/op.
+    - `client engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 10.62 us/op.
+    - `client engine cached-result precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 10.39 us/op.
+  - First patch: added `QueryInterpreter.runWithoutSqlCommenter()`, `LocalExecutor.executeCachedResult()`, and a `ClientEngine.requestPrecomputedCachedResult()` branch for local cached plans without custom fetch. After a side-worktree `pnpm build`, the direct cached-result row moved only 10.39 -> 10.19 us/op and the generated engine-precomputed nested row was effectively unchanged at 11.79 -> 11.78 us/op.
+  - Second patch: added a cached plan handle to the internal `PrecomputedQueryPlanCacheHit` and let descriptor hits skip `QueryPlanCache.getSingle()` / LRU touch when the learned hit already carried the plan. This measured 10.33 us/op on the direct cached-result row and 11.74 us/op on the generated engine-precomputed nested row.
+  - Decision: rejected. The signal is below the threshold for extra interpreter entrypoints, executor API surface, and plan-retention/cache-semantics complexity. Do not retry local cached-result shortcutting or plan handles as standalone work; a more promising path needs a larger generated/static descriptor or exact-shape execution design.
+
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
   - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
