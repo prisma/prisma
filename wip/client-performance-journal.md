@@ -9232,6 +9232,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Second patch: added a cached plan handle to the internal `PrecomputedQueryPlanCacheHit` and let descriptor hits skip `QueryPlanCache.getSingle()` / LRU touch when the learned hit already carried the plan. This measured 10.33 us/op on the direct cached-result row and 11.74 us/op on the generated engine-precomputed nested row.
   - Decision: rejected. The signal is below the threshold for extra interpreter entrypoints, executor API surface, and plan-retention/cache-semantics complexity. Do not retry local cached-result shortcutting or plan handles as standalone work; a more promising path needs a larger generated/static descriptor or exact-shape execution design.
 
+- Side spike: generated query-shape probe hook.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-generated-shape-probe-spike`, branch `generated-shape-probe-spike`.
+  - Side commit: `6dbdc62fe Add generated shape probe spike`.
+  - Files touched in the side branch:
+    - `packages/client-common/src/client-config.ts`
+    - `packages/client/src/runtime/getPrismaClient.ts`
+    - `packages/client/src/runtime/core/model/applyModel.ts`
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Prototype:
+    - Added an optional `generatedQueryShapeProbes` config hook keyed by model/action.
+    - `applyModel.ts` stores the matching probe in learned lazy descriptors and tries it before generic recursive descriptor matching; the result is still the existing `protocolQuery` + `PrecomputedQueryPlanCacheHit` path, so `RequestHandler` and `ClientEngine` execution semantics stay unchanged.
+    - The benchmark manually injects a safe exact blog-page `Post.findUnique` probe that reuses the existing static descriptor exactness checks and extracts `%1` from `args.where.id`.
+  - Verification:
+    - `pnpm install --offline --ignore-scripts`
+    - `pnpm build` in the side worktree
+    - `pnpm exec prettier --write` on touched files
+    - `git diff --check`
+  - Measurements at 100k Node iterations:
+    - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 11.52 us/op.
+    - `generated client engine generated-shape fast path blog page / nested rows warmed cache`: 11.24 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 12.94 us/op.
+    - `generated client request generated-shape fast path blog page / nested rows warmed cache`: 12.01 us/op.
+    - Batched `findUnique` control preserved behavior: baseline request-precomputed row 7.71 us/op with `queryRaw=100000` and `precomputedBatchHits=200000`; generated-shape row 7.86 us/op with the same counters.
+  - Decision:
+    - Keep as a positive side-branch proof, not a mainline change yet. The hook confirms safe exact generated-shape extraction can recover measurable request-layer time without changing execution routing.
+    - Do not land the runtime hook without a real generator strategy. The hard unresolved product work is how generated clients produce safe exact probes for arbitrary user arg shapes, or how a learned descriptor can be transformed into straight-line/shared-prefix extraction without `eval` and without repeating the rejected closure/path-table shapes.
+
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
   - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
