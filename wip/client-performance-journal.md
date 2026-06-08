@@ -9530,6 +9530,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Benchmarks listed above.
   - Decision: keep. The registry is descriptor-bound, CSP-safe, self-tested, and bounded by the existing two-descriptor MRU. It advances the generated cache-hit path on Node and Workerd without changing batching semantics. Remaining product work is generator emission of small helper factories plus broad oracle coverage for special values, extensions, omit, raw/query-extension exclusions, and placeholder reuse beyond these benchmark shapes.
 
+- Rejected productization spike: generator-installed generic descriptor matcher registry.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-generated-descriptor-registry-spike`, branch `generated-descriptor-registry-spike`; rejected and not cherry-picked.
+  - Prototype:
+    - Added a runtime-exported `createDescriptorBoundMatcherRegistry()` and had both generators assign it after their JSON config blocks:
+      - `prisma-client-js`: `config.descriptorMatcherRegistry = createDescriptorBoundMatcherRegistry()`.
+      - `prisma-client`: `config.descriptorMatcherRegistry = runtime.createDescriptorBoundMatcherRegistry()`.
+    - First version built a descriptor-derived recursive matcher for plain objects/dense arrays/primitives and rejected special learned values (`Date`, `Decimal`-like objects, arrays with holes, accessors, symbols, unsupported placeholders).
+    - After Node nested regressions, narrowed the helper to a flat one-placeholder `where` plus scalar `select`/`include` matcher so nested blog-page and constant-only shapes fell back to the existing lazy descriptor.
+  - Verification that the prototype itself was mechanically sound:
+    - `pnpm install --offline --ignore-scripts`.
+    - `pnpm build` passed 44/44.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/descriptor-bound-matcher-registry.test.ts --runInBand`.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts --runInBand`.
+    - `pnpm --filter @prisma/client-generator-js test tests/generator.test.ts`.
+    - `pnpm --filter @prisma/client-generator-ts test tests/generator.test.ts`.
+  - Node evidence:
+    - Broad recursive generic helper, 100k iterations, regressed important rows versus request-precomputed: blog-page 14.27 us/op vs 11.92, alternating blog-page 14.61 vs 12.73, batched `findUnique` 8.24 vs 7.55.
+    - Narrow flat helper, 500k focused repeats, was only noise-level positive: `findUnique` 2.95 us/op vs request-precomputed 2.99, batched `findUnique` 14.66 vs 14.68.
+  - Workerd evidence, reduced generated run (`WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=50000`, `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=10000`, other probes reduced to 1):
+    - Request-precomputed worker loop: `findUnique` 6.66 us/op, `findMany users` 2.44, batched `findUnique` 11.26, blog-page 25.40.
+    - Generic helper worker loop: `findUnique` 9.98 us/op, `findMany users` 2.28, batched `findUnique` 18.28, blog-page 23.90.
+    - The batched and simple `findUnique` regressions make the generated default unacceptable even though the helper falls back for nested blog-page.
+  - Decision: reject and revert fully. Do not install a runtime-derived generic descriptor matcher registry in generated clients. Productizing descriptor-bound matchers still needs descriptor-specific straight-line helper factories that can beat the lazy descriptor in Workerd, not a generic helper bolted onto generated config.
+
 ## Useful Commands
 
 ```sh
