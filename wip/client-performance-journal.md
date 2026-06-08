@@ -9853,6 +9853,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Product raw-nested assembly should compile plan-specific static schedules or instruction arrays, not interpret generic phase objects at runtime.
     - The next product prototype should generate unrolled waves for eligible raw-nested trees with strict fallbacks for dynamic refs, scalar metadata, wrappers, empty relations, and instrumentation.
 
+- Rejected productization spike for now: hard-coded exact descriptor helper runtime export.
+  - Timestamp: 2026-06-08.
+  - Subagent: Hubble (`019ea6f5-d980-71c2-9361-f80624da1e4a`).
+  - Side worktree: `/home/aqrln.guest/prisma-exact-descriptor-helper-product-spike`, branch `exact-descriptor-helper-product-spike`.
+  - Prototype:
+    - Added `packages/client/src/runtime/core/model/exactDescriptorMatchers.ts` exporting `createExactUserScalarDescriptorMatcherRegistry()`.
+    - Added direct matcher tests in `exactDescriptorMatchers.test.ts`.
+    - Exported the helper from `packages/client/src/runtime/index.ts`.
+    - Added generator wiring in both JS and TS generators that sets `config.descriptorMatcherRegistry` when the DMMF contains `User.id`, `User.email`, and `User.name`.
+    - Reused the runtime helper in `client-engine-cache-timing.ts` instead of the benchmark-local exact helper.
+  - Verification from the side worktree:
+    - `pnpm exec prettier --write ...` passed.
+    - `pnpm --filter @prisma/client test --runTestsByPath src/runtime/core/model/exactDescriptorMatchers.test.ts src/runtime/core/model/applyModel.test.ts` passed.
+    - `pnpm --filter @prisma/client-generator-js build` passed.
+    - `pnpm --filter @prisma/client-generator-ts build` passed.
+    - `pnpm --filter @prisma/client build` passed.
+    - Generator smoke confirmed the schema gate emitted only for the benchmark-shaped `User`.
+  - Evidence:
+    - 50k findUnique: request precomputed 3.91 us/op, descriptor-bound static matcher 3.82, exact descriptor helper 3.67.
+    - 50k batched findUnique: request precomputed 9.58 us/op, descriptor-bound static matcher 8.60, exact descriptor helper 8.42, preserving `queryRaw=50000` and `precomputedBatchHits=100000`.
+    - 50k findMany users: request precomputed 2.84 us/op, descriptor-bound static matcher 2.84, exact descriptor helper 2.85.
+  - Decision: do not land this product patch as-is.
+    - The plumbing is useful and the flat `findUnique` / batched `findUnique` signal is positive.
+    - The product surface is too benchmark-specific: a hard-coded `User`/`id`/`email`/`name` helper is exported by runtime and the generator auto-enables it for any matching schema.
+    - Workerd generated-client verification for the exact helper was not added in this spike.
+  - Follow-up lead:
+    - Keep the benchmark proof from `dfd223e47`.
+    - Productize by emitting schema-specific helper code only into generated clients that qualify, or by adding an explicit internal benchmark gate first.
+    - Avoid adding benchmark-model-specific helpers to shared runtime exports.
+    - Add Workerd exact-helper rows and oracle/fallback tests before landing generated helper product code.
+
 ## Useful Commands
 
 ```sh
