@@ -9611,6 +9611,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The next serious prototype needs a flat/materialization schedule that executes dependency phases and writes final user-visible records directly for every node in the tree, including list children and wrapper records, instead of recursively returning child record arrays for generic attachment.
     - If the first product slice is still unique-root only, it must compile relation-specific materializers for direct, wrapper, and M:N relations and avoid allocating intermediate child records that are only used for attachment.
 
+- Rejected benchmark spike: generic flat raw nested execution tree materializer.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-flat-materializer-spike`, branch `raw-nested-flat-materializer-spike`.
+  - Prototype:
+    - Added a benchmark-only `raw result-set flat materializer blog page / nested rows` row in `client-engine-cache-timing.ts`.
+    - Compiled a generic tree from eligible `RawNestedReadQuery` tuples with numeric refs and string field mappings.
+    - Execution phase collected raw result sets and relation execution objects; materialization phase recursively projected rows and filled direct/M:N/wrapper relation fields from raw rows.
+    - Initial version accidentally compiled the schedule inside every benchmark iteration; this was corrected before deciding.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree: `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Evidence:
+    - Invalid first run with per-iteration schedule compilation: flat materializer 9.59 us/op, direct assembler 4.00, compact node 7.00, exact compact node 9.49.
+    - Corrected compile-once run: flat materializer 8.34 us/op, direct assembler 3.95, exact prototype 5.53, compact node 6.55, exact compact node 6.74.
+  - Decision: reject and revert. The two-phase generic execution object tree is slower than the current compact raw nested path. It removes some generic attachments but replaces them with extra execution objects, recursive materialization dispatch, and repeated generic lookups.
+  - Follow-up lead:
+    - Do not build a product runtime around a generic execution-object tree plus recursive materializer.
+    - The next shape needs compiled relation-specific writer closures or instruction arrays that mutate final owner objects directly while each relation phase resolves, with no intermediate relation execution objects and no generic per-row kind dispatch.
+    - Keep the direct assembler benchmark row as the target: product code needs to approach that 3.8-4.1 us/op lower bound before it is worth integrating.
+
 ## Useful Commands
 
 ```sh
