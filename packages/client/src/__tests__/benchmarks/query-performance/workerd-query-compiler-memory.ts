@@ -969,6 +969,193 @@ function createDescriptorMatcherRegistry() {
   }
 }
 
+function createExactGeneratedUserDescriptorMatcherRegistry() {
+  return {
+    getMatcher(context) {
+      if (context.model === 'User' && context.action === 'findUnique' && context.clientMethod === 'user.findUnique') {
+        return bindExactGeneratedUserFindUniqueMatcher(context)
+      }
+
+      if (context.model === 'User' && context.action === 'findMany' && context.clientMethod === 'user.findMany') {
+        return bindExactGeneratedUserFindManyMatcher(context)
+      }
+
+      return undefined
+    },
+  }
+}
+
+function bindExactGeneratedUserFindUniqueMatcher(context) {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeys(root, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeys(where, ['id'])) {
+    return undefined
+  }
+
+  const id = asGeneratedPlaceholderDescriptor(where.fields.id)
+  if (id === undefined || id.valueType !== 'number' || !isExactGeneratedUserScalarSelectDescriptor(root.fields.select)) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedUserFindUnique(args, id.name)
+}
+
+function bindExactGeneratedUserFindManyMatcher(context) {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeys(root, ['take', 'select'])) {
+    return undefined
+  }
+
+  if (!isExactGeneratedUserScalarSelectDescriptor(root.fields.select)) {
+    return undefined
+  }
+
+  const take = root.fields.take
+  const takePlaceholder = asGeneratedPlaceholderDescriptor(take)
+  if (takePlaceholder !== undefined) {
+    return takePlaceholder.valueType === 'number'
+      ? (args) => matchExactGeneratedUserFindManyWithTakePlaceholder(args, takePlaceholder.name)
+      : undefined
+  }
+
+  return isGeneratedConstantDescriptor(take, 10)
+    ? (args) => matchExactGeneratedUserFindManyWithConstantTake(args)
+    : undefined
+}
+
+function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return { [idPlaceholder]: where.id }
+}
+
+function matchExactGeneratedUserFindManyWithTakePlaceholder(args, takePlaceholder) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'take', 'select') || typeof args.take !== 'number') {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return { [takePlaceholder]: args.take }
+}
+
+function matchExactGeneratedUserFindManyWithConstantTake(args) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'take', 'select') || args.take !== 10) {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return {}
+}
+
+function matchesExactGeneratedUserScalarSelect(value) {
+  return (
+    isDescriptorRecord(value) &&
+    hasOwnEnumerableKeysInOrder3(value, 'id', 'email', 'name') &&
+    value.id === true &&
+    value.email === true &&
+    value.name === true
+  )
+}
+
+function getGeneratedExactRoot(context) {
+  if (!isDescriptorRecord(context.descriptor)) {
+    return undefined
+  }
+
+  return asGeneratedObjectDescriptor(context.descriptor.root)
+}
+
+function isExactGeneratedUserScalarSelectDescriptor(value) {
+  const select = asGeneratedObjectDescriptor(value)
+  return (
+    select !== undefined &&
+    generatedDescriptorHasKeys(select, ['id', 'email', 'name']) &&
+    isGeneratedConstantDescriptor(select.fields.id, true) &&
+    isGeneratedConstantDescriptor(select.fields.email, true) &&
+    isGeneratedConstantDescriptor(select.fields.name, true)
+  )
+}
+
+function asGeneratedObjectDescriptor(value) {
+  if (
+    isDescriptorRecord(value) &&
+    value.kind === 'object' &&
+    Array.isArray(value.keys) &&
+    isDescriptorRecord(value.fields)
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
+function asGeneratedPlaceholderDescriptor(value) {
+  if (
+    isDescriptorRecord(value) &&
+    value.kind === 'placeholder' &&
+    typeof value.name === 'string' &&
+    typeof value.valueType === 'string'
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
+function isGeneratedConstantDescriptor(value, expected) {
+  return isDescriptorRecord(value) && value.kind === 'constant' && Object.is(value.value, expected)
+}
+
+function generatedDescriptorHasKeys(descriptor, expectedKeys) {
+  if (descriptor.keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (const key of expectedKeys) {
+    if (!Object.hasOwn(descriptor.fields, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function hasOwnEnumerableKeysInOrder1(value, key0) {
+  const keys = Object.keys(value)
+  return keys.length === 1 && keys[0] === key0
+}
+
+function hasOwnEnumerableKeysInOrder2(value, key0, key1) {
+  const keys = Object.keys(value)
+  return keys.length === 2 && keys[0] === key0 && keys[1] === key1
+}
+
+function hasOwnEnumerableKeysInOrder3(value, key0, key1, key2) {
+  const keys = Object.keys(value)
+  return keys.length === 3 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2
+}
+
 function matchesBlogPageTagsSelection(value) {
   if (!isDescriptorRecord(value) || !hasExactKeys(value, ['select'])) {
     return false
@@ -2162,7 +2349,7 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
 
 async function runClientExecuteScenario(scenario, iterations, retain, precomputedFastPath) {
   const usesPrecomputedFastPath = precomputedFastPath !== undefined
-  const usesDescriptorMatcher = precomputedFastPath === 'descriptor-bound'
+  const usesDescriptorMatcher = precomputedFastPath === 'descriptor-bound' || precomputedFastPath === 'exact-helper'
   const Client = getPrismaClientConstructor()
   const client = new Client({
     adapter: createAdapterFactory(),
@@ -2174,7 +2361,10 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
           configOverride: usesDescriptorMatcher
             ? (config) => ({
                 ...config,
-                descriptorMatcherRegistry: createDescriptorMatcherRegistry(),
+                descriptorMatcherRegistry:
+                  precomputedFastPath === 'exact-helper'
+                    ? createExactGeneratedUserDescriptorMatcherRegistry()
+                    : createDescriptorMatcherRegistry(),
               })
             : undefined,
         }
@@ -2237,8 +2427,10 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
           ? 'client-execute-engine-precomputed-fast-path'
           : precomputedFastPath === 'request'
             ? 'client-execute-request-precomputed-fast-path'
-            : precomputedFastPath === 'descriptor-bound'
-              ? 'client-execute-request-precomputed-descriptor-bound-matcher'
+          : precomputedFastPath === 'descriptor-bound'
+            ? 'client-execute-request-precomputed-descriptor-bound-matcher'
+            : precomputedFastPath === 'exact-helper'
+              ? 'client-execute-request-precomputed-exact-helper'
               : 'client-execute',
       iterations,
       retain,
@@ -2291,6 +2483,8 @@ export default {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'request')
       } else if (mode === 'client-execute-request-precomputed-descriptor-bound-matcher') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'descriptor-bound')
+      } else if (mode === 'client-execute-request-precomputed-exact-helper') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'exact-helper')
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -2787,6 +2981,17 @@ async function run(): Promise<void> {
     printMeasurement(
       await dispatchRun(
         clientMf,
+        'generated client exact descriptor helper findUnique warmed cache',
+        'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
         'generated client findMany users warmed cache',
         'find-many-users',
         GENERATED_FIND_UNIQUE_ITERATIONS,
@@ -2831,6 +3036,17 @@ async function run(): Promise<void> {
     printMeasurement(
       await dispatchRun(
         clientMf,
+        'generated client exact descriptor helper findMany users warmed cache',
+        'find-many-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
         'generated client batched findUnique warmed cache',
         'find-unique-batched',
         GENERATED_FIND_UNIQUE_ITERATIONS,
@@ -2869,6 +3085,17 @@ async function run(): Promise<void> {
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client exact descriptor helper batched findUnique warmed cache',
+        'find-unique-batched',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
       ),
     )
     console.log('')

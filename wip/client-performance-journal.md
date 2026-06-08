@@ -9888,7 +9888,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep the benchmark proof from `dfd223e47`.
     - Productize by emitting schema-specific helper code only into generated clients that qualify, or by adding an explicit internal benchmark gate first.
     - Avoid adding benchmark-model-specific helpers to shared runtime exports.
-    - Add Workerd exact-helper rows and oracle/fallback tests before landing generated helper product code.
+    - Keep the Workerd exact-helper benchmark rows from the follow-up coverage entry below; add oracle/fallback tests before landing generated helper product code.
+
+- Accepted benchmark coverage: Workerd exact descriptor helper rows.
+  - Timestamp: 2026-06-08.
+  - Change:
+    - Added benchmark-only `client-execute-request-precomputed-exact-helper` mode to `workerd-query-compiler-memory.ts`.
+    - Mirrored the Node benchmark's exact generated `User.findUnique` / `User.findMany` descriptor helper inside the Worker module template.
+    - Added generated-client rows for exact descriptor helper `findUnique`, `findMany users`, and batched `findUnique`.
+    - The helper remains descriptor-bound: it is installed through `descriptorMatcherRegistry`, and `applyModel.ts` still self-tests placeholder equality/order before storing it on the learned descriptor.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - Smoke: `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=2000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - Focused generated-user run: same command with `WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000`.
+    - `pnpm --filter @prisma/client... build`.
+  - Evidence from the 10k Workerd generated-user run, host dispatch / worker loop:
+    - `findUnique`: normal 7.93 / 5.90 us/op; engine precomputed 4.35 / 2.30; request precomputed 6.24 / 4.30; descriptor-bound static 6.07 / 4.20; exact helper 6.78 / 4.80.
+    - `findMany users`: normal 4.73 / 2.50; engine precomputed 3.54 / 1.70; request precomputed 3.76 / 1.90; descriptor-bound static 3.53 / 1.80; exact helper 3.52 / 1.80.
+    - Batched `findUnique`: normal 13.89 / 10.50; request precomputed 10.15 / 8.30; descriptor-bound static 10.07 / 8.20; exact helper 9.49 / 7.70, with `precomputedBatchHits=20000`.
+  - Decision: keep the benchmark coverage, but treat the product signal as mixed.
+    - Workerd did not confirm exact helper as a clear single-call `findUnique` win in this run.
+    - `findMany users` was neutral with descriptor-bound static matching.
+    - Batched `findUnique` improved versus request-precomputed and descriptor-bound static matching, so batch descriptor extraction remains worth product investigation.
+  - Follow-up lead:
+    - The schema-specific generated-helper product spike should use these Workerd rows as a gate.
+    - Prioritize batch behavior, fallback/oracle tests, and generated-client code size before considering this product-ready.
 
 - Rejected productization spike for now: guarded raw nested static schedule runtime path.
   - Timestamp: 2026-06-08.
