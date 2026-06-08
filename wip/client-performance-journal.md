@@ -9097,6 +9097,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reject the naive versions. `serde_wasm_bindgen` is worse because it only removes JS stringify while keeping Rust-owned maps and `serde_json::Value`. A Rust-side `js_sys::Reflect` walker also does not win; repeated Wasm-to-JS property reads cost more than the string parser saves for a simple request.
     - Defer a generic Wasm-reference parser. The promising direction remains JS-owned cache-hit descriptors or generated shape-specific JS logic that can return a cached plan handle/result directly without generic Wasm object walking.
 
+- Rejected spike: path/op-table descriptor matcher.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-flat-descriptor-spike` (removed after reverting).
+  - File temporarily touched:
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Idea:
+    - Compile a learned lazy descriptor into arrays of path checks: exact-object key checks, array-length checks, constant checks, and placeholder extractions.
+    - Keep the same exactness semantics as the current recursive lazy descriptor, but avoid recursive descriptor dispatch and record lookups on the hot extraction path.
+  - Verification:
+    - `pnpm install --ignore-scripts --frozen-lockfile`
+    - `pnpm --filter @prisma/client... build`
+    - `git diff --check`
+  - Measurement:
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client lazy descriptor extract blog page' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 2.54 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client path descriptor extract blog page' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 2.91 us/op.
+  - Decision:
+    - Rejected and reverted. Repeated root-to-leaf path lookup costs more than the current recursive descriptor traversal on the nested blog-page shape.
+    - Do not retry a generic path/op-table matcher unless it also compiles shared-prefix traversal or emits straight-line generated code; a flat list of independent path checks is the wrong shape.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
