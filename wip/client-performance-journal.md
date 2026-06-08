@@ -8499,6 +8499,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The change is localized, preserves existing cache semantics and eviction tests, reduces retained nested-plan memory by roughly 5-7% in the synthetic node/edge probes, and does not show a warmed-cache timing regression in focused rows.
 
+- Rejected experiment: unconditional second-sighting admission for large single plans.
+  - Timestamp: 2026-06-08T07:25:00+02:00.
+  - Status: reverted before commit.
+  - Change tried:
+    - Added a bounded `singleAdmissionCandidates` set to `QueryPlanCache`.
+    - For caches with `maxSize >= 100`, `setSingle()` delayed admission of large join/raw-nested plans detected by `shouldInternStrings(plan)` until the same key was seen a second time.
+    - Small cache behavior stayed unchanged so existing tiny LRU tests would not lose immediate `setSingle()` / `getSingle()` semantics.
+  - Positive result:
+    - The one-off nested-shape memory probe retained no nested plans, only probation keys:
+      - `blog page / edge default warm`: retained=0, heap 260.3 KiB.
+      - `blog page / edge default churn`: retained=0, heap 114.0 KiB.
+      - `blog page / node default warm`: retained=0, heap 800.0 KiB.
+      - `blog page parameterized / node default warm`: retained=0, heap 851.1 KiB.
+    - This proves an admission policy can attack high-cardinality nested selection churn more effectively than per-entry squeezing.
+  - Negative result:
+    - The policy changes warm-cache semantics: one warmup request does not cache a large plan, so the next same-shape request still compiles before admission.
+    - Filtered warmed timing showed `compile=1` on nested warmed rows and visible product-row regressions:
+      - Baseline accepted-cache filtered run:
+        - `blog page nested rows / warmed cache`: 12.93 us/op.
+        - `client engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 10.86 us/op.
+        - `generated client blog page / nested rows warmed cache`: 13.96 us/op.
+        - `generated client request precomputed fast path blog page / nested rows warmed cache`: 13.60 us/op.
+      - Patched run:
+        - `blog page nested rows / warmed cache`: 14.31 us/op, `compile=1`.
+        - `client engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 11.42 us/op.
+        - `generated client blog page / nested rows warmed cache`: 14.72 us/op.
+        - `generated client request precomputed fast path blog page / nested rows warmed cache`: 14.49 us/op.
+  - Decision:
+    - Revert. The memory win is real for one-off churn, but the unconditional second-sighting rule is not a safe default for hot nested shapes because it makes warming require two compiles. A future admission design must preserve first-repeat/hot-shape behavior, for example by entering probation only after measured churn/cache pressure, by making it edge/config opt-in, or by keeping a small protected hot-shape segment.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
