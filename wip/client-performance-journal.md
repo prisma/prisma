@@ -9159,6 +9159,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
+  - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
   - Better next proof points: exact-shape object builders for the full blog-page tree, flatter compiler-emitted raw result-set plans, or a plan shape that avoids per-relation child record arrays when the target result shape can be assembled directly.
 
 ## Useful Commands
