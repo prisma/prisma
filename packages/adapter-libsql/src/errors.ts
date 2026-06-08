@@ -21,14 +21,13 @@ export function mapDriverError(error: LibsqlError): MappedError {
   switch (rawCode) {
     case 2067:
     case 1555: {
-      const fields = error.message
-        .split('constraint failed: ')
-        .at(1)
-        ?.split(', ')
-        .map((field) => field.split('.').pop()!)
+      const afterColon = error.message.split('constraint failed: ').at(1)
+      const fields = afterColon?.split(', ').map((field) => field.split('.').pop()!)
+      const table = afterColon?.split(', ').at(0)?.split('.').at(0)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: fields !== undefined ? { fields } : undefined,
+        table,
       }
     }
     case 1299: {

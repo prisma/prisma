@@ -82,6 +82,7 @@ function mapDriverError(error: DatabaseError): MappedError {
       return {
         kind: 'UniqueConstraintViolation',
         constraint: fields !== undefined ? { fields } : undefined,
+        table: error.table,
       }
     }
     case '23502': {

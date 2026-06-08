@@ -233,7 +233,7 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
-      const meta = modelName ? { modelName, ...error.meta } : error.meta
+      const meta = modelName ? { ...error.meta, modelName: error.meta?.modelName ?? modelName } : error.meta
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
