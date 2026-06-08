@@ -18,6 +18,7 @@ const GENERATED_BLOG_PAGE_ITERATIONS = positiveIntegerEnv('WORKERD_GENERATED_BLO
 const CLIENT_CACHE_KEY_ITERATIONS = positiveIntegerEnv('WORKERD_CLIENT_CACHE_KEY_ITERATIONS', 20_000)
 const DESCRIPTOR_ITERATIONS = positiveIntegerEnv('WORKERD_DESCRIPTOR_ITERATIONS', 20_000)
 const PRECOMPUTED_ITERATIONS = positiveIntegerEnv('WORKERD_PRECOMPUTED_ITERATIONS', 20_000)
+const RAW_RESULT_SET_ITERATIONS = positiveIntegerEnv('WORKERD_RAW_RESULT_SET_ITERATIONS', 20_000)
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -400,6 +401,15 @@ const BLOG_PAGE_COMMENT_AUTHOR_RESULT = Object.freeze({
   columnTypes: Object.freeze([ColumnType.Int32, ColumnType.Text, ColumnType.Text]),
   rows: Object.freeze([Object.freeze([11, 'Bob', 'bob.png']), Object.freeze([12, 'Carla', 'carla.png'])]),
 })
+const BLOG_PAGE_QUERY_SELECTORS = Object.freeze([
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`Post\` WHERE \`id\` = ?', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`User\` WHERE \`id\` = ?', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`Category\` WHERE \`id\` = ?', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`PostTag\` WHERE \`postId\` IN (?)', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`Tag\` WHERE \`id\` IN (?)', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`Comment\` WHERE \`postId\` IN (?)', args: [], argTypes: [] }),
+  Object.freeze({ sql: 'SELECT * FROM \`main\`.\`User\` WHERE \`id\` IN (?)', args: [], argTypes: [] }),
+])
 
 class BenchmarkTransaction {
   provider = 'sqlite'
@@ -1148,6 +1158,265 @@ function checksumResult(result) {
   return checksum
 }
 
+function isRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function arrayLength(value) {
+  return Array.isArray(value) ? value.length : 0
+}
+
+function numericField(value, field) {
+  const fieldValue = value[field]
+  return typeof fieldValue === 'number' ? fieldValue : 0
+}
+
+function checksumNestedBlogResult(value) {
+  if (!isRecord(value)) {
+    return 0
+  }
+
+  return numericField(value, 'id') + arrayLength(value.tags) + arrayLength(value.comments)
+}
+
+function checksumNestedBlogExactResult(value) {
+  const base = checksumNestedBlogResult(value)
+  if (!isRecord(value) || !Array.isArray(value.tags)) {
+    return base
+  }
+
+  let checksum = base
+  for (const tag of value.tags) {
+    if (isRecord(tag) && isRecord(tag.tag)) {
+      checksum += numericField(tag.tag, 'id')
+    }
+  }
+
+  return checksum
+}
+
+function mapUserRow(row) {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: row[0],
+    name: row[1],
+    avatar: row[2],
+  }
+}
+
+function mapCategoryRow(row) {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: row[0],
+    name: row[1],
+    slug: row[2],
+  }
+}
+
+function mapTagRowOrNull(row) {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: row[0],
+    name: row[1],
+    slug: row[2],
+  }
+}
+
+function findRowByColumn(rows, columnIndex, key) {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex]
+    if (row[columnIndex] === key) {
+      return row
+    }
+  }
+
+  return undefined
+}
+
+function assembleBlogPageFromRawResultSets() {
+  const postRow = BLOG_PAGE_POST_RESULT.rows[0]
+  if (postRow === undefined) {
+    return null
+  }
+
+  const postId = postRow[0]
+  const postTagRows = BLOG_PAGE_POST_TAG_RESULT.rows
+  const tagRows = BLOG_PAGE_TAG_RESULT.rows
+  const commentRows = BLOG_PAGE_COMMENT_RESULT.rows
+  const commentAuthorRows = BLOG_PAGE_COMMENT_AUTHOR_RESULT.rows
+  const tags = []
+  const comments = []
+
+  for (let i = 0; i < postTagRows.length; i++) {
+    const postTagRow = postTagRows[i]
+    if (postTagRow[0] === postId) {
+      tags.push({ tag: mapTagRowOrNull(findRowByColumn(tagRows, 0, postTagRow[1])) })
+    }
+  }
+
+  for (let i = 0; i < commentRows.length; i++) {
+    const commentRow = commentRows[i]
+    if (commentRow[4] !== postId) {
+      continue
+    }
+
+    comments.push({
+      id: commentRow[0],
+      content: commentRow[1],
+      createdAt: commentRow[2],
+      author: mapUserRow(findRowByColumn(commentAuthorRows, 0, commentRow[3])),
+    })
+  }
+
+  return {
+    id: postRow[0],
+    title: postRow[1],
+    slug: postRow[2],
+    content: postRow[3],
+    published: postRow[4],
+    viewCount: postRow[5],
+    createdAt: postRow[6],
+    author: mapUserRow(findRowByColumn(BLOG_PAGE_AUTHOR_RESULT.rows, 0, postRow[7])),
+    category: mapCategoryRow(findRowByColumn(BLOG_PAGE_CATEGORY_RESULT.rows, 0, postRow[8])),
+    tags,
+    comments,
+    _count: {
+      likes: postRow[9],
+      comments: postRow[10],
+    },
+  }
+}
+
+async function executeRawResultSetBlogPageDirectAssembler(adapter) {
+  const postResultSet = await adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[0])
+  const postRow = postResultSet.rows[0]
+  if (postRow === undefined) {
+    return null
+  }
+
+  const postId = postRow[0]
+  const [authorResultSet, categoryResultSet, postTagResultSet, commentResultSet] = await Promise.all([
+    adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[1]),
+    adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[2]),
+    adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[3]),
+    adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[5]),
+  ])
+
+  const postTagRows = postTagResultSet.rows
+  const commentRows = commentResultSet.rows
+  const [tagResultSet, commentAuthorResultSet] = await Promise.all([
+    postTagRows.length === 0 ? Promise.resolve(EMPTY_RESULT) : adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[4]),
+    commentRows.length === 0 ? Promise.resolve(EMPTY_RESULT) : adapter.queryRaw(BLOG_PAGE_QUERY_SELECTORS[6]),
+  ])
+
+  const tags = []
+  const tagRows = tagResultSet.rows
+  for (let i = 0; i < postTagRows.length; i++) {
+    const postTagRow = postTagRows[i]
+    if (postTagRow[0] === postId) {
+      tags.push({ tag: mapTagRowOrNull(findRowByColumn(tagRows, 0, postTagRow[1])) })
+    }
+  }
+
+  const comments = []
+  const commentAuthorRows = commentAuthorResultSet.rows
+  for (let i = 0; i < commentRows.length; i++) {
+    const commentRow = commentRows[i]
+    if (commentRow[4] !== postId) {
+      continue
+    }
+
+    comments.push({
+      id: commentRow[0],
+      content: commentRow[1],
+      createdAt: commentRow[2],
+      author: mapUserRow(findRowByColumn(commentAuthorRows, 0, commentRow[3])),
+    })
+  }
+
+  return {
+    id: postRow[0],
+    title: postRow[1],
+    slug: postRow[2],
+    content: postRow[3],
+    published: postRow[4],
+    viewCount: postRow[5],
+    createdAt: postRow[6],
+    author: mapUserRow(findRowByColumn(authorResultSet.rows, 0, postRow[7])),
+    category: mapCategoryRow(findRowByColumn(categoryResultSet.rows, 0, postRow[8])),
+    tags,
+    comments,
+    _count: {
+      likes: postRow[9],
+      comments: postRow[10],
+    },
+  }
+}
+
+function rawResultSetBaseResult(mode, iterations, elapsedMs, checksum) {
+  const retained = retainedPlanSize()
+  return {
+    scenario: 'blog-page-by-id',
+    mode,
+    iterations,
+    retain: false,
+    initMs: 0,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / iterations,
+    cacheHits: 0,
+    cacheMisses: 0,
+    compileCount: counts.compile,
+    compileBatchCount: counts.compileBatch,
+    queryRawCount: counts.queryRaw,
+    executeRawCount: counts.executeRaw,
+    checksum,
+    retainedEntries: retainedPlans.size,
+    retainedCacheKeyBytes: retained.cacheKeyBytes,
+    retainedCacheKeyBreakdown: retained.cacheKeyBreakdown,
+    retainedPlanSerializedBytes: retained.planSerializedBytes,
+    averagePlanBytes: 0,
+    runtime: navigator.userAgent,
+  }
+}
+
+function runRawResultSetAssemblyScenario(iterations) {
+  checksumNestedBlogExactResult(assembleBlogPageFromRawResultSets())
+  resetCounts()
+
+  let checksum = 0
+  const start = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    checksum += checksumNestedBlogExactResult(assembleBlogPageFromRawResultSets())
+  }
+
+  return rawResultSetBaseResult('raw-result-set-assembly', iterations, performance.now() - start, checksum)
+}
+
+async function runRawResultSetDirectAssemblerScenario(iterations) {
+  const adapter = new BenchmarkAdapter()
+  checksumNestedBlogExactResult(await executeRawResultSetBlogPageDirectAssembler(adapter))
+  resetCounts()
+
+  let checksum = 0
+  const start = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    checksum += checksumNestedBlogExactResult(await executeRawResultSetBlogPageDirectAssembler(adapter))
+  }
+
+  return rawResultSetBaseResult('raw-result-set-direct-assembler', iterations, performance.now() - start, checksum)
+}
+
 function executeClientScenario(client, scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
@@ -1781,6 +2050,10 @@ export default {
         result = runDescriptorExtractScenario(scenario, iterations, 'static')
       } else if (mode === 'client-lazy-descriptor-extract') {
         result = runDescriptorExtractScenario(scenario, iterations, 'lazy')
+      } else if (mode === 'raw-result-set-assembly') {
+        result = runRawResultSetAssemblyScenario(iterations)
+      } else if (mode === 'raw-result-set-direct-assembler') {
+        result = await runRawResultSetDirectAssemblerScenario(iterations)
       } else if (
         mode === 'client-internal-precomputed-protocol' ||
         mode === 'client-internal-precomputed-static-protocol' ||
@@ -2089,6 +2362,32 @@ async function run(): Promise<void> {
         DESCRIPTOR_ITERATIONS,
         false,
         'client-lazy-descriptor-extract',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'raw result-set blog page assembly / nested rows',
+        'blog-page-by-id',
+        RAW_RESULT_SET_ITERATIONS,
+        false,
+        'raw-result-set-assembly',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'raw result-set direct assembler blog page / nested rows',
+        'blog-page-by-id',
+        RAW_RESULT_SET_ITERATIONS,
+        false,
+        'raw-result-set-direct-assembler',
       ),
     )
   } finally {
