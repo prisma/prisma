@@ -9633,6 +9633,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The next shape needs compiled relation-specific writer closures or instruction arrays that mutate final owner objects directly while each relation phase resolves, with no intermediate relation execution objects and no generic per-row kind dispatch.
     - Keep the direct assembler benchmark row as the target: product code needs to approach that 3.8-4.1 us/op lower bound before it is worth integrating.
 
+- Rejected benchmark spike: generic/simple descriptor-bound matcher factories for generated clients.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-generated-descriptor-specific-matcher-spike`, branch `generated-descriptor-specific-matcher-spike`.
+  - Prototype:
+    - Added a benchmark-only `generated client simple generated matcher ...` registry in `client-engine-cache-timing.ts`.
+    - The registry bound a matcher from the learned descriptor for simple flat `findUnique({ where: { one scalar }, select: { scalar: true } })` and `findMany({ take, select: { scalar: true } })` shapes.
+    - It deliberately fell back for nested blog-page shapes and avoided `eval` / `new Function`.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="generated client" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="findUnique / warmed cache" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="findMany users / warmed cache" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Evidence:
+    - First broad Node run looked promising for flat rows but noisy: simple generated `findUnique` 3.83 us/op vs request-precomputed 5.85, `findMany` 3.04 vs 4.10, nested blog-page 19.02 vs 20.31, alternating nested blog-page regressed 25.71 vs 20.45.
+    - Focused `findUnique` repeat showed no distinct win over the already-accepted static benchmark row: request-precomputed 3.34 us/op, descriptor-bound static 3.21, simple generated 3.22. Batched `findUnique` matched the static row rather than improving it: request-precomputed 9.97, descriptor-bound static 7.34, simple generated 7.39.
+    - Focused `findMany` repeat rejected the flat signal: request-precomputed 2.61 us/op, descriptor-bound static 2.49, simple generated 2.65.
+  - Decision: reject and revert. This shape still performs dynamic key-array checks and generic matching after binding from the descriptor, so it does not justify generator product work.
+  - Follow-up lead:
+    - Descriptor-bound matcher productization remains viable only if generator output is closer to the hand-written static matcher rows: descriptor-specific, straight-line helper factories, bound to the learned descriptor after the existing self-test, and small enough to avoid generated-client bundle bloat.
+    - Do not add another generic runtime-derived registry to generated clients. Revisit with Workerd coverage and oracle tests only after the helper is exact-code shaped rather than descriptor-interpreter shaped.
+
 ## Useful Commands
 
 ```sh
