@@ -8681,6 +8681,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The eager version traded tiny allocation savings for real timing risk, and the no-eager-allocation version had no allocation win. Future ownership/allocation work should move to the sidecar's larger candidates: parser `Path` allocation on the success path, expression container churn in `translate_ir`, or relation scalar helper vector churn.
 
+- Rejected experiment: `Cow`-backed query parser `Path`.
+  - Timestamp: 2026-06-08T06:05:00+02:00.
+  - Context:
+    - The sidecar memory/allocation scout identified `core/src/query_document/parser.rs::Path::add()` as a success-path allocation source: the current immutable cons-list path allocates an `Rc<Option<(String, Path)>>` and often an owned segment string even though `segments()` is only needed to format validation errors.
+    - This tested the smallest safe variant before a full borrowed push/pop stack rewrite.
+  - Change tried:
+    - Changed `Path` to `Path<'a>` storing `Cow<'a, str>` segments.
+    - Passed schema-owned `Cow<'a, str>` field/argument names directly into `Path::add()` instead of eagerly calling `.into_owned()` for every schema field/argument hop.
+    - Kept the existing immutable cons-list semantics, so validation error path snapshots and parser recursion behavior stayed structurally the same.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-m2m,query-many-m2m,query-many-one2m,filter-contains-param,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+    - Full-compile allocation-count movement was real but modest:
+      - `query-m2o`: 617 -> 606 allocs/op, about 81.0 -> 80.9 KiB.
+      - `query-m2m`: about 797 -> 782 allocs/op, about 89.5 -> 89.4 KiB.
+      - `nested-pagination-query`: about 713 -> 702 allocs/op, about 89.1 -> 89.0 KiB.
+      - `create-nested-connectOrCreate-mixed`: 2746 -> 2713 allocs/op, about 325.2 -> 325.0 KiB.
+      - `update-set-nested`: 2146 -> 2114 allocs/op, about 257.1 -> 256.9 KiB.
+    - The patch mostly removed small segment-string allocations; it did not remove the per-hop `Rc` node allocation.
+  - Criterion:
+    - Command:
+      - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-m2m|query-many-m2m|query-many-one2m|nested-pagination-query|filter-contains-param|create-nested-connectOrCreate-mixed|update-set-nested"`
+    - Regressed too broadly:
+      - `create-nested-connectOrCreate-mixed`: +2.42% mean, significant regression.
+      - `nested-pagination-query`: +3.28% mean, significant regression.
+      - `query-m2m`: +2.29% mean, significant regression.
+      - `query-m2o`: +2.89% mean, significant regression.
+      - `update-set-nested-prisma#27650`: +3.26% mean, significant regression.
+      - `update-set-nested`: +1.58% mean, significant regression.
+      - `query-many-one2m`: -2.58% mean, significant improvement.
+      - `filter-contains-param` rows improved under 1% and stayed within the noise threshold.
+  - Verification while patched:
+    - `cargo check -p query-compiler --example allocation_profile` passed.
+    - `cargo test -p query-compiler --test queries` passed.
+    - `cargo check -p query-compiler-wasm --features sqlite` passed.
+  - Decision:
+    - Revert. Allocation counts moved, but bytes barely moved and Criterion showed multiple real compile-time regressions.
+    - Do not revisit a lifetime-generic `Cow` cons-list `Path` as a standalone optimization. The parser path lead remains only for the larger design: use a borrowed mutable push/pop path stack and materialize path segments only when constructing validation errors.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -8719,6 +8758,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
     - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
   - Do not spend more time on `FieldSelection::as_scalar_fields()` fail-fast cleanup unless a new benchmark suggests it matters; it was rejected in the same run.
+  - Do not spend more time on a `Cow<'a, str>` immutable `Path` cons-list variant; it reduced allocation counts but regressed compile Criterion. The only parser-path variant still worth considering is the larger mutable stack design that removes the `Rc` node allocation itself.
 
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
