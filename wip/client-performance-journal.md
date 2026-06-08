@@ -9207,6 +9207,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `cargo fmt -p query-core -p query-compiler --check`
       - `git diff --check`
     - Decision: kept. The win is modest but clean, bounded, and aligned with the user’s borrowing/allocation direction.
+  - Accepted engines change: non-allocating single-scalar helpers for raw nested direct reads.
+    - Timestamp: 2026-06-08.
+    - Sidecar agent: Planck (`019ea5eb-30cc-7232-9b7b-a51f4f834d4a`) identified the target in `build_raw_nested_read_relations()`.
+    - Engines commit: `7b0f3323f37 Avoid raw nested relation scalar allocations`.
+    - Files:
+      - `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs`
+      - `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field/relation.rs`
+      - `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/model.rs`
+    - Patch: added `Model::single_primary_identifier_scalar()` and `RelationField::single_left_scalar()` so the raw nested direct read translator can reject compound relations and build its one `ConditionalLink` without first allocating `left_scalars()` vectors twice. The generic in-memory join and SQL-builder relation paths were left alone.
+    - Allocation profile before -> after (`ALLOC_PROFILE_BUCKETS=1`, 50 iterations / 5 warmup):
+      - `query-m2o` translate_ir 354 -> 352 allocs/op, full_compile 598 -> 596.
+      - `query-many-one2m` translate_ir 348 -> 346, full_compile 661 -> 659.
+      - `query-one2m` translate_ir 374 -> 372, full_compile 668 -> 666.
+      - `nested-pagination-query` translate_ir 404 -> 402, full_compile 692 -> 690.
+      - `query-m2m` translate_ir 477 -> 471, full_compile 769 -> 763.
+      - `query-many-m2m` translate_ir 451 -> 445, full_compile 762 -> 756.
+      - `create-nested-connectOrCreate-mixed` translate_ir 1703 -> 1695, full_compile 2678 -> 2670.
+    - Criterion over the focused compile rows stayed neutral-to-positive: `create-nested-connectOrCreate-mixed` improved within noise (-0.87%), `nested-pagination-query`, `query-m2o`, and `query-many-m2m` were unchanged, `query-m2m` / `query-many-one2m` were small noise-threshold slowdowns, and `nested-pagination-join` / `query-one2m` reported clear improvements.
+    - Verification:
+      - `cargo check -p query-compiler`
+      - `cargo test -p query-compiler`
+      - `git diff --check`
+      - `make build-qc-wasm`
+      - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+      - `pnpm build`
+      - `pnpm --filter @prisma/client build`
+    - Decision: kept. This is a small but deterministic allocation cleanup in the raw nested read compile path, including m2m and nested write/read mixed fixtures, with no meaningful timing downside.
   - 2026-06-08 sidecar scout says the next better targets are:
     - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
     - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
@@ -9259,6 +9286,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as a positive side-branch proof, not a mainline change yet. The hook confirms safe exact generated-shape extraction can recover measurable request-layer time without changing execution routing.
     - Do not land the runtime hook without a real generator strategy. The hard unresolved product work is how generated clients produce safe exact probes for arbitrary user arg shapes, or how a learned descriptor can be transformed into straight-line/shared-prefix extraction without `eval` and without repeating the rejected closure/path-table shapes.
+  - Productization follow-up:
+    - Sidecar agent Turing (`019ea5eb-1060-7f43-a8ba-afe9e6e2844e`) reviewed the generator/runtime path and recommended no-go for landing the side-branch API.
+    - Reason: the generator only sees schema/DMMF/config and cannot know ordinary callsite object shapes, inferred generic `T`, nested key sets, or literal `select/include/where/orderBy` trees. The side branch stores probes by model/action, so a probe for one valid shape could be applied to a different learned descriptor for the same action.
+    - Safe direction if revisited: descriptor-bound exact matchers tied to the specific learned protocol query and placeholder mapping, validating recursive own-key exactness and falling back for `undefined`, `Prisma.skip`, `Date`, `Decimal`, bytes, field refs, JSON null enums, `toJSON`, raw params, writes, extensions, global omit, and any non-exact nested shape.
+    - Workers/CSP guardrail: static generated functions are fine; `new Function`, `eval`, or runtime descriptor-to-code compilation is not. Avoid combinatorial emitted probes because generated-client bundle size, parse time, and isolate memory can erase hot-path wins.
 
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
