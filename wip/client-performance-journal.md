@@ -8496,6 +8496,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`
     - `QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
     - `git diff --check`
+  - Workerd validation after commit:
+    - `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `retained blog-page plan cache`: retained 100 entries, 48.3 KiB keys, 335.4 KiB serialized plans, host heap delta 121.8 KiB.
+    - `generated client blog-page warmed cache`: 12.98 us/op host dispatch, 11.90 us/op worker loop.
+    - `generated client engine precomputed fast path blog-page warmed cache`: 9.85 us/op host dispatch, 8.75 us/op worker loop.
+    - `generated client request precomputed fast path blog-page warmed cache`: 13.13 us/op host dispatch, 11.85 us/op worker loop.
   - Decision:
     - Keep. The change is localized, preserves existing cache semantics and eviction tests, reduces retained nested-plan memory by roughly 5-7% in the synthetic node/edge probes, and does not show a warmed-cache timing regression in focused rows.
 
