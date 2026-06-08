@@ -9581,7 +9581,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Design a generic schedule representation for raw nested reads that separates DB execution dependencies from final materialization.
     - Compile row mappers, relation key extractors, and field writers once per plan, then allocate only final user-visible result objects plus the minimum relation indexes needed for list fanout.
     - Preserve existing generic raw nested fallback for named column refs, dynamic metadata, scalar conversion, empty metadata, composite/unsupported relation shapes, and error semantics.
-    - Add either a Workerd raw-result-set mode or a production prototype before accepting a runtime change, because `workerd-query-compiler-memory.ts` currently measures generated/client-execute paths but not these raw result-set assembly lower-bound rows.
+    - Workerd raw-result-set lower-bound coverage now exists in `workerd-query-compiler-memory.ts` as of Prisma commit `dfa4774d8`.
 
 - Rejected runtime spike: unique-root direct raw nested assembler wrapper around child raw results.
   - Timestamp: 2026-06-08.
@@ -9656,6 +9656,53 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Descriptor-bound matcher productization remains viable only if generator output is closer to the hand-written static matcher rows: descriptor-specific, straight-line helper factories, bound to the learned descriptor after the existing self-test, and small enough to avoid generated-client bundle bloat.
     - Do not add another generic runtime-derived registry to generated clients. Revisit with Workerd coverage and oracle tests only after the helper is exact-code shaped rather than descriptor-interpreter shaped.
 
+- Accepted benchmark instrumentation: Workerd raw result-set assembler lower bound.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-workerd-raw-result-set-assembler-spike`, branch `workerd-raw-result-set-assembler-spike`.
+  - Side commit: `2091bb0af Add Workerd raw result-set assembler benchmarks`.
+  - Main Prisma commit: `dfa4774d8 Add Workerd raw result-set assembler benchmarks`.
+  - Patch:
+    - Added `WORKERD_RAW_RESULT_SET_ITERATIONS` to `workerd-query-compiler-memory.ts`.
+    - Added Worker-visible modes `raw-result-set-assembly` and `raw-result-set-direct-assembler`.
+    - Added printed rows `raw result-set blog page assembly / nested rows` and `raw result-set direct assembler blog page / nested rows`.
+    - Kept scope to direct-assembler lower-bound coverage through the Worker benchmark adapter/queryRaw path. Compact/exact compact rows were not added because that would require making `QueryInterpreter`/`renderQuery` Worker-importable inside the benchmark worker.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree: `git diff --check`.
+    - Main worktree after cherry-pick: `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Workerd evidence:
+    - Side smoke: raw assembly 14.0 ms for 20k, 0.70 us/op in Worker, 0 `queryRaw` calls; raw direct assembler 45.0 ms for 20k, 2.25 us/op in Worker, 140000 `queryRaw` calls.
+    - Main smoke after cherry-pick: raw assembly host 14.9 ms / 0.74 us/op and Worker loop 12.0 ms / 0.60 us/op; raw direct assembler host 44.5 ms / 2.22 us/op and Worker loop 41.0 ms / 2.05 us/op, with 140000 `queryRaw` calls and checksum 4120000.
+  - Decision: keep. This gives the raw-nested direct assembler lower bound an edge-runtime signal and removes the previous blocker where only Node had the direct result-set assembly comparison.
+  - Follow-up lead:
+    - The next raw-nested production prototype should still include compact/exact compact Worker comparisons, but that likely needs a benchmark worker path that can import the interpreter/runtime helpers rather than a one-file lower-bound row.
+
+- Rejected runtime spike: raw nested assembly-result wrapper over compact `n` trees.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-writer-schedule-spike`, branch `raw-nested-writer-schedule-spike`.
+  - Prototype:
+    - Added a strict numeric/direct `#tryCompileRawNestedAssemblyQuery()` path for compact `n` nodes in `query-interpreter.ts`.
+    - Returned a smaller `{ rows, records }` assembly result without `columnNames`, and fell back to the existing `RawNestedReadResult` path for named refs, scalar conversion, path mappings, or unsupported relation shapes.
+    - Reused existing row mappers plus direct/M:N/wrapper attach helpers; child queries still returned child `records` arrays that were then attached recursively.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - Side worktree: `pnpm --filter @prisma/client-engine-runtime... build`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree: `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 24/24.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Main same-session control: same command in `/home/aqrln.guest/prisma`.
+  - Evidence:
+    - Side 100k run: direct assembler 3.92 us/op, compact node 6.44, exact compact node 6.66.
+    - Main same-session control: direct assembler 4.08 us/op, compact node 6.45, exact compact node 6.75.
+    - The prototype only saved the `columnNames` field and some fallback plumbing, leaving child record arrays and recursive attach work intact.
+  - Decision: reject and remove. The patch added 360+ lines of runtime complexity for effectively no compact-row movement.
+  - Follow-up lead:
+    - Do not add another "assembly" wrapper that still returns child `records` arrays and calls existing attach helpers.
+    - The next attempt should mutate final owner objects while relation phases resolve, or move to a compiler-emitted plan shape that avoids materializing child result records purely for attachment.
+
 ## Useful Commands
 
 ```sh
@@ -9677,6 +9724,7 @@ QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx pack
 QUERY_PLAN_CACHE_KEY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
+WORKERD_RAW_RESULT_SET_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 
