@@ -8290,7 +8290,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Accepted experiment: hoist generated model `clientMethod` label.
   - Timestamp: 2026-06-08T03:38:18+02:00.
   - Change:
-    - In `packages/client/src/runtime/core/model/applyModel.ts`, compute `const clientMethod = `${jsModelName}.${key}``once per cached model-action property and reuse it across engine-precomputed, request-handler direct, request-precomputed, and slow`\_request()` paths.
+    - In `packages/client/src/runtime/core/model/applyModel.ts`, compute a stable `clientMethod` label once per cached model-action property and reuse it across engine-precomputed, request-handler direct, request-precomputed, and slow `_request()` paths.
   - Broad Node A/B:
     - Command:
       - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
@@ -8316,6 +8316,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`
   - Decision:
     - Keep. Small, low-risk cleanup with focused positive signal and no broad-row regression large enough to reject.
+
+- Rejected experiment: no-relation fast path in `FieldSelection::into_without_relations()`.
+  - Timestamp: 2026-06-08T03:54:46+02:00.
+  - Engines status: reverted before commit.
+  - Change tried:
+    - Temporarily added an `any(SelectedField::Relation)` guard to return the original `FieldSelection` unchanged when no top-level relation selections are present.
+  - Reason:
+    - Sidecar scout identified `into_without_relations()` as an apparently safe allocation candidate because it always filters into a new `Vec`.
+  - Measurement:
+    - Nested read allocation profile before and after was unchanged for `query-m2o`, `query-many-one2m`, `nested-pagination-query`, `query-m2m`, `query-many-m2m`, and `aggregate-nested-m2m`.
+    - Scalar/filter allocation profile before and after was also unchanged for `filter-contains-param`, `filter-in-param-insensitive`, `data-types`, `aggregate`, and `group-by`.
+  - Decision:
+    - Revert. The sampled hot translation paths either do not hit the no-relation case or already carry relation selections when this helper runs, so the guard has no measured allocation benefit.
+
+- Accepted experiment: specialize compact raw nested relation fanout.
+  - Timestamp: 2026-06-08T03:54:46+02:00.
+  - Change:
+    - In `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, compile raw-nested relation arrays into a fanout closure once per raw nested query.
+    - The hot path now calls the compiled fanout directly instead of checking `relations.length` and running `relations.map(...)` on every result assembly.
+    - Specialized closures cover one, two, three, and four relation branches; larger branch counts use a direct promise-array fill loop.
+  - Baseline:
+    - Shared blog-page nested run at 300k iterations before the patch:
+      - `direct plan blog page / nested rows`: 7.06 us/op, phase-warmed rerun 6.85 us/op.
+      - `raw result-set compact node blog page / nested rows`: 6.40 us/op.
+      - `raw result-set exact compact node blog page / nested rows`: 6.75 us/op.
+      - `raw result-set prototype blog page / nested rows`: 5.17 us/op.
+  - Patched measurements:
+    - First focused run:
+      - Compact node: 5.99 us/op.
+      - Exact compact node: 6.02 us/op.
+    - Repeat with direct row:
+      - Direct plan: 6.58 us/op.
+      - Compact node: 6.00 us/op.
+      - Exact compact node: 6.00 us/op.
+    - Final focused confirmation:
+      - Direct plan: 6.83 us/op.
+      - Compact node: 6.20 us/op.
+      - Exact compact node: 6.11 us/op.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `git diff --check`
+  - Decision:
+    - Keep. The win is small but repeatable on the raw compact rows, and the patch is scoped to compiled raw-nested fanout without changing relation attachment semantics.
 
 ## Todo / Leads
 

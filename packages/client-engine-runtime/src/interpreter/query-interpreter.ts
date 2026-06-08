@@ -96,6 +96,11 @@ type CompiledRawNestedReadRelation = (
   context: QueryRuntimeContext,
   scope: Record<string, unknown>,
 ) => Promise<void>
+type CompiledRawNestedReadRelations = (
+  parentResult: RawNestedReadResult,
+  context: QueryRuntimeContext,
+  scope: Record<string, unknown>,
+) => Promise<void>
 type CompiledRawNestedRowMapper = (resultSet: SqlResultSet) => PrismaObject[]
 
 const EMPTY_ENUMS: Record<string, Record<string, string>> = Object.freeze({})
@@ -1148,7 +1153,12 @@ export class QueryInterpreter {
       return this.#compileRawNestedUniqueWrapperReadQuery(dbQuery, uniqueWrapperRelation, enums)
     }
 
-    const relations = rawRelations?.map((relation) => this.#compileRawNestedReadRelation(relation, enums))
+    const relations =
+      rawRelations === undefined
+        ? undefined
+        : compileRawNestedReadRelations(
+            rawRelations.map((relation) => this.#compileRawNestedReadRelation(relation, enums)),
+          )
     const mapRows = compileRawNestedRowMapper(mappings, enums, this.#resultFormat)
 
     return async (context, scope) => {
@@ -1160,11 +1170,7 @@ export class QueryInterpreter {
         records,
       }
       if (relations !== undefined && resultSet.rows.length > 0) {
-        if (relations.length === 1) {
-          await relations[0](result, context, scope)
-        } else {
-          await Promise.all(relations.map((relation) => relation(result, context, scope)))
-        }
+        await relations(result, context, scope)
       }
 
       return result
@@ -1576,6 +1582,58 @@ type RawNestedReadResult = {
   rows: readonly unknown[][]
   columnNames: readonly string[]
   records: PrismaObject[]
+}
+
+function compileRawNestedReadRelations(
+  relations: readonly CompiledRawNestedReadRelation[],
+): CompiledRawNestedReadRelations | undefined {
+  switch (relations.length) {
+    case 0:
+      return undefined
+    case 1:
+      return relations[0]
+    case 2: {
+      const relation0 = relations[0]
+      const relation1 = relations[1]
+      return async (parentResult, context, scope) => {
+        await Promise.all([relation0(parentResult, context, scope), relation1(parentResult, context, scope)])
+      }
+    }
+    case 3: {
+      const relation0 = relations[0]
+      const relation1 = relations[1]
+      const relation2 = relations[2]
+      return async (parentResult, context, scope) => {
+        await Promise.all([
+          relation0(parentResult, context, scope),
+          relation1(parentResult, context, scope),
+          relation2(parentResult, context, scope),
+        ])
+      }
+    }
+    case 4: {
+      const relation0 = relations[0]
+      const relation1 = relations[1]
+      const relation2 = relations[2]
+      const relation3 = relations[3]
+      return async (parentResult, context, scope) => {
+        await Promise.all([
+          relation0(parentResult, context, scope),
+          relation1(parentResult, context, scope),
+          relation2(parentResult, context, scope),
+          relation3(parentResult, context, scope),
+        ])
+      }
+    }
+    default:
+      return async (parentResult, context, scope) => {
+        const promises = new Array<Promise<void>>(relations.length)
+        for (let i = 0; i < relations.length; i++) {
+          promises[i] = relations[i](parentResult, context, scope)
+        }
+        await Promise.all(promises)
+      }
+  }
 }
 
 function compileRawNestedRowMapper(
