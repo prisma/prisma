@@ -9293,6 +9293,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Safe direction if revisited: descriptor-bound exact matchers tied to the specific learned protocol query and placeholder mapping, validating recursive own-key exactness and falling back for `undefined`, `Prisma.skip`, `Date`, `Decimal`, bytes, field refs, JSON null enums, `toJSON`, raw params, writes, extensions, global omit, and any non-exact nested shape.
     - Workers/CSP guardrail: static generated functions are fine; `new Function`, `eval`, or runtime descriptor-to-code compilation is not. Avoid combinatorial emitted probes because generated-client bundle size, parse time, and isolate memory can erase hot-path wins.
 
+- Side spike: descriptor-bound exact matcher for learned descriptors.
+  - Timestamp: 2026-06-08.
+  - Sidecar agent: Aristotle (`019ea5fd-245c-71a2-847b-649cc97fa660`).
+  - Worktree: `/home/aqrln.guest/prisma-descriptor-bound-matcher-spike`, commit `90d81c46c Add descriptor-bound matcher benchmark spike`.
+  - Files touched in the side branch:
+    - `packages/client/src/runtime/core/model/applyModel.ts`
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Prototype:
+    - Added a benchmark-only `LazyDescriptorExactMatcherFactory` setter.
+    - The matcher is created only when a lazy descriptor is learned, validated against that descriptor's own placeholders, stored on that descriptor, and then invoked only from `descriptor.exactMatcher`.
+    - There is no lookup by model/action on the hot path and no `eval` / `new Function`; matcher decline falls back to the existing recursive lazy descriptor matcher.
+  - Measurements at 100k Node iterations:
+    - Blog page engine-precomputed baseline: 11.68 and 11.40 us/op; descriptor-bound: 10.78 and 10.64 us/op, roughly 7% faster on average.
+    - Blog page request-precomputed baseline: 12.04, 12.02, 12.22 us/op; descriptor-bound: 12.08, 11.48, 11.58 us/op, small positive but noisier than the engine row.
+    - Batched `findUnique` controls preserved counters: engine baseline/control 5.15 vs 5.17 us/op with `precomputedHits=200000`; request baseline/control 7.47 vs 7.41 us/op with `precomputedBatchHits=200000`.
+  - Verification:
+    - `pnpm install --offline --ignore-scripts`
+    - `pnpm build`
+    - `pnpm exec prettier --write ...`
+    - `git diff --check`
+  - Decision:
+    - Keep as positive design evidence, not product code. Descriptor-bound identity is a practical safety boundary and avoids the rejected per-action false-positive problem.
+    - Do not land the benchmark-only global matcher factory. The unresolved product work is producing CSP-safe exact matchers tied to learned descriptors without growing generated-client bundle size badly and without reintroducing rejected closure/path-table/key-array matcher shapes.
+
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
   - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
