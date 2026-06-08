@@ -8607,6 +8607,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep the benchmark row that uses the existing `requestPrecomputedCachedResult()` method.
     - Revert the new `requestCachedResultByKey()` production method. It duplicated the direct cached-result surface and had no material target-shape advantage over the existing method; the bigger gap is still descriptor/argument validation plus generated/request plumbing, not the presence of a static `protocolQuery` object on a cache hit.
 
+- Rejected experiment: Wasm `js_sys` static generated-shape extractor.
+  - Timestamp: 2026-06-08T05:18:14+02:00.
+  - Context:
+    - Sidecar scout confirmed the smallest practical cache-hit Wasm proof was not storing JS plan handles in Rust. The safer proof was: validate a static generated shape over JS args using `js_sys`, return transient `{ cacheKey, placeholderValues }`, keep JS owning the plan cache, and let compile misses continue through the current JSON path.
+    - A prior generic Wasm `Reflect` structural walker was already rejected; this tested the narrower/harder-to-dismiss version with one hard-coded generated shape.
+  - Temporary worktree:
+    - Created `/home/aqrln.guest/prisma-engines-qc-js-shape-spike` from `/home/aqrln.guest/prisma-engines` branch `qc-js-shape-spike`.
+  - Temporary Rust change:
+    - Added benchmark-only `QueryCompiler.extractGeneratedShapeHit(shape_id, cache_key, args)` in `query-compiler/query-compiler-wasm/src/compiler.rs`.
+    - Hard-coded `shape_id = 1` for the generated blog-page `Post.findUnique` args shape.
+    - Used `js_sys::{Reflect, Object, Array}` to validate exact object keys/arrays and extract `where.id`.
+    - Constructed the return object manually with `js_sys::Object` / `Reflect::set`; did not use `serde_wasm_bindgen`.
+  - Temporary Prisma change:
+    - Added optional `extractGeneratedShapeHit` to `packages/client-common/src/QueryCompiler.ts`.
+    - Delegated it through `createCountingQueryCompilerLoader()`.
+    - Added a benchmark row named `generated client wasm static-shape extract blog page / nested rows warmed cache`.
+    - Reverted all Prisma changes after measurement.
+  - Verification / builds:
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm-fast`
+    - `WASM_BUILD_PROFILE=release PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm-fast`
+  - Measurements:
+    - Dev Wasm:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines-qc-js-shape-spike/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client wasm static-shape extract blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `generated client wasm static-shape extract blog page / nested rows warmed cache`: 63.66 us/op.
+    - JS controls:
+      - `generated client static descriptor extract blog page / nested rows warmed cache`: 1.23 us/op.
+      - `generated client lazy descriptor extract blog page / nested rows warmed cache`: 2.48 us/op.
+    - Release Wasm:
+      - Same local-Wasm command after release build.
+      - `generated client wasm static-shape extract blog page / nested rows warmed cache`: 27.85 us/op.
+  - Decision:
+    - Reject and revert. Even with one hard-coded generated shape and optimized Wasm, repeated `Reflect` / `Object.keys` access from Rust is an order of magnitude slower than the existing JS static/lazy descriptor extractors.
+    - Do not retry the JS-owned-query cache-hit proof as a Wasm `Reflect`/`Object.keys` validator over ordinary JS objects, even with static shape ids. A viable architecture needs a lower-overhead representation/access strategy, for example generated JS-side descriptors, compact JS-owned shape handles, or a boundary design that avoids repeated dynamic property lookup from Wasm.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -8617,6 +8652,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Spike `js_sys` / Wasm-reference parsing for query input and validation.
   - User idea: `tsify::serde_wasm_bindgen::from_value(request)` only removes JSON conversion on the JS side and still leaves untyped heap-allocated Rust maps before validation/parsing. The larger win may require query parsing and validation to operate directly on JS-heap values, at least until internal query IR construction.
   - Practicality note: likely possible as a serious architectural spike, but the difficult pieces are typed validation over `js_sys` values, wrapper lifetimes across Wasm calls, unit-test ergonomics, and preserving current error quality.
+  - New constraint from 2026-06-08: both generic and hard-coded static-shape Wasm `Reflect` / `Object.keys` walkers are too slow for hot cache hits. Future JS-owned-query work needs a lower-overhead representation/access strategy before re-entering Wasm on the cache-hit path.
 
 - Explore Rust-owned IR only, with JS-owned input and plan/cache objects.
   - User idea: avoid creating/owning input query data and built SQL strings on the Rust heap. The Client would pass the query object as a reference; Rust would parameterize it without cloning strings into Wasm memory and would either return an existing cached JS plan object or compile and cache one.
