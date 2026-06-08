@@ -9159,6 +9159,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Criterion with a saved clean baseline in `CARGO_TARGET_DIR=/tmp/prisma-engines-process-children-target`: improved some rows (`update-set-nested` -7.76%, `query-m2o` -4.23%, `nested-pagination-query` -7.00%) but regressed important rows (`create-nested-connect` +6.95%, `create-nested-connectOrCreate-mixed` +7.72%, `nested-pagination-join` +2.43%).
     - Decision: rejected and reverted. The allocation savings are too small and the timing surface is unstable/regressive. Do not retry `process_children()` result-position splitting as a standalone cleanup.
     - Follow-up repeat on 2026-06-08 in `/home/aqrln.guest/prisma-engines-expression-container-spike-2`: replaced `result_positions` / `result_subgraphs` vectors with `None` / `One` / `Many` enums so exactly-one result subgraphs avoid both heap vectors. It saved allocation counts on dependency-heavy rows (`create-nested-connectOrCreate-mixed` full_compile 2670 -> 2664, `create-nested-connectOrCreate-one2m` 2367 -> 2363, `update-set-nested` 2077 -> 2075, `update-set-nested-prisma#27650` 1854 -> 1852) but reversed Criterion showed the unpatched code was materially faster on most selected rows (`create-nested-connectOrCreate-mixed` -8.74%, `query-many-m2m` -7.38%, `update-set-nested` -7.55%, `delete-one` -6.90%, etc.). Rejected and left the side worktree clean.
+  - Rejected expression-container layout spike: inline `Expression::Let.bindings`.
+    - Timestamp: 2026-06-08.
+    - Worktree: `/home/aqrln.guest/prisma-engines-expression-let-smallvec-spike`, branch `expression-let-smallvec-spike`.
+    - Hypothesis: many `Expression::Let` nodes have one binding, so storing `bindings` as `SmallVec<[Binding; 1]>` might avoid heap-backed `Vec` allocations in translation.
+    - Patch attempted:
+      - Added `smallvec` to `query-compiler`.
+      - Changed `Expression::Let { bindings }` from `Vec<Binding>` to `SmallVec<[Binding; 1]>`.
+      - Converted singleton and vector construction sites in `translate.rs`, `translate/query.rs`, `translate/query/read.rs`, and `translate/query/write.rs`.
+    - Result: rejected before timing. `cargo check -p query-compiler` failed with recursive type error E0072 because `Binding` owns an `Expression`, and inline `SmallVec<[Binding; 1]>` would make `Expression` contain `Binding` inline, which contains `Expression` again without indirection.
+    - Decision: revert and do not retry this exact shape. Boxing `Binding.expr` or `Expression::Let.bindings` would restore indirection by adding allocations back, defeating the goal. `Expression::Let` container work needs a different representation, not inline `Binding` storage.
   - Accepted engines change: borrow `RelatedRecordsQuery` when compiling raw nested child reads.
     - Timestamp: 2026-06-08.
     - Engines commit: `8d02976eae3 Avoid cloning raw related read queries`.
