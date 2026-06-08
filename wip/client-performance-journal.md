@@ -8252,6 +8252,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This narrows the remaining gap for singleton `findUnique`/nested read cache hits without bypassing DataLoader for actual batches.
 
+- Scout: Wasm request parsing boundary and JS-heap query idea.
+  - Timestamp: 2026-06-08T03:25:31+02:00.
+  - Files inspected:
+    - Prisma: `packages/client/src/runtime/core/engines/client/ClientEngine.ts`, `packages/client-common/src/QueryCompiler.ts`, `packages/client-engine-runtime/src/parameterization/parameterize.ts`.
+    - Engines: `query-compiler/query-compiler-wasm/src/compiler.rs`, `query-compiler/request-handlers/src/protocols/json/body.rs`, `query-compiler/request-handlers/src/protocols/json/protocol_adapter.rs`.
+  - Current pipeline:
+    - `ClientEngine.request()` parameterizes the `JsonQuery` on the JS heap using `parameterizeQuery(query, this.#paramGraph)`.
+    - For cacheable misses it builds `queryPart = JSON.stringify(parameterizedQuery.query)`, derives `getSingleQueryCacheKey(parameterizedQuery, queryPart)`, and compiles via `compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart))`.
+    - For uncached/fallback single queries it uses `JSON.stringify(parameterizedQuery)`.
+    - Batch code similarly parameterizes in JS, stringifies cache keys/requests, and calls `compiler.compileBatch(request)`.
+    - TS `QueryCompiler` is string-only: `compile(request: string)` / `compileBatch(batchRequest: string)`.
+    - Rust Wasm `QueryCompiler::compile(request: String)` / `compile_batch(request: String)` call `RequestBody::try_from_str()`, which deserializes JSON into `JsonBody`.
+    - `JsonBody::into_doc()` then uses `JsonProtocolAdapter::convert_single()` to build `Operation`; argument conversion walks `serde_json::Value` and converts Param tagged values with another `serde_json::from_value()`.
+  - Interpretation:
+    - The user's concern is correct for a hypothetical `tsify::serde_wasm_bindgen::from_value(request)` entrypoint: it would remove only the JS-side request string allocation/parse, but it would still build Rust-owned `JsonBody`, `IndexMap`s, and `serde_json::Value` argument trees before validation and query IR construction.
+    - Today the hot request entrypoint is not using `serde_wasm_bindgen::from_value` for request parsing at all; the request boundary is JSON string -> `JsonBody`.
+    - Existing generated precomputed cache-hit paths already avoid Wasm compilation on hits. For cache-hit reads, the smallest real proof point is therefore to not enter Wasm at all; `ClientEngine.requestPrecomputedCachedResult()` already demonstrates that shape when it can use a precomputed cache key.
+    - A Rust JS-heap walker helps cache hits only if it also owns cache identity / descriptor extraction or returns a JS-owned cached plan object without going through `ClientEngine`'s current string cache-key path.
+  - Smallest serious proof point:
+    - Add an experimental, optional Wasm entrypoint such as `compileJsRequestForCacheHit(request: JsValue)` only after defining the cache contract it will satisfy.
+    - Better first proof point: keep compile misses on the current string path, but add a JS-value-backed structural cache identity extractor for one narrow read shape (`findUnique` with scalar `where.id` and fixed selection) that:
+      - walks the JS request object using `js_sys` without converting to `JsonBody` / `serde_json::Value`,
+      - computes the same cache identity as `getSingleQueryCacheKey()` for the parameterized shape,
+      - extracts placeholder values into a JS-owned object,
+      - returns an existing cached JS plan object on hit or falls back to the current JS parameterize/stringify/compile path on miss.
+    - This can be benchmarked against the current lazy descriptor / request-precomputed rows without replacing the general query parser.
+  - Risks:
+    - Dynamic JS property access may cost more than JS descriptor matching unless the proof point is narrow and monomorphic.
+    - JS references crossing Wasm need explicit lifetime/rooting discipline; do not store borrowed `JsValue`s inside Rust-owned plan IR without validating GC behavior in Workerd.
+    - Error quality likely regresses if the JS-value adapter bypasses `JsonProtocolAdapter` / `QueryDocumentParser` diagnostics; proof points should fall back on unsupported or malformed shapes.
+    - Exact cache-key compatibility is non-negotiable: collisions would execute the wrong plan with user data.
+    - Direct JS walking can observe getters, proxies, and non-plain objects differently from the current client-side normalized protocol objects unless the accepted input surface is explicitly constrained.
+  - Follow-up:
+    - If pursuing this, create a separate worktree and prototype only the narrow hit extractor + benchmark row first. Do not start by reworking `JsonProtocolAdapter` globally.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
