@@ -9583,6 +9583,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Preserve existing generic raw nested fallback for named column refs, dynamic metadata, scalar conversion, empty metadata, composite/unsupported relation shapes, and error semantics.
     - Add either a Workerd raw-result-set mode or a production prototype before accepting a runtime change, because `workerd-query-compiler-memory.ts` currently measures generated/client-execute paths but not these raw result-set assembly lower-bound rows.
 
+- Rejected runtime spike: unique-root direct raw nested assembler wrapper around child raw results.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-runtime-direct-assembler-spike`, branch `raw-nested-runtime-direct-assembler-spike`.
+  - Prototype:
+    - Added an eligibility-gated compact `n` fast path inside `QueryInterpreter` for unique roots and `resultFormat: 'js'`.
+    - Gated row mappings to string field names, numeric column refs, and no scalar conversion/path mappings.
+    - Gated direct and many-to-many relations to numeric refs and local-only relation scopes, with runtime fallback for SQL commenter/query instrumentation.
+    - Added a wrapper-specialized root relation branch to preserve the existing `tags: [{ tag }]` empty-wrapper behavior and avoid the obvious exact-wrapper regression.
+    - Child queries still materialized mapped `RawNestedReadResult`-style child records and used existing generic/direct attach helpers for nested child relations.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm --filter @prisma/client-engine-runtime... build`.
+    - Side worktree: `pnpm --filter @prisma/internals... build`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree: `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 24/24.
+    - Side worktree: focused raw result-set benchmarks at 100k and 300k iterations.
+  - Evidence:
+    - First version, 100k side run: compact node 6.38 us/op, exact compact node 6.91, direct assembler lower bound 4.02. Exact regressed because the prototype bypassed the existing wrapper fast path.
+    - After adding root wrapper specialization, 100k side run: compact node 6.25, exact compact node 6.58, direct assembler lower bound 3.94.
+    - Same-session main control, 100k: compact node 6.49, exact compact node 6.63, direct assembler lower bound 3.90.
+    - 300k side run: compact node 6.29, exact compact node 6.78, direct assembler lower bound 4.04.
+    - Same-session main control, 300k: compact node 6.39, exact compact node 6.54, direct assembler lower bound 3.83.
+  - Decision: reject and revert. This shape only removes a small amount of root-level wrapper work and leaves the expensive child record arrays, `RawNestedReadResult` objects, and nested attach passes intact. It does not reach the benchmark-only direct assembler ceiling and can regress exact wrapper-heavy shapes.
+  - Follow-up lead:
+    - Do not try another unique-root wrapper around the current child raw nested tree.
+    - The next serious prototype needs a flat/materialization schedule that executes dependency phases and writes final user-visible records directly for every node in the tree, including list children and wrapper records, instead of recursively returning child record arrays for generic attachment.
+    - If the first product slice is still unique-root only, it must compile relation-specific materializers for direct, wrapper, and M:N relations and avoid allocating intermediate child records that are only used for attachment.
+
 ## Useful Commands
 
 ```sh
