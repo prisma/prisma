@@ -8172,6 +8172,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This does not change benchmark behavior, only the reported counters.
 
+- Accepted experiment: use RequestHandler direct cached results for precomputed read hits.
+  - Timestamp: 2026-06-08T03:12:48+02:00.
+  - Prisma commit: `c30ba026b Use direct cached results for precomputed reads`.
+  - Change:
+    - Added `RequestHandler.requestPrecomputedCachedResult()`, a RequestHandler-owned wrapper around `ClientEngine.requestPrecomputedCachedResult()`.
+    - The wrapper returns direct cached action results without DataLoader/request wrapping, but still maps failures through `RequestHandler.handleRequestErrorForParams()` so user-facing error formatting and `modelName` metadata stay on the normal request-handler path.
+    - `applyModel.ts` now uses this wrapper only for learned descriptor hits on plain `findMany`, `findFirst`, and `findFirstOrThrow` calls. It keeps the existing guards: no transaction, ignorable param overrides, no extensions, no global omit, no SQL commenters, adapter configured, tracing disabled, debug disabled, and direct cached-result support present.
+    - First calls, shape mismatches, batchable `findUnique` / `findUniqueOrThrow`, relation-chain `dataPath`s, aggregates, raw actions, writes, sqlcommenters, tracing/debug, extensions, and transactions still use the request-precomputed or normal request paths.
+  - Node A/B:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Adjacent reversed baseline -> patched normal generated-client rows:
+      - `findMany users`: 4.20 -> 2.99 us/op.
+      - `findUnique`: 4.32 -> 4.48 us/op in the noisy adjacent run; queryRaw remained 50000.
+      - `batched findUnique`: 8.66 -> 8.63 us/op; queryRaw remained 50000, confirming DataLoader batching was not bypassed.
+      - `blog page / nested rows`: 14.31 -> 14.02 us/op; this stays on the request-precomputed path because it is `findUnique`.
+    - Patched explicit request-precomputed `findMany users` was 2.90 us/op, confirming normal generated `findMany` now reaches the same path.
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Generated-client warmed cache request-loop rows:
+      - Normal `findMany users`: 2.10 us/op.
+      - Explicit request-precomputed `findMany users`: 2.00 us/op.
+      - Explicit engine-precomputed `findMany users`: 1.80 us/op.
+      - Normal batched `findUnique`: `queryRaw=10000` for 10000 iterations; request-precomputed batched row also stayed at `queryRaw=10000`.
+      - Normal blog-page stayed at 12.00 us/op for 1000 iterations, matching the request-precomputed row and confirming no direct engine default for batchable nested `findUnique`.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/RequestHandler.test.ts`
+      - Passed with existing warning-level unsafe-argument warnings in `RequestHandler.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts src/runtime/DataLoader.test.ts src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Decision:
+    - Keep. This is a narrow product path that improves non-batchable read cache hits without taking the unsafe direct engine path for batchable `findUnique`.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
