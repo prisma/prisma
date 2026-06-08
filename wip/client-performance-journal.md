@@ -8027,6 +8027,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Computed-key object literals are much worse for this raw nested mapper shape on current V8; keep the direct assignment loop unless new evidence changes.
 
+- Rejected experiment: derive a simple flat executor from existing compact raw nested `n` trees at runtime.
+  - Timestamp: 2026-06-08T02:45:00+02:00.
+  - Change:
+    - Added a temporary numeric-only simple executor derived during `#compileRawNestedReadQuery()`.
+    - The spike compiled supported direct, many-to-many, and exact-wrapper relations into tuple-returning node functions to avoid some `RawNestedReadResult` objects and generic relation callbacks while preserving the existing `n` protocol and fallback path.
+  - Measurement:
+    - Commands:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Exact compact row regressed to 6.74 us/op versus the accepted wrapper-fast-path row's 6.25 us/op.
+    - Non-exact benchmark-only compact row measured 6.65 us/op, but this does not justify regressing the exact wrapper shape that matches generated blog-page output.
+  - Decision:
+    - Reverted. Deriving a flat-ish executor from the existing `n` tree without changing the serialized plan or assembly algorithm does not beat the current wrapper-specialized executor. A future raw-nested project should either emit a real flat result-set assembly program or move to a different hot path.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
