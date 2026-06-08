@@ -9158,6 +9158,55 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Verification before revert: `cargo fmt -p query-compiler --check`, `cargo test -p query-compiler --test queries`, `git diff --check`.
     - Criterion with a saved clean baseline in `CARGO_TARGET_DIR=/tmp/prisma-engines-process-children-target`: improved some rows (`update-set-nested` -7.76%, `query-m2o` -4.23%, `nested-pagination-query` -7.00%) but regressed important rows (`create-nested-connect` +6.95%, `create-nested-connectOrCreate-mixed` +7.72%, `nested-pagination-join` +2.43%).
     - Decision: rejected and reverted. The allocation savings are too small and the timing surface is unstable/regressive. Do not retry `process_children()` result-position splitting as a standalone cleanup.
+  - Accepted engines change: borrow `RelatedRecordsQuery` when compiling raw nested child reads.
+    - Timestamp: 2026-06-08.
+    - Engines commit: `8d02976eae3 Avoid cloning raw related read queries`.
+    - File: `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs`.
+    - Patch: changed `build_raw_read_related_records()` to accept `&RelatedRecordsQuery`, cloning only `args`, `selected_fields`, and optional `parent_results` instead of cloning the whole related read query, including its nested read tree and relation metadata, before raw nested child compilation.
+    - Allocation profile before -> after on sampled rows:
+      - `query-m2o` full compile 603 allocs / 79.2 KiB -> 598 / 78.5 KiB.
+      - `query-m2m` 774 / 87.3 KiB -> 769 / 86.6 KiB.
+      - `query-many-m2m` 767 / 86.7 KiB -> 762 / 86.0 KiB.
+      - `query-many-one2m` 667 / 81.8 KiB -> 661 / 80.8 KiB.
+      - `nested-pagination-query` 697 / 86.6 KiB -> 692 / 85.6 KiB.
+      - `create-nested-connectOrCreate-mixed` 2689 / 319.6 KiB -> 2678 / 317.8 KiB before the nested-write `SmallVec` patch, and 2678 / 317.6 KiB after both accepted patches.
+    - Criterion:
+      - Broad first A/B improved `nested-pagination-join` by about 1.85% and `nested-pagination-query` by about 6.58%, kept `query-m2o`, `query-m2o-lateral`, `query-m2m`, and `create-nested-connectOrCreate-mixed` neutral, but initially showed regressions on `query-many-m2m` / `query-many-one2m`.
+      - Narrow rerun over the two concerning rows cleared the regression: `query-many-m2m` was within noise (`+0.92%`) and `query-many-one2m` improved about 2.34%.
+    - Verification:
+      - `cargo fmt -p query-compiler --check`
+      - `cargo test -p query-compiler --test queries`
+      - `cargo check -p query-compiler-wasm --features postgresql`
+      - `git diff --check`
+    - Decision: kept and committed. This is a bounded ownership cleanup for raw nested read compile misses with a real allocation signal and acceptable Criterion surface.
+  - Accepted engines change: `SmallVec` for nested write parser handoffs.
+    - Timestamp: 2026-06-08.
+    - Sidecar agent: Hume (`019ea5c0-35f7-72f2-bc3a-9e61f59b8390`).
+    - Sidecar worktree: `/home/aqrln.guest/prisma-engines-arc-graph-scout-spike`, branch `arc-graph-scout-spike`, sidecar commit `1d42817efd42a5c47b067756d97390830256d3e3`.
+    - Engines commit after cherry-pick: `327fdc1fe30 Use SmallVec for nested write parser operations`.
+    - Files:
+      - `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/write_args_parser.rs`
+      - `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/create.rs`
+    - Patch: introduced `NestedWriteOperations<'a> = SmallVec<[(RelationFieldRef, ParsedInputMap<'a>); 1]>` for `WriteArgsParser::nested` and the create-node handoff, avoiding a heap `Vec` allocation for common zero/singleton nested write parser operations.
+    - Allocation profile before -> after from Hume:
+      - `create-nested-connectOrCreate-mixed` graph_build 803 allocs / 134.8 KiB -> 803 / 134.6 KiB; full compile 2689 / 319.6 KiB -> 2689 / 319.4 KiB.
+      - `create-nested-connectOrCreate-one2m` graph_build 681 / 110.8 KiB -> 681 / 110.6 KiB; full compile 2386 / 276.0 KiB -> 2386 / 275.8 KiB.
+      - `update-set-nested` graph_build 657 / 116.2 KiB -> 656 / 115.7 KiB; full compile 2086 / 253.3 KiB -> 2085 / 252.9 KiB.
+      - `update-set-nested-prisma#27650` graph_build 821 / 99.7 KiB -> 819 / 98.8 KiB; full compile 1856 / 209.1 KiB -> 1854 / 208.2 KiB.
+      - `query-m2o` unchanged.
+    - Criterion from Hume stayed within noise/no-change threshold on connectOrCreate, update-set, and `query-m2o` control rows.
+    - Post-integration allocation after both accepted patches:
+      - `create-nested-connectOrCreate-mixed` full compile 2678 allocs / 317.6 KiB.
+      - `create-nested-connectOrCreate-one2m` 2375 / 274.1 KiB.
+      - `update-set-nested` 2079 / 251.8 KiB.
+      - `update-set-nested-prisma#27650` 1854 / 208.2 KiB.
+    - Verification after cherry-pick:
+      - `cargo check -p query-core`
+      - `cargo test -p query-compiler --test queries`
+      - `cargo check -p query-compiler-wasm --features postgresql`
+      - `cargo fmt -p query-core -p query-compiler --check`
+      - `git diff --check`
+    - Decision: kept. The win is modest but clean, bounded, and aligned with the user’s borrowing/allocation direction.
   - 2026-06-08 sidecar scout says the next better targets are:
     - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
     - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
