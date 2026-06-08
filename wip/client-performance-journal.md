@@ -9802,6 +9802,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The writer-program product prototype should target this shape, not the rejected generic runtime writer tree.
     - A generated schedule should avoid per-run generic `phases`/`pending` arrays where the plan's waves are known, which may close part of the remaining Worker gap to the direct assembler row.
 
+- Accepted benchmark proof: exact generated descriptor helper rows.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-descriptor-generated-helper-proof`, branch `descriptor-generated-helper-proof`.
+  - Main commit: `dfd223e47 Add exact descriptor helper benchmark`.
+  - Change:
+    - Added benchmark-only `createExactGeneratedUserDescriptorMatcherRegistry()` in `client-engine-cache-timing.ts`.
+    - The helper binds only to learned descriptors for exact flat generated shapes:
+      - `User.findUnique({ where: { id }, select: { id,email,name } })`.
+      - `User.findMany({ take, select: { id,email,name } })`.
+    - The hot matcher path uses fixed generated/object-literal key-order checks and straight-line placeholder extraction; any mismatch returns `undefined` and falls back.
+  - Verification:
+    - Subagent side worktree: `pnpm install --offline --ignore-scripts`.
+    - Subagent side worktree: `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Subagent side worktree: `pnpm --filter @prisma/client... build` twice.
+    - Subagent side worktree: `git diff --check`.
+    - Main worktree after cherry-pick: `CLIENT_ENGINE_CACHE_TIMING_FILTER="generated client" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Evidence:
+    - Subagent 200k findUnique: request precomputed 3.63 us/op, static matcher 3.33, exact helper 3.12.
+    - Subagent 200k findMany users: request precomputed 2.64 us/op, static matcher 2.53, exact helper 2.46.
+    - Subagent 100k batch-only repeat: request precomputed 11.40 us/op, static matcher 8.77, exact helper 8.50, with one `queryRaw` per pair and `precomputedBatchHits=200000`.
+    - Main 100k same-run verification: findUnique request/static/exact = 3.78 / 3.66 / 3.54 us/op; batched findUnique = 9.56 / 8.45 / 8.71; findMany users = 2.95 / 2.86 / 2.86.
+  - Decision: keep as benchmark evidence and product lead. The exact emitted-style helper consistently beats request-precomputed on the flat shapes, but static-helper comparison is mixed/noisy, so this is not yet a broad runtime win.
+  - Follow-up lead:
+    - Productize as generator-emitted, descriptor-bound, CSP-safe helper factories behind a tiny allowlist/internal config, not as a generic descriptor-derived registry.
+    - Add oracle/fallback tests proving key-order mismatch, extra keys, shape mismatch, placeholder naming/order, and batch behavior fall back or match slow-path semantics.
+    - Run Workerd verification for the exact helper rows before considering product code.
+
 ## Useful Commands
 
 ```sh
