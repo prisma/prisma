@@ -1,5 +1,5 @@
 import type { Context } from '@opentelemetry/api'
-import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import type { DescriptorBoundMatcherRegistry, GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
 import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
@@ -342,6 +342,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _engine: Engine
     _enginePrecomputedFastPath: boolean
     _requestPrecomputedFastPath: boolean
+    _descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
@@ -382,6 +383,7 @@ constructor() {
       this._previewFeatures = config.previewFeatures
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._descriptorMatcherRegistry = config.descriptorMatcherRegistry
       this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper()
 

@@ -1,4 +1,5 @@
 import * as DMMF from '@prisma/dmmf'
+import type { DescriptorBoundMatcher, DescriptorBoundMatcherRegistry } from '@prisma/client-common'
 import type { O } from 'ts-toolbelt'
 
 import { type Client, type InternalRequestParams } from '../../getPrismaClient'
@@ -32,6 +33,7 @@ type LazyDescriptor = {
   root: LazyDescriptorNode
   precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit
   precomputedBatchId?: string
+  exactMatcher?: DescriptorBoundMatcher
 }
 
 type LazyDescriptorExtraction = {
@@ -370,7 +372,15 @@ function tryEnginePrecomputedFastPath({
     })
     .then(({ response, precomputedQueryPlanCacheHit }) => {
       if (precomputedQueryPlanCacheHit !== undefined) {
-        const learned = buildLazyDescriptor(args, query, precomputedQueryPlanCacheHit)
+        const learned = buildLazyDescriptor({
+          args,
+          protocolQuery: query,
+          precomputedQueryPlanCacheHit,
+          matcherRegistry: client._descriptorMatcherRegistry,
+          model,
+          action,
+          clientMethod,
+        })
         if (learned !== undefined) {
           rememberDescriptor(learned)
         }
@@ -431,7 +441,15 @@ function tryRequestPrecomputedFastPath({
     query,
   )
   if (precomputedQueryPlanCacheHit !== undefined) {
-    const learned = buildLazyDescriptor(args, query, precomputedQueryPlanCacheHit)
+    const learned = buildLazyDescriptor({
+      args,
+      protocolQuery: query,
+      precomputedQueryPlanCacheHit,
+      matcherRegistry: client._descriptorMatcherRegistry,
+      model,
+      action,
+      clientMethod,
+    })
     if (learned !== undefined) {
       rememberDescriptor(learned)
     }
@@ -520,11 +538,23 @@ function requestWithPrecomputedQueryPlanCacheHit({
   })
 }
 
-function buildLazyDescriptor(
-  args: unknown,
-  protocolQuery: LazyDescriptor['protocolQuery'],
-  precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
-): LazyDescriptor | undefined {
+function buildLazyDescriptor({
+  args,
+  protocolQuery,
+  precomputedQueryPlanCacheHit,
+  matcherRegistry,
+  model,
+  action,
+  clientMethod,
+}: {
+  args: unknown
+  protocolQuery: LazyDescriptor['protocolQuery']
+  precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit
+  matcherRegistry: DescriptorBoundMatcherRegistry | undefined
+  model: string
+  action: Action
+  clientMethod: string
+}): LazyDescriptor | undefined {
   const placeholdersByValue = new Map<string, string>()
   for (const [name, value] of Object.entries(precomputedQueryPlanCacheHit.placeholderValues)) {
     const key = lazyDescriptorValueKey(value)
@@ -545,6 +575,25 @@ function buildLazyDescriptor(
     !hasSamePlaceholders(extraction.placeholderValues, precomputedQueryPlanCacheHit.placeholderValues)
   ) {
     return undefined
+  }
+
+  const exactMatcher = matcherRegistry?.getMatcher({
+    model,
+    action,
+    clientMethod,
+    args,
+    protocolQuery,
+    descriptor,
+    precomputedQueryPlanCacheHit,
+  })
+  if (exactMatcher !== undefined) {
+    const exactPlaceholderValues = exactMatcher(args)
+    if (
+      exactPlaceholderValues !== undefined &&
+      hasSamePlaceholdersInOrder(exactPlaceholderValues, precomputedQueryPlanCacheHit.placeholderValues)
+    ) {
+      descriptor.exactMatcher = exactMatcher
+    }
   }
 
   return descriptor
@@ -581,6 +630,14 @@ function buildLazyDescriptorNode(value: unknown, placeholdersByValue: Map<string
 }
 
 function tryExtractLazyDescriptor(descriptor: LazyDescriptor, args: unknown): PrecomputedQueryPlanCacheHit | undefined {
+  const exactPlaceholderValues = descriptor.exactMatcher?.(args)
+  if (exactPlaceholderValues !== undefined) {
+    return {
+      ...descriptor.precomputedQueryPlanCacheHit,
+      placeholderValues: exactPlaceholderValues,
+    }
+  }
+
   const placeholderValues: Record<string, unknown> = {}
   if (!matchesLazyDescriptorNode(descriptor.root, args, placeholderValues)) {
     return undefined
@@ -752,6 +809,23 @@ function hasSamePlaceholders(extracted: Record<string, unknown>, expected: Recor
 
   for (const key of expectedKeys) {
     if (!Object.is(extracted[key], expected[key])) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function hasSamePlaceholdersInOrder(extracted: Record<string, unknown>, expected: Record<string, unknown>): boolean {
+  const expectedKeys = Object.keys(expected)
+  const extractedKeys = Object.keys(extracted)
+  if (extractedKeys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (let i = 0; i < expectedKeys.length; i++) {
+    const key = expectedKeys[i]
+    if (extractedKeys[i] !== key || !Object.is(extracted[key], expected[key])) {
       return false
     }
   }

@@ -4,6 +4,7 @@ import path from 'node:path'
 import { performance } from 'node:perf_hooks'
 
 import {
+  type DescriptorBoundMatcherRegistry,
   dmmfToRuntimeDataModel,
   type QueryCompiler,
   type QueryCompilerConstructor,
@@ -916,6 +917,222 @@ function tryExtractGeneratedBlogPostPageDescriptor(
   }
 }
 
+function createBenchmarkDescriptorBoundMatcherRegistry(): DescriptorBoundMatcherRegistry {
+  return {
+    getMatcher(context) {
+      const expectedPlaceholders = context.precomputedQueryPlanCacheHit.placeholderValues
+
+      if (context.model === 'User' && context.action === 'findUnique' && context.clientMethod === 'user.findUnique') {
+        return (args) => matchGeneratedUserFindUnique(args, expectedPlaceholders)
+      }
+
+      if (context.model === 'User' && context.action === 'findMany' && context.clientMethod === 'user.findMany') {
+        return (args) => matchGeneratedUserFindMany(args, expectedPlaceholders)
+      }
+
+      if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
+        return (args) => matchGeneratedBlogPostPage(args, expectedPlaceholders)
+      }
+
+      return undefined
+    },
+  }
+}
+
+function matchGeneratedUserFindUnique(
+  args: unknown,
+  expectedPlaceholders: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasExactOwnEnumerableKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactOwnEnumerableKeys(where, ['id']) || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  if (!matchesTrueSelection(args.select, ['id', 'email', 'name'])) {
+    return undefined
+  }
+
+  return singlePlaceholderValues(expectedPlaceholders, where.id)
+}
+
+function matchGeneratedUserFindMany(
+  args: unknown,
+  expectedPlaceholders: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasExactOwnEnumerableKeys(args, ['take', 'select']) || args.take !== 10) {
+    return undefined
+  }
+
+  if (!matchesTrueSelection(args.select, ['id', 'email', 'name'])) {
+    return undefined
+  }
+
+  return constantPlaceholderValues(expectedPlaceholders)
+}
+
+function matchGeneratedBlogPostPage(
+  args: unknown,
+  expectedPlaceholders: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasExactOwnEnumerableKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactOwnEnumerableKeys(where, ['id']) || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactOwnEnumerableKeys(select, BLOG_PAGE_ROOT_SELECT_KEYS)) {
+    return undefined
+  }
+
+  for (const field of BLOG_PAGE_ROOT_SCALAR_FIELDS) {
+    if (select[field] !== true) {
+      return undefined
+    }
+  }
+
+  if (
+    !matchesSelectionWrapper(select.author, BLOG_PAGE_USER_SELECT_KEYS) ||
+    !matchesSelectionWrapper(select.category, BLOG_PAGE_SLUG_SELECT_KEYS) ||
+    !matchesBlogPageTagsSelectionFast(select.tags) ||
+    !matchesBlogPageCommentsSelectionFast(select.comments) ||
+    !matchesSelectionWrapper(select._count, BLOG_PAGE_COUNT_SELECT_KEYS)
+  ) {
+    return undefined
+  }
+
+  return singlePlaceholderValues(expectedPlaceholders, where.id)
+}
+
+function matchesBlogPageTagsSelectionFast(value: unknown): boolean {
+  if (!isDescriptorRecord(value) || !hasExactOwnEnumerableKeys(value, ['select'])) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactOwnEnumerableKeys(select, ['tag'])) {
+    return false
+  }
+
+  return matchesSelectionWrapper(select.tag, BLOG_PAGE_SLUG_SELECT_KEYS)
+}
+
+function matchesBlogPageCommentsSelectionFast(value: unknown): boolean {
+  if (
+    !isDescriptorRecord(value) ||
+    !hasExactOwnEnumerableKeys(value, ['take', 'orderBy', 'select']) ||
+    value.take !== 10
+  ) {
+    return false
+  }
+
+  const orderBy = value.orderBy
+  if (!Array.isArray(orderBy) || orderBy.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = orderBy[0]
+  if (
+    !isDescriptorRecord(firstOrderBy) ||
+    !hasExactOwnEnumerableKeys(firstOrderBy, ['createdAt']) ||
+    firstOrderBy.createdAt !== 'desc'
+  ) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasExactOwnEnumerableKeys(select, BLOG_PAGE_COMMENT_SELECT_KEYS)) {
+    return false
+  }
+
+  return (
+    select.id === true &&
+    select.content === true &&
+    select.createdAt === true &&
+    matchesSelectionWrapper(select.author, BLOG_PAGE_USER_SELECT_KEYS)
+  )
+}
+
+function matchesSelectionWrapper(value: unknown, keys: readonly string[]): boolean {
+  if (!isDescriptorRecord(value) || !hasExactOwnEnumerableKeys(value, ['select'])) {
+    return false
+  }
+
+  return matchesTrueSelection(value.select, keys)
+}
+
+function matchesTrueSelection(value: unknown, keys: readonly string[]): boolean {
+  if (!isDescriptorRecord(value) || !hasExactOwnEnumerableKeys(value, keys)) {
+    return false
+  }
+
+  for (const key of keys) {
+    if (value[key] !== true) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function singlePlaceholderValues(
+  expectedPlaceholders: Record<string, unknown>,
+  value: unknown,
+): Record<string, unknown> | undefined {
+  const keys = Object.keys(expectedPlaceholders)
+  if (keys.length !== 1) {
+    return keys.length === 0 ? {} : undefined
+  }
+
+  return { [keys[0]]: value }
+}
+
+function constantPlaceholderValues(expectedPlaceholders: Record<string, unknown>): Record<string, unknown> {
+  const keys = Object.keys(expectedPlaceholders)
+  if (keys.length === 0) {
+    return {}
+  }
+
+  const values: Record<string, unknown> = {}
+  for (const key of keys) {
+    values[key] = expectedPlaceholders[key]
+  }
+  return values
+}
+
+function hasExactOwnEnumerableKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
+  const keys = Object.keys(value)
+  if (keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  let keysMatchInOrder = true
+  for (let i = 0; i < expectedKeys.length; i++) {
+    if (keys[i] !== expectedKeys[i]) {
+      keysMatchInOrder = false
+      break
+    }
+  }
+  if (keysMatchInOrder) {
+    return true
+  }
+
+  for (const key of expectedKeys) {
+    if (!Object.hasOwn(value, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
 function buildLazyStaticDescriptor(
   args: Record<string, unknown>,
   cacheKey: string,
@@ -1363,8 +1580,10 @@ async function measureGeneratedClientScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   scenario: GeneratedClientScenario,
   precomputedFastPath?: 'engine' | 'request',
+  descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry,
 ): Promise<DirectPlanMeasurement> {
   const usesPrecomputedFastPath = precomputedFastPath !== undefined
+  const usesInternalOptions = usesPrecomputedFastPath || descriptorMatcherRegistry !== undefined
   const counts: Counts = {
     compile: 0,
     compileBatch: 0,
@@ -1388,10 +1607,17 @@ async function measureGeneratedClientScenario(
     adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     errorFormat: 'minimal',
     queryPlanCacheMaxSize: 100,
-    __internal: usesPrecomputedFastPath
+    __internal: usesInternalOptions
       ? {
           enginePrecomputedFastPath: precomputedFastPath === 'engine',
           requestPrecomputedFastPath: precomputedFastPath === 'request',
+          configOverride:
+            descriptorMatcherRegistry === undefined
+              ? undefined
+              : (config) => ({
+                  ...config,
+                  descriptorMatcherRegistry,
+                }),
         }
       : undefined,
   }) as any
@@ -5738,6 +5964,20 @@ async function main(): Promise<void> {
       continue
     }
     printDirectPlanMeasurement(await measureGeneratedClientScenario(baseConfig, measuredScenario, 'request'))
+  }
+
+  const descriptorBoundMatcherRegistry = createBenchmarkDescriptorBoundMatcherRegistry()
+  for (const scenario of generatedClientScenarios) {
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client descriptor-bound static matcher'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureGeneratedClientScenario(baseConfig, measuredScenario, 'request', descriptorBoundMatcherRegistry),
+    )
   }
 
   const QueryCompilerClass = await loadQueryCompiler('sqlite')

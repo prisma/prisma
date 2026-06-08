@@ -856,6 +856,8 @@ function tryExtractStaticDescriptor(scenario, args, cacheKey) {
   switch (scenario) {
     case 'find-unique':
       return tryExtractFindUniqueDescriptor(args, cacheKey)
+    case 'find-many-users':
+      return tryExtractFindManyUsersDescriptor(args, cacheKey)
     case 'blog-page':
     case 'blog-page-by-id':
       return tryExtractBlogPostPageDescriptor(args, cacheKey)
@@ -884,6 +886,23 @@ function tryExtractFindUniqueDescriptor(args, cacheKey) {
   }
 
   return { cacheKey, placeholderValues: { '%1': where.id } }
+}
+
+function tryExtractFindManyUsersDescriptor(args, cacheKey) {
+  if (!hasExactKeys(args, ['take', 'select']) || args.take !== 10) {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, ['id', 'email', 'name'])) {
+    return undefined
+  }
+
+  if (select.id !== true || select.email !== true || select.name !== true) {
+    return undefined
+  }
+
+  return { cacheKey, placeholderValues: {} }
 }
 
 function tryExtractBlogPostPageDescriptor(args, cacheKey) {
@@ -918,6 +937,26 @@ function tryExtractBlogPostPageDescriptor(args, cacheKey) {
   }
 
   return { cacheKey, placeholderValues: { '%1': where.id } }
+}
+
+function createDescriptorMatcherRegistry() {
+  return {
+    getMatcher(context) {
+      let scenario
+      if (context.model === 'User' && context.action === 'findUnique' && context.clientMethod === 'user.findUnique') {
+        scenario = 'find-unique'
+      } else if (context.model === 'User' && context.action === 'findMany' && context.clientMethod === 'user.findMany') {
+        scenario = 'find-many-users'
+      } else if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
+        scenario = 'blog-page-by-id'
+      } else {
+        return undefined
+      }
+
+      const cacheKey = context.precomputedQueryPlanCacheHit.cacheKey
+      return (args) => tryExtractStaticDescriptor(scenario, args, cacheKey)?.placeholderValues
+    },
+  }
 }
 
 function matchesBlogPageTagsSelection(value) {
@@ -1605,6 +1644,7 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
 
 async function runClientExecuteScenario(scenario, iterations, retain, precomputedFastPath) {
   const usesPrecomputedFastPath = precomputedFastPath !== undefined
+  const usesDescriptorMatcher = precomputedFastPath === 'descriptor-bound'
   const Client = getPrismaClientConstructor()
   const client = new Client({
     adapter: createAdapterFactory(),
@@ -1612,7 +1652,13 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
     __internal: usesPrecomputedFastPath
       ? {
           enginePrecomputedFastPath: precomputedFastPath === 'engine',
-          requestPrecomputedFastPath: precomputedFastPath === 'request',
+          requestPrecomputedFastPath: precomputedFastPath !== 'engine',
+          configOverride: usesDescriptorMatcher
+            ? (config) => ({
+                ...config,
+                descriptorMatcherRegistry: createDescriptorMatcherRegistry(),
+              })
+            : undefined,
         }
       : undefined,
   })
@@ -1673,7 +1719,9 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
           ? 'client-execute-engine-precomputed-fast-path'
           : precomputedFastPath === 'request'
             ? 'client-execute-request-precomputed-fast-path'
-            : 'client-execute',
+            : precomputedFastPath === 'descriptor-bound'
+              ? 'client-execute-request-precomputed-descriptor-bound-matcher'
+              : 'client-execute',
       iterations,
       retain,
       initMs: performance.now() - startInit - elapsedMs,
@@ -1723,6 +1771,8 @@ export default {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'engine')
       } else if (mode === 'client-execute-request-precomputed-fast-path') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'request')
+      } else if (mode === 'client-execute-request-precomputed-descriptor-bound-matcher') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'descriptor-bound')
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -2148,6 +2198,17 @@ async function run(): Promise<void> {
     printMeasurement(
       await dispatchRun(
         clientMf,
+        'generated client descriptor-bound static matcher findUnique warmed cache',
+        'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
         'generated client findMany users warmed cache',
         'find-many-users',
         GENERATED_FIND_UNIQUE_ITERATIONS,
@@ -2175,6 +2236,17 @@ async function run(): Promise<void> {
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client descriptor-bound static matcher findMany users warmed cache',
+        'find-many-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
       ),
     )
     console.log('')
@@ -2214,6 +2286,17 @@ async function run(): Promise<void> {
     printMeasurement(
       await dispatchRun(
         clientMf,
+        'generated client descriptor-bound static matcher batched findUnique warmed cache',
+        'find-unique-batched',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
         'generated client blog-page warmed cache',
         'blog-page-by-id',
         GENERATED_BLOG_PAGE_ITERATIONS,
@@ -2241,6 +2324,17 @@ async function run(): Promise<void> {
         GENERATED_BLOG_PAGE_ITERATIONS,
         true,
         'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client descriptor-bound static matcher blog-page warmed cache',
+        'blog-page-by-id',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
       ),
     )
   } finally {
