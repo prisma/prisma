@@ -9703,6 +9703,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Do not add another "assembly" wrapper that still returns child `records` arrays and calls existing attach helpers.
     - The next attempt should mutate final owner objects while relation phases resolve, or move to a compiler-emitted plan shape that avoids materializing child result records purely for attachment.
 
+- Rejected refreshed engines spike: SQL-builder direct `left_scalars().as_columns()` join columns.
+  - Timestamp: 2026-06-08.
+  - Engines base: `e98dd7b4193 Avoid raw nested column index maps`.
+  - Side worktree: `/home/aqrln.guest/prisma-engines-relation-scalar-helper-current`, branch `relation-scalar-helper-current`.
+  - Prototype:
+    - Replayed Raman's tiny SQL-builder patch on current engines main.
+    - In `sql-query-builder/src/model_extensions/relation.rs`, changed non-M:N `join_columns()` from `ModelProjection::from(self.linking_fields()).as_columns(ctx)` to `self.left_scalars().as_columns(ctx)`.
+    - In `sql-query-builder/src/join_utils.rs` and `src/select/mod.rs`, replaced child-side `ModelProjection::from(...linking_fields()).as_columns(ctx)` and scalar helper unwraps with direct `left_scalars()`.
+  - Verification:
+    - Side worktree: `cargo fmt --check`.
+    - Side worktree: `cargo check -p sql-query-builder -p query-compiler`.
+    - Side worktree and main control: `ALLOC_PROFILE_QUERIES='nested-pagination-join,nested-distinct-join,query-o2m-lateral,query-m2o-lateral,aggregate-join' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - Side worktree, main control, and reverse side worktree: `cargo bench -p query-compiler --bench compilation_bench -- "nested-pagination-join|nested-distinct-join|query-o2m-lateral|query-m2o-lateral|aggregate-join"`.
+  - Evidence:
+    - Allocation profile saved 6 `translate_ir` / `full_compile` allocations and about 0.9 KiB/op on nested-pagination-join, nested-distinct-join, query-o2m-lateral, and query-m2o-lateral; aggregate-join was unchanged.
+    - First adjacent Criterion was noisy after release build, but main control was faster on every row: for example nested-pagination-join 34.26 us/op main vs 35.25 patched, query-m2o-lateral 31.29 main vs 32.28 patched, query-o2m-lateral 34.93 main vs 36.23 patched.
+    - Reverse patched run stayed mixed and regressed important targets: nested-pagination-join 36.23 us/op, query-m2o-lateral 37.01, query-o2m-lateral 40.72. Aggregate rows improved, but those are not enough to justify the detour.
+  - Decision: reject and remove. The allocation win is too small and timing is not neutral-to-positive on the target join/lateral rows.
+  - Follow-up lead:
+    - Keep the broader accepted `ModelProjection::as_columns()` cleanup (`a05eab3fec2`) because it preserved SQL-builder relation paths and had stronger timing evidence.
+    - Do not revisit direct `left_scalars().as_columns()` SQL-builder detours unless a different shape can prove CPU wins on current Criterion.
+
 ## Useful Commands
 
 ```sh
