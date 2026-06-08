@@ -34,6 +34,11 @@ type LazyDescriptor = {
   precomputedBatchId?: string
 }
 
+type LazyDescriptorExtraction = {
+  descriptor: LazyDescriptor
+  precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit
+}
+
 type LazyDescriptorNode =
   | { kind: 'constant'; value: unknown }
   | { kind: 'placeholder'; name: string; valueType: string }
@@ -70,6 +75,7 @@ const fluentProps = [
 ] as const
 const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 const requestHandlerPrecomputedCachedResultProps = ['findMany', 'findFirst', 'findFirstOrThrow'] as const
+const maxLazyDescriptors = 2
 
 /**
  * Dynamically creates a model interface via a proxy.
@@ -114,7 +120,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
-      let descriptor: LazyDescriptor | undefined
+      let descriptors: LazyDescriptor[] | undefined
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         return client._createPrismaPromise(
           (transaction) => {
@@ -125,9 +131,9 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 action: dmmfActionName,
                 model: dmmfModelName,
                 clientMethod,
-                descriptor,
-                setDescriptor: (nextDescriptor) => {
-                  descriptor = nextDescriptor
+                descriptors,
+                rememberDescriptor: (nextDescriptor) => {
+                  descriptors = rememberLazyDescriptor(descriptors, nextDescriptor)
                 },
               })
 
@@ -146,7 +152,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 model: dmmfModelName,
                 clientMethod,
                 paramOverrides,
-                descriptor,
+                descriptors,
               })
 
               if (fastPath !== undefined) {
@@ -162,9 +168,9 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 model: dmmfModelName,
                 clientMethod,
                 paramOverrides,
-                descriptor,
-                setDescriptor: (nextDescriptor) => {
-                  descriptor = nextDescriptor
+                descriptors,
+                rememberDescriptor: (nextDescriptor) => {
+                  descriptors = rememberLazyDescriptor(descriptors, nextDescriptor)
                 },
               })
 
@@ -310,34 +316,33 @@ function tryEnginePrecomputedFastPath({
   action,
   model,
   clientMethod,
-  descriptor,
-  setDescriptor,
+  descriptors,
+  rememberDescriptor,
 }: {
   client: Client
   args: unknown
   action: Action
   model: string
   clientMethod: string
-  descriptor: LazyDescriptor | undefined
-  setDescriptor: (descriptor: LazyDescriptor) => void
+  descriptors: LazyDescriptor[] | undefined
+  rememberDescriptor: (descriptor: LazyDescriptor) => void
 }): Promise<unknown> | undefined {
-  if (descriptor !== undefined) {
-    const extraction = tryExtractLazyDescriptor(descriptor, args)
-    if (extraction !== undefined) {
-      const engine = client._engine as EngineWithPrecomputed
-      if (engine.requestPrecomputedCachedResult !== undefined) {
-        return engine.requestPrecomputedCachedResult(descriptor.protocolQuery, extraction, {
-          isWrite: isWrite(descriptor.protocolQuery.action),
-        })
-      }
-
-      return client._engine
-        .request<Record<string, unknown>>(descriptor.protocolQuery, {
-          isWrite: isWrite(descriptor.protocolQuery.action),
-          precomputedQueryPlanCacheHit: extraction,
-        })
-        .then((response) => response.data[descriptor.protocolQuery.action])
+  const extraction = tryExtractLazyDescriptors(descriptors, args)
+  if (extraction !== undefined) {
+    const { descriptor, precomputedQueryPlanCacheHit } = extraction
+    const engine = client._engine as EngineWithPrecomputed
+    if (engine.requestPrecomputedCachedResult !== undefined) {
+      return engine.requestPrecomputedCachedResult(descriptor.protocolQuery, precomputedQueryPlanCacheHit, {
+        isWrite: isWrite(descriptor.protocolQuery.action),
+      })
     }
+
+    return client._engine
+      .request<Record<string, unknown>>(descriptor.protocolQuery, {
+        isWrite: isWrite(descriptor.protocolQuery.action),
+        precomputedQueryPlanCacheHit,
+      })
+      .then((response) => response.data[descriptor.protocolQuery.action])
   }
 
   const query = serializeJsonQuery({
@@ -367,7 +372,7 @@ function tryEnginePrecomputedFastPath({
       if (precomputedQueryPlanCacheHit !== undefined) {
         const learned = buildLazyDescriptor(args, query, precomputedQueryPlanCacheHit)
         if (learned !== undefined) {
-          setDescriptor(learned)
+          rememberDescriptor(learned)
         }
       }
 
@@ -382,8 +387,8 @@ function tryRequestPrecomputedFastPath({
   model,
   clientMethod,
   paramOverrides,
-  descriptor,
-  setDescriptor,
+  descriptors,
+  rememberDescriptor,
 }: {
   client: Client
   args: unknown
@@ -391,24 +396,23 @@ function tryRequestPrecomputedFastPath({
   model: string
   clientMethod: string
   paramOverrides: O.Optional<InternalRequestParams>
-  descriptor: LazyDescriptor | undefined
-  setDescriptor: (descriptor: LazyDescriptor) => void
+  descriptors: LazyDescriptor[] | undefined
+  rememberDescriptor: (descriptor: LazyDescriptor) => void
 }): Promise<unknown> | undefined {
-  if (descriptor !== undefined) {
-    const extraction = tryExtractLazyDescriptor(descriptor, args)
-    if (extraction !== undefined) {
-      return requestWithPrecomputedQueryPlanCacheHit({
-        client,
-        args,
-        action,
-        model,
-        clientMethod,
-        paramOverrides,
-        protocolQuery: descriptor.protocolQuery,
-        precomputedQueryPlanCacheHit: extraction,
-        precomputedBatchId: descriptor.precomputedBatchId,
-      })
-    }
+  const extraction = tryExtractLazyDescriptors(descriptors, args)
+  if (extraction !== undefined) {
+    const { descriptor, precomputedQueryPlanCacheHit } = extraction
+    return requestWithPrecomputedQueryPlanCacheHit({
+      client,
+      args,
+      action,
+      model,
+      clientMethod,
+      paramOverrides,
+      protocolQuery: descriptor.protocolQuery,
+      precomputedQueryPlanCacheHit,
+      precomputedBatchId: descriptor.precomputedBatchId,
+    })
   }
 
   const query = serializeJsonQuery({
@@ -429,7 +433,7 @@ function tryRequestPrecomputedFastPath({
   if (precomputedQueryPlanCacheHit !== undefined) {
     const learned = buildLazyDescriptor(args, query, precomputedQueryPlanCacheHit)
     if (learned !== undefined) {
-      setDescriptor(learned)
+      rememberDescriptor(learned)
     }
   }
 
@@ -452,7 +456,7 @@ function tryRequestHandlerPrecomputedCachedResultFastPath({
   model,
   clientMethod,
   paramOverrides,
-  descriptor,
+  descriptors,
 }: {
   client: Client
   args: unknown
@@ -460,16 +464,13 @@ function tryRequestHandlerPrecomputedCachedResultFastPath({
   model: string
   clientMethod: string
   paramOverrides: O.Optional<InternalRequestParams>
-  descriptor: LazyDescriptor | undefined
+  descriptors: LazyDescriptor[] | undefined
 }): Promise<unknown> | undefined {
-  if (descriptor === undefined) {
-    return undefined
-  }
-
-  const extraction = tryExtractLazyDescriptor(descriptor, args)
+  const extraction = tryExtractLazyDescriptors(descriptors, args)
   if (extraction === undefined) {
     return undefined
   }
+  const { descriptor, precomputedQueryPlanCacheHit } = extraction
 
   return client._requestHandler.requestPrecomputedCachedResult({
     args: args as UserArgs,
@@ -480,7 +481,7 @@ function tryRequestHandlerPrecomputedCachedResultFastPath({
     extensions: client._extensions,
     callsite: 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat),
     protocolQuery: descriptor.protocolQuery,
-    precomputedQueryPlanCacheHit: extraction,
+    precomputedQueryPlanCacheHit,
   })
 }
 
@@ -634,6 +635,68 @@ function matchesLazyDescriptorNode(
       }
       return true
   }
+}
+
+function tryExtractLazyDescriptors(
+  descriptors: LazyDescriptor[] | undefined,
+  args: unknown,
+): LazyDescriptorExtraction | undefined {
+  if (descriptors === undefined) {
+    return undefined
+  }
+
+  for (let i = 0; i < descriptors.length; i++) {
+    const descriptor = descriptors[i]
+    const precomputedQueryPlanCacheHit = tryExtractLazyDescriptor(descriptor, args)
+    if (precomputedQueryPlanCacheHit !== undefined) {
+      promoteLazyDescriptor(descriptors, i)
+      return { descriptor, precomputedQueryPlanCacheHit }
+    }
+  }
+
+  return undefined
+}
+
+function rememberLazyDescriptor(
+  descriptors: LazyDescriptor[] | undefined,
+  descriptor: LazyDescriptor,
+): LazyDescriptor[] {
+  if (descriptors === undefined) {
+    return [descriptor]
+  }
+
+  const cacheKey = descriptor.precomputedQueryPlanCacheHit.cacheKey
+  for (let i = 0; i < descriptors.length; i++) {
+    if (descriptors[i].precomputedQueryPlanCacheHit.cacheKey === cacheKey) {
+      descriptors[i] = descriptor
+      promoteLazyDescriptor(descriptors, i)
+      return descriptors
+    }
+  }
+
+  if (descriptors.length < maxLazyDescriptors) {
+    descriptors.push(descriptor)
+    promoteLazyDescriptor(descriptors, descriptors.length - 1)
+    return descriptors
+  }
+
+  for (let i = descriptors.length - 1; i > 0; i--) {
+    descriptors[i] = descriptors[i - 1]
+  }
+  descriptors[0] = descriptor
+  return descriptors
+}
+
+function promoteLazyDescriptor(descriptors: LazyDescriptor[], index: number): void {
+  if (index === 0) {
+    return
+  }
+
+  const descriptor = descriptors[index]
+  for (let i = index; i > 0; i--) {
+    descriptors[i] = descriptors[i - 1]
+  }
+  descriptors[0] = descriptor
 }
 
 function lazyDescriptorValueKey(value: unknown): string | undefined {

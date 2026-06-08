@@ -788,15 +788,52 @@ function createGeneratedFindManyUsersArgs(): Record<string, unknown> {
 }
 
 function createGeneratedBlogPostPageArgs(iteration: number): Record<string, unknown> {
-  return {
-    where: { id: iteration + 1 },
+  return createGeneratedBlogPostPageRootMaskArgs((1 << BLOG_PAGE_ROOT_SCALAR_FIELDS.length) - 1, iteration)
+}
+
+function createGeneratedBlogPostPageRootMaskArgs(mask: number, iteration: number): Record<string, unknown> {
+  const select: Record<string, unknown> = {}
+  for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
+    if ((mask & (1 << i)) !== 0) {
+      select[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]] = true
+    }
+  }
+
+  if (Object.keys(select).length === 0) {
+    select.id = true
+  }
+
+  select.author = {
     select: {
       id: true,
-      title: true,
+      name: true,
+      avatar: true,
+    },
+  }
+  select.category = {
+    select: {
+      id: true,
+      name: true,
       slug: true,
+    },
+  }
+  select.tags = {
+    select: {
+      tag: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  }
+  select.comments = {
+    take: 10,
+    orderBy: [{ createdAt: 'desc' }],
+    select: {
+      id: true,
       content: true,
-      published: true,
-      viewCount: true,
       createdAt: true,
       author: {
         select: {
@@ -805,47 +842,18 @@ function createGeneratedBlogPostPageArgs(iteration: number): Record<string, unkn
           avatar: true,
         },
       },
-      category: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-      },
-      comments: {
-        take: 10,
-        orderBy: [{ createdAt: 'desc' }],
-        select: {
-          id: true,
-          content: true,
-          createdAt: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-            },
-          },
-        },
-      },
-      _count: {
-        select: {
-          likes: true,
-          comments: true,
-        },
-      },
     },
+  }
+  select._count = {
+    select: {
+      likes: true,
+      comments: true,
+    },
+  }
+
+  return {
+    where: { id: iteration + 1 },
+    select,
   }
 }
 
@@ -5469,6 +5477,16 @@ async function main(): Promise<void> {
       query: createBlogPostPageQuery(1),
       adapterFactory: createBlogPageAdapterFactory,
       operation: (client, iteration) => client.post.findUnique(createGeneratedBlogPostPageArgs(iteration)),
+    },
+    {
+      name: 'generated client blog page / 2 alternating nested row shapes warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createBlogPostPageQuery(1),
+      adapterFactory: createBlogPageAdapterFactory,
+      operation: (client, iteration) =>
+        client.post.findUnique(
+          createGeneratedBlogPostPageRootMaskArgs(iteration % 2 === 0 ? 0b1111111 : 0b0000011, iteration),
+        ),
     },
   ]
   const generatedClientSerializeScenarios: GeneratedClientSerializeScenario[] = [

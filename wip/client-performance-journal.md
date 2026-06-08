@@ -9355,6 +9355,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - No mainline runtime code yet. The next worthy product proof is a guarded internal registry plus oracle tests, not another benchmark-only global factory or generator-time per-action probe.
 
+- Accepted optimization: cache two learned lazy descriptors per model action.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-descriptor-cache-spike`, commit `7a1cf9ff7 Cache multiple learned query descriptors`.
+  - Context:
+    - The current generated-client model action closure retained one learned lazy descriptor. Alternating two hot shapes for the same model/action repeatedly failed descriptor extraction, fell back through `serializeJsonQuery()` / `getPrecomputedQueryPlanCacheHit()`, then replaced the descriptor with the other shape.
+    - This is a productization blocker for runtime-derived descriptors: multiple common callsite shapes should not thrash, but descriptor retention still needs a hard cap for Worker memory.
+  - Change:
+    - Replaced the single `LazyDescriptor | undefined` closure slot in `packages/client/src/runtime/core/model/applyModel.ts` with a tiny MRU descriptor array capped at two entries.
+    - Descriptor extraction now returns both the matching descriptor and its precomputed cache-hit payload. Hits promote the descriptor; learns insert/promote and evict the oldest descriptor once the cap is reached.
+    - `tryEnginePrecomputedFastPath()`, `tryRequestPrecomputedFastPath()`, and `tryRequestHandlerPrecomputedCachedResultFastPath()` all share the same descriptor cache.
+    - Added a benchmark row, `generated client blog page / 2 alternating nested row shapes warmed cache`, that alternates the nested blog-page `post.findUnique` selection between two root scalar masks while keeping the nested relation shape and adapter rows fixed.
+  - Baseline before runtime patch, after adding the benchmark row:
+    - `generated client blog page / nested rows warmed cache`: 11.97 us/op, `queryRaw=700000`, heap delta 548.6 KiB.
+    - `generated client blog page / 2 alternating nested row shapes warmed cache`: 31.77 us/op, `queryRaw=700000`, heap delta 807.0 KiB.
+  - Patched measurements:
+    - `generated client blog page / nested rows warmed cache`: 12.22 us/op, `queryRaw=700000`, heap delta 554.3 KiB.
+    - `generated client blog page / 2 alternating nested row shapes warmed cache`: 12.36 us/op, `queryRaw=700000`, heap delta 606.1 KiB.
+    - `generated client request precomputed fast path blog page / 2 alternating nested row shapes warmed cache`: 12.34 us/op, `precomputedHits=100001`.
+    - `generated client engine precomputed fast path blog page / 2 alternating nested row shapes warmed cache`: 11.44 us/op, `precomputedHits=99999`, `precomputedLearns=1`.
+    - Batched controls: `generated client batched findUnique / warmed cache` at 7.82 us/op with `queryRaw=100000`; explicit request-precomputed batched row at 7.80 us/op with `queryRaw=100000` and `precomputedBatchHits=200000`.
+  - Verification:
+    - `pnpm install --offline --ignore-scripts` in the side worktree.
+    - `pnpm build` in the side worktree after the benchmark row was added.
+    - `pnpm --filter @prisma/client build` after the runtime patch.
+    - Focused `client-engine-cache-timing.ts` rows listed above, using `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`.
+    - `pnpm exec prettier --check packages/client/src/runtime/core/model/applyModel.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - `git diff --check`.
+    - Main checkout sanity after cherry-pick: stable nested row 12.29 us/op, alternating nested row 12.61 us/op.
+  - Decision:
+    - Keep. The capped descriptor cache removes a severe alternating-shape cliff while adding bounded retention and no observed one-shape or batching regression. If this is revisited, keep the cap small and always rerun stable nested, alternating nested, and batched `findUnique` controls.
+
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
   - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
