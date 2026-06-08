@@ -7946,6 +7946,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a large compile allocation and timing win on M:N nested reads and M:N-containing write-return shapes, with neutral controls and unchanged runtime plan schema.
 
+- Accepted experiment: specialize compact raw nested numeric mappings and relation attachers.
+  - Timestamp: 2026-06-08T03:15:00+02:00.
+  - Prisma commit: `79d29b2fa Specialize raw nested numeric mappings`.
+  - Change:
+    - In `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `#compileRawNestedReadQuery()` now compiles a row mapper once per compact raw nested query.
+    - The direct mapper fast path is used only when every mapping has a string field name, numeric column ref, and no field metadata; all named refs, paths, enum/date/scalar conversion metadata, and generic result-format conversion stay on the existing mapper.
+    - `#compileRawNestedReadRelation()` now compiles numeric direct and many-to-many relation closures that capture resolved indexes and scope names. Generic relation paths still resolve column refs at runtime and delegate to the same resolved-index attachment helpers.
+  - Node measurement:
+    - Baseline command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Same-session sequence:
+      - Unpatched baseline before mapper: 6.69 us/op.
+      - Mapper-only patch: 6.66 us/op, too small alone.
+      - Mapper plus relation fast paths: 6.59 us/op.
+      - Reverse unpatched baseline: 6.71 us/op.
+      - Reapplied confirmation: 6.40 us/op.
+    - Broader blog-page filter after patch:
+      - `raw result-set compact node blog page / nested rows`: 6.86 us/op at 20k iterations.
+      - `direct plan blog page / nested rows`: 7.10 us/op.
+      - `local executor blog page / nested rows`: 7.52 us/op.
+      - `generated client blog page / nested rows warmed cache`: 20.77 us/op.
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Generated blog-page warmed cache:
+      - Normal generated client: request loop 18.80 us/op.
+      - Engine precomputed fast path: request loop 10.00 us/op.
+      - Request precomputed fast path: request loop 11.80 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts src/interpreter/data-mapper.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. The win is modest but repeatable on the focused raw compact node row, Workerd did not regress, and the fallback surface remains intact for dynamic column/name/conversion cases.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -7979,19 +8016,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
   - The first two concrete leads from the 2026-06-08 scout are now resolved: `RelationLinkage` SmallVec/sorted-vector storage was rejected, and scalar `selection_order` name movement was accepted.
 
-- Compile specialized raw nested mappers/attachers for numeric no-conversion plans.
-  - Scout lead: compact raw nested nodes are real, but `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` still pays generic tuple mapping, conversion dispatch, relation scope creation, and attachment logic on every request.
-  - Baseline from scout: generated blog page about 21.31 us/op; direct plan 7.42; raw compact node 7.14; render all leaves 1.10; adapter-only 0.93; pure raw assembly 0.53. The remaining gap suggests generic raw-node interpretation is still worth profiling.
-  - Proof shape: compile a per-plan row mapper inside `#compileRawNestedReadQuery()` when every mapping has a string field name, numeric column ref, and no field metadata (`RAW_NESTED_CONVERT_NONE`). Capture `fieldNames[]` and `columnIndexes[]`, then map rows with direct `record[fieldNames[i]] = row[columnIndexes[i]]`.
-  - Also consider resolved-index relation attachers inside `#compileRawNestedReadRelation()` when direct relation refs or many-to-many refs are all numeric, preserving the existing threshold, `Map`, strict key semantics, and `.slice()` behavior.
-  - Do not use `new Function` or generated source strings; plain closures keep the path Workers/workerd-compatible.
-  - Guardrails: V8 closure specialization has regressed before in descriptor work, so require both Node and Workerd proof; preserve relation concurrency, scalar conversion metadata, empty result handling, and existing raw nested tests.
-  - Suggested commands:
-    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
-    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
-    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts data-mapper.test.ts`
-    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`
-    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+- Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
+  - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
+  - Better next proof points: exact-shape object builders for the full blog-page tree, flatter compiler-emitted raw result-set plans, or a plan shape that avoids per-relation child record arrays when the target result shape can be assembled directly.
 
 ## Useful Commands
 
