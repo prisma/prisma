@@ -7983,6 +7983,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The win is modest but repeatable on the focused raw compact node row, Workerd did not regress, and the fallback surface remains intact for dynamic column/name/conversion cases.
 
+- Accepted experiment: collapse compact raw nested direct wrapper assembly.
+  - Timestamp: 2026-06-08T02:25:00+02:00.
+  - Prisma commit: `de6735cbf Optimize raw nested wrapper assembly`.
+  - Change:
+    - In `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, direct raw nested relations now detect the common exact wrapper shape: the child query has no scalar mappings and exactly one unique direct child relation.
+    - The fast path is intentionally numeric-column-only, matching compiler-emitted compact raw nested plans. Named column refs, path mappings, scalar conversion metadata, and other wrapper shapes fall back to the existing generic `n` executor.
+    - The runtime executes the wrapper query and unique child query, then attaches `{ wrapperField: child | null }` objects directly to parent records. It avoids materializing the intermediate wrapper `records` array and the generic direct attach pass for this exact shape.
+    - Added `raw result-set exact compact node` rows to `client-engine-cache-timing.ts` so exact wrapper output can be measured separately from the existing implicit-M:N-style compact-node probe.
+    - Added focused coverage for empty wrapper rows, including the "do not execute unique child query" behavior and non-shared empty relation arrays.
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Reversed runtime baseline with identical benchmark probe: 6.49 us/op.
+    - Patched guarded numeric fast path: 6.25 us/op.
+    - Adjacent context from same run series:
+      - `raw result-set exact prototype blog page / nested rows`: 5.84 us/op.
+      - `raw result-set compact node blog page / nested rows`: 6.90 us/op.
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Generated blog-page warmed cache:
+      - Reversed runtime baseline: normal generated client 17.55 us/op, engine precomputed fast path 9.15 us/op, request precomputed fast path 12.00 us/op.
+      - Patched: normal generated client 17.05 us/op, engine precomputed fast path 9.00 us/op, request precomputed fast path 11.65 us/op.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts`
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. This is a small but repeatable product-shaped win on exact wrapper output, and the new guard keeps dynamic/named-column wrapper plans on the existing executor. It does not close the remaining gap to the exact/raw prototypes; the next raw nested work should still be a larger flat result-set assembler or compiler-emitted plan shape.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
