@@ -9963,6 +9963,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Add generated-output integration tests that instantiate generated JS and TS clients with the internal gate and typecheck emitted TS output.
     - Measure bundle-size impact and keep extensions, global omit, sqlcommenters, raw queries, writes, non-empty data paths, and unpackers excluded until each has explicit parity coverage.
 
+- Rejected productization spike for now: plan-specific raw nested static instruction-array executor.
+  - Timestamp: 2026-06-08.
+  - Subagent: Goodall (`019ea713-7d5c-7303-aab5-fe7be025e458`).
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-static-instruction-array-spike`, branch `raw-nested-static-instruction-array-spike`.
+  - Side commit: `8a8e0988d Spike raw nested static instruction executor`.
+  - Prototype:
+    - Added a guarded runtime path in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` that flattens eligible compact raw nested reads into precompiled nodes, waves, and attach instructions.
+    - The executor issues each wave's DB queries directly, maps rows when the wave resolves, and mutates parent/final owner objects as direct and many-to-many relation phases resolve.
+    - Eligibility stayed conservative: numeric column refs only, string field mappings only, no scalar metadata/conversions, no path mappings, and wrapper-shaped plans on fallback after wrapper support regressed the exact row.
+    - Added single-parent direct and many-to-many attach fast paths to avoid indexed `Map`/slice work for one-root page reads.
+  - Verification from the side worktree:
+    - `pnpm install --offline --ignore-scripts`.
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`.
+    - `pnpm --filter @prisma/client-engine-runtime... build`.
+    - `pnpm --filter @prisma/client... build`.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 25 tests.
+    - `git diff --check`.
+  - Benchmark evidence:
+    - Side 100k raw-result-set full sweep after single-parent attach and direct wave execution: direct assembler 4.02 us/op, static-wave writer lower bound 4.25, compact node 6.88, exact compact node 7.22.
+    - Side 300k focused compact-node run: compact node 6.89 us/op, heapDelta 240.5 KiB; exact compact node 6.93, heapDelta 34.8 KiB.
+    - Read-only current-main 300k focused baseline: compact node 6.31 us/op, heapDelta 217.6 KiB; exact compact node 6.63, heapDelta 14.0 KiB.
+  - Decision: do not land this product patch.
+    - The static instruction-array executor still regressed the current compact-node baseline by about 9% on the target non-exact row and about 5% on exact fallback measurements.
+    - It remains much closer to the existing recursive compact executor than to the benchmark-only static-wave lower bound around 4 us/op.
+    - The useful learning is that plan flattening plus generic row mappers/attach instructions is not enough.
+  - Follow-up lead:
+    - Move the product shape closer to generated writer programs: compile field writes and relation writes into compact opcodes or generated closures that own state slots directly, not generic node/result/record arrays.
+    - Keep wrappers on fallback until their writer shape beats the existing direct unique-wrapper optimization.
+    - Re-run Workerd only after the Node row approaches the static-wave lower bound; this spike was rejected before Workerd verification.
+
 - Rejected productization spike for now: guarded raw nested static schedule runtime path.
   - Timestamp: 2026-06-08.
   - Subagent: Erdos (`019ea6fe-d5bb-7dd1-ab66-ba4549786a2e`).
