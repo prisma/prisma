@@ -4045,6 +4045,195 @@ async function executeRawResultSetBlogPageDirectAssembler(
   }
 }
 
+type BlogPageWriterState = {
+  rootRow: readonly unknown[]
+  rootId: unknown
+  root: Record<string, unknown>
+  postTagRows: readonly unknown[][]
+  tagIds: unknown[]
+  commentAuthorTargets: BlogPageCommentAuthorTarget[]
+  commentAuthorIds: unknown[]
+}
+
+type BlogPageCommentAuthorTarget = {
+  authorId: unknown
+  comment: Record<string, unknown>
+}
+
+type BlogPageWriterPhase = {
+  query: QueryPlanDbQuery
+  scope: (state: BlogPageWriterState) => Record<string, unknown> | undefined
+  write: (state: BlogPageWriterState, resultSet: SqlResultSet) => void
+}
+
+type CompiledBlogPageWriterProgram = {
+  rootQuery: QueryPlanDbQuery
+  writeRoot: (rootRow: readonly unknown[]) => BlogPageWriterState
+  phaseWaves: readonly (readonly BlogPageWriterPhase[])[]
+}
+
+function compileBlogPageWriterProgram(dbQueries: readonly QueryPlanDbQuery[]): CompiledBlogPageWriterProgram {
+  if (dbQueries.length !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  return {
+    rootQuery: dbQueries[0],
+    writeRoot: (rootRow) => {
+      const root = {
+        id: rootRow[0],
+        title: rootRow[1],
+        slug: rootRow[2],
+        content: rootRow[3],
+        published: rootRow[4],
+        viewCount: rootRow[5],
+        createdAt: rootRow[6],
+        author: null,
+        category: null,
+        tags: [] as Record<string, unknown>[],
+        comments: [] as Record<string, unknown>[],
+        _count: {
+          likes: rootRow[9],
+          comments: rootRow[10],
+        },
+      }
+
+      return {
+        rootRow,
+        rootId: rootRow[0],
+        root,
+        postTagRows: [],
+        tagIds: [],
+        commentAuthorTargets: [],
+        commentAuthorIds: [],
+      }
+    },
+    phaseWaves: [
+      [
+        {
+          query: dbQueries[1],
+          scope: (state) => ({ '@parent$authorId': state.rootRow[7] }),
+          write: (state, resultSet) => {
+            state.root.author = mapUserRow(findRowByColumn(resultSet.rows, 0, state.rootRow[7]))
+          },
+        },
+        {
+          query: dbQueries[2],
+          scope: (state) => ({ '@parent$categoryId': state.rootRow[8] }),
+          write: (state, resultSet) => {
+            state.root.category = mapCategoryRow(findRowByColumn(resultSet.rows, 0, state.rootRow[8]))
+          },
+        },
+        {
+          query: dbQueries[3],
+          scope: (state) => ({ '@parent$id': state.rootId }),
+          write: (state, resultSet) => {
+            state.postTagRows = resultSet.rows
+            state.tagIds = uniqueColumnValues(resultSet.rows, 1)
+          },
+        },
+        {
+          query: dbQueries[5],
+          scope: (state) => ({ '@parent$id': state.rootId }),
+          write: (state, resultSet) => {
+            const comments = state.root.comments as Record<string, unknown>[]
+            const seenAuthorIds = new Set<unknown>()
+            for (let i = 0; i < resultSet.rows.length; i++) {
+              const commentRow = resultSet.rows[i]
+              if (commentRow[4] !== state.rootId) {
+                continue
+              }
+
+              const comment = {
+                id: commentRow[0],
+                content: commentRow[1],
+                createdAt: commentRow[2],
+                author: null,
+              }
+              comments.push(comment)
+
+              const authorId = commentRow[3]
+              state.commentAuthorTargets.push({ authorId, comment })
+              if (!seenAuthorIds.has(authorId)) {
+                seenAuthorIds.add(authorId)
+                state.commentAuthorIds.push(authorId)
+              }
+            }
+          },
+        },
+      ],
+      [
+        {
+          query: dbQueries[4],
+          scope: (state) => (state.tagIds.length === 0 ? undefined : { '@parent$tagId': state.tagIds }),
+          write: (state, resultSet) => {
+            const tags = state.root.tags as Record<string, unknown>[]
+            for (let i = 0; i < state.postTagRows.length; i++) {
+              const postTagRow = state.postTagRows[i]
+              if (postTagRow[0] !== state.rootId) {
+                continue
+              }
+
+              tags.push({ tag: mapTagRowOrNull(findRowByColumn(resultSet.rows, 0, postTagRow[1])) })
+            }
+          },
+        },
+        {
+          query: dbQueries[6],
+          scope: (state) =>
+            state.commentAuthorIds.length === 0 ? undefined : { '@parent$authorId': state.commentAuthorIds },
+          write: (state, resultSet) => {
+            for (let i = 0; i < state.commentAuthorTargets.length; i++) {
+              const target = state.commentAuthorTargets[i]
+              target.comment.author = mapUserRow(findRowByColumn(resultSet.rows, 0, target.authorId))
+            }
+          },
+        },
+      ],
+    ],
+  }
+}
+
+async function executeCompiledBlogPageWriterProgram(
+  program: CompiledBlogPageWriterProgram,
+  placeholderValues: Record<string, unknown>,
+  adapter: BlogPageSqliteAdapter,
+  generators: GeneratorRegistrySnapshot,
+): Promise<Record<string, unknown> | null> {
+  const rootResultSet = await adapter.queryRaw(
+    renderSingleBlogPageQuery(program.rootQuery, placeholderValues, generators),
+  )
+  const rootRow = rootResultSet.rows[0]
+  if (rootRow === undefined) {
+    return null
+  }
+
+  const state = program.writeRoot(rootRow)
+  for (let waveIndex = 0; waveIndex < program.phaseWaves.length; waveIndex++) {
+    const wave = program.phaseWaves[waveIndex]
+    const phases: BlogPageWriterPhase[] = []
+    const pending: Promise<SqlResultSet>[] = []
+    for (let phaseIndex = 0; phaseIndex < wave.length; phaseIndex++) {
+      const phase = wave[phaseIndex]
+      const scope = phase.scope(state)
+      if (scope === undefined) {
+        phase.write(state, EMPTY_RESULT)
+        continue
+      }
+
+      phases.push(phase)
+      pending.push(adapter.queryRaw(renderSingleBlogPageQuery(phase.query, scope, generators)))
+    }
+
+    const resultSets = await Promise.all(pending)
+    for (let resultIndex = 0; resultIndex < resultSets.length; resultIndex++) {
+      phases[resultIndex].write(state, resultSets[resultIndex])
+    }
+  }
+
+  return state.root
+}
+
 async function measureRawResultSetBlogPagePrototypeScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4123,6 +4312,51 @@ async function measureRawResultSetBlogPageDirectAssemblerScenario(
   for (let i = 0; i < scenario.iterations; i++) {
     checksum += checksumNestedBlogExactResult(
       await executeRawResultSetBlogPageDirectAssembler(dbQueries, placeholderValues, adapter, generators),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureRawResultSetBlogPageWriterProgramScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const adapter = new BlogPageSqliteAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const program = compileBlogPageWriterProgram(getDbQueries(plan))
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  checksumNestedBlogExactResult(
+    await executeCompiledBlogPageWriterProgram(program, placeholderValues, adapter, generators),
+  )
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogExactResult(
+      await executeCompiledBlogPageWriterProgram(program, placeholderValues, adapter, generators),
     )
   }
   const elapsedMs = performance.now() - started
@@ -6407,6 +6641,19 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureRawResultSetBlogPageDirectAssemblerScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set writer program'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogPageWriterProgramScenario(compiler, paramGraph, measuredScenario),
       )
     }
 
