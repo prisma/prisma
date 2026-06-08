@@ -9488,6 +9488,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 ## Hygiene Rules For Future Work
 
 - Do not keep experiments unless benchmarks are neutral-to-positive on the relevant hot rows.
+- Ambitious architecture spikes are allowed; isolate them in worktrees, use subagents when parallel scouting/prototyping helps, and land only accepted/rejected outcomes plus evidence back in the main checkout.
 - Commit worthy results along the way.
 - Revert rejected experiments fully.
 - Keep this journal updated after each accepted change, rejected experiment, and new measurement.
