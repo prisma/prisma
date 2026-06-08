@@ -9452,6 +9452,55 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Decision: rejected as a product direction by itself. Flattening into generic node/edge arrays loses to the current compact closure tree; the remaining 5.2 us/op ceiling probably requires a true compiler-emitted/direct assembler that avoids generic descriptor loops and per-run result/record/scope arrays, or a broader plan shape that avoids building intermediate child record arrays.
   - Better next proof points: exact-shape object builders for the full blog-page tree, flatter compiler-emitted raw result-set plans, or a plan shape that avoids per-relation child record arrays when the target result shape can be assembled directly.
 
+- Accepted engines change: avoid raw nested column index maps.
+  - Timestamp: 2026-06-08.
+  - Sidecar scout: Linnaeus (`019ea643-39b9-7d80-8334-8a0bf0bb8f9c`) identified raw nested read column-index maps in `query-compiler/query-compiler/src/translate/query/read.rs` as a compile-time-only allocation sink.
+  - Side worktree: `/home/aqrln.guest/prisma-engines-raw-column-index-spike`, branch `raw-column-index-spike`, side commit `20bbb5d60a7 Avoid raw nested column index maps`.
+  - Main engines commit: `e98dd7b4193 Avoid raw nested column index maps`.
+  - Patch:
+    - Removed `HashMap<String, usize>` from `BuiltRawNestedReadQuery`.
+    - Added a local `RawColumnIndexes<'a>` storing `Vec<(Cow<'a, str>, usize)>` with linear lookup, borrowing `field.db_name()` where possible and owning only the hidden many-to-many linking alias.
+    - `build_raw_read_related_records()` now resolves the child join column index before returning and returns `(BuiltRawNestedReadQuery, JoinMetadata, usize)`, so child column maps no longer escape compile-time lookup.
+  - Allocation profile, 20 iterations / 3 warmup with `ALLOC_PROFILE_BUCKETS=1`:
+    - `query-m2o`: `translate_ir` 334 -> 327 allocations, `full_compile` 578 -> 571, 73.0 KiB -> 72.7 KiB.
+    - `query-many-one2m`: `translate_ir` 332 -> 326, `full_compile` 645 -> 639, 77.9 KiB -> 77.8 KiB.
+    - `query-many-m2m`: `translate_ir` 430 -> 425, `full_compile` 741 -> 736, 80.8 KiB -> 80.7 KiB.
+    - `nested-pagination-query`: `translate_ir` 389 -> 388, `full_compile` 677 -> 676, 81.4 KiB -> 81.3 KiB.
+    - `create-nested-connectOrCreate-mixed`: `translate_ir` 1658 -> 1650, `full_compile` 2633 -> 2625, 304.2 KiB -> 304.0 KiB.
+    - `update-set-nested`: `translate_ir` 1270 -> 1264, `full_compile` 2042 -> 2036, 242.1 KiB -> 242.0 KiB.
+  - Criterion surface:
+    - Adjacent main vs side broad run was neutral-to-positive on most rows, with noisy `query-m2o-lateral` and `nested-pagination-join` controls.
+    - Focused side rerun of questionable rows: `nested-pagination-join` `[32.833, 33.097, 33.595] us`, `query-m2o-lateral` `[29.671, 29.763, 29.861] us`, `update-set-nested` `[105.16, 105.54, 105.96] us`; no material downside remained.
+  - Verification:
+    - Side worktree: `cargo check -p query-compiler`, allocation profile command above, focused `cargo bench -p query-compiler --bench compilation_bench`, `cargo test -p query-compiler --test queries`, `cargo fmt -p query-compiler --check`, and `git diff --check`.
+    - Main engines checkout after cherry-pick: `cargo check -p query-compiler`, `cargo fmt -p query-compiler --check`, `git diff --check`, `cargo test -p query-compiler --test queries`, and `make build-qc-wasm`.
+    - Prisma checkout after upgrading local `@prisma/query-compiler-wasm`: `pnpm build` passed with 44/44 tasks successful.
+  - Decision: keep. This is modest but deterministic compile-path allocation cleanup, and the column-index table is local lookup state that should not be reintroduced as an owned hash map.
+
+- Rejected experiment: direct single-vector `ModelProjection::scalar_fields()` collection.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-engines-relation-scalar-iter-spike`, removed after rejection.
+  - Prototype: changed `ModelProjection::scalar_fields()` to collect into one vector with direct dedupe instead of the current `flat_map(vec![...]).unique_by(|name.to_owned())` shape.
+  - Verification: `cargo check -p query-compiler` passed, then the same allocation profile rows showed no movement on sampled compile phases.
+  - Decision: rejected and reverted. Relation scalar vector churn still exists elsewhere, but this particular helper rewrite did not affect the measured hot rows.
+
+- Next generated-cache-hit lead: descriptor-bound static matcher registry.
+  - Timestamp: 2026-06-08.
+  - Sidecar scout: Ampere (`019ea643-6eb7-7093-a6b3-c957a50ef82f`) reviewed the descriptor-bound matcher path and recommended the next product proof.
+  - Proposed shape:
+    - Add an internal generated matcher registry field to `packages/client-common/src/client-config.ts` and carry it through `packages/client/src/runtime/getPrismaClient.ts`.
+    - Let `packages/client/src/runtime/core/model/applyModel.ts` ask the registry for a matcher during `buildLazyDescriptor()`, bind it to the exact learned descriptor, self-test against the first slow-path args with `hasSamePlaceholders()`, then store it as `descriptor.exactMatcher`.
+    - Try `descriptor.exactMatcher?.(args)` before the recursive lazy descriptor walker, with fallback to the current descriptor interpreter and then normal serialization.
+    - First proof can use `__internal.configOverride` in tests/benchmarks and hand-emitted static helpers for `User.findUnique`, batched `User.findUnique`, `User.findMany`, and `Post.findUnique` blog-page shapes.
+  - Constraints:
+    - Use straight-line JS property access, direct nested checks, small exactness guards, and direct placeholder extraction.
+    - Avoid `eval`, `new Function`, generic `Reflect` Wasm walkers, path/op-table matchers, broad `Object.keys()` generic hot paths, and combinatorial generated emission.
+    - Keep descriptor identity as the safety boundary; generation-time helper factories may bind to a learned descriptor, but should not define per-action global probes.
+  - Measurement gates:
+    - Add `client-engine-cache-timing.ts` rows for generated descriptor-bound static matcher warmed hits, batched hits, fallback misses, and extraction-only rows, including the nested blog-page and alternating nested-shape controls.
+    - Success requires at least an 8-10% nested blog-page generated-row improvement over request-precomputed, extraction below roughly 1.5 us/op on Node and below the current lazy descriptor in Workerd, unchanged batched query counts, no broad >3% regressions, and the learned descriptor MRU cap staying at two.
+  - Decision: this is the next serious JS/product proof. It is more promising than a `serde_wasm_bindgen` request entrypoint because it avoids the Wasm request boundary entirely on cache hits.
+
 ## Useful Commands
 
 ```sh
