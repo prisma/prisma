@@ -9930,6 +9930,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The fixed `%1` branch made the simple `findUnique` exact-helper row materially worse and did not create a broad win.
     - Do not assume fixed-key object literals beat computed placeholder keys in V8/Workerd; measure the exact generated helper shape before productizing this micro-branch.
 
+- Sidecar productization proof: generator-emitted exact descriptor helpers behind an explicit internal gate.
+  - Timestamp: 2026-06-08.
+  - Subagent: Descartes (`019ea713-3d88-7182-b9d4-642fd937363e`).
+  - Side worktree: `/home/aqrln.guest/prisma-generated-exact-descriptor-product-spike`, branch `generated-exact-descriptor-product-spike`.
+  - Side commit: `d13d1f200 Spike generated exact descriptor helpers`.
+  - Prototype:
+    - Added generator-only emitters in `packages/client-generator-js` and `packages/client-generator-ts` for `config.descriptorMatcherRegistry`.
+    - Emission is disabled unless `generator.config.internalExactDescriptorHelpers` supplies explicit specs such as `Account.findUnique:id:id,email` or `Account.findMany:take:id,email`.
+    - Specs are validated against DMMF before code is emitted: `findUnique` needs a single scalar primitive `@id`/`@unique` field, selected fields must be scalar, duplicate selected fields are rejected, and invalid specs emit no helper.
+    - Generated helper code is schema-specific, Worker-safe, and does not use `eval`, `new Function`, or a benchmark-model-specific shared runtime export.
+    - Helpers bind only to learned descriptors whose root and select descriptors have the exact expected key order. `applyModel.ts` still owns descriptor identity and stores the matcher only after the existing self-test proves placeholder values match in the same order.
+  - Verification from the side worktree:
+    - `pnpm --filter @prisma/client-generator-js test src/utils/buildExactDescriptorMatcherRegistry.test.ts` passed 3 tests.
+    - `pnpm --filter @prisma/client-generator-ts test src/utils/buildExactDescriptorMatcherRegistry.test.ts` passed 4 tests.
+    - `pnpm --filter @prisma/client-generator-js build` passed.
+    - `pnpm --filter @prisma/client-generator-ts build` passed.
+    - `pnpm --filter @prisma/client... build` passed.
+    - `git diff --check` passed.
+    - Node generated-client benchmark over 50k iterations passed.
+    - Workerd generated-client smoke over 5k iterations passed.
+  - Evidence:
+    - Node 50k request-precomputed -> exact helper: `findUnique` 4.05 -> 3.88 us/op, batched `findUnique` 9.70 -> 9.02, `findMany users` 3.21 -> 2.95.
+    - Workerd 5k host dispatch request-precomputed -> exact helper: `findUnique` 10.04 -> 9.57 us/op, batched `findUnique` 14.08 -> 13.40, `findMany users` 7.15 -> 5.61, with batch hits preserved.
+  - Decision:
+    - Do not cherry-pick product code into main yet.
+    - Keep the side branch as a positive internal-gate proof and a productization starting point.
+    - The side code is intentionally disabled by default, but it is still a large generator change with duplicated JS/TS emitters and incomplete parity coverage.
+  - Follow-up lead:
+    - If landing, land as an internal benchmark/allowlist gate only.
+    - First add oracle tests comparing helper extraction to `serializeJsonQuery()` + `parameterizeQuery()` + cache-key construction for special values, duplicate placeholders, strict undefined, `Prisma.skip`, enum/db-name cases, `Param`, field refs, and placeholder order.
+    - Add generated-output integration tests that instantiate generated JS and TS clients with the internal gate and typecheck emitted TS output.
+    - Measure bundle-size impact and keep extensions, global omit, sqlcommenters, raw queries, writes, non-empty data paths, and unpackers excluded until each has explicit parity coverage.
+
 - Rejected productization spike for now: guarded raw nested static schedule runtime path.
   - Timestamp: 2026-06-08.
   - Subagent: Erdos (`019ea6fe-d5bb-7dd1-ab66-ba4549786a2e`).
