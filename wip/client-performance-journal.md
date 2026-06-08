@@ -8447,6 +8447,58 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. Preserving conversion by still calling `mapRawNestedFieldValue()` removes most of the expected win, and the extra mapper branch is not justified.
 
+- Accepted change: compact retained query-plan interner counts.
+  - Timestamp: 2026-06-08T06:40:00+02:00.
+  - Change:
+    - `QueryPlanCache` still uses temporary `Map`s while preparing interned values, but retained cache entries now store per-entry string/query/result-node refcounts as compact flat arrays instead of `Map` objects.
+    - `MIN_INTERNED_STRING_LENGTH` moved from 32 to 128 after A/B testing. This preserves sharing for long SQL fragments while avoiding retained bookkeeping for medium strings that did not pay for themselves in the nested-plan memory probe.
+  - Baseline after harness restart:
+    - `blog page / node default warm`: 4.88 MiB, about 5.0 KiB/entry.
+    - `blog page parameterized / node default warm`: 5.10 MiB, about 5.2 KiB/entry.
+    - `blog page / edge default warm`: 723.9 KiB, about 7.2 KiB/entry.
+    - `blog page / edge default churn`: 609.9 KiB, about 6.1 KiB/entry.
+  - Rejected sub-experiments:
+    - Disabling all cache value interning shrank scalar-only rows slightly but regressed nested plans badly:
+      - `blog page / node default warm`: 15.76 MiB, about 16.1 KiB/entry.
+      - `blog page parameterized / node default warm`: 15.98 MiB, about 16.4 KiB/entry.
+    - Lowering `MIN_INTERNED_STRING_LENGTH` to 8 regressed nested plan memory:
+      - `blog page / node default warm`: 5.23 MiB.
+      - `blog page parameterized / node default warm`: 5.45 MiB.
+    - Raising the threshold too far to 1024 regressed nested plan memory:
+      - `blog page / node default warm`: 5.36 MiB.
+      - `blog page parameterized / node default warm`: 5.58 MiB.
+    - Thresholds 128/256/512 were effectively the same in this workload before compact-count storage; 128 is the conservative accepted value because it drops unprofitable medium strings while still retaining shorter long-SQL sharing.
+  - Accepted measurements:
+    - Flat counts with 32-byte threshold:
+      - `blog page / node default warm`: 4.62 MiB.
+      - `blog page parameterized / node default warm`: 4.84 MiB.
+    - Flat counts with 128-byte threshold:
+      - First run: `blog page / node default warm` 4.55 MiB; `blog page parameterized / node default warm` 4.75 MiB.
+      - Rerun: same 4.55 MiB / 4.75 MiB.
+      - Render-enabled run: `blog page / node default warm` 4.56 MiB; `blog page parameterized / node default warm` 4.74 MiB.
+      - Post-helper-cleanup rerun: `blog page / node default warm` 4.54 MiB; `blog page parameterized / node default warm` 4.76 MiB.
+    - Net retained-memory change versus restarted baseline:
+      - Blog-page node warm: 4.88 -> 4.55 MiB, about 6.8% lower.
+      - Blog-page parameterized node warm: 5.10 -> 4.75 MiB, about 6.9% lower.
+      - Blog-page edge warm: 723.9 -> 700.4 KiB, about 3.2% lower.
+      - Blog-page parameterized edge warm: 599.2 -> 567.3 KiB, about 5.3% lower.
+  - Timing sanity check:
+    - Full 50k timing probe produced useful rows but exited at the existing benchmark-only `data map` row with `Expected compact dataMap plan, got n`.
+    - Filtered successful run:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `blog page nested rows / warmed cache`: 12.93 us/op.
+      - `client engine precomputed static protocol lazy descriptor blog page / nested rows warmed cache`: 10.86 us/op.
+      - `generated client blog page / nested rows warmed cache`: 13.96 us/op.
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 13.60 us/op.
+  - Verification:
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`
+    - `pnpm exec eslint packages/client/src/runtime/core/engines/client/query-plan-cache.ts`
+    - `pnpm --filter @prisma/client build`
+    - `QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`
+    - `git diff --check`
+  - Decision:
+    - Keep. The change is localized, preserves existing cache semantics and eviction tests, reduces retained nested-plan memory by roughly 5-7% in the synthetic node/edge probes, and does not show a warmed-cache timing regression in focused rows.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

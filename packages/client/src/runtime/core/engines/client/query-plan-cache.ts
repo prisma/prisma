@@ -1,8 +1,12 @@
 import type { BatchResponse, QueryPlanNode } from '@prisma/client-engine-runtime'
 
-type InternedStringCounts = Map<string, number>
-type InternedQueryCounts = Map<InternedQuery, number>
-type InternedResultNodeCounts = Map<InternedResultNode, number>
+type PreparedInternedStringCounts = Map<string, number>
+type PreparedInternedQueryCounts = Map<InternedQuery, number>
+type PreparedInternedResultNodeCounts = Map<InternedResultNode, number>
+type FlatCounts<T> = (T | number)[]
+type InternedStringCounts = FlatCounts<string>
+type InternedQueryCounts = FlatCounts<InternedQuery>
+type InternedResultNodeCounts = FlatCounts<InternedResultNode>
 
 type CacheEntry =
   | {
@@ -48,7 +52,7 @@ export type IndividualQueryPlanCacheEntry = {
   plan: QueryPlanNode
 }
 
-const MIN_INTERNED_STRING_LENGTH = 32
+const MIN_INTERNED_STRING_LENGTH = 128
 
 export class QueryPlanCache {
   readonly #singleCache: Map<string, Extract<CacheEntry, { kind: 'single' }>>
@@ -303,18 +307,18 @@ export class QueryPlanCache {
     const withSharedResultNodes = this.#internNestedResultNodes(withSharedQueries, internedResultNodes)
     return {
       value: this.#internStrings(withSharedResultNodes, internedStrings),
-      internedStrings,
-      internedQueries: internedQueries.size === 0 ? undefined : internedQueries,
-      internedResultNodes: internedResultNodes.size === 0 ? undefined : internedResultNodes,
+      internedStrings: compactCounts(internedStrings),
+      internedQueries: compactCounts(internedQueries),
+      internedResultNodes: compactCounts(internedResultNodes),
     }
   }
 
-  #internSharedQueries<T>(value: T, counts: InternedQueryCounts): T {
+  #internSharedQueries<T>(value: T, counts: PreparedInternedQueryCounts): T {
     this.#internSharedQueriesInner(value, false, counts)
     return value
   }
 
-  #internSharedQueriesInner(value: unknown, inJoinChild: boolean, counts: InternedQueryCounts): void {
+  #internSharedQueriesInner(value: unknown, inJoinChild: boolean, counts: PreparedInternedQueryCounts): void {
     if (Array.isArray(value)) {
       const tag = value[0]
       if ((tag === 'q' || tag === 'x') && inJoinChild && value.length > 1) {
@@ -377,12 +381,12 @@ export class QueryPlanCache {
     }
   }
 
-  #internRawNestedReadQuery(value: unknown, counts: InternedQueryCounts): unknown {
+  #internRawNestedReadQuery(value: unknown, counts: PreparedInternedQueryCounts): unknown {
     this.#internRawNestedReadQueryRelations(value, counts)
     return this.#internQuery(value, counts)
   }
 
-  #internRawNestedReadQueryRelations(value: unknown, counts: InternedQueryCounts): void {
+  #internRawNestedReadQueryRelations(value: unknown, counts: PreparedInternedQueryCounts): void {
     if (!Array.isArray(value)) {
       return
     }
@@ -411,7 +415,7 @@ export class QueryPlanCache {
     }
   }
 
-  #internQuery(value: unknown, counts: InternedQueryCounts): unknown {
+  #internQuery(value: unknown, counts: PreparedInternedQueryCounts): unknown {
     const key = JSON.stringify(value)
     let interned = this.#queryInterner.get(key)
     if (interned === undefined) {
@@ -424,12 +428,12 @@ export class QueryPlanCache {
     return interned.value
   }
 
-  #internNestedResultNodes<T>(value: T, counts: InternedResultNodeCounts): T {
+  #internNestedResultNodes<T>(value: T, counts: PreparedInternedResultNodeCounts): T {
     this.#internNestedResultNodesInner(value, counts)
     return value
   }
 
-  #internNestedResultNodesInner(value: unknown, counts: InternedResultNodeCounts): void {
+  #internNestedResultNodesInner(value: unknown, counts: PreparedInternedResultNodeCounts): void {
     if (Array.isArray(value)) {
       if (value[0] === 'd' && value.length > 2) {
         this.#internNestedResultNodesInner(value[1], counts)
@@ -462,7 +466,7 @@ export class QueryPlanCache {
     }
   }
 
-  #internResultNode<T>(value: T, isRoot: boolean, counts: InternedResultNodeCounts): T {
+  #internResultNode<T>(value: T, isRoot: boolean, counts: PreparedInternedResultNodeCounts): T {
     if (Array.isArray(value)) {
       if (isCompactResultObjectNode(value)) {
         const fields = value[1]
@@ -498,7 +502,7 @@ export class QueryPlanCache {
     return value
   }
 
-  #internResultNodeValue(value: unknown, counts: InternedResultNodeCounts): unknown {
+  #internResultNodeValue(value: unknown, counts: PreparedInternedResultNodeCounts): unknown {
     const key = JSON.stringify(value)
     let interned = this.#resultNodeInterner.get(key)
     if (interned === undefined) {
@@ -511,7 +515,7 @@ export class QueryPlanCache {
     return interned.value
   }
 
-  #internStrings<T>(value: T, counts: InternedStringCounts): T {
+  #internStrings<T>(value: T, counts: PreparedInternedStringCounts): T {
     if (typeof value === 'string') {
       if (value.length < MIN_INTERNED_STRING_LENGTH) {
         return value
@@ -551,7 +555,9 @@ export class QueryPlanCache {
       return
     }
 
-    for (const [value, count] of counts) {
+    for (let i = 0; i < counts.length; i += 2) {
+      const value = counts[i] as string
+      const count = counts[i + 1] as number
       const interned = this.#stringInterner.get(value)
       if (interned === undefined) {
         continue
@@ -569,7 +575,9 @@ export class QueryPlanCache {
       return
     }
 
-    for (const [interned, count] of counts) {
+    for (let i = 0; i < counts.length; i += 2) {
+      const interned = counts[i] as InternedQuery
+      const count = counts[i + 1] as number
       interned.refCount -= count
       if (interned.refCount <= 0) {
         this.#queryInterner.delete(interned.key)
@@ -582,13 +590,29 @@ export class QueryPlanCache {
       return
     }
 
-    for (const [interned, count] of counts) {
+    for (let i = 0; i < counts.length; i += 2) {
+      const interned = counts[i] as InternedResultNode
+      const count = counts[i + 1] as number
       interned.refCount -= count
       if (interned.refCount <= 0) {
         this.#resultNodeInterner.delete(interned.key)
       }
     }
   }
+}
+
+function compactCounts<T>(counts: Map<T, number>): FlatCounts<T> | undefined {
+  if (counts.size === 0) {
+    return undefined
+  }
+
+  const compacted: FlatCounts<T> = new Array(counts.size * 2)
+  let index = 0
+  for (const [value, count] of counts) {
+    compacted[index++] = value
+    compacted[index++] = count
+  }
+  return compacted
 }
 
 function shouldInternStrings(value: unknown): boolean {
