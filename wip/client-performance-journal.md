@@ -8829,6 +8829,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. The extra closure calls and captured arrays were slower than the current monomorphic switch recursion on the real generated-client row.
     - Do not retry a closure-per-node compiled descriptor matcher. If descriptor extraction is revisited, use a materially different shape such as generated straight-line extraction for known generated-client descriptors, or a flatter path table that avoids per-node function calls and repeated object-shape checks.
 
+- Measurement: Workerd generated cache-hit rows after parser-path Wasm rebuild.
+  - Timestamp: 2026-06-08T07:30:00+02:00.
+  - Command:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=50000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=10000 WORKERD_DESCRIPTOR_ITERATIONS=50000 WORKERD_PRECOMPUTED_ITERATIONS=10000 WORKERD_CLIENT_CACHE_KEY_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Descriptor/cache-key rows:
+    - `client-cache-key findUnique`: host 0.51 us/op, worker loop 0.42 us/op.
+    - `client-cache-key blog-page`: host 1.61 us/op, worker loop 1.46 us/op.
+    - `client-static-descriptor-extract findUnique`: host 0.17 us/op, worker loop 0.12 us/op.
+    - `client-static-descriptor-extract blog-page`: host 0.96 us/op, worker loop 0.92 us/op.
+    - `client-lazy-descriptor-extract findUnique`: host 0.30 us/op, worker loop 0.26 us/op.
+    - `client-lazy-descriptor-extract blog-page`: host 1.66 us/op, worker loop 1.60 us/op.
+  - Generated-client rows:
+    - Default current product path: `findUnique` 4.76 us/op host / 4.32 worker loop; `findMany users` 2.28 / 1.90; batched `findUnique` 18.32 / 17.26 with 50k `queryRaw`; blog-page 19.80 / 17.10 with 70k `queryRaw`.
+    - Forced engine-precomputed benchmark mode: `findUnique` 2.34 / 1.92; `findMany users` 2.16 / 1.78; batched `findUnique` 8.23 / 7.38 but this bypasses batching and emits 100k `queryRaw`; blog-page 14.67 / 12.20.
+    - Forced request-precomputed benchmark mode: `findUnique` 4.37 / 3.96; `findMany users` 2.37 / 1.96; batched `findUnique` 12.61 / 11.74 with 100k precomputed batch hits and 50k `queryRaw`; blog-page 28.03 / 23.90.
+  - Interpretation:
+    - Current default generated-client rows should be treated as the product-path baseline. The forced request/engine-precomputed modes are still useful as surface probes, but they select explicit internal knobs and add counter wrappers, so they are not direct before/after comparisons with the default row.
+    - The target-runtime descriptor gap remains: static blog-page extraction is about 0.92 us/op worker loop, lazy generic extraction about 1.60 us/op, and full default generated blog-page about 17.10 us/op worker loop.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
