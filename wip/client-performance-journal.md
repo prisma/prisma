@@ -8055,6 +8055,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Current V8 handles the descriptor field record shape better than the aligned array shape in the generated model-action path.
 
+- Rejected experiment: cache action/isWrite metadata on learned lazy descriptors.
+  - Timestamp: 2026-06-08T03:10:00+02:00.
+  - Change:
+    - Temporarily stored `action` and `isWrite` on `LazyDescriptor` and used those fields in the generated engine precomputed descriptor-hit branch.
+  - Measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Patched: 11.66 us/op.
+    - Reversed baseline: 11.64 us/op.
+  - Decision:
+    - Reverted. The repeated `isWrite()` / action lookup is not a measurable part of the generated precomputed hot path.
+
+- Accepted experiment: return ClientEngine precomputed cached results directly.
+  - Timestamp: 2026-06-08T03:20:00+02:00.
+  - Prisma commit: `f38529e4b Return precomputed ClientEngine results directly`.
+  - Change:
+    - Added `ClientEngine.requestPrecomputedCachedResult()`, a narrow internal method for generated engine-precomputed descriptor hits.
+    - The method looks up the cached plan by the precomputed cache key, executes the plan with the precomputed placeholder values, and returns the action result directly instead of wrapping it as `{ data: { [action]: result } }`.
+    - It falls back to normal `request()` for interactive transactions, raw queries, sqlcommenters, or cache eviction/missing cache entries, preserving the normal wrapper and error path.
+    - `applyModel.ts` uses this method only when the existing engine precomputed fast-path guard has already allowed the generated descriptor-hit path.
+    - `client-engine-cache-timing.ts` now counts calls to the direct cached-result method as precomputed hits.
+  - Node measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Reversed baseline -> patched:
+      - `findUnique`: 3.11 -> 2.83 us/op.
+      - `batched findUnique`: 5.70 -> 5.14 us/op.
+      - `findMany users`: 3.34 -> 2.96 us/op.
+      - `blog page / nested rows`: 11.76 -> 11.11 us/op.
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Generated blog-page warmed cache in this run:
+      - Normal generated client: 16.90 us/op request loop.
+      - Engine precomputed fast path: 8.65 us/op request loop.
+      - Request precomputed fast path: 12.00 us/op request loop.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - No errors; existing warning-level unsafe-argument lint warnings remain in unrelated `ClientEngine.ts` lines.
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+  - Decision:
+    - Keep. This closes a measurable part of the gap between generated engine-precomputed hits and the direct ClientEngine benchmark surface without changing RequestHandler semantics or pinning plans outside `QueryPlanCache`.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
