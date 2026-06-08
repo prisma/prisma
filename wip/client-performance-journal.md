@@ -8287,6 +8287,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Follow-up:
     - If pursuing this, create a separate worktree and prototype only the narrow hit extractor + benchmark row first. Do not start by reworking `JsonProtocolAdapter` globally.
 
+- Accepted experiment: hoist generated model `clientMethod` label.
+  - Timestamp: 2026-06-08T03:38:18+02:00.
+  - Change:
+    - In `packages/client/src/runtime/core/model/applyModel.ts`, compute `const clientMethod = `${jsModelName}.${key}``once per cached model-action property and reuse it across engine-precomputed, request-handler direct, request-precomputed, and slow`\_request()` paths.
+  - Broad Node A/B:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Adjacent baseline -> patched:
+      - Normal `findUnique`: 4.08 -> 4.07 / 4.13 us/op across patched runs.
+      - Normal batched `findUnique`: 8.70 -> 8.40 / 8.60 us/op.
+      - Normal `findMany users`: 3.04 -> 2.98 / 2.98 us/op.
+      - Normal blog-page: 13.27 -> 13.27 / 13.30 us/op.
+      - Request-precomputed `findMany users`: 3.04 -> 2.97 / 2.99 us/op.
+      - Request-precomputed batched `findUnique`: 8.98 -> 8.85 / 8.76 us/op.
+    - Interpretation:
+      - Broad rows are mixed but neutral-to-positive; blog-page is essentially flat.
+  - Focused Node A/B:
+    - Commands:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client findMany users' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client findUnique' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Reversed baseline -> patched:
+      - `findMany users`: 2.60 -> 2.51 us/op.
+      - `findUnique`: 3.02 -> 2.91 us/op.
+  - Verification:
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts src/runtime/DataLoader.test.ts src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm exec eslint packages/client/src/runtime/core/model/applyModel.ts`
+    - `git diff --check`
+  - Decision:
+    - Keep. Small, low-risk cleanup with focused positive signal and no broad-row regression large enough to reject.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

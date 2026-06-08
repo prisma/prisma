@@ -110,6 +110,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
 
     getPropertyValue(key) {
       const dmmfActionName = key as DMMF.ModelAction
+      const clientMethod = `${jsModelName}.${key}`
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
@@ -123,7 +124,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 args: userArgs,
                 action: dmmfActionName,
                 model: dmmfModelName,
-                clientMethod: `${jsModelName}.${key}`,
+                clientMethod,
                 descriptor,
                 setDescriptor: (nextDescriptor) => {
                   descriptor = nextDescriptor
@@ -143,7 +144,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 args: userArgs,
                 action: dmmfActionName,
                 model: dmmfModelName,
-                clientMethod: `${jsModelName}.${key}`,
+                clientMethod,
                 paramOverrides,
                 descriptor,
               })
@@ -159,7 +160,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 args: userArgs,
                 action: dmmfActionName,
                 model: dmmfModelName,
-                clientMethod: `${jsModelName}.${key}`,
+                clientMethod,
                 paramOverrides,
                 descriptor,
                 setDescriptor: (nextDescriptor) => {
@@ -183,7 +184,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
               model: dmmfModelName,
 
               // method name for display only
-              clientMethod: `${jsModelName}.${key}`,
+              clientMethod,
               jsModelName,
 
               // transaction information
