@@ -8368,6 +8368,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The win is small but repeatable on the raw compact rows, and the patch is scoped to compiled raw-nested fanout without changing relation attachment semantics.
 
+- Rejected experiment: compile raw nested DB-leaf executors.
+  - Timestamp: 2026-06-08T04:02:29+02:00.
+  - Status: reverted before commit.
+  - Change tried:
+    - Temporarily compiled each raw-nested DB leaf into an executor closure that captured the `QueryPlanDbQuery` and `isRawSqlQuery()` result once, then rendered and executed that leaf at runtime.
+    - Replaced raw-nested call sites with the compiled executor closure and removed the shared `#executeRawNestedReadDbQuery()` helper during the experiment.
+  - Reason:
+    - CPU profile after the fanout patch still showed visible time in `renderCompactTemplateSqlQuery`, `renderTemplateSql`, raw-nested closures, and `#executeRawNestedReadDbQuery()`. Hoisting DB-query/raw-SQL dispatch looked like a cheap way to reduce leaf overhead without changing semantics.
+  - Measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Results:
+      - Compact node: 6.04 us/op.
+      - Exact compact node: 6.00 us/op.
+      - Direct plan: 6.53 us/op.
+    - Compared with the accepted fanout patch's same-session band, this is neutral and does not justify extra helper code.
+  - Verification before revert:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `git diff --check`
+  - Decision:
+    - Revert. The next raw-nested slice should follow the flat edge-slot / compiler-emitted plan-shape lead instead of adding more leaf-level helper wrappers.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
