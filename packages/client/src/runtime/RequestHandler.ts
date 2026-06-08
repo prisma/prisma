@@ -38,6 +38,17 @@ import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults
 const debug = Debug('prisma:client:request_handler')
 const clientGetTime = typeof process !== 'undefined' && Boolean(process.env.PRISMA_CLIENT_GET_TIME)
 
+type EngineWithPrecomputedCachedResult = Client['_engine'] & {
+  requestPrecomputedCachedResult?: <T>(
+    query: JsonQuery,
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    options: {
+      isWrite: boolean
+      customDataProxyFetch?: AccelerateExtensionFetchDecorator
+    },
+  ) => Promise<T>
+}
+
 export type RequestParams = {
   modelName?: string
   action: Action
@@ -215,6 +226,25 @@ export class RequestHandler {
     }
 
     return requestPromise.then(undefined, (error) => this.handleRequestErrorForParams(params, error))
+  }
+
+  requestPrecomputedCachedResult(params: RequestParams): Promise<any> {
+    const engine = this.client._engine as EngineWithPrecomputedCachedResult
+    if (engine.requestPrecomputedCachedResult === undefined || params.precomputedQueryPlanCacheHit === undefined) {
+      return this.request(params)
+    }
+
+    try {
+      return engine
+        .requestPrecomputedCachedResult(params.protocolQuery, params.precomputedQueryPlanCacheHit, {
+          isWrite: isWrite(params.protocolQuery.action),
+          customDataProxyFetch: params.customDataProxyFetch,
+        })
+        .then((result) => (clientGetTime ? { data: result } : result))
+        .catch((error) => this.handleRequestErrorForParams(params, error))
+    } catch (error) {
+      this.handleRequestErrorForParams(params, error)
+    }
   }
 
   private handleRequestErrorForParams(params: RequestParams, error: unknown): never {

@@ -34,6 +34,87 @@ test('unpack preserves native JSON values when deserialization is skipped', () =
   ).toEqual(jsonValue)
 })
 
+test('requests precomputed cached results directly', async () => {
+  const query: JsonQuery = {
+    modelName: 'User',
+    action: 'findMany',
+    query: {
+      selection: {
+        id: true,
+      },
+    },
+  }
+  const precomputedQueryPlanCacheHit = {
+    cacheKey: 'cache-key',
+    placeholderValues: { '%1': 1 },
+  }
+  const engine = {
+    requestPrecomputedCachedResult: jest.fn().mockResolvedValue([{ id: 1 }]),
+  }
+  const handler = createRequestHandler(engine)
+
+  await expect(
+    handler.requestPrecomputedCachedResult({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findMany',
+      dataPath: [],
+      clientMethod: 'user.findMany',
+      extensions,
+      precomputedQueryPlanCacheHit,
+    }),
+  ).resolves.toEqual([{ id: 1 }])
+
+  expect(engine.requestPrecomputedCachedResult).toHaveBeenCalledWith(
+    query,
+    precomputedQueryPlanCacheHit,
+    expect.objectContaining({
+      isWrite: false,
+    }),
+  )
+})
+
+test('maps direct precomputed cached result errors through request handling', async () => {
+  const query: JsonQuery = {
+    modelName: 'User',
+    action: 'findMany',
+    query: {
+      selection: {
+        id: true,
+      },
+    },
+  }
+  const engine = {
+    requestPrecomputedCachedResult: jest.fn().mockRejectedValue({
+      code: 'P2002',
+      message: 'Unique constraint failed',
+      meta: { target: ['id'] },
+    }),
+  }
+  const handler = createRequestHandler(engine)
+
+  await expect(
+    handler.requestPrecomputedCachedResult({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findMany',
+      dataPath: [],
+      clientMethod: 'user.findMany',
+      extensions,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: 'cache-key',
+        placeholderValues: { '%1': 1 },
+      },
+    }),
+  ).rejects.toMatchObject({
+    code: 'P2002',
+    meta: {
+      modelName: 'User',
+      target: ['id'],
+    },
+  })
+})
+
 test('forwards precomputed query plan cache hits to single requests', async () => {
   const query: JsonQuery = {
     modelName: 'User',

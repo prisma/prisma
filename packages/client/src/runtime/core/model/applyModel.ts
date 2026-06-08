@@ -69,6 +69,7 @@ const fluentProps = [
   'delete',
 ] as const
 const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
+const requestHandlerPrecomputedCachedResultProps = ['findMany', 'findFirst', 'findFirstOrThrow'] as const
 
 /**
  * Dynamically creates a model interface via a proxy.
@@ -127,6 +128,24 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
                 setDescriptor: (nextDescriptor) => {
                   descriptor = nextDescriptor
                 },
+              })
+
+              if (fastPath !== undefined) {
+                return fastPath
+              }
+            }
+
+            if (
+              canUseRequestHandlerPrecomputedCachedResultFastPath(client, paramOverrides, transaction, dmmfActionName)
+            ) {
+              const fastPath = tryRequestHandlerPrecomputedCachedResultFastPath({
+                client,
+                args: userArgs,
+                action: dmmfActionName,
+                model: dmmfModelName,
+                clientMethod: `${jsModelName}.${key}`,
+                paramOverrides,
+                descriptor,
               })
 
               if (fastPath !== undefined) {
@@ -237,6 +256,33 @@ function canIgnorePrecomputedFastPathParamOverrides(paramOverrides: O.Optional<I
   }
 
   return false
+}
+
+function canUseRequestHandlerPrecomputedCachedResultFastPath(
+  client: Client,
+  paramOverrides: O.Optional<InternalRequestParams>,
+  transaction: PrismaPromiseTransaction | undefined,
+  action: Action,
+): boolean {
+  return (
+    client._requestPrecomputedFastPath === true &&
+    transaction === undefined &&
+    isRequestHandlerPrecomputedCachedResultAction(action) &&
+    canIgnorePrecomputedFastPathParamOverrides(paramOverrides) &&
+    client._extensions.isEmpty() &&
+    client._globalOmit === undefined &&
+    client._engineConfig.sqlCommenters === undefined &&
+    !client._tracingHelper.isEnabled() &&
+    !client._isClientDebugEnabled() &&
+    client._engineConfig.adapter !== undefined &&
+    typeof (client._engine as EngineWithPrecomputed).requestPrecomputedCachedResult === 'function'
+  )
+}
+
+function isRequestHandlerPrecomputedCachedResultAction(
+  action: Action,
+): action is (typeof requestHandlerPrecomputedCachedResultProps)[number] {
+  return (requestHandlerPrecomputedCachedResultProps as readonly string[]).includes(action)
 }
 
 function canUseRequestPrecomputedFastPath(
@@ -395,6 +441,45 @@ function tryRequestPrecomputedFastPath({
     paramOverrides,
     protocolQuery: query,
     precomputedQueryPlanCacheHit,
+  })
+}
+
+function tryRequestHandlerPrecomputedCachedResultFastPath({
+  client,
+  args,
+  action,
+  model,
+  clientMethod,
+  paramOverrides,
+  descriptor,
+}: {
+  client: Client
+  args: unknown
+  action: Action
+  model: string
+  clientMethod: string
+  paramOverrides: O.Optional<InternalRequestParams>
+  descriptor: LazyDescriptor | undefined
+}): Promise<unknown> | undefined {
+  if (descriptor === undefined) {
+    return undefined
+  }
+
+  const extraction = tryExtractLazyDescriptor(descriptor, args)
+  if (extraction === undefined) {
+    return undefined
+  }
+
+  return client._requestHandler.requestPrecomputedCachedResult({
+    args: args as UserArgs,
+    dataPath: Array.isArray(paramOverrides.dataPath) ? paramOverrides.dataPath : [],
+    action,
+    modelName: model,
+    clientMethod,
+    extensions: client._extensions,
+    callsite: 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat),
+    protocolQuery: descriptor.protocolQuery,
+    precomputedQueryPlanCacheHit: extraction,
   })
 }
 
