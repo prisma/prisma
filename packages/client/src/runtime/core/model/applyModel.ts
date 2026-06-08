@@ -250,6 +250,8 @@ function canUseRequestPrecomputedFastPath(
     canIgnorePrecomputedFastPathParamOverrides(paramOverrides) &&
     client._extensions.isEmpty() &&
     client._globalOmit === undefined &&
+    !client._tracingHelper.isEnabled() &&
+    !client._isClientDebugEnabled() &&
     client._engineConfig.adapter !== undefined &&
     typeof (client._engine as EngineWithPrecomputed).getPrecomputedQueryPlanCacheHit === 'function'
   )

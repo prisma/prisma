@@ -422,7 +422,7 @@ constructor() {
 
         const useDebug = internal.debug === true
         this._enginePrecomputedFastPath = internal.enginePrecomputedFastPath === true
-        this._requestPrecomputedFastPath = internal.requestPrecomputedFastPath === true
+        this._requestPrecomputedFastPath = internal.requestPrecomputedFastPath !== false
         if (useDebug) {
           Debug.enable('prisma:client')
         }
@@ -927,6 +927,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
 
       return this._tracingHelper.runInChildSpan(spanOptions, callback)
+    }
+
+    _isClientDebugEnabled(): boolean {
+      return isClientDebugEnabled()
     }
 
     /**
