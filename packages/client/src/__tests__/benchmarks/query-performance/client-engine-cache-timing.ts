@@ -4469,6 +4469,69 @@ async function executeCompiledBlogPageWriterProgram(
   return state.root
 }
 
+async function executeCompiledBlogPageStaticWaveWriterProgram(
+  program: CompiledBlogPageWriterProgram,
+  placeholderValues: Record<string, unknown>,
+  adapter: BlogPageSqliteAdapter,
+  generators: GeneratorRegistrySnapshot,
+): Promise<Record<string, unknown> | null> {
+  const rootResultSet = await adapter.queryRaw(
+    renderSingleBlogPageQuery(program.rootQuery, placeholderValues, generators),
+  )
+  const rootRow = rootResultSet.rows[0]
+  if (rootRow === undefined) {
+    return null
+  }
+
+  const state = program.writeRoot(rootRow)
+  const firstWave = program.phaseWaves[0]
+  const firstPhase0 = firstWave[0]
+  const firstPhase1 = firstWave[1]
+  const firstPhase2 = firstWave[2]
+  const firstPhase3 = firstWave[3]
+  const [firstResult0, firstResult1, firstResult2, firstResult3] = await Promise.all([
+    adapter.queryRaw(renderSingleBlogPageQuery(firstPhase0.query, firstPhase0.scope(state)!, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(firstPhase1.query, firstPhase1.scope(state)!, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(firstPhase2.query, firstPhase2.scope(state)!, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(firstPhase3.query, firstPhase3.scope(state)!, generators)),
+  ])
+  firstPhase0.write(state, firstResult0)
+  firstPhase1.write(state, firstResult1)
+  firstPhase2.write(state, firstResult2)
+  firstPhase3.write(state, firstResult3)
+
+  const secondWave = program.phaseWaves[1]
+  const secondPhase0 = secondWave[0]
+  const secondPhase1 = secondWave[1]
+  const secondScope0 = secondPhase0.scope(state)
+  const secondScope1 = secondPhase1.scope(state)
+  if (secondScope0 === undefined && secondScope1 === undefined) {
+    secondPhase0.write(state, EMPTY_RESULT)
+    secondPhase1.write(state, EMPTY_RESULT)
+  } else if (secondScope0 === undefined) {
+    const secondResult1 = await adapter.queryRaw(
+      renderSingleBlogPageQuery(secondPhase1.query, secondScope1!, generators),
+    )
+    secondPhase0.write(state, EMPTY_RESULT)
+    secondPhase1.write(state, secondResult1)
+  } else if (secondScope1 === undefined) {
+    const secondResult0 = await adapter.queryRaw(
+      renderSingleBlogPageQuery(secondPhase0.query, secondScope0, generators),
+    )
+    secondPhase0.write(state, secondResult0)
+    secondPhase1.write(state, EMPTY_RESULT)
+  } else {
+    const [secondResult0, secondResult1] = await Promise.all([
+      adapter.queryRaw(renderSingleBlogPageQuery(secondPhase0.query, secondScope0, generators)),
+      adapter.queryRaw(renderSingleBlogPageQuery(secondPhase1.query, secondScope1, generators)),
+    ])
+    secondPhase0.write(state, secondResult0)
+    secondPhase1.write(state, secondResult1)
+  }
+
+  return state.root
+}
+
 async function measureRawResultSetBlogPagePrototypeScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -4569,6 +4632,7 @@ async function measureRawResultSetBlogPageWriterProgramScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
   scenario: DirectPlanScenario,
+  staticWaves = false,
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -4581,18 +4645,15 @@ async function measureRawResultSetBlogPageWriterProgramScenario(
   const program = compileBlogPageWriterProgram(getDbQueries(plan))
 
   const generators = Object.create(null) as GeneratorRegistrySnapshot
-  checksumNestedBlogExactResult(
-    await executeCompiledBlogPageWriterProgram(program, placeholderValues, adapter, generators),
-  )
+  const execute = staticWaves ? executeCompiledBlogPageStaticWaveWriterProgram : executeCompiledBlogPageWriterProgram
+  checksumNestedBlogExactResult(await execute(program, placeholderValues, adapter, generators))
   resetCounts(counts)
 
   let checksum = 0
   const beforeHeap = heapUsed()
   const started = performance.now()
   for (let i = 0; i < scenario.iterations; i++) {
-    checksum += checksumNestedBlogExactResult(
-      await executeCompiledBlogPageWriterProgram(program, placeholderValues, adapter, generators),
-    )
+    checksum += checksumNestedBlogExactResult(await execute(program, placeholderValues, adapter, generators))
   }
   const elapsedMs = performance.now() - started
   const afterHeap = heapUsed()
@@ -6911,6 +6972,19 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureRawResultSetBlogPageWriterProgramScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set static-wave writer program'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogPageWriterProgramScenario(compiler, paramGraph, measuredScenario, true),
       )
     }
 

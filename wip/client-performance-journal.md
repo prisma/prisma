@@ -9829,6 +9829,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Add oracle/fallback tests proving key-order mismatch, extra keys, shape mismatch, placeholder naming/order, and batch behavior fall back or match slow-path semantics.
     - Run Workerd verification for the exact helper rows before considering product code.
 
+- Accepted benchmark: static-wave raw result-set writer program rows.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-writer-static-waves-benchmark`, branch `raw-writer-static-waves-benchmark`.
+  - Change:
+    - Added `raw result-set static-wave writer program blog page / nested rows` to `client-engine-cache-timing.ts`.
+    - Added `raw-result-set-static-wave-writer-program` mode and printed row to `workerd-query-compiler-memory.ts`.
+    - The static-wave executor reuses the benchmark-only writer program but unrolls the known two waves and avoids per-run generic `phases`/`pending` arrays.
+  - Verification:
+    - `pnpm install --offline --ignore-scripts` in the side worktree.
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - `pnpm --filter @prisma/client... build`.
+    - `git diff --check`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Same Node benchmark with `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000`.
+    - `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Evidence:
+    - Node 100k: direct assembler 4.00 us/op, generic writer 4.22, static-wave writer 4.07.
+    - Node 300k: direct assembler 3.90 us/op, generic writer 4.15, static-wave writer 3.91.
+    - Workerd 20k: direct assembler 2.26 us/op host / 2.15 worker loop, generic writer 2.59 host / 2.40 worker loop, static-wave writer 2.29 host / 2.15 worker loop.
+  - Decision: keep. The remaining writer-program gap was mostly executor scheduling overhead in this shape; a static generated schedule reaches the direct assembler lower bound without abandoning phase-oriented product structure.
+  - Follow-up lead:
+    - Product raw-nested assembly should compile plan-specific static schedules or instruction arrays, not interpret generic phase objects at runtime.
+    - The next product prototype should generate unrolled waves for eligible raw-nested trees with strict fallbacks for dynamic refs, scalar metadata, wrappers, empty relations, and instrumentation.
+
 ## Useful Commands
 
 ```sh

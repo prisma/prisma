@@ -1527,6 +1527,58 @@ async function executeCompiledBlogPageWriterProgram(program, adapter) {
   return state.root
 }
 
+async function executeCompiledBlogPageStaticWaveWriterProgram(program, adapter) {
+  const rootResultSet = await adapter.queryRaw(program.rootQuery)
+  const rootRow = rootResultSet.rows[0]
+  if (rootRow === undefined) {
+    return null
+  }
+
+  const state = program.writeRoot(rootRow)
+  const firstWave = program.phaseWaves[0]
+  const firstPhase0 = firstWave[0]
+  const firstPhase1 = firstWave[1]
+  const firstPhase2 = firstWave[2]
+  const firstPhase3 = firstWave[3]
+  const [firstResult0, firstResult1, firstResult2, firstResult3] = await Promise.all([
+    adapter.queryRaw(firstPhase0.query),
+    adapter.queryRaw(firstPhase1.query),
+    adapter.queryRaw(firstPhase2.query),
+    adapter.queryRaw(firstPhase3.query),
+  ])
+  firstPhase0.write(state, firstResult0)
+  firstPhase1.write(state, firstResult1)
+  firstPhase2.write(state, firstResult2)
+  firstPhase3.write(state, firstResult3)
+
+  const secondWave = program.phaseWaves[1]
+  const secondPhase0 = secondWave[0]
+  const secondPhase1 = secondWave[1]
+  const secondScope0 = secondPhase0.scope(state)
+  const secondScope1 = secondPhase1.scope(state)
+  if (secondScope0 === undefined && secondScope1 === undefined) {
+    secondPhase0.write(state, EMPTY_RESULT)
+    secondPhase1.write(state, EMPTY_RESULT)
+  } else if (secondScope0 === undefined) {
+    const secondResult1 = await adapter.queryRaw(secondPhase1.query)
+    secondPhase0.write(state, EMPTY_RESULT)
+    secondPhase1.write(state, secondResult1)
+  } else if (secondScope1 === undefined) {
+    const secondResult0 = await adapter.queryRaw(secondPhase0.query)
+    secondPhase0.write(state, secondResult0)
+    secondPhase1.write(state, EMPTY_RESULT)
+  } else {
+    const [secondResult0, secondResult1] = await Promise.all([
+      adapter.queryRaw(secondPhase0.query),
+      adapter.queryRaw(secondPhase1.query),
+    ])
+    secondPhase0.write(state, secondResult0)
+    secondPhase1.write(state, secondResult1)
+  }
+
+  return state.root
+}
+
 function rawResultSetBaseResult(mode, iterations, elapsedMs, checksum) {
   const retained = retainedPlanSize()
   return {
@@ -1596,6 +1648,22 @@ async function runRawResultSetWriterProgramScenario(iterations) {
   }
 
   return rawResultSetBaseResult('raw-result-set-writer-program', iterations, performance.now() - start, checksum)
+}
+
+async function runRawResultSetStaticWaveWriterProgramScenario(iterations) {
+  const adapter = new BenchmarkAdapter()
+  const program = compileBlogPageWriterProgram(BLOG_PAGE_QUERY_SELECTORS)
+  checksumNestedBlogExactResult(await executeCompiledBlogPageStaticWaveWriterProgram(program, adapter))
+  resetCounts()
+
+  let checksum = 0
+  const start = performance.now()
+
+  for (let i = 0; i < iterations; i++) {
+    checksum += checksumNestedBlogExactResult(await executeCompiledBlogPageStaticWaveWriterProgram(program, adapter))
+  }
+
+  return rawResultSetBaseResult('raw-result-set-static-wave-writer-program', iterations, performance.now() - start, checksum)
 }
 
 function executeClientScenario(client, scenario, iteration) {
@@ -2237,6 +2305,8 @@ export default {
         result = await runRawResultSetDirectAssemblerScenario(iterations)
       } else if (mode === 'raw-result-set-writer-program') {
         result = await runRawResultSetWriterProgramScenario(iterations)
+      } else if (mode === 'raw-result-set-static-wave-writer-program') {
+        result = await runRawResultSetStaticWaveWriterProgramScenario(iterations)
       } else if (
         mode === 'client-internal-precomputed-protocol' ||
         mode === 'client-internal-precomputed-static-protocol' ||
@@ -2584,6 +2654,19 @@ async function run(): Promise<void> {
         RAW_RESULT_SET_ITERATIONS,
         false,
         'raw-result-set-writer-program',
+      ),
+    )
+    console.log('')
+
+    await clearWorkerCache(mf)
+    printMeasurement(
+      await dispatchRun(
+        mf,
+        'raw result-set static-wave writer program blog page / nested rows',
+        'blog-page-by-id',
+        RAW_RESULT_SET_ITERATIONS,
+        false,
+        'raw-result-set-static-wave-writer-program',
       ),
     )
   } finally {
