@@ -9703,6 +9703,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Do not add another "assembly" wrapper that still returns child `records` arrays and calls existing attach helpers.
     - The next attempt should mutate final owner objects while relation phases resolve, or move to a compiler-emitted plan shape that avoids materializing child result records purely for attachment.
 
+- Accepted benchmark probe: raw nested writer program lower bound.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-writer-program-spike`, branch `raw-nested-writer-program-spike`.
+  - Side commit: `8e42fd4c9 Add raw nested writer program benchmark`.
+  - Main Prisma commit: `1ac9f420b Add raw nested writer program benchmark`.
+  - Patch:
+    - Added benchmark-only `raw result-set writer program blog page / nested rows` in `client-engine-cache-timing.ts`.
+    - The prototype compiles a blog-page exact raw-nested writer program with relation-phase waves.
+    - It writes the root object first, then mutates final owner objects as child result-set phases resolve.
+    - It does not materialize child record arrays solely for generic attach helpers; comment records and tag wrappers are created directly in their final owner arrays.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `pnpm --filter @prisma/client... build`.
+    - Side worktree: `git diff --check`.
+    - Side worktree: focused `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set"` benchmark runs for normal, async-adapter, and fresh-metadata variants.
+    - Main worktree after cherry-pick: `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Evidence:
+    - Side 300k normal: direct assembler 3.89 us/op, writer program 4.09, compact node 8.41, exact compact 7.71.
+    - Side 100k normal: direct assembler 3.96, writer program 4.28, compact node 7.01, exact compact 7.01.
+    - Side 20k async adapter: direct assembler 8.04, writer program 8.74, compact node 11.17, exact compact 11.45.
+    - Side 100k fresh metadata: direct assembler 10.25, writer program 9.91, compact node 12.32, exact compact 12.26.
+    - Main 100k after cherry-pick: assembly 0.48, prototype 5.47, exact prototype 5.59, direct assembler 3.94, writer program 4.19, compact node 6.45, exact compact 6.67.
+  - Decision: keep as benchmark evidence and product-shape lead. This is the first raw-nested prototype that stays close to the hand-written direct assembler lower bound while preserving a schedule-like structure instead of hard-coding only one final object construction.
+  - Follow-up lead:
+    - Productize by compiling eligible raw-nested plan trees into writer programs with strict gates for numeric refs, scalar conversion/path mappings, empty metadata, wrapper semantics, and SQL commenter/instrumentation behavior.
+    - Avoid per-run generic `phases`/`pending` array allocation where the compiler knows the waves; the benchmark row still has room for a straighter generated schedule.
+    - Add Workerd compact/exact compact and writer-program rows before accepting runtime code, likely by making a benchmark worker path import the relevant interpreter/runtime helpers.
+
 - Rejected refreshed engines spike: SQL-builder direct `left_scalars().as_columns()` join columns.
   - Timestamp: 2026-06-08.
   - Engines base: `e98dd7b4193 Avoid raw nested column index maps`.
