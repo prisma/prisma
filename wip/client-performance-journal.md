@@ -8100,6 +8100,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This closes a measurable part of the gap between generated engine-precomputed hits and the direct ClientEngine benchmark surface without changing RequestHandler semantics or pinning plans outside `QueryPlanCache`.
 
+- Rejected experiment: compile learned lazy descriptor matchers into per-node closures.
+  - Timestamp: 2026-06-08T03:35:00+02:00.
+  - Change:
+    - Added a temporary `LazyDescriptor.matcher` closure tree compiled once from `LazyDescriptorNode`, so descriptor-hit extraction called shape-specific closures instead of the generic recursive `matchesLazyDescriptorNode()` switch.
+  - Measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Broader patched run:
+      - `findUnique`: 3.04 us/op.
+      - `batched findUnique`: 5.40 us/op.
+      - `findMany users`: 3.03 us/op.
+      - `blog page / nested rows`: 11.77 us/op.
+    - This was worse than the accepted direct-result path's same filter run (`2.83`, `5.14`, `2.96`, `11.11` us/op).
+  - Decision:
+    - Reverted. Per-node closure matchers add overhead/noise on the generated model-action path. A future descriptor extractor win likely needs a genuinely flattened or generated matcher, not just compiling the existing recursive tree into closures.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
