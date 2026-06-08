@@ -3818,10 +3818,44 @@ function buildRawNestedBlogPageQuery(dbQueries: readonly QueryPlanDbQuery[]): Ra
   ]
 }
 
+function buildRawNestedBlogPageExactQuery(dbQueries: readonly QueryPlanDbQuery[]): RawNestedReadQuery {
+  return [
+    dbQueries[0],
+    RAW_POST_COLUMNS,
+    [
+      ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true],
+      ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true],
+      [
+        'r',
+        'tags',
+        [dbQueries[3], [], [['r', 'tag', [dbQueries[4], RAW_TAG_COLUMNS], 1, 0, '@parent$tagId', true]]],
+        0,
+        0,
+        '@parent$id',
+        false,
+      ],
+      [
+        'r',
+        'comments',
+        [
+          dbQueries[5],
+          RAW_COMMENT_COLUMNS,
+          [['r', 'author', [dbQueries[6], RAW_USER_COLUMNS], 3, 0, '@parent$authorId', true]],
+        ],
+        0,
+        4,
+        '@parent$id',
+        false,
+      ],
+    ],
+  ]
+}
+
 async function measureRawResultSetCompactNodeScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
   scenario: DirectPlanScenario,
+  exactShape = false,
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -3844,7 +3878,12 @@ async function measureRawResultSetCompactNodeScenario(
     throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
   }
 
-  const rawPlan = ['n', buildRawNestedBlogPageQuery(dbQueries), true] as const satisfies QueryPlanNode
+  const rawPlan = [
+    'n',
+    exactShape ? buildRawNestedBlogPageExactQuery(dbQueries) : buildRawNestedBlogPageQuery(dbQueries),
+    true,
+  ] as const satisfies QueryPlanNode
+  const checksumResult = exactShape ? checksumNestedBlogExactResult : checksumNestedBlogResult
   await interpreter.run(rawPlan, {
     queryable: adapter,
     scope: placeholderValues,
@@ -3856,7 +3895,7 @@ async function measureRawResultSetCompactNodeScenario(
   const beforeHeap = heapUsed()
   const started = performance.now()
   for (let i = 0; i < scenario.iterations; i++) {
-    checksum += checksumNestedBlogResult(
+    checksum += checksumResult(
       await interpreter.run(rawPlan, {
         queryable: adapter,
         scope: placeholderValues,
@@ -5926,6 +5965,19 @@ async function main(): Promise<void> {
         continue
       }
       printDirectPlanMeasurement(await measureRawResultSetCompactNodeScenario(compiler, paramGraph, measuredScenario))
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set exact compact node'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetCompactNodeScenario(compiler, paramGraph, measuredScenario, true),
+      )
     }
 
     for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {

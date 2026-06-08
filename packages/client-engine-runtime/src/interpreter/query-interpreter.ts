@@ -1220,6 +1220,18 @@ export class QueryInterpreter {
     enums: Record<string, Record<string, string>>,
   ): CompiledRawNestedReadRelation {
     if (relation[0] === 'r') {
+      const uniqueWrapperRelation = getRawNestedUniqueWrapperRelation(relation[2][1], relation[2][2])
+      if (uniqueWrapperRelation !== undefined) {
+        const compiledUniqueWrapperRelation = this.#tryCompileRawNestedDirectUniqueWrapperReadRelation(
+          relation,
+          uniqueWrapperRelation,
+          enums,
+        )
+        if (compiledUniqueWrapperRelation !== undefined) {
+          return compiledUniqueWrapperRelation
+        }
+      }
+
       const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
       const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
 
@@ -1347,6 +1359,71 @@ export class QueryInterpreter {
         parentColumnIndex,
         joinResultSet,
         childResult,
+      )
+    }
+  }
+
+  #tryCompileRawNestedDirectUniqueWrapperReadRelation(
+    relation: RawNestedReadDirectRelation,
+    wrapperRelation: RawNestedReadDirectRelation,
+    enums: Record<string, Record<string, string>>,
+  ): CompiledRawNestedReadRelation | undefined {
+    if (
+      typeof relation[3] !== 'number' ||
+      typeof relation[4] !== 'number' ||
+      typeof wrapperRelation[3] !== 'number' ||
+      typeof wrapperRelation[4] !== 'number'
+    ) {
+      return undefined
+    }
+
+    const wrapperDbQuery = relation[2][0]
+    const childQuery = this.#compileRawNestedReadQuery(wrapperRelation[2], enums)
+    const canUseLocalWrapperScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
+    const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(wrapperRelation[2], wrapperRelation[5])
+    const fieldName = relation[1]
+    const parentColumnIndex = relation[3]
+    const wrapperParentColumnIndex = relation[4]
+    const scopeName = relation[5]
+    const isRelationUnique = relation[6]
+    const wrapperFieldName = wrapperRelation[1]
+    const wrapperChildColumnIndex = wrapperRelation[3]
+    const childColumnIndex = wrapperRelation[4]
+    const wrapperScopeName = wrapperRelation[5]
+
+    return async (parentResult, context, scope) => {
+      const wrapperScope = createRawNestedRelationScope(
+        scope,
+        scopeName,
+        getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
+        canUseLocalWrapperScope,
+      )
+      const wrapperResultSet = await this.#executeRawNestedReadDbQuery(wrapperDbQuery, context, wrapperScope)
+      if (wrapperResultSet.rows.length === 0) {
+        attachEmptyRawNestedDirectRelation(parentResult.records, fieldName, isRelationUnique)
+        return
+      }
+
+      const childScope = createRawNestedRelationScope(
+        wrapperScope,
+        wrapperScopeName,
+        getRawNestedScopeValue(wrapperResultSet.rows, wrapperChildColumnIndex),
+        canUseLocalChildScope,
+      )
+      const childResult = await childQuery(context, childScope)
+      attachRawNestedDirectUniqueWrapperRelationByIndex(
+        parentResult.rows,
+        parentResult.records,
+        fieldName,
+        isRelationUnique,
+        parentColumnIndex,
+        wrapperResultSet.rows,
+        wrapperParentColumnIndex,
+        wrapperChildColumnIndex,
+        wrapperFieldName,
+        childResult.rows,
+        childResult.records,
+        childColumnIndex,
       )
     }
   }
@@ -1976,6 +2053,181 @@ function attachRawNestedDirectRelationByIndex(
     }
     parentRecords[parentIndex][fieldName] = children
   }
+}
+
+function attachEmptyRawNestedDirectRelation(
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  isRelationUnique: boolean,
+): void {
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    parentRecords[parentIndex][fieldName] = isRelationUnique ? null : []
+  }
+}
+
+function attachRawNestedDirectUniqueWrapperRelationByIndex(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  isRelationUnique: boolean,
+  parentColumnIndex: number,
+  wrapperRows: readonly unknown[][],
+  wrapperParentColumnIndex: number,
+  wrapperChildColumnIndex: number,
+  wrapperFieldName: string,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): void {
+  if (parentRows.length + wrapperRows.length + childRows.length >= RAW_NESTED_INDEX_THRESHOLD) {
+    attachIndexedRawNestedDirectUniqueWrapperRelation(
+      parentRows,
+      parentRecords,
+      fieldName,
+      isRelationUnique,
+      parentColumnIndex,
+      wrapperRows,
+      wrapperParentColumnIndex,
+      wrapperChildColumnIndex,
+      wrapperFieldName,
+      childRows,
+      childRecords,
+      childColumnIndex,
+    )
+    return
+  }
+
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    const parentKey = parentRows[parentIndex][parentColumnIndex]
+    if (isRelationUnique) {
+      parentRecords[parentIndex][fieldName] = findRawNestedUniqueWrapperChild(
+        parentKey,
+        wrapperRows,
+        wrapperParentColumnIndex,
+        wrapperChildColumnIndex,
+        wrapperFieldName,
+        childRows,
+        childRecords,
+        childColumnIndex,
+      )
+      continue
+    }
+
+    const children: PrismaObject[] = []
+    for (let wrapperIndex = 0; wrapperIndex < wrapperRows.length; wrapperIndex++) {
+      const wrapperRow = wrapperRows[wrapperIndex]
+      if (wrapperRow[wrapperParentColumnIndex] === parentKey) {
+        children.push(
+          createRawNestedUniqueWrapperRecord(
+            wrapperFieldName,
+            wrapperRow[wrapperChildColumnIndex],
+            childRows,
+            childRecords,
+            childColumnIndex,
+          ),
+        )
+      }
+    }
+    parentRecords[parentIndex][fieldName] = children
+  }
+}
+
+function attachIndexedRawNestedDirectUniqueWrapperRelation(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  isRelationUnique: boolean,
+  parentColumnIndex: number,
+  wrapperRows: readonly unknown[][],
+  wrapperParentColumnIndex: number,
+  wrapperChildColumnIndex: number,
+  wrapperFieldName: string,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): void {
+  const childByKey = new Map<unknown, PrismaObject>()
+  for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
+    const childKey = childRows[childIndex][childColumnIndex]
+    if (!childByKey.has(childKey)) {
+      childByKey.set(childKey, childRecords[childIndex])
+    }
+  }
+
+  if (isRelationUnique) {
+    const wrapperByParentKey = new Map<unknown, PrismaObject>()
+    for (let wrapperIndex = 0; wrapperIndex < wrapperRows.length; wrapperIndex++) {
+      const wrapperRow = wrapperRows[wrapperIndex]
+      const parentKey = wrapperRow[wrapperParentColumnIndex]
+      if (!wrapperByParentKey.has(parentKey)) {
+        const wrapperRecord: PrismaObject = {}
+        wrapperRecord[wrapperFieldName] = childByKey.get(wrapperRow[wrapperChildColumnIndex]) ?? null
+        wrapperByParentKey.set(parentKey, wrapperRecord)
+      }
+    }
+
+    for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+      parentRecords[parentIndex][fieldName] = wrapperByParentKey.get(parentRows[parentIndex][parentColumnIndex]) ?? null
+    }
+    return
+  }
+
+  const wrappersByParentKey = new Map<unknown, PrismaObject[]>()
+  for (let wrapperIndex = 0; wrapperIndex < wrapperRows.length; wrapperIndex++) {
+    const wrapperRow = wrapperRows[wrapperIndex]
+    const parentKey = wrapperRow[wrapperParentColumnIndex]
+    let wrappers = wrappersByParentKey.get(parentKey)
+    if (wrappers === undefined) {
+      wrappers = []
+      wrappersByParentKey.set(parentKey, wrappers)
+    }
+
+    const wrapperRecord: PrismaObject = {}
+    wrapperRecord[wrapperFieldName] = childByKey.get(wrapperRow[wrapperChildColumnIndex]) ?? null
+    wrappers.push(wrapperRecord)
+  }
+
+  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
+    parentRecords[parentIndex][fieldName] =
+      wrappersByParentKey.get(parentRows[parentIndex][parentColumnIndex])?.slice() ?? []
+  }
+}
+
+function findRawNestedUniqueWrapperChild(
+  parentKey: unknown,
+  wrapperRows: readonly unknown[][],
+  wrapperParentColumnIndex: number,
+  wrapperChildColumnIndex: number,
+  wrapperFieldName: string,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): PrismaObject | null {
+  for (let wrapperIndex = 0; wrapperIndex < wrapperRows.length; wrapperIndex++) {
+    const wrapperRow = wrapperRows[wrapperIndex]
+    if (wrapperRow[wrapperParentColumnIndex] === parentKey) {
+      return createRawNestedUniqueWrapperRecord(
+        wrapperFieldName,
+        wrapperRow[wrapperChildColumnIndex],
+        childRows,
+        childRecords,
+        childColumnIndex,
+      )
+    }
+  }
+  return null
+}
+
+function createRawNestedUniqueWrapperRecord(
+  fieldName: string,
+  childKey: unknown,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): PrismaObject {
+  const record: PrismaObject = {}
+  record[fieldName] = findRawNestedChild(childKey, childRows, childRecords, childColumnIndex)
+  return record
 }
 
 function mapRawNestedUniqueWrapperRows(
