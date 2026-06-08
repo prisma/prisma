@@ -8393,6 +8393,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The next raw-nested slice should follow the flat edge-slot / compiler-emitted plan-shape lead instead of adding more leaf-level helper wrappers.
 
+- Rejected experiment: benchmark-only descriptor-driven flat edge-slot raw plan.
+  - Timestamp: 2026-06-08T04:07:44+02:00.
+  - Status: reverted before commit.
+  - Change tried:
+    - Temporarily added `raw result-set flat edge-slot prototype` rows to `client-engine-cache-timing.ts`.
+    - The prototype modeled the blog-page raw read as seven query slots plus flat attachment descriptors, reused the existing raw row mappers and attach helpers, and executed query stages in the same dependency order as the hand-written raw result-set prototype.
+    - A follow-up skipped record mapping for the join-only post-tag slot so the descriptor row would not pay for empty join records that the compact M:N executor does not create.
+  - Reason:
+    - Sidecar scout recommended a benchmark-only flat edge-slot proof as the smallest useful next step toward a compiler-emitted flat raw-result program.
+  - Measurement:
+    - Commands:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set flat edge-slot prototype blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact flat edge-slot prototype blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - First run:
+      - Flat edge-slot: 6.69 us/op.
+      - Exact flat edge-slot: 6.81 us/op.
+      - Compact node: 5.99 us/op.
+      - Hand-written raw result-set prototype: 5.19 us/op.
+    - After skipping join-only record mapping:
+      - Flat edge-slot: 6.73 us/op.
+      - Exact flat edge-slot: 6.75 us/op.
+      - Compact node: 6.02 us/op.
+  - Decision:
+    - Revert. A descriptor-driven flat plan that still runs generic slot/attachment interpretation is slower than the current recursive compact raw node. The positive ceiling remains the hand-written raw result-set prototype; a future flat plan must compile the slot program or emit more direct schedule/assembler code, not just interpret a generic edge descriptor each request.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
