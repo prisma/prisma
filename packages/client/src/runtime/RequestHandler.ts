@@ -156,6 +156,11 @@ export class RequestHandler {
       }),
 
       singleLoader: (request) => {
+        const precomputedCachedResult = this.trySingleLoaderPrecomputedCachedResult(request)
+        if (precomputedCachedResult !== undefined) {
+          return precomputedCachedResult
+        }
+
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
@@ -232,6 +237,31 @@ export class RequestHandler {
     const engine = this.client._engine as EngineWithPrecomputedCachedResult
     if (engine.requestPrecomputedCachedResult === undefined || params.precomputedQueryPlanCacheHit === undefined) {
       return this.request(params)
+    }
+
+    try {
+      return engine
+        .requestPrecomputedCachedResult(params.protocolQuery, params.precomputedQueryPlanCacheHit, {
+          isWrite: isWrite(params.protocolQuery.action),
+          customDataProxyFetch: params.customDataProxyFetch,
+        })
+        .then((result) => (clientGetTime ? { data: result } : result))
+        .catch((error) => this.handleRequestErrorForParams(params, error))
+    } catch (error) {
+      this.handleRequestErrorForParams(params, error)
+    }
+  }
+
+  private trySingleLoaderPrecomputedCachedResult(params: RequestParams): Promise<any> | undefined {
+    const engine = this.client._engine as EngineWithPrecomputedCachedResult
+    if (
+      engine.requestPrecomputedCachedResult === undefined ||
+      params.precomputedQueryPlanCacheHit === undefined ||
+      params.transaction !== undefined ||
+      params.dataPath.length !== 0 ||
+      params.unpacker !== undefined
+    ) {
+      return undefined
     }
 
     try {

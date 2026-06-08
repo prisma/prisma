@@ -115,6 +115,55 @@ test('maps direct precomputed cached result errors through request handling', as
   })
 })
 
+test('requests precomputed cached results directly for singleton batchable requests', async () => {
+  const query: JsonQuery = {
+    modelName: 'User',
+    action: 'findUnique',
+    query: {
+      arguments: {
+        where: {
+          id: 1,
+        },
+      },
+      selection: {
+        id: true,
+      },
+    },
+  }
+  const precomputedQueryPlanCacheHit = {
+    cacheKey: 'cache-key',
+    placeholderValues: { '%1': 1 },
+  }
+  const engine = {
+    request: jest.fn(),
+    requestBatch: jest.fn(),
+    requestPrecomputedCachedResult: jest.fn().mockResolvedValue({ id: 1 }),
+  }
+  const handler = createRequestHandler(engine)
+
+  await expect(
+    handler.request({
+      protocolQuery: query,
+      modelName: 'User',
+      action: 'findUnique',
+      dataPath: [],
+      clientMethod: 'user.findUnique',
+      extensions,
+      precomputedQueryPlanCacheHit,
+    }),
+  ).resolves.toEqual({ id: 1 })
+
+  expect(engine.requestPrecomputedCachedResult).toHaveBeenCalledWith(
+    query,
+    precomputedQueryPlanCacheHit,
+    expect.objectContaining({
+      isWrite: false,
+    }),
+  )
+  expect(engine.request).not.toHaveBeenCalled()
+  expect(engine.requestBatch).not.toHaveBeenCalled()
+})
+
 test('forwards precomputed query plan cache hits to single requests', async () => {
   const query: JsonQuery = {
     modelName: 'User',
@@ -171,6 +220,7 @@ test('forwards precomputed query plan cache hits to batch requests', async () =>
     requestBatch: jest
       .fn()
       .mockResolvedValue([{ data: { findUnique: { id: 1 } } }, { data: { findUnique: { id: 1 } } }]),
+    requestPrecomputedCachedResult: jest.fn(),
   }
   const handler = createRequestHandler(engine)
   const firstPrecomputedQueryPlanCacheHit = {
@@ -209,6 +259,7 @@ test('forwards precomputed query plan cache hits to batch requests', async () =>
       precomputedQueryPlanCacheHits: [firstPrecomputedQueryPlanCacheHit, secondPrecomputedQueryPlanCacheHit],
     }),
   )
+  expect(engine.requestPrecomputedCachedResult).not.toHaveBeenCalled()
 })
 
 test('does not forward partial precomputed query plan cache hits to batch requests', async () => {

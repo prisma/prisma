@@ -8207,6 +8207,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow product path that improves non-batchable read cache hits without taking the unsafe direct engine path for batchable `findUnique`.
 
+- Accepted experiment: use direct cached results for singleton batchable requests after DataLoader.
+  - Timestamp: 2026-06-08T03:25:31+02:00.
+  - Change:
+    - Added a guarded `RequestHandler.singleLoader` shortcut that calls `ClientEngine.requestPrecomputedCachedResult()` when a batchable request has already gone through DataLoader's microtask deferral and was proven to be a singleton.
+    - The guard requires direct cached-result support, an existing `precomputedQueryPlanCacheHit`, no transaction, empty `dataPath`, and no `unpacker`.
+    - Multiple same-turn `findUnique` / `findUniqueOrThrow` calls still route through `batchLoader` and `requestBatch()`, so automatic batching is preserved.
+    - Added RequestHandler coverage for singleton direct cached results and a batch negative assertion that `requestPrecomputedCachedResult()` is not called for batched precomputed hits.
+  - Rejected sub-shape:
+    - First prototype routed `requestPrecomputedCachedResult()` through a shared helper with additional guards. It kept correctness but slowed the accepted non-batchable direct-read path: adjacent Node generated `findMany users` rows were 3.23 and 3.06 us/op patched versus 3.01 and 2.94 us/op reversed.
+    - Refined shape restored the inline `requestPrecomputedCachedResult()` implementation and uses a separate singleton-only helper from `singleLoader`.
+  - Node A/B:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Reversed baselines:
+      - Run 1: `findUnique` 4.51 us/op, batched `findUnique` 8.67, `findMany users` 3.01, blog-page 13.96.
+      - Run 2: `findUnique` 4.40 us/op, batched `findUnique` 8.76, `findMany users` 2.94, blog-page 13.89.
+    - Refined patched run:
+      - `findUnique`: 4.15 us/op.
+      - Batched `findUnique`: 8.50 us/op, `queryRaw=50000`.
+      - `findMany users`: 3.04 us/op.
+      - Blog-page / nested rows: 13.38 us/op, `queryRaw=350000`.
+      - Explicit request-precomputed rows stayed in band: `findUnique` 3.72, batched 8.99 with `precomputed batch: hits 100000`, `findMany users` 3.02, blog-page 13.59.
+    - Interpretation:
+      - Keep as a small product hot-path win for singleton `findUnique` and nested singleton `findUnique` shapes.
+      - The `findMany` row is neutral/noisy after restoring the inline direct-read path; do not add any extra helper frame or guard checks to that path without a larger win.
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Patched smoke passed.
+    - Generated-client warmed-cache worker-loop rows from the patched smoke:
+      - `findUnique`: 4.80 us/op, `queryRaw=10000`.
+      - `findMany users`: 2.10 us/op, `queryRaw=10000`.
+      - Batched `findUnique`: 9.20 us/op, `queryRaw=10000`.
+      - Blog-page: 11.00 us/op, `queryRaw=7000`.
+    - Caveat:
+      - A later "baseline" Workerd run after reversing the source patch is invalid as an A/B because `pnpm --filter @prisma/client build` had already emitted the patched runtime bundle and the baseline was not rebuilt. Treat the Workerd run above as a smoke only.
+  - Verification:
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts src/runtime/DataLoader.test.ts src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm exec eslint packages/client/src/runtime/RequestHandler.ts packages/client/src/runtime/RequestHandler.test.ts`
+      - Passed with existing warning-level unsafe-argument warnings in `RequestHandler.ts`.
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Decision:
+    - Keep. This narrows the remaining gap for singleton `findUnique`/nested read cache hits without bypassing DataLoader for actual batches.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
