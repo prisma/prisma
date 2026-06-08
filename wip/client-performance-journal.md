@@ -8990,6 +8990,50 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rejected and reverted. The product hot path prefers the current `Object.keys()` plus indexed key-order fast path despite the allocation; `for..in` plus per-key `Object.hasOwn` is slower on the real generated precomputed rows.
     - Do not retry exact-key allocation removal unless the exactness proof can avoid both `Object.keys()` allocation and per-key own-property checks in the common case without weakening inherited-key semantics.
 
+- Rejected spike: lazy descriptor hit object construction without spread.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-descriptor-hit-object-spike` (removed after reverting).
+  - File temporarily touched:
+    - `packages/client/src/runtime/core/model/applyModel.ts`
+  - Idea:
+    - Replace `return { ...descriptor.precomputedQueryPlanCacheHit, placeholderValues }` in `tryExtractLazyDescriptor()` with stable fields stored directly on `LazyDescriptor`, then construct `{ cacheKey, placeholderValues, parameterizedQuery }` without object spread.
+    - A first version also returned `queryInfoQuery: undefined`; a refined version only attached `queryInfoQuery` when present to preserve the no-sql-commenter object shape.
+  - Baseline command:
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Baseline engine-precomputed rows:
+    - `findUnique`: 3.03 us/op.
+    - Batched `findUnique`: 5.27 us/op.
+    - `findMany users`: 2.79 us/op.
+    - Blog-page nested: 12.03 us/op.
+  - First patched engine-precomputed rows:
+    - `findUnique`: 3.40 us/op.
+    - Batched `findUnique`: 5.31 us/op.
+    - `findMany users`: 2.82 us/op.
+    - Blog-page nested: 11.02 us/op.
+  - Refined patched engine-precomputed rows:
+    - `findUnique`: 2.84 us/op.
+    - Batched `findUnique`: 5.22 us/op.
+    - `findMany users`: 3.19 us/op.
+    - Blog-page nested: 11.12 us/op.
+  - Baseline request-precomputed rows:
+    - `findUnique`: 3.60 us/op.
+    - Batched `findUnique`: 7.63 us/op.
+    - `findMany users`: 3.23 us/op.
+    - Blog-page nested: 12.01 us/op.
+  - Refined patched request-precomputed rows:
+    - `findUnique`: 3.61 us/op.
+    - Batched `findUnique`: 8.01 us/op.
+    - `findMany users`: 3.40 us/op.
+    - Blog-page nested: 12.07 us/op.
+  - Verification:
+    - `pnpm install --ignore-scripts --frozen-lockfile`
+    - `pnpm --filter @prisma/client... build`
+    - `pnpm exec prettier --check /home/aqrln.guest/prisma-descriptor-hit-object-spike/packages/client/src/runtime/core/model/applyModel.ts`
+    - `git diff --check`
+  - Decision:
+    - Rejected and reverted. The refined version had one attractive engine-precomputed nested row but regressed the request-precomputed surface and `findMany`; the spread copy is not the current limiting cost.
+    - Do not retry this as a standalone descriptor micro-optimization without a larger change to the returned hit representation or request contract.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
