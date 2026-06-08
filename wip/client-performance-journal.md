@@ -9884,6 +9884,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Avoid adding benchmark-model-specific helpers to shared runtime exports.
     - Add Workerd exact-helper rows and oracle/fallback tests before landing generated helper product code.
 
+- Rejected productization spike for now: guarded raw nested static schedule runtime path.
+  - Timestamp: 2026-06-08.
+  - Subagent: Erdos (`019ea6fe-d5bb-7dd1-ab66-ba4549786a2e`).
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-static-schedule-product-spike`, branch `raw-nested-static-schedule-product-spike`.
+  - Prototype:
+    - Added a guarded runtime path in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts` that compiles eligible compact raw nested reads into a static direct-writer path.
+    - The guard accepted numeric column refs, direct string field mappings, direct relation edges, no scalar metadata/path mappings, no unique wrappers, and many-to-many leaf children.
+    - Unsupported or unsafe shapes fell back to the existing compact raw nested executor.
+    - A tighter single-parent nested attach variant was tested, regressed, and removed in the side worktree.
+  - Verification from the side worktree:
+    - `pnpm install --offline --ignore-scripts`.
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - `pnpm --filter @prisma/client-engine-runtime... build`.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 24 tests.
+    - `pnpm --filter @prisma/internals... build`.
+    - `pnpm --filter @prisma/client... build`.
+  - Evidence:
+    - Close baseline checkout over 50k raw-result-set rows: compact raw nested node 6.37 us/op, static-wave writer lower bound 4.13 us/op.
+    - Prototype side worktree over 50k raw-result-set rows: compact raw nested node 6.19 us/op, static-wave writer lower bound 3.99 us/op.
+    - Exact compact row stayed on fallback and measured 6.99 us/op.
+  - Decision: do not land this product patch as-is.
+    - The target Node row improved only about 3% while staying far from the static-wave/direct-writer lower bound.
+    - The runtime path was still a guarded generic derivation from compact `n` trees, not a truly unrolled/generated plan-specific schedule.
+    - Workerd verification was not run for the product path.
+  - Follow-up lead:
+    - Keep the benchmark-only static-wave row from `a9ea4dbc9` as the lower-bound/product-shape guide.
+    - Product raw-nested assembly should compile static writer waves or instruction arrays that mutate final owner objects directly, with strict fallback gates.
+    - Avoid more guarded runtime wrappers over compact raw nested trees unless they change the assembly algorithm enough to approach the 4 us/op lower bound.
+
 ## Useful Commands
 
 ```sh
