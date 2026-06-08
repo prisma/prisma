@@ -9245,6 +9245,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - `pnpm build`
       - `pnpm --filter @prisma/client build`
     - Decision: kept. This is a small but deterministic allocation cleanup in the raw nested read compile path, including m2m and nested write/read mixed fixtures, with no meaningful timing downside.
+  - Accepted engines change: avoid boxed column iterators for model projections.
+    - Timestamp: 2026-06-08.
+    - Sidecar agents: Darwin (`019ea630-ca97-77a1-81a2-67edbac8d611`) and Boyle (`019ea630-f214-7590-a567-21a7e8f6934e`) scouted the larger borrowing/arena lead and identified `ModelProjection::as_columns()` as a bounded first target.
+    - Side worktree: `/home/aqrln.guest/prisma-engines-sql-column-iterator-spike`, commit `aeb9d5cfebb Avoid boxed column iterators for model projections`.
+    - Engines main commit: `a05eab3fec2 Avoid boxed column iterators for model projections`.
+    - File:
+      - `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/sql-query-builder/src/model_extensions/column.rs`
+    - Patch: `ModelProjection::as_columns()` now builds one `Vec<Column<'static>>` directly, matching scalar/relation/composite fields and pushing relation scalar columns inline with a local dedupe helper. This removes the boxed `ColumnIterator` chain and avoids allocating a temporary scalar-column vector per relation field while preserving the existing SQL-builder relation paths.
+    - Allocation profile before -> after (`ALLOC_PROFILE_BUCKETS=1`, 50 iterations / 5 warmup unless noted):
+      - `query-m2o` full compile 596 allocs / 78.5 KiB -> 578 / 73.0 KiB; `translate_ir` 352 -> 334.
+      - `query-many-one2m` 659 / 80.7 KiB -> 645 / 77.9 KiB; `translate_ir` 346 -> 332.
+      - `query-many-m2m` 756 / 85.0 KiB -> 741 / 80.8 KiB; `translate_ir` 445 -> 430.
+      - `nested-pagination-query` 690 / 85.5 KiB -> 677 / 81.4 KiB; `translate_ir` 402 -> 389.
+      - `create-nested-connectOrCreate-mixed` 2670 / 316.5 KiB -> 2633 / 304.2 KiB; `translate_ir` 1695 -> 1658.
+      - `update-set-nested` 2077 / 251.8 KiB -> 2042 / 242.1 KiB; `translate_ir` 1305 -> 1270.
+    - Adjacent Criterion comparison versus main was positive on the focused rows:
+      - `query-m2o` about 29.86 us -> 28.42 us.
+      - `query-many-one2m` 32.58 us -> 31.39 us.
+      - `query-many-m2m` 34.77 us -> 34.04 us.
+      - `nested-pagination-query` 31.85 us -> 30.06 us.
+      - `nested-pagination-join` 32.69 us -> 30.86 us.
+      - `nested-distinct-join` 32.60 us -> 31.63 us.
+      - `create-nested-connectOrCreate-mixed` 125.02 us -> 124.71 us.
+      - `update-set-nested` 99.00 us -> 97.64 us.
+      - `update-set-nested-prisma#27650` 88.22 us -> 85.35 us.
+    - Verification in the side worktree and after cherry-pick:
+      - `cargo check -p query-compiler`
+      - `cargo fmt -p sql-query-builder --check`
+      - `git diff --check`
+      - `cargo test -p query-compiler --test queries`
+      - `make build-qc-wasm`
+      - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`
+      - `pnpm build`
+    - Decision: kept. This is a better version of the relation-scalar cleanup lead than the earlier rejected SQL-builder detour because it does not redirect join-building through different helper paths; it only removes per-field iterator/vector scaffolding inside the existing projection column collection.
   - 2026-06-08 sidecar scout says the next better targets are:
     - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
     - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
