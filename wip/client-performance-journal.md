@@ -8959,6 +8959,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The target-runtime result strengthens the JS-owned/direct-descriptor lead: straight-line generated descriptor extraction is much faster than generic lazy extraction in Workerd too, and the cached-result sentinel row beats the static-protocol engine-precomputed row.
     - Productization still needs exact shape safety, fallback semantics, and batching-aware routing. Keep `findUnique` batchable paths on DataLoader unless an equivalent direct-result batching contract exists.
 
+- Rejected spike: allocation-free lazy descriptor exact-key checks.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-descriptor-exact-keys-spike` (removed after reverting).
+  - Files temporarily touched:
+    - `packages/client/src/runtime/core/model/applyModel.ts`
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Idea:
+    - Replace `hasExactKeys()`'s hot `Object.keys()` allocation with a `for..in` walk that skips inherited keys via `Object.hasOwn`, keeps an indexed expected-order fast path, and scans expected keys only after an order mismatch.
+    - This preserves own-enumerable string-key semantics, unlike the benchmark-only sentinel descriptor, which skipped exactness.
+  - Baseline commands and results:
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client lazy descriptor extract blog page' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 2.83 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path blog page' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 12.82 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path blog page' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 14.00 us/op.
+  - Patched first pass:
+    - Lazy descriptor extract blog-page: 2.71 us/op.
+    - Engine precomputed blog-page: 13.28 us/op.
+    - Request precomputed blog-page: 14.04 us/op.
+  - Sequential confirmation:
+    - Baseline engine precomputed blog-page over 100k iterations: 10.87 us/op.
+    - Patched engine precomputed blog-page over 100k iterations: 11.64 us/op.
+    - Baseline request precomputed blog-page over 100k iterations: 12.16 us/op.
+    - Patched request precomputed blog-page over 100k iterations: 12.57 us/op.
+    - Lazy extraction-only at 100k was also worse/noisy: 2.57 baseline vs 2.63 patched.
+  - Verification:
+    - `pnpm install --ignore-scripts --frozen-lockfile`
+    - `pnpm --filter @prisma/client... build`
+    - `git diff --check`
+  - Decision:
+    - Rejected and reverted. The product hot path prefers the current `Object.keys()` plus indexed key-order fast path despite the allocation; `for..in` plus per-key `Object.hasOwn` is slower on the real generated precomputed rows.
+    - Do not retry exact-key allocation removal unless the exactness proof can avoid both `Object.keys()` allocation and per-key own-property checks in the common case without weakening inherited-key semantics.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
