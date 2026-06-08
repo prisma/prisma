@@ -96,6 +96,7 @@ type CompiledRawNestedReadRelation = (
   context: QueryRuntimeContext,
   scope: Record<string, unknown>,
 ) => Promise<void>
+type CompiledRawNestedRowMapper = (resultSet: SqlResultSet) => PrismaObject[]
 
 const EMPTY_ENUMS: Record<string, Record<string, string>> = Object.freeze({})
 const rawResultColumnIndexesCache = new WeakMap<readonly string[], Record<string, number>>()
@@ -1148,10 +1149,11 @@ export class QueryInterpreter {
     }
 
     const relations = rawRelations?.map((relation) => this.#compileRawNestedReadRelation(relation, enums))
+    const mapRows = compileRawNestedRowMapper(mappings, enums, this.#resultFormat)
 
     return async (context, scope) => {
       const resultSet = await this.#executeRawNestedReadDbQuery(dbQuery, context, scope)
-      const records = mapRawNestedRows(resultSet, mappings, enums, this.#resultFormat)
+      const records = mapRows(resultSet)
       const result: RawNestedReadResult = {
         rows: resultSet.rows,
         columnNames: resultSet.columnNames,
@@ -1221,6 +1223,34 @@ export class QueryInterpreter {
       const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
       const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
 
+      if (typeof relation[3] === 'number' && typeof relation[4] === 'number') {
+        const fieldName = relation[1]
+        const parentColumnIndex = relation[3]
+        const childColumnIndex = relation[4]
+        const scopeName = relation[5]
+        const isRelationUnique = relation[6]
+
+        return async (parentResult, context, scope) => {
+          const childScope = createRawNestedRelationScope(
+            scope,
+            scopeName,
+            getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
+            canUseLocalChildScope,
+          )
+          const childResult = await childQuery(context, childScope)
+          attachRawNestedDirectRelationByIndex(
+            parentResult.rows,
+            parentResult.records,
+            fieldName,
+            isRelationUnique,
+            parentColumnIndex,
+            childResult.rows,
+            childResult.records,
+            childColumnIndex,
+          )
+        }
+      }
+
       return async (parentResult, context, scope) => {
         const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[3])
         const childScope = createRawNestedRelationScope(
@@ -1246,6 +1276,51 @@ export class QueryInterpreter {
     const childQuery = this.#compileRawNestedReadQuery(relation[3], enums)
     const canUseLocalJoinScope = rawNestedDbQueryUsesOnlyScopeName(relation[2], relation[8])
     const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[3], relation[9])
+
+    if (
+      typeof relation[4] === 'number' &&
+      typeof relation[5] === 'number' &&
+      typeof relation[6] === 'number' &&
+      typeof relation[7] === 'number'
+    ) {
+      const fieldName = relation[1]
+      const parentColumnIndex = relation[4]
+      const joinParentColumnIndex = relation[5]
+      const joinChildColumnIndex = relation[6]
+      const childColumnIndex = relation[7]
+      const joinScopeName = relation[8]
+      const childScopeName = relation[9]
+
+      return async (parentResult, context, scope) => {
+        const joinScope = createRawNestedRelationScope(
+          scope,
+          joinScopeName,
+          getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
+          canUseLocalJoinScope,
+        )
+        const joinResultSet = await this.#executeRawNestedReadDbQuery(relation[2], context, joinScope)
+        const childScope = createRawNestedRelationScope(
+          scope,
+          childScopeName,
+          getRawNestedScopeValue(joinResultSet.rows, joinChildColumnIndex),
+          canUseLocalChildScope,
+        )
+        const childResult = await childQuery(context, childScope)
+
+        attachRawNestedManyToManyRelationByIndex(
+          parentResult.rows,
+          parentResult.records,
+          fieldName,
+          parentColumnIndex,
+          joinResultSet.rows,
+          joinParentColumnIndex,
+          joinChildColumnIndex,
+          childResult.rows,
+          childResult.records,
+          childColumnIndex,
+        )
+      }
+    }
 
     return async (parentResult, context, scope) => {
       const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[4])
@@ -1424,6 +1499,51 @@ type RawNestedReadResult = {
   rows: readonly unknown[][]
   columnNames: readonly string[]
   records: PrismaObject[]
+}
+
+function compileRawNestedRowMapper(
+  mappings: readonly RawResultColumnMapping[],
+  enums: Record<string, Record<string, string>>,
+  resultFormat: QueryResultFormat,
+): CompiledRawNestedRowMapper {
+  if (!canUseDirectRawNestedRowMapper(mappings)) {
+    return (resultSet) => mapRawNestedRows(resultSet, mappings, enums, resultFormat)
+  }
+
+  const fieldNames = new Array<string>(mappings.length)
+  const columnIndexes = new Array<number>(mappings.length)
+  for (let i = 0; i < mappings.length; i++) {
+    fieldNames[i] = mappings[i][0] as string
+    columnIndexes[i] = mappings[i][1] as number
+  }
+
+  return (resultSet) => {
+    const rows = resultSet.rows
+    if (rows.length === 0) {
+      return []
+    }
+
+    const result = new Array<PrismaObject>(rows.length)
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const row = rows[rowIndex]
+      const record: PrismaObject = {}
+      for (let mappingIndex = 0; mappingIndex < fieldNames.length; mappingIndex++) {
+        record[fieldNames[mappingIndex]] = row[columnIndexes[mappingIndex]]
+      }
+      result[rowIndex] = record
+    }
+    return result
+  }
+}
+
+function canUseDirectRawNestedRowMapper(mappings: readonly RawResultColumnMapping[]): boolean {
+  for (let i = 0; i < mappings.length; i++) {
+    const mapping = mappings[i]
+    if (typeof mapping[0] !== 'string' || typeof mapping[1] !== 'number' || mapping[2] !== undefined) {
+      return false
+    }
+  }
+  return true
 }
 
 function mapRawNestedRows(
@@ -1805,8 +1925,28 @@ function attachRawNestedDirectRelation(
   childRecords: readonly PrismaObject[],
   childColumnIndex: number,
 ): void {
-  const fieldName = relation[1]
-  const isRelationUnique = relation[6]
+  attachRawNestedDirectRelationByIndex(
+    parentRows,
+    parentRecords,
+    relation[1],
+    relation[6],
+    parentColumnIndex,
+    childRows,
+    childRecords,
+    childColumnIndex,
+  )
+}
+
+function attachRawNestedDirectRelationByIndex(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  isRelationUnique: boolean,
+  parentColumnIndex: number,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): void {
   if (parentRows.length + childRows.length >= RAW_NESTED_INDEX_THRESHOLD) {
     attachIndexedRawNestedDirectRelation(
       parentRows,
@@ -1921,12 +2061,33 @@ function attachRawNestedManyToManyRelation(
   joinResultSet: SqlResultSet,
   childResult: RawNestedReadResult,
 ): void {
-  const fieldName = relation[1]
-  const joinRows = joinResultSet.rows
-  const joinParentColumnIndex = resolveRawResultColumnRef(joinResultSet.columnNames, relation[5])
-  const joinChildColumnIndex = resolveRawResultColumnRef(joinResultSet.columnNames, relation[6])
-  const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[7])
-  if (parentRows.length + joinRows.length + childResult.rows.length >= RAW_NESTED_INDEX_THRESHOLD) {
+  attachRawNestedManyToManyRelationByIndex(
+    parentRows,
+    parentRecords,
+    relation[1],
+    parentColumnIndex,
+    joinResultSet.rows,
+    resolveRawResultColumnRef(joinResultSet.columnNames, relation[5]),
+    resolveRawResultColumnRef(joinResultSet.columnNames, relation[6]),
+    childResult.rows,
+    childResult.records,
+    resolveRawResultColumnRef(childResult.columnNames, relation[7]),
+  )
+}
+
+function attachRawNestedManyToManyRelationByIndex(
+  parentRows: readonly unknown[][],
+  parentRecords: readonly PrismaObject[],
+  fieldName: string,
+  parentColumnIndex: number,
+  joinRows: readonly unknown[][],
+  joinParentColumnIndex: number,
+  joinChildColumnIndex: number,
+  childRows: readonly unknown[][],
+  childRecords: readonly PrismaObject[],
+  childColumnIndex: number,
+): void {
+  if (parentRows.length + joinRows.length + childRows.length >= RAW_NESTED_INDEX_THRESHOLD) {
     attachIndexedRawNestedManyToManyRelation(
       parentRows,
       parentRecords,
@@ -1935,8 +2096,8 @@ function attachRawNestedManyToManyRelation(
       joinRows,
       joinParentColumnIndex,
       joinChildColumnIndex,
-      childResult.rows,
-      childResult.records,
+      childRows,
+      childRecords,
       childColumnIndex,
     )
     return
@@ -1951,12 +2112,7 @@ function attachRawNestedManyToManyRelation(
         continue
       }
 
-      const child = findRawNestedChild(
-        joinRow[joinChildColumnIndex],
-        childResult.rows,
-        childResult.records,
-        childColumnIndex,
-      )
+      const child = findRawNestedChild(joinRow[joinChildColumnIndex], childRows, childRecords, childColumnIndex)
       if (child !== null) {
         children.push(child)
       }
