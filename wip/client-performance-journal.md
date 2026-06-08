@@ -9501,6 +9501,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Success requires at least an 8-10% nested blog-page generated-row improvement over request-precomputed, extraction below roughly 1.5 us/op on Node and below the current lazy descriptor in Workerd, unchanged batched query counts, no broad >3% regressions, and the learned descriptor MRU cap staying at two.
   - Decision: this is the next serious JS/product proof. It is more promising than a `serde_wasm_bindgen` request entrypoint because it avoids the Wasm request boundary entirely on cache hits.
 
+- Accepted change: descriptor-bound static matcher registry.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-descriptor-bound-registry-spike`, side commit `13ae5f8d8 Bind static matchers to learned descriptors`.
+  - Main Prisma commit: `549e1a06d Bind static matchers to learned descriptors`.
+  - Patch:
+    - Added an internal `DescriptorBoundMatcherRegistry` on `GetPrismaClientConfig`, carried to `getPrismaClient()` as `_descriptorMatcherRegistry`.
+    - `applyModel.ts` now asks the registry for a matcher only while building a learned lazy descriptor from a real slow-path cache hit. The matcher is stored as `descriptor.exactMatcher` only if self-test returns the same placeholder values in the same key order as the slow path.
+    - `tryExtractLazyDescriptor()` tries `descriptor.exactMatcher?.(args)` before the existing recursive lazy descriptor walker and falls back normally on matcher miss.
+    - Added `applyModel.test.ts` coverage for successful binding, strict placeholder key-order self-test failure, and matcher miss fallback to the lazy descriptor.
+    - Added Node and Workerd benchmark rows for `generated client descriptor-bound static matcher ...`, using `__internal.configOverride` hand-written matcher registries for `User.findUnique`, batched `User.findUnique`, `User.findMany`, and `Post.findUnique` blog-page shapes.
+  - Node focused run after replacing `for...in` exactness with the faster `Object.keys()` ordered fast path, 100k iterations:
+    - Request-precomputed: `findUnique` 5.35 us/op, batched `findUnique` 8.19 us/op, `findMany users` 2.80 us/op, blog-page 12.91 us/op, alternating blog-page 13.25 us/op.
+    - Descriptor-bound matcher: `findUnique` 4.05 us/op, batched `findUnique` 7.67 us/op, `findMany users` 2.71 us/op, blog-page 11.42 us/op, alternating blog-page 12.57 us/op.
+    - Reverse adjacent run: descriptor-bound blog-page 12.06 us/op vs request-precomputed 13.15 us/op; alternating descriptor-bound 14.88 vs request-precomputed 18.16; batched `queryRaw` stayed 100000 for 100000 request pairs and `precomputedBatchHits` stayed 200000.
+  - Workerd reduced-count run (`WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=20000`, `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000`, reduced non-generated probes):
+    - Request-precomputed worker loop: `findUnique` 5.35 us/op, `findMany users` 2.05 us/op, batched `findUnique` 9.20 us/op, blog-page 13.40 us/op.
+    - Descriptor-bound worker loop: `findUnique` 4.65 us/op, `findMany users` 1.90 us/op, batched `findUnique` 9.15 us/op, blog-page 11.80 us/op.
+    - Workerd batch counts stayed unchanged: batched descriptor-bound row kept `queryRaw=20000` and `precomputed batch: hits 40000`.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm build` passed with 44/44 tasks successful.
+    - Side worktree: `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts --runInBand`.
+    - Side worktree: `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts --runInBand`.
+    - Side worktree: `pnpm --filter @prisma/client test src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`.
+    - Side worktree: `pnpm --filter @prisma/client build`.
+    - Side worktree: `git diff --check`.
+    - Benchmarks listed above.
+  - Decision: keep. The registry is descriptor-bound, CSP-safe, self-tested, and bounded by the existing two-descriptor MRU. It advances the generated cache-hit path on Node and Workerd without changing batching semantics. Remaining product work is generator emission of small helper factories plus broad oracle coverage for special values, extensions, omit, raw/query-extension exclusions, and placeholder reuse beyond these benchmark shapes.
+
 ## Useful Commands
 
 ```sh
