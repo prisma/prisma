@@ -9914,6 +9914,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The schema-specific generated-helper product spike should use these Workerd rows as a gate.
     - Prioritize batch behavior, fallback/oracle tests, and generated-client code size before considering this product-ready.
 
+- Rejected benchmark micro-lead: fixed `%1` object literal for exact `findUnique` helper.
+  - Timestamp: 2026-06-08.
+  - Change tried:
+    - In the benchmark-only exact generated `User.findUnique` helper, special-cased learned placeholder name `%1` to return `{ '%1': where.id }` instead of `{ [idPlaceholder]: where.id }`.
+    - Applied the same temporary branch to the Node and Workerd benchmark helpers, but reverted before running Workerd because the Node signal was clearly negative.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER="generated client" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Evidence from the patched Node 100k generated-client run:
+    - `findUnique`: normal 4.18 us/op; request precomputed 3.78; descriptor-bound static 3.96; fixed-key exact helper 5.11.
+    - Batched `findUnique`: request precomputed 8.98; descriptor-bound static 9.87; fixed-key exact helper 9.59.
+    - `findMany users`: request precomputed 3.13; descriptor-bound static 2.99; exact helper 2.90.
+  - Decision: reverted.
+    - The fixed `%1` branch made the simple `findUnique` exact-helper row materially worse and did not create a broad win.
+    - Do not assume fixed-key object literals beat computed placeholder keys in V8/Workerd; measure the exact generated helper shape before productizing this micro-branch.
+
 - Rejected productization spike for now: guarded raw nested static schedule runtime path.
   - Timestamp: 2026-06-08.
   - Subagent: Erdos (`019ea6fe-d5bb-7dd1-ab66-ba4549786a2e`).
