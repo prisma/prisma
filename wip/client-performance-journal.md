@@ -9034,6 +9034,69 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rejected and reverted. The refined version had one attractive engine-precomputed nested row but regressed the request-precomputed surface and `findMany`; the spread copy is not the current limiting cost.
     - Do not retry this as a standalone descriptor micro-optimization without a larger change to the returned hit representation or request contract.
 
+- Rejected spike: query plan cache handle on precomputed descriptor hits.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-query-plan-handle-spike` (removed after reverting).
+  - Files temporarily touched:
+    - `packages/client/src/runtime/core/engines/client/query-plan-cache.ts`
+    - `packages/client/src/runtime/core/engines/client/query-plan-cache.test.ts`
+    - `packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+    - `packages/client/src/runtime/core/engines/common/Engine.ts`
+    - `packages/client/src/runtime/core/model/applyModel.ts`
+  - Idea:
+    - Add an opaque single-plan cache handle to `PrecomputedQueryPlanCacheHit` so `requestPrecomputedCachedResult()` can bypass string-key lookup on descriptor hits.
+    - The handle pointed at the LRU entry object and eviction/clear invalidated `entry.value`, so descriptors would not retain evicted plans.
+    - A refined version only requested handles from the direct engine-precomputed learning path to avoid changing DataLoader/request precomputed hit shapes.
+  - Verification:
+    - `pnpm install --ignore-scripts --frozen-lockfile`
+    - `pnpm --filter @prisma/client... build`
+    - `pnpm --filter @prisma/client build`
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand` (32 tests passed with handle cases before revert)
+    - `git diff --check`
+  - Measurements:
+    - Adjacent positive pass over 100k iterations: engine blog-page 11.70 -> 11.62 us/op, engine `findUnique` 3.08 -> 2.76, request batched `findUnique` 7.89 -> 7.55.
+    - Sequential confirmation did not hold for the nested target: engine `findMany` 2.82 -> 2.83 us/op, engine blog-page 11.00 -> 11.06, request batched `findUnique` 7.17 -> 7.08.
+    - A parallel two-group run was discarded as CPU-contended.
+  - Decision:
+    - Rejected and reverted. `QueryPlanCache` already has a repeated single-key fast path, so bypassing the `Map.get` by carrying an entry handle was too small and inconsistent to justify the extra cache invalidation surface.
+    - A future cached-plan-handle design needs to remove more than the final cache lookup, for example by returning a generated cached-result thunk or direct plan executor handle that also avoids descriptor hit object construction and request routing overhead.
+
+- Sidecar spike: JS-owned request walker / `serde_wasm_bindgen` proof point.
+  - Timestamp: 2026-06-08.
+  - Agent: Nash (`019ea592-9688-7e02-b1d6-e24fcb533440`).
+  - Worktree: `/home/aqrln.guest/prisma-engines-js-owned-request-walker-spike`.
+  - Commit: `d25ea9e0d8b Add JS-owned request walker spike` on branch `js-owned-request-walker-spike`.
+  - Files changed in the sidecar only:
+    - `query-compiler/query-compiler-wasm/src/compiler.rs`
+    - `query-compiler/query-compiler-wasm/bench-js-owned-request-walker.cjs`
+    - `query-compiler/query-compiler-wasm/js-owned-request-walker-spike.md`
+    - `Cargo.toml`
+    - `Cargo.lock`
+  - Prototype:
+    - Added benchmark-only Wasm entrypoints `compileSerdeWasmBindgen`, `compileFindUniqueJs`, and `walkFindUniqueJsForBench`.
+    - `compileSerdeWasmBindgen(JsValue)` replaces JS stringify with `serde_wasm_bindgen` but still materializes Rust-owned untyped maps / `serde_json::Value` before validation and parsing.
+    - `compileFindUniqueJs(JsValue)` is a narrow hand-written `js_sys::Reflect` walker for a simple parameterized `findUnique(User.id)` request.
+  - Evidence:
+    - Native allocation profile for current string path:
+      - `query-m2o`: `parse_json` 23 allocations / 3.3 KiB, `into_doc` 56 / 6.6 KiB.
+      - `filter-contains-param`: `parse_json` 25 / 2.4 KiB, `into_doc` 46 / 4.7 KiB.
+    - Release Wasm timing for simple parameterized `findUnique(User.id)`:
+      - Current `compile(String)` with per-op stringify: about 30-33 us/op.
+      - `compileSerdeWasmBindgen(JsValue)`: about 39-44 us/op.
+      - `compileFindUniqueJs(JsValue)` with naive `js_sys::Reflect`: about 32-36 us/op.
+      - Direct walker only: about 8.3 us/op.
+      - `JSON.stringify` alone: about 0.43 us/op.
+  - Commands:
+    - `cargo fmt -p query-compiler-wasm --check`
+    - `cargo check -p query-compiler-wasm --features postgresql`
+    - `cargo build -p query-compiler-wasm --profile release --features postgresql --target wasm32-unknown-unknown`
+    - `wasm-bindgen --target nodejs ...`
+    - `node --expose-gc query-compiler/query-compiler-wasm/bench-js-owned-request-walker.cjs ...`
+    - `ALLOC_PROFILE_QUERIES=query-m2o,filter-contains-param ... cargo run -p query-compiler --example allocation_profile --release`
+  - Decision:
+    - Reject the naive versions. `serde_wasm_bindgen` is worse because it only removes JS stringify while keeping Rust-owned maps and `serde_json::Value`. A Rust-side `js_sys::Reflect` walker also does not win; repeated Wasm-to-JS property reads cost more than the string parser saves for a simple request.
+    - Defer a generic Wasm-reference parser. The promising direction remains JS-owned cache-hit descriptors or generated shape-specific JS logic that can return a cached plan handle/result directly without generic Wasm object walking.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
