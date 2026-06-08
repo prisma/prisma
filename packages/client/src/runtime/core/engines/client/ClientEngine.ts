@@ -871,6 +871,54 @@ export class ClientEngine implements Engine {
     }
   }
 
+  async requestPrecomputedCachedResult<T>(
+    query: JsonQuery,
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    { interactiveTransaction, isWrite, customDataProxyFetch }: RequestOptions<unknown>,
+  ): Promise<T> {
+    if (interactiveTransaction !== undefined || this.config.sqlCommenters !== undefined || isRawQuery(query)) {
+      const response = await this.request<Record<string, T>>(query, {
+        interactiveTransaction,
+        isWrite,
+        precomputedQueryPlanCacheHit,
+        customDataProxyFetch,
+      })
+      return response.data[query.action]
+    }
+
+    const queryPlanCache = this.#queryPlanCache
+    const cachedPlan = queryPlanCache?.getSingle(precomputedQueryPlanCacheHit.cacheKey)
+    if (cachedPlan === undefined) {
+      const response = await this.request<Record<string, T>>(query, {
+        interactiveTransaction,
+        isWrite,
+        precomputedQueryPlanCacheHit,
+        customDataProxyFetch,
+      })
+      return response.data[query.action]
+    }
+
+    const { executor } =
+      this.#getConnectedEngine() ??
+      (await this.#ensureStarted().catch((err) => {
+        throw this.#transformRequestError(err, JSON.stringify(query))
+      }))
+
+    try {
+      return (await executor.execute({
+        plan: cachedPlan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues: precomputedQueryPlanCacheHit.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+        customFetch: customDataProxyFetch?.(globalThis.fetch),
+      })) as T
+    } catch (e: any) {
+      throw this.#transformRequestError(e, JSON.stringify(query))
+    }
+  }
+
   getPrecomputedQueryPlanCacheHit(query: JsonQuery): PrecomputedQueryPlanCacheHit | undefined {
     if (isRawQuery(query) || query.action === 'createMany' || query.action === 'createManyAndReturn') {
       return undefined

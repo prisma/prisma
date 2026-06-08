@@ -1405,6 +1405,18 @@ async function measureGeneratedClientScenario(
       return requestWithPrecomputedQueryPlanCacheHit(query, options)
     }
 
+    if (typeof client._engine.requestPrecomputedCachedResult === 'function') {
+      const requestPrecomputedCachedResult = client._engine.requestPrecomputedCachedResult.bind(client._engine)
+      client._engine.requestPrecomputedCachedResult = (
+        query: JsonQuery,
+        precomputedQueryPlanCacheHit: unknown,
+        options: Record<string, unknown>,
+      ) => {
+        counts.precomputedFastPathHits!++
+        return requestPrecomputedCachedResult(query, precomputedQueryPlanCacheHit, options)
+      }
+    }
+
     const requestBatch = client._engine.requestBatch.bind(client._engine)
     client._engine.requestBatch = (queries: JsonQuery[], options: Record<string, unknown>) => {
       const hits = options.precomputedQueryPlanCacheHits

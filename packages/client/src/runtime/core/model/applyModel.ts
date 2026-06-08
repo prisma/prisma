@@ -41,6 +41,11 @@ type LazyDescriptorNode =
   | { kind: 'object'; keys: string[]; fields: Record<string, LazyDescriptorNode> }
 
 type EngineWithPrecomputed = Client['_engine'] & {
+  requestPrecomputedCachedResult?: <T>(
+    query: Parameters<Client['_engine']['request']>[0],
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    options: Parameters<Client['_engine']['request']>[1],
+  ) => Promise<T>
   requestWithPrecomputedQueryPlanCacheHit?: <T>(
     query: Parameters<Client['_engine']['request']>[0],
     options: Parameters<Client['_engine']['request']>[1],
@@ -270,6 +275,13 @@ function tryEnginePrecomputedFastPath({
   if (descriptor !== undefined) {
     const extraction = tryExtractLazyDescriptor(descriptor, args)
     if (extraction !== undefined) {
+      const engine = client._engine as EngineWithPrecomputed
+      if (engine.requestPrecomputedCachedResult !== undefined) {
+        return engine.requestPrecomputedCachedResult(descriptor.protocolQuery, extraction, {
+          isWrite: isWrite(descriptor.protocolQuery.action),
+        })
+      }
+
       return client._engine
         .request<Record<string, unknown>>(descriptor.protocolQuery, {
           isWrite: isWrite(descriptor.protocolQuery.action),
