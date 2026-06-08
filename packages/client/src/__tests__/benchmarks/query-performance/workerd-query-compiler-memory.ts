@@ -1631,6 +1631,14 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
       return requestWithPrecomputedQueryPlanCacheHit(query, options)
     }
 
+    if (typeof client._engine.requestPrecomputedCachedResult === 'function') {
+      const requestPrecomputedCachedResult = client._engine.requestPrecomputedCachedResult.bind(client._engine)
+      client._engine.requestPrecomputedCachedResult = (query, precomputedQueryPlanCacheHit, options) => {
+        counts.precomputedFastPathHits++
+        return requestPrecomputedCachedResult(query, precomputedQueryPlanCacheHit, options)
+      }
+    }
+
     const requestBatch = client._engine.requestBatch.bind(client._engine)
     client._engine.requestBatch = (queries, options) => {
       if (Array.isArray(options.precomputedQueryPlanCacheHits)) {

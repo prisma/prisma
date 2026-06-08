@@ -8156,6 +8156,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This productizes the request-precomputed path for the plain generated-client hot path while preserving batching and observability fallback behavior. Remaining faster engine-precomputed rows are still not safe to default because they bypass RequestHandler/DataLoader.
 
+- Accepted measurement hygiene: count Workerd direct engine precomputed hits.
+  - Timestamp: 2026-06-08T03:01:10+02:00.
+  - Change:
+    - Mirrored `client-engine-cache-timing.ts` by wrapping `client._engine.requestPrecomputedCachedResult()` inside `workerd-query-compiler-memory.ts`.
+    - This makes Workerd generated-client engine-precomputed rows count direct cached-result calls as `precomputedFastPathHits`; before this, those rows printed `precomputed fast path: hits 0` even when the direct engine path was active.
+  - Verification:
+    - `pnpm exec eslint packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - Generated engine-precomputed `findUnique`: `precomputed fast path: hits 1000, learns 0`.
+      - Generated engine-precomputed `findMany users`: `precomputed fast path: hits 1000, learns 0`.
+      - Generated engine-precomputed batched `findUnique`: `precomputed fast path: hits 2000, learns 0`; this also exposes again why direct engine precompute must not default for batchable `findUnique`.
+      - Generated engine-precomputed blog-page: `precomputed fast path: hits 1000, learns 0`.
+      - Request-precomputed batched `findUnique` still reports `precomputed batch: hits 2000` and `queryRaw=1000`.
+  - Decision:
+    - Keep. This does not change benchmark behavior, only the reported counters.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
