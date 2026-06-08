@@ -8848,6 +8848,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Current default generated-client rows should be treated as the product-path baseline. The forced request/engine-precomputed modes are still useful as surface probes, but they select explicit internal knobs and add counter wrappers, so they are not direct before/after comparisons with the default row.
     - The target-runtime descriptor gap remains: static blog-page extraction is about 0.92 us/op worker loop, lazy generic extraction about 1.60 us/op, and full default generated blog-page about 17.10 us/op worker loop.
 
+- Sidecar spike: JS-owned generated descriptor / direct cached-plan proof point.
+  - Timestamp: 2026-06-08T07:40:00+02:00.
+  - Worktree: `/home/aqrln.guest/prisma-js-owned-hit-spike`.
+  - Commit: `e374d634b Add JS-owned cache hit descriptor spike` on branch `js-owned-hit-spike`.
+  - Files changed in the spike only:
+    - `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - `wip/client-performance-journal.md`
+    - `AGENTS.md`
+  - Prototype:
+    - Added a benchmark-only generated "sentinel descriptor" for the nested blog-page `post.findUnique` shape. It uses direct JS property access and fixed sentinel checks instead of `Object.keys()` / generic recursive descriptor walking.
+    - Added a benchmark-only "plan descriptor" row that returns the cached JS query plan object directly and extracts only `%1 = args.where.id`, avoiding cache-key string construction and `QueryPlanCache` lookup in the timed loop.
+    - The prototype is intentionally not production-safe as written because it does not prove absence of extra enumerable keys. A real path needs generated shape guarantees, a cheap exactness proof, or fallback to the current safe serializer/descriptor path.
+  - Node results:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=5000 CLIENT_ENGINE_CACHE_TIMING_FILTER='descriptor extract blog page / nested rows' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Static descriptor extract: 2.13 us/op.
+    - Sentinel/direct descriptor extract: 0.99 us/op.
+    - Lazy descriptor extract: 2.95 us/op.
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=5000 CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper' pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Current cached request wrapper blog-page nested: 16.57 us/op.
+    - Precomputed-key wrapper: 8.84 us/op.
+    - Static-shape lower bound: 8.14 us/op.
+    - Static descriptor wrapper: 9.45 us/op.
+    - Direct plan descriptor wrapper: 8.15 us/op.
+    - Lazy descriptor wrapper: 11.25 us/op.
+  - Verification in the spike worktree:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts wip/client-performance-journal.md AGENTS.md`
+    - `git diff --check`
+  - Decision:
+    - Keep the spike worktree/commit as experimental evidence, but do not merge the benchmark code into main yet. The rows are useful lower bounds, but the direct sentinel extractor is not production-shaped without exactness guarantees, and Workerd coverage was not added in that spike.
+    - Architecture read: future JS-owned/cache-hit work should avoid generic JS object walking, avoid `Object.keys()` on hot hits where generated shape guarantees are available, and return a cached plan object or plan handle directly. Once cache-key construction and lookup are removed, the remaining nested cost is mostly executor/rendering/adapter/data-map work.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.

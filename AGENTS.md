@@ -42,6 +42,9 @@
   - For error assertions, use `result.name === 'PrismaClientKnownRequestError'` and `result.code` (not `instanceof`).
   - Use `idForProvider(provider)` from `_utils/idForProvider` for portable ID field definitions.
 
+- **Client performance spike notes**:
+  - A 2026-06-08 `client-engine-cache-timing.ts` spike in `/home/aqrln.guest/prisma-js-owned-hit-spike` found that generated descriptor cache-hit prototypes need direct JS property access or generated shape guarantees. Generic/exact `Object.keys()` descriptor walks are too expensive for the hot path; a sentinel/direct-access blog-page descriptor measured about 1 us/op for extraction on Node, and a direct cached-plan descriptor matched the static-shape executable lower bound. The prototype is not production-safe as written because it does not prove absence of extra enumerable keys.
+
 - **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer.
 
 - **Client architecture (Prisma 7)**:
