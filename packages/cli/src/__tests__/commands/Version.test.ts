@@ -31,6 +31,16 @@ describe('version', () => {
       Prisma schema loaded from schema.prisma."
     `)
   })
+
+  test('includes Prisma CLI package path in JSON output', async () => {
+    ctx.fixture('version')
+    const data = await ctx.cli('version', '--json')
+    expect(data.exitCode).toBe(0)
+
+    const json = JSON.parse(data.stdout) as Record<string, string>
+    expect(json['prisma-cli-path']).toEqual(expect.any(String))
+    expect(json['prisma-cli-path']).not.toHaveLength(0)
+  })
 })
 
 function cleanSnapshot(str: string, versionOverride?: string): string {
