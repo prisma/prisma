@@ -8116,6 +8116,46 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Per-node closure matchers add overhead/noise on the generated model-action path. A future descriptor extractor win likely needs a genuinely flattened or generated matcher, not just compiling the existing recursive tree into closures.
 
+- Accepted experiment: enable request precomputed fast path by default.
+  - Timestamp: 2026-06-08T02:58:19+02:00.
+  - Prisma commit: `14aad0a37 Enable request precomputed fast path by default`.
+  - Change:
+    - Defaulted internal `requestPrecomputedFastPath` to on unless `__internal.requestPrecomputedFastPath === false`.
+    - Kept the path behind the existing plain-request guards: no transaction, ignorable param overrides, no extensions, no global omit, adapter configured, and `getPrecomputedQueryPlanCacheHit()` available.
+    - Added explicit observability guards so enabled tracing or enabled Prisma client debug logging stay on the established `_request()` path. This avoids silently dropping the `_request()` operation span, Node `AsyncResource`, or debug output.
+    - The default-on path still uses `RequestHandler.request()`, so DataLoader batching is preserved. It does not use the direct engine-precomputed path for default generated calls.
+  - Node A/B after restarting the query-compiler Wasm build:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Reversed baseline -> patched normal generated-client rows:
+      - `findUnique`: 7.02 -> 4.25 us/op.
+      - `batched findUnique`: 13.41 -> 8.55 us/op.
+      - `findMany users`: 4.64 -> 4.14 us/op.
+      - `blog page / nested rows`: 19.86 -> 14.33 us/op.
+    - Batched `findUnique` stayed at `queryRaw=50000` for 50000 iterations in both normal generated rows and request-precomputed rows, confirming DataLoader batching was not bypassed.
+    - Patched normal generated rows lined up with the explicit request-precomputed rows in the same run (`findUnique` 4.06 us/op, batched 8.79, `findMany` 4.10, blog-page 14.20).
+  - Workerd smoke:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Generated-client warmed cache request-loop rows:
+      - Normal generated `findUnique`: 4.60 us/op.
+      - Explicit request-precomputed `findUnique`: 4.40 us/op.
+      - Normal generated `findMany users`: 2.40 us/op.
+      - Explicit request-precomputed `findMany users`: 2.20 us/op.
+      - Normal generated batched `findUnique`: 9.60 us/op, `queryRaw=5000` for 5000 iterations.
+      - Explicit request-precomputed batched `findUnique`: 8.80 us/op, `queryRaw=5000` for 5000 iterations.
+      - Normal generated blog-page: 12.60 us/op.
+      - Explicit request-precomputed blog-page: 12.10 us/op.
+  - Verification:
+    - `make build-qc-wasm` in `/home/aqrln.guest/prisma-engines`.
+    - `pnpm exec eslint packages/client/src/runtime/getPrismaClient.ts packages/client/src/runtime/core/model/applyModel.ts`
+      - Passed with the existing warning-level unsafe-argument warning in `getPrismaClient.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts src/runtime/DataLoader.test.ts src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand`
+    - `pnpm --filter @prisma/client build`
+    - `git diff --check`
+  - Decision:
+    - Keep. This productizes the request-precomputed path for the plain generated-client hot path while preserving batching and observability fallback behavior. Remaining faster engine-precomputed rows are still not safe to default because they bypass RequestHandler/DataLoader.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
