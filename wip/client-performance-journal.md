@@ -8041,6 +8041,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Deriving a flat-ish executor from the existing `n` tree without changing the serialized plan or assembly algorithm does not beat the current wrapper-specialized executor. A future raw-nested project should either emit a real flat result-set assembly program or move to a different hot path.
 
+- Rejected experiment: store generated precomputed lazy descriptor object fields as key-aligned arrays.
+  - Timestamp: 2026-06-08T03:00:00+02:00.
+  - Change:
+    - In `packages/client/src/runtime/core/model/applyModel.ts`, temporarily changed `LazyDescriptorNode.kind === 'object'` from `fields: Record<string, LazyDescriptorNode>` to `fields: LazyDescriptorNode[]` aligned with `keys`.
+    - The intended win was to avoid `descriptor.fields[key]` lookups on generated precomputed cache hits.
+  - Measurement:
+    - Commands:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client engine precomputed fast path blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Engine precomputed generated blog-page regressed to 13.00 us/op.
+    - Request precomputed generated blog-page regressed to 14.66 us/op.
+  - Decision:
+    - Reverted. Current V8 handles the descriptor field record shape better than the aligned array shape in the generated model-action path.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
