@@ -8419,6 +8419,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. A descriptor-driven flat plan that still runs generic slot/attachment interpretation is slower than the current recursive compact raw node. The positive ceiling remains the hand-written raw result-set prototype; a future flat plan must compile the slot program or emit more direct schedule/assembler code, not just interpret a generic edge descriptor each request.
 
+- Rejected experiment: typed direct raw nested row mapper.
+  - Timestamp: 2026-06-08T04:11:09+02:00.
+  - Status: reverted before commit.
+  - Change tried:
+    - Temporarily added `compileTypedDirectRawNestedRowMapper()` in `query-interpreter.ts`.
+    - The mapper targeted production compiler-emitted raw mappings with string field names, numeric column indexes, and field-type metadata. It skipped resolved mapping tuple iteration and path checks, while still calling `mapRawNestedFieldValue()` to preserve scalar/date/enum conversion semantics.
+  - Reason:
+    - Manual benchmark-only compact raw plans omit field-type metadata and can use the existing direct mapper. Production compiled direct plans include field types and use the generic mapper, which likely contributes to the gap between `direct plan blog page / nested rows` and the manual compact raw node.
+  - Measurement:
+    - Patched first 300k run:
+      - `direct plan blog page / nested rows`: 6.48 us/op.
+      - `raw result-set compact node blog page / nested rows`: 5.92 us/op.
+      - `raw result-set exact compact node blog page / nested rows`: 5.98 us/op.
+    - Patched 500k rerun:
+      - `direct plan blog page / nested rows`: 6.76 us/op.
+      - `direct plan findMany / 10 scalar rows`: 1.47 us/op.
+      - `direct plan findUnique / empty rows`: 0.58 us/op.
+    - Adjacent reversed baseline:
+      - `direct plan blog page / nested rows`: 6.64 us/op.
+      - `direct plan findMany / 10 scalar rows`: 1.46 us/op.
+    - The typed mapper did not beat the adjacent baseline and slightly regressed the target blog row.
+  - Verification before revert:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter`
+    - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+    - `git diff --check`
+  - Decision:
+    - Revert. Preserving conversion by still calling `mapRawNestedFieldValue()` removes most of the expected win, and the extra mapper branch is not justified.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
