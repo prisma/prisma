@@ -9327,6 +9327,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as positive design evidence, not product code. Descriptor-bound identity is a practical safety boundary and avoids the rejected per-action false-positive problem.
     - Do not land the benchmark-only global matcher factory. The unresolved product work is producing CSP-safe exact matchers tied to learned descriptors without growing generated-client bundle size badly and without reintroducing rejected closure/path-table/key-array matcher shapes.
 
+- Productization read: descriptor-bound matcher safety and CSP shape.
+  - Timestamp: 2026-06-08.
+  - Sidecar agents:
+    - Fermat (`019ea61f-64d4-7281-8514-3c25eb961044`) mapped the CSP-safe implementation surface.
+    - Epicurus (`019ea61f-8cb2-70f2-b7c0-41756a1f3f2d`) mapped validation, cache-key, and behavior-parity risks.
+  - Local source read:
+    - Existing runtime descriptor learning happens in `packages/client/src/runtime/core/model/applyModel.ts::buildLazyDescriptor()` after a real slow-path `serializeJsonQuery()` and real `PrecomputedQueryPlanCacheHit`.
+    - `ClientEngine` already consumes `{ cacheKey, placeholderValues }` through `requestPrecomputedCachedResult()` / `precomputedQueryPlanCacheHit`; no engine API is needed for the first matcher proof.
+    - Both generators currently emit shared config around `getPrismaClient(config)` rather than per-model method bodies, so product matchers need a generated config/runtime registry, not ad hoc generated delegate code.
+  - Consensus:
+    - Runtime-derived descriptors are the safety boundary. A descriptor hit is valid only if it is equivalent to `serializeJsonQuery(args)` plus `parameterizeQuery()` plus the existing cache-key builder; otherwise it must fall back before execution.
+    - Generation-time cannot know arbitrary callsite object shapes, nested key sets, `Prisma.skip` / `undefined` behavior, extensions, placeholder reuse, or exact runtime key order. Do not generate descriptors for all possible shapes.
+    - Generation-time can only provide optional CSP-safe helper factories. A helper may bind to a specific learned descriptor, self-test on the first args against `hasSamePlaceholders`, and then run before the generic recursive descriptor matcher. Static emitted functions are Worker-safe; `eval` / `new Function` remains off the table.
+  - Required product surface if this proceeds:
+    - Extend the internal generated-client config type with a matcher registry.
+    - Let `applyModel.ts` ask the registry for a descriptor-bound matcher during `buildLazyDescriptor()`, then store it on that descriptor only if self-test placeholder values exactly match the slow-path hit.
+    - Keep fallback to the current recursive lazy descriptor and then to normal serialization.
+    - If multiple hot shapes per model/action matter, add a tiny bounded descriptor cache; the current closure stores only one learned descriptor and can thrash on alternating shapes.
+  - Required oracle tests before productizing:
+    - Compare descriptor extraction against `serializeJsonQuery()` -> `parameterizeQuery()` -> current cache-key construction.
+    - Cover omitted `undefined`, explicit `undefined`, strict undefined errors, `Prisma.skip` in objects/select/include/omit, array `undefined` and `skip`, `Date` and invalid Date, `Decimal`, `BigInt`, bytes, Json object/list values, JsonNull/DbNull/AnyNull, `Param`, `FieldRef`, enum db-name mapping, duplicate equal values, repeated placeholder equality, select/include conflicts, scalar include errors, unknown fields, and empty selections.
+    - Cover batches: two `findUnique` hits with different values, duplicate values, partial hit fallback, compacted result parity, transaction/batch ordering, `getBatchId` parity, placeholder renaming, and batch cache-key parity.
+    - Keep query extensions, result extensions, fluent `dataPath`, global omit, raw queries, `createMany`, SQL commenters, tracing/debug, transactions, non-empty `dataPath`, and unpackers gated off until they have explicit parity tests.
+  - Benchmark follow-up:
+    - Extend `/home/aqrln.guest/prisma-descriptor-bound-matcher-spike` beyond the exact blog-page happy path: hot hit, fallback miss, batched hot hit, special scalar values, skip/undefined fallback, and Workerd memory/timing in `workerd-query-compiler-memory.ts`.
+  - Decision:
+    - No mainline runtime code yet. The next worthy product proof is a guarded internal registry plus oracle tests, not another benchmark-only global factory or generator-time per-action probe.
+
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
   - Rejected sidecar: Copernicus (`019ea5ac-2ad7-7f92-ad48-8c0194a46aed`) tested an unrolled direct raw nested row mapper for fixed mapping widths `0/2/3/5/7` in `/home/aqrln.guest/prisma-runtime-raw-assembler-spike`, then reverted it. At 200k iterations, raw result-set compact node blog-page regressed from 6.00 to 6.32 us/op, while raw result-set exact compact node blog-page stayed effectively neutral at 6.04 vs 6.02 us/op. Verification included `pnpm install --ignore-scripts --frozen-lockfile`, `pnpm --filter @prisma/client... build`, focused `client-engine-cache-timing.ts` rows, `pnpm exec prettier --check packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `git diff --check`, and `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` with 24 passing tests.
