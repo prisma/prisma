@@ -4,6 +4,12 @@ Date started: 2026-06-06
 
 Objective: make Prisma Client materially faster and lower-memory, especially on Cloudflare Workers. The current focus is the local `ClientEngine` path with the Wasm query compiler and TypeScript query interpreter. Related Rust work lives in `/home/aqrln.guest/prisma-engines`.
 
+## Workflow Guidance
+
+- Do not limit future work to small safe patches. Large architecture spikes are acceptable when the measurement ceiling justifies them.
+- Use subagents and side worktrees liberally for independent spikes, especially when productization paths can be tested in parallel.
+- For rejected but informative side-worktree code, preserve either a side branch commit or a detailed journal record before cleanup so later sessions can recover the exact lead and evidence.
+
 ## Current Baseline
 
 - Prisma repo current relevant commits:
