@@ -8879,6 +8879,50 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep the spike worktree/commit as experimental evidence, but do not merge the benchmark code into main yet. The rows are useful lower bounds, but the direct sentinel extractor is not production-shaped without exactness guarantees, and Workerd coverage was not added in that spike.
     - Architecture read: future JS-owned/cache-hit work should avoid generic JS object walking, avoid `Object.keys()` on hot hits where generated shape guarantees are available, and return a cached plan object or plan handle directly. Once cache-key construction and lookup are removed, the remaining nested cost is mostly executor/rendering/adapter/data-map work.
 
+- Sidecar spike: expression container allocation follow-up.
+  - Timestamp: 2026-06-08T07:55:00+02:00.
+  - Worktree: `/home/aqrln.guest/prisma-engines-expression-container-spike`.
+  - Branch: `expression-container-spike` at engines commit `4352448ee00016f20615fdc748c5da1963582eee`.
+  - Outcome: no patch kept. Both prototypes were reverted in the sidecar worktree after allocation/Criterion checks.
+  - Prototype 1: typed expression binding names.
+    - Files temporarily touched:
+      - `query-compiler/query-compiler/src/expression.rs`
+      - `query-compiler/query-compiler/src/expression/format.rs`
+      - `query-compiler/query-compiler/src/binding.rs`
+      - `query-compiler/query-compiler/src/translate.rs`
+      - `query-compiler/query-compiler/src/translate/query/read.rs`
+      - `query-compiler/query-compiler/src/translate/query/write.rs`
+    - Idea: replace `Cow<'static, str>` expression binding names with a typed `BindingName` enum so numeric node ids are not heap strings.
+    - Allocation signal: nested write full-compile allocation counts improved, reads were unchanged:
+      - `create-nested-connectOrCreate-mixed`: 2689 -> 2655.
+      - `create-nested-connectOrCreate-one2m`: 2386 -> 2360.
+      - `update-set-nested`: 2086 -> 2052.
+      - `update-set-nested-prisma#27650`: 1856 -> 1834.
+    - Criterion rejection:
+      - `nested-pagination-query`: +2.27%.
+      - `query-m2m`: +1.45%.
+      - `create-nested-create-with-composite-id`: +1.75%.
+      - `update-set-nested`: +7.25%.
+  - Prototype 2: skip discarded result `Let` in `wrap_children_with_expr()`.
+    - File temporarily touched: `query-compiler/query-compiler/src/translate.rs`.
+    - Idea: avoid building `Let { bindings: vec![node_result], expr: get same node }` when `simplify()` would immediately erase it.
+    - Allocation signal was tiny:
+      - `create-nested-create`: 1265 -> 1262.
+      - `create-nested-connectOrCreate-mixed`: 2689 -> 2683.
+      - `update-set-nested`: 2086 -> 2083.
+    - Criterion rejection:
+      - `create-nested-connectOrCreate-one2m`: +2.98%.
+      - `nested-pagination-query`: +3.97%.
+      - `create-nested-create`: -6.91%, but the isolated win did not justify broader regressions.
+  - Commands:
+    - `cargo check -p query-compiler --example allocation_profile`
+    - `cargo test -p query-compiler --test queries`
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-m2m,query-many-m2m,query-many-one2m,nested-pagination-query,create-nested-create,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+    - `cargo bench -p query-compiler --bench compilation_bench -- --save-baseline expression_container_base "..."`
+    - `cargo bench -p query-compiler --bench compilation_bench -- --baseline expression_container_base "..."`
+  - Decision:
+    - Do not retry these two expression-allocation shapes without a new CPU hypothesis. They save small allocation counts on nested writes but fail the no-broad-Criterion-regression bar.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
