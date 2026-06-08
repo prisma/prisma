@@ -8720,6 +8720,92 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. Allocation counts moved, but bytes barely moved and Criterion showed multiple real compile-time regressions.
     - Do not revisit a lifetime-generic `Cow` cons-list `Path` as a standalone optimization. The parser path lead remains only for the larger design: use a borrowed mutable push/pop path stack and materialize path segments only when constructing validation errors.
 
+- Accepted experiment: mutable query parser path stack.
+  - Timestamp: 2026-06-08T06:40:00+02:00.
+  - Engines commit: `4352448ee00 Use mutable query parser paths`.
+  - Context:
+    - Follow-up to the rejected `Cow` cons-list `Path` experiment. The `Cow` patch removed some segment string allocations but kept the per-hop `Rc` node allocation and regressed Criterion.
+    - Herschel prototyped the larger design in `/home/aqrln.guest/prisma-engines-path-stack-spike`; the accepted patch integrates that design into the main engines worktree.
+  - Change:
+    - Replaced `query-compiler/core/src/query_document/parser.rs::Path { Rc<Option<(String, Path)>> }` with a mutable `Vec<String>` path stack.
+    - Parser recursion now passes `&mut Path` for selection/argument paths, pushes before descending, pops after local parsing completes, and materializes `Vec<&str>` only for validation/error construction.
+    - Added `Path::segments_with()` and `Path::parent_segments_with()` to construct error paths for unknown fields/arguments and conditionally required sibling arguments without mutating the hot path.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-m2m,query-many-m2m,query-many-one2m,filter-contains-param,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+    - Full-compile results against the same baseline:
+      - `query-m2o`: 617 allocs / 81.0 KiB -> 603 / 79.2 KiB.
+      - `query-m2m`: 797 / 89.5 KiB -> 774 / 87.3 KiB.
+      - `query-many-m2m`: 795 / 89.2 KiB -> 767 / 86.7 KiB.
+      - `query-many-one2m`: 690 / 83.8 KiB -> 667 / 81.8 KiB.
+      - `filter-contains-param`: 552 / 64.5 KiB -> 519 / 62.1 KiB.
+      - `nested-pagination-query`: 715 / 89.1 KiB -> 697 / 86.6 KiB.
+      - `create-nested-connectOrCreate-mixed`: 2746 / 325.2 KiB -> 2689 / 319.6 KiB.
+      - `update-set-nested`: 2146 / 257.1 KiB -> 2086 / 253.3 KiB.
+  - Criterion:
+    - Command:
+      - `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-m2m|query-many-m2m|query-many-one2m|nested-pagination-query|filter-contains-param|create-nested-connectOrCreate-mixed|update-set-nested"`
+    - Results:
+      - `create-nested-connectOrCreate-mixed`: -3.54% mean, significant improvement.
+      - `filter-contains-param-insensitive`: -1.89% mean, significant improvement.
+      - `filter-contains-param`: -3.70% mean, significant improvement.
+      - `nested-pagination-query`: -3.36% mean, significant improvement.
+      - `query-m2m`: -2.78% mean, significant improvement.
+      - `query-m2o-lateral`: -1.26% mean, within noise threshold.
+      - `query-m2o`: -3.02% mean, significant improvement.
+      - `query-many-m2m`: -2.72% mean, significant improvement.
+      - `query-many-one2m`: -3.63% mean, significant improvement.
+      - `update-set-nested-prisma#27650`: -2.85% mean, significant improvement.
+      - `update-set-nested`: -1.27% mean, significant improvement.
+  - Verification:
+    - `cargo check -p query-compiler --example allocation_profile`
+    - `cargo test -p query-compiler --test queries`
+    - `cargo check -p query-compiler-wasm --features sqlite`
+    - `cargo test -p query-core test_path`
+    - `cargo fmt -p query-core`
+    - `git diff --check`
+  - Decision:
+    - Keep and commit. This removes the actual parser path allocation source rather than only replacing segment strings, and Criterion improved broadly.
+
+- Rejected experiment: relation scalar helper SQL-builder detour.
+  - Timestamp: 2026-06-08T06:35:00+02:00.
+  - Context:
+    - Raman scouted relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`.
+    - The most concrete sidecar patch changed SQL join-builder paths that only needed scalar columns from `linking_fields() -> FieldSelection -> ModelProjection` to direct `left_scalars().as_columns()`.
+  - Change tried:
+    - In `query-compiler/query-builders/sql-query-builder/src/model_extensions/relation.rs`, `join_columns()` used `self.left_scalars().as_columns(ctx)` for non-M:N inline relations.
+    - In `query-compiler/query-builders/sql-query-builder/src/join_utils.rs`, `compute_one2m_join()` used `field.related_field().left_scalars().as_columns(ctx)`.
+    - In `query-compiler/query-builders/sql-query-builder/src/select/mod.rs`, join-condition and order/filter helper paths used `left_scalars()` directly.
+  - Allocation profile:
+    - Command:
+      - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-one2m,query-many-m2m,nested-pagination-query,nested-pagination-join,aggregate-nested-m2m' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+    - `nested-pagination-join` moved from `translate_ir` 413 allocs / 37.7 KiB to 401 / 34.0 KiB.
+    - `nested-pagination-join` full compile moved from 719 allocs / 84.4 KiB to 707 / 80.8 KiB.
+    - Query-mode/raw-nested fixtures were unchanged.
+  - Criterion:
+    - Command:
+      - `cargo bench -p query-compiler --bench compilation_bench -- "nested-pagination-join|nested-distinct-pagination-join|nested-distinct-join|aggregate-join|query-o2m-lateral|query-m2o-lateral"`
+    - Main worktree run regressed too broadly:
+      - `aggregate-join`: +5.50% mean, significant regression.
+      - `nested-distinct-join`: +2.94% mean, significant regression.
+      - `nested-pagination-join`: +15.41% mean, significant regression.
+      - `query-m2o-lateral`: -2.59% mean, significant improvement.
+      - Other rows were within noise threshold.
+  - Decision:
+    - Revert. The allocation reduction is real on join-mode, but the CPU regression is too high and this is not the primary Cloudflare/query-mode path anyway.
+
+- Rejected experiment: carry relation join field names through read translation.
+  - Timestamp: 2026-06-08T06:32:00+02:00.
+  - Context:
+    - Local follow-up to Raman's relation scalar helper scout. Non-M:N nested reads build child-side relation scalar vectors for `ConditionalLink`s and `build_read_one2m_query()` recomputes the related field scalars for `JoinMetadata.fields`.
+  - Change tried:
+    - In `query-compiler/query-compiler/src/translate/query/read.rs`, carried `join_field_names` from non-M:N `ConditionalLink` fields into `build_read_one2m_query()` and used them instead of recomputing `field.related_field().left_scalars()`.
+  - Result:
+    - `cargo check -p query-compiler --example allocation_profile` passed.
+    - Focused allocation profile showed only about one allocation saved on affected full-compile rows and no meaningful byte movement.
+  - Decision:
+    - Revert without running Criterion. The patch added API/control-flow surface for too little allocation signal.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -8752,13 +8838,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Explore memory-management simplification in Rust query compiler.
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
-  - The first two concrete leads from the 2026-06-08 scout are now resolved: `RelationLinkage` SmallVec/sorted-vector storage was rejected, and scalar `selection_order` name movement was accepted.
+  - Resolved concrete leads from the 2026-06-08 scout: `RelationLinkage` SmallVec/sorted-vector storage was rejected, scalar `selection_order` name movement was accepted, parser `Path` mutable stack was accepted, and two relation-scalar-helper detours were rejected.
   - 2026-06-08 sidecar scout says the next better targets are:
-    - Parser success-path `Path::add()` allocation in `core/src/query_document/parser.rs`; use a borrowed push/pop path stack and materialize only for validation errors.
     - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
     - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
   - Do not spend more time on `FieldSelection::as_scalar_fields()` fail-fast cleanup unless a new benchmark suggests it matters; it was rejected in the same run.
-  - Do not spend more time on a `Cow<'a, str>` immutable `Path` cons-list variant; it reduced allocation counts but regressed compile Criterion. The only parser-path variant still worth considering is the larger mutable stack design that removes the `Rc` node allocation itself.
+  - Do not spend more time on a `Cow<'a, str>` immutable `Path` cons-list variant; it reduced allocation counts but regressed compile Criterion. The useful parser-path version was the now-accepted mutable stack design that removes the `Rc` node allocation itself.
+  - Do not spend more time on the tested relation helper detours unless a different shape has stronger evidence: carrying non-M:N join field names through read translation was too small, and direct `left_scalars().as_columns()` in SQL join builder regressed join Criterion despite allocation wins.
 
 - Further raw nested runtime lead: reduce object allocation or plan shape overhead beyond numeric mapper specialization.
   - The numeric mapper/attacher specialization moved the compact raw node only modestly. The remaining gap to the benchmark-only `raw result-set prototype` and `render query all leaves` rows is unlikely to come from column-ref resolution alone.
