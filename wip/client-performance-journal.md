@@ -8015,6 +8015,18 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a small but repeatable product-shaped win on exact wrapper output, and the new guard keeps dynamic/named-column wrapper plans on the existing executor. It does not close the remaining gap to the exact/raw prototypes; the next raw nested work should still be a larger flat result-set assembler or compiler-emitted plan shape.
 
+- Rejected experiment: raw nested exact-width object-literal row builders.
+  - Timestamp: 2026-06-08T02:35:00+02:00.
+  - Change:
+    - Added a temporary `compileExactRawNestedRowMapper()` branch for direct numeric raw nested mappings with widths 1, 3, and 7, creating row records with computed-key object literals instead of the existing dynamic assignment loop.
+  - Measurement:
+    - Command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Exact compact row regressed to 7.97 us/op versus the accepted wrapper-fast-path row's 6.25 us/op.
+    - Non-exact compact row regressed to 7.87 us/op.
+  - Decision:
+    - Reverted. Computed-key object literals are much worse for this raw nested mapper shape on current V8; keep the direct assignment loop unless new evidence changes.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
