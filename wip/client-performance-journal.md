@@ -8535,6 +8535,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The memory win is real for one-off churn, but the unconditional second-sighting rule is not a safe default for hot nested shapes because it makes warming require two compiles. A future admission design must preserve first-repeat/hot-shape behavior, for example by entering probation only after measured churn/cache pressure, by making it edge/config opt-in, or by keeping a small protected hot-shape segment.
 
+- Rejected experiment: specialized `true` lazy-descriptor constant nodes.
+  - Timestamp: 2026-06-08T08:55:00+02:00.
+  - Status: reverted before commit.
+  - CPU profile prompt:
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000000 pnpm exec node --cpu-prof --cpu-prof-dir=wip/profiles --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Row: `generated client blog page / nested rows warmed cache`: 11.46 us/op, `queryRaw=7000000`.
+    - Top product-ish self samples after filtering loader noise included:
+      - `mapRawNestedRows`: 5.7%.
+      - benchmark `getBlogPageResultSet`: about 6.8% total across split frames; benchmark overhead, not product runtime.
+      - `matchesLazyDescriptorNode`: about 13% total across split frames.
+      - render/query-interpreter raw nested frames after that.
+  - Change tried:
+    - Added a `LazyDescriptorNode` variant for literal `true` values in `applyModel.ts`, so generated selection leaves matched via `value === true` instead of the generic `Object.is(value, descriptor.value)` constant branch.
+  - Measurements:
+    - Adjacent focused baseline:
+      - `generated client request precomputed fast path blog page / nested rows warmed cache`: 11.84 us/op.
+      - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 10.75 us/op.
+    - Patched focused runs:
+      - First: request-precomputed blog-page 11.77 us/op; engine-precomputed blog-page 11.19 us/op.
+      - Second: request-precomputed blog-page 11.86 us/op; engine-precomputed blog-page 10.69 us/op.
+    - Patched broad request-precomputed run:
+      - `findUnique`: 2.96 us/op.
+      - `batched findUnique`: 6.53 us/op.
+      - `findMany users`: 2.61 us/op.
+      - `blog page / nested rows`: 11.59 us/op.
+    - Adjacent reverted broad request-precomputed control:
+      - `findUnique`: 2.98 us/op.
+      - `batched findUnique`: 6.89 us/op.
+      - `findMany users`: 2.61 us/op.
+      - `blog page / nested rows`: 11.22 us/op.
+  - Decision:
+    - Revert. The simple and batched rows were neutral-to-positive, but the target nested row was better in the adjacent reverted control. Descriptor matching remains visible, but it likely needs a generated/static descriptor shape or a broader validation strategy, not another tiny generic node specialization.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
