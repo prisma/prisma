@@ -8923,6 +8923,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Do not retry these two expression-allocation shapes without a new CPU hypothesis. They save small allocation counts on nested writes but fail the no-broad-Criterion-regression bar.
 
+- Sidecar spike: Workerd sentinel descriptor / cached-result proof point.
+  - Timestamp: 2026-06-08.
+  - Worktree: `/home/aqrln.guest/prisma-workerd-plan-descriptor-spike`.
+  - Commit: `1582aea84 Add Workerd sentinel descriptor spike` on branch `workerd-plan-descriptor-spike`.
+  - File changed in the spike only:
+    - `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Prototype:
+    - Added benchmark-only sentinel descriptor extraction rows inside the Workerd probe. These use direct JS property access for the generated `findUnique` and nested blog-page shapes instead of exact `Object.keys()` checks or generic lazy descriptor recursion.
+    - Added a product-shaped cached-result row that warms the plan cache, extracts the sentinel descriptor from generated args, then calls `client._engine.requestPrecomputedCachedResult(staticProtocolQuery, extraction, { isWrite: false })`.
+    - This still is not the pure direct cached-plan lower bound from the Node sidecar spike because it intentionally goes through the existing `QueryPlanCache` lookup by cache key. The worker script imports the edge client/query compiler and does not instantiate `LocalExecutor` directly.
+    - The sentinel matcher is not production-safe as written because it does not prove absence of extra enumerable keys. A real generated descriptor needs shape exactness guarantees or a cheap exactness guard before falling back to the current safe serializer path.
+  - Workerd command:
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=50000 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=10000 WORKERD_DESCRIPTOR_ITERATIONS=50000 WORKERD_PRECOMPUTED_ITERATIONS=10000 WORKERD_CLIENT_CACHE_KEY_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Key worker-loop results:
+    - `client-cache-key findUnique`: 0.44 us/op.
+    - `client-cache-key blog-page`: 1.42 us/op.
+    - `client-static-descriptor-extract findUnique`: 0.12 us/op.
+    - `client-static-descriptor-extract blog-page`: 0.90 us/op.
+    - `client-sentinel-descriptor-extract findUnique`: 0.04 us/op.
+    - `client-sentinel-descriptor-extract blog-page`: 0.40 us/op.
+    - `client-lazy-descriptor-extract findUnique`: 0.24 us/op.
+    - `client-lazy-descriptor-extract blog-page`: 1.60 us/op.
+    - `client-engine-precomputed-static-protocol findUnique`: 2.10 us/op.
+    - `client-engine-precomputed-static-protocol blog-page`: 8.70 us/op.
+    - `client-engine-cached-result-sentinel-descriptor findUnique`: 1.20 us/op.
+    - `client-engine-cached-result-sentinel-descriptor blog-page`: 7.40 us/op.
+    - Default generated-client product rows: `findUnique` 3.84 us/op, `findMany` 1.82 us/op, batched `findUnique` 8.10 us/op, nested blog-page 13.00 us/op.
+  - Verification in the spike worktree:
+    - `pnpm exec prettier --check packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - `git diff --check`
+    - `pnpm --filter @prisma/client... build`
+  - Decision:
+    - Keep the spike worktree/commit as experimental evidence. Do not merge the benchmark code into main yet.
+    - The target-runtime result strengthens the JS-owned/direct-descriptor lead: straight-line generated descriptor extraction is much faster than generic lazy extraction in Workerd too, and the cached-result sentinel row beats the static-protocol engine-precomputed row.
+    - Productization still needs exact shape safety, fallback semantics, and batching-aware routing. Keep `findUnique` batchable paths on DataLoader unless an equivalent direct-result batching contract exists.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
