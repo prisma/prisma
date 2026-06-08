@@ -3864,6 +3864,21 @@ function attachManyToManyRawWrapperChildren(
   }
 }
 
+function findRowByColumn(rows: readonly unknown[][], columnIndex: number, key: unknown): unknown[] | undefined {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex]
+    if (row[columnIndex] === key) {
+      return row
+    }
+  }
+
+  return undefined
+}
+
+function mapTagRowOrNull(row: unknown[] | undefined): Record<string, unknown> | null {
+  return row === undefined ? null : mapTagRow(row)
+}
+
 function renderSingleBlogPageQuery(
   dbQuery: QueryPlanDbQuery,
   scope: Record<string, unknown>,
@@ -3947,6 +3962,89 @@ async function executeRawResultSetBlogPagePrototype(
   return posts[0]
 }
 
+async function executeRawResultSetBlogPageDirectAssembler(
+  dbQueries: readonly QueryPlanDbQuery[],
+  placeholderValues: Record<string, unknown>,
+  adapter: BlogPageSqliteAdapter,
+  generators: GeneratorRegistrySnapshot,
+): Promise<Record<string, unknown> | null> {
+  const postResultSet = await adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[0], placeholderValues, generators))
+  const postRow = postResultSet.rows[0]
+  if (postRow === undefined) {
+    return null
+  }
+
+  const postId = postRow[0]
+  const [authorResultSet, categoryResultSet, postTagResultSet, commentResultSet] = await Promise.all([
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[1], { '@parent$authorId': postRow[7] }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[2], { '@parent$categoryId': postRow[8] }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[3], { '@parent$id': postId }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[5], { '@parent$id': postId }, generators)),
+  ])
+
+  const postTagRows = postTagResultSet.rows
+  const commentRows = commentResultSet.rows
+  const [tagResultSet, commentAuthorResultSet] = await Promise.all([
+    postTagRows.length === 0
+      ? Promise.resolve(EMPTY_RESULT)
+      : adapter.queryRaw(
+          renderSingleBlogPageQuery(dbQueries[4], { '@parent$tagId': uniqueColumnValues(postTagRows, 1) }, generators),
+        ),
+    commentRows.length === 0
+      ? Promise.resolve(EMPTY_RESULT)
+      : adapter.queryRaw(
+          renderSingleBlogPageQuery(
+            dbQueries[6],
+            { '@parent$authorId': uniqueColumnValues(commentRows, 3) },
+            generators,
+          ),
+        ),
+  ])
+
+  const tags: Record<string, unknown>[] = []
+  const tagRows = tagResultSet.rows
+  for (let i = 0; i < postTagRows.length; i++) {
+    const postTagRow = postTagRows[i]
+    if (postTagRow[0] === postId) {
+      tags.push({ tag: mapTagRowOrNull(findRowByColumn(tagRows, 0, postTagRow[1])) })
+    }
+  }
+
+  const comments: Record<string, unknown>[] = []
+  const commentAuthorRows = commentAuthorResultSet.rows
+  for (let i = 0; i < commentRows.length; i++) {
+    const commentRow = commentRows[i]
+    if (commentRow[4] !== postId) {
+      continue
+    }
+
+    comments.push({
+      id: commentRow[0],
+      content: commentRow[1],
+      createdAt: commentRow[2],
+      author: mapUserRow(findRowByColumn(commentAuthorRows, 0, commentRow[3])),
+    })
+  }
+
+  return {
+    id: postRow[0],
+    title: postRow[1],
+    slug: postRow[2],
+    content: postRow[3],
+    published: postRow[4],
+    viewCount: postRow[5],
+    createdAt: postRow[6],
+    author: mapUserRow(findRowByColumn(authorResultSet.rows, 0, postRow[7])),
+    category: mapCategoryRow(findRowByColumn(categoryResultSet.rows, 0, postRow[8])),
+    tags,
+    comments,
+    _count: {
+      likes: postRow[9],
+      comments: postRow[10],
+    },
+  }
+}
+
 async function measureRawResultSetBlogPagePrototypeScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -3977,6 +4075,54 @@ async function measureRawResultSetBlogPagePrototypeScenario(
   for (let i = 0; i < scenario.iterations; i++) {
     checksum += checksumNestedBlogResult(
       await executeRawResultSetBlogPagePrototype(dbQueries, placeholderValues, adapter, generators),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureRawResultSetBlogPageDirectAssemblerScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const adapter = new BlogPageSqliteAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const dbQueries = getDbQueries(plan)
+  if (dbQueries.length !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  checksumNestedBlogExactResult(
+    await executeRawResultSetBlogPageDirectAssembler(dbQueries, placeholderValues, adapter, generators),
+  )
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogExactResult(
+      await executeRawResultSetBlogPageDirectAssembler(dbQueries, placeholderValues, adapter, generators),
     )
   }
   const elapsedMs = performance.now() - started
@@ -6248,6 +6394,19 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureRawResultSetBlogPageExactPrototypeScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set direct assembler'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogPageDirectAssemblerScenario(compiler, paramGraph, measuredScenario),
       )
     }
 
