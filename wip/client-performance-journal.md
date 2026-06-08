@@ -9555,6 +9555,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The batched and simple `findUnique` regressions make the generated default unacceptable even though the helper falls back for nested blog-page.
   - Decision: reject and revert fully. Do not install a runtime-derived generic descriptor matcher registry in generated clients. Productizing descriptor-bound matchers still needs descriptor-specific straight-line helper factories that can beat the lazy descriptor in Workerd, not a generic helper bolted onto generated config.
 
+- Accepted benchmark probe: direct raw result-set assembler lower bound.
+  - Timestamp: 2026-06-08.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-direct-assembler-spike`, branch `raw-nested-direct-assembler-spike`.
+  - Side commit: `da5398a56 Add direct raw result-set assembler benchmark`.
+  - Main Prisma commit: `470698a26 Add direct raw result-set assembler benchmark`.
+  - Patch:
+    - Added a benchmark-only `raw result-set direct assembler blog page / nested rows` row in `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - The probe executes the same seven rendered blog-page DB query slots through `BlogPageSqliteAdapter`, but directly materializes the final exact post graph instead of allocating generic `RawNestedReadResult` nodes, child `records` arrays, wrapper records, and generic relation attach passes.
+    - It preserves the exact result shape checked by `checksumNestedBlogExactResult()`, including `tags: [{ tag: ... }]`, comment authors, direct author/category, and `_count`.
+  - Verification:
+    - Side worktree: `pnpm install --offline --ignore-scripts`.
+    - Side worktree: `pnpm build` passed 44/44 after the harness restart.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_FRESH_BLOG_PAGE_RESULT_METADATA=1 CLIENT_ENGINE_CACHE_TIMING_FILTER="raw result-set" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Side worktree: `CLIENT_ENGINE_CACHE_TIMING_ASYNC_BLOG_PAGE_ADAPTER=1 CLIENT_ENGINE_CACHE_TIMING_FILTER="blog page / nested rows" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Node evidence:
+    - 100k focused raw result-set run: direct assembler 4.10 us/op, prototype 6.60, exact prototype 7.33, compact node 6.53, exact compact node 6.74.
+    - 300k focused raw result-set run: direct assembler 4.06 us/op, prototype 5.94, exact prototype 5.62, compact node 6.61, exact compact node 7.34.
+    - Fresh-result-metadata stress, 100k: direct assembler 9.50 us/op, prototype 11.27, exact prototype 11.27, compact node 12.60, exact compact node 12.31.
+    - Async adapter blog-page/nested rows, 20k: direct assembler 7.78 us/op, direct plan 11.96, prototype 9.46, exact prototype 10.57, compact node 11.74, exact compact node 12.07.
+  - Decision: keep as benchmark evidence, not production code. The result confirms the next raw-nested runtime project should be a compiled/materialized result-set assembly program that writes the final result graph directly from raw result sets. It should not be another wrapper around the current compact `n` tree or another micro-branch inside generic attachment.
+  - Follow-up lead:
+    - Design a generic schedule representation for raw nested reads that separates DB execution dependencies from final materialization.
+    - Compile row mappers, relation key extractors, and field writers once per plan, then allocate only final user-visible result objects plus the minimum relation indexes needed for list fanout.
+    - Preserve existing generic raw nested fallback for named column refs, dynamic metadata, scalar conversion, empty metadata, composite/unsupported relation shapes, and error semantics.
+    - Add either a Workerd raw-result-set mode or a production prototype before accepting a runtime change, because `workerd-query-compiler-memory.ts` currently measures generated/client-execute paths but not these raw result-set assembly lower-bound rows.
+
 ## Useful Commands
 
 ```sh
