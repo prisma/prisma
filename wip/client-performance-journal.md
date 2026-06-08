@@ -9150,6 +9150,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - User idea: remove `Arc`-heavy ownership and excessive heap allocations, using references/borrowing and potentially arenas.
   - Suggested first target: allocation profile high-churn parser/compiler phases and identify whether `Arc` churn is actually visible before a broad ownership rewrite.
   - Resolved concrete leads from the 2026-06-08 scout: `RelationLinkage` SmallVec/sorted-vector storage was rejected, scalar `selection_order` name movement was accepted, parser `Path` mutable stack was accepted, and two relation-scalar-helper detours were rejected.
+  - Rejected repeat spike: `NodeTranslator::process_children()` result-subgraph partition without a separate `result_positions` vector.
+    - Timestamp: 2026-06-08.
+    - Worktree: `/home/aqrln.guest/prisma-engines-process-children-spike` on branch `process-children-partition-spike`.
+    - Patch: replaced `result_positions` collection/sort/reverse with one reverse index loop that removes result subgraphs from `child_pairs` directly, preserving the existing right-to-left removal order.
+    - Allocation signal versus baseline: no read effect, but nested writes saved tiny counts: `create-nested-create` full compile 1265 -> 1264 allocations/op, `create-nested-connectOrCreate-mixed` 2689 -> 2686, `create-nested-connectOrCreate-one2m` 2386 -> 2384, `update-set-nested` 2086 -> 2085, `update-set-nested-prisma#27650` 1856 -> 1855.
+    - Verification before revert: `cargo fmt -p query-compiler --check`, `cargo test -p query-compiler --test queries`, `git diff --check`.
+    - Criterion with a saved clean baseline in `CARGO_TARGET_DIR=/tmp/prisma-engines-process-children-target`: improved some rows (`update-set-nested` -7.76%, `query-m2o` -4.23%, `nested-pagination-query` -7.00%) but regressed important rows (`create-nested-connect` +6.95%, `create-nested-connectOrCreate-mixed` +7.72%, `nested-pagination-join` +2.43%).
+    - Decision: rejected and reverted. The allocation savings are too small and the timing surface is unstable/regressive. Do not retry `process_children()` result-position splitting as a standalone cleanup.
   - 2026-06-08 sidecar scout says the next better targets are:
     - `Expression` container churn in `query-compiler/src/expression.rs` plus `NodeTranslator::process_children()` / `process_child_with_dependencies()`; consider narrow arena-lite or small inline storage for tiny `Seq`/`Concat`/`Let.bindings` containers.
     - Relation scalar helper vector churn around `RelationField::linking_fields()`, `left_scalars()`, and `related_field()`, especially in read translation/raw nested read builders.
