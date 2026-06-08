@@ -4,6 +4,8 @@ import path from 'node:path'
 import { performance } from 'node:perf_hooks'
 
 import {
+  type DescriptorBoundMatcher,
+  type DescriptorBoundMatcherContext,
   type DescriptorBoundMatcherRegistry,
   dmmfToRuntimeDataModel,
   type QueryCompiler,
@@ -70,6 +72,7 @@ const EMPTY_RESULT: SqlResultSet = Object.freeze({
   columnTypes: [],
   rows: [],
 })
+const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
 const USER_SCALAR_RESULT: SqlResultSet = Object.freeze({
   columnNames: Object.freeze(['id', 'email', 'name']),
   columnTypes: Object.freeze([ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]) as ColumnType[],
@@ -320,6 +323,22 @@ type LazyDescriptorNode =
       kind: 'object'
       keys: string[]
       fields: Record<string, LazyDescriptorNode>
+    }
+
+type GeneratedExactDescriptor =
+  | {
+      kind: 'constant'
+      value: unknown
+    }
+  | {
+      kind: 'placeholder'
+      name: string
+      valueType: string
+    }
+  | {
+      kind: 'object'
+      keys: string[]
+      fields: Record<string, GeneratedExactDescriptor>
     }
 
 class EmptySqliteAdapter implements SqlDriverAdapter {
@@ -937,6 +956,222 @@ function createBenchmarkDescriptorBoundMatcherRegistry(): DescriptorBoundMatcher
       return undefined
     },
   }
+}
+
+function createExactGeneratedUserDescriptorMatcherRegistry(): DescriptorBoundMatcherRegistry {
+  return {
+    getMatcher(context) {
+      if (context.model === 'User' && context.action === 'findUnique' && context.clientMethod === 'user.findUnique') {
+        return bindExactGeneratedUserFindUniqueMatcher(context)
+      }
+
+      if (context.model === 'User' && context.action === 'findMany' && context.clientMethod === 'user.findMany') {
+        return bindExactGeneratedUserFindManyMatcher(context)
+      }
+
+      return undefined
+    },
+  }
+}
+
+function bindExactGeneratedUserFindUniqueMatcher(
+  context: DescriptorBoundMatcherContext,
+): DescriptorBoundMatcher | undefined {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeys(root, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeys(where, ['id'])) {
+    return undefined
+  }
+
+  const id = asGeneratedPlaceholderDescriptor(where.fields.id)
+  if (
+    id === undefined ||
+    id.valueType !== 'number' ||
+    !isExactGeneratedUserScalarSelectDescriptor(root.fields.select)
+  ) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedUserFindUnique(args, id.name)
+}
+
+function bindExactGeneratedUserFindManyMatcher(
+  context: DescriptorBoundMatcherContext,
+): DescriptorBoundMatcher | undefined {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeys(root, ['take', 'select'])) {
+    return undefined
+  }
+
+  if (!isExactGeneratedUserScalarSelectDescriptor(root.fields.select)) {
+    return undefined
+  }
+
+  const take = root.fields.take
+  const takePlaceholder = asGeneratedPlaceholderDescriptor(take)
+  if (takePlaceholder !== undefined) {
+    return takePlaceholder.valueType === 'number'
+      ? (args) => matchExactGeneratedUserFindManyWithTakePlaceholder(args, takePlaceholder.name)
+      : undefined
+  }
+
+  return isGeneratedConstantDescriptor(take, 10)
+    ? (args) => matchExactGeneratedUserFindManyWithConstantTake(args)
+    : undefined
+}
+
+function matchExactGeneratedUserFindUnique(args: unknown, idPlaceholder: string): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return { [idPlaceholder]: where.id }
+}
+
+function matchExactGeneratedUserFindManyWithTakePlaceholder(
+  args: unknown,
+  takePlaceholder: string,
+): Record<string, unknown> | undefined {
+  if (
+    !isDescriptorRecord(args) ||
+    !hasOwnEnumerableKeysInOrder2(args, 'take', 'select') ||
+    typeof args.take !== 'number'
+  ) {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return { [takePlaceholder]: args.take }
+}
+
+function matchExactGeneratedUserFindManyWithConstantTake(args: unknown): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'take', 'select') || args.take !== 10) {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return EMPTY_PLACEHOLDER_VALUES
+}
+
+function matchesExactGeneratedUserScalarSelect(value: unknown): boolean {
+  return (
+    isDescriptorRecord(value) &&
+    hasOwnEnumerableKeysInOrder3(value, 'id', 'email', 'name') &&
+    value.id === true &&
+    value.email === true &&
+    value.name === true
+  )
+}
+
+function getGeneratedExactRoot(
+  context: DescriptorBoundMatcherContext,
+): Extract<GeneratedExactDescriptor, { kind: 'object' }> | undefined {
+  if (!isDescriptorRecord(context.descriptor)) {
+    return undefined
+  }
+
+  return asGeneratedObjectDescriptor(context.descriptor.root)
+}
+
+function isExactGeneratedUserScalarSelectDescriptor(value: unknown): boolean {
+  const select = asGeneratedObjectDescriptor(value)
+  return (
+    select !== undefined &&
+    generatedDescriptorHasKeys(select, ['id', 'email', 'name']) &&
+    isGeneratedConstantDescriptor(select.fields.id, true) &&
+    isGeneratedConstantDescriptor(select.fields.email, true) &&
+    isGeneratedConstantDescriptor(select.fields.name, true)
+  )
+}
+
+function asGeneratedObjectDescriptor(
+  value: unknown,
+): Extract<GeneratedExactDescriptor, { kind: 'object' }> | undefined {
+  if (
+    isDescriptorRecord(value) &&
+    value.kind === 'object' &&
+    Array.isArray(value.keys) &&
+    isDescriptorRecord(value.fields)
+  ) {
+    return value as Extract<GeneratedExactDescriptor, { kind: 'object' }>
+  }
+
+  return undefined
+}
+
+function asGeneratedPlaceholderDescriptor(
+  value: unknown,
+): Extract<GeneratedExactDescriptor, { kind: 'placeholder' }> | undefined {
+  if (
+    isDescriptorRecord(value) &&
+    value.kind === 'placeholder' &&
+    typeof value.name === 'string' &&
+    typeof value.valueType === 'string'
+  ) {
+    return value as Extract<GeneratedExactDescriptor, { kind: 'placeholder' }>
+  }
+
+  return undefined
+}
+
+function isGeneratedConstantDescriptor(value: unknown, expected: unknown): boolean {
+  return isDescriptorRecord(value) && value.kind === 'constant' && Object.is(value.value, expected)
+}
+
+function generatedDescriptorHasKeys(
+  descriptor: Extract<GeneratedExactDescriptor, { kind: 'object' }>,
+  expectedKeys: readonly string[],
+): boolean {
+  if (descriptor.keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (const key of expectedKeys) {
+    if (!Object.hasOwn(descriptor.fields, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function hasOwnEnumerableKeysInOrder1(value: Record<string, unknown>, key0: string): boolean {
+  const keys = Object.keys(value)
+  return keys.length === 1 && keys[0] === key0
+}
+
+function hasOwnEnumerableKeysInOrder2(value: Record<string, unknown>, key0: string, key1: string): boolean {
+  const keys = Object.keys(value)
+  return keys.length === 2 && keys[0] === key0 && keys[1] === key1
+}
+
+function hasOwnEnumerableKeysInOrder3(
+  value: Record<string, unknown>,
+  key0: string,
+  key1: string,
+  key2: string,
+): boolean {
+  const keys = Object.keys(value)
+  return keys.length === 3 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2
 }
 
 function matchGeneratedUserFindUnique(
@@ -6357,6 +6592,28 @@ async function main(): Promise<void> {
     }
     printDirectPlanMeasurement(
       await measureGeneratedClientScenario(baseConfig, measuredScenario, 'request', descriptorBoundMatcherRegistry),
+    )
+  }
+
+  const exactGeneratedUserMatcherRegistry = createExactGeneratedUserDescriptorMatcherRegistry()
+  for (const scenario of generatedClientScenarios) {
+    if (
+      scenario.name !== 'generated client findUnique / warmed cache' &&
+      scenario.name !== 'generated client batched findUnique / warmed cache' &&
+      scenario.name !== 'generated client findMany users / warmed cache'
+    ) {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client exact descriptor helper'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureGeneratedClientScenario(baseConfig, measuredScenario, 'request', exactGeneratedUserMatcherRegistry),
     )
   }
 
