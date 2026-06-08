@@ -8806,6 +8806,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert without running Criterion. The patch added API/control-flow surface for too little allocation signal.
 
+- Rejected experiment: closure-compiled lazy descriptor matcher.
+  - Timestamp: 2026-06-08T07:15:00+02:00.
+  - Context:
+    - The current default generated-client cache-hit path learns a lazy descriptor per model action and recursively matches future JS args against the descriptor tree to extract placeholder values without rebuilding the whole protocol query.
+    - Focused baseline rows showed the extractor slice is measurable but not dominant:
+      - `generated client lazy descriptor extract blog page / nested rows warmed cache`: 2.52 us/op at 200k iterations.
+      - `generated client static descriptor extract blog page / nested rows warmed cache`: 1.27 us/op at 200k iterations.
+      - `generated client serialize blog page / nested rows warmed cache`: 3.86 us/op at 50k iterations.
+      - `generated client serialize cache key blog page / nested rows warmed cache`: 7.35 us/op at 50k iterations.
+  - Change tried:
+    - In `packages/client/src/runtime/core/model/applyModel.ts`, replaced stored `LazyDescriptor.root` with a compiled `extract(value, placeholderValues)` closure tree built once after descriptor learning.
+    - Kept the same exact-key checks, constant checks, placeholder type checks, repeated-placeholder equality checks, and returned `PrecomputedQueryPlanCacheHit` shape.
+  - Result:
+    - Before patch, current default product row:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 .../client-engine-cache-timing.ts`
+      - `generated client blog page / nested rows warmed cache`: 13.80 us/op.
+    - With closure-compiled matcher:
+      - Same row regressed to 15.53 us/op.
+      - Small-shape spot checks while patched: `generated client findUnique / warmed cache` 4.22 us/op; `generated client findMany users / warmed cache` 3.25 us/op.
+  - Decision:
+    - Revert. The extra closure calls and captured arrays were slower than the current monomorphic switch recursion on the real generated-client row.
+    - Do not retry a closure-per-node compiled descriptor matcher. If descriptor extraction is revisited, use a materially different shape such as generated straight-line extraction for known generated-client descriptors, or a flatter path table that avoids per-node function calls and repeated object-shape checks.
+
 ## Todo / Leads
 
 - Operating guidance for later ambitious work.
@@ -8831,6 +8854,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Workerd-side descriptor extraction rows exist and support the descriptor lead on the target runtime.
   - The single-request `precomputedQueryPlanCacheHit` transport now proves the handler/engine contract can skip engine-side parameterization on cache hits.
   - The internal `protocolQuery` override proves that a pre-serialization generated/lazy descriptor path can recover more of the generated-client gap. Static-protocol lower-bound timing says full protocol-query construction is not the main remaining gap.
+  - Do not retry a closure-per-node compiled lazy descriptor matcher; it regressed the default generated-client blog-page row from 13.80 us/op to 15.53 us/op. A future descriptor extractor needs a flatter or generated straight-line shape.
   - Surface split timing says `ClientEngine.request()` and PrismaPromise are already near the nested cached-wrapper lower bound with precomputed data; `_request`/tracing/AsyncResource plus DataLoader/RequestHandler are the remaining overhead. Workerd precomputed rows confirm the same split in the target runtime.
   - Next productization proof point: reduce or bypass `_request` / `RequestHandler` / tracing plumbing for a gated single-query path, then fall back to the current path whenever extensions, args mappers, SQL commenters without query-info, unsupported values, transactions, or batching are present. Be especially careful with `findUnique`, because direct engine paths bypass automatic DataLoader batching.
   - Request-contract constraint found after the lazy descriptor measurements: `RequestHandler` still needs `protocolQuery` for `getBatchId()` / DataLoader batching. A first batch-aware precomputed-plan contract now exists, but it mechanically renames per-query placeholders and does not preserve cross-query equal-value placeholder reuse. A product descriptor path must either prove that shape safe for cache keys and SQL commenters, or keep falling back for batchable requests outside guarded generated shapes.
