@@ -8359,6 +8359,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm exec eslint packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
     - `pnpm --filter @prisma/client-engine-runtime build`
     - `git diff --check`
+    - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Workerd smoke after commit:
+    - `generated client blog-page warmed cache`: 11.50 us/op worker loop, 12.55 us/op host dispatch.
+    - `generated client engine precomputed fast path blog-page warmed cache`: 8.60 us/op worker loop, 9.67 us/op host dispatch.
+    - `generated client request precomputed fast path blog-page warmed cache`: 11.40 us/op worker loop, 12.45 us/op host dispatch.
+    - `client-engine-precomputed-static-protocol blog-page value churn`: 9.05 us/op worker loop, 10.23 us/op host dispatch.
   - Decision:
     - Keep. The win is small but repeatable on the raw compact rows, and the patch is scoped to compiled raw-nested fanout without changing relation attachment semantics.
 
