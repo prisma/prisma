@@ -152,6 +152,20 @@ test('binds exact bigint scalar matchers', () => {
   expect(matcher?.({ where: { externalId: '11' }, select: { id: true, externalId: true } })).toBeUndefined()
 })
 
+test('does not bind bigint scalar matchers when placeholder ownership is ambiguous', () => {
+  const matcher = bindMatcher({
+    field: 'externalId',
+    valueType: 'bigint',
+    placeholderName: '%1',
+    placeholderValue: '10',
+    descriptorValue: 10n,
+    select: ['id', 'externalId'],
+    extraPlaceholderValues: { '%2': '10' },
+  })
+
+  expect(matcher).toBeUndefined()
+})
+
 test('rejects generated args that would change the exact query shape', () => {
   const matcher = bindMatcher({
     field: 'id',
@@ -218,6 +232,7 @@ function bindMatcher({
   placeholderValue,
   descriptorValue = placeholderValue,
   select,
+  extraPlaceholderValues,
 }: {
   field: string
   valueType: 'bigint' | 'boolean' | 'number' | 'string'
@@ -225,6 +240,7 @@ function bindMatcher({
   placeholderValue: unknown
   descriptorValue?: unknown
   select: string[]
+  extraPlaceholderValues?: Record<string, unknown>
 }) {
   const registry = createExactDescriptorMatcherRegistry([
     {
@@ -271,7 +287,7 @@ function bindMatcher({
     },
     precomputedQueryPlanCacheHit: {
       cacheKey: 'cache-key',
-      placeholderValues: { [placeholderName]: placeholderValue },
+      placeholderValues: { [placeholderName]: placeholderValue, ...extraPlaceholderValues },
     },
   })
 }

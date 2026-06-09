@@ -10463,6 +10463,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - No code kept. Do not implement the unsafe `structure = None` shape and do not retry the clone-based raw-nested precheck already rejected on 2026-06-07.
     - Carry forward only as part of a broader translation refactor: either a consume-once raw-nested eligibility/translation result that proves fallback cannot happen before building `map_result_structure()`, or delayed result-map construction that preserves authoritative graph/query data.
 
+- Accepted oracle coverage: exact descriptor helper duplicate-placeholder safety.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Added `applyModel.test.ts` coverage for the actual learned-descriptor path when two distinct placeholders initially have equal values. The test proves the lazy descriptor self-test does not cache a descriptor after the value-to-placeholder map collapses those values to one placeholder name.
+    - Added `createExactDescriptorMatcherRegistry.test.ts` coverage for BigInt exact helpers with ambiguous placeholder ownership. A learned BigInt constant descriptor now has a direct test proving the helper refuses to bind when the cache hit contains extra/equal placeholder values.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts packages/client/src/runtime/core/model/applyModel.test.ts` made no changes.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts --runInBand` passed 19 tests.
+  - Benchmark:
+    - Focused runtime-helper command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client runtime exact descriptor helper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Rows: runtime exact `findUnique` 5.38 us/op, batched `findUnique` 7.29, `findMany users` 2.71. The isolated `findUnique` row was noisy/high.
+    - Broader close repeat command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Current product rows: default generated `findUnique` 3.68 us/op; request-precomputed 3.46; descriptor-bound static 3.50; hand exact 3.43; runtime exact 3.44.
+      - Batched rows: default generated 8.11 us/op; request-precomputed 8.46; descriptor-bound static 8.12; hand exact 7.67; runtime exact 7.97 with `precomputedBatchHits=200000`.
+  - Decision:
+    - Keep as coverage/productization groundwork. This is not a fresh performance win, but the close repeat confirms the test-only slice leaves exact-helper rows in the expected band and preserves batching counters.
+    - Remaining exact-helper parity gaps before any default enablement: extensions/global omit exclusions, generated-output typechecking, broader special scalar values, stable/alternating nested helper oracle coverage, and repeated Workerd gates.
+
 ## Useful Commands
 
 ```sh

@@ -137,6 +137,40 @@ test('does not store a descriptor matcher when self-test changes placeholder key
   expect(secondHit.placeholderValues).toEqual({ '%1': '2', '%2': 'Bob' })
 })
 
+test('does not store a descriptor when duplicate placeholder values collapse', async () => {
+  const matcher = jest.fn((args: unknown) => {
+    if (!isRecord(args) || !isRecord(args.where)) {
+      return undefined
+    }
+
+    return { '%1': args.where.id }
+  })
+  const getMatcher = jest.fn(() => matcher)
+  const registry: DescriptorBoundMatcherRegistry = {
+    getMatcher,
+  }
+  const { engine, requestHandler, user } = createClient({
+    descriptorMatcherRegistry: registry,
+    precomputedHits: [
+      { cacheKey: 'first-cache-key', placeholderValues: { '%1': 'same', '%2': 'same' } },
+      { cacheKey: 'second-cache-key', placeholderValues: { '%1': 'next', '%2': 'next' } },
+    ],
+  })
+
+  await user.findUnique({ where: { id: 'same', name: 'same' }, select: { id: true } })
+  await user.findUnique({ where: { id: 'next', name: 'next' }, select: { id: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(2)
+  expect(matcher).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(2)
+  expect(requestHandler.request.mock.calls[1][0].precomputedQueryPlanCacheHit).toEqual(
+    expect.objectContaining({
+      cacheKey: 'second-cache-key',
+      placeholderValues: { '%1': 'next', '%2': 'next' },
+    }),
+  )
+})
+
 test('falls back to the lazy descriptor when a stored matcher misses later args', async () => {
   const matcher = jest.fn((args: unknown) => {
     if (!isRecord(args) || !isRecord(args.where) || args.where.id !== '1') {
