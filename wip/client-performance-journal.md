@@ -10022,6 +10022,13 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Product raw-nested assembly should compile static writer waves or instruction arrays that mutate final owner objects directly, with strict fallback gates.
     - Avoid more guarded runtime wrappers over compact raw nested trees unless they change the assembly algorithm enough to approach the 4 us/op lower bound.
 
+- Intermediate report: total gains and biggest contributors.
+  - Timestamp: 2026-06-09.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Scope:
+    - Summarizes the magnitude of accepted/product-path gains so far, separates benchmark-only lower bounds from default behavior, and lists the biggest contributors: generated-client precomputed cache hits, public API/serializer cleanup, query-plan memory compaction/interning, compact raw nested reads, and Rust query-compiler allocation work.
+    - Current conclusion: simple Worker cache-hit paths are already past the 3x target; nested Worker default product paths are closer to 2.5-2.7x, with internal engine-precomputed and static raw-writer benchmark rows showing remaining headroom.
+
 ## Useful Commands
 
 ```sh
