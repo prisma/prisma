@@ -6688,11 +6688,20 @@ async function main(): Promise<void> {
       valueType: 'number',
       select: ['id', 'email', 'name'],
     },
+    {
+      model: 'User',
+      action: 'findMany',
+      clientMethod: 'user.findMany',
+      field: 'take',
+      valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
   ])
   for (const scenario of generatedClientScenarios) {
     if (
       scenario.name !== 'generated client findUnique / warmed cache' &&
-      scenario.name !== 'generated client batched findUnique / warmed cache'
+      scenario.name !== 'generated client batched findUnique / warmed cache' &&
+      scenario.name !== 'generated client findMany users / warmed cache'
     ) {
       continue
     }

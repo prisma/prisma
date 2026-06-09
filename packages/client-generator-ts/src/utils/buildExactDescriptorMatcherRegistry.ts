@@ -2,7 +2,7 @@ import type * as DMMF from '@prisma/dmmf'
 
 type ExactDescriptorMatcherSpec = {
   model: string
-  action: 'findUnique'
+  action: 'findUnique' | 'findMany'
   clientMethod: string
   field: string
   valueType: 'number' | 'string'
@@ -58,29 +58,23 @@ function parseExactDescriptorMatcherSpec(
 
   const model = modelAction.slice(0, separator)
   const action = modelAction.slice(separator + 1)
-  if (action !== 'findUnique') {
+  if (action !== 'findUnique' && action !== 'findMany') {
     throw new Error(`Unsupported internalExactDescriptorHelpers action ${JSON.stringify(action)}`)
   }
 
   const dmmfModel = datamodel.models.find((candidate) => candidate.name === model)
-  const dmmfField = dmmfModel?.fields.find((candidate) => candidate.name === field)
-  if (dmmfModel === undefined || dmmfField === undefined || dmmfField.kind !== 'scalar' || dmmfField.isList) {
-    throw new Error(`Invalid internalExactDescriptorHelpers field ${JSON.stringify(`${model}.${field}`)}`)
-  }
-  if (!dmmfField.isId && !dmmfField.isUnique) {
-    throw new Error(
-      `internalExactDescriptorHelpers findUnique field must be unique ${JSON.stringify(`${model}.${field}`)}`,
-    )
+  if (dmmfModel === undefined) {
+    throw new Error(`Invalid internalExactDescriptorHelpers model ${JSON.stringify(model)}`)
   }
 
-  const valueType = getExactMatcherValueType(dmmfField)
-  if (valueType === undefined) {
-    throw new Error(`Unsupported internalExactDescriptorHelpers field type ${JSON.stringify(dmmfField.type)}`)
-  }
+  const valueType = getExactMatcherValueType(dmmfModel, action, field)
 
   const select = selectCsv.split(',').filter((value) => value.length > 0)
   if (select.length === 0) {
     throw new Error(`Invalid internalExactDescriptorHelpers select list ${JSON.stringify(rawSpec)}`)
+  }
+  if (new Set(select).size !== select.length) {
+    throw new Error(`Duplicate internalExactDescriptorHelpers select field in ${JSON.stringify(rawSpec)}`)
   }
   for (const selectFieldName of select) {
     const selectField = dmmfModel.fields.find((candidate) => candidate.name === selectFieldName)
@@ -101,14 +95,36 @@ function parseExactDescriptorMatcherSpec(
   }
 }
 
-function getExactMatcherValueType(field: DMMF.Field): 'number' | 'string' | undefined {
-  switch (field.type) {
+function getExactMatcherValueType(
+  dmmfModel: DMMF.Model,
+  action: 'findUnique' | 'findMany',
+  field: string,
+): 'number' | 'string' {
+  if (action === 'findMany') {
+    if (field !== 'take') {
+      throw new Error(`internalExactDescriptorHelpers findMany field must be "take" ${JSON.stringify(field)}`)
+    }
+
+    return 'number'
+  }
+
+  const dmmfField = dmmfModel.fields.find((candidate) => candidate.name === field)
+  if (dmmfField === undefined || dmmfField.kind !== 'scalar' || dmmfField.isList) {
+    throw new Error(`Invalid internalExactDescriptorHelpers field ${JSON.stringify(`${dmmfModel.name}.${field}`)}`)
+  }
+  if (!dmmfField.isId && !dmmfField.isUnique) {
+    throw new Error(
+      `internalExactDescriptorHelpers findUnique field must be unique ${JSON.stringify(`${dmmfModel.name}.${field}`)}`,
+    )
+  }
+
+  switch (dmmfField.type) {
     case 'Int':
       return 'number'
     case 'String':
       return 'string'
     default:
-      return undefined
+      throw new Error(`Unsupported internalExactDescriptorHelpers field type ${JSON.stringify(dmmfField.type)}`)
   }
 }
 

@@ -247,7 +247,10 @@ describe('generator', () => {
     expect(index).toContain('createExactDescriptorMatcherRegistry')
     expect(index).toContain('config.descriptorMatcherRegistry = createExactDescriptorMatcherRegistry')
     expect(index).toContain('"model": "User"')
+    expect(index).toContain('"action": "findUnique"')
+    expect(index).toContain('"action": "findMany"')
     expect(index).toContain('"field": "id"')
+    expect(index).toContain('"field": "take"')
     expect(index).toContain('"select": [')
   })
 

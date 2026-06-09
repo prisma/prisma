@@ -10205,6 +10205,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. This is coverage-only, but it closes the first oracle gap before any broader exact-helper productization.
     - Remaining parity work: duplicate placeholder reuse/order, extensions/global omit exclusions, generated-output typechecking, and special scalar values beyond current `Int`/`String` support.
 
+- Accepted internal-gated product slice: exact descriptor matcher registry for generated `findMany:take`.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Extended `createExactDescriptorMatcherRegistry()` from scalar `findUnique` specs to flat `findMany` specs with the explicit `take` field and scalar select lists.
+    - Runtime binding now accepts either a learned placeholder descriptor for `take` or a learned constant descriptor; later generated args must match exact root key order, exact select key order, and the expected value type or fall back safely.
+    - JS and TS generator helpers now validate `internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findMany:take:id,email,name"]`, reject duplicate selected fields, and keep helper emission behind the explicit internal config gate.
+    - Added Node and Workerd benchmark rows for `generated client runtime exact descriptor helper findMany users / warmed cache`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.ts packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts packages/client/src/runtime/core/model/applyModel.test.ts packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts packages/client-generator-js/tests/generator.test.ts packages/client-generator-js/tests/internal-exact-descriptor-helpers.prisma packages/client-generator-ts/src/utils/buildExactDescriptorMatcherRegistry.ts packages/client-generator-ts/tests/generator.test.ts packages/client-generator-ts/tests/internal-exact-descriptor-helpers.prisma packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts --runInBand` passed 14 tests.
+    - `pnpm exec vitest run tests/generator.test.ts -t "emits internal exact descriptor helpers" --testTimeout 30000` passed in both `packages/client-generator-js` and `packages/client-generator-ts`.
+    - `pnpm --filter @prisma/client build` passed.
+    - `pnpm --filter @prisma/client-generator-js --filter @prisma/client-generator-ts build` passed.
+  - Benchmark:
+    - Node command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='findMany users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Node rows: generated default `findMany users` 2.80 us/op; request-precomputed 2.79; descriptor-bound static matcher 3.00; hand exact helper 2.67; runtime exact helper 2.71.
+    - Workerd command: `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - Workerd repeat 1 worker loop: request-precomputed `findMany users` 1.80 us/op; runtime exact helper 1.75.
+    - Workerd repeat 2 worker loop: request-precomputed `findMany users` 1.95 us/op; descriptor-bound static matcher 1.80; hand exact helper 1.70; runtime exact helper 1.85.
+  - Decision:
+    - Keep as internal-gated product groundwork. The product helper is modestly positive versus request-precomputed on Node and both Workerd repeats, but hand exact/static rows remain close or faster in some runs.
+    - Do not enable by default. The useful next step is still broader oracle parity and generated-helper gating, not broadening to generic descriptor-derived matchers.
+
 ## Useful Commands
 
 ```sh

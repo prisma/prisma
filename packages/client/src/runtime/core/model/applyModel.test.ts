@@ -280,6 +280,29 @@ test('falls back to the slow path when runtime exact and lazy descriptors miss l
   )
 })
 
+test('stores the runtime exact findMany matcher after slow-path parity self-test', async () => {
+  const { registry, getMatcher, matchers } = createSpiedExactRegistry()
+  const { engine, requestHandler, user } = createClient({
+    descriptorMatcherRegistry: registry,
+    placeholderValues: { '%1': 10 },
+  })
+
+  await user.findMany({ take: 10, select: { id: true, email: true, name: true } })
+  await user.findMany({ take: 11, select: { id: true, email: true, name: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(1)
+  expect(matchers).toHaveLength(1)
+  expect(matchers[0]).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  expect(requestHandler.request).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      precomputedQueryPlanCacheHit: expect.objectContaining({
+        placeholderValues: { '%1': 11 },
+      }),
+    }),
+  )
+})
+
 function createSpiedExactRegistry() {
   const exactRegistry = createExactDescriptorMatcherRegistry([
     {
@@ -288,6 +311,14 @@ function createSpiedExactRegistry() {
       clientMethod: 'user.findUnique',
       field: 'id',
       valueType: 'string',
+      select: ['id', 'email', 'name'],
+    },
+    {
+      model: 'User',
+      action: 'findMany',
+      clientMethod: 'user.findMany',
+      field: 'take',
+      valueType: 'number',
       select: ['id', 'email', 'name'],
     },
   ])

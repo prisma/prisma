@@ -995,6 +995,14 @@ function createRuntimeExactGeneratedUserDescriptorMatcherRegistry() {
       valueType: 'number',
       select: ['id', 'email', 'name'],
     },
+    {
+      model: 'User',
+      action: 'findMany',
+      clientMethod: 'user.findMany',
+      field: 'take',
+      valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
   ])
 }
 
@@ -3074,6 +3082,17 @@ async function run(): Promise<void> {
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client runtime exact descriptor helper findMany users warmed cache',
+        'find-many-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-runtime-exact-helper',
       ),
     )
     console.log('')

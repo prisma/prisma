@@ -158,6 +158,28 @@ test('rejects generated args that would change the exact query shape', () => {
   ).toBeUndefined()
 })
 
+test('binds exact findMany take matchers', () => {
+  const matcher = bindFindManyMatcher({
+    takeDescriptor: { kind: 'placeholder', name: '%1', valueType: 'number' },
+    placeholderValues: { '%1': 10 },
+  })
+
+  expect(matcher?.({ take: 20, select: { id: true, email: true, name: true } })).toEqual({ '%1': 20 })
+  expect(matcher?.({ take: '20', select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(matcher?.({ select: { id: true, email: true, name: true }, take: 20 })).toBeUndefined()
+  expect(matcher?.({ take: 20, select: { id: true, email: true } })).toBeUndefined()
+})
+
+test('binds exact findMany constant take matchers without placeholders', () => {
+  const matcher = bindFindManyMatcher({
+    takeDescriptor: { kind: 'constant', value: 10 },
+    placeholderValues: {},
+  })
+
+  expect(matcher?.({ take: 10, select: { id: true, email: true, name: true } })).toEqual({})
+  expect(matcher?.({ take: 11, select: { id: true, email: true, name: true } })).toBeUndefined()
+})
+
 function bindMatcher({
   field,
   valueType,
@@ -214,6 +236,58 @@ function bindMatcher({
     precomputedQueryPlanCacheHit: {
       cacheKey: 'cache-key',
       placeholderValues: { [placeholderName]: placeholderValue },
+    },
+  })
+}
+
+function bindFindManyMatcher({
+  takeDescriptor,
+  placeholderValues,
+}: {
+  takeDescriptor: { kind: 'placeholder'; name: string; valueType: 'number' } | { kind: 'constant'; value: number }
+  placeholderValues: Record<string, unknown>
+}) {
+  const registry = createExactDescriptorMatcherRegistry([
+    {
+      model: 'User',
+      action: 'findMany',
+      clientMethod: 'user.findMany',
+      field: 'take',
+      valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
+  ])
+
+  return registry.getMatcher({
+    model: 'User',
+    action: 'findMany',
+    clientMethod: 'user.findMany',
+    args: {
+      take: 10,
+      select: { id: true, email: true, name: true },
+    },
+    protocolQuery: {},
+    descriptor: {
+      root: {
+        kind: 'object',
+        keys: ['take', 'select'],
+        fields: {
+          take: takeDescriptor,
+          select: {
+            kind: 'object',
+            keys: ['id', 'email', 'name'],
+            fields: {
+              id: { kind: 'constant', value: true },
+              email: { kind: 'constant', value: true },
+              name: { kind: 'constant', value: true },
+            },
+          },
+        },
+      },
+    },
+    precomputedQueryPlanCacheHit: {
+      cacheKey: 'cache-key',
+      placeholderValues,
     },
   })
 }

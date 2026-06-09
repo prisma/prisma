@@ -5,7 +5,7 @@ datasource db {
 generator client {
   provider                       = "prisma-client-js"
   output                         = "./generated-exact-descriptor"
-  internalExactDescriptorHelpers = "User.findUnique:id:id,email,name"
+  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findMany:take:id,email,name"]
 }
 
 model User {

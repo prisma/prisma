@@ -160,7 +160,10 @@ describe('generator', () => {
     expect(classFile).toContain('runtime.createExactDescriptorMatcherRegistry')
     expect(classFile).toContain('config.descriptorMatcherRegistry = runtime.createExactDescriptorMatcherRegistry')
     expect(classFile).toContain('"model": "User"')
+    expect(classFile).toContain('"action": "findUnique"')
+    expect(classFile).toContain('"action": "findMany"')
     expect(classFile).toContain('"field": "id"')
+    expect(classFile).toContain('"field": "take"')
     expect(classFile).toContain('"select": [')
   })
 

@@ -6,7 +6,7 @@ import type {
 
 type ExactDescriptorMatcherSpec = {
   model: string
-  action: 'findUnique'
+  action: 'findUnique' | 'findMany'
   clientMethod: string
   field: string
   valueType: 'number' | 'string'
@@ -31,7 +31,12 @@ export function createExactDescriptorMatcherRegistry(
           context.action === spec.action &&
           context.clientMethod === spec.clientMethod
         ) {
-          return bindFindUniqueMatcher(context, spec)
+          switch (spec.action) {
+            case 'findUnique':
+              return bindFindUniqueMatcher(context, spec)
+            case 'findMany':
+              return bindFindManyMatcher(context, spec)
+          }
         }
       }
 
@@ -66,6 +71,31 @@ function bindFindUniqueMatcher(
   return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
 }
 
+function bindFindManyMatcher(
+  context: DescriptorBoundMatcherContext,
+  spec: ExactDescriptorMatcherSpec,
+): DescriptorBoundMatcher | undefined {
+  const root = getDescriptorRoot(context)
+  if (root === undefined || !descriptorHasKeys(root, [spec.field, 'select'])) {
+    return undefined
+  }
+
+  if (!matchesSelectDescriptor(root.fields.select, spec.select)) {
+    return undefined
+  }
+
+  const value = root.fields[spec.field]
+  const placeholder = asPlaceholderDescriptor(value)
+  if (placeholder !== undefined) {
+    return placeholder.valueType === spec.valueType
+      ? (args) => matchFindManyPlaceholderArgs(args, spec, placeholder.name)
+      : undefined
+  }
+
+  const constant = asConstantDescriptorValue(value, spec.valueType)
+  return constant !== undefined ? (args) => matchFindManyConstantArgs(args, spec, constant) : undefined
+}
+
 function matchFindUniqueArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
@@ -86,6 +116,39 @@ function matchFindUniqueArgs(
   }
 
   return { [placeholderName]: value }
+}
+
+function matchFindManyPlaceholderArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, [spec.field, 'select'])) {
+    return undefined
+  }
+
+  const value = args[spec.field]
+  if (typeof value !== spec.valueType || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: value }
+}
+
+function matchFindManyConstantArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  expectedValue: unknown,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, [spec.field, 'select'])) {
+    return undefined
+  }
+
+  if (!Object.is(args[spec.field], expectedValue) || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return {}
 }
 
 function getDescriptorRoot(
@@ -152,6 +215,14 @@ function asPlaceholderDescriptor(
 
 function isConstantDescriptor(value: unknown, expected: unknown): boolean {
   return isRecord(value) && value.kind === 'constant' && Object.is(value.value, expected)
+}
+
+function asConstantDescriptorValue(value: unknown, valueType: 'number' | 'string'): number | string | undefined {
+  if (!isRecord(value) || value.kind !== 'constant' || typeof value.value !== valueType) {
+    return undefined
+  }
+
+  return value.value as number | string
 }
 
 function descriptorHasKeys(
