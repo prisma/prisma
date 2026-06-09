@@ -10386,6 +10386,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reject and revert the prototype. The same-session flat writer was only about 6-8% faster than compact/exact compact, below the 15% raw-nested gate and still far from the static-wave lower bound.
     - This confirms the data-driven phase interpreter shape is not the product path. The next raw-nested proof needs compiler-emitted or generated static final-object write schedules with owned state slots, not another runtime derivation from the compact `n` tree.
 
+- Measurement refresh: focused query-compiler allocation profile after raw-nested writer rejection.
+  - Timestamp: 2026-06-09.
+  - Engines checkout: `/home/aqrln.guest/prisma-engines` at `e98dd7b4193 Avoid raw nested column index maps`.
+  - Command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+  - Rows:
+    - `query-m2o`: `graph_build` 165 allocations / 35.6 KiB, `translate_ir` 327 / 27.2 KiB, `full_compile` 571 / 72.7 KiB.
+    - `create-nested-connectOrCreate-mixed`: `graph_build` 803 / 134.6 KiB, `translate_ir` 1650 / 149.0 KiB, `full_compile` 2625 / 304.0 KiB.
+    - `update-set-nested`: `graph_build` 656 / 115.7 KiB, `translate_ir` 1264 / 113.0 KiB, `full_compile` 2036 / 242.0 KiB.
+  - Interpretation:
+    - The current profile still points at graph-build and translate-IR owned structures for nested writes. JSON parsing remains low ceiling for this phase.
+
+- Rejected engines micro-experiment: skip empty update filter wrappers.
+  - Timestamp: 2026-06-09.
+  - Change tried in `/home/aqrln.guest/prisma-engines`:
+    - In `query-compiler/src/translate/query/write.rs::build_query_from_record_filter()` and `sql-query-builder/src/update.rs::build_update_one_filter()`, returned the selector filter directly when `record_filter.filter` was empty instead of constructing `Filter::and(vec![selector_filter, Empty])`.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler -p sql-query-builder`.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler -p sql-query-builder` passed.
+    - Focused allocation profile command above was rerun after the patch.
+  - Result:
+    - No sampled allocation movement on `query-m2o`, `create-nested-connectOrCreate-mixed`, or `update-set-nested`; rows remained at the same allocation and byte counts as the refresh.
+  - Decision:
+    - Reject and revert before Criterion. The patch is semantically fine but does not affect the measured hot rows, so it is not worth carrying.
+
 ## Useful Commands
 
 ```sh
