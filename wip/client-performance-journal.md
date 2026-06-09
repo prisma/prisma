@@ -10481,6 +10481,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as coverage/productization groundwork. This is not a fresh performance win, but the close repeat confirms the test-only slice leaves exact-helper rows in the expected band and preserves batching counters.
     - Remaining exact-helper parity gaps before any default enablement: extensions/global omit exclusions, generated-output typechecking, broader special scalar values, stable/alternating nested helper oracle coverage, and repeated Workerd gates.
 
+- Rejected prototype: generated generic exact descriptor helper emitter.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - Replaced the generated-client `config.descriptorMatcherRegistry = createExactDescriptorMatcherRegistry(specs)` call with generated schema-specific helper functions emitted by both `packages/client-generator-js` and `packages/client-generator-ts`.
+    - The emitted helpers stayed behind `generator.config.internalExactDescriptorHelpers`, used hoisted key arrays, scanned multiple same-model/action specs until one bound the learned descriptor, handled BigInt serialized placeholders, and avoided runtime `eval` / `new Function` in product code.
+    - Added temporary generated-code execution tests for JS and TS generator packages covering exact `findUnique`, reordered/shape-miss fallback, BigInt string placeholders, and ambiguous BigInt placeholder ownership.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-generator-js exec vitest run tests/buildExactDescriptorMatcherRegistry.test.ts tests/generator.test.ts -t "emitted exact descriptor helpers|emits internal exact descriptor helpers" --testTimeout 30000` passed 4 tests.
+    - `pnpm --filter @prisma/client-generator-ts exec vitest run tests/buildExactDescriptorMatcherRegistry.test.ts tests/generator.test.ts -t "emitted exact descriptor helpers|emits internal exact descriptor helpers" --testTimeout 30000` passed 4 tests.
+    - `pnpm --filter @prisma/client-generator-js --filter @prisma/client-generator-ts build` passed.
+  - Measurement:
+    - Standalone emitted-code extractor microbench, 3,000,000 iterations, comparing generated helper code evaluated once against the kept runtime factory:
+      - First final run: runtime factory 0.134 us/op, emitted helper 0.173 us/op.
+      - Close repeated rounds: runtime / emitted were 0.133 / 0.127, 0.131 / 0.153, and 0.156 / 0.130 us/op.
+    - A broader `CLIENT_ENGINE_CACHE_TIMING_FILTER='findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ... client-engine-cache-timing.ts` run was heavily contaminated by system noise: default generated `findUnique` printed 21.23 us/op and request-precomputed 16.85 us/op, far outside the current branch's normal band, so it was not used for the keep/reject decision.
+  - Decision:
+    - Revert. The generated-code diff was large, and the direct extractor signal was mixed rather than a clear improvement over the kept runtime factory.
+    - The generated exact-helper lead remains, but the next version needs truly straight-line/static generated matchers closer to the benchmark-only hand helper shape, or direct Worker/product-path evidence strong enough to justify generated-client code growth.
+
 ## Useful Commands
 
 ```sh
