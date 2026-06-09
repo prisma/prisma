@@ -10687,6 +10687,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - No hardcoded `%1`; bind placeholder names from the learned descriptor.
     - No `eval`, `new Function`, Wasm/Reflect walkers, Rust changes, raw queries, extensions, global omit, tracing/debug, transactions, non-empty `dataPath`, or batching changes in this rollout.
 
+- Accepted internal-gated productization slice: generated blog-page exact descriptor template.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Extended `packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts` and the TS sibling to parse `template:Post.findUnique:id:blogPagePostV1` entries in `generator.config.internalExactDescriptorHelpers`.
+    - Flat specs still use the kept `createExactDescriptorMatcherRegistry()` runtime helper. When template specs are present, generated client code composes a local descriptor-bound template matcher with the flat registry fallback.
+    - The generated template binds only after inspecting the learned descriptor, validating `where.id`, the full/minimal blog-page nested select descriptor, `comments.take = 10`, and `comments.orderBy.createdAt = 'desc'`. Per-call matching uses direct property access plus exact own-enumerable key checks and returns only the learned placeholder map.
+    - The runtime factory remains flat-only; no nested descriptor DSL or generic path/op interpreter was added.
+  - Correctness verification:
+    - `pnpm exec prettier --ignore-unknown --write packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts packages/client-generator-ts/src/utils/buildExactDescriptorMatcherRegistry.ts packages/client-generator-js/tests/generator.test.ts packages/client-generator-ts/tests/generator.test.ts packages/client-generator-js/tests/internal-exact-descriptor-helpers.prisma packages/client-generator-ts/tests/internal-exact-descriptor-helpers.prisma` passed after the first non-ignored Prisma-format attempt failed because this Prettier command has no `.prisma` parser.
+    - `pnpm --filter @prisma/client-generator-js exec vitest run tests/buildExactDescriptorMatcherRegistry.test.ts tests/generator.test.ts -t "buildExactDescriptorMatcherRegistry|emits internal exact descriptor helpers" --testTimeout 30000` passed 4 focused tests.
+    - `pnpm --filter @prisma/client-generator-ts exec vitest run tests/buildExactDescriptorMatcherRegistry.test.ts tests/generator.test.ts -t "buildExactDescriptorMatcherRegistry|emits internal exact descriptor helpers" --testTimeout 30000` passed 4 focused tests.
+    - `pnpm --filter @prisma/client-generator-js --filter @prisma/client-generator-ts build` passed.
+    - The new utility tests execute the emitted registry code in the test process and cover full-shape match, minimal-shape match, wrong-shape rejection, extra-key rejection, and fallback to the flat registry when the template does not bind.
+  - Benchmark evidence:
+    - Stable Node command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Relevant rows: generated default 12.54 us/op; request-precomputed 12.32; descriptor-bound static matcher 11.33; exact descriptor helper 11.30.
+    - Alternating Node command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / 2 alternating nested row shapes warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Relevant rows: generated default 13.51 us/op; request-precomputed 12.90; descriptor-bound static matcher 12.41; exact descriptor helper 11.99.
+    - Workerd command: `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+      - Stable blog-page worker-loop rows: generated default 16.80 us/op; engine-precomputed 9.20; request-precomputed 12.20; descriptor-bound static 12.20; exact descriptor helper 11.80.
+      - Alternating blog-page worker-loop rows: generated default 13.40 us/op; request-precomputed 12.60; descriptor-bound static 12.60; exact descriptor helper 12.00.
+  - Decision:
+    - Keep as internal-gated productization groundwork. This does not change default clients, but it turns the benchmark-only nested exact-helper lead into generated code behind an explicit template allowlist.
+    - Remaining before broader use: real oracle tests against `serializeJsonQuery()` + `parameterizeQuery()` + cache-key behavior for the generated template, exclusion gates for extensions/global omit/raw/tracing/debug/commenter/transactions/non-root data path, and a policy for which templates can be emitted.
+
 ## Useful Commands
 
 ```sh

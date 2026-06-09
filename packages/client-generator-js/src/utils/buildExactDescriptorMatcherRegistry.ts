@@ -11,37 +11,55 @@ type ExactDescriptorMatcherSpec = {
 
 type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'number' | 'string'
 
+type ExactDescriptorMatcherTemplateSpec = {
+  model: string
+  action: 'findUnique'
+  clientMethod: string
+  field: string
+  templateName: 'blogPagePostV1'
+}
+
 export function buildExactDescriptorMatcherRegistry(
   datamodel: DMMF.Datamodel,
   configValue: string | string[] | undefined,
   factoryExpression: string,
 ): string {
   const specs = parseExactDescriptorMatcherSpecs(datamodel, configValue)
-  if (specs.length === 0) {
+  if (specs.flat.length === 0 && specs.templates.length === 0) {
     return ''
   }
 
-  return `config.descriptorMatcherRegistry = ${factoryExpression}(${JSON.stringify(specs, null, 2)})`
+  if (specs.templates.length === 0) {
+    return `config.descriptorMatcherRegistry = ${factoryExpression}(${JSON.stringify(specs.flat, null, 2)})`
+  }
+
+  return buildTemplateDescriptorMatcherRegistry(specs.flat, specs.templates, factoryExpression)
 }
 
 function parseExactDescriptorMatcherSpecs(
   datamodel: DMMF.Datamodel,
   configValue: string | string[] | undefined,
-): ExactDescriptorMatcherSpec[] {
+): { flat: ExactDescriptorMatcherSpec[]; templates: ExactDescriptorMatcherTemplateSpec[] } {
+  const specs: ExactDescriptorMatcherSpec[] = []
+  const templates: ExactDescriptorMatcherTemplateSpec[] = []
+
   if (configValue === undefined) {
-    return []
+    return { flat: specs, templates }
   }
 
   const rawSpecs = Array.isArray(configValue) ? configValue : [configValue]
-  const specs: ExactDescriptorMatcherSpec[] = []
   for (const rawSpec of rawSpecs) {
-    const spec = parseExactDescriptorMatcherSpec(datamodel, rawSpec)
-    if (spec !== undefined) {
-      specs.push(spec)
+    if (rawSpec.startsWith('template:')) {
+      templates.push(parseExactDescriptorMatcherTemplateSpec(datamodel, rawSpec))
+    } else {
+      const spec = parseExactDescriptorMatcherSpec(datamodel, rawSpec)
+      if (spec !== undefined) {
+        specs.push(spec)
+      }
     }
   }
 
-  return specs
+  return { flat: specs, templates }
 }
 
 function parseExactDescriptorMatcherSpec(
@@ -134,6 +152,519 @@ function getExactMatcherValueType(
   }
 }
 
+function parseExactDescriptorMatcherTemplateSpec(
+  datamodel: DMMF.Datamodel,
+  rawSpec: string,
+): ExactDescriptorMatcherTemplateSpec {
+  const [prefix, modelAction, field, templateName, ...rest] = rawSpec.split(':')
+  if (
+    prefix !== 'template' ||
+    rest.length > 0 ||
+    modelAction === undefined ||
+    field === undefined ||
+    templateName === undefined
+  ) {
+    throw new Error(`Invalid internalExactDescriptorHelpers entry ${JSON.stringify(rawSpec)}`)
+  }
+
+  const separator = modelAction.lastIndexOf('.')
+  if (separator === -1) {
+    throw new Error(`Invalid internalExactDescriptorHelpers entry ${JSON.stringify(rawSpec)}`)
+  }
+
+  const model = modelAction.slice(0, separator)
+  const action = modelAction.slice(separator + 1)
+  if (action !== 'findUnique') {
+    throw new Error(`Unsupported internalExactDescriptorHelpers template action ${JSON.stringify(action)}`)
+  }
+  if (templateName !== 'blogPagePostV1') {
+    throw new Error(`Unsupported internalExactDescriptorHelpers template ${JSON.stringify(templateName)}`)
+  }
+
+  const dmmfModel = datamodel.models.find((candidate) => candidate.name === model)
+  if (dmmfModel === undefined) {
+    throw new Error(`Invalid internalExactDescriptorHelpers model ${JSON.stringify(model)}`)
+  }
+
+  const valueType = getExactMatcherValueType(dmmfModel, action, field)
+  if (valueType !== 'number') {
+    throw new Error(
+      `internalExactDescriptorHelpers template field must be an Int unique field ${JSON.stringify(field)}`,
+    )
+  }
+
+  return {
+    model,
+    action,
+    clientMethod: `${dmmfToJSModelName(model)}.${action}`,
+    field,
+    templateName,
+  }
+}
+
 function dmmfToJSModelName(name: string): string {
   return name.replace(/^./, (str) => str.toLowerCase())
 }
+
+function buildTemplateDescriptorMatcherRegistry(
+  flatSpecs: ExactDescriptorMatcherSpec[],
+  templates: ExactDescriptorMatcherTemplateSpec[],
+  factoryExpression: string,
+): string {
+  const templateCases = templates
+    .map((template, index) => {
+      return `    if (context.model === ${JSON.stringify(template.model)} && context.action === ${JSON.stringify(
+        template.action,
+      )} && context.clientMethod === ${JSON.stringify(template.clientMethod)}) {
+      const matcher = __internalExactDescriptorBindBlogPagePostV1_${index}(context)
+      if (matcher !== undefined) {
+        return matcher
+      }
+    }`
+    })
+    .join('\n\n')
+
+  const templateBinders = templates.map(buildBlogPagePostV1Template).join('\n')
+
+  return `const __internalExactDescriptorFlatRegistry = ${factoryExpression}(${JSON.stringify(flatSpecs, null, 2)})
+config.descriptorMatcherRegistry = {
+  getMatcher(context) {
+${templateCases}
+
+    return __internalExactDescriptorFlatRegistry.getMatcher(context)
+  },
+}
+
+${templateBinders}
+${blogPagePostV1TemplateSupportCode}`
+}
+
+function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
+  const field = JSON.stringify(template.field)
+
+  return `function __internalExactDescriptorBindBlogPagePostV1_${index}(context) {
+  const root = __internalExactDescriptorRoot(context)
+  if (root === undefined || !__internalExactDescriptorHasKeysInOrder(root, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = __internalExactDescriptorAsObject(root.fields.where)
+  if (where === undefined || !__internalExactDescriptorHasKeysInOrder(where, [${field}])) {
+    return undefined
+  }
+
+  const placeholder = __internalExactDescriptorAsPlaceholder(where.fields[${field}])
+  const selectShape = __internalExactDescriptorBlogPagePostV1SelectShape(root.fields.select)
+  if (placeholder === undefined || placeholder.valueType !== 'number' || selectShape === undefined) {
+    return undefined
+  }
+
+  return (args) => __internalExactDescriptorMatchBlogPagePostV1_${index}(args, placeholder.name, selectShape)
+}
+
+function __internalExactDescriptorMatchBlogPagePostV1_${index}(args, idPlaceholder, selectShape) {
+  if (!__internalExactDescriptorIsRecord(args) || !__internalExactDescriptorKeys2(args, 'where', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!__internalExactDescriptorIsRecord(where) || !__internalExactDescriptorKeys1(where, ${field})) {
+    return undefined
+  }
+
+  const value = where[${field}]
+  if (typeof value !== 'number' || !__internalExactDescriptorMatchesBlogPagePostV1Select(args.select, selectShape)) {
+    return undefined
+  }
+
+  return { [idPlaceholder]: value }
+}
+`
+}
+
+const blogPagePostV1TemplateSupportCode = `const __internalExactDescriptorBlogPageRootScalarFields = [
+  'id',
+  'title',
+  'slug',
+  'content',
+  'published',
+  'viewCount',
+  'createdAt',
+]
+const __internalExactDescriptorBlogPageRootSelectKeys = [
+  'id',
+  'title',
+  'slug',
+  'content',
+  'published',
+  'viewCount',
+  'createdAt',
+  'author',
+  'category',
+  'tags',
+  'comments',
+  '_count',
+]
+const __internalExactDescriptorBlogPageMinimalRootSelectKeys = [
+  'id',
+  'title',
+  'author',
+  'category',
+  'tags',
+  'comments',
+  '_count',
+]
+const __internalExactDescriptorBlogPageUserSelectKeys = ['id', 'name', 'avatar']
+const __internalExactDescriptorBlogPageSlugSelectKeys = ['id', 'name', 'slug']
+const __internalExactDescriptorBlogPageCountSelectKeys = ['likes', 'comments']
+const __internalExactDescriptorBlogPageCommentSelectKeys = ['id', 'content', 'createdAt', 'author']
+
+function __internalExactDescriptorMatchesBlogPagePostV1Select(value, selectShape) {
+  if (!__internalExactDescriptorIsRecord(value)) {
+    return false
+  }
+
+  if (selectShape === 'full') {
+    if (!__internalExactDescriptorKeys12(value)) {
+      return false
+    }
+
+    for (let i = 0; i < __internalExactDescriptorBlogPageRootScalarFields.length; i++) {
+      if (value[__internalExactDescriptorBlogPageRootScalarFields[i]] !== true) {
+        return false
+      }
+    }
+  } else if (
+    !__internalExactDescriptorKeys7(value, 'id', 'title', 'author', 'category', 'tags', 'comments', '_count') ||
+    value.id !== true ||
+    value.title !== true
+  ) {
+    return false
+  }
+
+  return (
+    __internalExactDescriptorMatchesSelectionWrapper(value.author, __internalExactDescriptorBlogPageUserSelectKeys) &&
+    __internalExactDescriptorMatchesSelectionWrapper(value.category, __internalExactDescriptorBlogPageSlugSelectKeys) &&
+    __internalExactDescriptorMatchesBlogPageTagsSelection(value.tags) &&
+    __internalExactDescriptorMatchesBlogPageCommentsSelection(value.comments) &&
+    __internalExactDescriptorMatchesSelectionWrapper(value._count, __internalExactDescriptorBlogPageCountSelectKeys)
+  )
+}
+
+function __internalExactDescriptorMatchesBlogPageTagsSelection(value) {
+  if (!__internalExactDescriptorIsRecord(value) || !__internalExactDescriptorKeys1(value, 'select')) {
+    return false
+  }
+
+  const select = value.select
+  if (!__internalExactDescriptorIsRecord(select) || !__internalExactDescriptorKeys1(select, 'tag')) {
+    return false
+  }
+
+  return __internalExactDescriptorMatchesSelectionWrapper(select.tag, __internalExactDescriptorBlogPageSlugSelectKeys)
+}
+
+function __internalExactDescriptorMatchesBlogPageCommentsSelection(value) {
+  if (
+    !__internalExactDescriptorIsRecord(value) ||
+    !__internalExactDescriptorKeys3(value, 'take', 'orderBy', 'select') ||
+    value.take !== 10
+  ) {
+    return false
+  }
+
+  const orderBy = value.orderBy
+  if (!Array.isArray(orderBy) || orderBy.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = orderBy[0]
+  if (
+    !__internalExactDescriptorIsRecord(firstOrderBy) ||
+    !__internalExactDescriptorKeys1(firstOrderBy, 'createdAt') ||
+    firstOrderBy.createdAt !== 'desc'
+  ) {
+    return false
+  }
+
+  const select = value.select
+  return (
+    __internalExactDescriptorIsRecord(select) &&
+    __internalExactDescriptorKeys4(select, 'id', 'content', 'createdAt', 'author') &&
+    select.id === true &&
+    select.content === true &&
+    select.createdAt === true &&
+    __internalExactDescriptorMatchesSelectionWrapper(select.author, __internalExactDescriptorBlogPageUserSelectKeys)
+  )
+}
+
+function __internalExactDescriptorMatchesSelectionWrapper(value, keys) {
+  if (!__internalExactDescriptorIsRecord(value) || !__internalExactDescriptorKeys1(value, 'select')) {
+    return false
+  }
+
+  const select = value.select
+  if (!__internalExactDescriptorIsRecord(select) || !__internalExactDescriptorHasExactKeys(select, keys)) {
+    return false
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    if (select[keys[i]] !== true) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function __internalExactDescriptorBlogPagePostV1SelectShape(value) {
+  const select = __internalExactDescriptorAsObject(value)
+  if (select === undefined) {
+    return undefined
+  }
+
+  let selectShape
+  if (__internalExactDescriptorHasKeysInOrder(select, __internalExactDescriptorBlogPageRootSelectKeys)) {
+    for (let i = 0; i < __internalExactDescriptorBlogPageRootScalarFields.length; i++) {
+      if (!__internalExactDescriptorIsConstant(select.fields[__internalExactDescriptorBlogPageRootScalarFields[i]], true)) {
+        return undefined
+      }
+    }
+    selectShape = 'full'
+  } else if (__internalExactDescriptorHasKeysInOrder(select, __internalExactDescriptorBlogPageMinimalRootSelectKeys)) {
+    if (
+      !__internalExactDescriptorIsConstant(select.fields.id, true) ||
+      !__internalExactDescriptorIsConstant(select.fields.title, true)
+    ) {
+      return undefined
+    }
+    selectShape = 'minimal'
+  } else {
+    return undefined
+  }
+
+  return __internalExactDescriptorSelectionWrapperDescriptor(
+    select.fields.author,
+    __internalExactDescriptorBlogPageUserSelectKeys,
+  ) &&
+    __internalExactDescriptorSelectionWrapperDescriptor(
+      select.fields.category,
+      __internalExactDescriptorBlogPageSlugSelectKeys,
+    ) &&
+    __internalExactDescriptorBlogPageTagsSelectionDescriptor(select.fields.tags) &&
+    __internalExactDescriptorBlogPageCommentsSelectionDescriptor(select.fields.comments) &&
+    __internalExactDescriptorSelectionWrapperDescriptor(
+      select.fields._count,
+      __internalExactDescriptorBlogPageCountSelectKeys,
+    )
+    ? selectShape
+    : undefined
+}
+
+function __internalExactDescriptorBlogPageTagsSelectionDescriptor(value) {
+  const root = __internalExactDescriptorAsObject(value)
+  if (root === undefined || !__internalExactDescriptorHasKeysInOrder(root, ['select'])) {
+    return false
+  }
+
+  const select = __internalExactDescriptorAsObject(root.fields.select)
+  return (
+    select !== undefined &&
+    __internalExactDescriptorHasKeysInOrder(select, ['tag']) &&
+    __internalExactDescriptorSelectionWrapperDescriptor(
+      select.fields.tag,
+      __internalExactDescriptorBlogPageSlugSelectKeys,
+    )
+  )
+}
+
+function __internalExactDescriptorBlogPageCommentsSelectionDescriptor(value) {
+  const root = __internalExactDescriptorAsObject(value)
+  if (
+    root === undefined ||
+    !__internalExactDescriptorHasKeysInOrder(root, ['take', 'orderBy', 'select']) ||
+    !__internalExactDescriptorIsConstant(root.fields.take, 10)
+  ) {
+    return false
+  }
+
+  const orderBy = __internalExactDescriptorAsArray(root.fields.orderBy)
+  if (orderBy === undefined || orderBy.items.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = __internalExactDescriptorAsObject(orderBy.items[0])
+  if (
+    firstOrderBy === undefined ||
+    !__internalExactDescriptorHasKeysInOrder(firstOrderBy, ['createdAt']) ||
+    !__internalExactDescriptorIsConstant(firstOrderBy.fields.createdAt, 'desc')
+  ) {
+    return false
+  }
+
+  const select = __internalExactDescriptorAsObject(root.fields.select)
+  return (
+    select !== undefined &&
+    __internalExactDescriptorHasKeysInOrder(select, __internalExactDescriptorBlogPageCommentSelectKeys) &&
+    __internalExactDescriptorIsConstant(select.fields.id, true) &&
+    __internalExactDescriptorIsConstant(select.fields.content, true) &&
+    __internalExactDescriptorIsConstant(select.fields.createdAt, true) &&
+    __internalExactDescriptorSelectionWrapperDescriptor(
+      select.fields.author,
+      __internalExactDescriptorBlogPageUserSelectKeys,
+    )
+  )
+}
+
+function __internalExactDescriptorSelectionWrapperDescriptor(value, keys) {
+  const root = __internalExactDescriptorAsObject(value)
+  if (root === undefined || !__internalExactDescriptorHasKeysInOrder(root, ['select'])) {
+    return false
+  }
+
+  const select = __internalExactDescriptorAsObject(root.fields.select)
+  if (select === undefined || !__internalExactDescriptorHasKeysInOrder(select, keys)) {
+    return false
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    if (!__internalExactDescriptorIsConstant(select.fields[keys[i]], true)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function __internalExactDescriptorRoot(context) {
+  if (!__internalExactDescriptorIsRecord(context.descriptor)) {
+    return undefined
+  }
+
+  return __internalExactDescriptorAsObject(context.descriptor.root)
+}
+
+function __internalExactDescriptorAsObject(value) {
+  if (
+    __internalExactDescriptorIsRecord(value) &&
+    value.kind === 'object' &&
+    Array.isArray(value.keys) &&
+    __internalExactDescriptorIsRecord(value.fields)
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
+function __internalExactDescriptorAsPlaceholder(value) {
+  if (
+    __internalExactDescriptorIsRecord(value) &&
+    value.kind === 'placeholder' &&
+    typeof value.name === 'string' &&
+    typeof value.valueType === 'string'
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
+function __internalExactDescriptorAsArray(value) {
+  if (__internalExactDescriptorIsRecord(value) && value.kind === 'array' && Array.isArray(value.items)) {
+    return value
+  }
+
+  return undefined
+}
+
+function __internalExactDescriptorIsConstant(value, expected) {
+  return __internalExactDescriptorIsRecord(value) && value.kind === 'constant' && Object.is(value.value, expected)
+}
+
+function __internalExactDescriptorHasKeysInOrder(descriptor, expectedKeys) {
+  if (descriptor.keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (let i = 0; i < expectedKeys.length; i++) {
+    const key = expectedKeys[i]
+    if (descriptor.keys[i] !== key || !Object.hasOwn(descriptor.fields, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function __internalExactDescriptorHasExactKeys(value, expectedKeys) {
+  const keys = Object.keys(value)
+  if (keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (let i = 0; i < expectedKeys.length; i++) {
+    if (keys[i] !== expectedKeys[i]) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function __internalExactDescriptorKeys1(value, key0) {
+  const keys = Object.keys(value)
+  return keys.length === 1 && keys[0] === key0
+}
+
+function __internalExactDescriptorKeys2(value, key0, key1) {
+  const keys = Object.keys(value)
+  return keys.length === 2 && keys[0] === key0 && keys[1] === key1
+}
+
+function __internalExactDescriptorKeys3(value, key0, key1, key2) {
+  const keys = Object.keys(value)
+  return keys.length === 3 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2
+}
+
+function __internalExactDescriptorKeys4(value, key0, key1, key2, key3) {
+  const keys = Object.keys(value)
+  return keys.length === 4 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2 && keys[3] === key3
+}
+
+function __internalExactDescriptorKeys7(value, key0, key1, key2, key3, key4, key5, key6) {
+  const keys = Object.keys(value)
+  return (
+    keys.length === 7 &&
+    keys[0] === key0 &&
+    keys[1] === key1 &&
+    keys[2] === key2 &&
+    keys[3] === key3 &&
+    keys[4] === key4 &&
+    keys[5] === key5 &&
+    keys[6] === key6
+  )
+}
+
+function __internalExactDescriptorKeys12(value) {
+  const keys = Object.keys(value)
+  return (
+    keys.length === 12 &&
+    keys[0] === 'id' &&
+    keys[1] === 'title' &&
+    keys[2] === 'slug' &&
+    keys[3] === 'content' &&
+    keys[4] === 'published' &&
+    keys[5] === 'viewCount' &&
+    keys[6] === 'createdAt' &&
+    keys[7] === 'author' &&
+    keys[8] === 'category' &&
+    keys[9] === 'tags' &&
+    keys[10] === 'comments' &&
+    keys[11] === '_count'
+  )
+}
+
+function __internalExactDescriptorIsRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}`

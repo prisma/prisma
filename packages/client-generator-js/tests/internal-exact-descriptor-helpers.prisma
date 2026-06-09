@@ -5,13 +5,65 @@ datasource db {
 generator client {
   provider                       = "prisma-client-js"
   output                         = "./generated-exact-descriptor"
-  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findMany:take:id,email,name"]
+  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findMany:take:id,email,name", "template:Post.findUnique:id:blogPagePostV1"]
 }
 
 model User {
-  id         Int     @id
+  id         Int       @id
   email      String
   name       String
-  externalId BigInt  @unique
-  enabled    Boolean @unique
+  avatar     String?
+  externalId BigInt    @unique
+  enabled    Boolean   @unique
+  posts      Post[]
+  comments   Comment[]
+}
+
+model Category {
+  id    Int    @id
+  name  String
+  slug  String @unique
+  posts Post[]
+}
+
+model Tag {
+  id    Int          @id
+  name  String
+  slug  String       @unique
+  posts TagsOnPosts[]
+}
+
+model Post {
+  id         Int            @id
+  title      String
+  slug       String
+  content    String
+  published  Boolean
+  viewCount  Int
+  createdAt  DateTime
+  authorId   Int
+  categoryId Int
+  author     User           @relation(fields: [authorId], references: [id])
+  category   Category       @relation(fields: [categoryId], references: [id])
+  tags       TagsOnPosts[]
+  comments   Comment[]
+}
+
+model TagsOnPosts {
+  postId Int
+  tagId  Int
+  post   Post @relation(fields: [postId], references: [id])
+  tag    Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([postId, tagId])
+}
+
+model Comment {
+  id        Int      @id
+  content   String
+  createdAt DateTime
+  postId    Int
+  authorId  Int
+  post      Post     @relation(fields: [postId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
 }

@@ -158,8 +158,13 @@ describe('generator', () => {
     generator.stop()
 
     expect(classFile).toContain('runtime.createExactDescriptorMatcherRegistry')
-    expect(classFile).toContain('config.descriptorMatcherRegistry = runtime.createExactDescriptorMatcherRegistry')
+    expect(classFile).toContain(
+      'const __internalExactDescriptorFlatRegistry = runtime.createExactDescriptorMatcherRegistry',
+    )
+    expect(classFile).toContain('config.descriptorMatcherRegistry = {')
+    expect(classFile).toContain('function __internalExactDescriptorBindBlogPagePostV1_0')
     expect(classFile).toContain('"model": "User"')
+    expect(classFile).toContain('context.model === "Post"')
     expect(classFile).toContain('"action": "findUnique"')
     expect(classFile).toContain('"action": "findMany"')
     expect(classFile).toContain('"field": "id"')
@@ -169,6 +174,7 @@ describe('generator', () => {
     expect(classFile).toContain('"valueType": "bigint"')
     expect(classFile).toContain('"valueType": "boolean"')
     expect(classFile).toContain('"select": [')
+    expect(classFile).toContain('__internalExactDescriptorBlogPagePostV1SelectShape')
   })
 
   test('denylist from engine validation', async () => {
