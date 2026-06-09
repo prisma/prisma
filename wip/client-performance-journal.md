@@ -10031,6 +10031,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 
 - Accepted test coverage: descriptor-bound matcher two-shape retention.
   - Timestamp: 2026-06-09.
+  - Prisma commit: `d2d8d5035 Cover descriptor matcher MRU hits`.
   - Change:
     - Added `applyModel.test.ts` coverage for two learned descriptor-bound matchers on alternating `User.findUnique` shapes.
     - The test learns an `id` descriptor and a `name` descriptor with distinct cache keys, then verifies later hits for both shapes reuse stored descriptor-bound matchers without calling `getPrecomputedQueryPlanCacheHit()` again.
@@ -10045,6 +10046,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `git diff --check`.
   - Decision:
     - Keep. This is not a speed change, but it locks down a productization-relevant invariant before more generated exact-helper work.
+
+- Measurement refresh: current Node generated-client descriptor rows after the intermediate report.
+  - Timestamp: 2026-06-09.
+  - Command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER="generated client" CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Current default generated rows:
+    - `findUnique`: 4.23 us/op.
+    - Batched `findUnique`: 8.93 us/op, `queryRaw=50000`.
+    - `findMany users`: 3.03 us/op.
+    - Blog-page nested rows: 14.66 us/op, `queryRaw=350000`.
+    - Two alternating blog-page shapes: 14.50 us/op, `queryRaw=350000`.
+  - Internal/precomputed comparison rows:
+    - Engine precomputed: `findUnique` 3.04 us/op, batched `findUnique` 5.70 with `queryRaw=100000`, `findMany users` 3.15, blog-page 12.84, alternating blog-page 12.98.
+    - Request precomputed: `findUnique` 3.93 us/op, batched `findUnique` 9.56 with `precomputedBatchHits=100000`, `findMany users` 3.04, blog-page 14.89, alternating blog-page 14.57.
+    - Descriptor-bound static matcher: `findUnique` 3.94 us/op, batched `findUnique` 9.02, `findMany users` 2.99, blog-page 14.24, alternating blog-page 21.29.
+    - Exact descriptor helper flat rows: `findUnique` 4.08 us/op, batched `findUnique` 9.32, `findMany users` 2.93.
+  - Interpretation:
+    - The current default rows are still in the intermediate report's Node band: roughly 4 us/op simple and mid-14 us/op nested.
+    - Descriptor-bound static matchers remain mixed: they are slightly positive on the one-shape blog-page row in this run but materially worse on the alternating nested row.
+    - The internal engine-precomputed row is still the lower bound, but batched `findUnique` doubles `queryRaw`, so it remains a benchmark mode rather than product-safe default behavior.
+  - Decision:
+    - No code change. Use this as a productization gate: generated exact/descriptor helper work must include stable-shape, alternating-shape, batched, and Workerd rows before landing beyond internal benchmark coverage.
 
 ## Useful Commands
 
