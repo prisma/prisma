@@ -10530,6 +10530,49 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The memory win is small but real on retained nested cached plans, and the compile-miss path was effectively neutral in close A/B. Do not broaden this to all short strings without a new retained-heap and timing argument.
 
+- Rejected Rust allocation micro-spike: pre-size scalar selection vector construction.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/utils.rs`, rewrote `pairs_to_scalar_selections()` to allocate its result with `Vec::with_capacity(pairs.len())`.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-core -p query-compiler` passed.
+  - Measurement:
+    - Focused allocation profile command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-create,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - No allocation-count movement on the sampled rows. The only visible byte movement was about 0.6 KiB/op on one `update-set-nested-prisma#27650` row.
+  - Decision:
+    - Revert. This was allocation-shape noise, not a meaningful compile-performance lead.
+
+- Rejected Rust translation implementation: skip result-map construction for raw-nested roots.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - In `/home/aqrln.guest/prisma-engines`, moved `map_result_structure()` after root-node collection and added a conservative borrowed raw-nested eligibility predicate so single-root raw-nested read plans could translate through the existing `NodeTranslator` before building the generic result map.
+    - A first speculative clone-based attempt was rejected immediately: it saved a few allocations on simple raw-nested rows but made `nested-pagination-query` much worse because unsupported query-mode nested pagination paid the clone/build probe before falling back.
+    - A narrower version added a non-allocating `QueryGraph::has_outgoing_edges()` and reordered the borrowed predicate to reject pagination before heavier selected-field/relation metadata checks.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-core -p query-compiler` passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-core -p query-compiler` passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries` passed 1 test.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler-wasm --features postgresql` passed.
+  - Allocation measurement:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_QUERIES='query-m2o,query-o2m,query-m2m,query-many-m2m,query-many-one2m,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - Baseline from the same session:
+      - `query-m2o`: `translate_ir` 327 / 27.2 KiB; `full_compile` 571 / 72.7 KiB.
+      - `query-many-m2m`: `translate_ir` 425 / 33.8 KiB; `full_compile` 736 / 80.7 KiB.
+      - `query-many-one2m`: `translate_ir` 326 / 27.8 KiB; `full_compile` 639 / 77.8 KiB.
+      - `nested-pagination-query`: `translate_ir` 388 / 37.1 KiB; `full_compile` 676 / 81.3 KiB.
+    - Final patched allocation profile:
+      - `query-m2o`: `translate_ir` 310 / 25.4 KiB; `full_compile` 554 / 70.9 KiB.
+      - `query-many-m2m`: `translate_ir` 406 / 31.9 KiB; `full_compile` 717 / 78.8 KiB.
+      - `query-many-one2m`: `translate_ir` 296 / 24.7 KiB; `full_compile` 609 / 74.7 KiB.
+      - `nested-pagination-query`: `translate_ir` 388 / 37.1 KiB; `full_compile` 676 / 81.3 KiB.
+    - The final patch recovered about 17-30 allocations/op and about 1.8-3.1 KiB/op on eligible raw-nested reads while keeping fallback allocation rows neutral.
+  - Timing measurement:
+    - Criterion command: `PATH="$HOME/.cargo/bin:$PATH" cargo bench -p query-compiler --bench compilation_bench -- "query-many-one2m|nested-pagination-query|update-set-nested" --sample-size 10 --warm-up-time 1 --measurement-time 2`.
+    - Final patched medians from the broader focused run: `nested-pagination-query` 33.360 us, `query-many-one2m` 31.924 us, `update-set-nested-prisma#27650` 98.806 us, `update-set-nested` 107.07 us.
+    - Close reverted control medians with the same smaller deciding command: `nested-pagination-query` 31.391 us, `query-many-one2m` 32.783 us, `update-set-nested-prisma#27650` 91.698 us, `update-set-nested` 102.79 us.
+  - Decision:
+    - Revert. The allocation win is real, and `query-many-one2m` was faster in the close A/B, but the fallback and write guard rows regressed too much. Do not keep an allocation-only raw-nested result-map skip unless it is part of a broader translation design that is timing-neutral on fallback rows.
+
 ## Useful Commands
 
 ```sh
