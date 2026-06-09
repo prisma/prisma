@@ -10173,6 +10173,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as internal-gated product groundwork. The Node speedup is modest but positive for the new runtime helper, batching semantics remain intact, and the helper is disabled unless the generator config explicitly opts in.
     - Do not broaden or enable by default yet. Next required work is Workerd verification plus oracle parity tests for special scalar values, duplicate placeholders, placeholder order/reuse, `Prisma.skip`/strict undefined, extensions/global omit exclusions, descriptor fallback misses, and generated-output typechecking.
 
+- Accepted benchmark coverage: Workerd runtime exact descriptor helper rows.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Added `generated client runtime exact descriptor helper ...` rows to `workerd-query-compiler-memory.ts`.
+    - The worker module imports `createExactDescriptorMatcherRegistry` from `wasm-compiler-edge.mjs`, so the row measures the kept runtime helper rather than a pasted benchmark-only implementation.
+    - Covered scalar `findUnique` and batched `findUnique`; `findMany` is intentionally absent because the kept runtime helper slice only supports `findUnique`.
+  - Verification:
+    - `pnpm --filter @prisma/client build` passed after the harness edit.
+    - `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=10000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` passed.
+    - Same command with `WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=20000` passed.
+  - Evidence:
+    - First 10k run was mixed/noisy: worker-loop request-precomputed / runtime exact measured 4.50 / 5.00 us/op for `findUnique`, and 8.90 / 8.70 for batched `findUnique`.
+    - Confirming 20k run was positive: worker-loop request-precomputed / runtime exact measured 5.35 / 4.60 us/op for `findUnique`, and 9.90 / 8.85 for batched `findUnique`; batched runtime exact preserved `queryRaw=20000` and `precomputedBatchHits=40000`.
+  - Decision:
+    - Keep the benchmark coverage and keep the product helper internal-gated.
+    - Workerd now supports the Node signal direction on the confirming repeat, but the first run's noise means future broadening should still require repeated Workerd runs plus oracle parity coverage before enabling anything by default.
+
 ## Useful Commands
 
 ```sh

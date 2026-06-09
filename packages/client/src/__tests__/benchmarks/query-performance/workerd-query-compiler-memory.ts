@@ -206,7 +206,7 @@ function buildWorkerModule(config: {
 }): string {
   return `
 import * as runtime from './query_compiler_fast_bg.sqlite.mjs'
-import { getPrismaClient } from './wasm-compiler-edge.mjs'
+import { createExactDescriptorMatcherRegistry, getPrismaClient } from './wasm-compiler-edge.mjs'
 import wasmModule from './query_compiler_fast_bg.sqlite.wasm'
 
 const datamodel = ${JSON.stringify(BENCHMARK_DATAMODEL)}
@@ -983,6 +983,19 @@ function createExactGeneratedUserDescriptorMatcherRegistry() {
       return undefined
     },
   }
+}
+
+function createRuntimeExactGeneratedUserDescriptorMatcherRegistry() {
+  return createExactDescriptorMatcherRegistry([
+    {
+      model: 'User',
+      action: 'findUnique',
+      clientMethod: 'user.findUnique',
+      field: 'id',
+      valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
+  ])
 }
 
 function bindExactGeneratedUserFindUniqueMatcher(context) {
@@ -2349,7 +2362,10 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
 
 async function runClientExecuteScenario(scenario, iterations, retain, precomputedFastPath) {
   const usesPrecomputedFastPath = precomputedFastPath !== undefined
-  const usesDescriptorMatcher = precomputedFastPath === 'descriptor-bound' || precomputedFastPath === 'exact-helper'
+  const usesDescriptorMatcher =
+    precomputedFastPath === 'descriptor-bound' ||
+    precomputedFastPath === 'exact-helper' ||
+    precomputedFastPath === 'runtime-exact-helper'
   const Client = getPrismaClientConstructor()
   const client = new Client({
     adapter: createAdapterFactory(),
@@ -2362,7 +2378,9 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
             ? (config) => ({
                 ...config,
                 descriptorMatcherRegistry:
-                  precomputedFastPath === 'exact-helper'
+                  precomputedFastPath === 'runtime-exact-helper'
+                    ? createRuntimeExactGeneratedUserDescriptorMatcherRegistry()
+                  : precomputedFastPath === 'exact-helper'
                     ? createExactGeneratedUserDescriptorMatcherRegistry()
                     : createDescriptorMatcherRegistry(),
               })
@@ -2429,6 +2447,8 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
             ? 'client-execute-request-precomputed-fast-path'
           : precomputedFastPath === 'descriptor-bound'
             ? 'client-execute-request-precomputed-descriptor-bound-matcher'
+          : precomputedFastPath === 'runtime-exact-helper'
+            ? 'client-execute-request-precomputed-runtime-exact-helper'
             : precomputedFastPath === 'exact-helper'
               ? 'client-execute-request-precomputed-exact-helper'
               : 'client-execute',
@@ -2483,6 +2503,8 @@ export default {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'request')
       } else if (mode === 'client-execute-request-precomputed-descriptor-bound-matcher') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'descriptor-bound')
+      } else if (mode === 'client-execute-request-precomputed-runtime-exact-helper') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'runtime-exact-helper')
       } else if (mode === 'client-execute-request-precomputed-exact-helper') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'exact-helper')
       } else if (mode === 'client-cache') {
@@ -2992,6 +3014,17 @@ async function run(): Promise<void> {
     printMeasurement(
       await dispatchRun(
         clientMf,
+        'generated client runtime exact descriptor helper findUnique warmed cache',
+        'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-runtime-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
         'generated client findMany users warmed cache',
         'find-many-users',
         GENERATED_FIND_UNIQUE_ITERATIONS,
@@ -3096,6 +3129,17 @@ async function run(): Promise<void> {
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client runtime exact descriptor helper batched findUnique warmed cache',
+        'find-unique-batched',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-runtime-exact-helper',
       ),
     )
     console.log('')
