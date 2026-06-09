@@ -10500,6 +10500,15 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. The generated-code diff was large, and the direct extractor signal was mixed rather than a clear improvement over the kept runtime factory.
     - The generated exact-helper lead remains, but the next version needs truly straight-line/static generated matchers closer to the benchmark-only hand helper shape, or direct Worker/product-path evidence strong enough to justify generated-client code growth.
 
+- Documentation refresh: intermediate report after exact-helper emitter rejection.
+  - Timestamp: 2026-06-09.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Added the duplicate-placeholder exact-helper safety coverage to the current-best-leads section.
+    - Added the generated generic exact-helper emitter rejection to the report's rejected-work summary.
+  - Decision:
+    - Keep the report as the current intermediate performance checkpoint. The headline magnitude remains unchanged: simple Worker cache-hit paths are already past 3x, nested Worker default product paths are closer to 2.5-2.7x, and the most credible next contributors are straight-line descriptor-bound helpers, static/generated raw-nested writer schedules, and larger JS-owned cache-hit architecture.
+
 ## Useful Commands
 
 ```sh
