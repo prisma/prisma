@@ -84,7 +84,7 @@ Several plausible ideas were tested and rejected:
 
 2. Move raw-nested execution toward generated/static writer schedules. The benchmark-only static-wave writer reaches the assembler lower bound, while runtime-derived generic schedules keep regressing or only moving a few percent.
 
-3. Explore the radical JS-owned query/cache-hit architecture as a larger design, not as `serde_wasm_bindgen`. A practical first proof would keep the query input JS-owned, bind a learned descriptor to a cached plan object or handle, and avoid transferring data across FFI on hot cache hits. The narrowest slice is handle-only cached execution for exact generated `findMany` descriptor hits, with compile misses falling back to the current Rust-owned path initially.
+3. Explore the radical JS-owned query/cache-hit architecture as a larger design, not as `serde_wasm_bindgen`. A handle-only cached `findMany` spike that merely removed `protocolQuery` from the final cached-plan engine call was rejected as noise-level, so the next proof has to remove larger phases together: descriptor/protocol construction, structural identity, Rust-owned request materialization, or plan/result transfer. Compile misses can still fall back to the current Rust-owned path initially.
 
 4. Continue Rust allocation work from profile-backed structures: `graph_build`/`translate_ir` containers, relation scalar helper vectors, parser/query-document success-path allocations, and SQL/query plan serialization. Avoid broad arena rewrites until a specific compile-local ownership target is identified.
 

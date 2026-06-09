@@ -10122,6 +10122,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep the side worktree diff only as a rejected prototype reference; do not merge it.
     - The next raw-nested product path still needs a true plan-specific final-owner writer schedule or compiler-emitted direct writer program, not another local wrapper/leaf materialization shortcut.
 
+- Rejected side spike: handle-only cached-result execution for exact generated `findMany`.
+  - Timestamp: 2026-06-09.
+  - Side worktree: `/home/aqrln.guest/prisma-handle-only-cache-hit-spike`.
+  - Change tried:
+    - Added `PrecomputedCachedResultHandle` with `cacheKey`, `modelName`, `action`, and `placeholderValues`.
+    - Added optional `ClientEngine.requestPrecomputedCachedResultHandle()` that resolves the cached single plan by key and executes it without receiving `protocolQuery`; it returns `undefined` on cache miss so callers can fall back to the existing query-taking path.
+    - Added `RequestHandler.requestPrecomputedCachedResult()` handle-first routing and tests for handle hit plus fallback-to-query miss.
+    - Added benchmark counting for the new handle method.
+  - Verification:
+    - `pnpm --filter @prisma/client... build` passed after building the side worktree's client dependency closure.
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts --runInBand` passed 10 tests. Jest printed the existing missing source-map warning for `@prisma/engines-version`, but the suite passed.
+  - Benchmarks:
+    - Patched run: `CLIENT_ENGINE_CACHE_TIMING_FILTER='findMany users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Generated default `findMany users`: 2.64 us/op.
+      - Generated request-precomputed `findMany users`: 2.62 us/op.
+      - Generated descriptor-bound static matcher `findMany users`: 2.55 us/op.
+      - Generated exact descriptor helper `findMany users`: 2.52 us/op.
+      - Client-engine cached-result lower row: 2.21 us/op.
+    - Close baseline after stashing the patch and rebuilding `@prisma/client`, same command:
+      - Generated default `findMany users`: 2.69 us/op.
+      - Generated request-precomputed `findMany users`: 2.64 us/op.
+      - Generated descriptor-bound static matcher `findMany users`: 2.60 us/op.
+      - Generated exact descriptor helper `findMany users`: 2.53 us/op.
+      - Client-engine cached-result lower row: 2.16 us/op.
+  - Decision:
+    - Reject. The product-shaped generated rows moved only about 1-2%, below the 10% gate and within local timing noise; the direct client-engine cached-result lower row was slightly worse patched.
+    - This confirms the current direct cached-result path is already close to the useful handle-only lower bound because it avoids Wasm and hits the `QueryPlanCache` last-hit slot.
+    - The JS-owned query/cache-hit architecture lead remains, but the next proof must remove larger phases together: descriptor/protocol construction, structural identity/cache-key work, Rust-owned request materialization, or plan/result transfer across the boundary. A final-call handle swap alone is too shallow.
+
 ## Useful Commands
 
 ```sh
