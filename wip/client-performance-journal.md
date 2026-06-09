@@ -10307,6 +10307,15 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reject and revert. The raw compact-node win was only about 6-7%, below the 15% gate for another local raw-nested shortcut, and this still leaves the generic `RawNestedReadResult` / attach-helper architecture in place.
     - Continue with a writer-program plan shape that bypasses intermediate child record arrays and generic attach helpers for the whole eligible nested plan.
 
+- Documentation refresh: intermediate report after raw-nested leaf rejection.
+  - Timestamp: 2026-06-09.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Added the latest direct leaf relation shortcut rejection to the raw-nested summary and "What did not pay off" section.
+    - Fixed the `findMany users` exact-helper row labels so the report distinguishes descriptor-bound static, hand exact, and runtime exact measurements.
+  - Decision:
+    - Keep the report as the current intermediate performance checkpoint. Its headline remains unchanged: simple Worker cache-hit paths are already past 3x, nested Worker default product paths are closer to 2.5-2.7x, and the remaining nested headroom is in generated/static writer schedules and larger JS-owned cache-hit architecture rather than shallow wrapper shortcuts.
+
 ## Useful Commands
 
 ```sh
