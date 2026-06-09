@@ -10273,6 +10273,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Start runtime-only/internal before Rust emission.
     - Keep only if raw-result-set compact/exact rows improve by roughly 15%+ in close A/B and generated stable/alternating blog-page rows improve or stay neutral on Node and Workerd. Rerun retained plan memory if the plan shape changes serialized/cache-retained data.
 
+- Measurement refresh: raw-nested writer-program gap after rejected nested exact work.
+  - Timestamp: 2026-06-09.
+  - Command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Rows:
+    - Raw result-set assembly only: 0.47 us/op.
+    - Prototype blog-page: 5.34 us/op.
+    - Exact prototype blog-page: 5.83 us/op.
+    - Direct assembler lower bound: 3.88 us/op.
+    - Writer program: 4.25 us/op.
+    - Static-wave writer program: 4.01 us/op.
+    - Compact node blog-page: 6.40 us/op.
+    - Exact compact node blog-page: 6.63 us/op.
+  - Interpretation:
+    - The compact raw-nested product path still has about 37% headroom to the static-wave writer lower bound in this run.
+    - Do not spend more effort on wrapper/leaf local shortcuts or generic nested exact descriptors; the next CPU proof should be a strict writer-program payload that skips `RawNestedReadResult` child record arrays and generic attach helpers for eligible plans.
+
 ## Useful Commands
 
 ```sh
