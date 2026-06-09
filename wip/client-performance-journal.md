@@ -10573,6 +10573,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The allocation win is real, and `query-many-one2m` was faster in the close A/B, but the fallback and write guard rows regressed too much. Do not keep an allocation-only raw-nested result-map skip unless it is part of a broader translation design that is timing-neutral on fallback rows.
 
+- Rejected runtime spike: serializable raw-nested writer-program compact node.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - Added a compact `N` writer-program node in `packages/client-engine-runtime` with strict unique-root numeric payloads.
+    - The payload wrote final owner objects directly through emitted phase waves: direct unique root relations, root list relations with output slots, join-row collection, wrapper writes, and unique child writes into list-record slots.
+    - Added a focused interpreter test covering author, tags wrapper, comments, and comment author phases, plus a `client-engine-cache-timing.ts` row that built a serializable blog-page writer payload from the same DB queries as the existing raw result-set lower-bound rows.
+    - A local-scope follow-up changed writer phase scopes from inherited `Object.create(parentScope)` objects to local null-prototype objects because the strict payload did not support outer-scope placeholders.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 25 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed after fixing the unreachable `assertNever()` branch.
+    - A broad `pnpm --filter @prisma/client... build` attempt failed on the pre-fix runtime snapshot and was not rerun after rejection.
+  - Benchmark:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - First run: direct assembler 3.85 us/op, writer program 4.21, static-wave writer 3.93, compact node 6.49, exact compact node 6.58, new writer-program node 5.92 with a 111.3 KiB heap delta.
+    - Local-scope follow-up: direct assembler 3.91 us/op, writer program 4.10, static-wave writer 4.06, compact node 6.59, exact compact node 6.97, new writer-program node 6.03 with a 108.4 KiB heap delta.
+  - Decision:
+    - Revert. The serializable node improved modestly over compact `n` in the same run, but only by about 8-13% and with worse heap churn, while the benchmark-only writer/static-wave lower bound stayed near 4.1 us/op.
+    - This confirms that a compiler-emittable payload is not sufficient if the runtime still uses generic phase closures, slot arrays, and dynamic record mapping. The next raw-nested product proof needs more static final-owner write code or generated/unrolled wave executors, not another generic phase interpreter.
+
 ## Useful Commands
 
 ```sh
