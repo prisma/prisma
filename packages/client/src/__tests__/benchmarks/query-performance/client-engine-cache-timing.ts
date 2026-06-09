@@ -892,6 +892,7 @@ const BLOG_PAGE_ROOT_SELECT_KEYS = [
   'comments',
   '_count',
 ] as const
+const BLOG_PAGE_MINIMAL_ROOT_SELECT_KEYS = ['id', 'title', 'author', 'category', 'tags', 'comments', '_count'] as const
 const BLOG_PAGE_USER_SELECT_KEYS = ['id', 'name', 'avatar'] as const
 const BLOG_PAGE_SLUG_SELECT_KEYS = ['id', 'name', 'slug'] as const
 const BLOG_PAGE_COMMENT_SELECT_KEYS = ['id', 'content', 'createdAt', 'author'] as const
@@ -1043,15 +1044,12 @@ function bindExactGeneratedBlogPostPageMatcher(
   }
 
   const id = asGeneratedPlaceholderDescriptor(where.fields.id)
-  if (
-    id === undefined ||
-    id.valueType !== 'number' ||
-    !isExactGeneratedBlogPostPageSelectDescriptor(root.fields.select)
-  ) {
+  const selectShape = getExactGeneratedBlogPostPageSelectDescriptorShape(root.fields.select)
+  if (id === undefined || id.valueType !== 'number' || selectShape === undefined) {
     return undefined
   }
 
-  return (args) => matchExactGeneratedBlogPostPage(args, id.name)
+  return (args) => matchExactGeneratedBlogPostPage(args, id.name, selectShape)
 }
 
 function matchExactGeneratedUserFindUnique(args: unknown, idPlaceholder: string): Record<string, unknown> | undefined {
@@ -1102,7 +1100,11 @@ function matchExactGeneratedUserFindManyWithConstantTake(args: unknown): Record<
   return EMPTY_PLACEHOLDER_VALUES
 }
 
-function matchExactGeneratedBlogPostPage(args: unknown, idPlaceholder: string): Record<string, unknown> | undefined {
+function matchExactGeneratedBlogPostPage(
+  args: unknown,
+  idPlaceholder: string,
+  selectShape: BlogPageRootSelectShape,
+): Record<string, unknown> | undefined {
   if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
     return undefined
   }
@@ -1112,7 +1114,7 @@ function matchExactGeneratedBlogPostPage(args: unknown, idPlaceholder: string): 
     return undefined
   }
 
-  if (!matchesExactGeneratedBlogPostPageSelect(args.select)) {
+  if (!matchesExactGeneratedBlogPostPageSelect(args.select, selectShape)) {
     return undefined
   }
 
@@ -1129,13 +1131,29 @@ function matchesExactGeneratedUserScalarSelect(value: unknown): boolean {
   )
 }
 
-function matchesExactGeneratedBlogPostPageSelect(value: unknown): boolean {
-  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder12(value)) {
+type BlogPageRootSelectShape = 'full' | 'minimal'
+
+function matchesExactGeneratedBlogPostPageSelect(value: unknown, selectShape: BlogPageRootSelectShape): boolean {
+  if (!isDescriptorRecord(value)) {
     return false
   }
 
-  for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
-    if (value[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]] !== true) {
+  if (selectShape === 'full') {
+    if (!hasOwnEnumerableKeysInOrder12(value)) {
+      return false
+    }
+
+    for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
+      if (value[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]] !== true) {
+        return false
+      }
+    }
+  } else {
+    if (
+      !hasOwnEnumerableKeysInOrder7(value, 'id', 'title', 'author', 'category', 'tags', 'comments', '_count') ||
+      value.id !== true ||
+      value.title !== true
+    ) {
       return false
     }
   }
@@ -1235,25 +1253,40 @@ function getGeneratedExactRoot(
   return asGeneratedObjectDescriptor(context.descriptor.root)
 }
 
-function isExactGeneratedBlogPostPageSelectDescriptor(value: unknown): boolean {
+function getExactGeneratedBlogPostPageSelectDescriptorShape(value: unknown): BlogPageRootSelectShape | undefined {
   const select = asGeneratedObjectDescriptor(value)
-  if (select === undefined || !generatedDescriptorHasKeysInOrder(select, BLOG_PAGE_ROOT_SELECT_KEYS)) {
-    return false
+  if (select === undefined) {
+    return undefined
   }
 
-  for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
-    if (!isGeneratedConstantDescriptor(select.fields[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]], true)) {
-      return false
+  let selectShape: BlogPageRootSelectShape
+
+  if (generatedDescriptorHasKeysInOrder(select, BLOG_PAGE_ROOT_SELECT_KEYS)) {
+    for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
+      if (!isGeneratedConstantDescriptor(select.fields[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]], true)) {
+        return undefined
+      }
     }
+    selectShape = 'full'
+  } else if (generatedDescriptorHasKeysInOrder(select, BLOG_PAGE_MINIMAL_ROOT_SELECT_KEYS)) {
+    if (
+      !isGeneratedConstantDescriptor(select.fields.id, true) ||
+      !isGeneratedConstantDescriptor(select.fields.title, true)
+    ) {
+      return undefined
+    }
+    selectShape = 'minimal'
+  } else {
+    return undefined
   }
 
-  return (
-    isExactGeneratedSelectionWrapperDescriptor(select.fields.author, BLOG_PAGE_USER_SELECT_KEYS) &&
+  return isExactGeneratedSelectionWrapperDescriptor(select.fields.author, BLOG_PAGE_USER_SELECT_KEYS) &&
     isExactGeneratedSelectionWrapperDescriptor(select.fields.category, BLOG_PAGE_SLUG_SELECT_KEYS) &&
     isExactGeneratedBlogPageTagsSelectionDescriptor(select.fields.tags) &&
     isExactGeneratedBlogPageCommentsSelectionDescriptor(select.fields.comments) &&
     isExactGeneratedSelectionWrapperDescriptor(select.fields._count, BLOG_PAGE_COUNT_SELECT_KEYS)
-  )
+    ? selectShape
+    : undefined
 }
 
 function isExactGeneratedUserScalarSelectDescriptor(value: unknown): boolean {
@@ -1442,6 +1475,29 @@ function hasOwnEnumerableKeysInOrder4(
 ): boolean {
   const keys = Object.keys(value)
   return keys.length === 4 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2 && keys[3] === key3
+}
+
+function hasOwnEnumerableKeysInOrder7(
+  value: Record<string, unknown>,
+  key0: string,
+  key1: string,
+  key2: string,
+  key3: string,
+  key4: string,
+  key5: string,
+  key6: string,
+): boolean {
+  const keys = Object.keys(value)
+  return (
+    keys.length === 7 &&
+    keys[0] === key0 &&
+    keys[1] === key1 &&
+    keys[2] === key2 &&
+    keys[3] === key3 &&
+    keys[4] === key4 &&
+    keys[5] === key5 &&
+    keys[6] === key6
+  )
 }
 
 function hasOwnEnumerableKeysInOrder12(value: Record<string, unknown>): boolean {
@@ -6951,7 +7007,8 @@ async function main(): Promise<void> {
       scenario.name !== 'generated client findUnique / warmed cache' &&
       scenario.name !== 'generated client batched findUnique / warmed cache' &&
       scenario.name !== 'generated client findMany users / warmed cache' &&
-      scenario.name !== 'generated client blog page / nested rows warmed cache'
+      scenario.name !== 'generated client blog page / nested rows warmed cache' &&
+      scenario.name !== 'generated client blog page / 2 alternating nested row shapes warmed cache'
     ) {
       continue
     }

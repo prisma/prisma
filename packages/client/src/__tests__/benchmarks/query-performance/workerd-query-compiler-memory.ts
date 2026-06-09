@@ -410,6 +410,7 @@ const BLOG_PAGE_QUERY_SELECTORS = Object.freeze([
   Object.freeze({ sql: 'SELECT * FROM \`main\`.\`Comment\` WHERE \`postId\` IN (?)', args: [], argTypes: [] }),
   Object.freeze({ sql: 'SELECT * FROM \`main\`.\`User\` WHERE \`id\` IN (?)', args: [], argTypes: [] }),
 ])
+const BLOG_PAGE_RESULT_SET_BY_SQL = new Map()
 
 class BenchmarkTransaction {
   provider = 'sqlite'
@@ -477,24 +478,29 @@ function createAdapterFactory() {
 }
 
 function getResultSet(sql) {
+  const cached = BLOG_PAGE_RESULT_SET_BY_SQL.get(sql)
+  if (cached !== undefined) {
+    return cached
+  }
+
   if (sql.includes('FROM \`main\`.\`Post\`')) {
-    return BLOG_PAGE_POST_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_POST_RESULT))
   }
 
   if (sql.includes('FROM \`main\`.\`Category\`')) {
-    return BLOG_PAGE_CATEGORY_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_CATEGORY_RESULT))
   }
 
   if (sql.includes('FROM \`main\`.\`PostTag\`')) {
-    return BLOG_PAGE_POST_TAG_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_POST_TAG_RESULT))
   }
 
   if (sql.includes('FROM \`main\`.\`Tag\`')) {
-    return BLOG_PAGE_TAG_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_TAG_RESULT))
   }
 
   if (sql.includes('FROM \`main\`.\`Comment\`')) {
-    return BLOG_PAGE_COMMENT_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_COMMENT_RESULT))
   }
 
   if (sql.includes('FROM \`main\`.\`User\`') && sql.includes('\`email\`')) {
@@ -502,11 +508,11 @@ function getResultSet(sql) {
   }
 
   if (sql.includes('FROM \`main\`.\`User\`') && sql.includes(' IN ')) {
-    return BLOG_PAGE_COMMENT_AUTHOR_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_COMMENT_AUTHOR_RESULT))
   }
 
   if (sql.includes('FROM \`main\`.\`User\`')) {
-    return BLOG_PAGE_AUTHOR_RESULT
+    return cacheBlogPageResultSet(sql, projectBlogPageResultSet(sql, BLOG_PAGE_AUTHOR_RESULT))
   }
 
   if (sql === undefined) {
@@ -514,6 +520,104 @@ function getResultSet(sql) {
   }
 
   throw new Error('Unexpected client-execute benchmark SQL: ' + sql)
+}
+
+function projectBlogPageResultSet(sql, resultSet) {
+  const selectedColumns = getSelectedBlogPageColumns(sql)
+  if (selectedColumns === undefined) {
+    return resultSet
+  }
+
+  if (
+    selectedColumns.length === resultSet.columnNames.length &&
+    selectedColumns.every((columnName, index) => columnName === resultSet.columnNames[index])
+  ) {
+    return resultSet
+  }
+
+  const sourceColumnIndexes = new Map()
+  for (let i = 0; i < resultSet.columnNames.length; i++) {
+    sourceColumnIndexes.set(resultSet.columnNames[i], i)
+  }
+
+  const columnIndexes = selectedColumns.map((columnName) => {
+    const columnIndex = sourceColumnIndexes.get(columnName)
+    if (columnIndex === undefined) {
+      throw new Error("Unexpected blog page benchmark column '" + columnName + "' in SQL: " + sql)
+    }
+    return columnIndex
+  })
+
+  return {
+    columnNames: Object.freeze(selectedColumns.slice()),
+    columnTypes: Object.freeze(columnIndexes.map((columnIndex) => resultSet.columnTypes[columnIndex])),
+    rows: Object.freeze(
+      resultSet.rows.map((row) => Object.freeze(columnIndexes.map((columnIndex) => row[columnIndex]))),
+    ),
+  }
+}
+
+function getSelectedBlogPageColumns(sql) {
+  const selectPrefix = 'SELECT '
+  if (!sql.startsWith(selectPrefix)) {
+    return undefined
+  }
+
+  const fromIndex = sql.indexOf(' FROM ')
+  if (fromIndex === -1) {
+    return undefined
+  }
+
+  const selection = sql.slice(selectPrefix.length, fromIndex)
+  if (selection.trim() === '*') {
+    return undefined
+  }
+
+  return splitSqlProjection(selection).map(getSqlProjectionColumnName)
+}
+
+function splitSqlProjection(selection) {
+  const projections = []
+  let depth = 0
+  let start = 0
+  let inBackticks = false
+  for (let i = 0; i < selection.length; i++) {
+    const char = selection[i]
+    if (char === '\`') {
+      inBackticks = !inBackticks
+    } else if (!inBackticks) {
+      if (char === '(') {
+        depth++
+      } else if (char === ')') {
+        depth--
+      } else if (char === ',' && depth === 0) {
+        projections.push(selection.slice(start, i).trim())
+        start = i + 1
+      }
+    }
+  }
+  projections.push(selection.slice(start).trim())
+  return projections
+}
+
+function getSqlProjectionColumnName(projection) {
+  const aliasMatch = projection.match(/\\sAS\\s\`([^\`]+)\`$/)
+  if (aliasMatch !== null) {
+    return aliasMatch[1]
+  }
+
+  const lastBacktickStart = projection.lastIndexOf('\`')
+  const previousBacktickStart = projection.lastIndexOf('\`', lastBacktickStart - 1)
+  if (lastBacktickStart !== -1 && previousBacktickStart !== -1) {
+    return projection.slice(previousBacktickStart + 1, lastBacktickStart)
+  }
+
+  throw new Error('Unexpected blog page benchmark projection: ' + projection)
+}
+
+function cacheBlogPageResultSet(sql, resultSet) {
+  BLOG_PAGE_RESULT_SET_BY_SQL.set(sql, resultSet)
+  return resultSet
 }
 
 function getStringCacheKeyPart(value) {
@@ -665,15 +769,52 @@ function createFindManyUsersArgs() {
 }
 
 function createBlogPostPageArgs(iteration) {
-  return {
-    where: { id: iteration + 1 },
+  return createBlogPostPageRootMaskArgs((1 << blogPageRootScalarFields.length) - 1, iteration)
+}
+
+function createBlogPostPageRootMaskArgs(mask, iteration) {
+  const select = {}
+  for (let i = 0; i < blogPageRootScalarFields.length; i++) {
+    if ((mask & (1 << i)) !== 0) {
+      select[blogPageRootScalarFields[i]] = true
+    }
+  }
+
+  if (Object.keys(select).length === 0) {
+    select.id = true
+  }
+
+  select.author = {
     select: {
       id: true,
-      title: true,
+      name: true,
+      avatar: true,
+    },
+  }
+  select.category = {
+    select: {
+      id: true,
+      name: true,
       slug: true,
+    },
+  }
+  select.tags = {
+    select: {
+      tag: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  }
+  select.comments = {
+    take: 10,
+    orderBy: [{ createdAt: 'desc' }],
+    select: {
+      id: true,
       content: true,
-      published: true,
-      viewCount: true,
       createdAt: true,
       author: {
         select: {
@@ -682,47 +823,18 @@ function createBlogPostPageArgs(iteration) {
           avatar: true,
         },
       },
-      category: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-      },
-      comments: {
-        take: 10,
-        orderBy: [{ createdAt: 'desc' }],
-        select: {
-          id: true,
-          content: true,
-          createdAt: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-            },
-          },
-        },
-      },
-      _count: {
-        select: {
-          likes: true,
-          comments: true,
-        },
-      },
     },
+  }
+  select._count = {
+    select: {
+      likes: true,
+      comments: true,
+    },
+  }
+
+  return {
+    where: { id: iteration + 1 },
+    select,
   }
 }
 
@@ -740,6 +852,7 @@ const blogPageRootSelectKeys = [
   'comments',
   '_count',
 ]
+const blogPageMinimalRootSelectKeys = ['id', 'title', 'author', 'category', 'tags', 'comments', '_count']
 const blogPageRootScalarFields = ['id', 'title', 'slug', 'content', 'published', 'viewCount', 'createdAt']
 const blogPageUserSelectKeys = ['id', 'name', 'avatar']
 const blogPageSlugSelectKeys = ['id', 'name', 'slug']
@@ -755,6 +868,8 @@ function createClientArgs(scenario, iteration) {
     case 'blog-page':
     case 'blog-page-by-id':
       return createBlogPostPageArgs(iteration)
+    case 'blog-page-alternating':
+      return createBlogPostPageRootMaskArgs(iteration % 2 === 0 ? 0b1111111 : 0b0000011, iteration)
     default:
       throw new Error('Unknown client args scenario: ' + scenario)
   }
@@ -1064,11 +1179,12 @@ function bindExactGeneratedBlogPostPageMatcher(context) {
   }
 
   const id = asGeneratedPlaceholderDescriptor(where.fields.id)
-  if (id === undefined || id.valueType !== 'number' || !isExactGeneratedBlogPostPageSelectDescriptor(root.fields.select)) {
+  const selectShape = getExactGeneratedBlogPostPageSelectDescriptorShape(root.fields.select)
+  if (id === undefined || id.valueType !== 'number' || selectShape === undefined) {
     return undefined
   }
 
-  return (args) => matchExactGeneratedBlogPostPage(args, id.name)
+  return (args) => matchExactGeneratedBlogPostPage(args, id.name, selectShape)
 }
 
 function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
@@ -1112,7 +1228,7 @@ function matchExactGeneratedUserFindManyWithConstantTake(args) {
   return {}
 }
 
-function matchExactGeneratedBlogPostPage(args, idPlaceholder) {
+function matchExactGeneratedBlogPostPage(args, idPlaceholder, selectShape) {
   if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
     return undefined
   }
@@ -1122,7 +1238,7 @@ function matchExactGeneratedBlogPostPage(args, idPlaceholder) {
     return undefined
   }
 
-  if (!matchesExactGeneratedBlogPostPageSelect(args.select)) {
+  if (!matchesExactGeneratedBlogPostPageSelect(args.select, selectShape)) {
     return undefined
   }
 
@@ -1139,13 +1255,27 @@ function matchesExactGeneratedUserScalarSelect(value) {
   )
 }
 
-function matchesExactGeneratedBlogPostPageSelect(value) {
-  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder12(value)) {
+function matchesExactGeneratedBlogPostPageSelect(value, selectShape) {
+  if (!isDescriptorRecord(value)) {
     return false
   }
 
-  for (let i = 0; i < blogPageRootScalarFields.length; i++) {
-    if (value[blogPageRootScalarFields[i]] !== true) {
+  if (selectShape === 'full') {
+    if (!hasOwnEnumerableKeysInOrder12(value)) {
+      return false
+    }
+
+    for (let i = 0; i < blogPageRootScalarFields.length; i++) {
+      if (value[blogPageRootScalarFields[i]] !== true) {
+        return false
+      }
+    }
+  } else {
+    if (
+      !hasOwnEnumerableKeysInOrder7(value, 'id', 'title', 'author', 'category', 'tags', 'comments', '_count') ||
+      value.id !== true ||
+      value.title !== true
+    ) {
       return false
     }
   }
@@ -1239,25 +1369,40 @@ function getGeneratedExactRoot(context) {
   return asGeneratedObjectDescriptor(context.descriptor.root)
 }
 
-function isExactGeneratedBlogPostPageSelectDescriptor(value) {
+function getExactGeneratedBlogPostPageSelectDescriptorShape(value) {
   const select = asGeneratedObjectDescriptor(value)
-  if (select === undefined || !generatedDescriptorHasKeysInOrder(select, blogPageRootSelectKeys)) {
-    return false
+  if (select === undefined) {
+    return undefined
   }
 
-  for (let i = 0; i < blogPageRootScalarFields.length; i++) {
-    if (!isGeneratedConstantDescriptor(select.fields[blogPageRootScalarFields[i]], true)) {
-      return false
+  let selectShape
+
+  if (generatedDescriptorHasKeysInOrder(select, blogPageRootSelectKeys)) {
+    for (let i = 0; i < blogPageRootScalarFields.length; i++) {
+      if (!isGeneratedConstantDescriptor(select.fields[blogPageRootScalarFields[i]], true)) {
+        return undefined
+      }
     }
+    selectShape = 'full'
+  } else if (generatedDescriptorHasKeysInOrder(select, blogPageMinimalRootSelectKeys)) {
+    if (
+      !isGeneratedConstantDescriptor(select.fields.id, true) ||
+      !isGeneratedConstantDescriptor(select.fields.title, true)
+    ) {
+      return undefined
+    }
+    selectShape = 'minimal'
+  } else {
+    return undefined
   }
 
-  return (
-    isExactGeneratedSelectionWrapperDescriptor(select.fields.author, blogPageUserSelectKeys) &&
+  return isExactGeneratedSelectionWrapperDescriptor(select.fields.author, blogPageUserSelectKeys) &&
     isExactGeneratedSelectionWrapperDescriptor(select.fields.category, blogPageSlugSelectKeys) &&
     isExactGeneratedBlogPageTagsSelectionDescriptor(select.fields.tags) &&
     isExactGeneratedBlogPageCommentsSelectionDescriptor(select.fields.comments) &&
     isExactGeneratedSelectionWrapperDescriptor(select.fields._count, blogPageCountSelectKeys)
-  )
+    ? selectShape
+    : undefined
 }
 
 function isExactGeneratedUserScalarSelectDescriptor(value) {
@@ -1425,6 +1570,20 @@ function hasOwnEnumerableKeysInOrder3(value, key0, key1, key2) {
 function hasOwnEnumerableKeysInOrder4(value, key0, key1, key2, key3) {
   const keys = Object.keys(value)
   return keys.length === 4 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2 && keys[3] === key3
+}
+
+function hasOwnEnumerableKeysInOrder7(value, key0, key1, key2, key3, key4, key5, key6) {
+  const keys = Object.keys(value)
+  return (
+    keys.length === 7 &&
+    keys[0] === key0 &&
+    keys[1] === key1 &&
+    keys[2] === key2 &&
+    keys[3] === key3 &&
+    keys[4] === key4 &&
+    keys[5] === key5 &&
+    keys[6] === key6
+  )
 }
 
 function hasOwnEnumerableKeysInOrder12(value) {
@@ -2156,6 +2315,7 @@ function executeClientScenario(client, scenario, iteration) {
       ])
     case 'blog-page':
     case 'blog-page-by-id':
+    case 'blog-page-alternating':
       return client.post.findUnique(createClientArgs(scenario, iteration))
     default:
       throw new Error('Unknown client-execute scenario: ' + scenario)
@@ -2170,6 +2330,7 @@ function clientMethodForScenario(scenario) {
       return 'user.findMany'
     case 'blog-page':
     case 'blog-page-by-id':
+    case 'blog-page-alternating':
       return 'post.findUnique'
     default:
       throw new Error('Unknown client scenario: ' + scenario)
@@ -3480,6 +3641,50 @@ async function run(): Promise<void> {
         clientMf,
         'generated client exact descriptor helper blog-page warmed cache',
         'blog-page-by-id',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client blog-page alternating nested shapes warmed cache',
+        'blog-page-alternating',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path blog-page alternating nested shapes warmed cache',
+        'blog-page-alternating',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client descriptor-bound static matcher blog-page alternating nested shapes warmed cache',
+        'blog-page-alternating',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client exact descriptor helper blog-page alternating nested shapes warmed cache',
+        'blog-page-alternating',
         GENERATED_BLOG_PAGE_ITERATIONS,
         true,
         'client-execute-request-precomputed-exact-helper',

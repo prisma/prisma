@@ -10601,6 +10601,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate performance checkpoint. The headline magnitude remains unchanged: simple Worker cache-hit paths are already past 3x, nested Worker default product paths are closer to 2.5-2.7x, and the remaining nested headroom is in descriptor-bound straight-line helpers, static/generated raw-nested write schedules, and larger JS-owned cache-hit architecture.
 
+- Accepted benchmark coverage: alternating nested exact descriptor helper rows.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Extended the benchmark-only exact descriptor helper in `client-engine-cache-timing.ts` to bind shape-specific straight-line matchers for both the full-root blog-page descriptor and the two-scalar-root blog-page descriptor used by `generated client blog page / 2 alternating nested row shapes warmed cache`.
+    - Added matching Workerd rows for generated blog-page alternating nested shapes and made the Workerd blog-page adapter project fixture result sets to the SQL-selected column order, mirroring the Node harness. The first Workerd attempt failed before timing the alternating rows because the full-root Post fixture was reused for a minimal-root SQL selection and data mapping saw a boolean where `_count.likes` expected an integer.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` passed.
+    - `git diff --check` passed.
+    - Node command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / 2 alternating nested row shapes warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Node repeat: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / 2 alternating nested row shapes warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Workerd command: `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Benchmark evidence:
+    - Node 50k alternating rows: default 14.91 us/op; engine-precomputed 12.27; request-precomputed 12.89; descriptor-bound static matcher 12.18; exact descriptor helper 11.73.
+    - Node 100k repeat: default 13.16 us/op; engine-precomputed 11.59; request-precomputed 12.24; descriptor-bound static matcher 11.69; exact descriptor helper 11.35. `queryRaw=700000`; `precomputedHits=100001` for request/static/exact rows.
+    - Workerd 5k stable blog-page control in the same run: default 20.00 us/op worker loop; engine-precomputed 9.00; request-precomputed 12.60; descriptor-bound static 12.40; exact descriptor helper 12.20.
+    - Workerd 5k alternating rows: default 13.80 us/op worker loop; request-precomputed 12.60; descriptor-bound static matcher 13.00; exact descriptor helper 12.20. The alternating rows showed one expected compile miss for the second warmed shape and `queryRaw=35000`.
+  - Decision:
+    - Keep the benchmark coverage and carry the lead forward. Shape-specific straight-line nested exact helpers now have stable-shape and alternating-shape Node/Workerd evidence, while generic recursive descriptor interpreters and generated generic emitter code remain rejected.
+  - Follow-up:
+    - Productization still needs descriptor-bound generated/static helper code, oracle parity against `serializeJsonQuery()` + `parameterizeQuery()` + cache-key construction for both stable and alternating nested descriptors, and exclusion gates for extensions/global omit/raw/tracing/debug/commenter cases.
+
 ## Useful Commands
 
 ```sh
