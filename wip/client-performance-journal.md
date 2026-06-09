@@ -10228,6 +10228,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as internal-gated product groundwork. The product helper is modestly positive versus request-precomputed on Node and both Workerd repeats, but hand exact/static rows remain close or faster in some runs.
     - Do not enable by default. The useful next step is still broader oracle parity and generated-helper gating, not broadening to generic descriptor-derived matchers.
 
+- Rejected micro-experiment: fixed-arity key checks inside runtime exact descriptor helpers.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - Replaced hot `hasOwnEnumerableKeysInOrder(value, ['where', 'select'])`, `[spec.field]`, and `[spec.field, 'select']` calls in `createExactDescriptorMatcherRegistry()` with fixed-arity helper calls to avoid allocating tiny expected-key arrays on each exact-helper hit.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts src/runtime/core/model/applyModel.test.ts --runInBand` passed 14 tests.
+  - Benchmark:
+    - Patched command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='runtime exact descriptor helper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Patched rows: runtime exact `findUnique` 4.13 us/op; batched `findUnique` 7.60; `findMany users` 2.66.
+    - Close reverted control after stashing the patch, same command: runtime exact `findUnique` 3.45 us/op; batched `findUnique` 7.14; `findMany users` 2.61.
+  - Decision:
+    - Reject and revert. Removing the small expected-key array allocation did not improve product-shaped timing, and all focused rows were worse in the close A/B.
+
+- Rejected prototype: generic recursive nested exact-args descriptor helper.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - Added a runtime-only `findUniqueExactArgs` spec variant to `createExactDescriptorMatcherRegistry()` for exact nested arg trees.
+    - The binder validated the explicit spec against the learned descriptor, captured learned placeholder names, and recursively matched later args for constants, arrays, objects, and one root numeric placeholder.
+    - Added a focused runtime test for nested binding, exact root key order, extra nested key rejection, and constant `orderBy` rejection.
+    - Wired a benchmark-only blog-page spec for the stable generated nested row and the two alternating root scalar masks.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.ts packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts src/runtime/core/model/applyModel.test.ts --runInBand` passed 15 tests.
+  - Benchmark:
+    - Same-session baseline command before the prototype: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Baseline generated blog-page rows: default 12.65 us/op; request-precomputed 12.22; descriptor-bound static matcher 11.30.
+    - Prototype command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='runtime exact descriptor helper blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Prototype rows: runtime exact descriptor helper stable blog-page 23.93 us/op; two alternating nested shapes 13.99.
+  - Decision:
+    - Reject and revert. A generic recursive exact-args interpreter is the wrong shape for nested generated-client CPU; it made the stable nested row far worse than the existing lazy descriptor/request-precomputed path.
+    - Keep the architectural lead only for straight-line generated nested matcher code or a larger JS-owned/writer-program execution design with Node, alternating-shape, and Workerd gates.
+
+- Architecture scout: raw-nested writer-program plan shape.
+  - Timestamp: 2026-06-09.
+  - Agent: Bacon (`019eace3-3d4a-7fd1-b4cf-7386b682f6b9`), read-only scout.
+  - Findings:
+    - The benchmark-only static-wave lower bound lives in `client-engine-cache-timing.ts` around `compileBlogPageWriterProgram()` / `executeCompiledBlogPageStaticWaveWriterProgram()` and has matching Workerd lower-bound coverage.
+    - Its speed comes from seven fixed blog-page query slots, fixed column indexes, direct field writes, known relation waves, no generic `RawNestedReadResult` child record arrays, and no generic attach helpers.
+    - The smallest plausible product proof is a strict writer-program payload/node for eligible `RawNestedReadQuery` plans. `QueryInterpreter` would compile that payload once and execute phases by mutating final owner objects directly, while unsupported plans fall back to the current compact `n` executor.
+    - First eligibility should be narrow: `resultFormat: 'js'`, unique root, numeric column refs, direct string field mappings, no scalar metadata/path mappings/named refs, local relation scopes, single rendered non-raw SQL per phase, and relation shapes needed by blog-page.
+  - Suggested gate:
+    - Start runtime-only/internal before Rust emission.
+    - Keep only if raw-result-set compact/exact rows improve by roughly 15%+ in close A/B and generated stable/alternating blog-page rows improve or stay neutral on Node and Workerd. Rerun retained plan memory if the plan shape changes serialized/cache-retained data.
+
 ## Useful Commands
 
 ```sh
