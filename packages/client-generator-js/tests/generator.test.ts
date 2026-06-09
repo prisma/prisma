@@ -222,6 +222,35 @@ describe('generator', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
+  test('emits internal exact descriptor helpers', async () => {
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
+    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+    await fsPromises.cp(path.join(__dirname, '../../client/runtime'), path.join(prismaClientTarget, 'runtime'), {
+      recursive: true,
+    })
+
+    const outputDir = path.join(__dirname, 'generated-exact-descriptor')
+    await fsPromises.rm(outputDir, { recursive: true, force: true })
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'internal-exact-descriptor-helpers.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    const index = await fsPromises.readFile(path.join(outputDir, 'index.js'), 'utf8')
+    generator.stop()
+
+    expect(index).toContain('createExactDescriptorMatcherRegistry')
+    expect(index).toContain('config.descriptorMatcherRegistry = createExactDescriptorMatcherRegistry')
+    expect(index).toContain('"model": "User"')
+    expect(index).toContain('"field": "id"')
+    expect(index).toContain('"select": [')
+  })
+
   test('denylist from engine validation', async () => {
     expect.assertions(1)
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')

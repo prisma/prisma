@@ -5,6 +5,7 @@ import * as ts from '@prisma/ts-builders'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
+import { buildExactDescriptorMatcherRegistry } from '../../utils/buildExactDescriptorMatcherRegistry'
 import { buildGetWasmModule } from '../../utils/wasm'
 import { GenerateContext } from '../GenerateContext'
 import { PrismaClientClass } from '../PrismaClient'
@@ -71,6 +72,11 @@ const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
 ${buildParameterizationSchema(dmmf)}
 ${buildGetWasmModule({ runtimeBase, runtimeName, target, activeProvider, moduleFormat, compilerBuild })}
+${buildExactDescriptorMatcherRegistry(
+  context.dmmf.datamodel,
+  generator.config.internalExactDescriptorHelpers,
+  'runtime.createExactDescriptorMatcherRegistry',
+)}
 ${buildDebugInitialization(edge)}
 `
 }

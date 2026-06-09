@@ -9,6 +9,7 @@ export { Public }
 export { type JsonBatchQuery, type JsonQuery } from './core/engines'
 export { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 export { createParam } from './core/model/Param'
+export { createExactDescriptorMatcherRegistry } from './core/model/createExactDescriptorMatcherRegistry'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'

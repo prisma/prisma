@@ -10151,6 +10151,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - This confirms the current direct cached-result path is already close to the useful handle-only lower bound because it avoids Wasm and hits the `QueryPlanCache` last-hit slot.
     - The JS-owned query/cache-hit architecture lead remains, but the next proof must remove larger phases together: descriptor/protocol construction, structural identity/cache-key work, Rust-owned request materialization, or plan/result transfer across the boundary. A final-call handle swap alone is too shallow.
 
+- Accepted internal-gated product slice: exact descriptor matcher registry for generated `findUnique`.
+  - Timestamp: 2026-06-09.
+  - Side worktree: `/home/aqrln.guest/prisma-generated-exact-helper-product`.
+  - Change:
+    - Added `createExactDescriptorMatcherRegistry(specs)` in the client runtime.
+    - JS and TS generators now emit `config.descriptorMatcherRegistry = createExactDescriptorMatcherRegistry(...)` only when `generator.config.internalExactDescriptorHelpers` supplies explicit specs such as `User.findUnique:id:id,email,name`.
+    - The generator parser validates the model, requires a unique scalar `findUnique` field, currently supports `Int`/`String` placeholder values, and rejects non-scalar select fields.
+    - The runtime helper remains CSP-safe and descriptor-bound: it binds only after the learned descriptor root exactly matches `{ where, select }`, then relies on the existing `applyModel.ts` self-test before storing the matcher on the descriptor.
+    - Added `client-engine-cache-timing.ts` rows for `generated client runtime exact descriptor helper ...` to compare the product helper against request-precomputed and hand-specialized exact-helper rows.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-js... --filter @prisma/client-generator-ts... build` passed.
+    - `pnpm --filter @prisma/instrumentation-contract build` then `pnpm --filter @prisma/client build` passed in the fresh side worktree.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts --runInBand` passed 2 tests.
+    - `pnpm exec vitest run tests/generator.test.ts -t "emits internal exact descriptor helpers" --testTimeout 30000` passed in both `packages/client-generator-js` and `packages/client-generator-ts`.
+  - Benchmark:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Generated `findUnique`: default 3.72 us/op; request-precomputed 3.61; descriptor-bound static 3.66; hand exact helper 3.55; runtime exact helper 3.49.
+    - Generated batched `findUnique`: default 8.31 us/op; request-precomputed 8.59 with `precomputedBatchHits=200000`; descriptor-bound static 8.18; hand exact helper 8.08; runtime exact helper 8.11 with `precomputedBatchHits=200000`.
+  - Decision:
+    - Keep as internal-gated product groundwork. The Node speedup is modest but positive for the new runtime helper, batching semantics remain intact, and the helper is disabled unless the generator config explicitly opts in.
+    - Do not broaden or enable by default yet. Next required work is Workerd verification plus oracle parity tests for special scalar values, duplicate placeholders, placeholder order/reuse, `Prisma.skip`/strict undefined, extensions/global omit exclusions, descriptor fallback misses, and generated-output typechecking.
+
 ## Useful Commands
 
 ```sh

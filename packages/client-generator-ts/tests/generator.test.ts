@@ -142,6 +142,28 @@ describe('generator', () => {
     generator.stop()
   })
 
+  test('emits internal exact descriptor helpers', async () => {
+    const outputDir = path.join(__dirname, 'generated-exact-descriptor')
+    await fs.promises.rm(outputDir, { recursive: true, force: true })
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'internal-exact-descriptor-helpers.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    const classFile = await fs.promises.readFile(path.join(outputDir, 'internal/class.ts'), 'utf8')
+    generator.stop()
+
+    expect(classFile).toContain('runtime.createExactDescriptorMatcherRegistry')
+    expect(classFile).toContain('config.descriptorMatcherRegistry = runtime.createExactDescriptorMatcherRegistry')
+    expect(classFile).toContain('"model": "User"')
+    expect(classFile).toContain('"field": "id"')
+    expect(classFile).toContain('"select": [')
+  })
+
   test('denylist from engine validation', async () => {
     expect.assertions(1)
     await expect(async () => {

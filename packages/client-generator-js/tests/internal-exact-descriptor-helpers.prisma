@@ -1,0 +1,15 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider                       = "prisma-client-js"
+  output                         = "./generated-exact-descriptor"
+  internalExactDescriptorHelpers = "User.findUnique:id:id,email,name"
+}
+
+model User {
+  id    Int    @id
+  email String
+  name  String
+}

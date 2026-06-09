@@ -54,6 +54,7 @@ import type { EngineConfig } from '../../../runtime/core/engines/common/Engine'
 import type { LogEmitter } from '../../../runtime/core/engines/common/types/Events'
 import { queryEngineResultDataWasDeserialized } from '../../../runtime/core/engines/common/types/QueryEngine'
 import { serializeJsonQuery } from '../../../runtime/core/jsonProtocol/serializeJsonQuery'
+import { createExactDescriptorMatcherRegistry } from '../../../runtime/core/model/createExactDescriptorMatcherRegistry'
 import { disabledTracingHelper } from '../../../runtime/core/tracing/TracingHelper'
 import { getPrismaClient } from '../../../runtime/getPrismaClient'
 import { getQueryCompilerWasmConfig, loadQueryCompiler } from './qc-loader'
@@ -6675,6 +6676,41 @@ async function main(): Promise<void> {
     }
     printDirectPlanMeasurement(
       await measureGeneratedClientScenario(baseConfig, measuredScenario, 'request', exactGeneratedUserMatcherRegistry),
+    )
+  }
+
+  const runtimeExactGeneratedUserMatcherRegistry = createExactDescriptorMatcherRegistry([
+    {
+      model: 'User',
+      action: 'findUnique',
+      clientMethod: 'user.findUnique',
+      field: 'id',
+      valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
+  ])
+  for (const scenario of generatedClientScenarios) {
+    if (
+      scenario.name !== 'generated client findUnique / warmed cache' &&
+      scenario.name !== 'generated client batched findUnique / warmed cache'
+    ) {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client runtime exact descriptor helper'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureGeneratedClientScenario(
+        baseConfig,
+        measuredScenario,
+        'request',
+        runtimeExactGeneratedUserMatcherRegistry,
+      ),
     )
   }
 
