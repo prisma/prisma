@@ -10656,6 +10656,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. The allocation win alone would not justify the patch, but the adjacent Criterion pass was neutral-to-positive after reapply and the code change is localized to a hot success-path validation stack.
     - Do not generalize this into broad `SmallVec` rewrites; similar one/two-allocation wins have been rejected when Criterion softened.
 
+- Architecture lead: productize nested exact descriptor helpers as generated templates, not runtime nesting.
+  - Timestamp: 2026-06-09.
+  - Source:
+    - Read-only subagent investigation after the benchmark-only stable/alternating nested exact-helper rows.
+  - Proposal:
+    - Keep `packages/client/src/runtime/core/model/applyModel.ts` as the trust boundary. A matcher should still be stored only after the first slow-path cache hit and only after reproducing the learned placeholder values in order.
+    - Keep `createExactDescriptorMatcherRegistry()` flat-only. Do not make it parse nested descriptors or arbitrary path/op tables.
+    - Extend the internal generator config with a narrow template entry rather than a nested-selection DSL, for example `template:Post.findUnique:id:blogPagePostV1`.
+    - Generated client code should compose the existing flat registry with a local template binder:
+      - For matching `model/action/clientMethod`, bind `bindPostFindUniqueBlogPagePostV1(context)` to the learned descriptor.
+      - The binder should inspect the learned descriptor root, bind the actual placeholder name, validate descriptor constants such as `take: 10` and `createdAt: 'desc'`, and return a straight-line per-call matcher.
+      - The per-call matcher should use direct property access and exact own-enumerable key checks, following the benchmark helper shape in `client-engine-cache-timing.ts`.
+    - JS and TS generator utilities would split flat specs from template specs. Flat specs keep using `createExactDescriptorMatcherRegistry(specs)`; template specs emit local straight-line binder/matcher source and a combined `descriptorMatcherRegistry.getMatcher(context)`.
+  - Suggested files:
+    - `packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts`.
+    - `packages/client-generator-ts/src/utils/buildExactDescriptorMatcherRegistry.ts`.
+    - `packages/client-generator-js/src/TSClient/TSClient.ts`.
+    - `packages/client-generator-ts/src/TSClient/file-generators/ClassFile.ts`.
+    - `packages/client-generator-js/src/TSClient/common.ts`.
+    - Generator tests plus runtime oracle tests around `applyModel.ts` / exact-registry behavior.
+  - Required gates:
+    - Oracle tests comparing helper extraction to `serializeJsonQuery()` + `parameterizeQuery()` + cache-key behavior, including placeholder order.
+    - Cover positive blog-page args, extra keys, reordered keys, `undefined`, `Prisma.skip`, wrong constants, missing nested selections, wrong scalar type, and duplicate placeholder-value cases.
+    - Benchmark against the existing stable and alternating generated blog-page exact-helper rows on Node and Workerd; generated template code should match the benchmark-only exact helper within noise and must not soften adjacent generated-client rows.
+  - Explicit non-goals:
+    - No nested spec interpretation in runtime.
+    - No generic path/op tables.
+    - No auto-generated helpers for every model/action.
+    - No hardcoded `%1`; bind placeholder names from the learned descriptor.
+    - No `eval`, `new Function`, Wasm/Reflect walkers, Rust changes, raw queries, extensions, global omit, tracing/debug, transactions, non-empty `dataPath`, or batching changes in this rollout.
+
 ## Useful Commands
 
 ```sh
