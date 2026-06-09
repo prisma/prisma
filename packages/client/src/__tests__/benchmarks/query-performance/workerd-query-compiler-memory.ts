@@ -980,6 +980,10 @@ function createExactGeneratedUserDescriptorMatcherRegistry() {
         return bindExactGeneratedUserFindManyMatcher(context)
       }
 
+      if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
+        return bindExactGeneratedBlogPostPageMatcher(context)
+      }
+
       return undefined
     },
   }
@@ -1048,6 +1052,25 @@ function bindExactGeneratedUserFindManyMatcher(context) {
     : undefined
 }
 
+function bindExactGeneratedBlogPostPageMatcher(context) {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeysInOrder(where, ['id'])) {
+    return undefined
+  }
+
+  const id = asGeneratedPlaceholderDescriptor(where.fields.id)
+  if (id === undefined || id.valueType !== 'number' || !isExactGeneratedBlogPostPageSelectDescriptor(root.fields.select)) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedBlogPostPage(args, id.name)
+}
+
 function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
   if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
     return undefined
@@ -1089,6 +1112,23 @@ function matchExactGeneratedUserFindManyWithConstantTake(args) {
   return {}
 }
 
+function matchExactGeneratedBlogPostPage(args, idPlaceholder) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || typeof where.id !== 'number') {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedBlogPostPageSelect(args.select)) {
+    return undefined
+  }
+
+  return { [idPlaceholder]: where.id }
+}
+
 function matchesExactGeneratedUserScalarSelect(value) {
   return (
     isDescriptorRecord(value) &&
@@ -1096,6 +1136,98 @@ function matchesExactGeneratedUserScalarSelect(value) {
     value.id === true &&
     value.email === true &&
     value.name === true
+  )
+}
+
+function matchesExactGeneratedBlogPostPageSelect(value) {
+  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder12(value)) {
+    return false
+  }
+
+  for (let i = 0; i < blogPageRootScalarFields.length; i++) {
+    if (value[blogPageRootScalarFields[i]] !== true) {
+      return false
+    }
+  }
+
+  return (
+    matchesExactGeneratedSelectionWrapper3(value.author, 'id', 'name', 'avatar') &&
+    matchesExactGeneratedSelectionWrapper3(value.category, 'id', 'name', 'slug') &&
+    matchesExactGeneratedBlogPageTagsSelection(value.tags) &&
+    matchesExactGeneratedBlogPageCommentsSelection(value.comments) &&
+    matchesExactGeneratedSelectionWrapper2(value._count, 'likes', 'comments')
+  )
+}
+
+function matchesExactGeneratedBlogPageTagsSelection(value) {
+  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder1(value, 'select')) {
+    return false
+  }
+
+  const select = value.select
+  if (!isDescriptorRecord(select) || !hasOwnEnumerableKeysInOrder1(select, 'tag')) {
+    return false
+  }
+
+  return matchesExactGeneratedSelectionWrapper3(select.tag, 'id', 'name', 'slug')
+}
+
+function matchesExactGeneratedBlogPageCommentsSelection(value) {
+  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder3(value, 'take', 'orderBy', 'select') || value.take !== 10) {
+    return false
+  }
+
+  const orderBy = value.orderBy
+  if (Array.isArray(orderBy) && orderBy.length === 1) {
+    const firstOrderBy = orderBy[0]
+    if (
+      !isDescriptorRecord(firstOrderBy) ||
+      !hasOwnEnumerableKeysInOrder1(firstOrderBy, 'createdAt') ||
+      firstOrderBy.createdAt !== 'desc'
+    ) {
+      return false
+    }
+  } else {
+    return false
+  }
+
+  const select = value.select
+  return (
+    isDescriptorRecord(select) &&
+    hasOwnEnumerableKeysInOrder4(select, 'id', 'content', 'createdAt', 'author') &&
+    select.id === true &&
+    select.content === true &&
+    select.createdAt === true &&
+    matchesExactGeneratedSelectionWrapper3(select.author, 'id', 'name', 'avatar')
+  )
+}
+
+function matchesExactGeneratedSelectionWrapper2(value, key0, key1) {
+  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder1(value, 'select')) {
+    return false
+  }
+
+  const select = value.select
+  return (
+    isDescriptorRecord(select) &&
+    hasOwnEnumerableKeysInOrder2(select, key0, key1) &&
+    select[key0] === true &&
+    select[key1] === true
+  )
+}
+
+function matchesExactGeneratedSelectionWrapper3(value, key0, key1, key2) {
+  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder1(value, 'select')) {
+    return false
+  }
+
+  const select = value.select
+  return (
+    isDescriptorRecord(select) &&
+    hasOwnEnumerableKeysInOrder3(select, key0, key1, key2) &&
+    select[key0] === true &&
+    select[key1] === true &&
+    select[key2] === true
   )
 }
 
@@ -1107,15 +1239,105 @@ function getGeneratedExactRoot(context) {
   return asGeneratedObjectDescriptor(context.descriptor.root)
 }
 
+function isExactGeneratedBlogPostPageSelectDescriptor(value) {
+  const select = asGeneratedObjectDescriptor(value)
+  if (select === undefined || !generatedDescriptorHasKeysInOrder(select, blogPageRootSelectKeys)) {
+    return false
+  }
+
+  for (let i = 0; i < blogPageRootScalarFields.length; i++) {
+    if (!isGeneratedConstantDescriptor(select.fields[blogPageRootScalarFields[i]], true)) {
+      return false
+    }
+  }
+
+  return (
+    isExactGeneratedSelectionWrapperDescriptor(select.fields.author, blogPageUserSelectKeys) &&
+    isExactGeneratedSelectionWrapperDescriptor(select.fields.category, blogPageSlugSelectKeys) &&
+    isExactGeneratedBlogPageTagsSelectionDescriptor(select.fields.tags) &&
+    isExactGeneratedBlogPageCommentsSelectionDescriptor(select.fields.comments) &&
+    isExactGeneratedSelectionWrapperDescriptor(select.fields._count, blogPageCountSelectKeys)
+  )
+}
+
 function isExactGeneratedUserScalarSelectDescriptor(value) {
   const select = asGeneratedObjectDescriptor(value)
   return (
     select !== undefined &&
-    generatedDescriptorHasKeys(select, ['id', 'email', 'name']) &&
+    generatedDescriptorHasKeysInOrder(select, ['id', 'email', 'name']) &&
     isGeneratedConstantDescriptor(select.fields.id, true) &&
     isGeneratedConstantDescriptor(select.fields.email, true) &&
     isGeneratedConstantDescriptor(select.fields.name, true)
   )
+}
+
+function isExactGeneratedBlogPageTagsSelectionDescriptor(value) {
+  const root = asGeneratedObjectDescriptor(value)
+  if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['select'])) {
+    return false
+  }
+
+  const select = asGeneratedObjectDescriptor(root.fields.select)
+  return (
+    select !== undefined &&
+    generatedDescriptorHasKeysInOrder(select, ['tag']) &&
+    isExactGeneratedSelectionWrapperDescriptor(select.fields.tag, blogPageSlugSelectKeys)
+  )
+}
+
+function isExactGeneratedBlogPageCommentsSelectionDescriptor(value) {
+  const root = asGeneratedObjectDescriptor(value)
+  if (
+    root === undefined ||
+    !generatedDescriptorHasKeysInOrder(root, ['take', 'orderBy', 'select']) ||
+    !isGeneratedConstantDescriptor(root.fields.take, 10)
+  ) {
+    return false
+  }
+
+  const orderBy = asGeneratedArrayDescriptor(root.fields.orderBy)
+  if (orderBy === undefined || orderBy.items.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = asGeneratedObjectDescriptor(orderBy.items[0])
+  if (
+    firstOrderBy === undefined ||
+    !generatedDescriptorHasKeysInOrder(firstOrderBy, ['createdAt']) ||
+    !isGeneratedConstantDescriptor(firstOrderBy.fields.createdAt, 'desc')
+  ) {
+    return false
+  }
+
+  const select = asGeneratedObjectDescriptor(root.fields.select)
+  return (
+    select !== undefined &&
+    generatedDescriptorHasKeysInOrder(select, blogPageCommentSelectKeys) &&
+    isGeneratedConstantDescriptor(select.fields.id, true) &&
+    isGeneratedConstantDescriptor(select.fields.content, true) &&
+    isGeneratedConstantDescriptor(select.fields.createdAt, true) &&
+    isExactGeneratedSelectionWrapperDescriptor(select.fields.author, blogPageUserSelectKeys)
+  )
+}
+
+function isExactGeneratedSelectionWrapperDescriptor(value, keys) {
+  const root = asGeneratedObjectDescriptor(value)
+  if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['select'])) {
+    return false
+  }
+
+  const select = asGeneratedObjectDescriptor(root.fields.select)
+  if (select === undefined || !generatedDescriptorHasKeysInOrder(select, keys)) {
+    return false
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    if (!isGeneratedConstantDescriptor(select.fields[keys[i]], true)) {
+      return false
+    }
+  }
+
+  return true
 }
 
 function asGeneratedObjectDescriptor(value) {
@@ -1144,6 +1366,14 @@ function asGeneratedPlaceholderDescriptor(value) {
   return undefined
 }
 
+function asGeneratedArrayDescriptor(value) {
+  if (isDescriptorRecord(value) && value.kind === 'array' && Array.isArray(value.items)) {
+    return value
+  }
+
+  return undefined
+}
+
 function isGeneratedConstantDescriptor(value, expected) {
   return isDescriptorRecord(value) && value.kind === 'constant' && Object.is(value.value, expected)
 }
@@ -1155,6 +1385,21 @@ function generatedDescriptorHasKeys(descriptor, expectedKeys) {
 
   for (const key of expectedKeys) {
     if (!Object.hasOwn(descriptor.fields, key)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function generatedDescriptorHasKeysInOrder(descriptor, expectedKeys) {
+  if (descriptor.keys.length !== expectedKeys.length) {
+    return false
+  }
+
+  for (let i = 0; i < expectedKeys.length; i++) {
+    const key = expectedKeys[i]
+    if (descriptor.keys[i] !== key || !Object.hasOwn(descriptor.fields, key)) {
       return false
     }
   }
@@ -1175,6 +1420,30 @@ function hasOwnEnumerableKeysInOrder2(value, key0, key1) {
 function hasOwnEnumerableKeysInOrder3(value, key0, key1, key2) {
   const keys = Object.keys(value)
   return keys.length === 3 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2
+}
+
+function hasOwnEnumerableKeysInOrder4(value, key0, key1, key2, key3) {
+  const keys = Object.keys(value)
+  return keys.length === 4 && keys[0] === key0 && keys[1] === key1 && keys[2] === key2 && keys[3] === key3
+}
+
+function hasOwnEnumerableKeysInOrder12(value) {
+  const keys = Object.keys(value)
+  return (
+    keys.length === 12 &&
+    keys[0] === 'id' &&
+    keys[1] === 'title' &&
+    keys[2] === 'slug' &&
+    keys[3] === 'content' &&
+    keys[4] === 'published' &&
+    keys[5] === 'viewCount' &&
+    keys[6] === 'createdAt' &&
+    keys[7] === 'author' &&
+    keys[8] === 'category' &&
+    keys[9] === 'tags' &&
+    keys[10] === 'comments' &&
+    keys[11] === '_count'
+  )
 }
 
 function matchesBlogPageTagsSelection(value) {
@@ -3203,6 +3472,17 @@ async function run(): Promise<void> {
         GENERATED_BLOG_PAGE_ITERATIONS,
         true,
         'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client exact descriptor helper blog-page warmed cache',
+        'blog-page-by-id',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
       ),
     )
   } finally {

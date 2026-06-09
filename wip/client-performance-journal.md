@@ -10410,6 +10410,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject and revert before Criterion. The patch is semantically fine but does not affect the measured hot rows, so it is not worth carrying.
 
+- Accepted benchmark lead: straight-line nested exact descriptor helper.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Extended the benchmark-only exact descriptor helper registry in `client-engine-cache-timing.ts` and the matching Workerd harness with a hard-coded `Post.findUnique` blog-page matcher.
+    - The matcher binds only to the learned descriptor for the exact generated nested selection, checks ordered descriptor keys, checks the numeric `where.id` placeholder, and then matches later JS args through straight-line exact key/order/constant checks before returning placeholder values.
+    - This is not product-enabled. It is a proof for generator-emitted descriptor-bound nested matcher code, not a generic recursive runtime matcher.
+  - Verification:
+    - `git diff --check`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - `WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Benchmark evidence:
+    - Node focused exact-helper row: 11.35 us/op over 100k iterations.
+    - Node same-session broad rows over 100k iterations: default generated blog-page 11.70 us/op, engine-precomputed 10.70, request-precomputed 11.55, descriptor-bound static matcher 10.53, exact descriptor helper 10.47.
+    - Workerd 5k generated blog-page rows: default 27.40 us/op worker-loop / 31.65 host-dispatch upper bound, engine-precomputed 9.20 / 13.93, request-precomputed 12.40 / 17.26, descriptor-bound static matcher 13.00 / 17.34, exact descriptor helper 12.00 / 16.15.
+  - Decision:
+    - Keep the benchmark-only harness row and carry forward the lead.
+    - The exact helper is modestly positive against request-precomputed on Node and Workerd, and ties or beats the descriptor-bound static matcher in the same-session rows.
+    - This does not change the intermediate headline totals because it is not a default product path and the Workerd run intentionally reduced unrelated warmup groups.
+  - Follow-up:
+    - Productize only through descriptor-bound generated straight-line matchers with oracle coverage against `serializeJsonQuery()` + `parameterizeQuery()` + cache-key construction.
+    - Before any default enablement, require stable-shape, alternating-shape, batched, special-value, extension/omit/raw exclusion, and Workerd rows.
+    - Do not revive the generic recursive nested exact-args matcher shape; it already regressed the stable blog-page row badly.
+
 ## Useful Commands
 
 ```sh
