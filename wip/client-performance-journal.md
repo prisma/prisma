@@ -10029,6 +10029,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Summarizes the magnitude of accepted/product-path gains so far, separates benchmark-only lower bounds from default behavior, and lists the biggest contributors: generated-client precomputed cache hits, public API/serializer cleanup, query-plan memory compaction/interning, compact raw nested reads, and Rust query-compiler allocation work.
     - Current conclusion: simple Worker cache-hit paths are already past the 3x target; nested Worker default product paths are closer to 2.5-2.7x, with internal engine-precomputed and static raw-writer benchmark rows showing remaining headroom.
 
+- Accepted test coverage: descriptor-bound matcher two-shape retention.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Added `applyModel.test.ts` coverage for two learned descriptor-bound matchers on alternating `User.findUnique` shapes.
+    - The test learns an `id` descriptor and a `name` descriptor with distinct cache keys, then verifies later hits for both shapes reuse stored descriptor-bound matchers without calling `getPrecomputedQueryPlanCacheHit()` again.
+  - Rationale:
+    - The two-descriptor MRU cache is a key productization guard for descriptor-bound exact helpers: alternating hot shapes should not thrash back through serialization/engine precompute after the first learn.
+    - Existing tests covered one stored matcher, key-order self-test rejection, and later matcher miss fallback; they did not assert the two-shape retention behavior behind the benchmarked alternating-shape win.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.test.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts --runInBand` passed 4 tests.
+    - `pnpm --filter @prisma/client test src/runtime/RequestHandler.test.ts src/runtime/core/jsonProtocol/getBatchId.test.ts --runInBand` passed 11 tests.
+    - `pnpm --filter @prisma/client build` passed.
+    - `git diff --check`.
+  - Decision:
+    - Keep. This is not a speed change, but it locks down a productization-relevant invariant before more generated exact-helper work.
+
 ## Useful Commands
 
 ```sh

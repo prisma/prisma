@@ -12,15 +12,24 @@ const datamodel = runtimeDataModel({
 function createClient({
   descriptorMatcherRegistry,
   placeholderValues = { '%1': '1' },
+  precomputedHits,
 }: {
   descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry
   placeholderValues?: Record<string, unknown>
+  precomputedHits?: Array<{ cacheKey: string; placeholderValues: Record<string, unknown> }>
 } = {}) {
+  const pendingHits = precomputedHits?.slice()
   const engine = {
-    getPrecomputedQueryPlanCacheHit: jest.fn(() => ({
-      cacheKey: 'cache-key',
-      placeholderValues,
-    })),
+    getPrecomputedQueryPlanCacheHit: jest.fn(() => {
+      if (pendingHits !== undefined) {
+        return pendingHits.shift()
+      }
+
+      return {
+        cacheKey: 'cache-key',
+        placeholderValues,
+      }
+    }),
   }
   const requestHandler = {
     request: jest.fn().mockResolvedValue({ id: 'result' }),
@@ -70,15 +79,16 @@ test('binds a descriptor matcher after self-test reproduces slow-path placeholde
     }
     return { '%1': args.where.id }
   })
+  const getMatcher = jest.fn(() => matcher)
   const registry: DescriptorBoundMatcherRegistry = {
-    getMatcher: jest.fn(() => matcher),
+    getMatcher,
   }
   const { engine, requestHandler, user } = createClient({ descriptorMatcherRegistry: registry })
 
   await user.findUnique({ where: { id: '1' }, select: { id: true } })
   await user.findUnique({ where: { id: '2' }, select: { id: true } })
 
-  expect(registry.getMatcher).toHaveBeenCalledTimes(1)
+  expect(getMatcher).toHaveBeenCalledTimes(1)
   expect(matcher).toHaveBeenCalledTimes(2)
   expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
   expect(requestHandler.request).toHaveBeenLastCalledWith(
@@ -97,8 +107,9 @@ test('does not store a descriptor matcher when self-test changes placeholder key
     placeholderValues['%1'] = '1'
     return placeholderValues
   })
+  const getMatcher = jest.fn(() => matcher)
   const registry: DescriptorBoundMatcherRegistry = {
-    getMatcher: jest.fn(() => matcher),
+    getMatcher,
   }
   const { engine, requestHandler, user } = createClient({
     descriptorMatcherRegistry: registry,
@@ -108,11 +119,13 @@ test('does not store a descriptor matcher when self-test changes placeholder key
   await user.findUnique({ where: { id: '1', name: 'Alice' }, select: { id: true } })
   await user.findUnique({ where: { id: '2', name: 'Bob' }, select: { id: true } })
 
-  expect(registry.getMatcher).toHaveBeenCalledTimes(1)
+  expect(getMatcher).toHaveBeenCalledTimes(1)
   expect(matcher).toHaveBeenCalledTimes(1)
   expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
 
-  const secondHit = requestHandler.request.mock.calls[1][0].precomputedQueryPlanCacheHit
+  const secondHit = requestHandler.request.mock.calls[1][0].precomputedQueryPlanCacheHit as {
+    placeholderValues: Record<string, unknown>
+  }
   expect(Object.keys(secondHit.placeholderValues)).toEqual(['%1', '%2'])
   expect(secondHit.placeholderValues).toEqual({ '%1': '2', '%2': 'Bob' })
 })
@@ -124,15 +137,16 @@ test('falls back to the lazy descriptor when a stored matcher misses later args'
     }
     return { '%1': args.where.id }
   })
+  const getMatcher = jest.fn(() => matcher)
   const registry: DescriptorBoundMatcherRegistry = {
-    getMatcher: jest.fn(() => matcher),
+    getMatcher,
   }
   const { engine, requestHandler, user } = createClient({ descriptorMatcherRegistry: registry })
 
   await user.findUnique({ where: { id: '1' }, select: { id: true } })
   await user.findUnique({ where: { id: '2' }, select: { id: true } })
 
-  expect(registry.getMatcher).toHaveBeenCalledTimes(1)
+  expect(getMatcher).toHaveBeenCalledTimes(1)
   expect(matcher).toHaveBeenCalledTimes(2)
   expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
   expect(requestHandler.request).toHaveBeenLastCalledWith(
@@ -140,6 +154,61 @@ test('falls back to the lazy descriptor when a stored matcher misses later args'
       precomputedQueryPlanCacheHit: expect.objectContaining({
         placeholderValues: { '%1': '2' },
       }),
+    }),
+  )
+})
+
+test('keeps two descriptor-bound matchers for alternating shapes', async () => {
+  const idMatcher = jest.fn((args: unknown) => {
+    if (!isRecord(args) || !isRecord(args.where) || typeof args.where.id !== 'string') {
+      return undefined
+    }
+    return { '%1': args.where.id }
+  })
+  const nameMatcher = jest.fn((args: unknown) => {
+    if (!isRecord(args) || !isRecord(args.where) || typeof args.where.name !== 'string') {
+      return undefined
+    }
+    return { '%1': args.where.name }
+  })
+  const getMatcher = jest.fn((context: Parameters<DescriptorBoundMatcherRegistry['getMatcher']>[0]) => {
+    const { precomputedQueryPlanCacheHit } = context
+    if (precomputedQueryPlanCacheHit.cacheKey === 'id-cache-key') {
+      return idMatcher
+    }
+    if (precomputedQueryPlanCacheHit.cacheKey === 'name-cache-key') {
+      return nameMatcher
+    }
+    return undefined
+  })
+  const registry: DescriptorBoundMatcherRegistry = {
+    getMatcher,
+  }
+  const { engine, requestHandler, user } = createClient({
+    descriptorMatcherRegistry: registry,
+    precomputedHits: [
+      { cacheKey: 'id-cache-key', placeholderValues: { '%1': '1' } },
+      { cacheKey: 'name-cache-key', placeholderValues: { '%1': 'Alice' } },
+    ],
+  })
+
+  await user.findUnique({ where: { id: '1' }, select: { id: true } })
+  await user.findUnique({ where: { name: 'Alice' }, select: { id: true } })
+  await user.findUnique({ where: { id: '2' }, select: { id: true } })
+  await user.findUnique({ where: { name: 'Bob' }, select: { id: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(2)
+  expect(requestHandler.request.mock.calls[2][0].precomputedQueryPlanCacheHit).toEqual(
+    expect.objectContaining({
+      cacheKey: 'id-cache-key',
+      placeholderValues: { '%1': '2' },
+    }),
+  )
+  expect(requestHandler.request.mock.calls[3][0].precomputedQueryPlanCacheHit).toEqual(
+    expect.objectContaining({
+      cacheKey: 'name-cache-key',
+      placeholderValues: { '%1': 'Bob' },
     }),
   )
 })
