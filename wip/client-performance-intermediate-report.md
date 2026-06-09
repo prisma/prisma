@@ -88,7 +88,7 @@ Several plausible ideas were tested and rejected:
 
 3. Explore the radical JS-owned query/cache-hit architecture as a larger design, not as `serde_wasm_bindgen`. A handle-only cached `findMany` spike that merely removed `protocolQuery` from the final cached-plan engine call was rejected as noise-level, so the next proof has to remove larger phases together: descriptor/protocol construction, structural identity, Rust-owned request materialization, or plan/result transfer. Compile misses can still fall back to the current Rust-owned path initially.
 
-4. Continue Rust allocation work from profile-backed structures: `graph_build`/`translate_ir` containers, relation scalar helper vectors, parser/query-document success-path allocations, and SQL/query plan serialization. Avoid broad arena rewrites until a specific compile-local ownership target is identified.
+4. Continue Rust allocation work from profile-backed structures: `graph_build`/`translate_ir` containers, relation scalar helper vectors, parser/query-document success-path allocations, and SQL/query plan serialization. Avoid broad arena rewrites until a specific compile-local ownership target is identified. A refreshed raw-nested `map_result_structure()` upper-bound probe saved only 17-35 allocations/op and 1.3-3.5 KiB/op when forced off, so that skip is only worth revisiting as part of a broader consume-once translation refactor.
 
 ## Status
 

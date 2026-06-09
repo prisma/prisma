@@ -10434,6 +10434,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Before any default enablement, require stable-shape, alternating-shape, batched, special-value, extension/omit/raw exclusion, and Workerd rows.
     - Do not revive the generic recursive nested exact-args matcher shape; it already regressed the stable blog-page row badly.
 
+- Measurement refresh: raw-nested result-map construction upper bound.
+  - Timestamp: 2026-06-09.
+  - Engines checkout: `/home/aqrln.guest/prisma-engines`.
+  - Temporary probe:
+    - In `query-compiler/query-compiler/src/translate.rs`, replaced `let structure = map_result_structure(&graph, &mut result_node_builder);` with `let structure = None;`.
+    - This is semantically invalid for non-raw/fallback plans and was reverted immediately after measurement. It is only an upper-bound allocation probe for the generic result `dataMap` structure that raw-nested roots currently build and then discard.
+  - Command while patched and after revert:
+    - `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-o2m,query-m2m,query-many-m2m,query-many-one2m,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`
+  - Patched rows with result structure disabled:
+    - `query-m2o`: `translate_ir` 303 allocations / 25.0 KiB; `compile_ir` 468 / 60.6 KiB; `full_compile` 547 / 70.5 KiB.
+    - `query-o2m`: `translate_ir` 304 / 26.4 KiB; `compile_ir` 505 / 68.2 KiB; `full_compile` 581 / 77.0 KiB.
+    - `query-m2m`: `translate_ir` 427 / 33.3 KiB; `compile_ir` 643 / 71.2 KiB; `full_compile` 719 / 79.0 KiB.
+    - `query-many-m2m`: `translate_ir` 401 / 31.5 KiB; `compile_ir` 641 / 71.4 KiB; `full_compile` 712 / 78.5 KiB.
+    - `query-many-one2m`: `translate_ir` 291 / 24.4 KiB; `compile_ir` 517 / 65.5 KiB; `full_compile` 604 / 74.3 KiB.
+    - `nested-pagination-query`: `translate_ir` 371 / 35.8 KiB; `compile_ir` 574 / 70.6 KiB; `full_compile` 659 / 80.0 KiB.
+  - Reverted baseline rows:
+    - `query-m2o`: `translate_ir` 327 allocations / 27.2 KiB; `compile_ir` 492 / 62.8 KiB; `full_compile` 571 / 72.7 KiB.
+    - `query-o2m`: `translate_ir` 326 / 27.7 KiB; `compile_ir` 527 / 69.5 KiB; `full_compile` 603 / 78.3 KiB.
+    - `query-m2m`: `translate_ir` 451 / 35.5 KiB; `compile_ir` 667 / 73.5 KiB; `full_compile` 743 / 81.3 KiB.
+    - `query-many-m2m`: `translate_ir` 425 / 33.8 KiB; `compile_ir` 665 / 73.7 KiB; `full_compile` 736 / 80.7 KiB.
+    - `query-many-one2m`: `translate_ir` 326 / 27.8 KiB; `compile_ir` 552 / 68.9 KiB; `full_compile` 639 / 77.8 KiB.
+    - `nested-pagination-query`: `translate_ir` 388 / 37.1 KiB; `compile_ir` 591 / 71.9 KiB; `full_compile` 676 / 81.3 KiB.
+  - Upper bound:
+    - Disabling generic result-map construction saved 17-35 allocations/op and about 1.3-3.5 KiB/op on these read fixtures.
+    - The count win is real, but small relative to graph-build/translate ownership work and not keepable by itself.
+  - Decision:
+    - No code kept. Do not implement the unsafe `structure = None` shape and do not retry the clone-based raw-nested precheck already rejected on 2026-06-07.
+    - Carry forward only as part of a broader translation refactor: either a consume-once raw-nested eligibility/translation result that proves fallback cannot happen before building `map_result_structure()`, or delayed result-map construction that preserves authoritative graph/query data.
+
 ## Useful Commands
 
 ```sh
