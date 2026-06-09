@@ -10592,6 +10592,15 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. The serializable node improved modestly over compact `n` in the same run, but only by about 8-13% and with worse heap churn, while the benchmark-only writer/static-wave lower bound stayed near 4.1 us/op.
     - This confirms that a compiler-emittable payload is not sufficient if the runtime still uses generic phase closures, slot arrays, and dynamic record mapping. The next raw-nested product proof needs more static final-owner write code or generated/unrolled wave executors, not another generic phase interpreter.
 
+- Documentation refresh: intermediate report after serializable writer-program rejection.
+  - Timestamp: 2026-06-09.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Updated the raw-nested contributor and current-best-lead sections with the rejected compact `N` writer-program node evidence.
+    - Aligned `AGENTS.md` guidance so future raw-nested work targets generated/static final-owner writer schedules instead of another generic phase interpreter.
+  - Decision:
+    - Keep the report as the current intermediate performance checkpoint. The headline magnitude remains unchanged: simple Worker cache-hit paths are already past 3x, nested Worker default product paths are closer to 2.5-2.7x, and the remaining nested headroom is in descriptor-bound straight-line helpers, static/generated raw-nested write schedules, and larger JS-owned cache-hit architecture.
+
 ## Useful Commands
 
 ```sh
