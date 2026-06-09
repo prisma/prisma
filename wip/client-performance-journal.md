@@ -10095,6 +10095,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Carry forward as the next serious JS-owned-query architecture proof point. This is a better wedge than replacing string JSON with `serde_wasm_bindgen`, because it can remove protocol serialization, cache-key work, Rust-owned request maps, and Wasm plan serialization from hot cache hits together.
 
+- Rejected partial side spike: raw nested unique-wrapper leaf writer.
+  - Timestamp: 2026-06-09.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-nested-direct-writer-spike`.
+  - Agent: Kant (`019eaca2-d767-70a0-8fcf-08feddd39799`) hit the subagent usage limit before returning a report, but left a one-file diff in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+  - Change tried:
+    - Added `tryCompileRawNestedLeafRowWriter()` for plain leaf child queries.
+    - Added `attachRawNestedDirectUniqueWrapperLeafRelationByIndex()` to write `{ wrapperField: child }` records directly for raw nested unique wrapper relations when the wrapper child query is a plain leaf.
+    - Preserved the existing indexed fallback above `RAW_NESTED_INDEX_THRESHOLD` by mapping child leaf rows and delegating to the existing wrapper attach helper.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 24 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Benchmarks:
+    - Patched side run: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Compact node blog-page: 7.21 us/op.
+      - Exact compact node blog-page: 7.40 us/op.
+      - Direct assembler lower bound: 3.93 us/op.
+      - Static-wave writer lower bound: 4.07 us/op.
+    - Close baseline after temporarily stashing the patch, same command:
+      - Compact node blog-page: 7.05 us/op.
+      - Exact compact node blog-page: 6.88 us/op.
+      - Direct assembler lower bound: 3.91 us/op.
+      - Static-wave writer row was noisy in this run at 7.42 us/op, so it was not used for the keep/reject decision.
+  - Decision:
+    - Reject. The affected compact rows regressed by about 2-8% in the close A/B, and the code adds about 200 lines for a narrower version of previously rejected wrapper/leaf-level raw-nested work.
+    - Keep the side worktree diff only as a rejected prototype reference; do not merge it.
+    - The next raw-nested product path still needs a true plan-specific final-owner writer schedule or compiler-emitted direct writer program, not another local wrapper/leaf materialization shortcut.
+
 ## Useful Commands
 
 ```sh
