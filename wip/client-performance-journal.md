@@ -10316,6 +10316,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate performance checkpoint. Its headline remains unchanged: simple Worker cache-hit paths are already past 3x, nested Worker default product paths are closer to 2.5-2.7x, and the remaining nested headroom is in generated/static writer schedules and larger JS-owned cache-hit architecture rather than shallow wrapper shortcuts.
 
+- Rejected prototype: unique-root compact raw-nested final writer derived from compact `n`.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - In `QueryInterpreter` compact `case 'n'`, added a strict `resultFormat: 'js'` unique-root writer fast path for numeric column refs and direct string/no-conversion mappings.
+    - The prototype mapped the root row directly, wrote leaf direct relations by mapping matching child rows into parent records, wrote leaf many-to-many children without building child `records` arrays, and handled direct wrapper relations by constructing `{ wrapperField: child | null }` records from wrapper rows.
+    - Unsupported dynamic shapes fell back to the existing compact raw-nested executor.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 24 tests.
+  - Benchmark:
+    - Fresh current baseline before the patch, 50k raw-result-set rows: compact node 6.90 us/op; exact compact node 7.05; direct assembler lower bound 4.08; static-wave writer lower bound 4.45.
+    - Patched 50k run: compact node 6.10 us/op; exact compact node 6.33.
+    - Patched 100k run: compact node 6.42 us/op; exact compact node 6.14; direct assembler lower bound 3.95; static-wave writer lower bound 4.14.
+    - Close reverted 100k control: compact node 6.41 us/op; exact compact node 6.66; direct assembler lower bound 3.93; static-wave writer lower bound 4.05.
+  - Decision:
+    - Reject and revert. The compact row was effectively unchanged in the close 100k A/B, and the exact compact row improved only about 8%, below the 15% raw-nested gate.
+    - This still derives too much from the compact `n` tree and relation execution model. The next raw-nested product proof should be compiler-emitted or generated static waves with owned state slots and final-object writes, or the larger JS-owned cache-hit architecture; do not add another runtime-only compact-tree derivation.
+
 ## Useful Commands
 
 ```sh
