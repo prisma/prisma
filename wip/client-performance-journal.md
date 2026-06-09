@@ -10290,6 +10290,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The compact raw-nested product path still has about 37% headroom to the static-wave writer lower bound in this run.
     - Do not spend more effort on wrapper/leaf local shortcuts or generic nested exact descriptors; the next CPU proof should be a strict writer-program payload that skips `RawNestedReadResult` child record arrays and generic attach helpers for eligible plans.
 
+- Rejected prototype: raw-nested direct leaf relation shortcut.
+  - Timestamp: 2026-06-09.
+  - Change tried:
+    - In `QueryInterpreter`, compiled direct raw-nested `r` relations with leaf child queries, numeric parent/child refs, and direct no-conversion field mappings into a relation writer that maps matching child rows directly into parent records.
+    - This avoided building child `records` arrays for direct leaf relations such as blog-page author/category and comment author, while preserving the existing compact `n` shape for everything else.
+  - Verification:
+    - `pnpm exec prettier --write packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts` passed 24 tests.
+  - Benchmark:
+    - Patched command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Patched rows: compact node 6.11 us/op; exact compact node 6.30.
+    - Close reverted control, same command: compact node 6.57 us/op; exact compact node 6.68.
+    - Generated stable blog-page smoke with `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 ...` measured 21.60 us/op and did not provide a stronger product-path signal.
+  - Decision:
+    - Reject and revert. The raw compact-node win was only about 6-7%, below the 15% gate for another local raw-nested shortcut, and this still leaves the generic `RawNestedReadResult` / attach-helper architecture in place.
+    - Continue with a writer-program plan shape that bypasses intermediate child record arrays and generic attach helpers for the whole eligible nested plan.
+
 ## Useful Commands
 
 ```sh
