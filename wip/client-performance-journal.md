@@ -10365,6 +10365,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate checkpoint. The total-gain headline remains unchanged: simple Worker cache-hit paths are already past 3x; nested Worker default paths are closer to 2.5-2.7x; the biggest contributors remain precomputed cache hits, API/serializer cleanup, plan memory compaction, raw-nested reads, and Rust compile allocation work.
 
+- Rejected benchmark prototype: generic flat raw-nested writer schedule.
+  - Timestamp: 2026-06-09.
+  - Side worktree: `/home/aqrln.guest/prisma-raw-writer-program-spike`.
+  - Change tried:
+    - Added a benchmark-only `compileRawNestedFlatWriterProgram()` that derives explicit state slots and relation waves from the exact blog-page `RawNestedReadQuery`.
+    - The prototype avoided `RawNestedReadResult` wrapper objects and generic `attachRawNested*` helpers for the exact wrapper shape, writing final owner objects through direct/list/wrapper phases.
+    - It remained data-driven: phases were generic closures over slot ids, column indexes, field names, and scope names rather than generated/static code.
+  - Baseline:
+    - Main checkout command before the prototype: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Main rows: direct assembler 3.85 us/op; writer program 4.13; static-wave writer 5.01; compact node 6.59; exact compact node 6.76.
+    - Generated-client baseline command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Generated-client row: 15.85 us/op.
+  - Prototype benchmark:
+    - Focused side-worktree command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set flat writer program' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Focused flat writer row: 7.71 us/op.
+    - Same-session side-worktree broad command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Same-session rows: direct assembler 3.96 us/op; writer program 4.20; static-wave writer 4.06; flat writer 6.07; compact node 6.49; exact compact node 6.59.
+  - Decision:
+    - Reject and revert the prototype. The same-session flat writer was only about 6-8% faster than compact/exact compact, below the 15% raw-nested gate and still far from the static-wave lower bound.
+    - This confirms the data-driven phase interpreter shape is not the product path. The next raw-nested proof needs compiler-emitted or generated static final-object write schedules with owned state slots, not another runtime derivation from the compact `n` tree.
+
 ## Useful Commands
 
 ```sh
