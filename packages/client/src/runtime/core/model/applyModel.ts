@@ -1,5 +1,5 @@
-import * as DMMF from '@prisma/dmmf'
 import type { DescriptorBoundMatcher, DescriptorBoundMatcherRegistry } from '@prisma/client-common'
+import * as DMMF from '@prisma/dmmf'
 import type { O } from 'ts-toolbelt'
 
 import { type Client, type InternalRequestParams } from '../../getPrismaClient'
@@ -570,12 +570,9 @@ function buildLazyDescriptor({
     root: buildLazyDescriptorNode(args, placeholdersByValue),
   }
   const extraction = tryExtractLazyDescriptor(descriptor, args)
-  if (
-    extraction === undefined ||
-    !hasSamePlaceholders(extraction.placeholderValues, precomputedQueryPlanCacheHit.placeholderValues)
-  ) {
-    return undefined
-  }
+  const lazyDescriptorMatches =
+    extraction !== undefined &&
+    hasSamePlaceholders(extraction.placeholderValues, precomputedQueryPlanCacheHit.placeholderValues)
 
   const exactMatcher = matcherRegistry?.getMatcher({
     model,
@@ -596,7 +593,7 @@ function buildLazyDescriptor({
     }
   }
 
-  return descriptor
+  return lazyDescriptorMatches || descriptor.exactMatcher !== undefined ? descriptor : undefined
 }
 
 function buildLazyDescriptorNode(value: unknown, placeholdersByValue: Map<string, string>): LazyDescriptorNode {

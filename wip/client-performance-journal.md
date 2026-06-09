@@ -10334,6 +10334,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reject and revert. The compact row was effectively unchanged in the close 100k A/B, and the exact compact row improved only about 8%, below the 15% raw-nested gate.
     - This still derives too much from the compact `n` tree and relation execution model. The next raw-nested product proof should be compiler-emitted or generated static waves with owned state slots and final-object writes, or the larger JS-owned cache-hit architecture; do not add another runtime-only compact-tree derivation.
 
+- Accepted internal-gated product slice: exact descriptor helper scalar variants.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Extended `createExactDescriptorMatcherRegistry()` and both JS/TS generator helper parsers from `number` / `string` exact values to `bigint` / `boolean` / `number` / `string`.
+    - Fixed registry lookup so multiple specs for the same model/action/clientMethod keep scanning until a spec actually binds the learned descriptor. This matters for side-by-side specs such as `User.findUnique:id:...`, `User.findUnique:externalId:...`, and `User.findUnique:enabled:...`.
+    - Added a BigInt-specific binding path for `findUnique`: learned descriptors can contain the original raw JS `bigint` constant while the precomputed cached hit contains the serialized string placeholder. The matcher binds only when the cached hit has exactly one placeholder with the matching string value, then returns string placeholder values for later BigInt args.
+    - Relaxed `buildLazyDescriptor()` so an exact matcher can keep a descriptor after its slow-path self-test even when generic lazy descriptor parity fails. Plain lazy descriptors still require placeholder parity before storage.
+    - Added generator fixtures for `externalId BigInt @unique` and `enabled Boolean @unique`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.ts packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/model/applyModel.test.ts packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts packages/client-generator-ts/src/utils/buildExactDescriptorMatcherRegistry.ts packages/client-generator-js/tests/generator.test.ts packages/client-generator-ts/tests/generator.test.ts` made no changes.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts src/runtime/core/model/applyModel.test.ts --runInBand` passed 17 tests.
+    - `pnpm exec vitest run tests/generator.test.ts -t "emits internal exact descriptor helpers" --testTimeout 30000` passed in both `packages/client-generator-js` and `packages/client-generator-ts`.
+    - `pnpm --filter @prisma/client-generator-js --filter @prisma/client-generator-ts build` passed.
+    - `pnpm --filter @prisma/client build` passed.
+  - Benchmark smoke:
+    - Runtime helper command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client runtime exact descriptor helper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Runtime helper rows: `findUnique` 4.11 us/op; batched `findUnique` 7.41 with `precomputedBatchHits=200000`; `findMany users` 2.62.
+    - Generated helper command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Generated helper rows: `findUnique` 5.89 us/op; batched `findUnique` 7.23 with `precomputedBatchHits=200000`; `findMany users` 2.59.
+  - Decision:
+    - Keep as internal-gated product coverage and safety work. This broadens exact-helper applicability and fixes a real multi-spec binding bug without enabling helpers by default.
+    - Do not treat this as a fresh headline performance win. The focused rows are in a healthy band and preserve batch counters, but the purpose of this slice is oracle/productization groundwork for the descriptor-bound cache-hit lead.
+
+- Documentation refresh: intermediate report after exact-helper scalar broadening.
+  - Timestamp: 2026-06-09.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Updated the current-best-leads section to mention `Boolean` / `BigInt` exact helper support, the BigInt string-placeholder caveat, and the latest focused Node smoke rows.
+  - Decision:
+    - Keep the report as the current intermediate checkpoint. The total-gain headline remains unchanged: simple Worker cache-hit paths are already past 3x; nested Worker default paths are closer to 2.5-2.7x; the biggest contributors remain precomputed cache hits, API/serializer cleanup, plan memory compaction, raw-nested reads, and Rust compile allocation work.
+
 ## Useful Commands
 
 ```sh

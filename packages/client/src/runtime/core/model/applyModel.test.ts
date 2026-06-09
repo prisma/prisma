@@ -7,7 +7,13 @@ import { applyModel } from './applyModel'
 import { createExactDescriptorMatcherRegistry } from './createExactDescriptorMatcherRegistry'
 
 const datamodel = runtimeDataModel({
-  models: [model('User', [field('scalar', 'email', 'String'), field('scalar', 'name', 'String')])],
+  models: [
+    model('User', [
+      field('scalar', 'email', 'String'),
+      field('scalar', 'name', 'String'),
+      field('scalar', 'externalId', 'BigInt', { isId: false, isUnique: true }),
+    ]),
+  ],
 })
 
 function createClient({
@@ -303,6 +309,29 @@ test('stores the runtime exact findMany matcher after slow-path parity self-test
   )
 })
 
+test('stores the runtime exact bigint matcher after slow-path parity self-test', async () => {
+  const { registry, getMatcher, matchers } = createSpiedExactRegistry()
+  const { engine, requestHandler, user } = createClient({
+    descriptorMatcherRegistry: registry,
+    placeholderValues: { '%1': '10' },
+  })
+
+  await user.findUnique({ where: { externalId: 10n }, select: { id: true, externalId: true } })
+  await user.findUnique({ where: { externalId: 11n }, select: { id: true, externalId: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(1)
+  expect(matchers).toHaveLength(1)
+  expect(matchers[0]).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  expect(requestHandler.request).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      precomputedQueryPlanCacheHit: expect.objectContaining({
+        placeholderValues: { '%1': '11' },
+      }),
+    }),
+  )
+})
+
 function createSpiedExactRegistry() {
   const exactRegistry = createExactDescriptorMatcherRegistry([
     {
@@ -320,6 +349,14 @@ function createSpiedExactRegistry() {
       field: 'take',
       valueType: 'number',
       select: ['id', 'email', 'name'],
+    },
+    {
+      model: 'User',
+      action: 'findUnique',
+      clientMethod: 'user.findUnique',
+      field: 'externalId',
+      valueType: 'bigint',
+      select: ['id', 'externalId'],
     },
   ])
   const matchers: jest.Mock[] = []

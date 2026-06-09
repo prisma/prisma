@@ -5,9 +5,11 @@ type ExactDescriptorMatcherSpec = {
   action: 'findUnique' | 'findMany'
   clientMethod: string
   field: string
-  valueType: 'number' | 'string'
+  valueType: ExactDescriptorMatcherValueType
   select: string[]
 }
+
+type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'number' | 'string'
 
 export function buildExactDescriptorMatcherRegistry(
   datamodel: DMMF.Datamodel,
@@ -99,7 +101,7 @@ function getExactMatcherValueType(
   dmmfModel: DMMF.Model,
   action: 'findUnique' | 'findMany',
   field: string,
-): 'number' | 'string' {
+): ExactDescriptorMatcherValueType {
   if (action === 'findMany') {
     if (field !== 'take') {
       throw new Error(`internalExactDescriptorHelpers findMany field must be "take" ${JSON.stringify(field)}`)
@@ -119,6 +121,10 @@ function getExactMatcherValueType(
   }
 
   switch (dmmfField.type) {
+    case 'BigInt':
+      return 'bigint'
+    case 'Boolean':
+      return 'boolean'
     case 'Int':
       return 'number'
     case 'String':

@@ -250,7 +250,11 @@ describe('generator', () => {
     expect(index).toContain('"action": "findUnique"')
     expect(index).toContain('"action": "findMany"')
     expect(index).toContain('"field": "id"')
+    expect(index).toContain('"field": "externalId"')
+    expect(index).toContain('"field": "enabled"')
     expect(index).toContain('"field": "take"')
+    expect(index).toContain('"valueType": "bigint"')
+    expect(index).toContain('"valueType": "boolean"')
     expect(index).toContain('"select": [')
   })
 

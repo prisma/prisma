@@ -9,9 +9,11 @@ type ExactDescriptorMatcherSpec = {
   action: 'findUnique' | 'findMany'
   clientMethod: string
   field: string
-  valueType: 'number' | 'string'
+  valueType: ExactDescriptorMatcherValueType
   select: string[]
 }
+
+type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'number' | 'string'
 
 type GeneratedExactDescriptor =
   | { kind: 'constant'; value: unknown }
@@ -31,11 +33,18 @@ export function createExactDescriptorMatcherRegistry(
           context.action === spec.action &&
           context.clientMethod === spec.clientMethod
         ) {
+          let matcher: DescriptorBoundMatcher | undefined
           switch (spec.action) {
             case 'findUnique':
-              return bindFindUniqueMatcher(context, spec)
+              matcher = bindFindUniqueMatcher(context, spec)
+              break
             case 'findMany':
-              return bindFindManyMatcher(context, spec)
+              matcher = bindFindManyMatcher(context, spec)
+              break
+          }
+
+          if (matcher !== undefined) {
+            return matcher
           }
         }
       }
@@ -61,14 +70,24 @@ function bindFindUniqueMatcher(
 
   const placeholder = asPlaceholderDescriptor(where.fields[spec.field])
   if (
-    placeholder === undefined ||
-    placeholder.valueType !== spec.valueType ||
-    !matchesSelectDescriptor(root.fields.select, spec.select)
+    placeholder !== undefined &&
+    placeholder.valueType === spec.valueType &&
+    matchesSelectDescriptor(root.fields.select, spec.select)
   ) {
-    return undefined
+    return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
   }
 
-  return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
+  if (spec.valueType === 'bigint' && matchesSelectDescriptor(root.fields.select, spec.select)) {
+    const initialValue = asConstantDescriptorValue(where.fields[spec.field], 'bigint')
+    if (initialValue !== undefined) {
+      const placeholderName = getSinglePlaceholderNameForValue(context, String(initialValue))
+      if (placeholderName !== undefined) {
+        return (args) => matchFindUniqueBigIntArgs(args, spec, placeholderName)
+      }
+    }
+  }
+
+  return undefined
 }
 
 function bindFindManyMatcher(
@@ -116,6 +135,28 @@ function matchFindUniqueArgs(
   }
 
   return { [placeholderName]: value }
+}
+
+function matchFindUniqueBigIntArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isRecord(where) || !hasOwnEnumerableKeysInOrder(where, [spec.field])) {
+    return undefined
+  }
+
+  const value = where[spec.field]
+  if (typeof value !== 'bigint' || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: String(value) }
 }
 
 function matchFindManyPlaceholderArgs(
@@ -217,12 +258,25 @@ function isConstantDescriptor(value: unknown, expected: unknown): boolean {
   return isRecord(value) && value.kind === 'constant' && Object.is(value.value, expected)
 }
 
-function asConstantDescriptorValue(value: unknown, valueType: 'number' | 'string'): number | string | undefined {
+function asConstantDescriptorValue(value: unknown, valueType: ExactDescriptorMatcherValueType): unknown {
   if (!isRecord(value) || value.kind !== 'constant' || typeof value.value !== valueType) {
     return undefined
   }
 
-  return value.value as number | string
+  return value.value
+}
+
+function getSinglePlaceholderNameForValue(
+  context: DescriptorBoundMatcherContext,
+  expectedValue: unknown,
+): string | undefined {
+  const entries = Object.entries(context.precomputedQueryPlanCacheHit.placeholderValues)
+  if (entries.length !== 1) {
+    return undefined
+  }
+
+  const [name, value] = entries[0]
+  return Object.is(value, expectedValue) ? name : undefined
 }
 
 function descriptorHasKeys(

@@ -163,7 +163,11 @@ describe('generator', () => {
     expect(classFile).toContain('"action": "findUnique"')
     expect(classFile).toContain('"action": "findMany"')
     expect(classFile).toContain('"field": "id"')
+    expect(classFile).toContain('"field": "externalId"')
+    expect(classFile).toContain('"field": "enabled"')
     expect(classFile).toContain('"field": "take"')
+    expect(classFile).toContain('"valueType": "bigint"')
+    expect(classFile).toContain('"valueType": "boolean"')
     expect(classFile).toContain('"select": [')
   })
 

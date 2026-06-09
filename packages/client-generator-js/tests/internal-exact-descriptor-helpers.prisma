@@ -5,11 +5,13 @@ datasource db {
 generator client {
   provider                       = "prisma-client-js"
   output                         = "./generated-exact-descriptor"
-  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findMany:take:id,email,name"]
+  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findMany:take:id,email,name"]
 }
 
 model User {
-  id    Int    @id
-  email String
-  name  String
+  id         Int     @id
+  email      String
+  name       String
+  externalId BigInt  @unique
+  enabled    Boolean @unique
 }

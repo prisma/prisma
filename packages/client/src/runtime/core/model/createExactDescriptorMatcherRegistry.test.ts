@@ -121,6 +121,37 @@ test('binds exact string scalar matchers', () => {
   expect(matcher?.({ where: { email: 2 }, select: { id: true, email: true } })).toBeUndefined()
 })
 
+test('binds exact boolean scalar matchers', () => {
+  const matcher = bindMatcher({
+    field: 'enabled',
+    valueType: 'boolean',
+    placeholderName: '%1',
+    placeholderValue: true,
+    select: ['id', 'enabled'],
+  })
+
+  expect(matcher?.({ where: { enabled: false }, select: { id: true, enabled: true } })).toEqual({
+    '%1': false,
+  })
+  expect(matcher?.({ where: { enabled: 'false' }, select: { id: true, enabled: true } })).toBeUndefined()
+})
+
+test('binds exact bigint scalar matchers', () => {
+  const matcher = bindMatcher({
+    field: 'externalId',
+    valueType: 'bigint',
+    placeholderName: '%1',
+    placeholderValue: '10',
+    descriptorValue: 10n,
+    select: ['id', 'externalId'],
+  })
+
+  expect(matcher?.({ where: { externalId: 11n }, select: { id: true, externalId: true } })).toEqual({
+    '%1': '11',
+  })
+  expect(matcher?.({ where: { externalId: '11' }, select: { id: true, externalId: true } })).toBeUndefined()
+})
+
 test('rejects generated args that would change the exact query shape', () => {
   const matcher = bindMatcher({
     field: 'id',
@@ -185,12 +216,14 @@ function bindMatcher({
   valueType,
   placeholderName,
   placeholderValue,
+  descriptorValue = placeholderValue,
   select,
 }: {
   field: string
-  valueType: 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'number' | 'string'
   placeholderName: string
   placeholderValue: unknown
+  descriptorValue?: unknown
   select: string[]
 }) {
   const registry = createExactDescriptorMatcherRegistry([
@@ -222,7 +255,10 @@ function bindMatcher({
             kind: 'object',
             keys: [field],
             fields: {
-              [field]: { kind: 'placeholder', name: placeholderName, valueType },
+              [field]:
+                valueType === 'bigint'
+                  ? { kind: 'constant', value: descriptorValue }
+                  : { kind: 'placeholder', name: placeholderName, valueType },
             },
           },
           select: {
