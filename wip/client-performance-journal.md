@@ -10190,6 +10190,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep the benchmark coverage and keep the product helper internal-gated.
     - Workerd now supports the Node signal direction on the confirming repeat, but the first run's noise means future broadening should still require repeated Workerd runs plus oracle parity coverage before enabling anything by default.
 
+- Accepted oracle coverage: runtime exact descriptor helper parity and fallback tests.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Added `applyModel.test.ts` coverage using the real `createExactDescriptorMatcherRegistry()` wrapped in spies, so the test observes the actual descriptor-bound matcher returned by the runtime helper.
+    - Covered exact matcher storage only after the existing slow-path placeholder self-test reproduces the cached placeholder map.
+    - Covered later exact-matcher miss with safe lazy-descriptor fallback, using reordered root args that the exact helper rejects but the lazy descriptor can still match.
+    - Covered later exact+lazy miss falling back to the slow path and asking the engine for a new precomputed hit.
+    - Added direct exact-registry tests for string scalar specs and for rejecting `undefined` / `Prisma.skip` shape drift in root args, `where`, and `select`.
+  - Verification:
+    - `pnpm exec prettier --write packages/client/src/runtime/core/model/applyModel.test.ts packages/client/src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts`.
+    - `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts --runInBand` passed 11 tests.
+  - Decision:
+    - Keep. This is coverage-only, but it closes the first oracle gap before any broader exact-helper productization.
+    - Remaining parity work: duplicate placeholder reuse/order, extensions/global omit exclusions, generated-output typechecking, and special scalar values beyond current `Int`/`String` support.
+
 ## Useful Commands
 
 ```sh

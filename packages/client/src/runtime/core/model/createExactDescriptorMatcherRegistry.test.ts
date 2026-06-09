@@ -1,3 +1,4 @@
+import { skip } from '../types'
 import { createExactDescriptorMatcherRegistry } from './createExactDescriptorMatcherRegistry'
 
 test('binds an exact findUnique scalar matcher to a learned descriptor', () => {
@@ -104,3 +105,115 @@ test('does not bind when the learned descriptor does not match the spec', () => 
     }),
   ).toBeUndefined()
 })
+
+test('binds exact string scalar matchers', () => {
+  const matcher = bindMatcher({
+    field: 'email',
+    valueType: 'string',
+    placeholderName: '%2',
+    placeholderValue: 'alice@example.test',
+    select: ['id', 'email'],
+  })
+
+  expect(matcher?.({ where: { email: 'bob@example.test' }, select: { id: true, email: true } })).toEqual({
+    '%2': 'bob@example.test',
+  })
+  expect(matcher?.({ where: { email: 2 }, select: { id: true, email: true } })).toBeUndefined()
+})
+
+test('rejects generated args that would change the exact query shape', () => {
+  const matcher = bindMatcher({
+    field: 'id',
+    valueType: 'number',
+    placeholderName: '%1',
+    placeholderValue: 1,
+    select: ['id', 'email', 'name'],
+  })
+
+  expect(
+    matcher?.({
+      where: { id: 2 },
+      select: { id: true, email: true, name: true },
+      extra: undefined,
+    }),
+  ).toBeUndefined()
+  expect(
+    matcher?.({
+      where: { id: 2, extra: undefined },
+      select: { id: true, email: true, name: true },
+    }),
+  ).toBeUndefined()
+  expect(
+    matcher?.({
+      where: { id: 2 },
+      select: { id: true, email: skip, name: true },
+    }),
+  ).toBeUndefined()
+  expect(
+    matcher?.({
+      where: { id: 2 },
+      select: { id: true, email: true, name: true },
+      omit: skip,
+    }),
+  ).toBeUndefined()
+})
+
+function bindMatcher({
+  field,
+  valueType,
+  placeholderName,
+  placeholderValue,
+  select,
+}: {
+  field: string
+  valueType: 'number' | 'string'
+  placeholderName: string
+  placeholderValue: unknown
+  select: string[]
+}) {
+  const registry = createExactDescriptorMatcherRegistry([
+    {
+      model: 'User',
+      action: 'findUnique',
+      clientMethod: 'user.findUnique',
+      field,
+      valueType,
+      select,
+    },
+  ])
+
+  return registry.getMatcher({
+    model: 'User',
+    action: 'findUnique',
+    clientMethod: 'user.findUnique',
+    args: {
+      where: { [field]: placeholderValue },
+      select: Object.fromEntries(select.map((fieldName) => [fieldName, true])),
+    },
+    protocolQuery: {},
+    descriptor: {
+      root: {
+        kind: 'object',
+        keys: ['where', 'select'],
+        fields: {
+          where: {
+            kind: 'object',
+            keys: [field],
+            fields: {
+              [field]: { kind: 'placeholder', name: placeholderName, valueType },
+            },
+          },
+          select: {
+            kind: 'object',
+            keys: select,
+            fields: Object.fromEntries(select.map((fieldName) => [fieldName, { kind: 'constant', value: true }])),
+          },
+        },
+      },
+    },
+    precomputedQueryPlanCacheHit: {
+      cacheKey: 'cache-key',
+      placeholderValues: { [placeholderName]: placeholderValue },
+    },
+  })
+}

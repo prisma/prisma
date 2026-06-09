@@ -4,9 +4,10 @@ import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuil
 import type { Client } from '../../getPrismaClient'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { applyModel } from './applyModel'
+import { createExactDescriptorMatcherRegistry } from './createExactDescriptorMatcherRegistry'
 
 const datamodel = runtimeDataModel({
-  models: [model('User', [field('scalar', 'name', 'String')])],
+  models: [model('User', [field('scalar', 'email', 'String'), field('scalar', 'name', 'String')])],
 })
 
 function createClient({
@@ -212,6 +213,106 @@ test('keeps two descriptor-bound matchers for alternating shapes', async () => {
     }),
   )
 })
+
+test('stores the runtime exact descriptor matcher after slow-path parity self-test', async () => {
+  const { registry, getMatcher, matchers } = createSpiedExactRegistry()
+  const { engine, requestHandler, user } = createClient({ descriptorMatcherRegistry: registry })
+
+  await user.findUnique({ where: { id: '1' }, select: { id: true, email: true, name: true } })
+  await user.findUnique({ where: { id: '2' }, select: { id: true, email: true, name: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(1)
+  expect(matchers).toHaveLength(1)
+  expect(matchers[0]).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  expect(requestHandler.request).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      precomputedQueryPlanCacheHit: expect.objectContaining({
+        placeholderValues: { '%1': '2' },
+      }),
+    }),
+  )
+})
+
+test('falls back to the lazy descriptor when the runtime exact matcher misses later args', async () => {
+  const { registry, getMatcher, matchers } = createSpiedExactRegistry()
+  const { engine, requestHandler, user } = createClient({ descriptorMatcherRegistry: registry })
+
+  await user.findUnique({ where: { id: '1' }, select: { id: true, email: true, name: true } })
+  await user.findUnique({ select: { id: true, email: true, name: true }, where: { id: '2' } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(1)
+  expect(matchers).toHaveLength(1)
+  expect(matchers[0]).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  expect(requestHandler.request).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      precomputedQueryPlanCacheHit: expect.objectContaining({
+        placeholderValues: { '%1': '2' },
+      }),
+    }),
+  )
+})
+
+test('falls back to the slow path when runtime exact and lazy descriptors miss later args', async () => {
+  const { registry, getMatcher, matchers } = createSpiedExactRegistry()
+  const { engine, requestHandler, user } = createClient({
+    descriptorMatcherRegistry: registry,
+    precomputedHits: [
+      { cacheKey: 'first-cache-key', placeholderValues: { '%1': '1' } },
+      { cacheKey: 'second-cache-key', placeholderValues: { '%1': '2' } },
+    ],
+  })
+
+  await user.findUnique({ where: { id: '1' }, select: { id: true, email: true, name: true } })
+  await user.findUnique({ where: { id: '2' }, select: { id: true, email: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(2)
+  expect(matchers[0]).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(2)
+  expect(requestHandler.request).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      precomputedQueryPlanCacheHit: expect.objectContaining({
+        cacheKey: 'second-cache-key',
+        placeholderValues: { '%1': '2' },
+      }),
+    }),
+  )
+})
+
+function createSpiedExactRegistry() {
+  const exactRegistry = createExactDescriptorMatcherRegistry([
+    {
+      model: 'User',
+      action: 'findUnique',
+      clientMethod: 'user.findUnique',
+      field: 'id',
+      valueType: 'string',
+      select: ['id', 'email', 'name'],
+    },
+  ])
+  const matchers: jest.Mock[] = []
+  const getMatcher = jest.fn((context: Parameters<DescriptorBoundMatcherRegistry['getMatcher']>[0]) => {
+    const matcher = exactRegistry.getMatcher(context)
+    if (matcher === undefined) {
+      return undefined
+    }
+
+    const spiedMatcher = jest.fn(matcher)
+    matchers.push(spiedMatcher)
+    return spiedMatcher
+  })
+
+  return {
+    registry: { getMatcher },
+    getMatcher,
+    matchers,
+  } satisfies {
+    registry: DescriptorBoundMatcherRegistry
+    getMatcher: typeof getMatcher
+    matchers: jest.Mock[]
+  }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
