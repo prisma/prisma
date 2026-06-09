@@ -53,6 +53,7 @@ export type IndividualQueryPlanCacheEntry = {
 }
 
 const MIN_INTERNED_STRING_LENGTH = 128
+const RAW_NESTED_SCOPE_PREFIX = '@parent$'
 
 export class QueryPlanCache {
   readonly #singleCache: Map<string, Extract<CacheEntry, { kind: 'single' }>>
@@ -517,7 +518,7 @@ export class QueryPlanCache {
 
   #internStrings<T>(value: T, counts: PreparedInternedStringCounts): T {
     if (typeof value === 'string') {
-      if (value.length < MIN_INTERNED_STRING_LENGTH) {
+      if (!shouldInternString(value)) {
         return value
       }
 
@@ -613,6 +614,10 @@ function compactCounts<T>(counts: Map<T, number>): FlatCounts<T> | undefined {
     compacted[index++] = count
   }
   return compacted
+}
+
+function shouldInternString(value: string): boolean {
+  return value.length >= MIN_INTERNED_STRING_LENGTH || value.startsWith(RAW_NESTED_SCOPE_PREFIX)
 }
 
 function shouldInternStrings(value: unknown): boolean {

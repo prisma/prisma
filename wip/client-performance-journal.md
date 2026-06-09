@@ -10509,6 +10509,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate performance checkpoint. The headline magnitude remains unchanged: simple Worker cache-hit paths are already past 3x, nested Worker default product paths are closer to 2.5-2.7x, and the most credible next contributors are straight-line descriptor-bound helpers, static/generated raw-nested writer schedules, and larger JS-owned cache-hit architecture.
 
+- Accepted cache-memory cleanup: intern compact raw-nested scope strings.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - Extended `QueryPlanCache` string interning so compiler-generated compact raw-nested `@parent$...` scope strings use the existing refcounted string interner even though they are shorter than the normal 128-byte threshold.
+    - Kept the broad interning gate unchanged: only join/raw-nested-shaped plans enter the interning traversal, and other short strings are still left alone.
+    - Updated `wip/client-performance-intermediate-report.md` and `AGENTS.md` with the new retained-memory numbers and the narrow exception.
+  - Verification:
+    - `pnpm --filter @prisma/client test src/runtime/core/engines/client/query-plan-cache.test.ts --runInBand` passed 28 tests.
+    - `git diff --check` passed.
+  - Memory evidence:
+    - Fresh baseline command: `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
+    - Baseline rows: blog-page node warm 4.54 MiB; blog-page parameterized node warm 4.76 MiB.
+    - Patched rows with the same command: blog-page node warm 4.47 MiB; blog-page parameterized node warm 4.69 MiB.
+    - `QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 ... query-plan-cache-memory.ts` still reports the same serialized shape, as expected: this is retained JS heap sharing, not a protocol-size change.
+  - Timing evidence:
+    - Patched command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss blog page / value churn' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Patched row: 2421.43 us/op.
+    - Close reverted control with the same command: 2417.24 us/op.
+  - Decision:
+    - Keep. The memory win is small but real on retained nested cached plans, and the compile-miss path was effectively neutral in close A/B. Do not broaden this to all short strings without a new retained-heap and timing argument.
+
 ## Useful Commands
 
 ```sh

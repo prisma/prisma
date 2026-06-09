@@ -16,7 +16,7 @@ The branch has already found and landed enough product-path work to make several
 | Node generated blog-page warmed cache                         |                          52.71 us/op before model-action/proxy cleanup |               14.33 us/op in the default-on request-precomputed A/B |                                                         ~3.7x faster |
 | Workerd forced engine-precomputed `findUnique` benchmark mode |                                               22.50 us/op baseline row |                                              1.92 us/op worker loop |                ~11.7x faster, but not default-safe for all semantics |
 | Workerd forced engine-precomputed blog-page benchmark mode    |                                               44.40 us/op baseline row |                                             12.20 us/op worker loop |                             ~3.6x faster, but still an internal mode |
-| Retained blog-page query-plan heap, node warm                 |             about 16.8 MiB without raw-nested subtree/string interning |                    about 4.55 MiB after compact interner-count work |                                             ~3.7x less retained heap |
+| Retained blog-page query-plan heap, node warm                 |             about 16.8 MiB without raw-nested subtree/string interning |                    about 4.47 MiB after compact/interner-scope work |                                             ~3.8x less retained heap |
 | Workerd retained blog-page serialized plans, 100 entries      |                     about 413.8 KiB before later compact/interner work |                                  335.4 KiB in the latest validation |                                     ~19% lower serialized plan bytes |
 | Query compiler M:N nested read / connectOrCreate compile rows |                                       old `dataMap` / join translation |                                    compact raw-nested read emission | ~9-11% faster Criterion rows, ~10-15% fewer full-compile allocations |
 
@@ -45,7 +45,7 @@ The branch converted many query-plan protocol structures from object-heavy forms
 Big memory wins:
 
 - Raw-nested child subtree/string interning recovered sharing that compact raw-nested emission had initially bypassed: retained blog-page plans dropped from about 16.8 MiB to about 5.3 MiB in the node warm probe.
-- Compact interner-count storage then reduced restarted-baseline blog-page node warm 4.88 -> 4.55 MiB and parameterized node warm 5.10 -> 4.75 MiB.
+- Compact interner-count storage reduced restarted-baseline blog-page node warm 4.88 -> 4.55 MiB and parameterized node warm 5.10 -> 4.75 MiB; the later short `@parent$...` scope-string interner moved a fresh node warm baseline 4.54 -> 4.47 MiB and parameterized node warm 4.76 -> 4.69 MiB, with neutral compile-miss timing.
 - Workerd retained blog-page plan cache validation shows 100 entries at 335.4 KiB serialized plan bytes with stable generated-client timing.
 
 4. Raw nested read protocol and runtime.
