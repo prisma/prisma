@@ -10622,6 +10622,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Follow-up:
     - Productization still needs descriptor-bound generated/static helper code, oracle parity against `serializeJsonQuery()` + `parameterizeQuery()` + cache-key construction for both stable and alternating nested descriptors, and exclusion gates for extensions/global omit/raw/tracing/debug/commenter cases.
 
+- Accepted Rust allocation cleanup: store parser validation paths in `SmallVec`.
+  - Timestamp: 2026-06-09.
+  - Change:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_document/parser.rs`, changed `query_document::parser::Path` from `Vec<String>` to `SmallVec<[String; 8]>`.
+    - Engines commit: `a62504a80bd Use SmallVec for parser validation paths`.
+    - This keeps the accepted mutable push/pop validation-path design, but avoids a heap allocation for the common short path stacks. It does not revisit the rejected lifetime-generic `Cow`/cons-list design.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-core` passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-core` passed.
+  - Allocation evidence:
+    - Baseline command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - Baseline rows:
+      - `query-m2o`: `graph_build` 165 allocations / 35.6 KiB; `compile_ir` 492 / 62.8 KiB; `full_compile` 571 / 72.7 KiB.
+      - `query-many-m2m`: `graph_build` 240 / 39.8 KiB; `compile_ir` 665 / 73.7 KiB; `full_compile` 736 / 80.7 KiB.
+      - `nested-pagination-query`: `graph_build` 203 / 34.8 KiB; `compile_ir` 591 / 71.9 KiB; `full_compile` 676 / 81.3 KiB.
+      - `create-nested-connectOrCreate-mixed`: `graph_build` 803 / 134.6 KiB; `compile_ir` 2453 / 283.6 KiB; `full_compile` 2625 / 304.0 KiB.
+      - `update-set-nested`: `graph_build` 656 / 115.7 KiB; `compile_ir` 1920 / 228.7 KiB; `full_compile` 2036 / 242.0 KiB.
+    - Patched command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - Patched rows:
+      - `query-m2o`: `graph_build` 163 allocations / 35.4 KiB; `compile_ir` 490 / 62.6 KiB; `full_compile` 569 / 72.5 KiB.
+      - `query-many-m2m`: `graph_build` 238 / 39.7 KiB; `compile_ir` 663 / 73.5 KiB; `full_compile` 734 / 80.6 KiB.
+      - `nested-pagination-query`: `graph_build` 201 / 34.6 KiB; `compile_ir` 589 / 71.7 KiB; `full_compile` 674 / 81.1 KiB.
+      - `create-nested-connectOrCreate-mixed`: `graph_build` 800 / 134.2 KiB; `compile_ir` 2450 / 283.2 KiB; `full_compile` 2622 / 303.7 KiB.
+      - `update-set-nested`: `graph_build` 654 / 115.5 KiB; `compile_ir` 1918 / 228.6 KiB; `full_compile` 2034 / 241.8 KiB.
+    - Interpretation: the allocation win is tiny, only 2 allocations/op on sampled reads and `update-set-nested`, and 3 allocations/op on `create-nested-connectOrCreate-mixed`.
+  - Timing evidence:
+    - Patched command: `PATH="$HOME/.cargo/bin:$PATH" cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query|create-nested-connectOrCreate-mixed|update-set-nested" --sample-size 10 --warm-up-time 1 --measurement-time 2`.
+    - First patched medians: `create-nested-connectOrCreate-mixed` 131.98 us; `nested-pagination-query` 31.561 us; `query-m2o-lateral` 29.342 us; `query-m2o` 29.231 us; `query-many-m2m` 35.143 us; `update-set-nested-prisma#27650` 89.040 us; `update-set-nested` 102.08 us.
+    - Close reverted-control medians with the same command: `create-nested-connectOrCreate-mixed` 130.18 us; `nested-pagination-query` 32.114 us; `query-m2o-lateral` 29.775 us; `query-m2o` 29.952 us; `query-many-m2m` 35.588 us; `update-set-nested-prisma#27650` 91.187 us; `update-set-nested` 102.42 us.
+    - Final reapply medians with the same command: `create-nested-connectOrCreate-mixed` 127.00 us; `nested-pagination-query` 32.399 us; `query-m2o-lateral` 29.169 us; `query-m2o` 28.921 us; `query-many-m2m` 35.399 us; `update-set-nested-prisma#27650` 88.060 us; `update-set-nested` 100.65 us.
+  - Decision:
+    - Keep. The allocation win alone would not justify the patch, but the adjacent Criterion pass was neutral-to-positive after reapply and the code change is localized to a hot success-path validation stack.
+    - Do not generalize this into broad `SmallVec` rewrites; similar one/two-allocation wins have been rejected when Criterion softened.
+
 ## Useful Commands
 
 ```sh

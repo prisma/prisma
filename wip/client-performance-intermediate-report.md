@@ -69,7 +69,7 @@ The largest accepted Rust-side win is changing M:N nested reads from `dataMap` /
 - `query-many-m2m` full compile allocations 912 -> 795 and Criterion 40.831 -> 36.203 us.
 - M:N-containing connectOrCreate rows saved roughly 300 full-compile allocations and improved about 9-10%.
 
-Smaller Rust allocation wins were kept only when Criterion stayed neutral-to-positive: selection-order consuming passes, parser path mutable stack, raw nested relation scalar helpers, borrowed related-read compilation, placeholder scalar serialization, and direct `ModelProjection::as_columns()` collection. The allocation profiles still point at `graph_build` and `translate_ir` mid-sized owned structures, not a broad `Arc` clone problem.
+Smaller Rust allocation wins were kept only when Criterion stayed neutral-to-positive: selection-order consuming passes, parser path mutable stack, `SmallVec` storage for that stack, raw nested relation scalar helpers, borrowed related-read compilation, placeholder scalar serialization, and direct `ModelProjection::as_columns()` collection. The latest parser-stack storage change is representative of the scale: it saved only 2-3 full-compile allocations/op and about 0.1-0.4 KiB/op on sampled rows, with adjacent Criterion medians improving or staying within noise. The allocation profiles still point at `graph_build` and `translate_ir` mid-sized owned structures, not a broad `Arc` clone problem.
 
 ## What Did Not Pay Off
 
