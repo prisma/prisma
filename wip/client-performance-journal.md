@@ -10069,6 +10069,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - No code change. Use this as a productization gate: generated exact/descriptor helper work must include stable-shape, alternating-shape, batched, and Workerd rows before landing beyond internal benchmark coverage.
 
+- Architecture scout: JS-owned query/cache-hit proof-point shape.
+  - Timestamp: 2026-06-09.
+  - Agent: Arendt (`019eaca6-4e94-7613-b103-1528aa1047f0`), read-only scout.
+  - Current pipeline confirmed:
+    - Generated user args become JSON protocol in `packages/client/src/runtime/core/model/applyModel.ts` and the fallback `_executeRequest()` path in `packages/client/src/runtime/getPrismaClient.ts`.
+    - `serializeJsonQuery()` builds the protocol object; `ClientEngine.request()` then calls `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, `getSingleQueryCacheKey()`, and `QueryPlanCache.getSingle()`.
+    - The Wasm compiler ABI remains string-based: `packages/client-common/src/QueryCompiler.ts` exposes `compile(request: string)` / `compileBatch(batchRequest: string)`, while `query-compiler-wasm/src/compiler.rs` parses the string into `JsonBody`, owned maps, `serde_json::Value`, and then owned protocol/query IR structures.
+  - `serde_wasm_bindgen` assessment:
+    - A `compileFromValue(JsValue)` / `tsify::serde_wasm_bindgen::from_value(request)` entrypoint is low-ceiling for the current objective.
+    - It removes request stringify/deserialization on compile misses but still builds Rust-owned `JsonBody` maps and `serde_json::Value` before validation and parsing.
+    - It does nothing for hot cache hits, and the current cache still needs structural identity unless the architecture changes.
+  - Recommended first proof:
+    - Keep hot cache hits out of Wasm entirely.
+    - Learn through the current slow path once, then store a cached single-plan handle plus a descriptor-bound placeholder extractor.
+    - On exact generated `findMany` descriptor hits, pass the original JS args to the extractor and call a `RequestHandler` / `ClientEngine` surface with `{ handle, placeholderValues }`, not `protocolQuery`.
+    - `ClientEngine` should retrieve the cached JS plan by handle/key and execute it directly, falling back to the current protocol path on any mismatch or unsupported context.
+  - Initial guardrails:
+    - Local adapter, non-transactional, non-batchable read actions first.
+    - Empty `dataPath`, no `unpacker`, no raw queries, no extensions, no global omit, no SQL commenters, no query instrumentation/tracing/debug, no Accelerate/remote path.
+    - Keep `findUnique` and batching out of the first slice; batchable paths need DataLoader semantics, precomputed batch ids, placeholder reuse/order, and query count parity before productization.
+  - Success/reject gate:
+    - Benchmark with `client-engine-cache-timing.ts` generated rows and `workerd-query-compiler-memory.ts` generated `findMany users` rows.
+    - Reject if the handle-only exact `findMany` hit path is not at least about 10% faster than current request-precomputed/direct cached-result rows on Node or Workerd, or if descriptors retain plan objects outside `QueryPlanCache` eviction lifetime.
+  - Decision:
+    - Carry forward as the next serious JS-owned-query architecture proof point. This is a better wedge than replacing string JSON with `serde_wasm_bindgen`, because it can remove protocol serialization, cache-key work, Rust-owned request maps, and Wasm plan serialization from hot cache hits together.
+
 ## Useful Commands
 
 ```sh
