@@ -357,26 +357,6 @@ export class QueryPlanCache {
     }
 
     const record = value as Record<string, unknown>
-    if ((record.type === 'query' || record.type === 'execute') && inJoinChild && 'args' in record) {
-      record.args = this.#internQuery(record.args, counts)
-      return
-    }
-
-    if (record.type === 'join') {
-      const args = record.args as Record<string, unknown> | undefined
-      if (args !== undefined) {
-        this.#internSharedQueriesInner(args.parent, inJoinChild, counts)
-        const children = args.children
-        if (Array.isArray(children)) {
-          for (let i = 0; i < children.length; i++) {
-            const child = children[i] as { child?: unknown }
-            this.#internSharedQueriesInner(child.child, true, counts)
-          }
-        }
-      }
-      return
-    }
-
     for (const key of Object.keys(record)) {
       this.#internSharedQueriesInner(record[key], inJoinChild, counts)
     }
@@ -448,15 +428,6 @@ export class QueryPlanCache {
     }
 
     const record = value as Record<string, unknown>
-    if (record.type === 'dataMap') {
-      const args = record.args as Record<string, unknown> | undefined
-      if (args !== undefined) {
-        this.#internNestedResultNodesInner(args.expr, counts)
-        args.structure = this.#internResultNode(args.structure, true, counts)
-      }
-      return
-    }
-
     for (const key of Object.keys(record)) {
       this.#internNestedResultNodesInner(record[key], counts)
     }
@@ -481,14 +452,6 @@ export class QueryPlanCache {
 
     if (typeof value === 'object' && value !== null) {
       const record = value as Record<string, unknown>
-      if (record.type === 'object' && isRecord(record.fields)) {
-        const fields = record.fields
-        for (const key of Object.keys(fields)) {
-          fields[key] = this.#internResultNode(fields[key], false, counts)
-        }
-        return isRoot ? value : (this.#internResultNodeValue(value, counts) as T)
-      }
-
       for (const key of Object.keys(record)) {
         record[key] = this.#internResultNode(record[key], false, counts)
       }
@@ -631,10 +594,6 @@ function shouldInternStrings(value: unknown): boolean {
   }
 
   if (typeof value === 'object' && value !== null) {
-    if ((value as { type?: unknown }).type === 'join') {
-      return true
-    }
-
     for (const key of Object.keys(value)) {
       if (shouldInternStrings((value as Record<string, unknown>)[key])) {
         return true

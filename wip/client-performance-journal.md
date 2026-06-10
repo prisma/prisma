@@ -11195,6 +11195,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - This higher-iteration target-runtime refresh confirms the latest default nested Worker host-dispatch row is in the same band as the 5k smoke (`11.60` -> `11.50` us/op) and remains about 3.9x faster than the early 44.40 us/op calibrated baseline.
     - The static/exact descriptor helper rows are mixed between stable and alternating shapes, so future descriptor productization still needs stable-shape, alternating-shape, batched, and Workerd gates before keeping any broader helper work.
 
+- Accepted cleanup: remove stale object-shaped query-plan cache walkers.
+  - Timestamp: 2026-06-10.
+  - Trigger:
+    - Explorer `Bernoulli` (`019eb296-75e9-7592-a2cf-213621009dc5`) found old object-shaped query/execute/join/dataMap branches still present in `QueryPlanCache` interning after the runtime query-plan type became compact-only.
+  - Patch:
+    - Removed `record.type === 'query' | 'execute'`, `record.type === 'join'`, `record.type === 'dataMap'`, legacy result-object `record.type === 'object'`, and old `shouldInternStrings()` object-join checks from `packages/client/src/runtime/core/engines/client/query-plan-cache.ts`.
+    - Kept generic object traversal for maps that still legitimately occur inside compact plans, such as field maps, enum maps, and scalar/value objects.
+  - Verification:
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`: blog-page node warm 4.48 MiB, blog-page parameterized node warm 4.70 MiB, both in the recent 4.47/4.69-4.70 MiB band.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 2287.31 us/op.
+  - Decision:
+    - Keep. This removes unreachable old-format compatibility branches from cache-entry preparation with passing cache coverage and neutral-to-healthy memory/timing evidence.
+
 ## Useful Commands
 
 ```sh
