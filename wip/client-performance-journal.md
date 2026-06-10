@@ -10843,6 +10843,52 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. The short 300k pair was noisy/slightly negative, but the longer adjacent pair was positive and the restored patch stayed in band. This also completes the requested removal of old-format internal expression compatibility.
     - Remaining legacy old/new internal query-plan format cleanup debt from the compacting series: none known for expression nodes, support structures, result objects, PrismaValue internals, SQL template fragments, or validation structures. Future work should move back to higher-ceiling architecture leads: JS-owned request walking/fused parameterization, generated descriptor-bound matchers, and Rust query-compiler ownership/arena work.
 
+- Measured nested generated cache-hit gap after the compact-only cleanup series.
+  - Timestamp: 2026-06-10.
+  - Command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - Key rows from the clean baseline:
+    - `generated client blog page / nested rows warmed cache`: 11.75 us/op.
+    - `generated client engine precomputed fast path blog page / nested rows warmed cache`: 10.52 us/op.
+    - `generated client request precomputed fast path blog page / nested rows warmed cache`: 11.43 us/op.
+    - `generated client descriptor-bound static matcher blog page / nested rows warmed cache`: 10.41 us/op.
+    - `generated client exact descriptor helper blog page / nested rows warmed cache`: 10.21 us/op.
+    - `cached request wrapper static descriptor blog page / nested rows`: 8.10 us/op.
+    - `cached request wrapper lazy descriptor blog page / nested rows`: 9.42 us/op.
+    - `direct plan blog page / nested rows`: 6.55 us/op; `direct plan after phase warmup`: 6.90 us/op.
+    - `raw result-set compact node blog page / nested rows`: 6.27 us/op.
+    - `raw result-set static-wave writer program blog page / nested rows`: 3.82 us/op.
+  - Interpretation:
+    - A cached-plan handle that only removes `QueryPlanCache.getSingle()` has a very low ceiling: `cached request wrapper static shape` was 6.92 us/op versus direct plan at 6.55 us/op, so the recoverable cache-lookup/response-wrapper slice is only a few tenths of a microsecond.
+    - Static descriptor extraction is still about 1.2 us/op, lazy descriptor extraction about 2.4 us/op, and generated-client exact-helper rows remain about 2 us/op above the direct cached-wrapper static descriptor row.
+    - The largest remaining nested-read headroom is still raw-nested result execution: compact node around 6.3 us/op versus static-wave writer around 3.8 us/op.
+
+- Rejected experiment: fixed-count direct raw-nested row mapper unroll.
+  - Timestamp: 2026-06-10.
+  - Hypothesis:
+    - `compileRawNestedRowMapper()` currently loops over field mappings for every row even when mappings are already numeric/direct and conversion-free. Unrolling common fixed field counts could reduce generic row mapping overhead and move compact `n` nodes toward the static-wave writer lower bound without changing the internal format.
+  - Patch:
+    - Added `compileFixedRawNestedRowMapper()` for direct mapping lengths 0-4 in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+  - Timing evidence:
+    - Adjacent clean baseline from the 300k command above:
+      - `generated client blog page`: 11.75 us/op.
+      - `generated client exact descriptor helper`: 10.21 us/op.
+      - `cached request wrapper static descriptor`: 8.10 us/op.
+      - `cached request wrapper lazy descriptor`: 9.42 us/op.
+      - `direct plan`: 6.55 us/op.
+      - `raw result-set compact node`: 6.27 us/op.
+      - `raw result-set exact compact node`: 6.71 us/op.
+    - Patched 300k rerun:
+      - `generated client blog page`: 12.27 us/op.
+      - `generated client exact descriptor helper`: 10.78 us/op.
+      - `cached request wrapper static descriptor`: 8.52 us/op.
+      - `cached request wrapper lazy descriptor`: 9.85 us/op.
+      - `direct plan`: 7.14 us/op.
+      - `raw result-set compact node`: 6.33 us/op.
+      - `raw result-set exact compact node`: 6.45 us/op.
+  - Decision:
+    - Revert. The patch did not materially improve the compact node and regressed the generated/direct-wrapper rows that matter for the product path. Future row-writer work needs a more structural static-wave/final-owner writer shape; mapper-loop unrolling alone is not enough.
+
 ## Useful Commands
 
 ```sh
