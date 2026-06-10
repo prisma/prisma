@@ -20,11 +20,9 @@ test('uses a per-run generator snapshot for now calls', async () => {
       { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
     ],
   } satisfies QueryPlanNode
-
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
   const second = (await interpreter.run(plan, runtimeOptions)) as string[]
-
   expect(first[0]).toBe(first[1])
   expect(second[0]).toBe(second[1])
   expect(first[0]).not.toBe(second[0])
@@ -33,11 +31,9 @@ test('uses a per-run generator snapshot for now calls', async () => {
 test('uses a per-run generator snapshot for compact now calls', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = ['v', [{ $g: ['now', []] }, { $g: ['now', []] }]] satisfies QueryPlanNode
-
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
   const second = (await interpreter.run(plan, runtimeOptions)) as string[]
-
   expect(first[0]).toBe(first[1])
   expect(second[0]).toBe(second[1])
   expect(first[0]).not.toBe(second[0])
@@ -49,7 +45,6 @@ test('uses built-in generators without a snapshot when now is absent', async () 
     type: 'value',
     args: { $g: ['product', [1, [2, 3]]] },
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     [1, 2],
     [1, 3],
@@ -60,16 +55,8 @@ test('applies SQL comments without query instrumentation', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
     type: 'query',
-    args: {
-      type: 'templateSql',
-      fragments: [{ type: 'stringChunk', chunk: 'SELECT 1' }],
-      placeholderFormat: { prefix: '?', hasNumbering: false },
-      args: [],
-      argTypes: [],
-      chunkable: false,
-    },
+    args: [['SELECT 1'], ['?', false], [], [], false],
   } satisfies QueryPlanNode
-
   let observedQuery: SqlQuery | undefined
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -82,7 +69,6 @@ test('applies SQL comments without query instrumentation', async () => {
       return Promise.resolve(0)
     },
   }
-
   await interpreter.run(plan, {
     ...runtimeOptions,
     queryable,
@@ -91,7 +77,6 @@ test('applies SQL comments without query instrumentation', async () => {
       queryInfo: { type: 'single', modelName: 'User', action: 'findMany', query: {} },
     },
   })
-
   expect(observedQuery?.sql).toBe("SELECT 1 /*source='test'*/")
 })
 
@@ -99,10 +84,7 @@ test('interprets compact expression nodes', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = [
     'd',
-    [
-      'u',
-      ['q', [['SELECT id, type FROM users WHERE id = ', { type: 'parameter' }], ['?', false], [1], ['int'], false]],
-    ],
+    ['u', ['q', [['SELECT id, type FROM users WHERE id = ', null], ['?', false], [1], ['int'], false]]],
     [
       null,
       {
@@ -112,7 +94,6 @@ test('interprets compact expression nodes', async () => {
     ],
     {},
   ] satisfies QueryPlanNode
-
   let observedQuery: SqlQuery | undefined
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -129,7 +110,6 @@ test('interprets compact expression nodes', async () => {
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({ id: 1, type: 'admin' })
   expect(observedQuery).toEqual({
     sql: 'SELECT id, type FROM users WHERE id = ?',
@@ -141,7 +121,6 @@ test('interprets compact expression nodes', async () => {
 test('interprets compact binding tuples', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = ['l', [['record', ['v', { id: 1, name: 'Alice' }]]], ['g', 'record']] satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual({ id: 1, name: 'Alice' })
 })
 
@@ -173,7 +152,6 @@ test('joins single strict keys without scalar key collisions', async () => {
       canAssumeStrictEquality: true,
     },
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
     { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
@@ -205,7 +183,6 @@ test('interprets compact join tuples', async () => {
     ],
     true,
   ] satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
     { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
@@ -213,7 +190,6 @@ test('interprets compact join tuples', async () => {
     { id: 'null', children: [{ parentId: 'null', value: 'string-null' }] },
   ])
 })
-
 function emptyResultSet(): SqlResultSet {
   return {
     columnNames: [],
