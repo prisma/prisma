@@ -10756,6 +10756,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. The first compact-only shape was measurably worse and was adjusted before commit; the tuned shape is neutral on render-only, positive on the broader direct-plan row, and removes another internal dual-format branch.
     - Remaining dual-format internal cleanup debt: expression nodes, bindings/joins, validation rules/errors, and result object nodes.
 
+- Accepted cleanup: remove legacy query-plan validation rule/error compatibility.
+  - Timestamp: 2026-06-10.
+  - Change:
+    - Removed object-shaped `LegacyDataRule` support from `packages/client-engine-runtime/src/query-plan.ts`; validation rules are now only `["=", count]`, `["!", count]`, `["a", count]`, or `"n"`.
+    - Narrowed `QueryPlanValidationErrorIdentifier` / `QueryPlanValidationErrorContext` to compact serialized forms and removed the `getValidationError()` pass-through for object-shaped validation errors.
+    - Removed legacy validation-rule/pass-through tests and updated `AGENTS.md` to mark validation rules/errors as compact-only internal data.
+    - Verified the Rust producer serializes compact validation forms in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs` for `DataRule` and `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/expression.rs` for validation error identifiers/contexts.
+  - Verification:
+    - `pnpm exec prettier --write AGENTS.md packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/validation.test.ts`.
+    - Residual scan over `packages/client-engine-runtime/src`, `packages/client-engine-runtime/bench`, and query-performance probes found no legacy serialized validation rule/error fixture usage.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/validation.test.ts src/interpreter/query-interpreter.test.ts`: 26 tests passed.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Benchmark smoke:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` -> 8.54 us/op, in the recent direct-plan band.
+    - Interpretation: validation is not exercised by the normal cached blog-page read path; this benchmark is a product-path smoke, not evidence of a validation hot-path win.
+  - Decision:
+    - Keep. This removes dead internal compatibility, has direct producer evidence for compact-only serialization, passes focused tests/build, and does not disturb the current cached read hot-row band.
+    - Remaining dual-format internal cleanup debt: expression nodes, bindings/joins, and result object nodes.
+
 ## Useful Commands
 
 ```sh
