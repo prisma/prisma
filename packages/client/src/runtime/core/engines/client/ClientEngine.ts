@@ -1274,8 +1274,5 @@ function isRawQuery(query: JsonQuery): query is RawJsonQuery {
 function compileRawQuery(query: RawJsonQuery): QueryPlanNode {
   const sql = query.query.arguments.query
   const { args, argTypes } = deserializeRawParameters(query.query.arguments.parameters)
-  return {
-    type: query.action === 'queryRaw' ? 'query' : 'execute',
-    args: { type: 'rawSql', sql, args, argTypes },
-  }
+  return [query.action === 'queryRaw' ? 'q' : 'x', { type: 'rawSql', sql, args, argTypes }]
 }

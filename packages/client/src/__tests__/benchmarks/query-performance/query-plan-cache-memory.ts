@@ -10,7 +10,6 @@ import {
   isPrismaValuePlaceholder,
   parameterizeQuery,
   type QueryPlanBinding,
-  type QueryPlanCompactNode,
   type QueryPlanDbQuery,
   type QueryPlanNode,
   type RawNestedReadQuery,
@@ -443,146 +442,78 @@ function collectDbQueries(plan: QueryPlanNode | undefined, dbQueries: QueryPlanD
     return
   }
 
-  if (isCompactPlanNode(plan)) {
-    switch (plan[0]) {
-      case 'q':
-      case 'x':
-        dbQueries.push(plan[1])
-        return
-
-      case 'd':
-      case 'p':
-      case 'r':
-      case 'R':
-      case 't':
-      case 'u':
-        collectDbQueries(plan[1], dbQueries)
-        return
-
-      case 'm':
-        collectDbQueries(plan[2], dbQueries)
-        return
-
-      case 'j':
-        collectDbQueries(plan[1], dbQueries)
-        collectDbQueriesInCompactJoins(plan[2] as CompactJoinExpression[], dbQueries)
-        return
-
-      case 'n':
-        collectDbQueriesInRawNestedRead(plan[1], dbQueries)
-        return
-
-      case 'V':
-        collectDbQueries(plan[1], dbQueries)
-        return
-
-      case '?':
-        collectDbQueries(plan[1], dbQueries)
-        collectDbQueries(plan[3], dbQueries)
-        collectDbQueries(plan[4], dbQueries)
-        return
-
-      case '-':
-        collectDbQueries(plan[1], dbQueries)
-        collectDbQueries(plan[2], dbQueries)
-        return
-
-      case 'i':
-      case 'M':
-        collectDbQueries(plan[1], dbQueries)
-        return
-
-      case 's':
-      case '+':
-      case 'c':
-        for (const child of plan[1]) {
-          collectDbQueries(child, dbQueries)
-        }
-        return
-
-      case 'l':
-        for (const binding of plan[1] as QueryPlanBinding[]) {
-          collectDbQueries(getQueryPlanBindingExpr(binding), dbQueries)
-        }
-        collectDbQueries(plan[2], dbQueries)
-        return
-
-      case 'g':
-      case 'e':
-      case 'v':
-      case '0':
-        return
-
-      default:
-        throw new Error(`Expected compact query plan with DB queries, got ${plan[0]}`)
-    }
-  }
-
-  switch (plan.type) {
-    case 'query':
-    case 'execute':
-      dbQueries.push(plan.args)
+  switch (plan[0]) {
+    case 'q':
+    case 'x':
+      dbQueries.push(plan[1])
       return
 
-    case 'unique':
-    case 'required':
-    case 'reverse':
-    case 'transaction':
-      collectDbQueries(plan.args, dbQueries)
+    case 'd':
+    case 'p':
+    case 'r':
+    case 'R':
+    case 't':
+    case 'u':
+      collectDbQueries(plan[1], dbQueries)
       return
 
-    case 'dataMap':
-    case 'validate':
-    case 'process':
-    case 'mapRecord':
-      collectDbQueries(plan.args.expr, dbQueries)
+    case 'm':
+      collectDbQueries(plan[2], dbQueries)
       return
 
-    case 'mapField':
-      collectDbQueries(plan.args.records, dbQueries)
+    case 'j':
+      collectDbQueries(plan[1], dbQueries)
+      collectDbQueriesInCompactJoins(plan[2] as CompactJoinExpression[], dbQueries)
       return
 
-    case 'if':
-      collectDbQueries(plan.args.value, dbQueries)
-      collectDbQueries(plan.args.then, dbQueries)
-      collectDbQueries(plan.args.else, dbQueries)
+    case 'n':
+      collectDbQueriesInRawNestedRead(plan[1], dbQueries)
       return
 
-    case 'join':
-      collectDbQueries(plan.args.parent, dbQueries)
-      for (const join of plan.args.children) {
-        collectDbQueries('child' in join ? join.child : join[0], dbQueries)
-      }
+    case 'V':
+      collectDbQueries(plan[1], dbQueries)
       return
 
-    case 'seq':
-    case 'sum':
-    case 'concat':
-      for (const child of plan.args) {
+    case '?':
+      collectDbQueries(plan[1], dbQueries)
+      collectDbQueries(plan[3], dbQueries)
+      collectDbQueries(plan[4], dbQueries)
+      return
+
+    case '-':
+      collectDbQueries(plan[1], dbQueries)
+      collectDbQueries(plan[2], dbQueries)
+      return
+
+    case 'i':
+    case 'M':
+      collectDbQueries(plan[1], dbQueries)
+      return
+
+    case 's':
+    case '+':
+    case 'c':
+      for (const child of plan[1]) {
         collectDbQueries(child, dbQueries)
       }
       return
 
-    case 'let':
-      for (const binding of plan.args.bindings) {
-        collectDbQueries('expr' in binding ? binding.expr : binding[1], dbQueries)
+    case 'l':
+      for (const binding of plan[1] as QueryPlanBinding[]) {
+        collectDbQueries(getQueryPlanBindingExpr(binding), dbQueries)
       }
-      collectDbQueries(plan.args.expr, dbQueries)
+      collectDbQueries(plan[2], dbQueries)
       return
 
-    case 'value':
-    case 'get':
-    case 'getFirstNonEmpty':
-    case 'unit':
+    case 'g':
+    case 'e':
+    case 'v':
+    case '0':
       return
 
     default:
-      throw new Error(`Expected query plan with DB queries, got ${plan['type']}`)
+      throw new Error(`Expected compact query plan with DB queries, got ${plan[0]}`)
   }
-}
-
-function isCompactPlanNode(plan: QueryPlanNode): plan is QueryPlanCompactNode {
-  return Array.isArray(plan)
 }
 
 function createRenderScope(

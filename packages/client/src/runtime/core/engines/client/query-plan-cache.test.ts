@@ -1,7 +1,9 @@
-import type { QueryPlanNode } from '@prisma/client-engine-runtime'
+import type { PrismaValue, QueryPlanNode } from '@prisma/client-engine-runtime'
 
 import { QueryPlanCache } from './query-plan-cache'
 import { getQueryPlanCacheMaxSize } from './query-plan-cache-size'
+
+const valuePlan = (value: PrismaValue): QueryPlanNode => ['v', value]
 
 const originalTargetBuildType = (globalThis as any).TARGET_BUILD_TYPE
 
@@ -47,7 +49,7 @@ describe('QueryPlanCache', () => {
   describe('single cache', () => {
     it('stores and retrieves entries', () => {
       const cache = new QueryPlanCache()
-      const plan = { type: 'value' as const, args: null }
+      const plan = valuePlan(null)
 
       cache.setSingle('key1', plan)
       const retrieved = cache.getSingle('key1')
@@ -63,8 +65,8 @@ describe('QueryPlanCache', () => {
 
     it('updates existing entries', () => {
       const cache = new QueryPlanCache()
-      const plan1 = { type: 'value' as const, args: null }
-      const plan2 = { type: 'value' as const, args: { test: true } }
+      const plan1 = valuePlan(null)
+      const plan2 = valuePlan({ test: true })
 
       cache.setSingle('key', plan1)
       cache.setSingle('key', plan2)
@@ -75,9 +77,9 @@ describe('QueryPlanCache', () => {
 
     it('evicts oldest entry when at capacity', () => {
       const cache = new QueryPlanCache(2)
-      const plan1 = { type: 'value' as const, args: 1 }
-      const plan2 = { type: 'value' as const, args: 2 }
-      const plan3 = { type: 'value' as const, args: 3 }
+      const plan1 = valuePlan(1)
+      const plan2 = valuePlan(2)
+      const plan3 = valuePlan(3)
 
       cache.setSingle('key1', plan1)
       cache.setSingle('key2', plan2)
@@ -91,9 +93,9 @@ describe('QueryPlanCache', () => {
 
     it('refreshes entry on get (LRU behavior)', () => {
       const cache = new QueryPlanCache(2)
-      const plan1 = { type: 'value' as const, args: 1 }
-      const plan2 = { type: 'value' as const, args: 2 }
-      const plan3 = { type: 'value' as const, args: 3 }
+      const plan1 = valuePlan(1)
+      const plan2 = valuePlan(2)
+      const plan3 = valuePlan(3)
 
       cache.setSingle('key1', plan1)
       cache.setSingle('key2', plan2)
@@ -111,8 +113,8 @@ describe('QueryPlanCache', () => {
 
     it('clears repeated-hit single entries after eviction', () => {
       const cache = new QueryPlanCache(1)
-      const plan1 = { type: 'value' as const, args: 1 }
-      const plan2 = { type: 'value' as const, args: 2 }
+      const plan1 = valuePlan(1)
+      const plan2 = valuePlan(2)
 
       cache.setSingle('key1', plan1)
       expect(cache.getSingle('key1')).toBe(plan1)
@@ -246,10 +248,7 @@ describe('QueryPlanCache', () => {
       const cache = new QueryPlanCache()
       const response = {
         type: 'multi' as const,
-        plans: [
-          { type: 'value' as const, args: null },
-          { type: 'value' as const, args: null },
-        ],
+        plans: [valuePlan(null), valuePlan(null)],
       }
 
       cache.setBatch('batchKey', response)
@@ -260,8 +259,8 @@ describe('QueryPlanCache', () => {
 
     it('stores individual plans from eligible multi batch entries', () => {
       const cache = new QueryPlanCache(4)
-      const plan1 = { type: 'value' as const, args: 'first' }
-      const plan2 = { type: 'value' as const, args: 'second' }
+      const plan1 = valuePlan('first')
+      const plan2 = valuePlan('second')
       const response = {
         type: 'multi' as const,
         plans: [plan1, plan2],
@@ -280,8 +279,8 @@ describe('QueryPlanCache', () => {
 
     it('skips individual plans from multi batch entries when they do not fit the cache size', () => {
       const cache = new QueryPlanCache(2)
-      const plan1 = { type: 'value' as const, args: 'first' }
-      const plan2 = { type: 'value' as const, args: 'second' }
+      const plan1 = valuePlan('first')
+      const plan2 = valuePlan('second')
       const response = {
         type: 'multi' as const,
         plans: [plan1, plan2],
@@ -308,7 +307,7 @@ describe('QueryPlanCache', () => {
       const cache = new QueryPlanCache()
       const response = {
         type: 'compacted' as const,
-        plan: { type: 'value' as const, args: null },
+        plan: valuePlan(null),
         arguments: [{ id: 1 }, { id: 2 }],
         nestedSelection: ['name', 'email'],
         keys: ['id'],
@@ -325,7 +324,7 @@ describe('QueryPlanCache', () => {
     it('updates existing batch entries', () => {
       const cache = new QueryPlanCache()
       const response1 = { type: 'multi' as const, plans: [] }
-      const response2 = { type: 'multi' as const, plans: [{ type: 'value' as const, args: null }] }
+      const response2 = { type: 'multi' as const, plans: [valuePlan(null)] }
 
       cache.setBatch('key', response1)
       cache.setBatch('key', response2)
@@ -338,7 +337,7 @@ describe('QueryPlanCache', () => {
       const cache = new QueryPlanCache(2)
       const makeResponse = (id: number) => ({
         type: 'multi' as const,
-        plans: [{ type: 'value' as const, args: id }],
+        plans: [valuePlan(id)],
       })
 
       cache.setBatch('key1', makeResponse(1))
@@ -355,7 +354,7 @@ describe('QueryPlanCache', () => {
       const cache = new QueryPlanCache(2)
       const makeResponse = (id: number) => ({
         type: 'multi' as const,
-        plans: [{ type: 'value' as const, args: id }],
+        plans: [valuePlan(id)],
       })
 
       cache.setBatch('key1', makeResponse(1))
@@ -376,7 +375,7 @@ describe('QueryPlanCache', () => {
       const cache = new QueryPlanCache(1)
       const makeResponse = (id: number) => ({
         type: 'multi' as const,
-        plans: [{ type: 'value' as const, args: id }],
+        plans: [valuePlan(id)],
       })
       const response1 = makeResponse(1)
       const response2 = makeResponse(2)
@@ -396,8 +395,8 @@ describe('QueryPlanCache', () => {
     it('maintains separate caches for single and batch entries', () => {
       const cache = new QueryPlanCache()
 
-      const plan = { type: 'value' as const, args: 'single' }
-      const response = { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch' }] }
+      const plan = valuePlan('single')
+      const response = { type: 'multi' as const, plans: [valuePlan('batch')] }
 
       cache.setSingle('sharedKey', plan)
       cache.setBatch('sharedKey', response)
@@ -409,8 +408,8 @@ describe('QueryPlanCache', () => {
     it('reports combined size', () => {
       const cache = new QueryPlanCache()
 
-      cache.setSingle('single1', { type: 'value' as const, args: null })
-      cache.setSingle('single2', { type: 'value' as const, args: null })
+      cache.setSingle('single1', valuePlan(null))
+      cache.setSingle('single2', valuePlan(null))
       cache.setBatch('batch1', { type: 'multi' as const, plans: [] })
 
       expect(cache.singleCacheSize).toBe(2)
@@ -421,9 +420,9 @@ describe('QueryPlanCache', () => {
     it('evicts the oldest entry across single and batch caches', () => {
       const cache = new QueryPlanCache(2)
 
-      cache.setSingle('single1', { type: 'value' as const, args: 'single1' })
-      cache.setBatch('batch1', { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch1' }] })
-      cache.setSingle('single2', { type: 'value' as const, args: 'single2' })
+      cache.setSingle('single1', valuePlan('single1'))
+      cache.setBatch('batch1', { type: 'multi' as const, plans: [valuePlan('batch1')] })
+      cache.setSingle('single2', valuePlan('single2'))
 
       expect(cache.getSingle('single1')).toBeUndefined()
       expect(cache.getBatch('batch1')).toBeDefined()
@@ -434,11 +433,11 @@ describe('QueryPlanCache', () => {
     it('refreshes entries across single and batch caches on get', () => {
       const cache = new QueryPlanCache(2)
 
-      cache.setSingle('single1', { type: 'value' as const, args: 'single1' })
-      cache.setBatch('batch1', { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch1' }] })
+      cache.setSingle('single1', valuePlan('single1'))
+      cache.setBatch('batch1', { type: 'multi' as const, plans: [valuePlan('batch1')] })
 
       cache.getSingle('single1')
-      cache.setBatch('batch2', { type: 'multi' as const, plans: [{ type: 'value' as const, args: 'batch2' }] })
+      cache.setBatch('batch2', { type: 'multi' as const, plans: [valuePlan('batch2')] })
 
       expect(cache.getSingle('single1')).toBeDefined()
       expect(cache.getBatch('batch1')).toBeUndefined()
@@ -449,7 +448,7 @@ describe('QueryPlanCache', () => {
     it('does not store entries when max size is zero', () => {
       const cache = new QueryPlanCache(0)
 
-      cache.setSingle('single', { type: 'value' as const, args: null })
+      cache.setSingle('single', valuePlan(null))
       cache.setBatch('batch', { type: 'multi' as const, plans: [] })
 
       expect(cache.getSingle('single')).toBeUndefined()
@@ -460,7 +459,7 @@ describe('QueryPlanCache', () => {
     it('clears both caches', () => {
       const cache = new QueryPlanCache()
 
-      cache.setSingle('single', { type: 'value' as const, args: null })
+      cache.setSingle('single', valuePlan(null))
       cache.setBatch('batch', { type: 'multi' as const, plans: [] })
 
       cache.clear()

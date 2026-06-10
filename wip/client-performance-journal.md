@@ -10818,7 +10818,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - 300k reapply smoke after restoring the patch: 6.76 us/op.
   - Decision:
     - Keep. This is not a standalone timing win, but it is neutral on the cached nested read hot row, removes another dead internal compatibility path, and matches the version-lockstep internal format rule.
-    - Remaining dual-format internal cleanup debt: expression nodes.
+    - Remaining dual-format internal cleanup debt after this commit: expression nodes.
+
+- Accepted cleanup: remove legacy query-plan expression-node objects.
+  - Timestamp: 2026-06-10.
+  - Change:
+    - Removed the object-shaped `QueryPlanLegacyNode` union from `packages/client-engine-runtime/src/query-plan.ts`; `QueryPlanNode` is now `QueryPlanCompactNode`.
+    - Removed the legacy expression-node switch from `QueryInterpreter.interpretNode()` and made compiled compact-node dispatch the only runtime path.
+    - Converted remaining object-shaped expression fixtures in `query-interpreter.test.ts`, `batch.test.ts`, `packages/client-engine-runtime/bench/sample-query-plans.ts`, `ClientEngine.compileRawQuery()`, and `query-plan-cache.test.ts`.
+    - Removed legacy expression-node traversal from `client-engine-cache-timing.ts` and `query-plan-cache-memory.ts` helper walkers.
+    - Verified the Rust producer serializes compact expression tuples in `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/expression.rs`: `impl Serialize for Expression` writes tagged tuples for all expression variants.
+  - Verification:
+    - Residual scan over `packages/client-engine-runtime/src`, `packages/client-engine-runtime/bench`, `packages/client/src/runtime/core/engines/client`, and query-performance probes found no object-shaped expression readers or fixtures. The only remaining `type: 'value'` hit is `FieldInitializer`, not a query-plan expression node.
+    - `pnpm --filter @prisma/client-engine-runtime test`: 249 tests passed.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+    - `pnpm --filter @prisma/client build` passed after converting client fallback/test fixtures to compact plans.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: 28 tests passed.
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`: `blog page / node default warm` 4.47 MiB and `blog page parameterized / node default warm` 4.69 MiB, in the current retained-memory band.
+  - Timing evidence:
+    - 300k patched/control direct-plan rows: 6.87 / 6.80 us/op.
+    - 1M patched/control direct-plan pair with `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 6.34 / 6.54 us/op.
+    - 300k reapply smoke after restoring the patch: 6.71 us/op.
+  - Decision:
+    - Keep. The short 300k pair was noisy/slightly negative, but the longer adjacent pair was positive and the restored patch stayed in band. This also completes the requested removal of old-format internal expression compatibility.
+    - Remaining legacy old/new internal query-plan format cleanup debt from the compacting series: none known for expression nodes, support structures, result objects, PrismaValue internals, SQL template fragments, or validation structures. Future work should move back to higher-ceiling architecture leads: JS-owned request walking/fused parameterization, generated descriptor-bound matchers, and Rust query-compiler ownership/arena work.
 
 ## Useful Commands
 
