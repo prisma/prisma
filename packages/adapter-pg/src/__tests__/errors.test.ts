@@ -33,11 +33,41 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle UniqueConstraintViolation (23505)', () => {
+  it('should handle UniqueConstraintViolation (23505) with detail only', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)' }
     expect(convertDriverError(error)).toEqual({
       kind: 'UniqueConstraintViolation',
       constraint: { fields: ['id'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', constraint: 'users_email_partial_idx' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_email_partial_idx' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with both constraint and detail (constraint wins)', () => {
+    // Two unique constraints can share key columns (e.g. a full unique on
+    // `(user_id, account_id)` and a partial unique on `(account_id)
+    // WHERE role = 'owner'`); the constraint name is the only signal that
+    // disambiguates which one fired, so we prefer it over the parsed columns.
+    const error = {
+      code: '23505',
+      message: 'msg',
+      severity: 'ERROR',
+      constraint: 'users_email_partial_idx',
+      detail: 'Key (email)',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_email_partial_idx' },
       originalCode: error.code,
       originalMessage: error.message,
     })
