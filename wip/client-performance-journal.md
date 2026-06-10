@@ -11113,6 +11113,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. It is a small memory/compile-shape cleanup with neutral hot-row timing and no internal-format compatibility cost.
 
+- Rejected experiment: inline final-owner scalar conversion in the row writer.
+  - Timestamp: 2026-06-10.
+  - Patch:
+    - Inlined the `mapRawNestedFieldValue()` fast cases inside `tryCompileRawNestedFinalOwnerRowWriter()` so the final-owner row writer could avoid a helper call per mapped field.
+    - Preserved the existing generic `mapRawFieldValue()` fallback for non-fast values.
+  - Initial patched smoke:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 250 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `direct plan after phase warmup blog page / nested rows`: 5.34 us/op.
+    - `generated client blog page / nested rows warmed cache`: 11.34 us/op.
+  - Close reverted control:
+    - `direct plan after phase warmup blog page / nested rows`: 5.33 us/op.
+    - `generated client blog page / nested rows warmed cache`: 10.71 us/op.
+  - Decision:
+    - Reject/revert. The direct row was neutral and the product-shaped generated row was better on the reverted control. Do not inline final-owner scalar conversion as a standalone cleanup without a stronger shape-specific codegen hypothesis.
+
 ## Useful Commands
 
 ```sh
