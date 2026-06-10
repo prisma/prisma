@@ -1,4 +1,4 @@
-import type { ArgScalarType, ArgType, Arity } from '@prisma/driver-adapter-utils'
+import type { ArgType, Arity } from '@prisma/driver-adapter-utils'
 
 export type PrismaValuePlaceholder = { $p: readonly [name: string, type: string] }
 
@@ -97,11 +97,11 @@ export type QueryPlanCompactTemplateSql = readonly [
 
 export type CompactArgScalarType = 's' | 'i' | 'I' | 'f' | 'd' | 'b' | 'e' | 'u' | 'j' | 'D' | 'B' | '?'
 
-export type QueryPlanArgScalarType = ArgScalarType | CompactArgScalarType
+export type QueryPlanArgScalarType = CompactArgScalarType
 
 export type QueryPlanArgType = QueryPlanArgScalarType | CompactNativeArgType | ArgType
 
-export type CompactNativeArgType = readonly [scalarType: QueryPlanArgScalarType, dbType: string]
+export type CompactNativeArgType = readonly [scalarType: CompactArgScalarType, dbType: string]
 
 export type DynamicArgType = QueryPlanArgType | { arity: 'tuple'; elements: QueryPlanArgType[] }
 

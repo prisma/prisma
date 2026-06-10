@@ -11255,14 +11255,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Explorer:
     - `Chandrasekhar` (`019eb2ab-44f2-7f42-a709-8df8cb1de17a`) did a read-only scan for old/new internal compatibility branches that were not part of the already-deleted compact-plan families.
   - Candidates:
-    - `packages/client-engine-runtime/src/interpreter/render-query.ts`: canonical scalar arg type names in template-SQL rendering may be dead for compiled template SQL, while raw queries still use full `ArgType` objects through `ClientEngine.compileRawQuery()`.
     - `packages/client-engine-runtime/src/interpreter/data-mapper.ts`: legacy object field-result nodes and canonical scalar fallbacks may be fixture-only, but enum/bytes/list/db-name producer coverage is missing.
   - Completed from this scout:
     - `packages/client-engine-runtime/src/batch.ts`: JSON-protocol `{ $type: 'Param' }` placeholder support in batch response argument helpers was removed after proving `compileBatch()` emits compact `$p` placeholders.
     - `packages/client-engine-runtime/src/query-plan.ts` / `query-interpreter.ts`: raw-nested string column refs and missing raw-nested mapping `fieldType` fallback were removed after proving current providers/actions emit numeric refs with field types.
+    - `packages/client-engine-runtime/src/interpreter/render-query.ts`: canonical scalar arg type names in compact template SQL were removed after proving compiled template SQL uses compact scalar strings/native tuples, while raw queries still use full `ArgType` objects through `ClientEngine.compileRawQuery()`.
   - Required proof before deletion:
     - Add a temporary producer-shape scan over representative `compile()` / `compileBatch()` queries for sqlite, postgres, and mysql.
-    - Assert no canonical scalar strings in compiled template SQL/result mappings and no producer coverage gaps for any remaining data-mapper legacy object/canonical support before deleting those families.
+    - Assert no producer coverage gaps for any remaining data-mapper legacy object/canonical support before deleting that family.
     - Then prune one family at a time with `@prisma/client-engine-runtime` tests/build, `query-plan-cache.test.ts`, and focused cache timing rows.
   - Guardrail:
     - Do not remove `QueryPlanRawSql` object handling; `$queryRaw` / `$executeRaw` still construct it directly in `ClientEngine.compileRawQuery()`.
@@ -11348,6 +11348,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Updated the raw-nested section and status paragraph with the 5.67 us/op direct row and 10.91 us/op generated row.
   - Decision:
     - Keep the report as the current intermediate performance checkpoint. The latest Node nested generated-client row is about 4.8x faster than the original generated-client cleanup baseline.
+
+- Accepted cleanup: remove canonical compact SQL arg scalar names.
+  - Timestamp: 2026-06-10.
+  - Producer-shape scan:
+    - Reused the 2026-06-10 representative sqlite/postgres/mysql scans and full PostgreSQL fixture-corpus scan.
+    - Representative scans had canonical arg scalar strings 0 in compiled template SQL/result mappings. SQLite emitted compact arg type strings `i` 16 and `I` 14. PostgreSQL emitted compact/native strings `i` 10, `I` 14, and native db type `INTEGER` 10. MySQL emitted compact/native strings `i` 10, `I` 8, and native db type `INT` 10.
+    - Full PostgreSQL fixture-corpus scan had compactArgTypeStrings 281 and canonicalArgTypeStrings 0. Raw `$queryRaw` / `$executeRaw` remains object-shaped through `QueryPlanRawSql` and `ClientEngine.compileRawQuery()`.
+  - Patch:
+    - Changed `QueryPlanArgScalarType` to `CompactArgScalarType` in `packages/client-engine-runtime/src/query-plan.ts`.
+    - Removed canonical scalar-string keys such as `int`, `string`, and `datetime` from `SCALAR_ARG_TYPES` / `SCALAR_ARG_TYPE_NAMES` in `render-query.ts`.
+    - Updated compact template SQL render-query and query-interpreter fixtures from canonical scalar strings to compact tags such as `i` and `s`. Full `ArgType` object tests remain unchanged.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/render-query.test.ts`: passed, 249 tests under the package's test filter behavior.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - Adjacent kept baseline after required raw-nested field types: direct blog-page nested row 5.67 us/op and generated-client blog-page nested row 10.91 us/op.
+    - First patched direct run was a warmup/noise outlier at 6.19 us/op; repeat `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`: 5.56 us/op, `queryRaw=2100000`.
+    - Patched generated runs: 11.01 us/op then 10.66 us/op for `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`, `queryRaw=700000`.
+  - Decision:
+    - Keep. This removes another internal old-format spelling from compact template SQL. Full raw-query `ArgType` objects remain supported at the external-ish raw SQL boundary; compact internal template SQL now uses compact scalar tags only.
+
+- Documentation refresh: intermediate report after compact-only SQL arg scalars.
+  - Timestamp: 2026-06-10.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Updated the headline Node generated blog-page warmed-cache row from 10.91 to 10.66 us/op.
+    - Added canonical compact SQL arg scalar names to the internal-format cleanup summary.
+    - Updated the raw-nested/current-status text with the latest 5.56 us/op direct repeat and 10.66 us/op generated repeat.
+  - Decision:
+    - Keep the report as the current intermediate performance checkpoint. The latest Node nested generated-client row is about 4.9x faster than the original generated-client cleanup baseline.
 
 ## Useful Commands
 

@@ -99,7 +99,7 @@ test('interprets compact expression nodes', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = [
     'd',
-    ['u', ['q', [['SELECT id, type FROM users WHERE id = ', null], ['?', false], [1], ['int'], false]]],
+    ['u', ['q', [['SELECT id, type FROM users WHERE id = ', null], ['?', false], [1], ['i'], false]]],
     [
       null,
       {
@@ -343,7 +343,7 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
     ['SELECT id, postId FROM Comment WHERE postId = ', null, ' AND tenantId = ', null],
     ['?', false],
     [{ $p: ['@parent$id', 'int'] }, { $p: ['%tenantId', 'int'] }],
-    ['int', 'int'],
+    ['i', 'i'],
     false,
   ] satisfies QueryPlanDbQuery
   const plan = [
@@ -577,7 +577,7 @@ test('interprets compact raw nested read wrapper relations', async () => {
     ['SELECT id, name FROM Tag WHERE id IN ', null, ' AND tenantId = ', null],
     ['?', false],
     [{ $p: ['@parent$tagId', 'int'] }, { $p: ['%tenantId', 'int'] }],
-    ['int', 'int'],
+    ['i', 'i'],
     false,
   ] satisfies QueryPlanDbQuery
   const plan = [
@@ -1254,7 +1254,7 @@ function emptyResultSet(): SqlResultSet {
   }
 }
 function templateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
-  return [[sqlPrefix, null], ['?', false], [arg], ['int'], false]
+  return [[sqlPrefix, null], ['?', false], [arg], ['i'], false]
 }
 function rejectingQueryable(): SqlQueryable {
   return {
