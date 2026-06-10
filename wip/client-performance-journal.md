@@ -10889,6 +10889,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The patch did not materially improve the compact node and regressed the generated/direct-wrapper rows that matter for the product path. Future row-writer work needs a more structural static-wave/final-owner writer shape; mapper-loop unrolling alone is not enough.
 
+- Lead: flattened raw-nested row-source/write graph.
+  - Timestamp: 2026-06-10.
+  - Source:
+    - Read-only subagent scout over `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `packages/client-engine-runtime/src/query-plan.ts`, the benchmark-only static-wave writer in `client-engine-cache-timing.ts`, and Rust raw-nested serialization.
+  - Observations:
+    - Current compact `n` is a recursive tree of `[query, fields, relations?]`. The runtime already has local fast paths for single rendered queries, sibling `Promise.all`, numeric/no-conversion row mapping, local relation scopes, and indexed attachment.
+    - The remaining overhead is structural: each query maps a full `records` array, wraps `{ rows, columnNames, records }`, then relation attach helpers scan or index those intermediate arrays.
+    - The benchmark static-wave writer is faster because it writes the final owner object graph directly from row sources through pre-shaped waves, without generic per-query result containers and generic relation attachment.
+    - Rust currently serializes direct raw-nested relations for the product path; the TS benchmark `m` relation is not a Rust producer shape to preserve. Per the internal version-lockstep rule, a successful product shape can replace the internal wire format outright rather than supporting old and new raw-nested formats.
+  - Candidate:
+    - Flatten recursive raw-nested reads into a declarative row-source/write graph: sources carry `QueryPlanDbQuery`, field writes, and relation slot initialization; links carry parent source, child source, field name, parent/child columns, scope name, cardinality, and whether outer scope inheritance is needed.
+    - Compile that graph once into CSP-safe switch-built closures with width-specialized waves and final-owner writes. Wrapper many-to-many can be represented as a source with zero scalar fields plus a unique child slot, instead of a hard-coded blog-page special case.
+    - First proof can be runtime-only by compiling today's `RawNestedReadQuery` into an internal program; if it wins, make the flattened graph the internal serialized `n` shape and remove the recursive reader.
+  - Acceptance gate:
+    - Focused tests: `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`, with added parity coverage for wrapper-direct empty rows, inherited scope, scalar/path conversion, key collisions, and sibling wave concurrency.
+    - Timing: close A/B with `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Keep only if raw-nested compact/exact compact moves materially toward the static-wave row, ideally below about 5.2 us/op in same-session Node A/B, while generated exact descriptor and direct-plan rows are neutral-to-positive.
+    - Before keeping any new serialized internal format, rerun `query-plan-cache-memory.ts` and `workerd-query-compiler-memory.ts` because a flattened graph can increase retained plan bytes.
+
 ## Useful Commands
 
 ```sh
