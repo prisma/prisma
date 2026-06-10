@@ -11210,6 +11210,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes unreachable old-format compatibility branches from cache-entry preparation with passing cache coverage and neutral-to-healthy memory/timing evidence.
 
+- Rejected experiment: direct `compileFromValue(JsValue)` Wasm request entrypoint.
+  - Timestamp: 2026-06-10.
+  - Trigger:
+    - Followed up on the JS-owned query / `serde_wasm_bindgen` discussion with a release-Wasm spike that bypassed the JSON request string, but intentionally left the rest of today's parser/IR pipeline intact for a direct measurement.
+  - Patch shape:
+    - Added a benchmark-only `QueryCompiler.compileFromValue(request: unknown)` Wasm method.
+    - Walked the parameterized JS protocol object with `js_sys` helpers and converted it into the current owned `JsonSingleQuery`, `IndexMap<String, serde_json::Value>` arguments, and then the existing `Operation` / query-compiler path.
+    - Added a `client-engine-cache-timing.ts` row named `compile from value current miss ...`.
+  - Verification before rejection:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler-wasm`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler-wasm --target wasm32-unknown-unknown --features sqlite`: passed.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast and small variants across providers.
+  - Timing:
+    - Command: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg CLIENT_ENGINE_CACHE_TIMING_FILTER='compile' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - `compile current miss findUnique`: 404.42 us/op.
+    - `compile from value current miss findUnique`: 422.08 us/op.
+    - `compile current miss findMany`: 299.61 us/op.
+    - `compile from value current miss findMany`: 300.55 us/op.
+    - `compile current miss blog page`: 2306.57 us/op.
+    - `compile from value current miss blog page`: 2348.81 us/op.
+  - Decision:
+    - Reject/revert fully. A direct JS object walker that still materializes today's owned protocol maps is neutral to slower on sampled compile-miss rows. The result supports the earlier architecture assessment: meaningful JS-owned input wins need to remove larger phases together, such as descriptor/protocol construction, cache-keying, Rust-owned request materialization, or Wasm plan transfer on cache hits. Do not retry this shallow `compileFromValue` shape without a new CPU hypothesis.
+
 ## Useful Commands
 
 ```sh
@@ -11251,4 +11274,5 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Commit worthy results along the way.
 - Revert rejected experiments fully.
 - Keep this journal updated after each accepted change, rejected experiment, and new measurement.
+- For internal data structures, assume producer/consumer version lockstep and replace formats outright. Do not add old/new compatibility branches unless the boundary is genuinely external.
 - If Rust Wasm changes are kept, build the relevant Wasm package in `/home/aqrln.guest/prisma-engines`, then update Prisma with `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`, and inspect any lockfile churn before keeping it.
