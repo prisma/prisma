@@ -11144,6 +11144,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject/revert. The direct-row movement was noise-level, while the product-shaped generated row regressed sharply. Keep the key check unless a larger generated/static writer design removes it as part of a broader win.
 
+- Architecture scout refresh: Wasm request parsing and JS-owned query lead.
+  - Timestamp: 2026-06-10.
+  - Trigger:
+    - Rechecked after the harness restart and the user's `serde_wasm_bindgen` / JS-owned-query questions.
+  - Current pipeline confirmed:
+    - `packages/client/src/runtime/core/engines/client/ClientEngine.ts` parameterizes `JsonQuery` on the JS heap, stringifies `parameterizedQuery.query` for `getSingleQueryCacheKey()`, and passes a JSON request string to `QueryCompiler.compile(request)`.
+    - `packages/client-common/src/QueryCompiler.ts` exposes only `compile(request: string)` and `compileBatch(batchRequest: string)`.
+    - `query-compiler/query-compiler-wasm/src/compiler.rs` accepts `request: String`, calls `RequestBody::try_from_str()`, then `into_doc()`, then `query_compiler::compile()`.
+    - `query-compiler/request-handlers/src/protocols/mod.rs` uses `serde_json::from_str::<json::JsonBody>()`; `protocols/json/body.rs` materializes owned `JsonBody`, `IndexMap<String, serde_json::Value>`, and selection maps; `protocols/json/protocol_adapter.rs` then recursively converts those values to owned `Operation`, `Selection`, and `ArgumentValue`.
+  - Assessment:
+    - A `tsify::serde_wasm_bindgen::from_value(request)?` entrypoint is too shallow for the desired win. It would remove the string transport on compile misses, but it would still build the untyped Rust-owned protocol maps before validation/query parsing, and the current cache-hit path still needs JS-side structural identity unless the cache architecture changes.
+    - The useful JS-owned-query proof should avoid entering Wasm on hot cache hits, or if it does enter Wasm for a miss, it should walk `js_sys` values directly into the next real IR without first building `JsonBody` / `serde_json::Value`.
+    - Avoiding Rust-owned SQL strings is probably a second project after cache-hit input ownership is proven. Compile misses can initially keep the current Rust SQL/template builder while cache hits return cached JS plan objects/handles.
+  - Internal-format rule:
+    - Keep applying the version-lockstep rule: when an internal runtime/query-plan format changes, replace the format and delete old readers/tests/fixtures rather than carrying old/new compatibility branches. This is already reflected by the stale raw-nested `m` relation deletion.
+  - Next practical proof:
+    - The next serious spike should remove multiple phases together on one generated read shape: descriptor/protocol construction, structural cache keying, Rust-owned request materialization, or Wasm plan transfer. A standalone `serde_wasm_bindgen` compile entrypoint is not worth prioritizing without that broader shape.
+  - Verification:
+    - Restarted `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - Restarted `pnpm --filter @prisma/client build`: passed.
+
 ## Useful Commands
 
 ```sh
