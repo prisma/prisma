@@ -11078,6 +11078,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This deletes an obsolete internal relation format instead of keeping dual readers. The accepted final-owner writer and current compiler output both target direct raw-nested relations.
 
+- Measurement: Workerd smoke after final-owner writer and stale raw-nested `m` cleanup.
+  - Timestamp: 2026-06-10.
+  - Command:
+    - `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Retained plan memory:
+    - `retained blog-page plan cache`: 100 entries, 335.4 KiB serialized plans, 48.3 KiB keys.
+  - Raw result-set lower bounds:
+    - `raw result-set direct assembler blog page / nested rows`: 3.10 us/op worker loop.
+    - `raw result-set writer program blog page / nested rows`: 2.00 us/op worker loop.
+    - `raw result-set static-wave writer program blog page / nested rows`: 1.75 us/op worker loop.
+  - Generated-client rows:
+    - `generated client findUnique warmed cache`: 5.80 us/op worker loop.
+    - `generated client runtime exact descriptor helper findUnique warmed cache`: 4.20 us/op worker loop.
+    - `generated client blog-page warmed cache`: 11.60 us/op worker loop.
+    - `generated client engine precomputed fast path blog-page warmed cache`: 7.60 us/op worker loop.
+    - `generated client request precomputed fast path blog-page warmed cache`: 10.80 us/op worker loop.
+    - `generated client descriptor-bound static matcher blog-page warmed cache`: 10.20 us/op worker loop.
+    - `generated client exact descriptor helper blog-page warmed cache`: 11.00 us/op worker loop.
+    - Alternating blog-page nested shapes: default 12.40, request-precomputed 11.60, descriptor-bound static 11.20, exact helper 10.80 us/op worker loop.
+  - Interpretation:
+    - This is a small Workerd smoke, not the final high-iteration calibration. It confirms the final-owner writer and internal-format deletion stay healthy on the target runtime and show substantial remaining headroom between default generated nested execution and engine/static-wave lower-bound rows.
+
 ## Useful Commands
 
 ```sh
