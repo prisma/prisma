@@ -72,6 +72,8 @@ The largest accepted Rust-side win is changing M:N nested reads from `dataMap` /
 
 Smaller Rust allocation wins were kept only when Criterion stayed neutral-to-positive: selection-order consuming passes, parser path mutable stack, `SmallVec` storage for that stack, raw nested relation scalar helpers, borrowed related-read compilation, placeholder scalar serialization, and direct `ModelProjection::as_columns()` collection. The latest parser-stack storage change is representative of the scale: it saved only 2-3 full-compile allocations/op and about 0.1-0.4 KiB/op on sampled rows, with adjacent Criterion medians improving or staying within noise. The allocation profiles still point at `graph_build` and `translate_ir` mid-sized owned structures, not a broad `Arc` clone problem.
 
+The latest kept Rust-side cleanup is another small but clean graph-build win: engines commit `8778c84c831` streams nested relation linking-field selections through `FieldSelection::union_iter()` instead of collecting a temporary `Vec`. It saves one `graph_build` and `full_compile` allocation/op on the sampled nested read/write fixtures. The same-session Criterion control was positive across the focused filter; representative patched vs reverted medians were `query-m2o` 28.13 vs 30.84 us, `query-many-m2m` 33.68 vs 36.60 us, `nested-pagination-query` 30.10 vs 33.55 us, and `update-set-nested` 101.78 vs 107.07 us.
+
 ## What Did Not Pay Off
 
 Several plausible ideas were tested and rejected:

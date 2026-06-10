@@ -10951,6 +10951,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reject/revert. The fixed-width version was better than the first generic flat wave, but it did not move the important rows toward the acceptance target. Product-shaped `raw result-set compact node` regressed versus the clean baseline, generated rows stayed in the noise band, and the shape still remained far from the static-wave lower bound.
     - The useful lesson is narrower: merely flattening execution order and removing recursive `RawNestedReadResult` wrappers is insufficient. A serious next proof must change ownership/write strategy so final-owner records are written directly and wrapper/source records are avoided where possible, not just represented in a flatter interpreter.
 
+- Accepted change: stream nested relation selections in query graph building.
+  - Timestamp: 2026-06-10.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `8778c84c831` (`Avoid nested relation selection Vec`).
+  - Patch:
+    - Replaced the temporary `Vec<FieldSelection>` in `query-compiler/core/src/query_graph_builder/read/utils.rs::merge_relation_selections()` with `FieldSelection::union_iter(nested_queries.iter().map(...))`.
+    - This keeps the existing zero/one/many union semantics and removes one short-lived allocation from relation-selection merging.
+  - Allocation evidence:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,query-one2m,query-many-one2m,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - `graph_build` allocations/op dropped by 1 on every sampled row: `query-m2o` 163 -> 162, `query-many-m2m` 238 -> 237, `nested-pagination-query` 201 -> 200, `query-one2m` 200 -> 199, `query-many-one2m` 224 -> 223, `create-nested-connectOrCreate-mixed` 800 -> 799, `update-set-nested` 654 -> 653.
+    - `full_compile` allocations/op dropped by 1 on the same rows: 569 -> 568, 734 -> 733, 674 -> 673, 644 -> 643, 637 -> 636, 2622 -> 2621, and 2034 -> 2033.
+  - Timing evidence:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" cargo bench -p query-compiler --bench compilation_bench -- 'query-m2o|query-many-m2m|nested-pagination-query|query-one2m|query-many-one2m|create-nested-connectOrCreate-mixed|update-set-nested' --sample-size 10 --warm-up-time 1 --measurement-time 2`.
+    - Same-session patched median vs reverted control:
+      - `create-nested-connectOrCreate-mixed`: 123.52 vs 139.99 us.
+      - `nested-pagination-query`: 30.10 vs 33.55 us.
+      - `query-m2o-lateral`: 28.04 vs 30.68 us.
+      - `query-m2o`: 28.13 vs 30.84 us.
+      - `query-many-m2m`: 33.68 vs 36.60 us.
+      - `query-many-one2m`: 31.17 vs 34.62 us.
+      - `query-one2m-pagination`: 50.11 vs 56.50 us.
+      - `query-one2m`: 30.55 vs 33.60 us.
+      - `update-set-nested-prisma#27650`: 86.13 vs 93.91 us.
+      - `update-set-nested`: 101.78 vs 107.07 us.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-core -p query-compiler`: passed.
+  - Decision:
+    - Keep. The allocation win is tiny but deterministic, the code is simpler, and the close Criterion control was broadly positive.
+
 ## Useful Commands
 
 ```sh
