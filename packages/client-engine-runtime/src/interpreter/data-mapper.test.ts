@@ -15,15 +15,13 @@ test('maps result sets directly like serialized SQL rows', () => {
       [2, 'Bob'],
     ],
   }
-  const structure = {
-    type: 'object',
-    serializedName: null,
-    skipNulls: false,
-    fields: {
+  const structure = [
+    null,
+    {
       id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
       name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
     },
-  } satisfies ResultNode
+  ] satisfies ResultNode
 
   expect(applyDataMapToResultSet(resultSet, structure, {})).toEqual(
     applyDataMap(serializeSql(resultSet), structure, {}),
@@ -36,15 +34,13 @@ test('maps compact scalar field nodes', () => {
     columnNames: ['id', 'name'],
     rows: [[1, 'Alice']],
   }
-  const structure = {
-    type: 'object',
-    serializedName: null,
-    skipNulls: false,
-    fields: {
+  const structure = [
+    null,
+    {
       id: 'int',
       name: 'string',
     },
-  } satisfies ResultNode
+  ] satisfies ResultNode
 
   expect(applyDataMap(serializeSql(resultSet), structure, {})).toEqual([{ id: 1, name: 'Alice' }])
   expect(applyDataMapToResultSet(resultSet, structure, {})).toEqual([{ id: 1, name: 'Alice' }])
@@ -93,14 +89,12 @@ test('direct result-set mapping uses the last duplicate column name', () => {
     columnNames: ['id', 'id'],
     rows: [[1, 2]],
   }
-  const structure = {
-    type: 'object',
-    serializedName: null,
-    skipNulls: false,
-    fields: {
+  const structure = [
+    null,
+    {
       id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
     },
-  } satisfies ResultNode
+  ] satisfies ResultNode
 
   expect(applyDataMapToResultSet(resultSet, structure, {})).toEqual(
     applyDataMap(serializeSql(resultSet), structure, {}),
@@ -108,15 +102,13 @@ test('direct result-set mapping uses the last duplicate column name', () => {
 })
 
 test('direct result-set mapping caches independently for different column orders', () => {
-  const structure = {
-    type: 'object',
-    serializedName: null,
-    skipNulls: false,
-    fields: {
+  const structure = [
+    null,
+    {
       id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
       name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
     },
-  } satisfies ResultNode
+  ] satisfies ResultNode
 
   expect(
     applyDataMapToResultSet(
@@ -155,18 +147,16 @@ test('direct result-set mapping can return native JavaScript values', () => {
     columnNames: ['bigint', 'decimal', 'createdAt', 'bytes', 'json'],
     rows: [['123', '12.34', '2024-01-15T12:00:00Z', 'aGVsbG8=', '{"nested":true}']],
   }
-  const structure = {
-    type: 'object',
-    serializedName: null,
-    skipNulls: false,
-    fields: {
+  const structure = [
+    null,
+    {
       bigint: { type: 'field', dbName: 'bigint', fieldType: { type: 'bigint', arity: 'scalar' } },
       decimal: { type: 'field', dbName: 'decimal', fieldType: { type: 'decimal', arity: 'scalar' } },
       createdAt: { type: 'field', dbName: 'createdAt', fieldType: { type: 'datetime', arity: 'scalar' } },
       bytes: { type: 'field', dbName: 'bytes', fieldType: { type: 'bytes', encoding: 'base64', arity: 'scalar' } },
       json: { type: 'field', dbName: 'json', fieldType: { type: 'json', arity: 'scalar' } },
     },
-  } satisfies ResultNode
+  ] satisfies ResultNode
 
   const [row] = applyDataMapToResultSet(resultSet, structure, {}, 'js')
 

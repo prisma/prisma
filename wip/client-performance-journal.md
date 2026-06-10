@@ -10732,7 +10732,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Close reverted-control 300k row -> 12.62 us/op.
   - Decision:
     - Keep. The 300k close A/B is neutral-to-positive, the memory probe stayed in band, and removing internal compatibility branches matches the version-lockstep constraint.
-    - Follow-up: remove the remaining legacy internal query-plan readers for Prisma values, expression nodes, bindings/joins, validation rules/errors, and result object nodes in focused compact-only passes rather than building new work on top of dual formats.
+    - Follow-up after this commit: remove the remaining legacy internal query-plan readers for Prisma values, expression nodes, bindings/joins, validation rules/errors, and result object nodes in focused compact-only passes rather than building new work on top of dual formats.
 
 - Accepted cleanup: remove legacy query-plan PrismaValue compatibility.
   - Timestamp: 2026-06-10.
@@ -10754,7 +10754,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Tuned direct-plan row: `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` -> 8.52 us/op versus the 9.05 us/op control.
   - Decision:
     - Keep. The first compact-only shape was measurably worse and was adjusted before commit; the tuned shape is neutral on render-only, positive on the broader direct-plan row, and removes another internal dual-format branch.
-    - Remaining dual-format internal cleanup debt: expression nodes, bindings/joins, validation rules/errors, and result object nodes.
+    - Remaining dual-format internal cleanup debt after this commit: expression nodes, bindings/joins, validation rules/errors, and result object nodes.
 
 - Accepted cleanup: remove legacy query-plan validation rule/error compatibility.
   - Timestamp: 2026-06-10.
@@ -10773,7 +10773,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Interpretation: validation is not exercised by the normal cached blog-page read path; this benchmark is a product-path smoke, not evidence of a validation hot-path win.
   - Decision:
     - Keep. This removes dead internal compatibility, has direct producer evidence for compact-only serialization, passes focused tests/build, and does not disturb the current cached read hot-row band.
-    - Remaining dual-format internal cleanup debt: expression nodes, bindings/joins, and result object nodes.
+    - Remaining dual-format internal cleanup debt after this commit: expression nodes, bindings/joins, and result object nodes.
 
 - Accepted cleanup: remove legacy query-plan binding/join support structures.
   - Timestamp: 2026-06-10.
@@ -10797,7 +10797,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Tuned reapply confirmation with 300k iterations: 8.31 us/op.
   - Decision:
     - Keep the tuned shape. It removes another internal dual-format branch and only cleared the performance gate after avoiding helper calls in hot compact interpreter paths.
-    - Remaining dual-format internal cleanup debt: expression nodes and result object nodes.
+    - Remaining dual-format internal cleanup debt after this commit: expression nodes and result object nodes.
+
+- Accepted cleanup: remove legacy query-plan result-object containers.
+  - Timestamp: 2026-06-10.
+  - Change:
+    - Removed object-shaped `ResultObjectNode` support from `packages/client-engine-runtime/src/query-plan.ts`.
+    - `ResultNode` object containers now read only compact tuples: `[serializedName, fields]` when `skipNulls` is false and `[serializedName, fields, true]` when `skipNulls` is true.
+    - Simplified `data-mapper.ts` object-container helpers and dropped `type: 'object'` switch branches in `applyDataMap()`, object-field mapping construction, and result-set field mapping construction.
+    - Updated `QueryInterpreter` data-map fast-path object checks to require compact tuple structures.
+    - Converted remaining object-shaped result-object fixtures in `data-mapper.test.ts`, `packages/client-engine-runtime/bench/mock-data.ts`, and `packages/client-engine-runtime/bench/sample-query-plans.ts`.
+    - Verified the Rust producer serializes compact result object nodes in `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/result_node.rs`: `Object::serialize()` writes a 2-tuple when `skip_nulls` is false and a 3-tuple when true.
+  - Verification:
+    - Residual scan over `packages/client-engine-runtime/src` and `packages/client-engine-runtime/bench` found no legacy result-object fixtures/readers; remaining `type: 'object'` hits are mapper-internal mapping records, not query-plan input shapes.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/data-mapper.test.ts src/interpreter/query-interpreter.test.ts src/interpreter/validation.test.ts`: 33 tests passed.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Timing evidence:
+    - 300k patched/control direct-plan rows: 7.07 / 7.16 us/op.
+    - 1M patched/control direct-plan pair with `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 6.51 / 6.51 us/op.
+    - 300k reapply smoke after restoring the patch: 6.76 us/op.
+  - Decision:
+    - Keep. This is not a standalone timing win, but it is neutral on the cached nested read hot row, removes another dead internal compatibility path, and matches the version-lockstep internal format rule.
+    - Remaining dual-format internal cleanup debt: expression nodes.
 
 ## Useful Commands
 

@@ -30,7 +30,6 @@ import {
   type RawResultColumnMapping,
   type RawResultColumnRef,
   type ResultNode,
-  type ResultObjectNode,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
@@ -108,11 +107,8 @@ const rawResultColumnMappingsCache = new WeakMap<
   WeakMap<readonly string[], ResolvedRawResultColumnMapping[]>
 >()
 
-function isObjectResultNode(structure: ResultNode): structure is ResultObjectNode | CompactResultObjectNode {
-  if (Array.isArray(structure)) {
-    return true
-  }
-  return typeof structure === 'object' && 'type' in structure && structure.type === 'object'
+function isObjectResultNode(structure: ResultNode): structure is CompactResultObjectNode {
+  return Array.isArray(structure)
 }
 
 function isRawSqlQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>): dbQuery is DeepReadonly<QueryPlanRawSql> {
