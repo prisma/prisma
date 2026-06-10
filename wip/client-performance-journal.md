@@ -11165,6 +11165,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Restarted `pnpm --filter @prisma/client-engine-runtime build`: passed.
     - Restarted `pnpm --filter @prisma/client build`: passed.
 
+- Measurement refresh: Workerd generated blog-page after restarted builds.
+  - Timestamp: 2026-06-10.
+  - Command:
+    - `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+  - Retained plan memory:
+    - `retained blog-page plan cache`: 100 entries, 335.4 KiB serialized plans, 48.3 KiB keys.
+  - Request/cache-key rows:
+    - `client-cache-key findUnique value churn`: 0.50 us/op worker loop.
+    - `client-cache-key blog-page value churn`: 1.65 us/op worker loop.
+    - `client-static-descriptor-extract blog-page value churn`: 1.05 us/op worker loop.
+    - `client-lazy-descriptor-extract blog-page value churn`: 1.75 us/op worker loop.
+  - Raw result-set lower bounds:
+    - `raw result-set direct assembler blog page / nested rows`: 1.65 us/op worker loop.
+    - `raw result-set writer program blog page / nested rows`: 1.90 us/op worker loop.
+    - `raw result-set static-wave writer program blog page / nested rows`: 1.65 us/op worker loop.
+  - Generated-client blog-page rows:
+    - Default generated blog-page: 11.50 us/op host dispatch, 10.30 us/op worker loop.
+    - Engine precomputed fast path: 8.12 us/op host dispatch, 7.05 us/op worker loop.
+    - Request precomputed fast path: 11.04 us/op host dispatch, 9.95 us/op worker loop.
+    - Descriptor-bound static matcher: 10.81 us/op host dispatch, 9.70 us/op worker loop.
+    - Exact descriptor helper: 11.15 us/op host dispatch, 9.95 us/op worker loop.
+  - Alternating generated-client blog-page rows:
+    - Default alternating: 11.69 us/op host dispatch, 10.60 us/op worker loop, one compile miss.
+    - Request precomputed alternating: 12.18 us/op host dispatch, 10.75 us/op worker loop.
+    - Descriptor-bound static alternating: 11.81 us/op host dispatch, 10.65 us/op worker loop.
+    - Exact descriptor helper alternating: 13.62 us/op host dispatch, 11.85 us/op worker loop.
+  - Interpretation:
+    - This higher-iteration target-runtime refresh confirms the latest default nested Worker host-dispatch row is in the same band as the 5k smoke (`11.60` -> `11.50` us/op) and remains about 3.9x faster than the early 44.40 us/op calibrated baseline.
+    - The static/exact descriptor helper rows are mixed between stable and alternating shapes, so future descriptor productization still needs stable-shape, alternating-shape, batched, and Workerd gates before keeping any broader helper work.
+
 ## Useful Commands
 
 ```sh
