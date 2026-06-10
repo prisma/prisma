@@ -10908,6 +10908,49 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep only if raw-nested compact/exact compact moves materially toward the static-wave row, ideally below about 5.2 us/op in same-session Node A/B, while generated exact descriptor and direct-plan rows are neutral-to-positive.
     - Before keeping any new serialized internal format, rerun `query-plan-cache-memory.ts` and `workerd-query-compiler-memory.ts` because a flattened graph can increase retained plan bytes.
 
+- Rejected experiment: runtime-only flattened raw-nested source/link executor.
+  - Timestamp: 2026-06-10.
+  - Worktree:
+    - `/home/aqrln.guest/prisma-raw-nested-program-spike`.
+  - Patch:
+    - Added a runtime-only `tryCompileFlatRawNestedProgram()` path in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - Eligible direct raw-nested trees were flattened into sources and relation links, then executed by waves. Non-direct, non-numeric, or benchmark-only many-to-many relation shapes fell back to the existing recursive executor.
+    - A follow-up added fixed-width wave execution for common 4-link and 2-link waves to approximate the benchmark static-wave writer more closely.
+  - Verification:
+    - The side worktree needed ignored dependency/build-output symlinks copied from the main checkout before tests/benchmarks could run.
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: 249 tests passed. The package filter ran the full runtime test set, not only the named file.
+  - Timing evidence:
+    - Clean adjacent baseline from main, 300k nested rows:
+      - `generated client blog page`: 11.75 us/op.
+      - `generated client engine precomputed fast path`: 10.52 us/op.
+      - `generated client exact descriptor helper`: 10.21 us/op.
+      - `cached request wrapper static descriptor`: 8.10 us/op.
+      - `direct plan`: 6.55 us/op.
+      - `raw result-set compact node`: 6.27 us/op.
+      - `raw result-set exact compact node`: 6.71 us/op.
+      - `raw result-set static-wave writer program`: 3.82 us/op.
+    - First generic flat-wave run:
+      - `generated client blog page`: 11.84 us/op.
+      - `generated client engine precomputed fast path`: 11.93 us/op.
+      - `generated client exact descriptor helper`: 10.33 us/op.
+      - `cached request wrapper static descriptor`: 8.12 us/op.
+      - `direct plan`: 6.42 us/op.
+      - `raw result-set compact node`: 6.88 us/op.
+      - `raw result-set exact compact node`: 6.32 us/op.
+      - `raw result-set static-wave writer program`: 3.83 us/op.
+    - Fixed-width 4-link/2-link wave run:
+      - `generated client blog page`: 11.41 us/op.
+      - `generated client engine precomputed fast path`: 10.58 us/op.
+      - `generated client exact descriptor helper`: 10.12 us/op.
+      - `cached request wrapper static descriptor`: 7.99 us/op.
+      - `direct plan`: 6.45 us/op.
+      - `raw result-set compact node`: 6.58 us/op.
+      - `raw result-set exact compact node`: 6.17 us/op.
+      - `raw result-set static-wave writer program`: 3.86 us/op.
+  - Decision:
+    - Reject/revert. The fixed-width version was better than the first generic flat wave, but it did not move the important rows toward the acceptance target. Product-shaped `raw result-set compact node` regressed versus the clean baseline, generated rows stayed in the noise band, and the shape still remained far from the static-wave lower bound.
+    - The useful lesson is narrower: merely flattening execution order and removing recursive `RawNestedReadResult` wrappers is insufficient. A serious next proof must change ownership/write strategy so final-owner records are written directly and wrapper/source records are avoided where possible, not just represented in a flatter interpreter.
+
 ## Useful Commands
 
 ```sh
