@@ -5,14 +5,7 @@ export const SIMPLE_SELECT_PLAN: QueryPlanNode = {
   args: {
     expr: {
       type: 'query',
-      args: {
-        type: 'templateSql',
-        fragments: [{ type: 'stringChunk', chunk: 'SELECT id, email, name FROM User LIMIT 10' }],
-        placeholderFormat: { prefix: '?', hasNumbering: false },
-        args: [],
-        argTypes: [],
-        chunkable: false,
-      },
+      args: [['SELECT id, email, name FROM User LIMIT 10'], ['?', false], [], [], false],
     },
     structure: {
       type: 'object',
@@ -35,20 +28,13 @@ export const FIND_UNIQUE_PLAN: QueryPlanNode = {
       type: 'unique',
       args: {
         type: 'query',
-        args: {
-          type: 'templateSql',
-          fragments: [
-            {
-              type: 'stringChunk',
-              chunk: 'SELECT id, email, name, bio, avatar, isActive, role, createdAt FROM User WHERE id = ',
-            },
-            { type: 'parameter' },
-          ],
-          placeholderFormat: { prefix: '?', hasNumbering: false },
-          args: [1],
-          argTypes: [{ scalarType: 'int', arity: 'scalar' }],
-          chunkable: false,
-        },
+        args: [
+          ['SELECT id, email, name, bio, avatar, isActive, role, createdAt FROM User WHERE id = ', null],
+          ['?', false],
+          [1],
+          [{ scalarType: 'int', arity: 'scalar' }],
+          false,
+        ],
       },
     },
     structure: {
@@ -78,33 +64,25 @@ export const JOIN_PLAN: QueryPlanNode = {
       args: {
         parent: {
           type: 'query',
-          args: {
-            type: 'templateSql',
-            fragments: [
-              { type: 'stringChunk', chunk: 'SELECT id, email, name FROM User WHERE id = ' },
-              { type: 'parameter' },
-            ],
-            placeholderFormat: { prefix: '?', hasNumbering: false },
-            args: [1],
-            argTypes: [{ scalarType: 'int', arity: 'scalar' }],
-            chunkable: false,
-          },
+          args: [
+            ['SELECT id, email, name FROM User WHERE id = ', null],
+            ['?', false],
+            [1],
+            [{ scalarType: 'int', arity: 'scalar' }],
+            false,
+          ],
         },
         children: [
           {
             child: {
               type: 'query',
-              args: {
-                type: 'templateSql',
-                fragments: [
-                  { type: 'stringChunk', chunk: 'SELECT id, title, content, authorId FROM Post WHERE authorId = ' },
-                  { type: 'parameter' },
-                ],
-                placeholderFormat: { prefix: '?', hasNumbering: false },
-                args: [1],
-                argTypes: [{ scalarType: 'int', arity: 'scalar' }],
-                chunkable: false,
-              },
+              args: [
+                ['SELECT id, title, content, authorId FROM Post WHERE authorId = ', null],
+                ['?', false],
+                [1],
+                [{ scalarType: 'int', arity: 'scalar' }],
+                false,
+              ],
             },
             on: [['id', 'authorId']],
             parentField: 'posts',
@@ -143,36 +121,29 @@ export const SEQUENCE_PLAN: QueryPlanNode = {
   args: [
     {
       type: 'execute',
-      args: {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'UPDATE User SET name = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' WHERE id = ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: { prefix: '?', hasNumbering: false },
-        args: ['Updated Name', 1],
-        argTypes: [
+      args: [
+        ['UPDATE User SET name = ', null, ' WHERE id = ', null],
+        ['?', false],
+        ['Updated Name', 1],
+        [
           { scalarType: 'string', arity: 'scalar' },
           { scalarType: 'int', arity: 'scalar' },
         ],
-        chunkable: false,
-      },
+        false,
+      ],
     },
     {
       type: 'dataMap',
       args: {
         expr: {
           type: 'query',
-          args: {
-            type: 'templateSql',
-            fragments: [{ type: 'stringChunk', chunk: 'SELECT id, name FROM User WHERE id = ' }, { type: 'parameter' }],
-            placeholderFormat: { prefix: '?', hasNumbering: false },
-            args: [1],
-            argTypes: [{ scalarType: 'int', arity: 'scalar' }],
-            chunkable: false,
-          },
+          args: [
+            ['SELECT id, name FROM User WHERE id = ', null],
+            ['?', false],
+            [1],
+            [{ scalarType: 'int', arity: 'scalar' }],
+            false,
+          ],
         },
         structure: {
           type: 'object',
@@ -200,32 +171,19 @@ export const DEEP_JOIN_PLAN: QueryPlanNode = {
           args: {
             parent: {
               type: 'query',
-              args: {
-                type: 'templateSql',
-                fragments: [{ type: 'stringChunk', chunk: 'SELECT id, email, name FROM User LIMIT 5' }],
-                placeholderFormat: { prefix: '?', hasNumbering: false },
-                args: [],
-                argTypes: [],
-                chunkable: false,
-              },
+              args: [['SELECT id, email, name FROM User LIMIT 5'], ['?', false], [], [], false],
             },
             children: [
               {
                 child: {
                   type: 'query',
-                  args: {
-                    type: 'templateSql',
-                    fragments: [
-                      {
-                        type: 'stringChunk',
-                        chunk: 'SELECT id, userId, firstName, lastName FROM Profile WHERE userId IN (1, 2, 3, 4, 5)',
-                      },
-                    ],
-                    placeholderFormat: { prefix: '?', hasNumbering: false },
-                    args: [],
-                    argTypes: [],
-                    chunkable: false,
-                  },
+                  args: [
+                    ['SELECT id, userId, firstName, lastName FROM Profile WHERE userId IN (1, 2, 3, 4, 5)'],
+                    ['?', false],
+                    [],
+                    [],
+                    false,
+                  ],
                 },
                 on: [['id', 'userId']],
                 parentField: 'profile',
@@ -242,38 +200,27 @@ export const DEEP_JOIN_PLAN: QueryPlanNode = {
               args: {
                 parent: {
                   type: 'query',
-                  args: {
-                    type: 'templateSql',
-                    fragments: [
-                      {
-                        type: 'stringChunk',
-                        chunk: 'SELECT id, title, authorId FROM Post WHERE authorId IN (1, 2, 3, 4, 5) LIMIT 20',
-                      },
-                    ],
-                    placeholderFormat: { prefix: '?', hasNumbering: false },
-                    args: [],
-                    argTypes: [],
-                    chunkable: false,
-                  },
+                  args: [
+                    ['SELECT id, title, authorId FROM Post WHERE authorId IN (1, 2, 3, 4, 5) LIMIT 20'],
+                    ['?', false],
+                    [],
+                    [],
+                    false,
+                  ],
                 },
                 children: [
                   {
                     child: {
                       type: 'query',
-                      args: {
-                        type: 'templateSql',
-                        fragments: [
-                          {
-                            type: 'stringChunk',
-                            chunk:
-                              'SELECT id, content, postId, authorId FROM Comment WHERE postId IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)',
-                          },
+                      args: [
+                        [
+                          'SELECT id, content, postId, authorId FROM Comment WHERE postId IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)',
                         ],
-                        placeholderFormat: { prefix: '?', hasNumbering: false },
-                        args: [],
-                        argTypes: [],
-                        chunkable: false,
-                      },
+                        ['?', false],
+                        [],
+                        [],
+                        false,
+                      ],
                     },
                     on: [['id', 'postId']],
                     parentField: 'comments',

@@ -10712,6 +10712,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as internal-gated productization groundwork. This does not change default clients, but it turns the benchmark-only nested exact-helper lead into generated code behind an explicit template allowlist.
     - Remaining before broader use: real oracle tests against `serializeJsonQuery()` + `parameterizeQuery()` + cache-key behavior for the generated template, exclusion gates for extensions/global omit/raw/tracing/debug/commenter/transactions/non-root data path, and a policy for which templates can be emitted.
 
+- Accepted cleanup: remove legacy `templateSql` / fragment compatibility.
+  - Timestamp: 2026-06-10.
+  - Change:
+    - Removed the object-shaped `QueryPlanTemplateSql` type from `packages/client-engine-runtime/src/query-plan.ts`; internal template SQL DB queries are now only `[fragments, [prefix, hasNumbering], args, argTypes, chunkable]`.
+    - Narrowed SQL fragments to raw string chunks, `null` scalar parameter placeholders, `["T", itemPrefix, itemSeparator, itemSuffix]` tuple placeholders, and `["L", itemPrefix, itemSeparator, itemSuffix, groupSeparator]` tuple-list placeholders.
+    - Removed legacy object-fragment branches from `render-query.ts`, converted runtime tests and interpreter benchmark sample plans to compact-only fixtures, and simplified `query-plan-cache-memory.ts` placeholder-default detection to compact fragments.
+    - Recorded the internal version-lockstep rule in `AGENTS.md`: do not preserve old/new dual-format compatibility for internal data structures unless the boundary is genuinely external.
+  - Verification:
+    - `pnpm exec prettier --write AGENTS.md packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/render-query.ts packages/client-engine-runtime/src/interpreter/render-query.test.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts packages/client-engine-runtime/bench/sample-query-plans.ts packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/render-query.test.ts src/interpreter/query-interpreter.test.ts`: 48 tests passed.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`: `blog page / node default warm` 4.47 MiB, `blog page parameterized / node default warm` 4.70 MiB; both stayed in the current retained-memory band.
+  - Timing evidence:
+    - Patched first 50k row: `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` -> 13.18 us/op.
+    - Close reverted-control 50k row with the same command -> 12.38 us/op.
+    - Patched reapply 50k row -> 9.49 us/op, showing this short row is order-sensitive.
+    - Patched 300k row: same command with `CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000` -> 10.93 us/op.
+    - Close reverted-control 300k row -> 12.62 us/op.
+  - Decision:
+    - Keep. The 300k close A/B is neutral-to-positive, the memory probe stayed in band, and removing internal compatibility branches matches the version-lockstep constraint.
+    - Follow-up: remove the remaining legacy internal query-plan readers for Prisma values, expression nodes, bindings/joins, validation rules/errors, and result object nodes in focused compact-only passes rather than building new work on top of dual formats.
+
 ## Useful Commands
 
 ```sh

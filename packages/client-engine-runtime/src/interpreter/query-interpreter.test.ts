@@ -21,11 +21,9 @@ test('uses a per-run generator snapshot for now calls', async () => {
       { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
     ],
   } satisfies QueryPlanNode
-
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
   const second = (await interpreter.run(plan, runtimeOptions)) as string[]
-
   expect(first[0]).toBe(first[1])
   expect(second[0]).toBe(second[1])
   expect(first[0]).not.toBe(second[0])
@@ -34,11 +32,9 @@ test('uses a per-run generator snapshot for now calls', async () => {
 test('uses a per-run generator snapshot for compact now calls', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = ['v', [{ $g: ['now', []] }, { $g: ['now', []] }]] satisfies QueryPlanNode
-
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
   const second = (await interpreter.run(plan, runtimeOptions)) as string[]
-
   expect(first[0]).toBe(first[1])
   expect(second[0]).toBe(second[1])
   expect(first[0]).not.toBe(second[0])
@@ -50,7 +46,6 @@ test('uses built-in generators without a snapshot when now is absent', async () 
     type: 'value',
     args: { $g: ['product', [1, [2, 3]]] },
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     [1, 2],
     [1, 3],
@@ -61,16 +56,8 @@ test('applies SQL comments without query instrumentation', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
     type: 'query',
-    args: {
-      type: 'templateSql',
-      fragments: [{ type: 'stringChunk', chunk: 'SELECT 1' }],
-      placeholderFormat: { prefix: '?', hasNumbering: false },
-      args: [],
-      argTypes: [],
-      chunkable: false,
-    },
+    args: [['SELECT 1'], ['?', false], [], [], false],
   } satisfies QueryPlanNode
-
   let observedQuery: SqlQuery | undefined
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -83,7 +70,6 @@ test('applies SQL comments without query instrumentation', async () => {
       return Promise.resolve(0)
     },
   }
-
   await interpreter.run(plan, {
     ...runtimeOptions,
     queryable,
@@ -92,7 +78,6 @@ test('applies SQL comments without query instrumentation', async () => {
       queryInfo: { type: 'single', modelName: 'User', action: 'findMany', query: {} },
     },
   })
-
   expect(observedQuery?.sql).toBe("SELECT 1 /*source='test'*/")
 })
 
@@ -100,16 +85,8 @@ test('maps non-raw query driver errors through the outer user-facing handler', a
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
     type: 'query',
-    args: {
-      type: 'templateSql',
-      fragments: [{ type: 'stringChunk', chunk: 'SELECT 1' }],
-      placeholderFormat: { prefix: '?', hasNumbering: false },
-      args: [],
-      argTypes: [],
-      chunkable: false,
-    },
+    args: [['SELECT 1'], ['?', false], [], [], false],
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable: rejectingQueryable() })).rejects.toMatchObject({
     name: 'UserFacingError',
     code: 'P2039',
@@ -127,7 +104,6 @@ test('keeps raw query driver errors mapped as raw query failures', async () => {
       argTypes: [],
     },
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable: rejectingQueryable() })).rejects.toMatchObject({
     name: 'UserFacingError',
     code: 'P2010',
@@ -138,10 +114,7 @@ test('interprets compact expression nodes', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = [
     'd',
-    [
-      'u',
-      ['q', [['SELECT id, type FROM users WHERE id = ', { type: 'parameter' }], ['?', false], [1], ['int'], false]],
-    ],
+    ['u', ['q', [['SELECT id, type FROM users WHERE id = ', null], ['?', false], [1], ['int'], false]]],
     [
       null,
       {
@@ -151,7 +124,6 @@ test('interprets compact expression nodes', async () => {
     ],
     {},
   ] satisfies QueryPlanNode
-
   let observedQuery: SqlQuery | undefined
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -168,7 +140,6 @@ test('interprets compact expression nodes', async () => {
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({ id: 1, type: 'admin' })
   expect(observedQuery).toEqual({
     sql: 'SELECT id, type FROM users WHERE id = ?',
@@ -180,7 +151,6 @@ test('interprets compact expression nodes', async () => {
 test('interprets compact binding tuples', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = ['l', [['record', ['v', { id: 1, name: 'Alice' }]]], ['g', 'record']] satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual({ id: 1, name: 'Alice' })
 })
 
@@ -224,7 +194,6 @@ test('interprets compact nested single-child join branches', async () => {
       ],
     ],
   ] satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { postId: 1, tagId: 10, '@nested$tag': { id: 10, name: 'Rust' } },
     { postId: 1, tagId: 11, '@nested$tag': { id: 11, name: 'Wasm' } },
@@ -275,7 +244,6 @@ test('interprets compact mapped join branches', async () => {
       ],
     ],
   ] satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual({
     id: 1,
     authorId: 10,
@@ -338,7 +306,6 @@ test('interprets compact raw nested read nodes', async () => {
     ],
     true,
   ] satisfies QueryPlanNode
-
   const observedQueries: SqlQuery[] = []
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -372,7 +339,6 @@ test('interprets compact raw nested read nodes', async () => {
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
     id: 1,
     authorId: 10,
@@ -389,12 +355,7 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', { $p: ['%postId', 'int'] })
   const commentsQuery = [
-    [
-      'SELECT id, postId FROM Comment WHERE postId = ',
-      { type: 'parameter' },
-      ' AND tenantId = ',
-      { type: 'parameter' },
-    ],
+    ['SELECT id, postId FROM Comment WHERE postId = ', null, ' AND tenantId = ', null],
     ['?', false],
     [{ $p: ['@parent$id', 'int'] }, { $p: ['%tenantId', 'int'] }],
     ['int', 'int'],
@@ -425,7 +386,6 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
     ],
     true,
   ] satisfies QueryPlanNode
-
   const observedQueries: SqlQuery[] = []
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -449,7 +409,6 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
       return Promise.resolve(0)
     },
   }
-
   await expect(
     interpreter.run(plan, { ...runtimeOptions, queryable, scope: { '%postId': 1, '%tenantId': 7 } }),
   ).resolves.toEqual({
@@ -481,7 +440,6 @@ test('starts compact raw nested read sibling relations concurrently', async () =
     ],
     true,
   ] satisfies QueryPlanNode
-
   const observedQueries: string[] = []
   let resolveAuthor: ((resultSet: SqlResultSet) => void) | undefined
   let resolveComments: ((resultSet: SqlResultSet) => void) | undefined
@@ -512,15 +470,12 @@ test('starts compact raw nested read sibling relations concurrently', async () =
       return Promise.resolve(0)
     },
   }
-
   const result = interpreter.run(plan, { ...runtimeOptions, queryable })
   await new Promise((resolve) => setImmediate(resolve))
-
   expect(observedQueries).toEqual(['root', 'author', 'comments'])
   if (resolveAuthor === undefined || resolveComments === undefined) {
     throw new Error('Expected raw nested child queries to start')
   }
-
   resolveAuthor({
     columnNames: ['id', 'name'],
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
@@ -534,7 +489,6 @@ test('starts compact raw nested read sibling relations concurrently', async () =
       [101, 1, 'Great'],
     ],
   })
-
   await expect(result).resolves.toEqual({
     id: 1,
     authorId: 10,
@@ -576,7 +530,6 @@ test('interprets compact raw nested read many-to-many relations', async () => {
     ],
     true,
   ] satisfies QueryPlanNode
-
   const observedQueries: SqlQuery[] = []
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -613,7 +566,6 @@ test('interprets compact raw nested read many-to-many relations', async () => {
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
     id: 1,
     tags: [
@@ -629,7 +581,7 @@ test('interprets compact raw nested read wrapper relations', async () => {
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
   const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', { $p: ['@parent$id', 'int'] })
   const tagQuery = [
-    ['SELECT id, name FROM Tag WHERE id IN ', { type: 'parameter' }, ' AND tenantId = ', { type: 'parameter' }],
+    ['SELECT id, name FROM Tag WHERE id IN ', null, ' AND tenantId = ', null],
     ['?', false],
     [{ $p: ['@parent$tagId', 'int'] }, { $p: ['%tenantId', 'int'] }],
     ['int', 'int'],
@@ -674,7 +626,6 @@ test('interprets compact raw nested read wrapper relations', async () => {
     ],
     true,
   ] satisfies QueryPlanNode
-
   const observedQueries: SqlQuery[] = []
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -711,7 +662,6 @@ test('interprets compact raw nested read wrapper relations', async () => {
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable, scope: { '%tenantId': 7 } })).resolves.toEqual({
     id: 1,
     tags: [{ tag: { id: 10, name: 'Rust' } }, { tag: { id: 11, name: 'Wasm' } }],
@@ -745,7 +695,6 @@ test('skips compact raw nested read wrapper children for empty wrapper rows', as
     ],
     false,
   ] satisfies QueryPlanNode
-
   const observedQueries: string[] = []
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -773,9 +722,7 @@ test('skips compact raw nested read wrapper children for empty wrapper rows', as
       return Promise.resolve(0)
     },
   }
-
   const result = await interpreter.run(plan, { ...runtimeOptions, queryable })
-
   expect(result).toEqual([
     { id: 1, tags: [] },
     { id: 2, tags: [] },
@@ -815,7 +762,6 @@ test('interprets compact raw nested read indexed direct relations without scalar
     ],
     false,
   ] satisfies QueryPlanNode
-
   const queryable: SqlQueryable = {
     provider: 'sqlite',
     adapterName: '@prisma/adapter-test',
@@ -842,7 +788,6 @@ test('interprets compact raw nested read indexed direct relations without scalar
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual([
     { id: 1, children: [{ id: 10, parentId: 1 }] },
     { id: '1', children: [{ id: 11, parentId: '1' }] },
@@ -886,7 +831,6 @@ test('interprets compact raw nested read indexed many-to-many relations without 
     ],
     false,
   ] satisfies QueryPlanNode
-
   const queryable: SqlQueryable = {
     provider: 'sqlite',
     adapterName: '@prisma/adapter-test',
@@ -923,7 +867,6 @@ test('interprets compact raw nested read indexed many-to-many relations without 
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual([
     { id: 1, tags: [{ id: 10, name: 'Rust' }] },
     { id: 2, tags: [{ id: 11, name: 'Wasm' }] },
@@ -945,7 +888,6 @@ test('interprets compact raw nested read scalar conversion metadata', async () =
     ],
     true,
   ] satisfies QueryPlanNode
-
   const queryable: SqlQueryable = {
     provider: 'sqlite',
     adapterName: '@prisma/adapter-test',
@@ -960,7 +902,6 @@ test('interprets compact raw nested read scalar conversion metadata', async () =
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
     _count: {
@@ -983,7 +924,6 @@ test('interprets compact raw nested read named column refs', async () => {
     ],
     true,
   ] satisfies QueryPlanNode
-
   const queryable: SqlQueryable = {
     provider: 'sqlite',
     adapterName: '@prisma/adapter-test',
@@ -998,7 +938,6 @@ test('interprets compact raw nested read named column refs', async () => {
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
     id: 1,
     name: 'Alice',
@@ -1018,7 +957,6 @@ test('interprets compact raw nested read empty result sets without column metada
     ],
     true,
   ] satisfies QueryPlanNode
-
   let queryCount = 0
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -1035,7 +973,6 @@ test('interprets compact raw nested read empty result sets without column metada
       return Promise.resolve(0)
     },
   }
-
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toBeNull()
   expect(queryCount).toBe(1)
 })
@@ -1068,7 +1005,6 @@ test('joins single strict keys without scalar key collisions', async () => {
       canAssumeStrictEquality: true,
     },
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
     { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
@@ -1104,7 +1040,6 @@ test('joins tiny single strict keys without scalar key collisions', async () => 
       canAssumeStrictEquality: true,
     },
   } satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
     { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
@@ -1135,7 +1070,6 @@ test('interprets compact join tuples', async () => {
     ],
     true,
   ] satisfies QueryPlanNode
-
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
     { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
@@ -1143,7 +1077,6 @@ test('interprets compact join tuples', async () => {
     { id: 'null', children: [{ parentId: 'null', value: 'string-null' }] },
   ])
 })
-
 function emptyResultSet(): SqlResultSet {
   return {
     columnNames: [],
@@ -1151,11 +1084,9 @@ function emptyResultSet(): SqlResultSet {
     rows: [],
   }
 }
-
 function templateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
-  return [[sqlPrefix, { type: 'parameter' }], ['?', false], [arg], ['int'], false]
+  return [[sqlPrefix, null], ['?', false], [arg], ['int'], false]
 }
-
 function rejectingQueryable(): SqlQueryable {
   return {
     provider: 'sqlite',
@@ -1168,7 +1099,6 @@ function rejectingQueryable(): SqlQueryable {
     },
   }
 }
-
 function makeUnmappedDatabaseError() {
   return {
     name: 'DriverAdapterError',

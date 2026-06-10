@@ -600,12 +600,7 @@ function collectDbQueryPlaceholderDefaults(dbQuery: QueryPlanDbQuery, scope: Rec
     return
   }
 
-  collectQueryArgPlaceholderDefaults(
-    dbQuery.args,
-    dbQuery.argTypes,
-    dbQuery.type === 'templateSql' ? dbQuery.fragments : undefined,
-    scope,
-  )
+  collectQueryArgPlaceholderDefaults(dbQuery.args, dbQuery.argTypes, undefined, scope)
 }
 
 function collectQueryArgPlaceholderDefaults(
@@ -648,20 +643,7 @@ function getFragmentArgKind(fragment: unknown): 'scalar' | 'tuple' | 'tupleList'
     }
   }
 
-  if (typeof fragment !== 'object' || fragment === null) {
-    return undefined
-  }
-
-  switch ((fragment as { type?: unknown }).type) {
-    case 'parameter':
-      return 'scalar'
-    case 'parameterTuple':
-      return 'tuple'
-    case 'parameterTupleList':
-      return 'tupleList'
-    default:
-      return undefined
-  }
+  return undefined
 }
 
 function collectPlaceholderDefaults(

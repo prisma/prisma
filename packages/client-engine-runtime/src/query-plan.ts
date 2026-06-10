@@ -124,22 +124,13 @@ export function getQueryPlanBindingExpr(binding: QueryPlanBinding): QueryPlanNod
   return 'expr' in binding ? binding.expr : binding[1]
 }
 
-export type QueryPlanDbQuery = QueryPlanRawSql | QueryPlanTemplateSql | QueryPlanCompactTemplateSql
+export type QueryPlanDbQuery = QueryPlanRawSql | QueryPlanCompactTemplateSql
 
 export type QueryPlanRawSql = {
   type: 'rawSql'
   sql: string
   args: PrismaValue[]
   argTypes: ArgType[]
-}
-
-export type QueryPlanTemplateSql = {
-  type: 'templateSql'
-  fragments: Fragment[]
-  placeholderFormat: PlaceholderFormat
-  args: PrismaValue[]
-  argTypes: DynamicArgType[]
-  chunkable: boolean
 }
 
 export type QueryPlanCompactTemplateSql = readonly [
@@ -160,26 +151,7 @@ export type CompactNativeArgType = readonly [scalarType: QueryPlanArgScalarType,
 
 export type DynamicArgType = QueryPlanArgType | { arity: 'tuple'; elements: QueryPlanArgType[] }
 
-export type Fragment =
-  | string
-  | null
-  | CompactParameterTupleFragment
-  | CompactParameterTupleListFragment
-  | { type: 'stringChunk'; chunk: string }
-  | { type: 'parameter' }
-  | {
-      type: 'parameterTuple'
-      itemPrefix: string
-      itemSeparator: string
-      itemSuffix: string
-    }
-  | {
-      type: 'parameterTupleList'
-      itemPrefix: string
-      itemSeparator: string
-      itemSuffix: string
-      groupSeparator: string
-    }
+export type Fragment = string | null | CompactParameterTupleFragment | CompactParameterTupleListFragment
 
 export type CompactParameterTupleFragment = readonly [
   type: 'T',
@@ -195,11 +167,6 @@ export type CompactParameterTupleListFragment = readonly [
   itemSuffix: string,
   groupSeparator: string,
 ]
-
-export interface PlaceholderFormat {
-  prefix: string
-  hasNumbering: boolean
-}
 
 export type CompactPlaceholderFormat = readonly [prefix: string, hasNumbering: boolean]
 

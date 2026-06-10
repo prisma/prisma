@@ -1,6 +1,6 @@
 # Prisma Client performance intermediate report
 
-Date: 2026-06-09.
+Date: 2026-06-10.
 
 This report summarizes the current magnitude of the performance and memory gains from the ongoing Prisma Client performance branch. The numbers are from the persistent journal and focused probes in this branch; many rows are microbenchmarks over fake adapters or Miniflare/workerd harnesses, so they should be read as directional product-path evidence rather than final customer benchmarks.
 
@@ -47,6 +47,7 @@ Big memory wins:
 - Raw-nested child subtree/string interning recovered sharing that compact raw-nested emission had initially bypassed: retained blog-page plans dropped from about 16.8 MiB to about 5.3 MiB in the node warm probe.
 - Compact interner-count storage reduced restarted-baseline blog-page node warm 4.88 -> 4.55 MiB and parameterized node warm 5.10 -> 4.75 MiB; the later short `@parent$...` scope-string interner moved a fresh node warm baseline 4.54 -> 4.47 MiB and parameterized node warm 4.76 -> 4.69 MiB, with neutral compile-miss timing.
 - Workerd retained blog-page plan cache validation shows 100 entries at 335.4 KiB serialized plan bytes with stable generated-client timing.
+- The latest compact-only internal-format cleanup removed legacy object-shaped `templateSql` and tagged fragment readers from the runtime/types/tests. This is smaller than the earlier memory wins, but it keeps internal hot paths version-lockstep-only. A close direct-plan timing A/B over 300k nested blog-page iterations measured 12.62 us/op control vs 10.93 us/op patched; the cache-memory probe stayed in band at 4.47 MiB for 1,000 node-warm blog-page plans and 4.70 MiB for the parameterized row.
 
 4. Raw nested read protocol and runtime.
 
