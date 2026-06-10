@@ -10980,6 +10980,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The allocation win is tiny but deterministic, the code is simpler, and the close Criterion control was broadly positive.
 
+- Rejected experiment: pre-size result-node object maps from selection order.
+  - Timestamp: 2026-06-10.
+  - Patch:
+    - Added `Object::with_capacity()` / `ResultNodeBuilder::new_object_with_capacity()` in `query-compiler/query-compiler/src/result_node.rs`.
+    - Used `selection_order.len()` to pre-size the `IndexMap` built by `data_mapper.rs::get_result_node()`.
+    - An initial broader variant also pre-sized aggregation result maps; this regressed aggregate rows, so the final A/B only kept normal read/write result nodes pre-sized.
+  - Allocation evidence:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,query-one2m,query-many-one2m,aggregate,aggregate-custom,group-by,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - The refined variant saved 2 `translate_ir` / `full_compile` allocations on several normal rows: `query-m2o` 327/568 -> 325/566, `query-many-m2m` 425/733 -> 423/731, `query-one2m` 352/643 -> 350/641, `query-many-one2m` 326/636 -> 324/634, `create-nested-connectOrCreate-mixed` 1650/2621 -> 1648/2619, and `update-set-nested` 1264/2033 -> 1262/2031. `nested-pagination-query` stayed at 388/673 allocations with only small byte movement.
+  - Timing evidence:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" cargo bench -p query-compiler --bench compilation_bench -- 'query-m2o|query-many-m2m|nested-pagination-query|query-one2m|query-many-one2m|aggregate|group-by|create-nested-connectOrCreate-mixed|update-set-nested' --sample-size 10 --warm-up-time 1 --measurement-time 2`.
+    - Refined patched median vs reverted control:
+      - `aggregate-custom`: 31.44 vs 31.82 us.
+      - `aggregate`: 26.27 vs 27.14 us.
+      - `create-nested-connectOrCreate-mixed`: 129.16 vs 129.94 us.
+      - `nested-pagination-query`: 30.97 vs 31.60 us.
+      - `query-m2o-lateral`: 28.88 vs 28.36 us.
+      - `query-m2o`: 29.63 vs 29.47 us.
+      - `query-many-m2m`: 35.24 vs 34.23 us.
+      - `query-many-one2m`: 31.11 vs 31.88 us.
+      - `query-one2m-pagination`: 51.00 vs 51.80 us.
+      - `query-one2m`: 31.85 vs 31.34 us.
+      - `update-set-nested-prisma#27650`: 87.45 vs 88.14 us.
+      - `update-set-nested`: 101.66 vs 102.08 us.
+  - Decision:
+    - Reject/revert. The allocation count win was real but too small and the close timing was mixed; important read rows such as `query-many-m2m`, `query-m2o-lateral`, `query-m2o`, and `query-one2m` were better or comparable on the reverted control. Do not retry result-node `IndexMap` pre-sizing as a standalone cleanup without a stronger CPU hypothesis.
+
 ## Useful Commands
 
 ```sh
