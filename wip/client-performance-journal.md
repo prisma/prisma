@@ -11057,6 +11057,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Follow-up:
     - Confirm and remove the pre-existing TS-only raw-nested `m` relation reader/tests/benchmark scaffolding if no current producer remains. Do this as an internal-format deletion, not as a dual-format compatibility layer.
 
+- Accepted cleanup: remove stale raw-nested `m` relation support from TypeScript.
+  - Timestamp: 2026-06-10.
+  - Reason:
+    - Rust query-compiler raw-nested relation serialization is direct-only (`RawNestedReadRelation::Direct`), including many-to-many reads where the join table is folded into the child query.
+    - Subagent verifier `Huygens` independently confirmed no current production producer for raw-nested `m`; remaining `['m', ...]` hits are compact `MapField` expression nodes, not raw-nested relation tuples.
+  - Patch:
+    - Removed `RawNestedReadManyToManyRelation` from `packages/client-engine-runtime/src/query-plan.ts`.
+    - Removed the interpreter branch and attachment helpers for raw-nested relation tuples shaped as `['m', ...]`.
+    - Removed raw-nested `m` handling from `QueryPlanCache` interning and benchmark/memory query collectors.
+    - Converted test and benchmark scaffolding to the current direct wrapper relation shape (`tags: [{ tag: ... }]`) instead of retaining an alternate old internal format.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 250 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing smoke:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 5.54 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 12.12 us/op.
+  - Decision:
+    - Keep. This deletes an obsolete internal relation format instead of keeping dual readers. The accepted final-owner writer and current compiler output both target direct raw-nested relations.
+
 ## Useful Commands
 
 ```sh

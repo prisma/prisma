@@ -2784,12 +2784,7 @@ function collectDbQueriesInCompactJoins(joins: CompactJoinExpression[], dbQuerie
 function collectDbQueriesInRawNestedRead(query: RawNestedReadQuery, dbQueries: QueryPlanDbQuery[]): void {
   dbQueries.push(query[0])
   for (const relation of query[2] ?? []) {
-    if (relation[0] === 'r') {
-      collectDbQueriesInRawNestedRead(relation[2], dbQueries)
-    } else {
-      dbQueries.push(relation[2])
-      collectDbQueriesInRawNestedRead(relation[3], dbQueries)
-    }
+    collectDbQueriesInRawNestedRead(relation[2], dbQueries)
   }
 }
 
@@ -4933,7 +4928,15 @@ function buildRawNestedBlogPageQuery(dbQueries: readonly QueryPlanDbQuery[]): Ra
     [
       ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true],
       ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true],
-      ['m', 'tags', dbQueries[3], [dbQueries[4], RAW_TAG_COLUMNS], 0, 0, 1, 0, '@parent$id', '@parent$tagId'],
+      [
+        'r',
+        'tags',
+        [dbQueries[3], [], [['r', 'tag', [dbQueries[4], RAW_TAG_COLUMNS], 1, 0, '@parent$tagId', true]]],
+        0,
+        0,
+        '@parent$id',
+        false,
+      ],
       [
         'r',
         'comments',

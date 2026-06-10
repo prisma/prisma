@@ -163,7 +163,7 @@ export type RawNestedReadQuery = readonly [
   relations?: readonly RawNestedReadRelation[],
 ]
 
-export type RawNestedReadRelation = RawNestedReadDirectRelation | RawNestedReadManyToManyRelation
+export type RawNestedReadRelation = RawNestedReadDirectRelation
 
 export type RawNestedReadDirectRelation = readonly [
   type: 'r',
@@ -173,19 +173,6 @@ export type RawNestedReadDirectRelation = readonly [
   childColumn: RawResultColumnRef,
   scopeName: string,
   isRelationUnique: boolean,
-]
-
-export type RawNestedReadManyToManyRelation = readonly [
-  type: 'm',
-  fieldName: string,
-  joinQuery: QueryPlanDbQuery,
-  child: RawNestedReadQuery,
-  parentColumn: RawResultColumnRef,
-  joinParentColumn: RawResultColumnRef,
-  joinChildColumn: RawResultColumnRef,
-  childColumn: RawResultColumnRef,
-  joinScopeName: string,
-  childScopeName: string,
 ]
 
 export type QueryPlanNode = QueryPlanCompactNode

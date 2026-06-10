@@ -407,11 +407,6 @@ export class QueryPlanCache {
         if (Array.isArray(relation[2])) {
           relation[2] = this.#internRawNestedReadQuery(relation[2], counts)
         }
-      } else if (relation[0] === 'm') {
-        relation[2] = this.#internQuery(relation[2], counts)
-        if (Array.isArray(relation[3])) {
-          relation[3] = this.#internRawNestedReadQuery(relation[3], counts)
-        }
       }
     }
   }

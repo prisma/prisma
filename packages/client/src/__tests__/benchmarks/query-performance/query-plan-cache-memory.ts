@@ -428,12 +428,7 @@ function collectDbQueriesInCompactJoins(joins: CompactJoinExpression[], dbQuerie
 function collectDbQueriesInRawNestedRead(query: RawNestedReadQuery, dbQueries: QueryPlanDbQuery[]): void {
   dbQueries.push(query[0])
   for (const relation of query[2] ?? []) {
-    if (relation[0] === 'r') {
-      collectDbQueriesInRawNestedRead(relation[2], dbQueries)
-    } else {
-      dbQueries.push(relation[2])
-      collectDbQueriesInRawNestedRead(relation[3], dbQueries)
-    }
+    collectDbQueriesInRawNestedRead(relation[2], dbQueries)
   }
 }
 

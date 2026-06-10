@@ -482,7 +482,7 @@ test('starts compact raw nested read sibling relations concurrently', async () =
   })
 })
 
-test('interprets compact raw nested read many-to-many relations', async () => {
+test('interprets compact raw nested read wrapper-list relations', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
   const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', { $p: ['@parent$id', 'int'] })
@@ -494,22 +494,33 @@ test('interprets compact raw nested read many-to-many relations', async () => {
       [['id', 0]],
       [
         [
-          'm',
+          'r',
           'tags',
-          postTagQuery,
           [
-            tagQuery,
+            postTagQuery,
+            [],
             [
-              ['id', 0],
-              ['name', 1],
+              [
+                'r',
+                'tag',
+                [
+                  tagQuery,
+                  [
+                    ['id', 0],
+                    ['name', 1],
+                  ],
+                ],
+                1,
+                0,
+                '@parent$tagId',
+                true,
+              ],
             ],
           ],
           0,
           0,
-          1,
-          0,
           '@parent$id',
-          '@parent$tagId',
+          false,
         ],
       ],
     ],
@@ -553,10 +564,7 @@ test('interprets compact raw nested read many-to-many relations', async () => {
   }
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
     id: 1,
-    tags: [
-      { id: 10, name: 'Rust' },
-      { id: 11, name: 'Wasm' },
-    ],
+    tags: [{ tag: { id: 10, name: 'Rust' } }, { tag: { id: 11, name: 'Wasm' } }],
   })
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
 })
@@ -994,7 +1002,7 @@ test('interprets compact raw nested read indexed direct relations without scalar
   ])
 })
 
-test('interprets compact raw nested read indexed many-to-many relations without scalar key collisions', async () => {
+test('interprets compact raw nested read indexed wrapper-list relations without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id IN ', [1, 2, '2'])
   const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId IN ', {
@@ -1008,22 +1016,33 @@ test('interprets compact raw nested read indexed many-to-many relations without 
       [['id', 0]],
       [
         [
-          'm',
+          'r',
           'tags',
-          postTagQuery,
           [
-            tagQuery,
+            postTagQuery,
+            [],
             [
-              ['id', 0],
-              ['name', 1],
+              [
+                'r',
+                'tag',
+                [
+                  tagQuery,
+                  [
+                    ['id', 0],
+                    ['name', 1],
+                  ],
+                ],
+                1,
+                0,
+                '@parent$tagId',
+                true,
+              ],
             ],
           ],
           0,
           0,
-          1,
-          0,
           '@parent$id',
-          '@parent$tagId',
+          false,
         ],
       ],
     ],
@@ -1066,9 +1085,9 @@ test('interprets compact raw nested read indexed many-to-many relations without 
     },
   }
   await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual([
-    { id: 1, tags: [{ id: 10, name: 'Rust' }] },
-    { id: 2, tags: [{ id: 11, name: 'Wasm' }] },
-    { id: '2', tags: [{ id: 10, name: 'Rust' }] },
+    { id: 1, tags: [{ tag: { id: 10, name: 'Rust' } }, { tag: null }] },
+    { id: 2, tags: [{ tag: { id: 11, name: 'Wasm' } }] },
+    { id: '2', tags: [{ tag: { id: 10, name: 'Rust' } }] },
   ])
 })
 

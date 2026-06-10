@@ -23,7 +23,6 @@ import {
   QueryPlanNode,
   type QueryPlanRawSql,
   type RawNestedReadDirectRelation,
-  type RawNestedReadManyToManyRelation,
   type RawNestedReadQuery,
   type RawNestedReadRelation,
   type RawResultColumnMapping,
@@ -1107,114 +1106,42 @@ export class QueryInterpreter {
     relation: RawNestedReadRelation,
     enums: Record<string, Record<string, string>>,
   ): CompiledRawNestedReadRelation {
-    if (relation[0] === 'r') {
-      const uniqueWrapperRelation = getRawNestedUniqueWrapperRelation(relation[2][1], relation[2][2])
-      if (uniqueWrapperRelation !== undefined) {
-        const compiledUniqueWrapperRelation = this.#tryCompileRawNestedDirectUniqueWrapperReadRelation(
-          relation,
-          uniqueWrapperRelation,
-          enums,
-        )
-        if (compiledUniqueWrapperRelation !== undefined) {
-          return compiledUniqueWrapperRelation
-        }
-      }
-
-      const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
-      const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
-
-      if (typeof relation[3] === 'number' && typeof relation[4] === 'number') {
-        const fieldName = relation[1]
-        const parentColumnIndex = relation[3]
-        const childColumnIndex = relation[4]
-        const scopeName = relation[5]
-        const isRelationUnique = relation[6]
-
-        return async (parentResult, context, scope) => {
-          const childScope = createRawNestedRelationScope(
-            scope,
-            scopeName,
-            getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
-            canUseLocalChildScope,
-          )
-          const childResult = await childQuery(context, childScope)
-          attachRawNestedDirectRelationByIndex(
-            parentResult.rows,
-            parentResult.records,
-            fieldName,
-            isRelationUnique,
-            parentColumnIndex,
-            childResult.rows,
-            childResult.records,
-            childColumnIndex,
-          )
-        }
-      }
-
-      return async (parentResult, context, scope) => {
-        const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[3])
-        const childScope = createRawNestedRelationScope(
-          scope,
-          relation[5],
-          getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
-          canUseLocalChildScope,
-        )
-        const childResult = await childQuery(context, childScope)
-        const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
-        attachRawNestedDirectRelation(
-          parentResult.rows,
-          parentResult.records,
-          relation,
-          parentColumnIndex,
-          childResult.rows,
-          childResult.records,
-          childColumnIndex,
-        )
+    const uniqueWrapperRelation = getRawNestedUniqueWrapperRelation(relation[2][1], relation[2][2])
+    if (uniqueWrapperRelation !== undefined) {
+      const compiledUniqueWrapperRelation = this.#tryCompileRawNestedDirectUniqueWrapperReadRelation(
+        relation,
+        uniqueWrapperRelation,
+        enums,
+      )
+      if (compiledUniqueWrapperRelation !== undefined) {
+        return compiledUniqueWrapperRelation
       }
     }
 
-    const childQuery = this.#compileRawNestedReadQuery(relation[3], enums)
-    const canUseLocalJoinScope = rawNestedDbQueryUsesOnlyScopeName(relation[2], relation[8])
-    const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[3], relation[9])
+    const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
+    const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
 
-    if (
-      typeof relation[4] === 'number' &&
-      typeof relation[5] === 'number' &&
-      typeof relation[6] === 'number' &&
-      typeof relation[7] === 'number'
-    ) {
+    if (typeof relation[3] === 'number' && typeof relation[4] === 'number') {
       const fieldName = relation[1]
-      const parentColumnIndex = relation[4]
-      const joinParentColumnIndex = relation[5]
-      const joinChildColumnIndex = relation[6]
-      const childColumnIndex = relation[7]
-      const joinScopeName = relation[8]
-      const childScopeName = relation[9]
+      const parentColumnIndex = relation[3]
+      const childColumnIndex = relation[4]
+      const scopeName = relation[5]
+      const isRelationUnique = relation[6]
 
       return async (parentResult, context, scope) => {
-        const joinScope = createRawNestedRelationScope(
-          scope,
-          joinScopeName,
-          getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
-          canUseLocalJoinScope,
-        )
-        const joinResultSet = await this.#executeRawNestedReadDbQuery(relation[2], context, joinScope)
         const childScope = createRawNestedRelationScope(
           scope,
-          childScopeName,
-          getRawNestedScopeValue(joinResultSet.rows, joinChildColumnIndex),
+          scopeName,
+          getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
           canUseLocalChildScope,
         )
         const childResult = await childQuery(context, childScope)
-
-        attachRawNestedManyToManyRelationByIndex(
+        attachRawNestedDirectRelationByIndex(
           parentResult.rows,
           parentResult.records,
           fieldName,
+          isRelationUnique,
           parentColumnIndex,
-          joinResultSet.rows,
-          joinParentColumnIndex,
-          joinChildColumnIndex,
           childResult.rows,
           childResult.records,
           childColumnIndex,
@@ -1223,30 +1150,23 @@ export class QueryInterpreter {
     }
 
     return async (parentResult, context, scope) => {
-      const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[4])
-      const joinScope = createRawNestedRelationScope(
-        scope,
-        relation[8],
-        getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
-        canUseLocalJoinScope,
-      )
-      const joinResultSet = await this.#executeRawNestedReadDbQuery(relation[2], context, joinScope)
-      const joinChildColumnIndex = resolveRawResultColumnRef(joinResultSet.columnNames, relation[6])
+      const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[3])
       const childScope = createRawNestedRelationScope(
         scope,
-        relation[9],
-        getRawNestedScopeValue(joinResultSet.rows, joinChildColumnIndex),
+        relation[5],
+        getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
         canUseLocalChildScope,
       )
       const childResult = await childQuery(context, childScope)
-
-      attachRawNestedManyToManyRelation(
+      const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
+      attachRawNestedDirectRelation(
         parentResult.rows,
         parentResult.records,
         relation,
         parentColumnIndex,
-        joinResultSet,
-        childResult,
+        childResult.rows,
+        childResult.records,
+        childColumnIndex,
       )
     }
   }
@@ -1995,17 +1915,7 @@ function rawNestedReadQueryCanUseLocalScopes(query: RawNestedReadQuery, scopeNam
 
   for (let i = 0; i < relations.length; i++) {
     const relation = relations[i]
-    if (relation[0] === 'r') {
-      if (!rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])) {
-        return false
-      }
-      continue
-    }
-
-    if (
-      !rawNestedDbQueryUsesOnlyScopeName(relation[2], relation[8]) ||
-      !rawNestedReadQueryCanUseLocalScopes(relation[3], relation[9])
-    ) {
+    if (!rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])) {
       return false
     }
   }
@@ -2599,117 +2509,6 @@ function attachIndexedRawNestedDirectRelation(
 
   for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
     parentRecords[parentIndex][fieldName] = childrenByKey.get(parentRows[parentIndex][parentColumnIndex])?.slice() ?? []
-  }
-}
-
-function attachRawNestedManyToManyRelation(
-  parentRows: readonly unknown[][],
-  parentRecords: readonly PrismaObject[],
-  relation: RawNestedReadManyToManyRelation,
-  parentColumnIndex: number,
-  joinResultSet: SqlResultSet,
-  childResult: RawNestedReadResult,
-): void {
-  attachRawNestedManyToManyRelationByIndex(
-    parentRows,
-    parentRecords,
-    relation[1],
-    parentColumnIndex,
-    joinResultSet.rows,
-    resolveRawResultColumnRef(joinResultSet.columnNames, relation[5]),
-    resolveRawResultColumnRef(joinResultSet.columnNames, relation[6]),
-    childResult.rows,
-    childResult.records,
-    resolveRawResultColumnRef(childResult.columnNames, relation[7]),
-  )
-}
-
-function attachRawNestedManyToManyRelationByIndex(
-  parentRows: readonly unknown[][],
-  parentRecords: readonly PrismaObject[],
-  fieldName: string,
-  parentColumnIndex: number,
-  joinRows: readonly unknown[][],
-  joinParentColumnIndex: number,
-  joinChildColumnIndex: number,
-  childRows: readonly unknown[][],
-  childRecords: readonly PrismaObject[],
-  childColumnIndex: number,
-): void {
-  if (parentRows.length + joinRows.length + childRows.length >= RAW_NESTED_INDEX_THRESHOLD) {
-    attachIndexedRawNestedManyToManyRelation(
-      parentRows,
-      parentRecords,
-      fieldName,
-      parentColumnIndex,
-      joinRows,
-      joinParentColumnIndex,
-      joinChildColumnIndex,
-      childRows,
-      childRecords,
-      childColumnIndex,
-    )
-    return
-  }
-
-  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
-    const parentKey = parentRows[parentIndex][parentColumnIndex]
-    const children: PrismaObject[] = []
-    for (let joinIndex = 0; joinIndex < joinRows.length; joinIndex++) {
-      const joinRow = joinRows[joinIndex]
-      if (joinRow[joinParentColumnIndex] !== parentKey) {
-        continue
-      }
-
-      const child = findRawNestedChild(joinRow[joinChildColumnIndex], childRows, childRecords, childColumnIndex)
-      if (child !== null) {
-        children.push(child)
-      }
-    }
-    parentRecords[parentIndex][fieldName] = children
-  }
-}
-
-function attachIndexedRawNestedManyToManyRelation(
-  parentRows: readonly unknown[][],
-  parentRecords: readonly PrismaObject[],
-  fieldName: string,
-  parentColumnIndex: number,
-  joinRows: readonly unknown[][],
-  joinParentColumnIndex: number,
-  joinChildColumnIndex: number,
-  childRows: readonly unknown[][],
-  childRecords: readonly PrismaObject[],
-  childColumnIndex: number,
-): void {
-  const childByKey = new Map<unknown, PrismaObject>()
-  for (let childIndex = 0; childIndex < childRows.length; childIndex++) {
-    const childKey = childRows[childIndex][childColumnIndex]
-    if (!childByKey.has(childKey)) {
-      childByKey.set(childKey, childRecords[childIndex])
-    }
-  }
-
-  const childrenByParentKey = new Map<unknown, PrismaObject[]>()
-  for (let joinIndex = 0; joinIndex < joinRows.length; joinIndex++) {
-    const joinRow = joinRows[joinIndex]
-    const child = childByKey.get(joinRow[joinChildColumnIndex])
-    if (child === undefined) {
-      continue
-    }
-
-    const parentKey = joinRow[joinParentColumnIndex]
-    let children = childrenByParentKey.get(parentKey)
-    if (children === undefined) {
-      children = []
-      childrenByParentKey.set(parentKey, children)
-    }
-    children.push(child)
-  }
-
-  for (let parentIndex = 0; parentIndex < parentRecords.length; parentIndex++) {
-    parentRecords[parentIndex][fieldName] =
-      childrenByParentKey.get(parentRows[parentIndex][parentColumnIndex])?.slice() ?? []
   }
 }
 
