@@ -11129,6 +11129,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject/revert. The direct row was neutral and the product-shaped generated row was better on the reverted control. Do not inline final-owner scalar conversion as a standalone cleanup without a stronger shape-specific codegen hypothesis.
 
+- Rejected experiment: map root unique final-owner children from the first row.
+  - Timestamp: 2026-06-10.
+  - Patch:
+    - Replaced key-scanning `mapRawNestedFirstFinalOwnerChild()` for the two root direct unique relations in the final-owner fast path with a first-row helper, relying on the already-scoped unique child SQL.
+  - Patched smoke:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 250 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `direct plan after phase warmup blog page / nested rows`: 5.22 us/op.
+    - `generated client blog page / nested rows warmed cache`: 12.86 us/op.
+  - Reverted control:
+    - `direct plan after phase warmup blog page / nested rows`: 5.30 us/op.
+    - `generated client blog page / nested rows warmed cache`: 10.86 us/op.
+  - Decision:
+    - Reject/revert. The direct-row movement was noise-level, while the product-shaped generated row regressed sharply. Keep the key check unless a larger generated/static writer design removes it as part of a broader win.
+
 ## Useful Commands
 
 ```sh
