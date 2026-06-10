@@ -10734,6 +10734,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. The 300k close A/B is neutral-to-positive, the memory probe stayed in band, and removing internal compatibility branches matches the version-lockstep constraint.
     - Follow-up: remove the remaining legacy internal query-plan readers for Prisma values, expression nodes, bindings/joins, validation rules/errors, and result object nodes in focused compact-only passes rather than building new work on top of dual formats.
 
+- Accepted cleanup: remove legacy query-plan PrismaValue compatibility.
+  - Timestamp: 2026-06-10.
+  - Change:
+    - Removed `LegacyPrismaValuePlaceholder` / `LegacyPrismaValueGenerator` and the `prisma__type` / `prisma__value` branches from `packages/client-engine-runtime/src/query-plan.ts`.
+    - Query-plan placeholders now read only `{ "$p": [name, type] }`; query-plan generator calls now read only `{ "$g": [name, args] }`.
+    - Converted the remaining client-engine-runtime generator-call fixtures to `$g`. Raw-parameter `prisma__type` serialization remains untouched because it is a separate external raw-query parameter path.
+    - Verified the Rust producer serializes compact query-plan PrismaValues in `/home/aqrln.guest/prisma-engines/libs/prisma-value/src/lib.rs`: `serialize_placeholder()` writes `$p`, and `serialize_generator_call()` writes `$g`.
+  - Verification:
+    - `pnpm exec prettier --write AGENTS.md packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/render-query.test.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts`.
+    - Residual scan over `packages/client-engine-runtime/src`, `packages/client-engine-runtime/bench`, and the query-performance probes found no query-plan `prisma__type` / `prisma__value` references.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/render-query.test.ts src/interpreter/query-interpreter.test.ts src/batch.test.ts`: 49 tests passed.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+    - `pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts`: `blog page / node default warm` 4.47 MiB, `blog page parameterized / node default warm` 4.69 MiB.
+  - Timing evidence:
+    - First compact-only shape was rejected in-place before committing: direct-plan 300k was 9.30 and 9.36 us/op versus a reverted control at 9.05 us/op; render-only 300k was 1.58 and 1.79 us/op versus control at 1.38 us/op.
+    - The accepted tuned shape keeps a local `obj` before reading `$p` / `$g`, preserving the old monomorphic access shape without legacy branches.
+    - Tuned render-only row: `CLIENT_ENGINE_CACHE_TIMING_FILTER='render query all leaves' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` -> 1.43 us/op versus the 1.38 us/op control.
+    - Tuned direct-plan row: `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` -> 8.52 us/op versus the 9.05 us/op control.
+  - Decision:
+    - Keep. The first compact-only shape was measurably worse and was adjusted before commit; the tuned shape is neutral on render-only, positive on the broader direct-plan row, and removes another internal dual-format branch.
+    - Remaining dual-format internal cleanup debt: expression nodes, bindings/joins, validation rules/errors, and result object nodes.
+
 ## Useful Commands
 
 ```sh

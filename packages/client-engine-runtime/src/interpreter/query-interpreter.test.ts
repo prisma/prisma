@@ -16,10 +16,7 @@ test('uses a per-run generator snapshot for now calls', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
     type: 'value',
-    args: [
-      { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
-      { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
-    ],
+    args: [{ $g: ['now', []] }, { $g: ['now', []] }],
   } satisfies QueryPlanNode
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
