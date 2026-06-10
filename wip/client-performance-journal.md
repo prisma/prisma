@@ -11266,6 +11266,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Guardrail:
     - Do not remove `QueryPlanRawSql` object handling; `$queryRaw` / `$executeRaw` still construct it directly in `ClientEngine.compileRawQuery()`.
 
+- Accepted cleanup: remove JSON-protocol `Param` compatibility from compacted batches.
+  - Timestamp: 2026-06-10.
+  - Producer-shape scan:
+    - Ran a temporary read-only scan over representative `findUnique`, `findMany`, blog-page nested read, and compacted `findUnique` batch shapes.
+    - SQLite scan: batch type `compacted`; JSON-protocol `Param` placeholders 0; compact `$p` placeholders 12; legacy field-result nodes 0; canonical result scalar strings 0; raw-nested mappings 24/24 numeric refs, 0 string refs, 0 missing field types; compact arg type strings `i` 16 and `I` 14.
+    - PostgreSQL provider-swapped scan: batch type `compacted`; JSON-protocol `Param` placeholders 0; compact `$p` placeholders 12; raw-nested mappings 24/24 numeric refs, 0 missing field types; compact/native arg type strings `i` 10, `I` 14, `INTEGER` 10.
+    - MySQL provider-swapped scan: batch type `compacted`; JSON-protocol `Param` placeholders 0; compact `$p` placeholders 12; raw-nested mappings 24/24 numeric refs, 0 missing field types; compact/native arg type strings `i` 10, `I` 8, `INT` 10.
+  - Patch:
+    - Removed `QueryProtocolPlaceholder` / `{ $type: 'Param', value: { name } }` handling from `packages/client-engine-runtime/src/batch.ts`.
+    - `convertCompactedRows()` now resolves only compact query-plan placeholders via `isPrismaValuePlaceholder()` / `$p`, matching current `compileBatch()` output.
+    - Updated `batch.test.ts` from a mixed placeholder fixture to compact-only placeholders.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/batch.test.ts`: passed, 250 tests under the package's test filter behavior.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client batched findUnique / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 7.22 us/op, `queryRaw=100000`.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This removes an old internal compacted-batch compatibility branch with direct producer evidence and a healthy generated batched row.
+
 ## Useful Commands
 
 ```sh
