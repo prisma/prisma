@@ -11233,6 +11233,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject/revert fully. A direct JS object walker that still materializes today's owned protocol maps is neutral to slower on sampled compile-miss rows. The result supports the earlier architecture assessment: meaningful JS-owned input wins need to remove larger phases together, such as descriptor/protocol construction, cache-keying, Rust-owned request materialization, or Wasm plan transfer on cache hits. Do not retry this shallow `compileFromValue` shape without a new CPU hypothesis.
 
+- Rejected experiment: final-owner child target parallel arrays and small-scope dedupe.
+  - Timestamp: 2026-06-10.
+  - Trigger:
+    - Explorer `Kepler` (`019eb2ab-5bd4-7ad2-9c60-adb6201ed497`) suggested a broader second-wave slot-attachment path: replace per-comment `RawNestedFinalOwnerChildTarget` object allocation and repeated tiny `Set` use with slot arrays / thresholded indexes, while preserving key checks and output ordering.
+  - Patch:
+    - Replaced final-owner child target objects with parallel `listRecords` / `childTargetIds` arrays.
+    - Tried a small-list dedupe helper for child target IDs and a two-row fast path in `getRawNestedScopeValue()`, falling back to `Set` for larger unique lists.
+  - Verification before rejection:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 250 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Timing:
+    - Patched `direct plan after phase warmup blog page / nested rows`, 300k iterations: first run 10.72 us/op warmup outlier, repeat 5.39 us/op.
+    - Patched `generated client blog page / nested rows warmed cache`, 100k iterations: 12.67 us/op, repeat 11.37 us/op.
+    - Reverted adjacent control after rebuilding runtime: direct 5.39 us/op, generated 11.30 us/op.
+  - Decision:
+    - Reject/revert. The patch was neutral on the direct row and slightly softer on the product-shaped generated row. Keep the broader slot/index idea only if it also changes wrapper/child row lookup ownership or phase query rendering; this first allocation-only slice is not enough.
+
+- Scout todo: remaining internal-format cleanup candidates need producer-shape proof.
+  - Timestamp: 2026-06-10.
+  - Explorer:
+    - `Chandrasekhar` (`019eb2ab-44f2-7f42-a709-8df8cb1de17a`) did a read-only scan for old/new internal compatibility branches that were not part of the already-deleted compact-plan families.
+  - Candidates:
+    - `packages/client-engine-runtime/src/batch.ts`: JSON-protocol `{ $type: 'Param' }` placeholder support in batch response argument helpers may be dead if `compileBatch()` always emits compact `$p` placeholders.
+    - `packages/client-engine-runtime/src/interpreter/render-query.ts`: canonical scalar arg type names in template-SQL rendering may be dead for compiled template SQL, while raw queries still use full `ArgType` objects through `ClientEngine.compileRawQuery()`.
+    - `packages/client-engine-runtime/src/interpreter/data-mapper.ts`: legacy object field-result nodes and canonical scalar fallbacks may be fixture-only, but enum/bytes/list/db-name producer coverage is missing.
+    - `packages/client-engine-runtime/src/query-plan.ts` / `query-interpreter.ts`: raw-nested string column refs and optional raw-nested mapping `fieldType` may be removable if all current providers/actions emit numeric refs with field types.
+  - Required proof before deletion:
+    - Add a temporary producer-shape scan over representative `compile()` / `compileBatch()` queries for sqlite, postgres, and mysql.
+    - Assert no JSON-protocol `Param` batch arguments, no canonical scalar strings in compiled template SQL/result mappings, no raw-nested string refs, and no raw-nested mappings missing field types.
+    - Then prune one family at a time with `@prisma/client-engine-runtime` tests/build, `query-plan-cache.test.ts`, and focused cache timing rows.
+  - Guardrail:
+    - Do not remove `QueryPlanRawSql` object handling; `$queryRaw` / `$executeRaw` still construct it directly in `ClientEngine.compileRawQuery()`.
+
 ## Useful Commands
 
 ```sh
