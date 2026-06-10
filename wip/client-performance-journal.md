@@ -11007,6 +11007,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject/revert. The allocation count win was real but too small and the close timing was mixed; important read rows such as `query-many-m2m`, `query-m2o-lateral`, `query-m2o`, and `query-one2m` were better or comparable on the reverted control. Do not retry result-node `IndexMap` pre-sizing as a standalone cleanup without a stronger CPU hypothesis.
 
+- Verification: local query-compiler Wasm rebuild after accepted relation-selection change.
+  - Timestamp: 2026-06-10.
+  - Engines state:
+    - `/home/aqrln.guest/prisma-engines` at `8778c84c831` (`Avoid nested relation selection Vec`).
+  - Build:
+    - Command: `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`.
+    - Result: passed for fast and small variants across postgresql, sqlite, mysql, sqlserver, and cockroachdb. `wasm-opt` and `wasm2wat` were skipped by the local build environment.
+  - Prisma dependency refresh:
+    - Command: `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`.
+    - Result: the package was already wired to the same local file path; the command only introduced unrelated `@ark/attest` / TypeScript peer lockfile churn, which was reverted.
+  - Compile-miss probe:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Rows: `findUnique / value churn` 411.57 us/op, `findMany / stable query` 302.35 us/op, `blog page / value churn` 2455.48 us/op.
+  - Client build:
+    - Command: `pnpm --filter @prisma/client build`.
+    - Result: passed, including provider-specific query compiler Wasm bundle steps.
+  - Worktree result:
+    - Both `/home/aqrln.guest/prisma` and `/home/aqrln.guest/prisma-engines` were clean after build/probe verification.
+
 ## Useful Commands
 
 ```sh
