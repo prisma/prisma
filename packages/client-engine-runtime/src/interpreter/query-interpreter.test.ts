@@ -1127,51 +1127,13 @@ test('interprets compact raw nested read scalar conversion metadata', async () =
   })
 })
 
-test('interprets compact raw nested read named column refs', async () => {
-  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
-  const rootQuery = templateQuery('SELECT name, id FROM User WHERE id = ', 1)
-  const plan = [
-    'n',
-    [
-      rootQuery,
-      [
-        ['id', 'id', 'i'],
-        ['name', 'name', 's'],
-      ],
-    ],
-    true,
-  ] satisfies QueryPlanNode
-  const queryable: SqlQueryable = {
-    provider: 'sqlite',
-    adapterName: '@prisma/adapter-test',
-    queryRaw() {
-      return Promise.resolve({
-        columnNames: ['name', 'id'],
-        columnTypes: [ColumnTypeEnum.Text, ColumnTypeEnum.Int32],
-        rows: [['Alice', '1']],
-      })
-    },
-    executeRaw() {
-      return Promise.resolve(0)
-    },
-  }
-  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
-    id: 1,
-    name: 'Alice',
-  })
-})
-
 test('interprets compact raw nested read empty result sets without column metadata', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
   const childQuery = templateQuery('SELECT id FROM Comment WHERE postId = ', { $p: ['@parent$id', 'int'] })
   const plan = [
     'n',
-    [
-      rootQuery,
-      [['id', 'id', 'i']],
-      [['r', 'comments', [childQuery, [['id', 'id', 'i']]], 'id', 'postId', '@parent$id', false]],
-    ],
+    [rootQuery, [['id', 0, 'i']], [['r', 'comments', [childQuery, [['id', 0, 'i']]], 0, 0, '@parent$id', false]]],
     true,
   ] satisfies QueryPlanNode
   let queryCount = 0

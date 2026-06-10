@@ -26,7 +26,6 @@ import {
   type RawNestedReadQuery,
   type RawNestedReadRelation,
   type RawResultColumnMapping,
-  type RawResultColumnRef,
   type ResultNode,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
@@ -95,14 +94,9 @@ type CompiledRawNestedReadRelations = (
 type CompiledRawNestedRowMapper = (resultSet: SqlResultSet) => PrismaObject[]
 
 const EMPTY_ENUMS: Record<string, Record<string, string>> = Object.freeze({})
-const rawResultColumnIndexesCache = new WeakMap<readonly string[], Record<string, number>>()
 const rawResultNumericColumnMappingsCache = new WeakMap<
   readonly RawResultColumnMapping[],
   ResolvedRawResultColumnMapping[]
->()
-const rawResultColumnMappingsCache = new WeakMap<
-  readonly RawResultColumnMapping[],
-  WeakMap<readonly string[], ResolvedRawResultColumnMapping[]>
 >()
 
 function isObjectResultNode(structure: ResultNode): structure is CompactResultObjectNode {
@@ -1048,7 +1042,6 @@ export class QueryInterpreter {
       const records = mapRows(resultSet)
       const result: RawNestedReadResult = {
         rows: resultSet.rows,
-        columnNames: resultSet.columnNames,
         records,
       }
       if (relations !== undefined && resultSet.rows.length > 0) {
@@ -1073,12 +1066,11 @@ export class QueryInterpreter {
       if (rows.length === 0) {
         return {
           rows,
-          columnNames: resultSet.columnNames,
           records: [],
         }
       }
 
-      const parentColumnIndex = resolveRawResultColumnRef(resultSet.columnNames, relation[3])
+      const parentColumnIndex = relation[3]
       const childScope = createRawNestedRelationScope(
         scope,
         relation[5],
@@ -1086,11 +1078,10 @@ export class QueryInterpreter {
         canUseLocalChildScope,
       )
       const childResult = await childQuery(context, childScope)
-      const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
+      const childColumnIndex = relation[4]
 
       return {
         rows,
-        columnNames: resultSet.columnNames,
         records: mapRawNestedUniqueWrapperRows(
           rows,
           parentColumnIndex,
@@ -1122,48 +1113,25 @@ export class QueryInterpreter {
     const childQuery = this.#compileRawNestedReadQuery(relation[2], enums)
     const canUseLocalChildScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
 
-    if (typeof relation[3] === 'number' && typeof relation[4] === 'number') {
-      const fieldName = relation[1]
-      const parentColumnIndex = relation[3]
-      const childColumnIndex = relation[4]
-      const scopeName = relation[5]
-      const isRelationUnique = relation[6]
-
-      return async (parentResult, context, scope) => {
-        const childScope = createRawNestedRelationScope(
-          scope,
-          scopeName,
-          getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
-          canUseLocalChildScope,
-        )
-        const childResult = await childQuery(context, childScope)
-        attachRawNestedDirectRelationByIndex(
-          parentResult.rows,
-          parentResult.records,
-          fieldName,
-          isRelationUnique,
-          parentColumnIndex,
-          childResult.rows,
-          childResult.records,
-          childColumnIndex,
-        )
-      }
-    }
+    const fieldName = relation[1]
+    const parentColumnIndex = relation[3]
+    const childColumnIndex = relation[4]
+    const scopeName = relation[5]
+    const isRelationUnique = relation[6]
 
     return async (parentResult, context, scope) => {
-      const parentColumnIndex = resolveRawResultColumnRef(parentResult.columnNames, relation[3])
       const childScope = createRawNestedRelationScope(
         scope,
-        relation[5],
+        scopeName,
         getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
         canUseLocalChildScope,
       )
       const childResult = await childQuery(context, childScope)
-      const childColumnIndex = resolveRawResultColumnRef(childResult.columnNames, relation[4])
-      attachRawNestedDirectRelation(
+      attachRawNestedDirectRelationByIndex(
         parentResult.rows,
         parentResult.records,
-        relation,
+        fieldName,
+        isRelationUnique,
         parentColumnIndex,
         childResult.rows,
         childResult.records,
@@ -1177,15 +1145,6 @@ export class QueryInterpreter {
     wrapperRelation: RawNestedReadDirectRelation,
     enums: Record<string, Record<string, string>>,
   ): CompiledRawNestedReadRelation | undefined {
-    if (
-      typeof relation[3] !== 'number' ||
-      typeof relation[4] !== 'number' ||
-      typeof wrapperRelation[3] !== 'number' ||
-      typeof wrapperRelation[4] !== 'number'
-    ) {
-      return undefined
-    }
-
     const wrapperDbQuery = relation[2][0]
     const childQuery = this.#compileRawNestedReadQuery(wrapperRelation[2], enums)
     const canUseLocalWrapperScope = rawNestedReadQueryCanUseLocalScopes(relation[2], relation[5])
@@ -1383,7 +1342,6 @@ export class QueryInterpreter {
 
 type RawNestedReadResult = {
   rows: readonly unknown[][]
-  columnNames: readonly string[]
   records: PrismaObject[]
 }
 
@@ -1511,12 +1469,7 @@ function tryCompileRawNestedFinalOwnerUniqueRelation(
   relation: RawNestedReadDirectRelation,
 ): RawNestedFinalOwnerUniqueRelation | undefined {
   const childQuery = relation[2]
-  if (
-    childQuery[2] !== undefined ||
-    !rawNestedReadQueryCanUseLocalScopes(childQuery, relation[5]) ||
-    typeof relation[3] !== 'number' ||
-    typeof relation[4] !== 'number'
-  ) {
+  if (childQuery[2] !== undefined || !rawNestedReadQueryCanUseLocalScopes(childQuery, relation[5])) {
     return undefined
   }
 
@@ -1544,9 +1497,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
   if (
     sourceQuery[1].length !== 0 ||
     nestedRelations?.length !== 1 ||
-    !rawNestedReadQueryCanUseLocalScopes(sourceQuery, relation[5]) ||
-    typeof relation[3] !== 'number' ||
-    typeof relation[4] !== 'number'
+    !rawNestedReadQueryCanUseLocalScopes(sourceQuery, relation[5])
   ) {
     return undefined
   }
@@ -1556,9 +1507,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
     childRelation[0] !== 'r' ||
     !childRelation[6] ||
     childRelation[2][2] !== undefined ||
-    !rawNestedReadQueryCanUseLocalScopes(childRelation[2], childRelation[5]) ||
-    typeof childRelation[3] !== 'number' ||
-    typeof childRelation[4] !== 'number'
+    !rawNestedReadQueryCanUseLocalScopes(childRelation[2], childRelation[5])
   ) {
     return undefined
   }
@@ -1590,12 +1539,7 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
 ): RawNestedFinalOwnerChildListRelation | undefined {
   const childQuery = relation[2]
   const nestedRelations = childQuery[2]
-  if (
-    nestedRelations?.length !== 1 ||
-    !rawNestedReadQueryCanUseLocalScopes(childQuery, relation[5]) ||
-    typeof relation[3] !== 'number' ||
-    typeof relation[4] !== 'number'
-  ) {
+  if (nestedRelations?.length !== 1 || !rawNestedReadQueryCanUseLocalScopes(childQuery, relation[5])) {
     return undefined
   }
 
@@ -1609,9 +1553,7 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
     uniqueRelation[0] !== 'r' ||
     !uniqueRelation[6] ||
     uniqueRelation[2][2] !== undefined ||
-    !rawNestedReadQueryCanUseLocalScopes(uniqueRelation[2], uniqueRelation[5]) ||
-    typeof uniqueRelation[3] !== 'number' ||
-    typeof uniqueRelation[4] !== 'number'
+    !rawNestedReadQueryCanUseLocalScopes(uniqueRelation[2], uniqueRelation[5])
   ) {
     return undefined
   }
@@ -1852,7 +1794,7 @@ function mapRawNestedRows(
     return []
   }
 
-  const resolvedMappings = resolveRawResultColumnMappings(resultSet.columnNames, mappings)
+  const resolvedMappings = resolveRawResultColumnMappings(mappings)
   const result = new Array<PrismaObject>(rows.length)
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     const row = rows[rowIndex]
@@ -1989,41 +1931,10 @@ type ResolvedRawResultColumnMapping = readonly [
   convertKind?: RawNestedConvertKind,
 ]
 
-function resolveRawResultColumnMappings(
-  columnNames: readonly string[],
-  mappings: readonly RawResultColumnMapping[],
-): ResolvedRawResultColumnMapping[] {
+function resolveRawResultColumnMappings(mappings: readonly RawResultColumnMapping[]): ResolvedRawResultColumnMapping[] {
   const cachedNumericMappings = rawResultNumericColumnMappingsCache.get(mappings)
   if (cachedNumericMappings !== undefined) {
     return cachedNumericMappings
-  }
-
-  if (usesOnlyNumericRawResultColumnRefs(mappings)) {
-    const resolvedMappings = new Array<ResolvedRawResultColumnMapping>(mappings.length)
-    for (let i = 0; i < mappings.length; i++) {
-      const mapping = mappings[i]
-      const fieldType = mapping[2]
-      resolvedMappings[i] = [
-        mapping[0],
-        mapping[1] as number,
-        getRawNestedMappingName(mapping[0]),
-        fieldType,
-        getRawNestedConvertKind(fieldType),
-      ]
-    }
-    rawResultNumericColumnMappingsCache.set(mappings, resolvedMappings)
-    return resolvedMappings
-  }
-
-  let mappingsByColumnNames = rawResultColumnMappingsCache.get(mappings)
-  if (mappingsByColumnNames === undefined) {
-    mappingsByColumnNames = new WeakMap<readonly string[], ResolvedRawResultColumnMapping[]>()
-    rawResultColumnMappingsCache.set(mappings, mappingsByColumnNames)
-  }
-
-  const cached = mappingsByColumnNames.get(columnNames)
-  if (cached !== undefined) {
-    return cached
   }
 
   const resolvedMappings = new Array<ResolvedRawResultColumnMapping>(mappings.length)
@@ -2032,23 +1943,14 @@ function resolveRawResultColumnMappings(
     const fieldType = mapping[2]
     resolvedMappings[i] = [
       mapping[0],
-      resolveRawResultColumnRef(columnNames, mapping[1]),
-      typeof mapping[1] === 'string' ? mapping[1] : getRawNestedMappingName(mapping[0]),
+      mapping[1],
+      getRawNestedMappingName(mapping[0]),
       fieldType,
       getRawNestedConvertKind(fieldType),
     ]
   }
-  mappingsByColumnNames.set(columnNames, resolvedMappings)
+  rawResultNumericColumnMappingsCache.set(mappings, resolvedMappings)
   return resolvedMappings
-}
-
-function usesOnlyNumericRawResultColumnRefs(mappings: readonly RawResultColumnMapping[]): boolean {
-  for (let i = 0; i < mappings.length; i++) {
-    if (typeof mappings[i][1] !== 'number') {
-      return false
-    }
-  }
-  return true
 }
 
 function getRawNestedConvertKind(fieldType: FieldType | undefined): RawNestedConvertKind {
@@ -2076,34 +1978,6 @@ function getRawNestedConvertKind(fieldType: FieldType | undefined): RawNestedCon
     default:
       return RAW_NESTED_CONVERT_FULL
   }
-}
-
-function resolveRawResultColumnRef(columnNames: readonly string[], column: RawResultColumnRef): number {
-  if (typeof column === 'number') {
-    return column
-  }
-
-  const columnIndexes = getRawResultColumnIndexes(columnNames)
-  const columnIndex = columnIndexes[column]
-  if (columnIndex !== undefined) {
-    return columnIndex
-  }
-
-  throw new Error(`Missing raw nested read column '${column}' in result columns: ${columnNames.join(', ')}`)
-}
-
-function getRawResultColumnIndexes(columnNames: readonly string[]): Record<string, number> {
-  let columnIndexes = rawResultColumnIndexesCache.get(columnNames)
-  if (columnIndexes !== undefined) {
-    return columnIndexes
-  }
-
-  columnIndexes = Object.create(null) as Record<string, number>
-  for (let i = 0; i < columnNames.length; i++) {
-    columnIndexes[columnNames[i]] = i
-  }
-  rawResultColumnIndexesCache.set(columnNames, columnIndexes)
-  return columnIndexes
 }
 
 function mapRawNestedFieldValue(
@@ -2199,27 +2073,6 @@ function getRawNestedScopeValue(rows: readonly unknown[][], columnIndex: number)
     }
   }
   return values
-}
-
-function attachRawNestedDirectRelation(
-  parentRows: readonly unknown[][],
-  parentRecords: readonly PrismaObject[],
-  relation: RawNestedReadDirectRelation,
-  parentColumnIndex: number,
-  childRows: readonly unknown[][],
-  childRecords: readonly PrismaObject[],
-  childColumnIndex: number,
-): void {
-  attachRawNestedDirectRelationByIndex(
-    parentRows,
-    parentRecords,
-    relation[1],
-    relation[6],
-    parentColumnIndex,
-    childRows,
-    childRecords,
-    childColumnIndex,
-  )
 }
 
 function attachRawNestedDirectRelationByIndex(

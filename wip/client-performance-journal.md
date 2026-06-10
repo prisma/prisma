@@ -9586,7 +9586,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Follow-up lead:
     - Design a generic schedule representation for raw nested reads that separates DB execution dependencies from final materialization.
     - Compile row mappers, relation key extractors, and field writers once per plan, then allocate only final user-visible result objects plus the minimum relation indexes needed for list fanout.
-    - Preserve existing generic raw nested fallback for named column refs, dynamic metadata, scalar conversion, empty metadata, composite/unsupported relation shapes, and error semantics.
+    - Preserve existing generic raw nested fallback for dynamic metadata, scalar conversion, empty metadata, composite/unsupported relation shapes, and error semantics. Named column refs were later removed from the internal format after producer scans showed numeric refs throughout.
     - Workerd raw-result-set lower-bound coverage now exists in `workerd-query-compiler-memory.ts` as of Prisma commit `dfa4774d8`.
 
 - Rejected runtime spike: unique-root direct raw nested assembler wrapper around child raw results.
@@ -11285,6 +11285,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`: passed.
   - Decision:
     - Keep. This removes an old internal compacted-batch compatibility branch with direct producer evidence and a healthy generated batched row.
+
+- Accepted cleanup: remove raw-nested string column refs.
+  - Timestamp: 2026-06-10.
+  - Producer-shape scan:
+    - Representative sqlite/postgres/mysql query scans compiled `findUnique`, `findMany`, blog-page nested read, and compacted `findUnique` batch shapes with 24/24 raw-nested mappings numeric, 0 string refs, and 0 missing field types per provider.
+    - Full `prisma-engines/query-compiler` PostgreSQL fixture-corpus scan compiled 60 files. Raw nested queries: 34. Raw nested mappings: 89/89 numeric refs, 0 string refs, 0 missing field types. The same scan still found 84 legacy field-result nodes and 22 canonical result scalar strings, so data-mapper legacy object/canonical support remains out of scope for deletion.
+  - Patch:
+    - Changed `RawResultColumnRef` to `number` in `packages/client-engine-runtime/src/query-plan.ts`.
+    - Removed the TS runtime named-column lookup cache, `mappings -> columnNames -> descriptors` cache, `resolveRawResultColumnRef()`, and numeric/string guard branches from `query-interpreter.ts`.
+    - Removed `RawNestedReadResult.columnNames`, since relation attachment no longer needs result-set column names after refs are numeric-only.
+    - Removed the old named-ref interpreter fixture and converted the unrelated empty-result raw-nested fixture to numeric refs.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 249 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - Latest reverted control after the final-owner rejection: direct blog-page nested row 5.39 us/op and generated-client blog-page nested row 11.30 us/op.
+    - Final patch `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`: 5.68 us/op, `queryRaw=2100000`.
+    - Final patch `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`: 11.16 us/op, `queryRaw=700000`.
+  - Decision:
+    - Keep. This removes another old internal-format compatibility path using direct producer evidence. The direct row stayed in band and the product-shaped generated nested row was slightly healthier than the adjacent control.
+
+- Documentation refresh: intermediate report after raw-nested string-ref cleanup.
+  - Timestamp: 2026-06-10.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Updated the headline Node generated blog-page warmed-cache row from the older 14.33 us/op checkpoint to the latest 11.16 us/op generated-client nested-row refresh.
+    - Added the compacted-batch `Param` cleanup and raw-nested string column-ref cleanup to the internal-format cleanup summary.
+    - Noted that the raw-nested string-ref deletion followed the internal producer/consumer lockstep rule and stayed healthy on direct and generated Node rows.
+  - Decision:
+    - Keep the report as the current intermediate performance checkpoint. The headline remains: simple Worker cache-hit paths are well past 3x, the latest Workerd nested host-dispatch refresh is about 3.9x faster than the early calibrated baseline, and the latest Node nested generated-client row is about 4.7x faster than the original generated-client cleanup baseline.
 
 ## Useful Commands
 

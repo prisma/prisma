@@ -149,7 +149,7 @@ export function getJoinExpressionIsRelationUnique(join: JoinExpression): boolean
   return join[3]
 }
 
-export type RawResultColumnRef = number | string
+export type RawResultColumnRef = number
 
 export type RawResultColumnMapping = readonly [
   fieldName: string | readonly string[],
