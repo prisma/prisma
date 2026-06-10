@@ -73,8 +73,8 @@ export const JOIN_PLAN: QueryPlanNode = {
           ],
         },
         children: [
-          {
-            child: {
+          [
+            {
               type: 'query',
               args: [
                 ['SELECT id, title, content, authorId FROM Post WHERE authorId = ', null],
@@ -84,10 +84,10 @@ export const JOIN_PLAN: QueryPlanNode = {
                 false,
               ],
             },
-            on: [['id', 'authorId']],
-            parentField: 'posts',
-            isRelationUnique: false,
-          },
+            [['id', 'authorId']],
+            'posts',
+            false,
+          ],
         ],
         canAssumeStrictEquality: true,
       },
@@ -174,8 +174,8 @@ export const DEEP_JOIN_PLAN: QueryPlanNode = {
               args: [['SELECT id, email, name FROM User LIMIT 5'], ['?', false], [], [], false],
             },
             children: [
-              {
-                child: {
+              [
+                {
                   type: 'query',
                   args: [
                     ['SELECT id, userId, firstName, lastName FROM Profile WHERE userId IN (1, 2, 3, 4, 5)'],
@@ -185,17 +185,17 @@ export const DEEP_JOIN_PLAN: QueryPlanNode = {
                     false,
                   ],
                 },
-                on: [['id', 'userId']],
-                parentField: 'profile',
-                isRelationUnique: true,
-              },
+                [['id', 'userId']],
+                'profile',
+                true,
+              ],
             ],
             canAssumeStrictEquality: true,
           },
         },
         children: [
-          {
-            child: {
+          [
+            {
               type: 'join',
               args: {
                 parent: {
@@ -209,8 +209,8 @@ export const DEEP_JOIN_PLAN: QueryPlanNode = {
                   ],
                 },
                 children: [
-                  {
-                    child: {
+                  [
+                    {
                       type: 'query',
                       args: [
                         [
@@ -222,18 +222,18 @@ export const DEEP_JOIN_PLAN: QueryPlanNode = {
                         false,
                       ],
                     },
-                    on: [['id', 'postId']],
-                    parentField: 'comments',
-                    isRelationUnique: false,
-                  },
+                    [['id', 'postId']],
+                    'comments',
+                    false,
+                  ],
                 ],
                 canAssumeStrictEquality: true,
               },
             },
-            on: [['id', 'authorId']],
-            parentField: 'posts',
-            isRelationUnique: false,
-          },
+            [['id', 'authorId']],
+            'posts',
+            false,
+          ],
         ],
         canAssumeStrictEquality: true,
       },

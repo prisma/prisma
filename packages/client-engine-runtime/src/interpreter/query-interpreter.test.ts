@@ -984,8 +984,8 @@ test('joins single strict keys without scalar key collisions', async () => {
         args: [{ id: '1' }, { id: 1 }, { id: null }, { id: 'null' }],
       },
       children: [
-        {
-          child: {
+        [
+          {
             type: 'value',
             args: [
               { parentId: '1', value: 'string-one' },
@@ -994,10 +994,10 @@ test('joins single strict keys without scalar key collisions', async () => {
               { parentId: 'null', value: 'string-null' },
             ],
           },
-          on: [['id', 'parentId']],
-          parentField: 'children',
-          isRelationUnique: false,
-        },
+          [['id', 'parentId']],
+          'children',
+          false,
+        ],
       ],
       canAssumeStrictEquality: true,
     },
@@ -1020,8 +1020,8 @@ test('joins tiny single strict keys without scalar key collisions', async () => 
         args: [{ id: '1' }, { id: 1 }, { id: null }],
       },
       children: [
-        {
-          child: {
+        [
+          {
             type: 'value',
             args: [
               { parentId: '1', value: 'string-one' },
@@ -1029,10 +1029,10 @@ test('joins tiny single strict keys without scalar key collisions', async () => 
               { parentId: null, value: 'null-value' },
             ],
           },
-          on: [['id', 'parentId']],
-          parentField: 'children',
-          isRelationUnique: false,
-        },
+          [['id', 'parentId']],
+          'children',
+          false,
+        ],
       ],
       canAssumeStrictEquality: true,
     },

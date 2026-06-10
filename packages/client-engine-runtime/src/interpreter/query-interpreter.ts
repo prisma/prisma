@@ -9,15 +9,9 @@ import {
   FieldInitializer,
   FieldOperation,
   type FieldType,
-  getJoinExpressionChild,
-  getJoinExpressionIsRelationUnique,
-  getJoinExpressionOn,
-  getJoinExpressionParentField,
   getPrismaValueGeneratorArgs,
   getPrismaValueGeneratorName,
   getPrismaValuePlaceholderName,
-  getQueryPlanBindingExpr,
-  getQueryPlanBindingName,
   getValidationError,
   InMemoryOps,
   isPrismaValueGenerator,
@@ -228,8 +222,8 @@ export class QueryInterpreter {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         const nestedContext = { ...context, scope: nestedScope }
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), nestedContext)
-          nestedScope[getQueryPlanBindingName(binding)] = value
+          const { value } = await this.interpretNode(binding[1], nestedContext)
+          nestedScope[binding[0]] = value
         }
         return this.interpretNode(node.args.expr, nestedContext)
       }
@@ -372,14 +366,13 @@ export class QueryInterpreter {
             ? [
                 {
                   joinExpr: node.args.children[0],
-                  childRecords: (await this.interpretNode(getJoinExpressionChild(node.args.children[0]), context))
-                    .value,
+                  childRecords: (await this.interpretNode(node.args.children[0][0], context)).value,
                 },
               ]
             : await Promise.all(
                 node.args.children.map(async (joinExpr) => ({
                   joinExpr,
-                  childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
+                  childRecords: (await this.interpretNode(joinExpr[0], context)).value,
                 })),
               )
 
@@ -548,9 +541,7 @@ export class QueryInterpreter {
         const mappedJoin = matchCompactMappedJoin(node)
         if (mappedJoin !== undefined) {
           const compiledParent = this.#getCompiledNode(mappedJoin.parentExpr)
-          const compiledChildren = mappedJoin.joinExpressions.map((joinExpr) =>
-            this.#getCompiledNode(getJoinExpressionChild(joinExpr)),
-          )
+          const compiledChildren = mappedJoin.joinExpressions.map((joinExpr) => this.#getCompiledNode(joinExpr[0]))
 
           return async (context) => {
             const { value: parent, lastInsertId } = await compiledParent(context)
@@ -623,8 +614,8 @@ export class QueryInterpreter {
         }
 
         const compiledBindings = node[1].map((binding) => ({
-          name: getQueryPlanBindingName(binding),
-          expr: this.#getCompiledNode(getQueryPlanBindingExpr(binding)),
+          name: binding[0],
+          expr: this.#getCompiledNode(binding[1]),
         }))
         const compiledExpr = this.#getCompiledNode(node[2])
 
@@ -688,9 +679,7 @@ export class QueryInterpreter {
       case 'j': {
         const compiledParent = this.#getCompiledNode(node[1])
         const joinExpressions = node[2]
-        const compiledChildren = joinExpressions.map((joinExpr) =>
-          this.#getCompiledNode(getJoinExpressionChild(joinExpr)),
-        )
+        const compiledChildren = joinExpressions.map((joinExpr) => this.#getCompiledNode(joinExpr[0]))
         const canAssumeStrictEquality = node[3]
 
         return async (context) => {
@@ -828,14 +817,13 @@ export class QueryInterpreter {
               ? [
                   {
                     joinExpr: joinExpressions[0],
-                    childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpressions[0]), nestedContext))
-                      .value,
+                    childRecords: (await this.interpretNode(joinExpressions[0][0], nestedContext)).value,
                   },
                 ]
               : await Promise.all(
                   joinExpressions.map(async (joinExpr) => ({
                     joinExpr,
-                    childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), nestedContext)).value,
+                    childRecords: (await this.interpretNode(joinExpr[0], nestedContext)).value,
                   })),
                 )
 
@@ -877,8 +865,8 @@ export class QueryInterpreter {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         const nestedContext = { ...context, scope: nestedScope }
         for (const binding of node[1]) {
-          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), nestedContext)
-          nestedScope[getQueryPlanBindingName(binding)] = value
+          const { value } = await this.interpretNode(binding[1], nestedContext)
+          nestedScope[binding[0]] = value
         }
         return this.interpretNode(node[2], nestedContext)
       }
@@ -1020,13 +1008,13 @@ export class QueryInterpreter {
             ? [
                 {
                   joinExpr: joinExpressions[0],
-                  childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpressions[0]), context)).value,
+                  childRecords: (await this.interpretNode(joinExpressions[0][0], context)).value,
                 },
               ]
             : await Promise.all(
                 joinExpressions.map(async (joinExpr) => ({
                   joinExpr,
-                  childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
+                  childRecords: (await this.interpretNode(joinExpr[0], context)).value,
                 })),
               )
 
@@ -2531,8 +2519,8 @@ function matchCompactMappedJoin(node: QueryPlanCompactNode): CompactMappedJoin |
   }
 
   const parentBinding = node[1][0]
-  const parentName = getQueryPlanBindingName(parentBinding)
-  const parentExpr = getQueryPlanBindingExpr(parentBinding)
+  const parentName = parentBinding[0]
+  const parentExpr = parentBinding[1]
   const innerLet = node[2]
   if (!Array.isArray(innerLet) || innerLet[0] !== 'l' || innerLet[1].length < 2) {
     return undefined
@@ -2542,7 +2530,7 @@ function matchCompactMappedJoin(node: QueryPlanCompactNode): CompactMappedJoin |
   const mappedBindings = new Array<{ name: string; field: string }>(innerBindings.length)
   for (let i = 0; i < innerBindings.length; i++) {
     const binding = innerBindings[i]
-    const mapExpr = getQueryPlanBindingExpr(binding)
+    const mapExpr = binding[1]
     if (
       !Array.isArray(mapExpr) ||
       mapExpr[0] !== 'm' ||
@@ -2553,7 +2541,7 @@ function matchCompactMappedJoin(node: QueryPlanCompactNode): CompactMappedJoin |
       return undefined
     }
     mappedBindings[i] = {
-      name: getQueryPlanBindingName(binding),
+      name: binding[0],
       field: mapExpr[1],
     }
   }
@@ -2595,16 +2583,16 @@ function matchCompactNestedSingleChildJoin(node: QueryPlanCompactNode): CompactN
   }
 
   const parentBinding = node[1][0]
-  const parentName = getQueryPlanBindingName(parentBinding)
-  const parentExpr = getQueryPlanBindingExpr(parentBinding)
+  const parentName = parentBinding[0]
+  const parentExpr = parentBinding[1]
   const innerLet = node[2]
   if (!Array.isArray(innerLet) || innerLet[0] !== 'l' || innerLet[1].length !== 1) {
     return undefined
   }
 
   const mappedBinding = innerLet[1][0] as QueryPlanBinding
-  const mappedName = getQueryPlanBindingName(mappedBinding)
-  const mapExpr = getQueryPlanBindingExpr(mappedBinding)
+  const mappedName = mappedBinding[0]
+  const mapExpr = mappedBinding[1]
   if (
     !Array.isArray(mapExpr) ||
     mapExpr[0] !== 'm' ||
@@ -2754,9 +2742,9 @@ function attachChildrenToParents(
   canAssumeStrictEquality: boolean,
 ) {
   for (const { joinExpr, childRecords } of children) {
-    const on = getJoinExpressionOn(joinExpr)
-    const parentField = getJoinExpressionParentField(joinExpr)
-    const isRelationUnique = getJoinExpressionIsRelationUnique(joinExpr)
+    const on = joinExpr[1]
+    const parentField = joinExpr[2]
+    const isRelationUnique = joinExpr[3]
 
     const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
     const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]

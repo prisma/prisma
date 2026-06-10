@@ -10775,6 +10775,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. This removes dead internal compatibility, has direct producer evidence for compact-only serialization, passes focused tests/build, and does not disturb the current cached read hot-row band.
     - Remaining dual-format internal cleanup debt: expression nodes, bindings/joins, and result object nodes.
 
+- Accepted cleanup: remove legacy query-plan binding/join support structures.
+  - Timestamp: 2026-06-10.
+  - Change:
+    - Removed object-shaped `LegacyQueryPlanBinding` and `LegacyJoinExpression` support from `packages/client-engine-runtime/src/query-plan.ts`.
+    - Query-plan let bindings now read only `[name, expr]`; join expressions now read only `[child, on, parentField, isRelationUnique]`.
+    - Converted remaining object-shaped join fixtures in `query-interpreter.test.ts` and `packages/client-engine-runtime/bench/sample-query-plans.ts`.
+    - Updated hot `QueryInterpreter` paths to index compact binding/join tuples directly instead of calling helper functions; the helpers remain exported for benchmark utilities and non-hot callers.
+    - Verified the Rust producer serializes compact support structures in `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/expression.rs`: `Binding::serialize()` writes a 2-tuple and `JoinExpression::serialize()` writes a 4-tuple.
+  - Verification:
+    - `pnpm exec prettier --write AGENTS.md packages/client-engine-runtime/src/query-plan.ts packages/client-engine-runtime/src/interpreter/query-interpreter.ts packages/client-engine-runtime/src/interpreter/query-interpreter.test.ts packages/client-engine-runtime/bench/sample-query-plans.ts`.
+    - Residual scan over `packages/client-engine-runtime/src`, `packages/client-engine-runtime/bench`, and query-performance probes found no object-shaped binding/join fixtures.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts src/interpreter/validation.test.ts`: 26 tests passed.
+    - `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Timing evidence:
+    - Initial helper-only compact shape was not kept: first 300k patched/control/reapply direct-plan rows were 8.74 / 8.85 / 9.93 us/op; 1M patched/control/reapply rows were 8.73 / 8.59 / 9.04 us/op. The shape removed compatibility but did not clear the gate.
+    - Tuned shape direct-indexes bindings/joins inside `QueryInterpreter`.
+    - Tuned 1M patched/control command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Patched: 8.34 us/op.
+      - Reverted control: 8.36 us/op.
+    - Tuned reapply confirmation with 300k iterations: 8.31 us/op.
+  - Decision:
+    - Keep the tuned shape. It removes another internal dual-format branch and only cleared the performance gate after avoiding helper calls in hot compact interpreter paths.
+    - Remaining dual-format internal cleanup debt: expression nodes and result object nodes.
+
 ## Useful Commands
 
 ```sh
