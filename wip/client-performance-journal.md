@@ -11026,6 +11026,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Worktree result:
     - Both `/home/aqrln.guest/prisma` and `/home/aqrln.guest/prisma-engines` were clean after build/probe verification.
 
+- Accepted change: strict raw-nested final-owner fast path for current direct relation plans.
+  - Timestamp: 2026-06-10.
+  - Prisma side-worktree spike:
+    - `/home/aqrln.guest/prisma-raw-nested-final-owner-spike` commit `12b0964e7` (`Spike raw nested final-owner fast path`).
+  - Patch:
+    - Added a strict compiled fast path for compact raw-nested `n` reads whose current compiler-emitted shape is a unique root with two direct unique children, one direct wrapper-list child, and one direct list child with a unique nested child.
+    - The path writes final owner records directly from result rows, supports current compact scalar metadata (`i`, `s`, `f`, `b`, `D`, etc.) and `_count`-style path mappings, preserves Date/int conversion semantics, and falls back for instrumentation, SQL commenters, enums, named refs, non-local scopes, unsupported field conversions, arbitrary relation topologies, or non-unique roots.
+    - This does not introduce an old/new internal format. Rust query-compiler raw-nested relation serialization is already direct-only; the pre-existing TS `m` raw-nested relation support is now a separate cleanup lead rather than something this path relies on.
+  - Close timing evidence:
+    - Control was produced by applying the side-worktree patch, saving it, reverting it, and rerunning the same rows serially in `/home/aqrln.guest/prisma-raw-nested-final-owner-spike`.
+    - Control command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Reverted control: 7.37 us/op.
+      - Patched: 5.73 us/op.
+    - Control command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Reverted control: 11.21 us/op.
+      - Patched: 10.89 us/op.
+    - Control command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Reverted control: 12.96 us/op.
+      - Patched: 11.87 us/op.
+    - Confirmation in the main checkout after porting:
+      - `direct plan after phase warmup blog page / nested rows`: 5.65 us/op at 300k iterations.
+      - `generated client exact descriptor helper blog page / nested rows warmed cache`: 10.52 us/op at 100k iterations.
+      - `generated client blog page / nested rows warmed cache`: 11.87 us/op at 100k iterations.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 250 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Decision:
+    - Keep. This is the first raw-nested runtime spike in this series that moves the actual product-shaped direct compiled nested row materially toward the static-wave lower bound while also showing a positive full generated-client nested row.
+  - Follow-up:
+    - Confirm and remove the pre-existing TS-only raw-nested `m` relation reader/tests/benchmark scaffolding if no current producer remains. Do this as an internal-format deletion, not as a dual-format compatibility layer.
+
 ## Useful Commands
 
 ```sh

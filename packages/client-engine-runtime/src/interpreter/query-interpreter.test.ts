@@ -654,6 +654,219 @@ test('interprets compact raw nested read wrapper relations', async () => {
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11], 7]])
 })
 
+test('interprets compact raw nested read final-owner relations with scalar metadata', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper, resultFormat: 'js' })
+  const rootQuery = templateQuery('SELECT id, createdAt, authorId, categoryId, count FROM Post WHERE id = ', 1)
+  const authorQuery = templateQuery('SELECT id, name FROM User WHERE id = ', { $p: ['@parent$authorId', 'int'] })
+  const categoryQuery = templateQuery('SELECT id, name FROM Category WHERE id = ', {
+    $p: ['@parent$categoryId', 'int'],
+  })
+  const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const tagQuery = templateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const commentsQuery = templateQuery('SELECT id, createdAt, authorId, postId FROM Comment WHERE postId = ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const commentAuthorQuery = templateQuery('SELECT id, name FROM User WHERE id IN ', {
+    $p: ['@parent$authorId', 'int'],
+  })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [
+        ['id', 0, 'i'],
+        ['createdAt', 1, 'D'],
+        [['_count', 'comments'], 4, 'i'],
+      ],
+      [
+        [
+          'r',
+          'author',
+          [
+            authorQuery,
+            [
+              ['id', 0, 'i'],
+              ['name', 1, 's'],
+            ],
+          ],
+          2,
+          0,
+          '@parent$authorId',
+          true,
+        ],
+        [
+          'r',
+          'category',
+          [
+            categoryQuery,
+            [
+              ['id', 0, 'i'],
+              ['name', 1, 's'],
+            ],
+          ],
+          3,
+          0,
+          '@parent$categoryId',
+          true,
+        ],
+        [
+          'r',
+          'tags',
+          [
+            postTagQuery,
+            [],
+            [
+              [
+                'r',
+                'tag',
+                [
+                  tagQuery,
+                  [
+                    ['id', 0, 'i'],
+                    ['name', 1, 's'],
+                  ],
+                ],
+                1,
+                0,
+                '@parent$tagId',
+                true,
+              ],
+            ],
+          ],
+          0,
+          0,
+          '@parent$id',
+          false,
+        ],
+        [
+          'r',
+          'comments',
+          [
+            commentsQuery,
+            [
+              ['id', 0, 'i'],
+              ['createdAt', 1, 'D'],
+            ],
+            [
+              [
+                'r',
+                'author',
+                [
+                  commentAuthorQuery,
+                  [
+                    ['id', 0, 'i'],
+                    ['name', 1, 's'],
+                  ],
+                ],
+                2,
+                0,
+                '@parent$authorId',
+                true,
+              ],
+            ],
+          ],
+          0,
+          3,
+          '@parent$id',
+          false,
+        ],
+      ],
+    ],
+    true,
+  ] satisfies QueryPlanNode
+  const observedQueries: SqlQuery[] = []
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      observedQueries.push(query)
+      if (query.sql.startsWith('SELECT id, createdAt, authorId, categoryId')) {
+        return Promise.resolve({
+          columnNames: ['id', 'createdAt', 'authorId', 'categoryId', 'count'],
+          columnTypes: [
+            ColumnTypeEnum.Int32,
+            ColumnTypeEnum.DateTime,
+            ColumnTypeEnum.Int32,
+            ColumnTypeEnum.Int32,
+            ColumnTypeEnum.Int32,
+          ],
+          rows: [[1, '2024-01-01T00:00:00.000', 10, 20, '2']],
+        })
+      }
+      if (query.sql.startsWith('SELECT id, name FROM User WHERE id =')) {
+        return Promise.resolve({
+          columnNames: ['id', 'name'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+          rows: [[10, 'Alice']],
+        })
+      }
+      if (query.sql.startsWith('SELECT id, name FROM Category')) {
+        return Promise.resolve({
+          columnNames: ['id', 'name'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+          rows: [[20, 'Engineering']],
+        })
+      }
+      if (query.sql.startsWith('SELECT postId')) {
+        return Promise.resolve({
+          columnNames: ['postId', 'tagId'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+          rows: [
+            [1, 100],
+            [1, 101],
+          ],
+        })
+      }
+      if (query.sql.startsWith('SELECT id, name FROM Tag')) {
+        return Promise.resolve({
+          columnNames: ['id', 'name'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+          rows: [
+            [100, 'Rust'],
+            [101, 'Wasm'],
+          ],
+        })
+      }
+      if (query.sql.startsWith('SELECT id, createdAt, authorId, postId')) {
+        return Promise.resolve({
+          columnNames: ['id', 'createdAt', 'authorId', 'postId'],
+          columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.DateTime, ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
+          rows: [
+            [200, '2024-01-02T00:00:00.000', 10, 1],
+            [201, '2024-01-03T00:00:00.000', 11, 1],
+          ],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'name'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+        rows: [
+          [10, 'Alice'],
+          [11, 'Bob'],
+        ],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual({
+    id: 1,
+    createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    _count: { comments: 2 },
+    author: { id: 10, name: 'Alice' },
+    category: { id: 20, name: 'Engineering' },
+    tags: [{ tag: { id: 100, name: 'Rust' } }, { tag: { id: 101, name: 'Wasm' } }],
+    comments: [
+      { id: 200, createdAt: new Date('2024-01-02T00:00:00.000Z'), author: { id: 10, name: 'Alice' } },
+      { id: 201, createdAt: new Date('2024-01-03T00:00:00.000Z'), author: { id: 11, name: 'Bob' } },
+    ],
+  })
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [20], [1], [1], [[100, 101]], [[10, 11]]])
+})
+
 test('skips compact raw nested read wrapper children for empty wrapper rows', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id IN ', [1, 2])
