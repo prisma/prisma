@@ -252,8 +252,8 @@ test('interprets compact raw nested read nodes', async () => {
     [
       rootQuery,
       [
-        ['id', 0],
-        ['authorId', 1],
+        ['id', 0, 'i'],
+        ['authorId', 1, 'i'],
       ],
       [
         [
@@ -262,8 +262,8 @@ test('interprets compact raw nested read nodes', async () => {
           [
             authorQuery,
             [
-              ['id', 0],
-              ['name', 1],
+              ['id', 0, 'i'],
+              ['name', 1, 's'],
             ],
           ],
           1,
@@ -277,9 +277,9 @@ test('interprets compact raw nested read nodes', async () => {
           [
             commentsQuery,
             [
-              ['id', 0],
-              ['postId', 1],
-              ['content', 2],
+              ['id', 0, 'i'],
+              ['postId', 1, 'i'],
+              ['content', 2, 's'],
             ],
           ],
           0,
@@ -350,7 +350,7 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
     'n',
     [
       rootQuery,
-      [['id', 0]],
+      [['id', 0, 'i']],
       [
         [
           'r',
@@ -358,8 +358,8 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
           [
             commentsQuery,
             [
-              ['id', 0],
-              ['postId', 1],
+              ['id', 0, 'i'],
+              ['postId', 1, 'i'],
             ],
           ],
           0,
@@ -415,12 +415,12 @@ test('starts compact raw nested read sibling relations concurrently', async () =
     [
       rootQuery,
       [
-        ['id', 0],
-        ['authorId', 1],
+        ['id', 0, 'i'],
+        ['authorId', 1, 'i'],
       ],
       [
-        ['r', 'author', [authorQuery, [['id', 0]]], 1, 0, '@parent$authorId', true],
-        ['r', 'comments', [commentsQuery, [['id', 0]]], 0, 1, '@parent$id', false],
+        ['r', 'author', [authorQuery, [['id', 0, 'i']]], 1, 0, '@parent$authorId', true],
+        ['r', 'comments', [commentsQuery, [['id', 0, 'i']]], 0, 1, '@parent$id', false],
       ],
     ],
     true,
@@ -491,7 +491,7 @@ test('interprets compact raw nested read wrapper-list relations', async () => {
     'n',
     [
       rootQuery,
-      [['id', 0]],
+      [['id', 0, 'i']],
       [
         [
           'r',
@@ -506,8 +506,8 @@ test('interprets compact raw nested read wrapper-list relations', async () => {
                 [
                   tagQuery,
                   [
-                    ['id', 0],
-                    ['name', 1],
+                    ['id', 0, 'i'],
+                    ['name', 1, 's'],
                   ],
                 ],
                 1,
@@ -584,7 +584,7 @@ test('interprets compact raw nested read wrapper relations', async () => {
     'n',
     [
       rootQuery,
-      [['id', 0]],
+      [['id', 0, 'i']],
       [
         [
           'r',
@@ -599,8 +599,8 @@ test('interprets compact raw nested read wrapper relations', async () => {
                 [
                   tagQuery,
                   [
-                    ['id', 0],
-                    ['name', 1],
+                    ['id', 0, 'i'],
+                    ['name', 1, 's'],
                   ],
                 ],
                 1,
@@ -886,12 +886,12 @@ test('skips compact raw nested read wrapper children for empty wrapper rows', as
     'n',
     [
       rootQuery,
-      [['id', 0]],
+      [['id', 0, 'i']],
       [
         [
           'r',
           'tags',
-          [postTagQuery, [], [['r', 'tag', [tagQuery, [['id', 0]]], 1, 0, '@parent$tagId', true]]],
+          [postTagQuery, [], [['r', 'tag', [tagQuery, [['id', 0, 'i']]], 1, 0, '@parent$tagId', true]]],
           0,
           0,
           '@parent$id',
@@ -947,7 +947,7 @@ test('interprets compact raw nested read indexed direct relations without scalar
     'n',
     [
       rootQuery,
-      [['id', 0]],
+      [['id', 0, 'x']],
       [
         [
           'r',
@@ -955,8 +955,8 @@ test('interprets compact raw nested read indexed direct relations without scalar
           [
             childQuery,
             [
-              ['id', 0],
-              ['parentId', 1],
+              ['id', 0, 'i'],
+              ['parentId', 1, 'x'],
             ],
           ],
           0,
@@ -1013,7 +1013,7 @@ test('interprets compact raw nested read indexed wrapper-list relations without 
     'n',
     [
       rootQuery,
-      [['id', 0]],
+      [['id', 0, 'x']],
       [
         [
           'r',
@@ -1028,8 +1028,8 @@ test('interprets compact raw nested read indexed wrapper-list relations without 
                 [
                   tagQuery,
                   [
-                    ['id', 0],
-                    ['name', 1],
+                    ['id', 0, 'i'],
+                    ['name', 1, 's'],
                   ],
                 ],
                 1,

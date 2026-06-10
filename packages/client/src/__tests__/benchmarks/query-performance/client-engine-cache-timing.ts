@@ -31,6 +31,7 @@ import { buildAndSerializeParamGraph, buildParamGraph } from '@prisma/param-grap
 
 import {
   type CompactJoinExpression,
+  type FieldType,
   getQueryPlanBindingExpr,
   getQueryPlanBindingName,
   noopTracingHelper,
@@ -4125,36 +4126,36 @@ function measureRawResultSetBlogPageAssemblyScenario(iterations: number): PlanPh
   }
 }
 
-type RawColumnMapping = readonly [fieldName: string, columnIndex: number]
+type RawColumnMapping = readonly [fieldName: string, columnIndex: number, fieldType: FieldType]
 
 const RAW_POST_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
-  ['id', 0],
-  ['title', 1],
-  ['slug', 2],
-  ['content', 3],
-  ['published', 4],
-  ['viewCount', 5],
-  ['createdAt', 6],
+  ['id', 0, 'i'],
+  ['title', 1, 's'],
+  ['slug', 2, 's'],
+  ['content', 3, 's'],
+  ['published', 4, 'b'],
+  ['viewCount', 5, 'i'],
+  ['createdAt', 6, 'D'],
 ])
 const RAW_USER_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
-  ['id', 0],
-  ['name', 1],
-  ['avatar', 2],
+  ['id', 0, 'i'],
+  ['name', 1, 's'],
+  ['avatar', 2, 's'],
 ])
 const RAW_CATEGORY_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
-  ['id', 0],
-  ['name', 1],
-  ['slug', 2],
+  ['id', 0, 'i'],
+  ['name', 1, 's'],
+  ['slug', 2, 's'],
 ])
 const RAW_TAG_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
-  ['id', 0],
-  ['name', 1],
-  ['slug', 2],
+  ['id', 0, 'i'],
+  ['name', 1, 's'],
+  ['slug', 2, 's'],
 ])
 const RAW_COMMENT_COLUMNS: readonly RawColumnMapping[] = Object.freeze([
-  ['id', 0],
-  ['content', 1],
-  ['createdAt', 2],
+  ['id', 0, 'i'],
+  ['content', 1, 's'],
+  ['createdAt', 2, 'D'],
 ])
 
 function mapRawRows(rows: readonly unknown[][], mappings: readonly RawColumnMapping[]): Record<string, unknown>[] {

@@ -154,7 +154,7 @@ export type RawResultColumnRef = number
 export type RawResultColumnMapping = readonly [
   fieldName: string | readonly string[],
   column: RawResultColumnRef,
-  fieldType?: FieldType,
+  fieldType: FieldType,
 ]
 
 export type RawNestedReadQuery = readonly [

@@ -1587,15 +1587,11 @@ function tryCompileRawNestedFinalOwnerRowWriter(
   const fieldNameOrPaths = new Array<string | readonly string[]>(mappings.length)
   const columnIndexes = new Array<number>(mappings.length)
   const columnNames = new Array<string>(mappings.length)
-  const fieldTypes = new Array<FieldType | undefined>(mappings.length)
+  const fieldTypes = new Array<FieldType>(mappings.length)
   const convertKinds = new Array<RawNestedConvertKind>(mappings.length)
 
   for (let i = 0; i < mappings.length; i++) {
     const mapping = mappings[i]
-    if (typeof mapping[1] !== 'number') {
-      return undefined
-    }
-
     const fieldType = mapping[2]
     const convertKind = getRawNestedConvertKind(fieldType)
     if (convertKind === RAW_NESTED_CONVERT_FULL) {
@@ -1743,44 +1739,7 @@ function compileRawNestedRowMapper(
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat,
 ): CompiledRawNestedRowMapper {
-  if (!canUseDirectRawNestedRowMapper(mappings)) {
-    return (resultSet) => mapRawNestedRows(resultSet, mappings, enums, resultFormat)
-  }
-
-  const fieldNames = new Array<string>(mappings.length)
-  const columnIndexes = new Array<number>(mappings.length)
-  for (let i = 0; i < mappings.length; i++) {
-    fieldNames[i] = mappings[i][0] as string
-    columnIndexes[i] = mappings[i][1] as number
-  }
-
-  return (resultSet) => {
-    const rows = resultSet.rows
-    if (rows.length === 0) {
-      return []
-    }
-
-    const result = new Array<PrismaObject>(rows.length)
-    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      const row = rows[rowIndex]
-      const record: PrismaObject = {}
-      for (let mappingIndex = 0; mappingIndex < fieldNames.length; mappingIndex++) {
-        record[fieldNames[mappingIndex]] = row[columnIndexes[mappingIndex]]
-      }
-      result[rowIndex] = record
-    }
-    return result
-  }
-}
-
-function canUseDirectRawNestedRowMapper(mappings: readonly RawResultColumnMapping[]): boolean {
-  for (let i = 0; i < mappings.length; i++) {
-    const mapping = mappings[i]
-    if (typeof mapping[0] !== 'string' || typeof mapping[1] !== 'number' || mapping[2] !== undefined) {
-      return false
-    }
-  }
-  return true
+  return (resultSet) => mapRawNestedRows(resultSet, mappings, enums, resultFormat)
 }
 
 function mapRawNestedRows(
@@ -1903,7 +1862,6 @@ function rawNestedValueUsesOnlyScopeName(value: unknown, scopeName: string): boo
   return true
 }
 
-const RAW_NESTED_CONVERT_NONE = 0
 const RAW_NESTED_CONVERT_STRING = 1
 const RAW_NESTED_CONVERT_INT = 2
 const RAW_NESTED_CONVERT_FLOAT = 3
@@ -1914,7 +1872,6 @@ const RAW_NESTED_CONVERT_FULL = 7
 const RAW_NESTED_INDEX_THRESHOLD = 8
 
 type RawNestedConvertKind =
-  | typeof RAW_NESTED_CONVERT_NONE
   | typeof RAW_NESTED_CONVERT_STRING
   | typeof RAW_NESTED_CONVERT_INT
   | typeof RAW_NESTED_CONVERT_FLOAT
@@ -1927,8 +1884,8 @@ type ResolvedRawResultColumnMapping = readonly [
   fieldName: string | readonly string[],
   columnIndex: number,
   columnName: string,
-  fieldType?: FieldType,
-  convertKind?: RawNestedConvertKind,
+  fieldType: FieldType,
+  convertKind: RawNestedConvertKind,
 ]
 
 function resolveRawResultColumnMappings(mappings: readonly RawResultColumnMapping[]): ResolvedRawResultColumnMapping[] {
@@ -1953,10 +1910,8 @@ function resolveRawResultColumnMappings(mappings: readonly RawResultColumnMappin
   return resolvedMappings
 }
 
-function getRawNestedConvertKind(fieldType: FieldType | undefined): RawNestedConvertKind {
+function getRawNestedConvertKind(fieldType: FieldType): RawNestedConvertKind {
   switch (fieldType) {
-    case undefined:
-      return RAW_NESTED_CONVERT_NONE
     case 's':
     case 'string':
       return RAW_NESTED_CONVERT_STRING
@@ -1983,15 +1938,11 @@ function getRawNestedConvertKind(fieldType: FieldType | undefined): RawNestedCon
 function mapRawNestedFieldValue(
   value: unknown,
   columnName: string,
-  fieldType: FieldType | undefined,
-  convertKind: RawNestedConvertKind | undefined,
+  fieldType: FieldType,
+  convertKind: RawNestedConvertKind,
   enums: Record<string, Record<string, string>>,
   resultFormat: QueryResultFormat,
 ): unknown {
-  if (fieldType === undefined) {
-    return value
-  }
-
   if (value === null && typeof fieldType === 'string') {
     return null
   }

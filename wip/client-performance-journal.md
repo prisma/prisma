@@ -11255,13 +11255,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Explorer:
     - `Chandrasekhar` (`019eb2ab-44f2-7f42-a709-8df8cb1de17a`) did a read-only scan for old/new internal compatibility branches that were not part of the already-deleted compact-plan families.
   - Candidates:
-    - `packages/client-engine-runtime/src/batch.ts`: JSON-protocol `{ $type: 'Param' }` placeholder support in batch response argument helpers may be dead if `compileBatch()` always emits compact `$p` placeholders.
     - `packages/client-engine-runtime/src/interpreter/render-query.ts`: canonical scalar arg type names in template-SQL rendering may be dead for compiled template SQL, while raw queries still use full `ArgType` objects through `ClientEngine.compileRawQuery()`.
     - `packages/client-engine-runtime/src/interpreter/data-mapper.ts`: legacy object field-result nodes and canonical scalar fallbacks may be fixture-only, but enum/bytes/list/db-name producer coverage is missing.
-    - `packages/client-engine-runtime/src/query-plan.ts` / `query-interpreter.ts`: raw-nested string column refs and optional raw-nested mapping `fieldType` may be removable if all current providers/actions emit numeric refs with field types.
+  - Completed from this scout:
+    - `packages/client-engine-runtime/src/batch.ts`: JSON-protocol `{ $type: 'Param' }` placeholder support in batch response argument helpers was removed after proving `compileBatch()` emits compact `$p` placeholders.
+    - `packages/client-engine-runtime/src/query-plan.ts` / `query-interpreter.ts`: raw-nested string column refs and missing raw-nested mapping `fieldType` fallback were removed after proving current providers/actions emit numeric refs with field types.
   - Required proof before deletion:
     - Add a temporary producer-shape scan over representative `compile()` / `compileBatch()` queries for sqlite, postgres, and mysql.
-    - Assert no JSON-protocol `Param` batch arguments, no canonical scalar strings in compiled template SQL/result mappings, no raw-nested string refs, and no raw-nested mappings missing field types.
+    - Assert no canonical scalar strings in compiled template SQL/result mappings and no producer coverage gaps for any remaining data-mapper legacy object/canonical support before deleting those families.
     - Then prune one family at a time with `@prisma/client-engine-runtime` tests/build, `query-plan-cache.test.ts`, and focused cache timing rows.
   - Guardrail:
     - Do not remove `QueryPlanRawSql` object handling; `$queryRaw` / `$executeRaw` still construct it directly in `ClientEngine.compileRawQuery()`.
@@ -11317,6 +11318,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Noted that the raw-nested string-ref deletion followed the internal producer/consumer lockstep rule and stayed healthy on direct and generated Node rows.
   - Decision:
     - Keep the report as the current intermediate performance checkpoint. The headline remains: simple Worker cache-hit paths are well past 3x, the latest Workerd nested host-dispatch refresh is about 3.9x faster than the early calibrated baseline, and the latest Node nested generated-client row is about 4.7x faster than the original generated-client cleanup baseline.
+
+- Accepted cleanup: require raw-nested mapping field types.
+  - Timestamp: 2026-06-10.
+  - Producer-shape scan:
+    - Reused the 2026-06-10 sqlite/postgres/mysql representative scans and full PostgreSQL fixture-corpus scan: representative providers had 24/24 raw-nested mappings with field types and the 60-file fixture-corpus scan had 89/89 raw-nested mappings with 0 missing field types.
+  - Patch:
+    - Changed `RawResultColumnMapping` to require `fieldType` in `packages/client-engine-runtime/src/query-plan.ts`.
+    - Removed `RAW_NESTED_CONVERT_NONE`, the undefined-field-type branch in `mapRawNestedFieldValue()`, optional `ResolvedRawResultColumnMapping` fields, and the no-field-metadata direct raw row mapper.
+    - Updated raw-nested interpreter fixtures and the blog-page benchmark raw-nested builders to include compact field-type tags. Mixed string/number/null key-collision fixtures use field type `x` so the raw key values stay uncoerced.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 249 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - Adjacent kept baseline after raw-nested string-ref cleanup: direct blog-page nested row 5.68 us/op and generated-client blog-page nested row 11.16 us/op.
+    - Final patch `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`: 5.67 us/op, `queryRaw=2100000`.
+    - Final patch `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`: 10.91 us/op, `queryRaw=700000`.
+  - Decision:
+    - Keep. This removes another internal old-format reader using direct producer evidence. The direct row was unchanged and the generated product-shaped nested row was healthier than the adjacent kept baseline.
+
+- Documentation refresh: intermediate report after required raw-nested field types.
+  - Timestamp: 2026-06-10.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Updated the headline Node generated blog-page warmed-cache row from 11.16 to 10.91 us/op.
+    - Added missing raw-nested field-type fallback to the internal-format cleanup summary.
+    - Updated the raw-nested section and status paragraph with the 5.67 us/op direct row and 10.91 us/op generated row.
+  - Decision:
+    - Keep the report as the current intermediate performance checkpoint. The latest Node nested generated-client row is about 4.8x faster than the original generated-client cleanup baseline.
 
 ## Useful Commands
 
