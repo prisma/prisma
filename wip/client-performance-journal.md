@@ -11100,6 +11100,19 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Interpretation:
     - This is a small Workerd smoke, not the final high-iteration calibration. It confirms the final-owner writer and internal-format deletion stay healthy on the target runtime and show substantial remaining headroom between default generated nested execution and engine/static-wave lower-bound rows.
 
+- Accepted cleanup: lazily compile final-owner generic fallback.
+  - Timestamp: 2026-06-10.
+  - Patch:
+    - Changed `#tryCompileRawNestedFinalOwnerRead()` so the generic `#compileRawNestedReadQuery()` fallback is created only if SQL commenters or query instrumentation require the fallback at runtime.
+    - Normal final-owner cache-hit execution no longer retains the generic fallback closure tree eagerly.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 250 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Timing smoke:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 5.61 us/op.
+  - Decision:
+    - Keep. It is a small memory/compile-shape cleanup with neutral hot-row timing and no internal-format compatibility cost.
+
 ## Useful Commands
 
 ```sh

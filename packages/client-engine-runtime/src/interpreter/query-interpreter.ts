@@ -843,10 +843,11 @@ export class QueryInterpreter {
       return undefined
     }
 
-    const fallbackQuery = this.#compileRawNestedReadQuery(query, enums)
+    let fallbackQuery: CompiledRawNestedReadQuery | undefined
 
     return async (context) => {
       if (context.hasSqlCommenter || context.usesQueryInstrumentation) {
+        fallbackQuery ??= this.#compileRawNestedReadQuery(query, enums)
         const fallbackResult = await fallbackQuery(context, context.scope)
         if (fallbackResult.records.length > 1) {
           throw new Error(`Expected zero or one element, got ${fallbackResult.records.length}`)
