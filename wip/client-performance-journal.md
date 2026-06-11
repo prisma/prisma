@@ -11774,6 +11774,12 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Close control after reverting: 10.27 / 10.41 us/op.
   - Decision:
     - Revert. The exact compact row moved only within noise and both generated-client rows were faster in the close control. Do not retry target-object removal or small-list dedupe as standalone allocation cleanups; they need to be part of a larger final-owner slot/static-wave rewrite.
+  - Harness-restart confirmation:
+    - Retried only the target-object half after restarting the harness and rejected it again.
+    - Baseline 300k narrow rows: `direct plan blog page / nested rows` 4.47 us/op, `raw result-set compact node blog page / nested rows` 4.33 us/op.
+    - Patched 300k narrow rows: `direct plan blog page / nested rows` 4.66 us/op, `raw result-set compact node blog page / nested rows` 4.51 us/op.
+    - `pnpm --filter @prisma/client-engine-runtime test -- --runInBand query-interpreter.test.ts`: passed, 253 tests under the package test command.
+    - The patch was reverted again.
 
 - Accepted productization slice: flat exact descriptor helpers support `DateTime @unique` Date args.
   - Timestamp: 2026-06-11.
