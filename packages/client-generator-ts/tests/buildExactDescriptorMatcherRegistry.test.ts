@@ -17,7 +17,10 @@ const datamodel = {
   models: [
     {
       name: 'Post',
-      fields: [{ name: 'id', kind: 'scalar', isList: false, isId: true, isUnique: false, type: 'Int' }],
+      fields: [
+        { name: 'id', kind: 'scalar', isList: false, isId: true, isUnique: false, type: 'Int' },
+        { name: 'slug', kind: 'scalar', isList: false, isId: false, isUnique: true, type: 'String' },
+      ],
     },
     {
       name: 'User',
@@ -132,6 +135,31 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     expect(first.cacheKey).toBe(next.cacheKey)
     expect(matcher?.(blogPageArgs('full', 404))).toBeUndefined()
   })
+
+  test('matches the serializer and parameterizer oracle for the slug blog page template', async () => {
+    const oracle = await createBlogPageOracle()
+    const { registry } = createRegistryFromDatamodel(oracle.datamodel, ['template:Post.findUnique:slug:blogPagePostV1'])
+    const firstArgs = blogPageArgs('full', 'first-post', 'slug')
+    const nextArgs = blogPageArgs('full', 'next-post', 'slug')
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findUnique',
+      clientMethod: 'post.findUnique',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(Object.keys(matcher?.(nextArgs) ?? {})).toEqual(Object.keys(next.placeholderValues))
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(matcher?.(blogPageArgs('full', 202))).toBeUndefined()
+    expect(matcher?.({ where: { slug: 202 }, select: nextArgs.select })).toBeUndefined()
+  })
 })
 
 function createRegistry(configValue: string[]) {
@@ -242,10 +270,10 @@ function getSingleQueryCacheKey(query: { modelName?: string; action: string }, q
   return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
 }
 
-function blogPageDescriptor(shape: 'full' | 'minimal') {
+function blogPageDescriptor(shape: 'full' | 'minimal', field = 'id', valueType: 'number' | 'string' = 'number') {
   return {
     root: objectDescriptor(['where', 'select'], {
-      where: objectDescriptor(['id'], { id: placeholder('%1') }),
+      where: objectDescriptor([field], { [field]: placeholder('%1', valueType) }),
       select: blogPageSelectDescriptor(shape),
     }),
   }
@@ -289,7 +317,7 @@ function blogPageSelectDescriptor(shape: 'full' | 'minimal') {
   })
 }
 
-function blogPageArgs(shape: 'full' | 'minimal', id: number) {
+function blogPageArgs(shape: 'full' | 'minimal', value: number | string, field = 'id') {
   const scalarFields =
     shape === 'full'
       ? {
@@ -307,7 +335,7 @@ function blogPageArgs(shape: 'full' | 'minimal', id: number) {
         }
 
   return {
-    where: { id },
+    where: { [field]: value },
     select: {
       ...scalarFields,
       author: selectionWrapper(BLOG_PAGE_USER_SELECT_KEYS),
@@ -342,8 +370,8 @@ function objectDescriptor(keys: readonly string[], fields: Record<string, unknow
   return { kind: 'object', keys: [...keys], fields }
 }
 
-function placeholder(name: string) {
-  return { kind: 'placeholder', name, valueType: 'number' }
+function placeholder(name: string, valueType: 'number' | 'string' = 'number') {
+  return { kind: 'placeholder', name, valueType }
 }
 
 function constant(value: unknown) {

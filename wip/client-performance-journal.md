@@ -11713,6 +11713,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is test-only productization groundwork and not a fresh performance win, but it closes the most important oracle gap before broadening nested generated exact helpers to new root fields or templates.
 
+- Accepted productization slice: generated blog-page exact descriptor template supports `String @unique` root fields.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Updated `buildExactDescriptorMatcherRegistry()` in both JS and TS generators so `template:Post.findUnique:<field>:blogPagePostV1` carries the validated template placeholder value type and accepts `Int` or `String` unique root fields.
+    - Kept the internal template format single-version and lockstep: no old/new reader branches were added; the descriptor binder now checks the one generated value type for the selected template field.
+    - Added serializer/parameterizer/cache-key oracle coverage for `template:Post.findUnique:slug:blogPagePostV1` against the benchmark schema's `Post.slug String @unique`, including placeholder key order, stable cache keys across slug values, id-shaped mismatch rejection, and wrong slug type rejection.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+  - Decision:
+    - Keep. This broadens the internal nested exact-helper template from numeric IDs to string unique fields under the same descriptor-bound self-test and oracle proof. It does not change default behavior and is not a new measured speedup by itself, but it makes the exact-helper path less benchmark-special before a real allowlist policy.
+
 ## Useful Commands
 
 ```sh

@@ -16,8 +16,11 @@ type ExactDescriptorMatcherTemplateSpec = {
   action: 'findUnique'
   clientMethod: string
   field: string
+  valueType: ExactDescriptorMatcherTemplateValueType
   templateName: 'blogPagePostV1'
 }
+
+type ExactDescriptorMatcherTemplateValueType = Extract<ExactDescriptorMatcherValueType, 'number' | 'string'>
 
 export function buildExactDescriptorMatcherRegistry(
   datamodel: DMMF.Datamodel,
@@ -187,9 +190,9 @@ function parseExactDescriptorMatcherTemplateSpec(
   }
 
   const valueType = getExactMatcherValueType(dmmfModel, action, field)
-  if (valueType !== 'number') {
+  if (valueType !== 'number' && valueType !== 'string') {
     throw new Error(
-      `internalExactDescriptorHelpers template field must be an Int unique field ${JSON.stringify(field)}`,
+      `internalExactDescriptorHelpers template field must be an Int or String unique field ${JSON.stringify(field)}`,
     )
   }
 
@@ -198,6 +201,7 @@ function parseExactDescriptorMatcherTemplateSpec(
     action,
     clientMethod: `${dmmfToJSModelName(model)}.${action}`,
     field,
+    valueType,
     templateName,
   }
 }
@@ -241,6 +245,7 @@ ${blogPagePostV1TemplateSupportCode}`
 
 function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
   const field = JSON.stringify(template.field)
+  const valueType = JSON.stringify(template.valueType)
 
   return `function __internalExactDescriptorBindBlogPagePostV1_${index}(context) {
   const root = __internalExactDescriptorRoot(context)
@@ -255,14 +260,14 @@ function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpe
 
   const placeholder = __internalExactDescriptorAsPlaceholder(where.fields[${field}])
   const selectShape = __internalExactDescriptorBlogPagePostV1SelectShape(root.fields.select)
-  if (placeholder === undefined || placeholder.valueType !== 'number' || selectShape === undefined) {
+  if (placeholder === undefined || placeholder.valueType !== ${valueType} || selectShape === undefined) {
     return undefined
   }
 
   return (args) => __internalExactDescriptorMatchBlogPagePostV1_${index}(args, placeholder.name, selectShape)
 }
 
-function __internalExactDescriptorMatchBlogPagePostV1_${index}(args, idPlaceholder, selectShape) {
+function __internalExactDescriptorMatchBlogPagePostV1_${index}(args, valuePlaceholder, selectShape) {
   if (!__internalExactDescriptorIsRecord(args) || !__internalExactDescriptorKeys2(args, 'where', 'select')) {
     return undefined
   }
@@ -273,11 +278,11 @@ function __internalExactDescriptorMatchBlogPagePostV1_${index}(args, idPlacehold
   }
 
   const value = where[${field}]
-  if (typeof value !== 'number' || !__internalExactDescriptorMatchesBlogPagePostV1Select(args.select, selectShape)) {
+  if (typeof value !== ${valueType} || !__internalExactDescriptorMatchesBlogPagePostV1Select(args.select, selectShape)) {
     return undefined
   }
 
-  return { [idPlaceholder]: value }
+  return { [valuePlaceholder]: value }
 }
 `
 }
