@@ -152,6 +152,32 @@ test('binds exact bigint scalar matchers', () => {
   expect(matcher?.({ where: { externalId: '11' }, select: { id: true, externalId: true } })).toBeUndefined()
 })
 
+test('binds exact datetime scalar matchers for Date args', () => {
+  const matcher = bindMatcher({
+    field: 'createdAt',
+    valueType: 'date',
+    placeholderName: '%1',
+    placeholderValue: '2024-01-01T00:00:00.000Z',
+    descriptorValue: new Date('2024-01-01T00:00:00.000Z'),
+    select: ['id', 'createdAt'],
+  })
+
+  expect(
+    matcher?.({
+      where: { createdAt: new Date('2024-01-02T00:00:00.000Z') },
+      select: { id: true, createdAt: true },
+    }),
+  ).toEqual({
+    '%1': '2024-01-02T00:00:00.000Z',
+  })
+  expect(
+    matcher?.({ where: { createdAt: '2024-01-02T00:00:00.000Z' }, select: { id: true, createdAt: true } }),
+  ).toBeUndefined()
+  expect(
+    matcher?.({ where: { createdAt: new Date('invalid') }, select: { id: true, createdAt: true } }),
+  ).toBeUndefined()
+})
+
 test('does not bind bigint scalar matchers when placeholder ownership is ambiguous', () => {
   const matcher = bindMatcher({
     field: 'externalId',
@@ -235,7 +261,7 @@ function bindMatcher({
   extraPlaceholderValues,
 }: {
   field: string
-  valueType: 'bigint' | 'boolean' | 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'date' | 'number' | 'string'
   placeholderName: string
   placeholderValue: unknown
   descriptorValue?: unknown
@@ -258,7 +284,7 @@ function bindMatcher({
     action: 'findUnique',
     clientMethod: 'user.findUnique',
     args: {
-      where: { [field]: placeholderValue },
+      where: { [field]: descriptorValue },
       select: Object.fromEntries(select.map((fieldName) => [fieldName, true])),
     },
     protocolQuery: {},
@@ -274,7 +300,9 @@ function bindMatcher({
               [field]:
                 valueType === 'bigint'
                   ? { kind: 'constant', value: descriptorValue }
-                  : { kind: 'placeholder', name: placeholderName, valueType },
+                  : valueType === 'date'
+                    ? { kind: 'object', keys: [], fields: {} }
+                    : { kind: 'placeholder', name: placeholderName, valueType },
             },
           },
           select: {

@@ -11775,6 +11775,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The exact compact row moved only within noise and both generated-client rows were faster in the close control. Do not retry target-object removal or small-list dedupe as standalone allocation cleanups; they need to be part of a larger final-owner slot/static-wave rewrite.
 
+- Accepted productization slice: flat exact descriptor helpers support `DateTime @unique` Date args.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added a `date` value type to the runtime exact descriptor matcher registry and JS/TS generator `internalExactDescriptorHelpers` parser.
+    - The runtime binds DateTime helpers only when the learned args contain a valid `Date`, the lazy descriptor has the current empty-object Date shape, and the descriptor-bound self-test finds exactly one placeholder whose value equals `Date#toISOString()`.
+    - Generated string DateTime inputs intentionally do not hit the exact helper yet; they fall back to the normal serializer/parameterizer path instead of bypassing validation.
+    - Added generated-output coverage for `User.findUnique:createdAt:id,createdAt` in both generator fixtures.
+  - Verification:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 10 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This is not a fresh benchmark win, but it broadens the internal exact-helper product surface under the existing descriptor-bound self-test and avoids unsafe DateTime string shortcuts.
+
 ## Useful Commands
 
 ```sh

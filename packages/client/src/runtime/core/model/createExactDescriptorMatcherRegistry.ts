@@ -13,7 +13,7 @@ type ExactDescriptorMatcherSpec = {
   select: string[]
 }
 
-type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'number' | 'string'
+type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'date' | 'number' | 'string'
 
 type GeneratedExactDescriptor =
   | { kind: 'constant'; value: unknown }
@@ -70,11 +70,26 @@ function bindFindUniqueMatcher(
 
   const placeholder = asPlaceholderDescriptor(where.fields[spec.field])
   if (
+    spec.valueType !== 'date' &&
     placeholder !== undefined &&
     placeholder.valueType === spec.valueType &&
     matchesSelectDescriptor(root.fields.select, spec.select)
   ) {
     return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
+  }
+
+  if (spec.valueType === 'date' && matchesSelectDescriptor(root.fields.select, spec.select)) {
+    const initialValue = getFindUniqueWhereFieldValue(context.args, spec.field)
+    if (
+      initialValue instanceof Date &&
+      Number.isFinite(initialValue.getTime()) &&
+      isEmptyObjectDescriptor(where.fields[spec.field])
+    ) {
+      const placeholderName = getSinglePlaceholderNameForValue(context, initialValue.toISOString())
+      if (placeholderName !== undefined) {
+        return (args) => matchFindUniqueDateArgs(args, spec, placeholderName)
+      }
+    }
   }
 
   if (spec.valueType === 'bigint' && matchesSelectDescriptor(root.fields.select, spec.select)) {
@@ -157,6 +172,28 @@ function matchFindUniqueBigIntArgs(
   }
 
   return { [placeholderName]: String(value) }
+}
+
+function matchFindUniqueDateArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isRecord(where) || !hasOwnEnumerableKeysInOrder(where, [spec.field])) {
+    return undefined
+  }
+
+  const value = where[spec.field]
+  if (!(value instanceof Date) || !Number.isFinite(value.getTime()) || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: value.toISOString() }
 }
 
 function matchFindManyPlaceholderArgs(
@@ -259,11 +296,29 @@ function isConstantDescriptor(value: unknown, expected: unknown): boolean {
 }
 
 function asConstantDescriptorValue(value: unknown, valueType: ExactDescriptorMatcherValueType): unknown {
-  if (!isRecord(value) || value.kind !== 'constant' || typeof value.value !== valueType) {
+  if (
+    !isRecord(value) ||
+    value.kind !== 'constant' ||
+    (valueType === 'date' ? !(value.value instanceof Date) : typeof value.value !== valueType)
+  ) {
     return undefined
   }
 
   return value.value
+}
+
+function isEmptyObjectDescriptor(value: unknown): boolean {
+  const descriptor = asObjectDescriptor(value)
+  return descriptor !== undefined && descriptor.keys.length === 0
+}
+
+function getFindUniqueWhereFieldValue(args: unknown, field: string): unknown {
+  if (!isRecord(args)) {
+    return undefined
+  }
+
+  const where = args.where
+  return isRecord(where) ? where[field] : undefined
 }
 
 function getSinglePlaceholderNameForValue(
