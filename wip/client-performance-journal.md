@@ -12561,6 +12561,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as benchmark coverage. Full nested exact-shape validation costs about `0.55-0.74 us/op` on this feed-by-author row relative to a trusted author-id-only extractor. Productizing this would require a real generated-shape proof or descriptor-bound static helper that can skip user-owned shape validation safely; do not weaken the current exact matcher for arbitrary user args.
 
+- Accepted generated-template cleanup: direct static selection validation for blog exact helpers.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Changed the generated `blogPagePostV1` / `blogFeedPostListV1` / `blogFeedByAuthorPostListV1` support code in both client generators to validate the hot full-select tree with straight-line static checks instead of the old per-call scalar-field loop plus generic array-key selection-wrapper helper.
+    - Removed the now-unused generic per-call selection-wrapper helper from the generated support code.
+    - Mirrored the same helper shape in `client-engine-cache-timing.ts` so the benchmark exact-helper rows continue to measure the emitted template shape.
+  - Verification:
+    - Restarted builds after harness restart:
+      - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+      - `pnpm --filter @prisma/client build`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+  - Timing:
+    - Close 300k pre-patch baseline for `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows'`:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper / trusted-helper: `11.46 / 10.58 / 9.38 / 9.24 / 8.56 us/op`.
+      - cached-wrapper exact / trusted / lazy: `8.26 / 7.70 / 10.25 us/op`.
+    - Patched 300k full-table run before dead-helper deletion:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper / trusted-helper: `10.58 / 10.83 / 9.70 / 9.16 / 8.59 us/op`.
+      - cached-wrapper exact / trusted / lazy: `8.21 / 7.72 / 10.26 us/op`.
+    - Solo 300k confirmations after dead-helper deletion:
+      - generated exact-helper: `9.16 us/op`.
+      - cached-wrapper exact: `8.06 us/op`.
+  - Decision:
+    - Keep as a small exact-template cleanup. The affected exact rows improved modestly in close full-table A/B and stayed in band on solo confirmations, while full shape validation remains intact. This does not change the trusted-helper conclusion: skipping nested shape checks is still only a lower-bound lead until there is a generated-shape proof.
+
 ## Useful Commands
 
 ```sh

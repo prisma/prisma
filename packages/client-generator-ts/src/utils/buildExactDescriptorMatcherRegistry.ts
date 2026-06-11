@@ -566,10 +566,16 @@ function __internalExactDescriptorMatchesBlogPagePostV1Select(value, selectShape
       return false
     }
 
-    for (let i = 0; i < __internalExactDescriptorBlogPageRootScalarFields.length; i++) {
-      if (value[__internalExactDescriptorBlogPageRootScalarFields[i]] !== true) {
-        return false
-      }
+    if (
+      value.id !== true ||
+      value.title !== true ||
+      value.slug !== true ||
+      value.content !== true ||
+      value.published !== true ||
+      value.viewCount !== true ||
+      value.createdAt !== true
+    ) {
+      return false
     }
   } else if (
     !__internalExactDescriptorKeys7(value, 'id', 'title', 'author', 'category', 'tags', 'comments', '_count') ||
@@ -580,11 +586,11 @@ function __internalExactDescriptorMatchesBlogPagePostV1Select(value, selectShape
   }
 
   return (
-    __internalExactDescriptorMatchesSelectionWrapper(value.author, __internalExactDescriptorBlogPageUserSelectKeys) &&
-    __internalExactDescriptorMatchesSelectionWrapper(value.category, __internalExactDescriptorBlogPageSlugSelectKeys) &&
+    __internalExactDescriptorMatchesBlogPageUserSelectionWrapper(value.author) &&
+    __internalExactDescriptorMatchesBlogPageSlugSelectionWrapper(value.category) &&
     __internalExactDescriptorMatchesBlogPageTagsSelection(value.tags) &&
     __internalExactDescriptorMatchesBlogPageCommentsSelection(value.comments) &&
-    __internalExactDescriptorMatchesSelectionWrapper(value._count, __internalExactDescriptorBlogPageCountSelectKeys)
+    __internalExactDescriptorMatchesBlogPageCountSelectionWrapper(value._count)
   )
 }
 
@@ -598,7 +604,7 @@ function __internalExactDescriptorMatchesBlogPageTagsSelection(value) {
     return false
   }
 
-  return __internalExactDescriptorMatchesSelectionWrapper(select.tag, __internalExactDescriptorBlogPageSlugSelectKeys)
+  return __internalExactDescriptorMatchesBlogPageSlugSelectionWrapper(select.tag)
 }
 
 function __internalExactDescriptorMatchesBlogPageCommentsSelection(value) {
@@ -631,7 +637,7 @@ function __internalExactDescriptorMatchesBlogPageCommentsSelection(value) {
     select.id === true &&
     select.content === true &&
     select.createdAt === true &&
-    __internalExactDescriptorMatchesSelectionWrapper(select.author, __internalExactDescriptorBlogPageUserSelectKeys)
+    __internalExactDescriptorMatchesBlogPageUserSelectionWrapper(select.author)
   )
 }
 
@@ -648,23 +654,48 @@ function __internalExactDescriptorMatchesBlogPageOrderBy(value) {
   )
 }
 
-function __internalExactDescriptorMatchesSelectionWrapper(value, keys) {
+function __internalExactDescriptorMatchesBlogPageUserSelectionWrapper(value) {
   if (!__internalExactDescriptorIsRecord(value) || !__internalExactDescriptorKeys1(value, 'select')) {
     return false
   }
 
   const select = value.select
-  if (!__internalExactDescriptorIsRecord(select) || !__internalExactDescriptorHasExactKeys(select, keys)) {
+  return (
+    __internalExactDescriptorIsRecord(select) &&
+    __internalExactDescriptorKeys3(select, 'id', 'name', 'avatar') &&
+    select.id === true &&
+    select.name === true &&
+    select.avatar === true
+  )
+}
+
+function __internalExactDescriptorMatchesBlogPageSlugSelectionWrapper(value) {
+  if (!__internalExactDescriptorIsRecord(value) || !__internalExactDescriptorKeys1(value, 'select')) {
     return false
   }
 
-  for (let i = 0; i < keys.length; i++) {
-    if (select[keys[i]] !== true) {
-      return false
-    }
+  const select = value.select
+  return (
+    __internalExactDescriptorIsRecord(select) &&
+    __internalExactDescriptorKeys3(select, 'id', 'name', 'slug') &&
+    select.id === true &&
+    select.name === true &&
+    select.slug === true
+  )
+}
+
+function __internalExactDescriptorMatchesBlogPageCountSelectionWrapper(value) {
+  if (!__internalExactDescriptorIsRecord(value) || !__internalExactDescriptorKeys1(value, 'select')) {
+    return false
   }
 
-  return true
+  const select = value.select
+  return (
+    __internalExactDescriptorIsRecord(select) &&
+    __internalExactDescriptorKeys2(select, 'likes', 'comments') &&
+    select.likes === true &&
+    select.comments === true
+  )
 }
 
 function __internalExactDescriptorBlogPagePostV1SelectShape(value) {

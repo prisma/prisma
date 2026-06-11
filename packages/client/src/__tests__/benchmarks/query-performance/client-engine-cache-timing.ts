@@ -1381,10 +1381,16 @@ function matchesExactGeneratedBlogPostPageSelect(value: unknown, selectShape: Bl
       return false
     }
 
-    for (let i = 0; i < BLOG_PAGE_ROOT_SCALAR_FIELDS.length; i++) {
-      if (value[BLOG_PAGE_ROOT_SCALAR_FIELDS[i]] !== true) {
-        return false
-      }
+    if (
+      value.id !== true ||
+      value.title !== true ||
+      value.slug !== true ||
+      value.content !== true ||
+      value.published !== true ||
+      value.viewCount !== true ||
+      value.createdAt !== true
+    ) {
+      return false
     }
   } else {
     if (
@@ -1397,11 +1403,11 @@ function matchesExactGeneratedBlogPostPageSelect(value: unknown, selectShape: Bl
   }
 
   return (
-    matchesExactGeneratedSelectionWrapper3(value.author, 'id', 'name', 'avatar') &&
-    matchesExactGeneratedSelectionWrapper3(value.category, 'id', 'name', 'slug') &&
+    matchesExactGeneratedBlogPageUserSelectionWrapper(value.author) &&
+    matchesExactGeneratedBlogPageSlugSelectionWrapper(value.category) &&
     matchesExactGeneratedBlogPageTagsSelection(value.tags) &&
     matchesExactGeneratedBlogPageCommentsSelection(value.comments) &&
-    matchesExactGeneratedSelectionWrapper2(value._count, 'likes', 'comments')
+    matchesExactGeneratedBlogPageCountSelectionWrapper(value._count)
   )
 }
 
@@ -1415,7 +1421,7 @@ function matchesExactGeneratedBlogPageTagsSelection(value: unknown): boolean {
     return false
   }
 
-  return matchesExactGeneratedSelectionWrapper3(select.tag, 'id', 'name', 'slug')
+  return matchesExactGeneratedBlogPageSlugSelectionWrapper(select.tag)
 }
 
 function matchesExactGeneratedBlogPageCommentsSelection(value: unknown): boolean {
@@ -1448,7 +1454,7 @@ function matchesExactGeneratedBlogPageCommentsSelection(value: unknown): boolean
     select.id === true &&
     select.content === true &&
     select.createdAt === true &&
-    matchesExactGeneratedSelectionWrapper3(select.author, 'id', 'name', 'avatar')
+    matchesExactGeneratedBlogPageUserSelectionWrapper(select.author)
   )
 }
 
@@ -1465,7 +1471,7 @@ function matchesExactGeneratedBlogPageOrderBy(value: unknown): boolean {
   )
 }
 
-function matchesExactGeneratedSelectionWrapper2(value: unknown, key0: string, key1: string): boolean {
+function matchesExactGeneratedBlogPageUserSelectionWrapper(value: unknown): boolean {
   if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder1(value, 'select')) {
     return false
   }
@@ -1473,13 +1479,14 @@ function matchesExactGeneratedSelectionWrapper2(value: unknown, key0: string, ke
   const select = value.select
   return (
     isDescriptorRecord(select) &&
-    hasOwnEnumerableKeysInOrder2(select, key0, key1) &&
-    select[key0] === true &&
-    select[key1] === true
+    hasOwnEnumerableKeysInOrder3(select, 'id', 'name', 'avatar') &&
+    select.id === true &&
+    select.name === true &&
+    select.avatar === true
   )
 }
 
-function matchesExactGeneratedSelectionWrapper3(value: unknown, key0: string, key1: string, key2: string): boolean {
+function matchesExactGeneratedBlogPageSlugSelectionWrapper(value: unknown): boolean {
   if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder1(value, 'select')) {
     return false
   }
@@ -1487,10 +1494,24 @@ function matchesExactGeneratedSelectionWrapper3(value: unknown, key0: string, ke
   const select = value.select
   return (
     isDescriptorRecord(select) &&
-    hasOwnEnumerableKeysInOrder3(select, key0, key1, key2) &&
-    select[key0] === true &&
-    select[key1] === true &&
-    select[key2] === true
+    hasOwnEnumerableKeysInOrder3(select, 'id', 'name', 'slug') &&
+    select.id === true &&
+    select.name === true &&
+    select.slug === true
+  )
+}
+
+function matchesExactGeneratedBlogPageCountSelectionWrapper(value: unknown): boolean {
+  if (!isDescriptorRecord(value) || !hasOwnEnumerableKeysInOrder1(value, 'select')) {
+    return false
+  }
+
+  const select = value.select
+  return (
+    isDescriptorRecord(select) &&
+    hasOwnEnumerableKeysInOrder2(select, 'likes', 'comments') &&
+    select.likes === true &&
+    select.comments === true
   )
 }
 
