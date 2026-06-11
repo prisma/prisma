@@ -11642,6 +11642,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as the durable design checkpoint for the user's radical JS-owned-input and arena/borrowing ideas. Future broad worktrees should start from this note and still require close product-shaped/criterion gates before keeping code.
 
+- Rejected experiment: canonical `%1` object literal for nested exact descriptor helpers.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed the generated `template:Post.findUnique:id:blogPagePostV1` helper in both client generators to bind only when the learned descriptor placeholder was `%1`.
+    - The matcher then returned a static `{ '%1': value }` object literal instead of `{ [idPlaceholder]: value }`.
+    - Mirrored the same shape in the Node and Workerd benchmark-only exact-helper registries after discovering that the first benchmark run was still using the old hand-coded benchmark matcher.
+  - Verification while patched:
+    - Restarted focused builds after the harness restart:
+      - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+      - `pnpm --filter @prisma/client build`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 4 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 4 tests.
+  - Timing:
+    - Initial baseline before patch:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+      - Stable exact-helper blog-page: 9.99 us/op.
+      - Alternating exact-helper blog-page: 9.28 us/op.
+    - First patched run before mirroring the benchmark helper was not decision-grade, because the source benchmark was still exercising its hand-coded dynamic-placeholder matcher.
+    - Patched benchmark mirror:
+      - Stable exact-helper blog-page: 8.97 us/op.
+      - Alternating exact-helper blog-page: 9.32 us/op.
+    - Close control after reverting only the Node benchmark helper to the dynamic placeholder form:
+      - Stable exact-helper blog-page: 8.43 us/op.
+      - Alternating exact-helper blog-page: 9.37 us/op.
+  - Decision:
+    - Revert. The static `%1` object literal did not beat the close dynamic-placeholder control on the stable nested exact-helper row and was only neutral on alternating. Do not retry this as a local exact-helper micro-optimization without a new profile showing computed placeholder object creation as material.
+
 ## Useful Commands
 
 ```sh
