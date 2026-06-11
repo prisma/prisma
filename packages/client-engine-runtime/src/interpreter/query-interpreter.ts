@@ -1115,6 +1115,7 @@ export class QueryInterpreter {
     const childColumnIndex = relation[4]
     const scopeName = relation[5]
     const isRelationUnique = relation[6]
+    const operations = relation[7]
 
     return async (parentResult, context, scope) => {
       const childScope = createRawNestedRelationScope(
@@ -1123,7 +1124,11 @@ export class QueryInterpreter {
         getRawNestedScopeValue(parentResult.rows, parentColumnIndex),
         canUseLocalChildScope,
       )
-      const childResult = await childQuery(context, childScope)
+      const childResult = processRawNestedRelationResult(
+        await childQuery(context, childScope),
+        childColumnIndex,
+        operations,
+      )
       attachRawNestedDirectRelationByIndex(
         parentResult.rows,
         parentResult.records,
@@ -1726,6 +1731,10 @@ function tryCompileRawNestedFinalOwnerProgram(query: RawNestedReadQuery): RawNes
 function tryCompileRawNestedFinalOwnerUniqueRelation(
   relation: RawNestedReadDirectRelation,
 ): RawNestedFinalOwnerUniqueRelation | undefined {
+  if (!inMemoryOpsAreEmpty(relation[7])) {
+    return undefined
+  }
+
   const childQuery = relation[2]
   if (childQuery[2] !== undefined || !rawNestedReadQueryCanUseLocalScopes(childQuery, relation[5])) {
     return undefined
@@ -1751,6 +1760,10 @@ function tryCompileRawNestedFinalOwnerUniqueRelation(
 function tryCompileRawNestedFinalOwnerWrapperListRelation(
   relation: RawNestedReadDirectRelation,
 ): RawNestedFinalOwnerWrapperListRelation | undefined {
+  if (!inMemoryOpsAreEmpty(relation[7])) {
+    return undefined
+  }
+
   const sourceQuery = relation[2]
   const nestedRelations = sourceQuery[2]
   if (
@@ -1765,6 +1778,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
   if (
     childRelation[0] !== 'r' ||
     !childRelation[6] ||
+    !inMemoryOpsAreEmpty(childRelation[7]) ||
     childRelation[2][2] !== undefined ||
     !rawNestedReadQueryCanUseLocalScopes(childRelation[2], childRelation[5])
   ) {
@@ -1798,6 +1812,10 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
 function tryCompileRawNestedFinalOwnerChildListRelation(
   relation: RawNestedReadDirectRelation,
 ): RawNestedFinalOwnerChildListRelation | undefined {
+  if (!inMemoryOpsAreEmpty(relation[7])) {
+    return undefined
+  }
+
   const childQuery = relation[2]
   const nestedRelations = childQuery[2]
   if (nestedRelations?.length !== 1 || !rawNestedReadQueryCanUseLocalScopes(childQuery, relation[5])) {
@@ -1813,6 +1831,7 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
   if (
     uniqueRelation[0] !== 'r' ||
     !uniqueRelation[6] ||
+    !inMemoryOpsAreEmpty(uniqueRelation[7]) ||
     uniqueRelation[2][2] !== undefined ||
     !rawNestedReadQueryCanUseLocalScopes(uniqueRelation[2], uniqueRelation[5])
   ) {
@@ -2050,7 +2069,7 @@ function getRawNestedUniqueWrapperRelation(
   }
 
   const relation = relations[0]
-  if (relation[0] !== 'r' || !relation[6]) {
+  if (relation[0] !== 'r' || !relation[6] || !inMemoryOpsAreEmpty(relation[7])) {
     return undefined
   }
 
@@ -2086,6 +2105,72 @@ function rawNestedReadQueryCanUseLocalScopes(query: RawNestedReadQuery, scopeNam
   }
 
   return true
+}
+
+function processRawNestedRelationResult(
+  result: RawNestedReadResult,
+  childColumnIndex: number,
+  operations: DeepReadonly<InMemoryOps>,
+): RawNestedReadResult {
+  if (inMemoryOpsAreEmpty(operations)) {
+    return result
+  }
+
+  if (
+    operations.distinct != null ||
+    operations.linkingFields != null ||
+    operations.reverse ||
+    (operations.nested !== undefined && Object.keys(operations.nested).length > 0)
+  ) {
+    throw new Error('Unsupported raw nested relation in-memory operations')
+  }
+
+  const pagination = operations.pagination
+  if (pagination == null) {
+    return result
+  }
+  if (pagination.cursor != null) {
+    throw new Error('Unsupported raw nested relation cursor pagination')
+  }
+
+  const skip = pagination.skip ?? 0
+  const take = pagination.take
+  if (skip <= 0 && (take == null || take >= result.rows.length)) {
+    return result
+  }
+
+  const rows: unknown[][] = []
+  const records: PrismaObject[] = []
+  const seenByParent = new Map<unknown, number>()
+
+  for (let index = 0; index < result.rows.length; index++) {
+    const row = result.rows[index]
+    const parentKey = row[childColumnIndex]
+    const seen = seenByParent.get(parentKey) ?? 0
+    seenByParent.set(parentKey, seen + 1)
+
+    if (seen < skip) {
+      continue
+    }
+    if (take != null && seen - skip >= take) {
+      continue
+    }
+
+    rows.push(row as unknown[])
+    records.push(result.records[index])
+  }
+
+  return { rows, records }
+}
+
+function inMemoryOpsAreEmpty(ops: DeepReadonly<InMemoryOps>): boolean {
+  return (
+    ops.pagination == null &&
+    ops.distinct == null &&
+    ops.linkingFields == null &&
+    !ops.reverse &&
+    (ops.nested === undefined || Object.keys(ops.nested).length === 0)
+  )
 }
 
 function rawNestedDbQueryUsesOnlyScopeName(dbQuery: QueryPlanDbQuery, scopeName: string): boolean {

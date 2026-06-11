@@ -5266,21 +5266,27 @@ async function measureRawResultSetBlogPageExactPrototypeScenario(
   }
 }
 
-function buildRawNestedBlogPageQuery(dbQueries: readonly QueryPlanDbQuery[]): RawNestedReadQuery {
+function buildRawNestedBlogPageQuery(
+  dbQueries: readonly QueryPlanDbQuery[],
+  includeCommentPaginationOps = false,
+): RawNestedReadQuery {
+  const commentOps = includeCommentPaginationOps ? { pagination: { take: 10 } } : {}
+
   return [
     dbQueries[0],
     RAW_POST_COLUMNS,
     [
-      ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true],
-      ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true],
+      ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true, {}],
+      ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true, {}],
       [
         'r',
         'tags',
-        [dbQueries[3], [], [['r', 'tag', [dbQueries[4], RAW_TAG_COLUMNS], 1, 0, '@parent$tagId', true]]],
+        [dbQueries[3], [], [['r', 'tag', [dbQueries[4], RAW_TAG_COLUMNS], 1, 0, '@parent$tagId', true, {}]]],
         0,
         0,
         '@parent$id',
         false,
+        {},
       ],
       [
         'r',
@@ -5288,32 +5294,39 @@ function buildRawNestedBlogPageQuery(dbQueries: readonly QueryPlanDbQuery[]): Ra
         [
           dbQueries[5],
           RAW_COMMENT_COLUMNS,
-          [['r', 'author', [dbQueries[6], RAW_USER_COLUMNS], 3, 0, '@parent$authorId', true]],
+          [['r', 'author', [dbQueries[6], RAW_USER_COLUMNS], 3, 0, '@parent$authorId', true, {}]],
         ],
         0,
         4,
         '@parent$id',
         false,
+        commentOps,
       ],
     ],
   ]
 }
 
-function buildRawNestedBlogPageExactQuery(dbQueries: readonly QueryPlanDbQuery[]): RawNestedReadQuery {
+function buildRawNestedBlogPageExactQuery(
+  dbQueries: readonly QueryPlanDbQuery[],
+  includeCommentPaginationOps = false,
+): RawNestedReadQuery {
+  const commentOps = includeCommentPaginationOps ? { pagination: { take: 10 } } : {}
+
   return [
     dbQueries[0],
     RAW_POST_COLUMNS,
     [
-      ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true],
-      ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true],
+      ['r', 'author', [dbQueries[1], RAW_USER_COLUMNS], 7, 0, '@parent$authorId', true, {}],
+      ['r', 'category', [dbQueries[2], RAW_CATEGORY_COLUMNS], 8, 0, '@parent$categoryId', true, {}],
       [
         'r',
         'tags',
-        [dbQueries[3], [], [['r', 'tag', [dbQueries[4], RAW_TAG_COLUMNS], 1, 0, '@parent$tagId', true]]],
+        [dbQueries[3], [], [['r', 'tag', [dbQueries[4], RAW_TAG_COLUMNS], 1, 0, '@parent$tagId', true, {}]]],
         0,
         0,
         '@parent$id',
         false,
+        {},
       ],
       [
         'r',
@@ -5321,12 +5334,13 @@ function buildRawNestedBlogPageExactQuery(dbQueries: readonly QueryPlanDbQuery[]
         [
           dbQueries[5],
           RAW_COMMENT_COLUMNS,
-          [['r', 'author', [dbQueries[6], RAW_USER_COLUMNS], 3, 0, '@parent$authorId', true]],
+          [['r', 'author', [dbQueries[6], RAW_USER_COLUMNS], 3, 0, '@parent$authorId', true, {}]],
         ],
         0,
         4,
         '@parent$id',
         false,
+        commentOps,
       ],
     ],
   ]
@@ -5362,7 +5376,7 @@ async function measureRawResultSetCompactNodeScenario(
   const unique = scenario.rawNestedUnique ?? true
   const rawPlan = [
     'n',
-    exactShape ? buildRawNestedBlogPageExactQuery(dbQueries) : buildRawNestedBlogPageQuery(dbQueries),
+    exactShape ? buildRawNestedBlogPageExactQuery(dbQueries, !unique) : buildRawNestedBlogPageQuery(dbQueries, !unique),
     unique,
   ] as const satisfies QueryPlanNode
   const checksumResult = unique

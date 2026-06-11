@@ -171,6 +171,7 @@ describe('QueryPlanCache', () => {
                 'parentId',
                 '@parent$id',
                 false,
+                {},
               ],
             ],
           ],
@@ -185,7 +186,7 @@ describe('QueryPlanCache', () => {
         readonly [
           unknown,
           unknown,
-          readonly [readonly ['r', string, readonly [unknown, unknown], string, string, string, boolean]],
+          readonly [readonly ['r', string, readonly [unknown, unknown], string, string, string, boolean, unknown]],
         ],
         boolean,
       ]

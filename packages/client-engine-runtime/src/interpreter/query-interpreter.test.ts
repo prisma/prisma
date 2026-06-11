@@ -270,6 +270,7 @@ test('interprets compact raw nested read nodes', async () => {
           0,
           '@parent$authorId',
           true,
+          {},
         ],
         [
           'r',
@@ -286,6 +287,7 @@ test('interprets compact raw nested read nodes', async () => {
           1,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -336,6 +338,72 @@ test('interprets compact raw nested read nodes', async () => {
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [1]])
 })
 
+test('applies compact raw nested relation pagination per parent', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id FROM Post WHERE id IN ', [1, 2])
+  const commentsQuery = templateQuery('SELECT id, postId, content FROM Comment WHERE postId IN ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 0, 'i']],
+      [
+        [
+          'r',
+          'comments',
+          [
+            commentsQuery,
+            [
+              ['id', 0, 'i'],
+              ['postId', 1, 'i'],
+              ['content', 2, 's'],
+            ],
+          ],
+          0,
+          1,
+          '@parent$id',
+          false,
+          { pagination: { skip: 1, take: 1 } },
+        ],
+      ],
+    ],
+    false,
+  ] satisfies QueryPlanNode
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      if (query.sql.startsWith('SELECT id FROM Post')) {
+        return Promise.resolve({
+          columnNames: ['id'],
+          columnTypes: [ColumnTypeEnum.Int32],
+          rows: [[1], [2]],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'postId', 'content'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+        rows: [
+          [100, 1, 'first post one'],
+          [101, 1, 'second post one'],
+          [200, 2, 'first post two'],
+          [201, 2, 'second post two'],
+          [202, 2, 'third post two'],
+        ],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual([
+    { id: 1, comments: [{ id: 101, postId: 1, content: 'second post one' }] },
+    { id: 2, comments: [{ id: 201, postId: 2, content: 'second post two' }] },
+  ])
+})
+
 test('keeps inherited scope for raw nested child queries with outer placeholders', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', { $p: ['%postId', 'int'] })
@@ -366,6 +434,7 @@ test('keeps inherited scope for raw nested child queries with outer placeholders
           1,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -419,8 +488,8 @@ test('starts compact raw nested read sibling relations concurrently', async () =
         ['authorId', 1, 'i'],
       ],
       [
-        ['r', 'author', [authorQuery, [['id', 0, 'i']]], 1, 0, '@parent$authorId', true],
-        ['r', 'comments', [commentsQuery, [['id', 0, 'i']]], 0, 1, '@parent$id', false],
+        ['r', 'author', [authorQuery, [['id', 0, 'i']]], 1, 0, '@parent$authorId', true, {}],
+        ['r', 'comments', [commentsQuery, [['id', 0, 'i']]], 0, 1, '@parent$id', false, {}],
       ],
     ],
     true,
@@ -514,6 +583,7 @@ test('interprets compact raw nested read wrapper-list relations', async () => {
                 0,
                 '@parent$tagId',
                 true,
+                {},
               ],
             ],
           ],
@@ -521,6 +591,7 @@ test('interprets compact raw nested read wrapper-list relations', async () => {
           0,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -607,6 +678,7 @@ test('interprets compact raw nested read wrapper relations', async () => {
                 0,
                 '@parent$tagId',
                 true,
+                {},
               ],
             ],
           ],
@@ -614,6 +686,7 @@ test('interprets compact raw nested read wrapper relations', async () => {
           0,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -703,6 +776,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
           0,
           '@parent$authorId',
           true,
+          {},
         ],
         [
           'r',
@@ -718,6 +792,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
           0,
           '@parent$categoryId',
           true,
+          {},
         ],
         [
           'r',
@@ -740,6 +815,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
                 0,
                 '@parent$tagId',
                 true,
+                {},
               ],
             ],
           ],
@@ -747,6 +823,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
           0,
           '@parent$id',
           false,
+          {},
         ],
         [
           'r',
@@ -772,6 +849,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
                 0,
                 '@parent$authorId',
                 true,
+                {},
               ],
             ],
           ],
@@ -779,6 +857,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
           3,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -891,11 +970,12 @@ test('skips compact raw nested read wrapper children for empty wrapper rows', as
         [
           'r',
           'tags',
-          [postTagQuery, [], [['r', 'tag', [tagQuery, [['id', 0, 'i']]], 1, 0, '@parent$tagId', true]]],
+          [postTagQuery, [], [['r', 'tag', [tagQuery, [['id', 0, 'i']]], 1, 0, '@parent$tagId', true, {}]]],
           0,
           0,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -963,6 +1043,7 @@ test('interprets compact raw nested read indexed direct relations without scalar
           1,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -1036,6 +1117,7 @@ test('interprets compact raw nested read indexed wrapper-list relations without 
                 0,
                 '@parent$tagId',
                 true,
+                {},
               ],
             ],
           ],
@@ -1043,6 +1125,7 @@ test('interprets compact raw nested read indexed wrapper-list relations without 
           0,
           '@parent$id',
           false,
+          {},
         ],
       ],
     ],
@@ -1133,7 +1216,7 @@ test('interprets compact raw nested read empty result sets without column metada
   const childQuery = templateQuery('SELECT id FROM Comment WHERE postId = ', { $p: ['@parent$id', 'int'] })
   const plan = [
     'n',
-    [rootQuery, [['id', 0, 'i']], [['r', 'comments', [childQuery, [['id', 0, 'i']]], 0, 0, '@parent$id', false]]],
+    [rootQuery, [['id', 0, 'i']], [['r', 'comments', [childQuery, [['id', 0, 'i']]], 0, 0, '@parent$id', false, {}]]],
     true,
   ] satisfies QueryPlanNode
   let queryCount = 0

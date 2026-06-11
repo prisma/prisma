@@ -173,6 +173,7 @@ export type RawNestedReadDirectRelation = readonly [
   childColumn: RawResultColumnRef,
   scopeName: string,
   isRelationUnique: boolean,
+  operations: InMemoryOps,
 ]
 
 export type QueryPlanNode = QueryPlanCompactNode

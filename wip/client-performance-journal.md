@@ -12356,6 +12356,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep, but classify as a small compact-join process-node cleanup rather than a major win. The adjacent generated improvement is only about 1.4%, but direct execution also improved about 2.7%, and the safety boundary is precise: without cursors, `evaluateProcessingParameters()` has no work and `processRecords()` does not mutate `ops`.
     - This does not revive the older broad static-ops idea. Do not skip cloning for cursor-bearing ops, missing proof from a compiled-node scan, or WeakMap-classified static/dynamic guesses without fresh generated-product evidence.
 
+- Accepted compiler/runtime optimization: raw-nested relation operations for no-cursor per-parent pagination.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - In `/home/aqrln.guest/prisma-engines`, `RawNestedReadDirectRelation` now serializes an eighth tuple field carrying `InMemoryOps`, and `build_raw_read_related_records()` keeps raw-nested emission for relation-level in-memory pagination when the ops are limited to no-cursor `skip`/`take`.
+    - Unsupported relation ops still decline raw-nested generation and fall back through the existing path: cursor pagination, `reverse`, `distinct`, nested ops, and `linkingFields` are not accepted by this raw-nested producer path.
+    - In Prisma TS runtime, `RawNestedReadDirectRelation` is now the eight-slot internal format only. The interpreter applies supported relation pagination per parent key before attaching relation records, and final-owner/unique-wrapper fast paths intentionally reject non-empty relation ops.
+    - Updated raw-nested fixtures, query-plan cache tests, and feed benchmark fixtures to the new format. No seven-slot compatibility reader was kept.
+  - Verification:
+    - `/home/aqrln.guest/prisma-engines`: `cargo fmt -p query-compiler`; `env PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`; `env PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`.
+    - `/home/aqrln.guest/prisma`: `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`; `pnpm --filter @prisma/client test query-plan-cache.test.ts`; `pnpm --filter @prisma/client-engine-runtime build`; `pnpm --filter @prisma/client build`.
+    - Synthetic raw-compact feed proof after TS/runtime patch: `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts` measured blog-page / blog-feed compact rows at `4.51 / 9.15 us/op`.
+    - Close A/B with Wasm/client rebuilds in both directions:
+      - Fresh reversed baseline, `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`:
+        - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `21.97 / 20.00 / 20.35 / 16.89 / 16.58 us/op`.
+        - direct plan / raw compact / exact raw compact: `13.70 / 9.76 / 9.65 us/op`.
+        - inner plan / manual inner+outer / direct after phase warmup / local executor: `11.60 / 13.64 / 13.46 / 13.61 us/op`.
+      - Reapplied patch after rebuilding `make build-qc-wasm`, `@prisma/client-engine-runtime`, and `@prisma/client`:
+        - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `12.82 / 12.84 / 12.59 / 11.46 / 11.64 us/op`.
+        - direct plan / raw compact / exact raw compact: `9.20 / 9.37 / 9.28 us/op`.
+        - direct after phase warmup / local executor: `9.59 / 9.98 us/op`.
+    - Focused Workerd smoke after patch: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author warmed cache' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 ...workerd-query-compiler-memory.ts`:
+      - worker-loop default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `12.40 / 9.60 / 10.40 / 10.80 / 9.80 us/op`.
+      - all rows hit cache `5000/0`, precomputed rows hit `5000`, and each row issued `queryRaw=35000`, `executeRaw=0`.
+  - Decision:
+    - Keep. This is the first feed-shape change in this sequence that moves the actual generated/direct product rows, not just benchmark-only raw-nested lower bounds or compact-join process-node cleanup. The close A/B improved generated default by about 42% (`21.97 -> 12.82 us/op`), request-precomputed by about 38% (`20.35 -> 12.59`), and direct plan by about 33% (`13.70 -> 9.20`).
+    - The emitted feed plan now reaches the raw-compact lower-bound band for this fixture, so the next feed work should target raw-nested relation execution/assembly costs or generated-client wrapper/descriptor overhead, not the old compact-join `d/l/j` product path unless a different query still emits that shape.
+    - The current runtime applies relation pagination after nested child relations have been loaded, which preserves output semantics but may over-fetch nested child relations for dropped child rows on larger datasets. A future production-quality relation-ops path can move the filter before nested child relation execution if profiles show that over-fetch matters.
+
 ## Useful Commands
 
 ```sh
