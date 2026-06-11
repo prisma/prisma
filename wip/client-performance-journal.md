@@ -11607,6 +11607,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The two-phase extraction policy slightly helped descriptor-bound static alternating rows but regressed the stable exact-helper and stable static rows, and the exact-helper alternating row was still softer than control. Keep the current MRU order of exact-then-lazy per descriptor unless a future shape-specific policy proves stable and alternating wins together.
 
+- Measurement refresh: generated exact-helper profile and final-owner lower-bound gap.
+  - Timestamp: 2026-06-11.
+  - Broad generated-client refresh:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Selected rows:
+      - `generated client serialize blog page / nested rows warmed cache`: 3.57 us/op.
+      - `generated client serialize cache key blog page / nested rows warmed cache`: 7.26 us/op.
+      - Default generated blog-page stable / alternating: 10.72 / 11.56 us/op.
+      - Engine-precomputed blog-page stable / alternating: 10.56 / 10.55 us/op.
+      - Request-precomputed blog-page stable / alternating: 11.50 / 11.52 us/op.
+      - Descriptor-bound static blog-page stable / alternating: 10.60 / 11.54 us/op.
+      - Exact-helper blog-page stable / alternating: 10.61 / 11.07 us/op.
+    - Interpretation: this broad pass is order-sensitive and should not replace close A/B gates, but it confirms that the default generated path still pays a large serializer/cache-key ceiling while the exact-helper/request/engine rows are now close enough that tiny descriptor policy changes are unlikely to be a major nested win.
+  - Focused CPU profile:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 node --cpu-prof --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 8.29 us/op, `queryRaw=2100000`.
+    - Top self-time profile buckets included query-interpreter raw-nested execution, benchmark fake adapter result-set selection, GC, `#executeRawNestedFinalOwnerDbQuery()`, `applyModel.ts` generated action glue, `createPrismaPromise()` callback handling, generated benchmark args, exact-helper select matching, and `applyFluent()` proxy glue.
+    - The profile is spread across real runtime work and benchmark-only scaffolding; there is no obvious single-branch edit in the generated exact-helper path.
+  - Raw-nested lower-bound refresh:
+    - `raw result-set static-wave writer program blog page / nested rows`, 300k iterations: 3.79 us/op.
+    - `direct plan after phase warmup blog page / nested rows`, 300k iterations: 4.27 us/op.
+    - The remaining direct final-owner gap to the static-wave benchmark lower bound is about 0.5 us/op. That is real but smaller after compiled final-owner query leaves, and the obvious row-writer, target-array, first-row, and single-render-return slices have already been rejected on generated product-shaped rows.
+  - Decision:
+    - No code change from this scout. The next promising raw-nested proof should change final-owner phase/query ownership at a larger shape boundary or move generated request glue materially; avoid spending more turns on one-allocation final-owner edits unless a profile shows a new concentrated hotspot.
+
 ## Useful Commands
 
 ```sh
