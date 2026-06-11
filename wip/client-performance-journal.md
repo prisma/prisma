@@ -12265,6 +12265,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as target-runtime benchmark coverage. The 20k Workerd run makes the by-author exact-helper signal stronger than the Node-only checkpoint: exact helper improved the default generated row by about `21%` worker-loop (`18.75 -> 14.85 us/op`) and beat request-precomputed by about `6%` (`15.85 -> 14.85`).
     - Still treat this as an explicit internal template, not a default feature. The useful next product step is an allowlist policy and broader special-value/exclusion coverage, not a generic nested matcher.
 
+- Rejected runtime experiment: non-unique raw-nested final-owner fast path.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - The new non-unique blog-feed lower-bound rows suggested a paged final-owner writer could reuse the accepted raw-nested final-owner program for `['n', rawNestedQuery, false]` and return ordered root arrays.
+    - If the real `Post.findMany` feed compiled to compact raw-nested `n`, this could remove generic `RawNestedReadResult` mapping/attachment work for a product-shaped nested read.
+  - Patch tried and reverted:
+    - Temporarily removed the `unique` guard from `#tryCompileRawNestedFinalOwnerRead()`.
+    - Added a shared final-owner row executor for non-unique roots, including page-level scopes for author/category/post-tag/comment waves and direct root-array assembly.
+    - Added a two-root interpreter test with tuple child scopes to prove the non-unique final-owner executor semantics.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 25 tests.
+    - Patched `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set compact node blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`: `6.78` and `6.99 us/op` repeats; after single-root scalar routing, `7.00-7.02 us/op`.
+    - Close reverted control for the same synthetic compact-node row: `9.93 us/op` first control and `9.39 us/op` in the three-row close baseline.
+    - Adjacent product-shaped rows did not improve in the close baseline:
+      - Patched `direct plan blog feed / nested rows`: `16.00 us/op`; reverted control: `15.72 us/op`.
+      - Patched `generated client blog feed / nested rows warmed cache`: `22.02 us/op`; reverted control: `21.43 us/op`.
+    - One-off plan dump for `createBlogPostFeedQuery(10)` showed the real product plan is `d -> l(@parent) -> l(@parent$authorId,@parent$categoryId,@parent$id) -> j joins=4`, not compact raw-nested `n`; the blog-page `findUnique` control remains `n unique=true rels=4`.
+  - Decision:
+    - Revert. The runtime patch is a real win only for the benchmark-built non-unique raw-nested compact node, while the actual generated/direct blog-feed path currently compiles to compact joins and does not use it.
+    - Do not productize a non-unique `n` final-owner fast path as the next blog-feed step unless the query compiler first emits compact raw-nested for the target `findMany` shape or another real product query is proven to compile to that shape.
+    - The next blog-feed runtime proof should target the current compact join plan (`d/l/j`) directly, or be an engines/compiler experiment that changes the product feed emission to a raw-nested/static owner-writer shape and then benchmarks the generated/direct rows.
+
 ## Useful Commands
 
 ```sh
