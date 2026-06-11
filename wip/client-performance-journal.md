@@ -11631,6 +11631,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - No code change from this scout. The next promising raw-nested proof should change final-owner phase/query ownership at a larger shape boundary or move generated request glue materially; avoid spending more turns on one-allocation final-owner edits unless a profile shows a new concentrated hotspot.
 
+- Architecture note: JS-owned query input and Rust borrowing/arena leads.
+  - Timestamp: 2026-06-11.
+  - Path: `wip/client-performance-architecture-leads.md`.
+  - Contents:
+    - Captures why `serde_wasm_bindgen` / `compileFromValue(JsValue)` is too shallow when it still materializes owned Rust protocol maps.
+    - Recommends starting with generated/descriptor-bound cache hits that avoid Wasm on hot paths, then only later considering Wasm reference-type views with generated/static accessors rather than generic `Reflect` walking.
+    - Separates avoiding Rust-owned input queries from avoiding Rust-owned SQL strings; the latter needs a producer-level plan-shape change, not cache-side SQL string splitting.
+    - Frames arena/borrowing work as compile-local, profile-backed slices rather than a broad `Arc` rewrite.
+  - Decision:
+    - Keep as the durable design checkpoint for the user's radical JS-owned-input and arena/borrowing ideas. Future broad worktrees should start from this note and still require close product-shaped/criterion gates before keeping code.
+
 ## Useful Commands
 
 ```sh
