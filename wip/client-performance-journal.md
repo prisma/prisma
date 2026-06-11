@@ -12655,6 +12655,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The allocation reduction was real, but the close control was faster on the larger connectOrCreate, composite create, update-child, and upsert rows, while other rows were neutral/mixed. Do not retry deferred/non-result `CreateRecord.selection_order` as a standalone allocation cleanup without a new CPU hypothesis.
 
+- Rejected generated-cache-hit micro-branch: switch for request-handler precomputed cached-result actions.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed `packages/client/src/runtime/core/model/applyModel.ts::isRequestHandlerPrecomputedCachedResultAction()` from `(requestHandlerPrecomputedCachedResultProps as readonly string[]).includes(action)` to a `switch` over `findMany`, `findFirst`, and `findFirstOrThrow`.
+    - This targeted the generated `findMany` feed exact-helper path before descriptor extraction and RequestHandler/engine cached-result execution.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client test applyModel.test.ts --runInBand` passed, 10 tests.
+  - Timing:
+    - Pre-patch constant feed 300k:
+      - default / engine-precomputed / request-precomputed / descriptor-bound / exact-helper: `10.57 / 10.94 / 10.51 / 9.39 / 9.01 us/op`.
+    - Patched constant feed 300k:
+      - `10.12 / 10.51 / 10.32 / 9.12 / 8.82 us/op`.
+    - Close reverted constant feed 300k:
+      - `10.05 / 10.33 / 10.32 / 9.08 / 8.83 us/op`.
+    - Pre-patch by-author feed 300k:
+      - default / engine-precomputed / request-precomputed / descriptor-bound / exact-helper / trusted-helper: `10.62 / 10.95 / 10.79 / 9.34 / 9.09 / 8.61 us/op`.
+    - Patched by-author feed 300k:
+      - `10.69 / 10.78 / 10.68 / 9.34 / 8.98 / 8.63 us/op`.
+  - Decision:
+    - Revert. The patched run looked positive on constant feed, but the close same-session reverted control caught up or beat it on default, engine-precomputed, descriptor-bound, and exact-helper rows. Do not retry the action `includes()` -> `switch` change by itself.
+
+- New generated-cache-hit lead: materialize generated delegate/action lookups.
+  - Timestamp: 2026-06-11.
+  - Source:
+    - Read-only scout by subagent Laplace.
+  - Observation:
+    - The generated benchmark rows still call `client.post.findMany(...)` on every iteration. Even with `cacheProperties(modelActionsLayer(...))`, that crosses the applied-client/model composite proxies and does a cached-property lookup before the exact descriptor helper or cached-result request path runs.
+    - Relevant path: `packages/client/src/runtime/core/model/applyModelsAndClientExtensions.ts::modelsLayer()`, `packages/client/src/runtime/core/model/applyModel.ts::applyModel()` / `modelActionsLayer()`, and `packages/client/src/runtime/core/compositeProxy/createCompositeProxy.ts` / `cacheProperties.ts`.
+  - Why it is distinct from rejected ideas:
+    - It does not change placeholder objects, lazy descriptor hit reuse, exact-vs-lazy ordering, RequestParams construction, final-owner execution, Map indexing, or executor branches.
+    - It attacks generated API call-surface overhead before the request reaches descriptor extraction/runtime.
+  - Suggested gate:
+    - Prototype a hoisted/materialized-action variant and compare 300k close A/B on generated promise construction, generated exact/trusted blog-feed-by-author, cached-wrapper exact/trusted, direct plan, and simple `findUnique` / `findMany users`.
+    - Keep only if it narrows the generated exact-helper vs cached-wrapper exact gap by at least about `0.3 us/op` on feed-by-author without simple-row regressions or proxy/fluent/transaction semantic damage.
+
 ## Useful Commands
 
 ```sh
