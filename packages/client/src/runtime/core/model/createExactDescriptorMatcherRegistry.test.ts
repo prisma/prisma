@@ -270,6 +270,15 @@ test('binds exact json scalar matchers for plain structural args', () => {
   ).toEqual({
     '%1': '["next",{"nested":true}]',
   })
+  expect(matcher?.({ where: { metadata: 'next' }, select: { id: true, metadata: true } })).toEqual({
+    '%1': '"next"',
+  })
+  expect(matcher?.({ where: { metadata: 2.5 }, select: { id: true, metadata: true } })).toEqual({
+    '%1': '2.5',
+  })
+  expect(matcher?.({ where: { metadata: true }, select: { id: true, metadata: true } })).toEqual({
+    '%1': 'true',
+  })
 })
 
 test('rejects json matcher args that need the normal serializer', () => {
@@ -282,7 +291,7 @@ test('rejects json matcher args that need the normal serializer', () => {
     select: ['id', 'metadata'],
   })
 
-  expect(matcher?.({ where: { metadata: 'initial' }, select: { id: true, metadata: true } })).toBeUndefined()
+  expect(matcher?.({ where: { metadata: null }, select: { id: true, metadata: true } })).toBeUndefined()
   expect(matcher?.({ where: { metadata: { tag: undefined } }, select: { id: true, metadata: true } })).toBeUndefined()
   expect(matcher?.({ where: { metadata: { tag: skip } }, select: { id: true, metadata: true } })).toBeUndefined()
   expect(

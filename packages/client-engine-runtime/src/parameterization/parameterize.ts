@@ -316,6 +316,10 @@ class Parameterizer {
       return value
     }
 
+    if (mask === ScalarMask.Json) {
+      return this.#getOrCreatePlaceholder(JSON.stringify(value), JSON_PLACEHOLDER)
+    }
+
     const shouldJsonEncode = (mask & ScalarMask.Json) !== 0
 
     switch (typeof value) {

@@ -11890,7 +11890,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Added a `json` value type to the runtime exact descriptor matcher registry and JS/TS generator `internalExactDescriptorHelpers` parser.
     - The runtime binds Json helpers only when the learned args are a plain object/array, the descriptor-bound self-test finds exactly one placeholder whose value equals the slow path's structural Json string, and the generated select shape still matches exactly.
     - Later calls match only plain JSON objects/arrays with finite numbers, no sparse arrays, no inherited enumerable keys, no `$type` tagged-value objects, no `toJSON`, no `ArrayBuffer` views, no null-enum objects, and no `undefined` / `Prisma.skip`; every special value or validation-sensitive shape falls back to the normal serializer/parameterizer.
-    - Primitive Json values intentionally do not hit the helper because the current parameterizer does not turn them into reusable Json placeholders.
+    - Primitive Json values did not hit the helper in this first slice because the parameterizer did not turn them into reusable Json placeholders; the follow-up below supersedes this limitation for primitive string/number/boolean Json values.
     - Added generated-output coverage for `User.findUnique:metadata:id,metadata` in both generator fixtures.
   - Verification:
     - DMMF/param-graph probe: direct Json primitives preserved, direct Json object/array parameterized to one Json placeholder as described above.
@@ -11905,6 +11905,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client build`: passed.
   - Decision:
     - Keep. This is narrow productization/parity groundwork, not a fresh benchmark win. The helper only covers the Json values that produce a reusable Json placeholder today and refuses shapes where duplicating the serializer would be risky. Do not broaden this into a generic Json serializer without oracle coverage against `serializeJsonQuery()` + `parameterizeQuery()` for null enums, tagged values, `toJSON`, strict undefined, and provider-specific validation.
+
+- Accepted productization follow-up: parameterize primitive Json scalar-mask values.
+  - Timestamp: 2026-06-11.
+  - Context:
+    - The first Json exact-helper slice proved direct `Json @unique` object/array args produce reusable `{ type: "Json" }` placeholders, while primitive `findUnique` and `equals`/`not` Json values were still embedded as literals.
+    - Json string operators such as `string_contains` already use `String` placeholders and must not be rewritten to Json placeholders.
+  - Patch:
+    - `parameterize.ts` now parameterizes primitive string/number/boolean values as `{ type: "Json" }` placeholders only when the scalar mask is exactly `ScalarMask.Json`, using `JSON.stringify(value)` for the placeholder value.
+    - Mixed Json/operator masks keep the old primitive-type behavior, so `string_contains: "abc"` still produces a `String` placeholder with value `"abc"`.
+    - The Json exact descriptor matcher now accepts primitive string/number/boolean args in addition to plain structural object/array args, still rejecting `null`, non-finite numbers, sparse/special objects, `undefined`, and `Prisma.skip`.
+  - Verification:
+    - Behavior probe after the patch:
+      - `findUnique` direct Json string/number/bool now parameterize to one Json placeholder with placeholder values `"\"abc\""`, `"42"`, and `"true"`.
+      - `findMany` `equals: "abc"` now parameterizes to one Json placeholder with placeholder value `"\"abc\""`.
+      - `findMany` `string_contains: "abc"` still parameterizes to one String placeholder with placeholder value `"abc"`.
+      - Direct `findMany` `where: { meta: "abc" }` remains a filter-shape literal and is not the unique-field exact-helper path.
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize-tests/cache-key.test.ts parameterize-tests/scalar-values.test.ts`: passed, 10 tests.
+    - `pnpm --filter @prisma/client-engine-runtime test parameterize-tests/scalar-values.test.ts`: passed, 7 tests.
+    - `pnpm --filter @prisma/client-engine-runtime test`: passed, 23 files / 252 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 15 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This turns primitive Json unique/equality values into reusable cache-key shapes while preserving operator-specific String placeholder behavior. It also makes the internal Json exact-helper parity story coherent for primitive plus structural Json values without taking over `null` or special validation-sensitive cases.
 
 ## Useful Commands
 

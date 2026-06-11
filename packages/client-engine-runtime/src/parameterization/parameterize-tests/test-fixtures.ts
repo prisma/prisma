@@ -26,6 +26,7 @@ const testSchema = /* prisma */ `
     deletedAt DateTime?
     createdAt DateTime  @default(now())
     balance   Decimal?
+    metadata  Json?     @unique
     status    Status    @default(ACTIVE)
     avatar    Bytes?
 

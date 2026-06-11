@@ -496,7 +496,13 @@ function bytesToBase64(value: ArrayBufferView): string {
 
 function stringifyExactJsonValue(value: unknown): string | undefined {
   try {
-    if (!Array.isArray(value) && !isPlainJsonObject(value)) {
+    if (
+      typeof value !== 'string' &&
+      typeof value !== 'number' &&
+      typeof value !== 'boolean' &&
+      !Array.isArray(value) &&
+      !isPlainJsonObject(value)
+    ) {
       return undefined
     }
 
