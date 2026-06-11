@@ -11813,6 +11813,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is productization groundwork, not a measured speedup, and it stays inside the descriptor-bound self-test. Remaining scalar parity targets are Bytes and Json-like values, which need their own oracle because equality and normalization are less obvious.
 
+- Accepted productization slice: flat exact descriptor helpers support `Bytes @unique` `Uint8Array`/Buffer args.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added a `bytes` value type to the runtime exact descriptor matcher registry and JS/TS generator `internalExactDescriptorHelpers` parser.
+    - The runtime binds Bytes helpers only when the learned args contain an `ArrayBuffer` view, the lazy descriptor has the current empty-object tagged-scalar shape, and the descriptor-bound self-test finds exactly one placeholder whose value equals the serializer's base64 bytes value.
+    - Later calls match only `ArrayBuffer` views and return the same base64 placeholder value via `Buffer.from(buffer, byteOffset, byteLength).toString('base64')`.
+    - Base64 strings and arrays intentionally do not hit the exact helper; they fall back to the normal serializer/parameterizer path instead of bypassing validation.
+    - Added generated-output coverage for `User.findUnique:fingerprint:id,fingerprint` in both generator fixtures.
+    - Kept the generated blog-page template helper restricted to `Int`/`String` roots because that straight-line template still validates primitive placeholder descriptors.
+  - Verification:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 12 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This is productization/parity groundwork rather than a fresh benchmark win, and it stays descriptor-bound plus slow-path self-tested. Remaining special scalar parity work is Json-like values and any broader value-form coverage that can be proven against the serializer/parameterizer oracle.
+
 ## Useful Commands
 
 ```sh

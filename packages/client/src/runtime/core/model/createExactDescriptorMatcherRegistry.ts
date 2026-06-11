@@ -15,7 +15,7 @@ type ExactDescriptorMatcherSpec = {
   select: string[]
 }
 
-type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'date' | 'decimal' | 'number' | 'string'
+type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'number' | 'string'
 
 type GeneratedExactDescriptor =
   | { kind: 'constant'; value: unknown }
@@ -72,12 +72,24 @@ function bindFindUniqueMatcher(
 
   const placeholder = asPlaceholderDescriptor(where.fields[spec.field])
   if (
+    spec.valueType !== 'bytes' &&
     spec.valueType !== 'date' &&
+    spec.valueType !== 'decimal' &&
     placeholder !== undefined &&
     placeholder.valueType === spec.valueType &&
     matchesSelectDescriptor(root.fields.select, spec.select)
   ) {
     return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
+  }
+
+  if (spec.valueType === 'bytes' && matchesSelectDescriptor(root.fields.select, spec.select)) {
+    const initialValue = getFindUniqueWhereFieldValue(context.args, spec.field)
+    if (ArrayBuffer.isView(initialValue) && isEmptyObjectDescriptor(where.fields[spec.field])) {
+      const placeholderName = getSinglePlaceholderNameForValue(context, bytesToBase64(initialValue))
+      if (placeholderName !== undefined) {
+        return (args) => matchFindUniqueBytesArgs(args, spec, placeholderName)
+      }
+    }
   }
 
   if (spec.valueType === 'date' && matchesSelectDescriptor(root.fields.select, spec.select)) {
@@ -206,6 +218,28 @@ function matchFindUniqueDateArgs(
   }
 
   return { [placeholderName]: value.toISOString() }
+}
+
+function matchFindUniqueBytesArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isRecord(where) || !hasOwnEnumerableKeysInOrder(where, [spec.field])) {
+    return undefined
+  }
+
+  const value = where[spec.field]
+  if (!ArrayBuffer.isView(value) || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: bytesToBase64(value) }
 }
 
 function matchFindUniqueDecimalArgs(
@@ -366,6 +400,11 @@ function getSinglePlaceholderNameForValue(
 
   const [name, value] = entries[0]
   return Object.is(value, expectedValue) ? name : undefined
+}
+
+function bytesToBase64(value: ArrayBufferView): string {
+  const { buffer, byteOffset, byteLength } = value
+  return Buffer.from(buffer, byteOffset, byteLength).toString('base64')
 }
 
 function descriptorHasKeys(

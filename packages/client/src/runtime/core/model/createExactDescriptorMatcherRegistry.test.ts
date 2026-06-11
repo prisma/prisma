@@ -202,6 +202,28 @@ test('binds exact decimal scalar matchers for Decimal-like args', () => {
   expect(matcher?.({ where: { balance: 45.6 }, select: { id: true, balance: true } })).toBeUndefined()
 })
 
+test('binds exact bytes scalar matchers for Uint8Array args', () => {
+  const matcher = bindMatcher({
+    field: 'fingerprint',
+    valueType: 'bytes',
+    placeholderName: '%1',
+    placeholderValue: 'AQID',
+    descriptorValue: Uint8Array.from([1, 2, 3]),
+    select: ['id', 'fingerprint'],
+  })
+
+  expect(
+    matcher?.({
+      where: { fingerprint: Uint8Array.from([4, 5]) },
+      select: { id: true, fingerprint: true },
+    }),
+  ).toEqual({
+    '%1': 'BAU=',
+  })
+  expect(matcher?.({ where: { fingerprint: 'BAU=' }, select: { id: true, fingerprint: true } })).toBeUndefined()
+  expect(matcher?.({ where: { fingerprint: [4, 5] }, select: { id: true, fingerprint: true } })).toBeUndefined()
+})
+
 test('does not bind bigint scalar matchers when placeholder ownership is ambiguous', () => {
   const matcher = bindMatcher({
     field: 'externalId',
@@ -285,7 +307,7 @@ function bindMatcher({
   extraPlaceholderValues,
 }: {
   field: string
-  valueType: 'bigint' | 'boolean' | 'date' | 'decimal' | 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'number' | 'string'
   placeholderName: string
   placeholderValue: unknown
   descriptorValue?: unknown
@@ -324,11 +346,13 @@ function bindMatcher({
               [field]:
                 valueType === 'bigint'
                   ? { kind: 'constant', value: descriptorValue }
-                  : valueType === 'date'
+                  : valueType === 'bytes'
                     ? { kind: 'object', keys: [], fields: {} }
-                    : valueType === 'decimal'
+                    : valueType === 'date'
                       ? { kind: 'object', keys: [], fields: {} }
-                      : { kind: 'placeholder', name: placeholderName, valueType },
+                      : valueType === 'decimal'
+                        ? { kind: 'object', keys: [], fields: {} }
+                        : { kind: 'placeholder', name: placeholderName, valueType },
             },
           },
           select: {
