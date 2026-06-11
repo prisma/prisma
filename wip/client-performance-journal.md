@@ -12588,6 +12588,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as a small exact-template cleanup. The affected exact rows improved modestly in close full-table A/B and stayed in band on solo confirmations, while full shape validation remains intact. This does not change the trusted-helper conclusion: skipping nested shape checks is still only a lower-bound lead until there is a generated-shape proof.
 
+- Rejected runtime experiment: non-unique final-owner indexed relation assembly.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed the non-unique raw-nested final-owner executor to pre-index relation rowsets once:
+      - `uniqueResult0` / `uniqueResult1` rows into first-child maps.
+      - wrapper source rows into `rootKey -> wrapper records[]` with pre-indexed wrapper child rows.
+      - child-list rows into `rootKey -> child records[]` with pre-indexed nested unique child rows.
+    - The goal was to remove the repeated per-root linear scans over relation rows and nested unique child rows in the feed shape, while leaving the unique-root final-owner path unchanged.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts` passed, 26 tests.
+    - With the spike applied: `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Timing:
+    - Fresh pre-patch baselines:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: `7.16 us/op`.
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog feed / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: `10.76 us/op`.
+    - Patched direct runtime row:
+      - `direct plan blog feed / nested rows`: `7.62 us/op`.
+  - Decision:
+    - Revert. The patch removed repeated scans but made the direct product feed row slower before generated-client checks, so the current row sizes favor the existing linear assembly. Do not retry Map pre-indexing of non-unique final-owner relation rowsets as a standalone patch; a useful follow-up needs a static writer/wave schedule or a different ownership change that avoids both scans and Map/write-ahead overhead.
+
 ## Useful Commands
 
 ```sh
