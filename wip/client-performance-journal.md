@@ -12287,6 +12287,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Do not productize a non-unique `n` final-owner fast path as the next blog-feed step unless the query compiler first emits compact raw-nested for the target `findMany` shape or another real product query is proven to compile to that shape.
     - The next blog-feed runtime proof should target the current compact join plan (`d/l/j`) directly, or be an engines/compiler experiment that changes the product feed emission to a raw-nested/static owner-writer shape and then benchmarks the generated/direct rows.
 
+- Rejected runtime experiment: general compiled compact `q` renderers.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - The accepted final-owner raw-nested query-leaf renderer removed generic `renderQuery()` overhead for strict local-scope leaves.
+    - The actual blog-feed product plan is compact joins with seven ordinary compact `q` leaves, and `render query all leaves blog feed / nested rows` measured about `1.91 us/op`; compiling strict compact template SQL renderers for ordinary `q` nodes might recover part of the direct/generated feed gap.
+  - Patch tried and reverted:
+    - Added a `tryCompileCompactQueryRenderer()` for compact template SQL `QueryPlanDbQuery` values.
+    - Supported direct placeholders/constants and `T` tuple fragments, rejected raw SQL/generators/unsupported fragment shapes, and fell back to existing `#executeQueryNode()` on comments/instrumentation or max-bind overflow.
+    - Routed compact `q` nodes through the compiled renderer on the no-comments/no-instrumentation fast path.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 24 tests.
+    - Patched `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`: `16.36 us/op`.
+    - Patched `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog feed / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`: `21.76 us/op`.
+    - Close reverted controls for the same rows were faster: direct `15.57 us/op`, generated `21.37 us/op`.
+  - Decision:
+    - Revert. The final-owner compiled-renderer win does not generalize to ordinary compact join `q` leaves with this renderer shape; product rows softened despite strict fallback guards.
+    - Do not retry a generic compact `q` renderer as a standalone optimization. A useful compact-join feed change needs to remove a larger phase such as joined-result ownership, outer data-map copying, or compiler-emitted raw-nested/static writer shape.
+
 ## Useful Commands
 
 ```sh
