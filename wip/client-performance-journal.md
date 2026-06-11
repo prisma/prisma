@@ -12790,6 +12790,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a small product-path win that recovers part of the benchmark-only hoisted action gap without eager model/action allocation and without changing extension/fluent/overwrite semantics. The feed-by-author product rows are neutral-to-slightly-positive, while the simple generated rows improve broadly. It does not remove proxy traps or close the full hoisted-action lower bound; generated-code-level hoisting or a deeper applied-client shape may still be needed.
 
+- Rejected experiment: reuse `overwrittenKeys` for target-cached proxy properties.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Removed the separate `cachedTargetKeys` set from `createCompositeProxy()`.
+    - When a stable layer value was cached on the target, added the key to `overwrittenKeys` so warmed target-cached gets could return at the first `Set.has()` branch.
+    - Goal: shave the second `cachedTargetKeys.has()` check from warmed `client.model.action` lookup after the accepted target-cache slice.
+  - Correctness:
+    - `pnpm --filter @prisma/client test createCompositeProxy.test.ts cacheProperties.test.ts applyModel.test.ts --runInBand`: passed.
+  - Timing:
+    - 500k `findMany users` patch -> close control:
+      - default generated: `2.43 -> 2.45 us/op` (noise).
+      - engine-precomputed: `2.49 -> 2.56` (patch better).
+      - request-precomputed: `2.46 -> 2.46` (tie).
+      - descriptor-bound static: `2.34 -> 2.38` (patch better).
+      - exact-helper: `2.30 -> 2.34` (patch better).
+      - runtime exact-helper: `2.36 -> 2.37` (tie).
+    - Targeted 500k `findUnique` patch -> close control:
+      - request-precomputed: `3.19 -> 3.09 us/op` (control better).
+      - exact-helper: `2.92 -> 2.90` (control slightly better).
+    - 300k feed-by-author patch -> close control:
+      - default generated: `10.65 -> 10.58 us/op` (control better).
+      - engine-precomputed: `10.81 -> 10.71` (control better).
+      - request-precomputed: `10.50 -> 10.61` (patch better).
+      - descriptor-bound static: `9.21 -> 9.23` (tie/slightly patch).
+      - exact-helper: `9.20 -> 9.07` (control better).
+      - trusted lower-bound helper: `8.47 -> 8.80` (patch better, but benchmark-only lower bound).
+  - Decision:
+    - Revert. The tiny target-cache fast-path tweak helped some `findMany` rows but lost the targeted `findUnique` rows and the feed exact-helper product row in close control. The accepted `cachedTargetKeys` shape stays.
+
 ## Useful Commands
 
 ```sh
