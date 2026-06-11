@@ -446,10 +446,10 @@ export class QueryInterpreter {
       case 'p': {
         const compiledExpr = this.#getCompiledNode(node[1])
         const operations = node[2]
+        const needsEvaluation = inMemoryOpsNeedEvaluation(operations)
         return async (context) => {
           const { value, lastInsertId } = await compiledExpr(context)
-          const ops = cloneObject(operations)
-          evaluateProcessingParameters(ops, context.scope, context.generators)
+          const ops = needsEvaluation ? cloneAndEvaluateProcessingParameters(operations, context) : operations
           return { value: processRecords(value, ops), lastInsertId }
         }
       }
@@ -803,8 +803,9 @@ export class QueryInterpreter {
 
       case 'p': {
         const { value, lastInsertId } = await this.interpretNode(node[1], context)
-        const ops = cloneObject(node[2])
-        evaluateProcessingParameters(ops, context.scope, context.generators)
+        const ops = inMemoryOpsNeedEvaluation(node[2])
+          ? cloneAndEvaluateProcessingParameters(node[2], context)
+          : node[2]
         return { value: processRecords(value, ops), lastInsertId }
       }
 
@@ -3192,6 +3193,29 @@ function evaluateProcessingParameters(
   for (const nested of Object.values(ops.nested ?? {})) {
     evaluateProcessingParameters(nested, scope, generators)
   }
+}
+
+function cloneAndEvaluateProcessingParameters(
+  operations: DeepReadonly<InMemoryOps>,
+  context: QueryRuntimeContext,
+): InMemoryOps {
+  const ops = cloneObject(operations)
+  evaluateProcessingParameters(ops, context.scope, context.generators)
+  return ops
+}
+
+function inMemoryOpsNeedEvaluation(ops: DeepReadonly<InMemoryOps>): boolean {
+  if (ops.pagination?.cursor != null) {
+    return true
+  }
+
+  for (const nested of Object.values(ops.nested ?? {})) {
+    if (inMemoryOpsNeedEvaluation(nested)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function cloneObject<T>(value: T): DeepUnreadonly<T> {

@@ -12325,6 +12325,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The adjacent 300k A/B improved the current compact-join feed shape by about 12% on direct execution and about 10% on the generated-client warmed-cache row, and the condition is small enough to reason about: if the total result set is no larger than `take`, every linked parent group is also no larger than `take`.
     - This supersedes the older broad/noisy no-op pagination spike only for this narrower `take >= total rows` condition on current product feed rows. Do not generalize it to clone skipping, absent-`take` pagination, cursor paths, or broader static `InMemoryOps` reuse without fresh product-row evidence.
+  - Follow-up phase refresh after the commit:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`.
+    - Generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `19.48 / 19.07 / 18.63 / 16.55 / 16.01 us/op`.
+    - Direct plan / raw compact / exact compact: `13.31 / 9.49 / 9.29 us/op`.
+    - Precomputed query leaves / join leaves / root join children: `7.94 / 4.27 / 4.39 us/op`.
+    - Root child branches: `3.88 / 3.87 / 5.86 / 6.25 us/op`.
+    - Inner plan / outer data map / manual inner+outer / direct after phase warmup / render all leaves / local executor: `12.19 / 1.60 / 13.67 / 13.60 / 1.94 / 13.83 us/op`.
+    - Interpretation: after the pagination guard, the next compact-join bottlenecks are still query leaves plus joined-result ownership/branch assembly; outer data-map is only about `1.60 us/op`.
+
+- Accepted runtime optimization: skip static `InMemoryOps` clone/evaluation for no-cursor process nodes.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Compact `p` process nodes now compute `inMemoryOpsNeedEvaluation()` once while compiling the query-plan node.
+    - If the `InMemoryOps` tree has no pagination cursor anywhere, the interpreter reuses the cached ops object directly and skips `klona()` plus `evaluateProcessingParameters()` on every cached-plan execution.
+    - Cursor-bearing ops still clone and evaluate exactly as before, including nested cursors.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts in-memory-processing.test.ts`: passed, 28 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts` currently fails on both patched and reversed baseline before exercising this path with `DataMapper: Unknown result type: undefined` from `interpreter.bench.ts:29` / `query-interpreter.ts:419`; do not use that bench as deciding evidence until the fixture is repaired.
+  - Timing:
+    - First 100k check was noise-level: patched direct/generated feed `13.59 / 20.33 us/op`; close reverted control `14.30 / 20.52`.
+    - Higher-iteration patched 300k:
+      - `generated client blog feed / nested rows warmed cache`: `18.66 us/op`, `queryRaw=2100000`.
+      - `direct plan blog feed / nested rows`: `13.60 us/op`, `queryRaw=2100000`.
+    - Close reverted controls for the same 300k commands:
+      - Generated client: `18.92 us/op`.
+      - Direct plan: `13.98 us/op`.
+  - Decision:
+    - Keep, but classify as a small compact-join process-node cleanup rather than a major win. The adjacent generated improvement is only about 1.4%, but direct execution also improved about 2.7%, and the safety boundary is precise: without cursors, `evaluateProcessingParameters()` has no work and `processRecords()` does not mutate `ops`.
+    - This does not revive the older broad static-ops idea. Do not skip cloning for cursor-bearing ops, missing proof from a compiled-node scan, or WeakMap-classified static/dynamic guesses without fresh generated-product evidence.
 
 ## Useful Commands
 
