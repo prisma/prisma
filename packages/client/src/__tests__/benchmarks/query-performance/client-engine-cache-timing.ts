@@ -222,6 +222,7 @@ type DirectPlanScenario = {
 
 type GeneratedClientScenario = DirectPlanScenario & {
   operation: (client: any, iteration: number) => Promise<unknown>
+  prepareOperation?: (client: any) => (iteration: number) => Promise<unknown>
 }
 
 type GeneratedClientSerializeScenario = {
@@ -2665,14 +2666,16 @@ async function measureGeneratedClientScenario(
 
   try {
     await client.$connect()
-    await scenario.operation(client, 0)
+    const operation =
+      scenario.prepareOperation?.(client) ?? ((iteration: number) => scenario.operation(client, iteration))
+    await operation(0)
     resetCounts(counts)
 
     let checksum = 0
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
-      const result = await scenario.operation(client, i)
+      const result = await operation(i)
       checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogOutput(result)
     }
     const elapsedMs = performance.now() - started
@@ -2722,14 +2725,16 @@ async function measureGeneratedClientPromiseConstructionScenario(
 
   try {
     await client.$connect()
-    void scenario.operation(client, 0)
+    const operation =
+      scenario.prepareOperation?.(client) ?? ((iteration: number) => scenario.operation(client, iteration))
+    void operation(0)
     resetCounts(counts)
 
     let checksum = 0
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
-      const promise = scenario.operation(client, i)
+      const promise = operation(i)
       checksum += promise === undefined ? 0 : 1
     }
     const elapsedMs = performance.now() - started
@@ -7056,6 +7061,28 @@ async function main(): Promise<void> {
       operation: (client) => client.user.findMany(createGeneratedFindManyUsersArgs()),
     },
     {
+      name: 'generated client hoisted action findUnique / warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createFindUniqueQuery(1),
+      resultSet: USER_UNIQUE_RESULT,
+      operation: (client, iteration) => client.user.findUnique(createGeneratedFindUniqueArgs(iteration)),
+      prepareOperation: (client) => {
+        const findUnique = client.user.findUnique
+        return (iteration) => findUnique(createGeneratedFindUniqueArgs(iteration))
+      },
+    },
+    {
+      name: 'generated client hoisted action findMany users / warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createFindManyUsersQuery(),
+      resultSet: USER_SCALAR_RESULT,
+      operation: (client) => client.user.findMany(createGeneratedFindManyUsersArgs()),
+      prepareOperation: (client) => {
+        const findMany = client.user.findMany
+        return () => findMany(createGeneratedFindManyUsersArgs())
+      },
+    },
+    {
       name: 'generated client blog page / nested rows warmed cache',
       iterations: benchmarkIterations(500),
       query: createBlogPostPageQuery(1),
@@ -7075,6 +7102,17 @@ async function main(): Promise<void> {
       query: createBlogPostFeedByAuthorQuery(42, 10),
       adapterFactory: createBlogPageAdapterFactory,
       operation: (client, iteration) => client.post.findMany(createGeneratedBlogPostFeedByAuthorArgs(iteration)),
+    },
+    {
+      name: 'generated client hoisted action blog feed by author / nested rows warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createBlogPostFeedByAuthorQuery(42, 10),
+      adapterFactory: createBlogPageAdapterFactory,
+      operation: (client, iteration) => client.post.findMany(createGeneratedBlogPostFeedByAuthorArgs(iteration)),
+      prepareOperation: (client) => {
+        const findMany = client.post.findMany
+        return (iteration) => findMany(createGeneratedBlogPostFeedByAuthorArgs(iteration))
+      },
     },
     {
       name: 'generated client blog page / 2 alternating nested row shapes warmed cache',
@@ -7368,9 +7406,12 @@ async function main(): Promise<void> {
       scenario.name !== 'generated client findUnique / warmed cache' &&
       scenario.name !== 'generated client batched findUnique / warmed cache' &&
       scenario.name !== 'generated client findMany users / warmed cache' &&
+      scenario.name !== 'generated client hoisted action findUnique / warmed cache' &&
+      scenario.name !== 'generated client hoisted action findMany users / warmed cache' &&
       scenario.name !== 'generated client blog page / nested rows warmed cache' &&
       scenario.name !== 'generated client blog feed / nested rows warmed cache' &&
       scenario.name !== 'generated client blog feed by author / nested rows warmed cache' &&
+      scenario.name !== 'generated client hoisted action blog feed by author / nested rows warmed cache' &&
       scenario.name !== 'generated client blog page / 2 alternating nested row shapes warmed cache'
     ) {
       continue
@@ -7391,7 +7432,10 @@ async function main(): Promise<void> {
   const trustedGeneratedBlogPostFeedByAuthorMatcherRegistry =
     createTrustedGeneratedBlogPostFeedByAuthorMatcherRegistry()
   for (const scenario of generatedClientScenarios) {
-    if (scenario.name !== 'generated client blog feed by author / nested rows warmed cache') {
+    if (
+      scenario.name !== 'generated client blog feed by author / nested rows warmed cache' &&
+      scenario.name !== 'generated client hoisted action blog feed by author / nested rows warmed cache'
+    ) {
       continue
     }
 
@@ -7434,7 +7478,9 @@ async function main(): Promise<void> {
     if (
       scenario.name !== 'generated client findUnique / warmed cache' &&
       scenario.name !== 'generated client batched findUnique / warmed cache' &&
-      scenario.name !== 'generated client findMany users / warmed cache'
+      scenario.name !== 'generated client findMany users / warmed cache' &&
+      scenario.name !== 'generated client hoisted action findUnique / warmed cache' &&
+      scenario.name !== 'generated client hoisted action findMany users / warmed cache'
     ) {
       continue
     }

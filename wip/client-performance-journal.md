@@ -12711,6 +12711,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. Materializing inner model action functions did not narrow the generated exact-helper vs cached-wrapper gap; constant feed softened versus close control, and by-author exact/trusted rows stayed unchanged. If this lead is revisited, it likely needs outer client model delegate materialization or a generated-code-level hoist proof rather than eager model-action data properties alone.
 
+- Accepted benchmark coverage: hoisted generated delegate/action rows.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added an optional `prepareOperation(client)` hook to `GeneratedClientScenario` in `client-engine-cache-timing.ts`.
+    - Added benchmark-only hoisted action rows for:
+      - `generated client hoisted action findUnique / warmed cache`.
+      - `generated client hoisted action findMany users / warmed cache`.
+      - `generated client hoisted action blog feed by author / nested rows warmed cache`.
+    - The hoisted rows capture `client.user.findUnique`, `client.user.findMany`, or `client.post.findMany` once after client connection and then call the captured action function inside the timed loop.
+    - Added these rows to exact descriptor helper and runtime exact helper loops where relevant, plus trusted feed-by-author helper coverage.
+  - Timing:
+    - 300k by-author feed same-run normal vs hoisted:
+      - promise construction: `0.42 -> 0.24 us/op`.
+      - default generated: `10.73 -> 10.31 us/op`.
+      - engine-precomputed: `10.87 -> 10.51 us/op`.
+      - request-precomputed: `10.78 -> 10.41 us/op`.
+      - descriptor-bound static: `9.49 -> 9.14 us/op`.
+      - exact-helper: `9.23 -> 8.92 us/op`.
+      - trusted-helper: `8.87 -> 8.39 us/op`.
+    - 300k `findMany users` same-run normal vs hoisted:
+      - promise construction: `0.19 -> 0.02 us/op`.
+      - default generated: `2.47 -> 2.25 us/op`.
+      - engine-precomputed: `2.52 -> 2.31 us/op`.
+      - request-precomputed: `2.50 -> 2.29 us/op`.
+      - descriptor-bound static: `2.39 -> 2.21 us/op`.
+    - 300k `findUnique` same-run normal vs hoisted:
+      - default generated: `3.06 -> 2.77 us/op`.
+      - engine-precomputed: `2.48 -> 2.15 us/op`.
+      - request-precomputed: `3.04 -> 2.82 us/op`.
+      - descriptor-bound static: `2.95 -> 2.65 us/op`.
+    - 100k hoisted exact smoke:
+      - `findUnique` exact-helper / runtime-exact: `2.73 / 2.79 us/op`.
+  - Decision:
+    - Keep as benchmark evidence. This is not product behavior, but it proves that generated call-surface lookup costs are still visible: roughly `0.2-0.4 us/op` on the measured generated paths, and enough to close about `0.3 us/op` of the feed-by-author exact-helper gap. The earlier model-action-target product attempt failed, so the next product spike should target outer model delegate materialization, generated client code hoisting, or another shape that removes both `client.post` and `.findMany` lookup per call without breaking extension/fluent/transaction semantics.
+
 ## Useful Commands
 
 ```sh
