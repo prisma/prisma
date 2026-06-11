@@ -12033,6 +12033,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The practical wedge remains descriptor-bound cache hits over original JS args: validate one generated shape exactly, extract placeholder values in descriptor order, and call `requestPrecomputedCachedResult()` / request-precomputed paths on hits.
     - A deeper Rust/Wasm follow-up would need shape-bound JS-value views or generated/static accessors that check structural identity and extract placeholders before `RequestBody::try_from_str()`. Generic `Reflect` walking and `serde_wasm_bindgen::from_value` into `JsonBody` stay rejected.
 
+- Rejected runtime experiment: final-owner root relation-field pre-seeding.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - The benchmark-only writer-program lower bound allocates the blog-page root in its final shape with relation slots and list arrays up front.
+    - The product final-owner path currently creates the scalar root first, then assigns `author`, `category`, `comments`, and `tags` after async child-query waves.
+    - Pre-seeding those relation fields and filling the same list arrays might reduce V8 shape transitions and list ownership churn.
+  - Patch tried and reverted:
+    - In `#tryCompileRawNestedFinalOwnerRead()`, assigned `root[unique0.fieldName] = null`, `root[unique1.fieldName] = null`, and empty arrays for the child-list and wrapper-list fields before child query execution.
+    - Reused the preallocated child-list array instead of assigning `root[childList.fieldName] = listRecords`.
+    - Replaced `mapRawNestedFinalOwnerWrapperList()` with a fill helper that pushed wrapper records into the preallocated wrapper-list array.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 24 tests.
+    - An initial `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts --runInBand` failed because this package uses Vitest and `--runInBand` is a Jest option.
+  - Timing evidence:
+    - Patched 300k Node rows:
+      - `raw result-set compact node blog page / nested rows`: 4.97 us/op.
+      - `raw result-set exact compact node blog page / nested rows`: 4.87 us/op.
+      - `direct plan after phase warmup blog page / nested rows`: 5.01 us/op.
+      - `generated client blog page / nested rows warmed cache` at 100k: 11.37 us/op.
+    - Close reverted control:
+      - `raw result-set compact node blog page / nested rows`: 4.50 us/op.
+      - `raw result-set exact compact node blog page / nested rows`: 4.52 us/op.
+      - `direct plan after phase warmup blog page / nested rows`: 4.68 us/op.
+      - `generated client blog page / nested rows warmed cache` at 100k: 10.37 us/op.
+  - Decision:
+    - Revert. Pre-seeding the root result object/list slots regressed the adjacent raw compact, exact compact, direct-plan, and generated-client rows. Do not retry final-owner relation-field pre-seeding as a standalone shape optimization; any writer-shape work needs to remove a larger materialization phase or generate a static wave writer.
+
 ## Useful Commands
 
 ```sh
