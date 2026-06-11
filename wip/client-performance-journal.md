@@ -12152,6 +12152,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Arbitrary root `take` support needs an engines-side pagination placeholder design first, including query-structure `Take` representation, SQL builder support, in-memory pagination semantics, `take == 0` / one-row uniqueness behavior, and duplicate-placeholder handling when root and nested takes share the same initial value.
     - Keep `template:Post.findMany:take:blogFeedPostListV1` constant-only for now.
 
+- Accepted benchmark coverage: Node non-unique blog-feed direct/raw-nested lower-bound rows.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added a `direct plan blog feed / nested rows` scenario to `client-engine-cache-timing.ts` using `createBlogPostFeedQuery(10)` and the blog-page adapter fixture.
+    - Added a `rawNestedUnique` scenario flag so the benchmark-only compact raw-nested node can run with the raw plan's unique flag set to `false`.
+    - Taught the compact raw-nested checksum to handle array outputs for non-unique root reads.
+    - Kept the existing raw result-set prototype, direct-assembler, writer-program, and static-wave writer loops unique-root-only, because those prototypes are still specialized to the final-owner `findUnique` topology.
+  - Verification:
+    - Smoke: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: passed.
+    - Focused 100k run with the same filter:
+      - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `23.19 / 21.93 / 21.69 / 19.18 / 18.21 us/op`.
+      - direct plan / manual inner+outer / direct plan after phase warmup / local executor: `15.84 / 15.39 / 15.67 / 15.68 us/op`.
+      - benchmark-only raw result-set compact / exact compact: `9.36 / 9.34 us/op`.
+      - render all leaves: `1.95 us/op`.
+      - Generated and direct rows issued `queryRaw=700000`; precomputed rows hit `100000/100000`.
+  - Decision:
+    - Keep as benchmark coverage only. This gives a product-shaped non-unique-root baseline for the constant-`take` blog-feed shape and shows the larger runtime target is not another exact-helper tweak: current generated feed still sits about `5.5-7.5 us/op` above direct/local execution, while the benchmark-only compact raw-nested node is another roughly `6.3 us/op` below direct/local.
+    - The next runtime lead for this shape should be a paged owner-writer/static-wave proof for non-unique root reads, with compiler support if it wins. Do not broaden `take` handling or introduce generic nested descriptor machinery to explain this gap.
+
 ## Useful Commands
 
 ```sh

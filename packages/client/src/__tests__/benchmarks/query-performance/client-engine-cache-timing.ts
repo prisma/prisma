@@ -217,6 +217,7 @@ type DirectPlanScenario = {
   query: JsonQuery
   resultSet?: SqlResultSet
   adapterFactory?: ScenarioAdapterFactory
+  rawNestedUnique?: boolean
 }
 
 type GeneratedClientScenario = DirectPlanScenario & {
@@ -3664,6 +3665,18 @@ function checksumNestedBlogOutput(value: unknown): number {
   return checksum
 }
 
+function checksumNestedBlogExactOutput(value: unknown): number {
+  if (!Array.isArray(value)) {
+    return checksumNestedBlogExactResult(value)
+  }
+
+  let checksum = 0
+  for (let i = 0; i < value.length; i++) {
+    checksum += checksumNestedBlogExactResult(value[i])
+  }
+  return checksum
+}
+
 function checksumNestedBlogExactResult(value: unknown): number {
   const base = checksumNestedBlogResult(value)
   if (!isRecord(value) || !Array.isArray(value.tags)) {
@@ -5219,12 +5232,19 @@ async function measureRawResultSetCompactNodeScenario(
     throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
   }
 
+  const unique = scenario.rawNestedUnique ?? true
   const rawPlan = [
     'n',
     exactShape ? buildRawNestedBlogPageExactQuery(dbQueries) : buildRawNestedBlogPageQuery(dbQueries),
-    true,
+    unique,
   ] as const satisfies QueryPlanNode
-  const checksumResult = exactShape ? checksumNestedBlogExactResult : checksumNestedBlogResult
+  const checksumResult = unique
+    ? exactShape
+      ? checksumNestedBlogExactResult
+      : checksumNestedBlogResult
+    : exactShape
+      ? checksumNestedBlogExactOutput
+      : checksumNestedBlogOutput
   await interpreter.run(rawPlan, {
     queryable: adapter,
     scope: placeholderValues,
@@ -7178,6 +7198,13 @@ async function main(): Promise<void> {
       query: createBlogPostPageQuery(1),
       adapterFactory: createBlogPageAdapterFactory,
     },
+    {
+      name: 'direct plan blog feed / nested rows',
+      iterations: benchmarkIterations(500),
+      query: createBlogPostFeedQuery(10),
+      adapterFactory: createBlogPageAdapterFactory,
+      rawNestedUnique: false,
+    },
   ]
   const directPlanScopeScenarios: DirectPlanScopeScenario[] = [
     {
@@ -7392,7 +7419,9 @@ async function main(): Promise<void> {
       printPlanPhaseMeasurement(measureRawResultSetBlogPageAssemblyScenario(benchmarkIterations(500)))
     }
 
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) => scenario.adapterFactory !== undefined && (scenario.rawNestedUnique ?? true),
+    )) {
       const measuredScenario = {
         ...scenario,
         name: scenario.name.replace('direct plan', 'raw result-set prototype'),
@@ -7405,7 +7434,9 @@ async function main(): Promise<void> {
       )
     }
 
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) => scenario.adapterFactory !== undefined && (scenario.rawNestedUnique ?? true),
+    )) {
       const measuredScenario = {
         ...scenario,
         name: scenario.name.replace('direct plan', 'raw result-set exact prototype'),
@@ -7418,7 +7449,9 @@ async function main(): Promise<void> {
       )
     }
 
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) => scenario.adapterFactory !== undefined && (scenario.rawNestedUnique ?? true),
+    )) {
       const measuredScenario = {
         ...scenario,
         name: scenario.name.replace('direct plan', 'raw result-set direct assembler'),
@@ -7431,7 +7464,9 @@ async function main(): Promise<void> {
       )
     }
 
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) => scenario.adapterFactory !== undefined && (scenario.rawNestedUnique ?? true),
+    )) {
       const measuredScenario = {
         ...scenario,
         name: scenario.name.replace('direct plan', 'raw result-set writer program'),
@@ -7444,7 +7479,9 @@ async function main(): Promise<void> {
       )
     }
 
-    for (const scenario of directPlanScenarios.filter((scenario) => scenario.adapterFactory !== undefined)) {
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) => scenario.adapterFactory !== undefined && (scenario.rawNestedUnique ?? true),
+    )) {
       const measuredScenario = {
         ...scenario,
         name: scenario.name.replace('direct plan', 'raw result-set static-wave writer program'),

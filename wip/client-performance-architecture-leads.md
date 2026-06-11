@@ -126,5 +126,5 @@ Minimum gates:
 
 1. Finish productizing descriptor-bound exact helpers only behind strict internal gates and oracle coverage.
 2. Keep the strict nested `findMany` generated-template spike constant-`take` only unless parameterization changes; do not route it through a recursive nested-selection DSL.
-3. For raw nested execution, pursue a larger final-owner writer/wave descriptor only if it changes ownership of a whole phase. The current static-wave lower-bound gap is about 0.5 us/op on Node direct rows after compiled final-owner query leaves, so one-branch edits are unlikely to survive generated-client gates.
+3. For raw nested execution, pursue a larger writer/wave descriptor only if it changes ownership of a whole phase. The current unique-root static-wave lower-bound gap is about 0.5 us/op on Node direct rows after compiled final-owner query leaves, so one-branch final-owner edits are unlikely to survive generated-client gates. The non-unique blog-feed benchmark row has a larger target: the 100k Node run measured direct/local around 15.7 us/op and benchmark-only compact raw-nested around 9.3 us/op, so a paged owner-writer/static-wave proof for `Post.findMany` is a better next runtime spike.
 4. For Rust memory management, keep taking profile-backed slices. Do not start an arena/borrowing rewrite until the target structure and Criterion row are named.
