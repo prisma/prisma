@@ -29,6 +29,7 @@ const datamodel = {
       fields: [
         { name: 'id', kind: 'scalar', isList: false, isId: true, isUnique: false, type: 'Int' },
         { name: 'slug', kind: 'scalar', isList: false, isId: false, isUnique: true, type: 'String' },
+        { name: 'authorId', kind: 'scalar', isList: false, isId: false, isUnique: false, type: 'Int' },
       ],
     },
     {
@@ -91,6 +92,31 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     expect(matcher?.({ ...args, extra: true })).toBeUndefined()
     expect(matcher?.({ ...args, take: 11 })).toBeUndefined()
     expect(matcher?.({ ...args, take: 12.5 })).toBeUndefined()
+    expect(matcher?.({ ...args, orderBy: [{ createdAt: 'asc' }] })).toBeUndefined()
+    expect(matcher?.({ ...args, select: { ...args.select, slug: undefined } })).toBeUndefined()
+    expect(flatGetMatcher).not.toHaveBeenCalled()
+  })
+
+  test('emits a descriptor-bound blog feed by author template matcher', () => {
+    const { registry, flatGetMatcher } = createRegistry(['template:Post.findMany:authorId:blogFeedByAuthorPostListV1'])
+
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findMany',
+      clientMethod: 'post.findMany',
+      descriptor: blogFeedByAuthorDescriptor(),
+    })
+    const args = blogFeedByAuthorArgs(10, 10)
+
+    expect(matcher?.(args)).toEqual({ '%1': 10 })
+    expect(matcher?.({ ...args, extra: true })).toBeUndefined()
+    expect(
+      matcher?.({ take: args.take, where: args.where, orderBy: args.orderBy, select: args.select }),
+    ).toBeUndefined()
+    expect(matcher?.({ ...args, where: { authorId: '10' } })).toBeUndefined()
+    expect(matcher?.({ ...args, where: { authorId: 10.5 } })).toBeUndefined()
+    expect(matcher?.({ ...args, where: { authorId: 10, extra: true } })).toBeUndefined()
+    expect(matcher?.({ ...args, take: 11 })).toBeUndefined()
     expect(matcher?.({ ...args, orderBy: [{ createdAt: 'asc' }] })).toBeUndefined()
     expect(matcher?.({ ...args, select: { ...args.select, slug: undefined } })).toBeUndefined()
     expect(flatGetMatcher).not.toHaveBeenCalled()
@@ -245,6 +271,47 @@ describe('buildExactDescriptorMatcherRegistry', () => {
       }),
     ).toBeUndefined()
   })
+
+  test('matches the serializer and parameterizer oracle for the blog feed by author template', async () => {
+    const oracle = await createBlogPageOracle('findMany', 'post.findMany')
+    const { registry } = createRegistryFromDatamodel(oracle.datamodel, [
+      'template:Post.findMany:authorId:blogFeedByAuthorPostListV1',
+    ])
+    const firstArgs = blogFeedByAuthorArgs(42, 10)
+    const nextArgs = blogFeedByAuthorArgs(43, 10)
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findMany',
+      clientMethod: 'post.findMany',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(Object.keys(matcher?.(nextArgs) ?? {})).toEqual(Object.keys(next.placeholderValues))
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(first.placeholderValues).toEqual({ '%1': 42 })
+    expect(next.placeholderValues).toEqual({ '%1': 43 })
+    expect(
+      matcher?.({ take: nextArgs.take, where: nextArgs.where, orderBy: nextArgs.orderBy, select: nextArgs.select }),
+    ).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, extra: true })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, where: { authorId: '43' } })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, where: { authorId: 43.5 } })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, take: 11 })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, select: { ...nextArgs.select, slug: skip } })).toBeUndefined()
+    expect(
+      matcher?.({
+        ...nextArgs,
+        select: { ...nextArgs.select, comments: { ...nextArgs.select.comments, take: 11 } },
+      }),
+    ).toBeUndefined()
+  })
 })
 
 function createRegistry(configValue: string[]) {
@@ -385,6 +452,17 @@ function blogFeedDescriptor() {
   }
 }
 
+function blogFeedByAuthorDescriptor() {
+  return {
+    root: objectDescriptor(['where', 'take', 'orderBy', 'select'], {
+      where: objectDescriptor(['authorId'], { authorId: placeholder('%1') }),
+      take: constant(10),
+      orderBy: blogPageOrderByDescriptor(),
+      select: blogPageSelectDescriptor('full'),
+    }),
+  }
+}
+
 function blogPageSelectDescriptor(shape: 'full' | 'minimal') {
   const scalarFields =
     shape === 'full'
@@ -425,6 +503,15 @@ function blogPageSelectDescriptor(shape: 'full' | 'minimal') {
 
 function blogFeedArgs(take: number) {
   return {
+    take,
+    orderBy: [{ createdAt: 'desc' }],
+    select: blogPageArgs('full', 0).select,
+  }
+}
+
+function blogFeedByAuthorArgs(authorId: number, take: number) {
+  return {
+    where: { authorId },
     take,
     orderBy: [{ createdAt: 'desc' }],
     select: blogPageArgs('full', 0).select,

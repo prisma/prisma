@@ -12222,6 +12222,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. The synthetic request-handler split row improved slightly, but the product-shaped generated rows softened in adjacent controls. The current eager params/callsite construction is not the visible bottleneck for descriptor hits.
     - Do not retry lazy `RequestParams` / callsite construction as a standalone fast-path patch. A useful request-wrapper change needs to remove a larger product-visible layer or beat generated rows directly.
 
+- Accepted internal template: strict blog-feed-by-author exact descriptor helper.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added `template:Post.findMany:authorId:blogFeedByAuthorPostListV1` to the JS and TS exact descriptor helper generators.
+    - The emitted matcher binds only to learned descriptors with exact root keys `where`, `take`, `orderBy`, `select`, exact `where: { authorId }`, `authorId` as an `int32` placeholder, constant `take: 10`, fixed `createdAt desc` order, and the full blog-page nested select shape.
+    - Added VM execution tests plus serializer/parameterizer/cache-key oracle coverage for the template, including wrong root order, extra keys, string/fractional `authorId`, changed `take`, `Prisma.skip`, and nested `comments.take` mismatch.
+    - Added Node `client-engine-cache-timing.ts` rows for generated blog-feed-by-author execution, serialization/cache-key cost, lazy descriptor extraction, request precomputed paths, descriptor-bound static matcher, and exact-helper matcher.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "emits internal exact descriptor helpers"`: passed after correcting the TS fixture provider back to `prisma-client-ts`.
+    - Smoke: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: passed.
+    - Focused 300k Node repeat:
+      - serialize / serialize+cache-key / lazy descriptor extract: `3.92 / 7.56 / 2.64 us/op`.
+      - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `21.09 / 21.61 / 20.78 / 19.48 / 19.28 us/op`, with `queryRaw=2100000` and precomputed rows hitting `300000/300000`.
+      - cached request wrapper lazy descriptor: `19.91 us/op`, showing adapter/runtime execution dominates much of this seven-query nested shape.
+  - Decision:
+    - Keep as an internal explicit template. The 300k repeat gives a modest product-shaped Node win for the generated exact helper (`21.09 -> 19.28 us/op`, about 9%) and better evidence than another generic descriptor matcher.
+    - This remains a narrow benchmark/allowlist template, not a default feature. It is only for `where.authorId` plus constant `take: 10`; arbitrary pagination still needs engines-side placeholder support.
+    - Avoid warming this descriptor with duplicate dynamic/constant values such as `authorId = 10` and `take = 10`: the current lazy descriptor builder is value-keyed and will intentionally collapse equal placeholder values, causing the exact matcher self-test not to store on that first call. Use non-overlapping warm values in benchmarks and oracle tests.
+    - Workerd by-author rows are still a follow-up. The current Workerd harness has no measurement filter and only covers the constant blog-feed template, so target-runtime by-author validation should be added as a separate harness extension rather than widening this checkpoint.
+
 ## Useful Commands
 
 ```sh

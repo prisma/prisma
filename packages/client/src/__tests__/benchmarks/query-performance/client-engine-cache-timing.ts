@@ -794,6 +794,29 @@ function createBlogPostFeedQuery(take: number): JsonQuery {
   }
 }
 
+function createBlogPostFeedByAuthorQuery(authorId: number, take: number): JsonQuery {
+  const selection: Record<string, unknown> = {}
+  for (const field of BLOG_PAGE_ROOT_SCALAR_FIELDS) {
+    selection[field] = true
+  }
+  addBlogPostPageNestedSelection(selection)
+
+  return {
+    modelName: 'Post',
+    action: 'findMany',
+    query: {
+      arguments: {
+        where: { authorId },
+        take,
+        orderBy: [{ createdAt: 'desc' }],
+      },
+      selection: {
+        ...selection,
+      },
+    },
+  }
+}
+
 function createBlogPostPageRootMaskQuery(mask: number, id: number): JsonQuery {
   const selection: Record<string, unknown> = {}
 
@@ -845,6 +868,15 @@ function createGeneratedBlogPostPageRootMaskArgs(mask: number, iteration: number
 
 function createGeneratedBlogPostFeedArgs(_iteration: number): Record<string, unknown> {
   return {
+    take: 10,
+    orderBy: [{ createdAt: 'desc' }],
+    select: createGeneratedBlogPostPageSelect((1 << BLOG_PAGE_ROOT_SCALAR_FIELDS.length) - 1),
+  }
+}
+
+function createGeneratedBlogPostFeedByAuthorArgs(iteration: number): Record<string, unknown> {
+  return {
+    where: { authorId: iteration + 42 },
     take: 10,
     orderBy: [{ createdAt: 'desc' }],
     select: createGeneratedBlogPostPageSelect((1 << BLOG_PAGE_ROOT_SCALAR_FIELDS.length) - 1),
@@ -992,7 +1024,10 @@ function createBenchmarkDescriptorBoundMatcherRegistry(): DescriptorBoundMatcher
       }
 
       if (context.model === 'Post' && context.action === 'findMany' && context.clientMethod === 'post.findMany') {
-        return (args) => matchGeneratedBlogPostFeed(args, expectedPlaceholders)
+        const root = getGeneratedExactRoot(context)
+        return root !== undefined && generatedDescriptorHasKeysInOrder(root, ['where', 'take', 'orderBy', 'select'])
+          ? (args) => matchGeneratedBlogPostFeedByAuthor(args, expectedPlaceholders)
+          : (args) => matchGeneratedBlogPostFeed(args, expectedPlaceholders)
       }
 
       return undefined
@@ -1016,7 +1051,7 @@ function createExactGeneratedUserDescriptorMatcherRegistry(): DescriptorBoundMat
       }
 
       if (context.model === 'Post' && context.action === 'findMany' && context.clientMethod === 'post.findMany') {
-        return bindExactGeneratedBlogPostFeedMatcher(context)
+        return bindExactGeneratedBlogPostFeedByAuthorMatcher(context) ?? bindExactGeneratedBlogPostFeedMatcher(context)
       }
 
       return undefined
@@ -1112,6 +1147,33 @@ function bindExactGeneratedBlogPostFeedMatcher(
     : undefined
 }
 
+function bindExactGeneratedBlogPostFeedByAuthorMatcher(
+  context: DescriptorBoundMatcherContext,
+): DescriptorBoundMatcher | undefined {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['where', 'take', 'orderBy', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeysInOrder(where, ['authorId'])) {
+    return undefined
+  }
+
+  const authorId = asGeneratedPlaceholderDescriptor(where.fields.authorId)
+  if (
+    authorId === undefined ||
+    authorId.valueType !== 'int32' ||
+    !isGeneratedConstantDescriptor(root.fields.take, 10) ||
+    !isExactGeneratedBlogPageOrderByDescriptor(root.fields.orderBy) ||
+    getExactGeneratedBlogPostPageSelectDescriptorShape(root.fields.select) !== 'full'
+  ) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedBlogPostFeedByAuthor(args, authorId.name)
+}
+
 function matchExactGeneratedUserFindUnique(args: unknown, idPlaceholder: string): Record<string, unknown> | undefined {
   if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
     return undefined
@@ -1191,6 +1253,30 @@ function matchExactGeneratedBlogPostFeedWithConstantTake(args: unknown): Record<
   }
 
   return EMPTY_PLACEHOLDER_VALUES
+}
+
+function matchExactGeneratedBlogPostFeedByAuthor(
+  args: unknown,
+  authorIdPlaceholder: string,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder4(args, 'where', 'take', 'orderBy', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'authorId') || !isInt32(where.authorId)) {
+    return undefined
+  }
+
+  if (
+    args.take !== 10 ||
+    !matchesExactGeneratedBlogPageOrderBy(args.orderBy) ||
+    !matchesExactGeneratedBlogPostPageSelect(args.select, 'full')
+  ) {
+    return undefined
+  }
+
+  return { [authorIdPlaceholder]: where.authorId }
 }
 
 function matchesExactGeneratedUserScalarSelect(value: unknown): boolean {
@@ -1724,6 +1810,47 @@ function matchGeneratedBlogPostFeed(
   }
 
   return placeholderValuesForTake(expectedPlaceholders, args.take)
+}
+
+function matchGeneratedBlogPostFeedByAuthor(
+  args: unknown,
+  expectedPlaceholders: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasExactOwnEnumerableKeys(args, ['where', 'take', 'orderBy', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactOwnEnumerableKeys(where, ['authorId']) || !isInt32(where.authorId)) {
+    return undefined
+  }
+
+  if (args.take !== 10 || !matchesBlogPageOrderByFast(args.orderBy)) {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactOwnEnumerableKeys(select, BLOG_PAGE_ROOT_SELECT_KEYS)) {
+    return undefined
+  }
+
+  for (const field of BLOG_PAGE_ROOT_SCALAR_FIELDS) {
+    if (select[field] !== true) {
+      return undefined
+    }
+  }
+
+  if (
+    !matchesSelectionWrapper(select.author, BLOG_PAGE_USER_SELECT_KEYS) ||
+    !matchesSelectionWrapper(select.category, BLOG_PAGE_SLUG_SELECT_KEYS) ||
+    !matchesBlogPageTagsSelectionFast(select.tags) ||
+    !matchesBlogPageCommentsSelectionFast(select.comments) ||
+    !matchesSelectionWrapper(select._count, BLOG_PAGE_COUNT_SELECT_KEYS)
+  ) {
+    return undefined
+  }
+
+  return singlePlaceholderValues(expectedPlaceholders, where.authorId)
 }
 
 function placeholderValuesForTake(
@@ -6823,6 +6950,13 @@ async function main(): Promise<void> {
       operation: (client, iteration) => client.post.findMany(createGeneratedBlogPostFeedArgs(iteration)),
     },
     {
+      name: 'generated client blog feed by author / nested rows warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createBlogPostFeedByAuthorQuery(42, 10),
+      adapterFactory: createBlogPageAdapterFactory,
+      operation: (client, iteration) => client.post.findMany(createGeneratedBlogPostFeedByAuthorArgs(iteration)),
+    },
+    {
       name: 'generated client blog page / 2 alternating nested row shapes warmed cache',
       iterations: benchmarkIterations(500),
       query: createBlogPostPageQuery(1),
@@ -6862,6 +6996,16 @@ async function main(): Promise<void> {
       clientMethod: 'post.findUnique',
       args: createGeneratedBlogPostPageArgs,
       query: (iteration) => createBlogPostPageQuery(iteration + 1),
+      adapterFactory: createBlogPageAdapterFactory,
+    },
+    {
+      name: 'generated client serialize blog feed by author / nested rows warmed cache',
+      iterations: benchmarkIterations(500),
+      modelName: 'Post',
+      action: 'findMany',
+      clientMethod: 'post.findMany',
+      args: createGeneratedBlogPostFeedByAuthorArgs,
+      query: (iteration) => createBlogPostFeedByAuthorQuery(iteration + 42, 10),
       adapterFactory: createBlogPageAdapterFactory,
     },
   ]
@@ -7106,6 +7250,7 @@ async function main(): Promise<void> {
       scenario.name !== 'generated client findMany users / warmed cache' &&
       scenario.name !== 'generated client blog page / nested rows warmed cache' &&
       scenario.name !== 'generated client blog feed / nested rows warmed cache' &&
+      scenario.name !== 'generated client blog feed by author / nested rows warmed cache' &&
       scenario.name !== 'generated client blog page / 2 alternating nested row shapes warmed cache'
     ) {
       continue
@@ -7361,7 +7506,7 @@ async function main(): Promise<void> {
     }
 
     for (const scenario of generatedClientSerializeScenarios) {
-      if (scenario.adapterFactory === undefined) {
+      if (scenario.adapterFactory === undefined || scenario.clientMethod !== 'post.findUnique') {
         continue
       }
 
