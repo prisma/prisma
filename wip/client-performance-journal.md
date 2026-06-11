@@ -11794,6 +11794,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is not a fresh benchmark win, but it broadens the internal exact-helper product surface under the existing descriptor-bound self-test and avoids unsafe DateTime string shortcuts.
 
+- Accepted productization slice: flat exact descriptor helpers support `Decimal @unique` Decimal-like args.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added a `decimal` value type to the runtime exact descriptor matcher registry and JS/TS generator `internalExactDescriptorHelpers` parser.
+    - The runtime binds Decimal helpers only when the learned args are `DecimalJsLike` and the descriptor-bound self-test finds exactly one placeholder whose value equals `toFixed()`.
+    - Plain number/string decimal inputs intentionally do not hit the exact helper yet; they fall back to the normal serializer/parameterizer path instead of bypassing validation or Decimal normalization.
+    - Added generated-output coverage for `User.findUnique:balance:id,balance` in both generator fixtures.
+  - Verification:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This is productization groundwork, not a measured speedup, and it stays inside the descriptor-bound self-test. Remaining scalar parity targets are Bytes and Json-like values, which need their own oracle because equality and normalization are less obvious.
+
 ## Useful Commands
 
 ```sh

@@ -9,7 +9,7 @@ type ExactDescriptorMatcherSpec = {
   select: string[]
 }
 
-type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'date' | 'number' | 'string'
+type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'date' | 'decimal' | 'number' | 'string'
 
 type ExactDescriptorMatcherTemplateSpec = {
   model: string
@@ -148,6 +148,8 @@ function getExactMatcherValueType(
       return 'boolean'
     case 'DateTime':
       return 'date'
+    case 'Decimal':
+      return 'decimal'
     case 'Int':
       return 'number'
     case 'String':

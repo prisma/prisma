@@ -4,6 +4,8 @@ import type {
   DescriptorBoundMatcherRegistry,
 } from '@prisma/client-common'
 
+import { isDecimalJsLike } from '../../utils/decimalJsLike'
+
 type ExactDescriptorMatcherSpec = {
   model: string
   action: 'findUnique' | 'findMany'
@@ -13,7 +15,7 @@ type ExactDescriptorMatcherSpec = {
   select: string[]
 }
 
-type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'date' | 'number' | 'string'
+type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'date' | 'decimal' | 'number' | 'string'
 
 type GeneratedExactDescriptor =
   | { kind: 'constant'; value: unknown }
@@ -88,6 +90,16 @@ function bindFindUniqueMatcher(
       const placeholderName = getSinglePlaceholderNameForValue(context, initialValue.toISOString())
       if (placeholderName !== undefined) {
         return (args) => matchFindUniqueDateArgs(args, spec, placeholderName)
+      }
+    }
+  }
+
+  if (spec.valueType === 'decimal' && matchesSelectDescriptor(root.fields.select, spec.select)) {
+    const initialValue = getFindUniqueWhereFieldValue(context.args, spec.field)
+    if (isDecimalJsLike(initialValue)) {
+      const placeholderName = getSinglePlaceholderNameForValue(context, initialValue.toFixed())
+      if (placeholderName !== undefined) {
+        return (args) => matchFindUniqueDecimalArgs(args, spec, placeholderName)
       }
     }
   }
@@ -194,6 +206,28 @@ function matchFindUniqueDateArgs(
   }
 
   return { [placeholderName]: value.toISOString() }
+}
+
+function matchFindUniqueDecimalArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isRecord(where) || !hasOwnEnumerableKeysInOrder(where, [spec.field])) {
+    return undefined
+  }
+
+  const value = where[spec.field]
+  if (!isDecimalJsLike(value) || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: value.toFixed() }
 }
 
 function matchFindManyPlaceholderArgs(

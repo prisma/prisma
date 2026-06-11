@@ -1,3 +1,5 @@
+import { Decimal } from '@prisma/client-runtime-utils'
+
 import { skip } from '../types'
 import { createExactDescriptorMatcherRegistry } from './createExactDescriptorMatcherRegistry'
 
@@ -178,6 +180,28 @@ test('binds exact datetime scalar matchers for Date args', () => {
   ).toBeUndefined()
 })
 
+test('binds exact decimal scalar matchers for Decimal-like args', () => {
+  const matcher = bindMatcher({
+    field: 'balance',
+    valueType: 'decimal',
+    placeholderName: '%1',
+    placeholderValue: '12.3',
+    descriptorValue: new Decimal('12.30'),
+    select: ['id', 'balance'],
+  })
+
+  expect(
+    matcher?.({
+      where: { balance: new Decimal('45.60') },
+      select: { id: true, balance: true },
+    }),
+  ).toEqual({
+    '%1': '45.6',
+  })
+  expect(matcher?.({ where: { balance: '45.60' }, select: { id: true, balance: true } })).toBeUndefined()
+  expect(matcher?.({ where: { balance: 45.6 }, select: { id: true, balance: true } })).toBeUndefined()
+})
+
 test('does not bind bigint scalar matchers when placeholder ownership is ambiguous', () => {
   const matcher = bindMatcher({
     field: 'externalId',
@@ -261,7 +285,7 @@ function bindMatcher({
   extraPlaceholderValues,
 }: {
   field: string
-  valueType: 'bigint' | 'boolean' | 'date' | 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'date' | 'decimal' | 'number' | 'string'
   placeholderName: string
   placeholderValue: unknown
   descriptorValue?: unknown
@@ -302,7 +326,9 @@ function bindMatcher({
                   ? { kind: 'constant', value: descriptorValue }
                   : valueType === 'date'
                     ? { kind: 'object', keys: [], fields: {} }
-                    : { kind: 'placeholder', name: placeholderName, valueType },
+                    : valueType === 'decimal'
+                      ? { kind: 'object', keys: [], fields: {} }
+                      : { kind: 'placeholder', name: placeholderName, valueType },
             },
           },
           select: {
