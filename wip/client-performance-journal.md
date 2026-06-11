@@ -12516,6 +12516,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as benchmark coverage. The exact cached-wrapper lower bound is about `0.94 us/op` below the generated exact-helper product row on this run, so the remaining feed-by-author exact-helper gap is not only matcher extraction. The lazy descriptor wrapper remains much slower, so future generated/helper work should separate exact extraction, request wrapper, and engine execution before changing product code.
 
+- Rejected generated-helper experiment: explicit precomputed-hit builder.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily replaced the object spread in `tryExtractLazyDescriptor()` with `withPlaceholderValues()`, which returned `{ cacheKey, placeholderValues }` directly on the common no-`parameterizedQuery`/no-`queryInfoQuery` path and copied optional fields only when present.
+    - The goal was to reduce per-hit precomputed-hit materialization cost for exact descriptor helpers without changing the public engine/request API.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client test applyModel.test.ts --runInBand` passed, 10 tests.
+  - Timing:
+    - First patched 100k by-author full table, selected rows:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `10.87 / 10.81 / 9.59 / 9.50 us/op`.
+      - cached-wrapper exact / cached-wrapper lazy: `8.57 / 10.77 us/op`.
+    - Reverted 100k control:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `11.06 / 10.94 / 9.78 / 9.71 us/op`.
+      - cached-wrapper exact / cached-wrapper lazy: `8.77 / 10.76 us/op`.
+    - Patched 300k isolated rows:
+      - exact-helper / request-precomputed / generated default: `9.19 / 10.48 / 10.35 us/op`.
+    - Reverted 300k isolated controls:
+      - exact-helper / request-precomputed / generated default: `9.16 / 10.47 / 10.58 us/op`.
+  - Decision:
+    - Revert. The smaller explicit object shape did not improve the exact-helper product row at higher iterations and left request-precomputed unchanged. Avoid retrying a differently spelled hit-object copy unless the API changes enough to avoid allocating the hit object entirely or a profile points directly at object spread cost.
+
 ## Useful Commands
 
 ```sh
