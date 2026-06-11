@@ -11547,6 +11547,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The direct/exact rows were only noise-level positive/neutral, while the generated product-shaped row was repeatedly softer in the patched samples. Do not retry one-element rendered-query array removal as a standalone cleanup; it is too small and can perturb generated timing the wrong way.
 
+- Rejected experiment: manual nested `connect` filter dedupe.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/nested/connect_nested.rs`, temporarily replaced the `collect::<QueryGraphBuilderResult<Vec<Filter>>>()?.into_iter().unique().collect()` filter path with array-first manual linear dedupe.
+    - Removed the local `itertools::Itertools` import while patched.
+    - The hypothesis was that nested `connect` inputs usually have few filters, so avoiding `unique()`'s set machinery could save graph-build allocations without hurting CPU.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt --check`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler --features postgresql`: passed.
+  - Allocation profile:
+    - Patched `ALLOC_PROFILE_QUERIES='create-nested-connect,update-connect,update-connect-child-one2m,update-connect-parent-one2m,create-nested-connectOrCreate-mixed' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`:
+      - `create-nested-connect`: `graph_build` 493 allocs/op, `full_compile` 1344, allocated 147.6 KiB.
+      - `update-connect`: `graph_build` 572, `full_compile` 1372, allocated 161.6 KiB.
+      - `update-connect-child-one2m`: `graph_build` 433, `full_compile` 957, allocated 114.0 KiB.
+      - `update-connect-parent-one2m`: `graph_build` 311, `full_compile` 806, allocated 99.3 KiB.
+      - `create-nested-connectOrCreate-mixed`: unchanged at `graph_build` 799 and `full_compile` 2621.
+    - Close reverted control:
+      - `create-nested-connect`: `graph_build` 495, `full_compile` 1346, allocated 148.8 KiB.
+      - `update-connect`: `graph_build` 574, `full_compile` 1374, allocated 163.1 KiB.
+      - `update-connect-child-one2m`: `graph_build` 435, `full_compile` 959, allocated 115.4 KiB.
+      - `update-connect-parent-one2m`: `graph_build` 313, `full_compile` 808, allocated 100.8 KiB.
+      - `create-nested-connectOrCreate-mixed`: unchanged.
+    - Net allocation result: saves two `graph_build` / `full_compile` allocations and about 1.2-1.5 KiB/op on affected connect rows, no effect on the connect-or-create mixed fixture.
+  - Criterion timing:
+    - Broad first patched run over `"create-nested-connect|update-connect"` looked acceptable against stale baseline, with `create-nested-connect` at 63.953 us median and some rows within noise.
+    - Close control strict filter medians:
+      - `create-nested-connect`: 65.049 us.
+      - `update-connect-child-one2m`: 45.742 us.
+      - `update-connect-parent-one2m`: 39.229 us.
+      - `update-connect`: 70.610 us.
+    - Reapplied patched strict filter medians:
+      - `create-nested-connect`: 65.606 us, Criterion flagged regression.
+      - `update-connect-child-one2m`: 46.355 us, Criterion flagged regression.
+      - `update-connect-parent-one2m`: 39.375 us, neutral.
+      - `update-connect`: 73.502 us, Criterion flagged regression.
+  - Decision:
+    - Revert. The allocation savings are real but small, and the close Criterion pair regressed the affected connect rows. Do not replace nested `connect` filter `unique()` with manual linear `Vec` dedupe as a standalone allocation cleanup without a new CPU hypothesis.
+
 ## Useful Commands
 
 ```sh
