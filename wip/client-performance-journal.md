@@ -11697,6 +11697,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. This is byte-only on the sampled allocation profile and the close control is faster on every targeted compile row. Do not retry without a new callsite/profile reason that changes more than the output vector capacity.
 
+- Accepted oracle coverage: generated blog-page exact descriptor template.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added serializer/parameterizer oracle tests to both `packages/client-generator-js/tests/buildExactDescriptorMatcherRegistry.test.ts` and `packages/client-generator-ts/tests/buildExactDescriptorMatcherRegistry.test.ts`.
+    - The tests read the benchmark `schema.prisma`, build the internal DMMF, runtime data model, and `ParamGraph`, then use real `serializeJsonQuery()` + `parameterizeQuery()` + cache-key construction to produce learned descriptor fixtures for the generated `template:Post.findUnique:id:blogPagePostV1` helper.
+    - Covered full-root and minimal-root blog-page shapes, placeholder key order, stable cache keys across different id values, root key order rejection, extra root key rejection, wrong id type rejection, `undefined` / `Prisma.skip` selection rejection, wrong nested `comments.take` rejection, and full/minimal descriptor separation.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 5 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 5 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+  - Decision:
+    - Keep. This is test-only productization groundwork and not a fresh performance win, but it closes the most important oracle gap before broadening nested generated exact helpers to new root fields or templates.
+
 ## Useful Commands
 
 ```sh

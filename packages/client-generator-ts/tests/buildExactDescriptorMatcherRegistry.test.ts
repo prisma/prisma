@@ -1,8 +1,16 @@
+import { readFileSync } from 'node:fs'
 import vm from 'node:vm'
 
+import { dmmfToRuntimeDataModel } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
+import internals from '@prisma/internals'
+import { buildParamGraph } from '@prisma/param-graph-builder'
 import { describe, expect, test, vi } from 'vitest'
 
+import { serializeJsonQuery } from '../../client/src/runtime/core/jsonProtocol/serializeJsonQuery'
+import { skip } from '../../client/src/runtime/core/types/exported/Skip'
+import { parameterizeQuery } from '../../client-engine-runtime/src/parameterization/parameterize'
+import { ParamGraph } from '../../param-graph/src'
 import { buildExactDescriptorMatcherRegistry } from '../src/utils/buildExactDescriptorMatcherRegistry'
 
 const datamodel = {
@@ -67,9 +75,70 @@ describe('buildExactDescriptorMatcherRegistry', () => {
 
     expect(matcher).toBe(flatMatcher)
   })
+
+  test('matches the serializer and parameterizer oracle for the blog page template', async () => {
+    const oracle = await createBlogPageOracle()
+    const { registry } = createRegistryFromDatamodel(oracle.datamodel, ['template:Post.findUnique:id:blogPagePostV1'])
+    const firstArgs = blogPageArgs('full', 101)
+    const nextArgs = blogPageArgs('full', 202)
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findUnique',
+      clientMethod: 'post.findUnique',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(Object.keys(matcher?.(nextArgs) ?? {})).toEqual(Object.keys(next.placeholderValues))
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(matcher?.({ select: nextArgs.select, where: nextArgs.where })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, extra: true })).toBeUndefined()
+    expect(matcher?.({ where: { id: '202' }, select: nextArgs.select })).toBeUndefined()
+    expect(matcher?.({ where: nextArgs.where, select: { ...nextArgs.select, slug: undefined } })).toBeUndefined()
+    expect(matcher?.({ where: nextArgs.where, select: { ...nextArgs.select, slug: skip } })).toBeUndefined()
+    expect(
+      matcher?.({
+        where: nextArgs.where,
+        select: { ...nextArgs.select, comments: { ...nextArgs.select.comments, take: 11 } },
+      }),
+    ).toBeUndefined()
+  })
+
+  test('matches the serializer and parameterizer oracle for the minimal blog page template', async () => {
+    const oracle = await createBlogPageOracle()
+    const { registry } = createRegistryFromDatamodel(oracle.datamodel, ['template:Post.findUnique:id:blogPagePostV1'])
+    const firstArgs = blogPageArgs('minimal', 303)
+    const nextArgs = blogPageArgs('minimal', 404)
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findUnique',
+      clientMethod: 'post.findUnique',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(matcher?.(blogPageArgs('full', 404))).toBeUndefined()
+  })
 })
 
 function createRegistry(configValue: string[]) {
+  return createRegistryFromDatamodel(datamodel, configValue)
+}
+
+function createRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: string[]) {
   const code = buildExactDescriptorMatcherRegistry(datamodel, configValue, '__factory')
   const config: any = {}
   const flatMatcher = vi.fn()
@@ -79,6 +148,98 @@ function createRegistry(configValue: string[]) {
   vm.runInNewContext(code, { __factory: factory, config })
 
   return { registry: config.descriptorMatcherRegistry, flatGetMatcher, flatMatcher }
+}
+
+async function createBlogPageOracle() {
+  const dmmf = await internals.getInternalDMMF({ datamodel: benchmarkSchema })
+  if ('error' in dmmf) {
+    throw dmmf.error
+  }
+
+  const runtimeDataModel = dmmfToRuntimeDataModel(dmmf.datamodel)
+  const paramGraph = ParamGraph.fromData(buildParamGraph(dmmf), (enumName) => {
+    const enumDef = runtimeDataModel.enums[enumName]
+    const mapping: Record<string, string> = {}
+    for (const value of enumDef?.values ?? []) {
+      mapping[value.name] = value.dbName ?? value.name
+    }
+    return mapping
+  })
+
+  return {
+    datamodel: dmmf.datamodel,
+    fromArgs(args: Record<string, unknown>) {
+      const query = serializeJsonQuery({
+        modelName: 'Post',
+        runtimeDataModel,
+        action: 'findUnique',
+        args,
+        clientMethod: 'post.findUnique',
+        errorFormat: 'minimal',
+        clientVersion: '0.0.0',
+        previewFeatures: [],
+      })
+      const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, paramGraph)
+      const queryPart = JSON.stringify(parameterizedQuery.query)
+
+      return {
+        cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+        descriptor: { root: buildLazyDescriptorNode(args, placeholderValues) },
+        placeholderValues,
+      }
+    },
+  }
+}
+
+function buildLazyDescriptorNode(value: unknown, placeholderValues: Record<string, unknown>): unknown {
+  const placeholderName = getPlaceholderName(value, placeholderValues)
+  if (placeholderName !== undefined) {
+    return {
+      kind: 'placeholder',
+      name: placeholderName,
+      valueType: value === null ? 'null' : typeof value,
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return {
+      kind: 'array',
+      items: value.map((item) => buildLazyDescriptorNode(item, placeholderValues)),
+    }
+  }
+
+  if (isRecord(value)) {
+    const keys = Object.keys(value)
+    const fields: Record<string, unknown> = {}
+    for (const key of keys) {
+      fields[key] = buildLazyDescriptorNode(value[key], placeholderValues)
+    }
+    return { kind: 'object', keys, fields }
+  }
+
+  return { kind: 'constant', value }
+}
+
+function getPlaceholderName(value: unknown, placeholderValues: Record<string, unknown>) {
+  for (const [name, placeholderValue] of Object.entries(placeholderValues)) {
+    if (Object.is(value, placeholderValue)) {
+      return name
+    }
+  }
+
+  return undefined
+}
+
+function getStringCacheKeyPart(value: string | undefined): string {
+  if (value === undefined) {
+    return '-1:'
+  }
+
+  return `${value.length}:${value}`
+}
+
+function getSingleQueryCacheKey(query: { modelName?: string; action: string }, queryPart: string): string {
+  return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
 }
 
 function blogPageDescriptor(shape: 'full' | 'minimal') {
@@ -189,6 +350,10 @@ function constant(value: unknown) {
   return { kind: 'constant', value }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 const BLOG_PAGE_ROOT_SELECT_KEYS = [
   'id',
   'title',
@@ -208,3 +373,7 @@ const BLOG_PAGE_USER_SELECT_KEYS = ['id', 'name', 'avatar']
 const BLOG_PAGE_SLUG_SELECT_KEYS = ['id', 'name', 'slug']
 const BLOG_PAGE_COUNT_SELECT_KEYS = ['likes', 'comments']
 const BLOG_PAGE_COMMENT_SELECT_KEYS = ['id', 'content', 'createdAt', 'author']
+const benchmarkSchema = readFileSync(
+  new URL('../../client/src/__tests__/benchmarks/query-performance/schema.prisma', import.meta.url),
+  'utf-8',
+)
