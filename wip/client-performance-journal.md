@@ -12537,6 +12537,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The smaller explicit object shape did not improve the exact-helper product row at higher iterations and left request-precomputed unchanged. Avoid retrying a differently spelled hit-object copy unless the API changes enough to avoid allocating the hit object entirely or a profile points directly at object spread cost.
 
+- Accepted benchmark coverage: trusted author-id-only feed descriptor helper lower bound.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added benchmark-only `generated client trusted descriptor helper blog feed by author / nested rows warmed cache`, using a descriptor-bound matcher that binds the learned `authorId` placeholder but only extracts `args.where.authorId` on each call.
+    - Added `cached request wrapper trusted descriptor blog feed by author / nested rows` with the matching trusted cached-wrapper extractor.
+    - These rows intentionally skip full `where` / `take` / `orderBy` / nested `select` validation and are not product-safe for user-owned args; they measure the ceiling for a future generated-shape-proof helper.
+  - Verification:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`: passed and printed both new rows.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: passed.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client trusted descriptor helper blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: passed.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper exact descriptor blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: passed.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='cached request wrapper trusted descriptor blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - 100k by-author run:
+      - generated full exact-helper / trusted helper: `9.77 / 9.14 us/op`.
+      - cached-wrapper exact / trusted: `8.82 / 8.24 us/op`.
+      - generated default / request-precomputed / descriptor-bound static: `11.13 / 11.11 / 9.90 us/op`.
+    - 300k confirmations:
+      - generated full exact-helper / trusted helper: `9.10 / 8.36 us/op`.
+      - cached-wrapper exact / trusted: `8.20 / 7.65 us/op`.
+  - Decision:
+    - Keep as benchmark coverage. Full nested exact-shape validation costs about `0.55-0.74 us/op` on this feed-by-author row relative to a trusted author-id-only extractor. Productizing this would require a real generated-shape proof or descriptor-bound static helper that can skip user-owned shape validation safely; do not weaken the current exact matcher for arbitrary user args.
+
 ## Useful Commands
 
 ```sh

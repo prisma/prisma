@@ -1031,6 +1031,23 @@ function bindExactGeneratedBlogPostFeedByAuthorDescriptorExtractor(
   }
 }
 
+function bindTrustedGeneratedBlogPostFeedByAuthorDescriptorExtractor(
+  cacheKey: string,
+  placeholderValues: Record<string, unknown>,
+): StaticDescriptorExtractor | undefined {
+  const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
+  if (authorIdPlaceholder === undefined) {
+    return undefined
+  }
+
+  return (args) => {
+    const trustedPlaceholderValues = matchTrustedGeneratedBlogPostFeedByAuthor(args, authorIdPlaceholder)
+    return trustedPlaceholderValues === undefined
+      ? undefined
+      : { cacheKey, placeholderValues: trustedPlaceholderValues }
+  }
+}
+
 function getOnlyPlaceholderName(placeholderValues: Record<string, unknown>): string | undefined {
   const entries = Object.keys(placeholderValues)
   return entries.length === 1 ? entries[0] : undefined
@@ -1085,6 +1102,31 @@ function createExactGeneratedUserDescriptorMatcherRegistry(): DescriptorBoundMat
       }
 
       return undefined
+    },
+  }
+}
+
+function createTrustedGeneratedBlogPostFeedByAuthorMatcherRegistry(): DescriptorBoundMatcherRegistry {
+  return {
+    getMatcher(context) {
+      if (context.model !== 'Post' || context.action !== 'findMany' || context.clientMethod !== 'post.findMany') {
+        return undefined
+      }
+
+      const root = getGeneratedExactRoot(context)
+      if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['where', 'take', 'orderBy', 'select'])) {
+        return undefined
+      }
+
+      const where = asGeneratedObjectDescriptor(root.fields.where)
+      if (where === undefined || !generatedDescriptorHasKeysInOrder(where, ['authorId'])) {
+        return undefined
+      }
+
+      const authorId = asGeneratedPlaceholderDescriptor(where.fields.authorId)
+      return authorId !== undefined && authorId.valueType === 'int32'
+        ? (args) => matchTrustedGeneratedBlogPostFeedByAuthor(args, authorId.name)
+        : undefined
     },
   }
 }
@@ -1307,6 +1349,14 @@ function matchExactGeneratedBlogPostFeedByAuthor(
   }
 
   return { [authorIdPlaceholder]: where.authorId }
+}
+
+function matchTrustedGeneratedBlogPostFeedByAuthor(
+  args: unknown,
+  authorIdPlaceholder: string,
+): Record<string, unknown> | undefined {
+  const authorId = (args as { where?: { authorId?: unknown } }).where?.authorId
+  return isInt32(authorId) ? { [authorIdPlaceholder]: authorId } : undefined
 }
 
 function matchesExactGeneratedUserScalarSelect(value: unknown): boolean {
@@ -7317,6 +7367,30 @@ async function main(): Promise<void> {
     )
   }
 
+  const trustedGeneratedBlogPostFeedByAuthorMatcherRegistry =
+    createTrustedGeneratedBlogPostFeedByAuthorMatcherRegistry()
+  for (const scenario of generatedClientScenarios) {
+    if (scenario.name !== 'generated client blog feed by author / nested rows warmed cache') {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: scenario.name.replace('generated client', 'generated client trusted descriptor helper'),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureGeneratedClientScenario(
+        baseConfig,
+        measuredScenario,
+        'request',
+        trustedGeneratedBlogPostFeedByAuthorMatcherRegistry,
+      ),
+    )
+  }
+
   const runtimeExactGeneratedUserMatcherRegistry = createExactDescriptorMatcherRegistry([
     {
       model: 'User',
@@ -7605,6 +7679,35 @@ async function main(): Promise<void> {
           baseConfig,
           measuredScenario,
           bindExactGeneratedBlogPostFeedByAuthorDescriptorExtractor,
+        ),
+      )
+    }
+
+    for (const scenario of generatedClientSerializeScenarios) {
+      if (
+        scenario.adapterFactory === undefined ||
+        scenario.name !== 'generated client serialize blog feed by author / nested rows warmed cache'
+      ) {
+        continue
+      }
+
+      const measuredScenario = {
+        ...scenario,
+        adapterFactory: scenario.adapterFactory,
+        name: scenario.name
+          .replace('generated client serialize', 'cached request wrapper trusted descriptor')
+          .replace(' warmed cache', ''),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureCachedRequestWrapperGeneratedDescriptorScenario(
+          compiler,
+          paramGraph,
+          baseConfig,
+          measuredScenario,
+          bindTrustedGeneratedBlogPostFeedByAuthorDescriptorExtractor,
         ),
       )
     }
