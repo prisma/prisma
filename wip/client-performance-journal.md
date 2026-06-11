@@ -12137,6 +12137,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the Workerd benchmark row. The Workerd signal confirms the constant-feed cache-hit architecture avoids the default generated path by roughly 19-42% depending on run/timer surface, but the exact helper itself is not clearly faster than the simpler request-precomputed path in the 10k repeat. Treat this as product-shaped coverage for the strict `take: 10` generated template, not as a reason to broaden to arbitrary `take` or generic nested matchers.
 
+- Rejected lead: JS-only pagination `take` parameterization for blog-feed cache keys.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - If root `take` could become a cache-key placeholder, the blog-feed exact descriptor helper could support arbitrary root page sizes instead of only constant `take: 10`.
+  - Scout evidence:
+    - Actual DMMF marks root and relation `take` / `skip` fields as scalar `Int` but `isParameterizable: false`.
+    - The engines schema code documents this policy directly: parameterizable fields are for filter/data values, not structural fields like `take`, `skip`, and `orderBy`.
+    - Manual Wasm compiler probes with `take: { $type: 'Param', value: { name: '%1', type: 'Int' } }` failed for root `take`, nested `comments.take`, shared root+nested `%1`, and separate root `%1` / nested `%2`.
+    - Exact error for each case: `Invalid argument value. Placeholder<Int> is not a valid Int. Underlying error: The query was incorrectly parameterized by Prisma Client. This is a bug`.
+    - The compiler/runtime pagination path stores `take` as numeric `Take` / `Option<i64>`, checks `take == 0`, uses `Take::One` / `Take::NegativeOne` for uniqueness, serializes in-memory pagination as numbers, and lowers SQL pagination through numeric `limit(...)` / `offset(...)` paths.
+  - Decision:
+    - Do not change JS parameterization to include `take` by itself. It would create cache hits for plans the current compiler cannot build and would be semantically wrong if the cached SQL still contains the old literal limit.
+    - Arbitrary root `take` support needs an engines-side pagination placeholder design first, including query-structure `Take` representation, SQL builder support, in-memory pagination semantics, `take == 0` / one-row uniqueness behavior, and duplicate-placeholder handling when root and nested takes share the same initial value.
+    - Keep `template:Post.findMany:take:blogFeedPostListV1` constant-only for now.
+
 ## Useful Commands
 
 ```sh
