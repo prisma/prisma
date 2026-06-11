@@ -12096,6 +12096,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as an internal generated-template slice. It is correctness-bounded to the current cache-key semantics where `take` is literal, not a placeholder.
 
+- Rejected runtime experiment: borrowed `Date` values in final-owner row writer.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - The strict final-owner row writer still routes JS `Date` fields through `mapRawNestedFieldValue()`, which clones with `new Date(value)`.
+    - For the current final-owner path, adapter result rows may already be request-owned enough that returning the existing `Date` object could save allocation work on root/comment `createdAt` fields.
+  - Patch tried and reverted:
+    - In `tryCompileRawNestedFinalOwnerRowWriter()`, bypassed `mapRawNestedFieldValue()` only for `RAW_NESTED_CONVERT_DATE_JS` values that were already `Date` instances.
+    - Generic raw-nested/data-mapper Date cloning stayed unchanged.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 24 tests.
+    - Patched 100k Node nested run:
+      - `generated client blog page / nested rows warmed cache`: 10.22 us/op.
+      - `generated client exact descriptor helper blog page / nested rows warmed cache`: 8.96 us/op.
+      - `raw result-set compact node blog page / nested rows`: 5.23 us/op.
+      - `raw result-set exact compact node blog page / nested rows`: 5.04 us/op.
+      - `direct plan after phase warmup blog page / nested rows`: 5.14 us/op.
+    - Close reverted control:
+      - `generated client blog page / nested rows warmed cache`: 10.18 us/op.
+      - `generated client exact descriptor helper blog page / nested rows warmed cache`: 8.93 us/op.
+      - `raw result-set compact node blog page / nested rows`: 5.22 us/op.
+      - `raw result-set exact compact node blog page / nested rows`: 5.09 us/op.
+      - `direct plan after phase warmup blog page / nested rows`: 5.21 us/op.
+  - Decision:
+    - Revert. The focused rows are neutral/noise-level, and returning adapter-owned mutable `Date` objects weakens result isolation. Do not retry borrowed final-owner `Date` values as a standalone patch; only revisit if a larger final-owner ownership contract removes a whole materialization phase and explicitly covers mutable scalar ownership.
+
 ## Useful Commands
 
 ```sh
