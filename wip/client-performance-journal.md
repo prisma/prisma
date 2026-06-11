@@ -11944,6 +11944,56 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. This confirms the remaining gap to the 4.08/3.81 writer-program lower bounds is not recovered by only shaving direct/path row-writer branch overhead. The next raw-nested product proof needs a larger ownership/static-schedule change or a different concrete source of generic overhead.
 
+- Measurement refresh: query-compiler allocation profile after harness restart.
+  - Timestamp: 2026-06-11.
+  - Context:
+    - The previous all-query bucketed allocation run overflowed the harness output. Reran narrower profiles so the current Rust allocation state is preserved in the journal.
+  - Commands:
+    - `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo run -p query-compiler --example allocation_profile --release`.
+    - `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_QUERIES='nested-pagination-query,update-set-nested,create-nested-connect' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo run -p query-compiler --example allocation_profile --release`.
+    - `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='update-set-nested' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo run -p query-compiler --example allocation_profile --release`.
+  - Current focused rows:
+    - `query-m2o`: `graph_build` 162 allocs/op / 35.4 KiB, `translate_ir` 327 / 27.2 KiB, `full_compile` 568 / 72.5 KiB.
+    - `query-many-m2m`: `graph_build` 237 / 39.6 KiB, `translate_ir` 425 / 33.8 KiB, `full_compile` 733 / 80.5 KiB.
+    - `nested-pagination-query`: `graph_build` 200 / 34.6 KiB, `translate_ir` 388 / 37.1 KiB, `full_compile` 673 / 81.1 KiB.
+    - `update-set-nested`: `graph_build` 653 / 115.5 KiB, `translate_ir` 1264 / 113.0 KiB, `full_compile` 2033 / 241.7 KiB.
+    - `create-nested-connect`: `graph_build` 495 / 68.1 KiB, `translate_ir` 735 / 67.5 KiB, `full_compile` 1346 / 148.8 KiB.
+  - Bucket detail for `update-set-nested`:
+    - `full_compile`: 257-384 B bucket 163 allocs/op / 52.1 KiB, 1.0-1.5 KiB bucket 31 / 38.5 KiB, 513-768 B bucket 48 / 30.5 KiB, 385-512 B bucket 52 / 22.1 KiB, 129-192 B bucket 120 / 19.7 KiB.
+    - `translate_ir`: 257-384 B bucket 72 allocs/op / 22.4 KiB, 513-768 B bucket 27 / 17.0 KiB, 385-512 B bucket 39 / 16.4 KiB, 1.0-1.5 KiB bucket 13 / 15.8 KiB.
+  - Interpretation:
+    - The current sampled compiler hot allocation phases remain `translate_ir` and `graph_build`, especially nested writes. JSON parsing/adaptation is much smaller, reinforcing that a shallow `serde_wasm_bindgen` swap is not the main lever.
+
+- Rejected Rust experiment: `ScalarFilterParser` `SmallVec` scratch filters.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - `ScalarFilterParser` returned heap `Vec<Filter>` for almost every single scalar operation, then collected `Vec<Vec<Filter>>` and flattened it. Replacing the internal one-filter scratch vectors with `SmallVec<[Filter; 1]>` might reduce graph-build allocations for filter-heavy queries without changing the public parser return type.
+  - Patch tried and reverted:
+    - Added a local `FilterVec = SmallVec<[Filter; 1]>`.
+    - Changed `parse_scalar()`, `parse_json()`, and `aggregation_filter()` to return `FilterVec`.
+    - Changed the top-level parse loop to extend one output `Vec<Filter>` directly instead of collecting `Vec<Vec<_>>`.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-core -p query-compiler --features postgresql`: passed.
+  - Allocation evidence:
+    - Patched vs close reverted control on `ALLOC_PROFILE_QUERIES='filter-contains-param,filter-contains-param-insensitive,filter-not-contains-param,filter-in-param-insensitive,filter-not-in-param-insensitive,filter-startswith-param,filter-endswith-param,aggregate,group-by'` with 5 iterations / 1 warmup:
+      - `filter-contains-param`: `graph_build` 282 vs 284 allocs/op, `full_compile` 515 vs 517, allocated 61.3 vs 61.9 KiB.
+      - `filter-contains-param-insensitive`: 286 vs 288, `full_compile` 521 vs 523, allocated 60.6 vs 61.2 KiB.
+      - `filter-not-contains-param`: 371 vs 373, `full_compile` 615 vs 617, allocated 74.5 vs 75.1 KiB.
+      - `filter-in-param-insensitive`: 290 vs 292, `full_compile` 534 vs 536, allocated 61.4 vs 62.0 KiB.
+      - `filter-not-in-param-insensitive`: 290 vs 292, `full_compile` 534 vs 536, allocated 61.4 vs 62.0 KiB.
+      - `filter-startswith-param`: 282 vs 284, `full_compile` 511 vs 513, allocated 60.9 vs 61.5 KiB.
+      - `filter-endswith-param`: 282 vs 284, `full_compile` 511 vs 513, allocated 61.1 vs 61.7 KiB.
+      - `aggregate`: 285 vs 287, `full_compile` 614 vs 616, allocated 69.7 vs 70.3 KiB.
+      - `group-by`: 320 vs 322, `full_compile` 616 vs 618, allocated 65.7 vs 66.4 KiB.
+    - No allocation movement on the read/nested-write rows: `query-m2o`, `query-many-m2m`, `nested-pagination-query`, `update-set-nested`, and `create-nested-connect`.
+  - Criterion evidence:
+    - First patched full affected-row run was mixed by actual medians, so a close control and narrow reapply were run.
+    - Close control after reverting measured representative medians: `aggregate-join` 27.655 us, `filter-contains-param-insensitive` 33.721 us, `filter-endswith-param` 33.746 us, `filter-not-in-param-insensitive` 35.028 us, `filter-startswith-param` 33.559 us.
+    - Narrow patched reapply measured: `aggregate-join` 28.917 us, `filter-contains-param-insensitive` 35.211 us, `filter-endswith-param` 34.518 us, `filter-not-in-param-insensitive` 35.595 us, `filter-startswith-param` 34.511 us. Criterion flagged `aggregate-join`, `filter-contains-param-insensitive`, and `filter-startswith-param` as regressions in that confirmation run.
+  - Decision:
+    - Revert. The allocation win is real but only two allocations on filter-heavy rows, has no effect on the current nested compiler rows, and the close timing confirmation softened representative filter/aggregate compile rows. Do not retry scalar-filter `SmallVec` scratch vectors as a standalone allocation cleanup without a new CPU profile.
+
 ## Useful Commands
 
 ```sh

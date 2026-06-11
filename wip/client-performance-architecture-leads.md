@@ -52,7 +52,9 @@ A plausible design would introduce a query-input view abstraction:
 - Wasm implementations backed by JS references or generated accessors.
 - Borrowed/lazy validation that materializes only the internal compiler IR on cache misses.
 
-This is a substantial parser/validator refactor. The first proof should be narrow: one generated shape, one provider-independent request kind, and a direct comparison against both current string compile and JS exact-helper cache hit.
+The more radical version is also coherent: do not create owned Rust representations of either the input query object or cached SQL strings unless the current compilation miss truly needs an internal IR node. In that model, the JS client passes one query-object reference, the cache lookup and parameter extraction operate over JS-owned values, and a cache hit returns a cached JS plan object without transferring a serialized request or plan across the Wasm boundary. Wrapper types such as `PrismaString` / `PrismaObjectRef` could have Rust-owned implementations for unit tests and JS-backed implementations for Wasm.
+
+The practical caveat is that this only looks attractive with generated/static accessors or descriptor-bound views. A generic Rust walker over arbitrary JS objects would likely reproduce the `compileFromValue(JsValue)` failure mode: it would move the boundary but still pay dynamic traversal plus owned validation structures. The first proof should be narrow: one generated shape, one provider-independent request kind, and a direct comparison against both current string compile and JS exact-helper cache hit.
 
 ### SQL String Ownership
 
@@ -74,6 +76,7 @@ For any JS-owned query/cache-hit spike:
 - Workerd generated rows: the same supported subset, with stable and alternating blog-page if nested helpers are touched.
 - Correctness oracle: compare shortcut output to `serializeJsonQuery()` + `parameterizeQuery()` + cache-key/placeholder ordering on special values.
 - Exclusions must be explicit: extensions, global omit, SQL commenters, tracing/debug, transactions, non-empty `dataPath`, raw queries, writes, and batching changes should stay on slow path until covered.
+- Internal data shapes are version-lockstep. If a spike changes an internal query-plan/input/view shape, replace the shape across producer and consumer code instead of carrying old/new compatibility readers.
 
 ## Borrowing, Arenas, And `Arc`
 
