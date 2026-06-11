@@ -43,6 +43,8 @@ Start with cache hits, not compile misses.
 
 The existing descriptor-bound exact-helper work is the closest practical version of this wedge. It already avoids the Rust request parser and cache-key string for supported cache hits while preserving slow-path semantics through descriptor self-tests.
 
+The next descriptor-helper candidate is not a generic nested matcher. The 2026-06-11 benchmark-only nested `Post.findMany` blog-feed row measured default / request-precomputed / descriptor-bound static / exact-helper at 22.25 / 22.22 / 20.99 / 20.46 us/op over 300k Node iterations. Productizing that lead should look like a strict generated template such as `template:Post.findMany:take:blogFeedPostListV1`, with descriptor-bound self-test and oracle coverage for `take`, constant `orderBy`, exact nested selection shape, placeholder order, `undefined`, and `Prisma.skip`.
+
 ### What A Wasm Reference-Type Version Would Need
 
 A direct Rust-over-JS implementation probably needs generated/static access strategy, not generic `js_sys::Reflect` traversal. Prior `Reflect` walkers were much slower than native `JSON.stringify()` and JS exact descriptor helpers.
@@ -122,5 +124,6 @@ Minimum gates:
 ## Near-Term Priority
 
 1. Finish productizing descriptor-bound exact helpers only behind strict internal gates and oracle coverage.
-2. For raw nested execution, pursue a larger final-owner writer/wave descriptor only if it changes ownership of a whole phase. The current static-wave lower-bound gap is about 0.5 us/op on Node direct rows after compiled final-owner query leaves, so one-branch edits are unlikely to survive generated-client gates.
-3. For Rust memory management, keep taking profile-backed slices. Do not start an arena/borrowing rewrite until the target structure and Criterion row are named.
+2. Add a strict nested `findMany` generated-template spike only if it is paired with serializer/parameterizer/cache-key oracle tests; do not route it through a recursive nested-selection DSL.
+3. For raw nested execution, pursue a larger final-owner writer/wave descriptor only if it changes ownership of a whole phase. The current static-wave lower-bound gap is about 0.5 us/op on Node direct rows after compiled final-owner query leaves, so one-branch edits are unlikely to survive generated-client gates.
+4. For Rust memory management, keep taking profile-backed slices. Do not start an arena/borrowing rewrite until the target structure and Criterion row are named.
