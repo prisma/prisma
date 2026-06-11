@@ -12456,6 +12456,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert the one-root branch. It helps isolated direct execution slightly but fails the generated/exact-helper gate and adds a large duplicated executor branch. Do not retry one-root final-owner branching unless a profile shows the generic root-array assembly itself dominating a real product row; a useful follow-up should remove a larger relation assembly phase or emit a static writer schedule.
 
+- Measurement refresh: post-final-owner fallback correctness commit feed rows.
+  - Timestamp: 2026-06-11.
+  - Commit: `e247e6818` (`fix(client-engine-runtime): handle final-owner relation fallback`).
+  - Verification before refresh:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 26 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`.
+    - Generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `10.23 / 10.88 / 10.76 / 9.51 / 9.41 us/op`.
+    - Direct / raw compact / exact compact: `7.46 / 7.44 / 7.40 us/op`.
+    - Direct after phase warmup / render all leaves / local executor: `7.55 / 2.02 / 7.90 us/op`.
+  - Interpretation:
+    - The correctness follow-up stayed in the expected post-non-unique-final-owner band. This refresh is not a keep/revert gate for a speed change; it confirms the local build artifacts are coherent after the committed fallback/filter fix.
+
 ## Useful Commands
 
 ```sh
