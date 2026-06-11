@@ -22,13 +22,26 @@ type ExactDescriptorMatcherValueType =
   | 'number'
   | 'string'
 
-type ExactDescriptorMatcherTemplateSpec = {
+type ExactDescriptorMatcherTemplateSpec =
+  | ExactDescriptorMatcherBlogPageTemplateSpec
+  | ExactDescriptorMatcherBlogFeedTemplateSpec
+
+type ExactDescriptorMatcherBlogPageTemplateSpec = {
   model: string
   action: 'findUnique'
   clientMethod: string
   field: string
   valueType: ExactDescriptorMatcherTemplateValueType
   templateName: 'blogPagePostV1'
+}
+
+type ExactDescriptorMatcherBlogFeedTemplateSpec = {
+  model: string
+  action: 'findMany'
+  clientMethod: string
+  field: 'take'
+  valueType: 'number'
+  templateName: 'blogFeedPostListV1'
 }
 
 type ExactDescriptorMatcherTemplateValueType = Extract<ExactDescriptorMatcherValueType, 'number' | 'string'>
@@ -215,16 +228,40 @@ function parseExactDescriptorMatcherTemplateSpec(
 
   const model = modelAction.slice(0, separator)
   const action = modelAction.slice(separator + 1)
-  if (action !== 'findUnique') {
+  if (action !== 'findUnique' && action !== 'findMany') {
     throw new Error(`Unsupported internalExactDescriptorHelpers template action ${JSON.stringify(action)}`)
   }
-  if (templateName !== 'blogPagePostV1') {
+  if (templateName !== 'blogPagePostV1' && templateName !== 'blogFeedPostListV1') {
     throw new Error(`Unsupported internalExactDescriptorHelpers template ${JSON.stringify(templateName)}`)
   }
 
   const dmmfModel = datamodel.models.find((candidate) => candidate.name === model)
   if (dmmfModel === undefined) {
     throw new Error(`Invalid internalExactDescriptorHelpers model ${JSON.stringify(model)}`)
+  }
+
+  if (templateName === 'blogFeedPostListV1') {
+    if (action !== 'findMany') {
+      throw new Error(`Unsupported internalExactDescriptorHelpers template action ${JSON.stringify(action)}`)
+    }
+
+    const { valueType } = getExactMatcherValue(dmmfModel, datamodel, action, field)
+    if (field !== 'take' || valueType !== 'number') {
+      throw new Error(`internalExactDescriptorHelpers blog feed template field must be "take"`)
+    }
+
+    return {
+      model,
+      action,
+      clientMethod: `${dmmfToJSModelName(model)}.${action}`,
+      field,
+      valueType,
+      templateName,
+    }
+  }
+
+  if (action !== 'findUnique') {
+    throw new Error(`Unsupported internalExactDescriptorHelpers template action ${JSON.stringify(action)}`)
   }
 
   const { valueType } = getExactMatcherValue(dmmfModel, datamodel, action, field)
@@ -255,10 +292,11 @@ function buildTemplateDescriptorMatcherRegistry(
 ): string {
   const templateCases = templates
     .map((template, index) => {
+      const binder = getTemplateBinderFunctionName(template, index)
       return `    if (context.model === ${JSON.stringify(template.model)} && context.action === ${JSON.stringify(
         template.action,
       )} && context.clientMethod === ${JSON.stringify(template.clientMethod)}) {
-      const matcher = __internalExactDescriptorBindBlogPagePostV1_${index}(context)
+      const matcher = ${binder}(context)
       if (matcher !== undefined) {
         return matcher
       }
@@ -266,7 +304,7 @@ function buildTemplateDescriptorMatcherRegistry(
     })
     .join('\n\n')
 
-  const templateBinders = templates.map(buildBlogPagePostV1Template).join('\n')
+  const templateBinders = templates.map(buildTemplateBinder).join('\n')
 
   return `const __internalExactDescriptorFlatRegistry = ${factoryExpression}(${JSON.stringify(flatSpecs, null, 2)})
 config.descriptorMatcherRegistry = {
@@ -281,7 +319,19 @@ ${templateBinders}
 ${blogPagePostV1TemplateSupportCode}`
 }
 
-function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
+function getTemplateBinderFunctionName(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
+  return template.templateName === 'blogPagePostV1'
+    ? `__internalExactDescriptorBindBlogPagePostV1_${index}`
+    : `__internalExactDescriptorBindBlogFeedPostListV1_${index}`
+}
+
+function buildTemplateBinder(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
+  return template.templateName === 'blogPagePostV1'
+    ? buildBlogPagePostV1Template(template, index)
+    : buildBlogFeedPostListV1Template(template, index)
+}
+
+function buildBlogPagePostV1Template(template: ExactDescriptorMatcherBlogPageTemplateSpec, index: number): string {
   const field = JSON.stringify(template.field)
   const valueType = JSON.stringify(template.valueType)
   const descriptorValueType = JSON.stringify(template.valueType === 'number' ? 'int32' : template.valueType)
@@ -324,6 +374,43 @@ function __internalExactDescriptorMatchBlogPagePostV1_${index}(args, valuePlaceh
   }
 
   return { [valuePlaceholder]: value }
+}
+`
+}
+
+function buildBlogFeedPostListV1Template(_template: ExactDescriptorMatcherBlogFeedTemplateSpec, index: number): string {
+  return `function __internalExactDescriptorBindBlogFeedPostListV1_${index}(context) {
+  const root = __internalExactDescriptorRoot(context)
+  if (root === undefined || !__internalExactDescriptorHasKeysInOrder(root, ['take', 'orderBy', 'select'])) {
+    return undefined
+  }
+
+  if (
+    !__internalExactDescriptorBlogPageOrderByDescriptor(root.fields.orderBy) ||
+    __internalExactDescriptorBlogPagePostV1SelectShape(root.fields.select) !== 'full'
+  ) {
+    return undefined
+  }
+
+  return __internalExactDescriptorIsConstant(root.fields.take, 10)
+    ? (args) => __internalExactDescriptorMatchBlogFeedPostListV1WithConstantTake_${index}(args)
+    : undefined
+}
+
+function __internalExactDescriptorMatchBlogFeedPostListV1WithConstantTake_${index}(args) {
+  if (!__internalExactDescriptorIsRecord(args) || !__internalExactDescriptorKeys3(args, 'take', 'orderBy', 'select')) {
+    return undefined
+  }
+
+  if (
+    args.take !== 10 ||
+    !__internalExactDescriptorMatchesBlogPageOrderBy(args.orderBy) ||
+    !__internalExactDescriptorMatchesBlogPagePostV1Select(args.select, 'full')
+  ) {
+    return undefined
+  }
+
+  return {}
 }
 `
 }
@@ -444,6 +531,19 @@ function __internalExactDescriptorMatchesBlogPageCommentsSelection(value) {
   )
 }
 
+function __internalExactDescriptorMatchesBlogPageOrderBy(value) {
+  if (!Array.isArray(value) || value.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = value[0]
+  return (
+    __internalExactDescriptorIsRecord(firstOrderBy) &&
+    __internalExactDescriptorKeys1(firstOrderBy, 'createdAt') &&
+    firstOrderBy.createdAt === 'desc'
+  )
+}
+
 function __internalExactDescriptorMatchesSelectionWrapper(value, keys) {
   if (!__internalExactDescriptorIsRecord(value) || !__internalExactDescriptorKeys1(value, 'select')) {
     return false
@@ -559,6 +659,20 @@ function __internalExactDescriptorBlogPageCommentsSelectionDescriptor(value) {
       select.fields.author,
       __internalExactDescriptorBlogPageUserSelectKeys,
     )
+  )
+}
+
+function __internalExactDescriptorBlogPageOrderByDescriptor(value) {
+  const orderBy = __internalExactDescriptorAsArray(value)
+  if (orderBy === undefined || orderBy.items.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = __internalExactDescriptorAsObject(orderBy.items[0])
+  return (
+    firstOrderBy !== undefined &&
+    __internalExactDescriptorHasKeysInOrder(firstOrderBy, ['createdAt']) &&
+    __internalExactDescriptorIsConstant(firstOrderBy.fields.createdAt, 'desc')
   )
 }
 

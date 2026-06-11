@@ -842,9 +842,9 @@ function createGeneratedBlogPostPageRootMaskArgs(mask: number, iteration: number
   }
 }
 
-function createGeneratedBlogPostFeedArgs(iteration: number): Record<string, unknown> {
+function createGeneratedBlogPostFeedArgs(_iteration: number): Record<string, unknown> {
   return {
-    take: 10 + (iteration % 2),
+    take: 10,
     orderBy: [{ createdAt: 'desc' }],
     select: createGeneratedBlogPostPageSelect((1 << BLOG_PAGE_ROOT_SCALAR_FIELDS.length) - 1),
   }
@@ -1106,15 +1106,7 @@ function bindExactGeneratedBlogPostFeedMatcher(
     return undefined
   }
 
-  const take = root.fields.take
-  const takePlaceholder = asGeneratedPlaceholderDescriptor(take)
-  if (takePlaceholder !== undefined) {
-    return takePlaceholder.valueType === 'int32'
-      ? (args) => matchExactGeneratedBlogPostFeedWithTakePlaceholder(args, takePlaceholder.name)
-      : undefined
-  }
-
-  return isGeneratedConstantDescriptor(take, 10)
+  return isGeneratedConstantDescriptor(root.fields.take, 10)
     ? (args) => matchExactGeneratedBlogPostFeedWithConstantTake(args)
     : undefined
 }
@@ -1182,25 +1174,6 @@ function matchExactGeneratedBlogPostPage(
   }
 
   return { [idPlaceholder]: where.id }
-}
-
-function matchExactGeneratedBlogPostFeedWithTakePlaceholder(
-  args: unknown,
-  takePlaceholder: string,
-): Record<string, unknown> | undefined {
-  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder3(args, 'take', 'orderBy', 'select')) {
-    return undefined
-  }
-
-  if (
-    !isInt32(args.take) ||
-    !matchesExactGeneratedBlogPageOrderBy(args.orderBy) ||
-    !matchesExactGeneratedBlogPostPageSelect(args.select, 'full')
-  ) {
-    return undefined
-  }
-
-  return { [takePlaceholder]: args.take }
 }
 
 function matchExactGeneratedBlogPostFeedWithConstantTake(args: unknown): Record<string, unknown> | undefined {

@@ -76,6 +76,26 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     expect(matcher?.(blogPageArgs('full', 456))).toBeUndefined()
   })
 
+  test('emits a descriptor-bound blog feed template matcher', () => {
+    const { registry, flatGetMatcher } = createRegistry(['template:Post.findMany:take:blogFeedPostListV1'])
+
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findMany',
+      clientMethod: 'post.findMany',
+      descriptor: blogFeedDescriptor(),
+    })
+    const args = blogFeedArgs(10)
+
+    expect(matcher?.(args)).toEqual({})
+    expect(matcher?.({ ...args, extra: true })).toBeUndefined()
+    expect(matcher?.({ ...args, take: 11 })).toBeUndefined()
+    expect(matcher?.({ ...args, take: 12.5 })).toBeUndefined()
+    expect(matcher?.({ ...args, orderBy: [{ createdAt: 'asc' }] })).toBeUndefined()
+    expect(matcher?.({ ...args, select: { ...args.select, slug: undefined } })).toBeUndefined()
+    expect(flatGetMatcher).not.toHaveBeenCalled()
+  })
+
   test('falls back to the flat registry when the template does not bind', () => {
     const { registry, flatMatcher } = createRegistry(['template:Post.findUnique:id:blogPagePostV1'])
 
@@ -187,6 +207,44 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     expect(matcher?.(blogPageArgs('full', 202))).toBeUndefined()
     expect(matcher?.({ where: { slug: 202 }, select: nextArgs.select })).toBeUndefined()
   })
+
+  test('matches the serializer and parameterizer oracle for the blog feed template', async () => {
+    const oracle = await createBlogPageOracle('findMany', 'post.findMany')
+    const { registry } = createRegistryFromDatamodel(oracle.datamodel, [
+      'template:Post.findMany:take:blogFeedPostListV1',
+    ])
+    const firstArgs = blogFeedArgs(10)
+    const nextArgs = blogFeedArgs(10)
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'Post',
+      action: 'findMany',
+      clientMethod: 'post.findMany',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(Object.keys(matcher?.(nextArgs) ?? {})).toEqual(Object.keys(next.placeholderValues))
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(matcher?.({ orderBy: nextArgs.orderBy, take: nextArgs.take, select: nextArgs.select })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, extra: true })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, take: 11 })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, take: '12' })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, take: 12.5 })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, orderBy: [{ createdAt: 'asc' }] })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, select: { ...nextArgs.select, slug: skip } })).toBeUndefined()
+    expect(
+      matcher?.({
+        ...nextArgs,
+        select: { ...nextArgs.select, comments: { ...nextArgs.select.comments, take: 11 } },
+      }),
+    ).toBeUndefined()
+  })
 })
 
 function createRegistry(configValue: string[]) {
@@ -205,7 +263,10 @@ function createRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: str
   return { registry: config.descriptorMatcherRegistry, flatGetMatcher, flatMatcher, factory }
 }
 
-async function createBlogPageOracle() {
+async function createBlogPageOracle(
+  action: 'findUnique' | 'findMany' = 'findUnique',
+  clientMethod = 'post.findUnique',
+) {
   const dmmf = await internals.getInternalDMMF({ datamodel: benchmarkSchema })
   if ('error' in dmmf) {
     throw dmmf.error
@@ -227,9 +288,9 @@ async function createBlogPageOracle() {
       const query = serializeJsonQuery({
         modelName: 'Post',
         runtimeDataModel,
-        action: 'findUnique',
+        action,
         args,
-        clientMethod: 'post.findUnique',
+        clientMethod,
         errorFormat: 'minimal',
         clientVersion: '0.0.0',
         previewFeatures: [],
@@ -314,6 +375,16 @@ function blogPageDescriptor(shape: 'full' | 'minimal', field = 'id', valueType: 
   }
 }
 
+function blogFeedDescriptor() {
+  return {
+    root: objectDescriptor(['take', 'orderBy', 'select'], {
+      take: constant(10),
+      orderBy: blogPageOrderByDescriptor(),
+      select: blogPageSelectDescriptor('full'),
+    }),
+  }
+}
+
 function blogPageSelectDescriptor(shape: 'full' | 'minimal') {
   const scalarFields =
     shape === 'full'
@@ -340,7 +411,7 @@ function blogPageSelectDescriptor(shape: 'full' | 'minimal') {
     }),
     comments: objectDescriptor(['take', 'orderBy', 'select'], {
       take: constant(10),
-      orderBy: { kind: 'array', items: [objectDescriptor(['createdAt'], { createdAt: constant('desc') })] },
+      orderBy: blogPageOrderByDescriptor(),
       select: objectDescriptor(BLOG_PAGE_COMMENT_SELECT_KEYS, {
         id: constant(true),
         content: constant(true),
@@ -350,6 +421,18 @@ function blogPageSelectDescriptor(shape: 'full' | 'minimal') {
     }),
     _count: selectionWrapperDescriptor(BLOG_PAGE_COUNT_SELECT_KEYS),
   })
+}
+
+function blogFeedArgs(take: number) {
+  return {
+    take,
+    orderBy: [{ createdAt: 'desc' }],
+    select: blogPageArgs('full', 0).select,
+  }
+}
+
+function blogPageOrderByDescriptor() {
+  return { kind: 'array', items: [objectDescriptor(['createdAt'], { createdAt: constant('desc') })] }
 }
 
 function blogPageArgs(shape: 'full' | 'minimal', value: number | string, field = 'id') {

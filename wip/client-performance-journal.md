@@ -12064,20 +12064,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Timestamp: 2026-06-11.
   - Patch:
     - Added a benchmark-only generated-client `post.findMany` nested blog-feed shape to `client-engine-cache-timing.ts`.
-    - The shape uses `take`, `orderBy: [{ createdAt: 'desc' }]`, and the same full nested blog-page selection.
+    - The shape uses constant `take: 10`, `orderBy: [{ createdAt: 'desc' }]`, and the same full nested blog-page selection.
     - Added hand-written descriptor-bound/static and exact-helper mirrors for this one shape, plus array-aware nested blog result checksumming.
     - No product path is enabled by this patch; it is a measurement row for the next generated-template productization candidate.
   - Verification:
-    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog feed / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: base generated feed row passed at 22.83 us/op, `queryRaw=700000`.
-    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper measured 22.62 / 22.32 / 21.80 / 20.69 / 20.03 us/op.
-    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper measured 22.25 / 22.14 / 22.22 / 20.99 / 20.46 us/op.
+    - An initial alternating-`take` benchmark run is superseded. A direct serializer/parameterizer probe showed `take` is not parameterized today: for `take` 10, 11, and 12, `placeholderValues` was `{}` and `parameterizedQuery.query.arguments` retained the literal `take`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: constant-`take` default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper measured 24.07 / 24.03 / 22.93 / 21.66 / 19.90 us/op.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: constant-`take` default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper measured 22.24 / 21.69 / 24.02 / 19.09 / 19.26 us/op.
     - `pnpm --filter @prisma/client build`: passed after the harness restart.
   - Decision:
-    - Keep the benchmark row as a positive lead. The exact-helper mirror improves the 300k feed row by about 8% versus default and about 7.9% versus request-precomputed, while descriptor-bound static improves by about 5.7%. This is smaller than the original single-page descriptor wins, but it targets non-batchable nested `findMany` where direct cached-result descriptor hits are product-relevant.
+    - Keep the benchmark row as a positive lead, but only with constant `take: 10`. The 300k exact-helper mirror is about 13% below default, while descriptor-bound static is in the same band. Request-precomputed alone was noisy on this row.
   - Follow-up:
     - The product candidate is a strict generated template such as `template:Post.findMany:take:blogFeedPostListV1`, not a recursive nested matcher or a generic descriptor interpreter.
-    - Keep the helper descriptor-bound, exact-key ordered, and self-tested against the first slow path. It must preserve placeholder order for `take`, the constant `orderBy` shape, and the full nested selection, and it should fall back to slow path on any uncertainty.
-    - Add oracle coverage before productizing: `serializeJsonQuery()` + `parameterizeQuery()` + cache-key equality, wrong key order, wrong `take` type, wrong `orderBy`, wrong nested selection, `undefined`, `Prisma.skip`, and descriptor mismatch.
+    - Keep the helper descriptor-bound, exact-key ordered, and self-tested against the first slow path. It must prove constant `take: 10`, the constant `orderBy` shape, and the full nested selection, and it should fall back to slow path on any uncertainty.
+    - Supporting arbitrary `take` is a separate parameterization/cache-key change; do not fake it in descriptor helpers while `take` remains a literal cache-key component.
+
+- Accepted productization slice: strict constant-`take` blog-feed generated template.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - `packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts` and the TS twin now accept `template:Post.findMany:take:blogFeedPostListV1`.
+    - The emitted matcher binds only when the learned descriptor root has exact keys `take`, `orderBy`, and `select`; constant `take: 10`; constant `orderBy: [{ createdAt: 'desc' }]`; and the full blog-page nested selection descriptor.
+    - The runtime matcher returns `{}` for matching calls and rejects different `take` values, wrong key order, wrong `orderBy`, changed nested selection, `undefined`, and `Prisma.skip`.
+    - No old/new internal template format support was added.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 9 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 9 tests.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+    - Constant-`take` Node benchmark evidence is the corrected feed run above: exact helper 19.90 us/op at 100k and 19.26 us/op at 300k versus default 24.07 and 22.24 respectively.
+  - Decision:
+    - Keep as an internal generated-template slice. It is correctness-bounded to the current cache-key semantics where `take` is literal, not a placeholder.
 
 ## Useful Commands
 
