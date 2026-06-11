@@ -7540,6 +7540,13 @@ async function main(): Promise<void> {
       adapterFactory: createBlogPageAdapterFactory,
       rawNestedUnique: false,
     },
+    {
+      name: 'direct plan blog feed by author / nested rows',
+      iterations: benchmarkIterations(500),
+      query: createBlogPostFeedByAuthorQuery(42, 10),
+      adapterFactory: createBlogPageAdapterFactory,
+      rawNestedUnique: false,
+    },
   ]
   const directPlanScopeScenarios: DirectPlanScopeScenario[] = [
     {
