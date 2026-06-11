@@ -12245,6 +12245,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Avoid warming this descriptor with duplicate dynamic/constant values such as `authorId = 10` and `take = 10`: the current lazy descriptor builder is value-keyed and will intentionally collapse equal placeholder values, causing the exact matcher self-test not to store on that first call. Use non-overlapping warm values in benchmarks and oracle tests.
     - Workerd by-author rows are still a follow-up. The current Workerd harness has no measurement filter and only covers the constant blog-feed template, so target-runtime by-author validation should be added as a separate harness extension rather than widening this checkpoint.
 
+- Accepted benchmark coverage: Workerd blog-feed-by-author rows.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added `blog-feed-by-author` to `workerd-query-compiler-memory.ts` generated-client scenarios, protocol query construction, generated args, static descriptor extraction, descriptor-bound static matcher routing, and exact-helper matcher routing.
+    - Added full-run generated-client rows for default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper.
+    - Added a focused host-side `WORKERD_QUERY_COMPILER_MEMORY_FILTER` branch for generated-client rows so narrow target-runtime probes can run without the retained-plan/raw-result half of the harness.
+  - Verification:
+    - Smoke: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`: passed, all precomputed rows hit `1000/1000`.
+    - Focused 10k Workerd repeat:
+      - host dispatch default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `63.89 / 25.33 / 22.63 / 21.84 / 22.27 us/op`.
+      - worker-loop default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `21.10 / 18.60 / 16.30 / 15.90 / 16.40 us/op`.
+    - Focused 20k Workerd repeat:
+      - host dispatch default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `37.41 / 16.39 / 17.23 / 17.98 / 16.18 us/op`.
+      - worker-loop default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `18.75 / 14.95 / 15.85 / 16.55 / 14.85 us/op`.
+      - All precomputed rows hit `20000/20000`, issued `queryRaw=140000`, and kept `executeRaw=0`.
+    - Default no-filter harness smoke: `WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=1 WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1 WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`: passed.
+  - Decision:
+    - Keep as target-runtime benchmark coverage. The 20k Workerd run makes the by-author exact-helper signal stronger than the Node-only checkpoint: exact helper improved the default generated row by about `21%` worker-loop (`18.75 -> 14.85 us/op`) and beat request-precomputed by about `6%` (`15.85 -> 14.85`).
+    - Still treat this as an explicit internal template, not a default feature. The useful next product step is an allowlist policy and broader special-value/exclusion coverage, not a generic nested matcher.
+
 ## Useful Commands
 
 ```sh
@@ -12266,6 +12286,7 @@ QUERY_PLAN_CACHE_MEMORY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx pack
 QUERY_PLAN_CACHE_KEY_BREAKDOWN=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 QUERY_PLAN_CACHE_MEMORY_RENDER=1 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts
 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
+WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 WORKERD_RAW_RESULT_SET_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts
 LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts

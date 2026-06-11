@@ -19,6 +19,7 @@ const CLIENT_CACHE_KEY_ITERATIONS = positiveIntegerEnv('WORKERD_CLIENT_CACHE_KEY
 const DESCRIPTOR_ITERATIONS = positiveIntegerEnv('WORKERD_DESCRIPTOR_ITERATIONS', 20_000)
 const PRECOMPUTED_ITERATIONS = positiveIntegerEnv('WORKERD_PRECOMPUTED_ITERATIONS', 20_000)
 const RAW_RESULT_SET_ITERATIONS = positiveIntegerEnv('WORKERD_RAW_RESULT_SET_ITERATIONS', 20_000)
+const MEASUREMENT_FILTER = process.env.WORKERD_QUERY_COMPILER_MEMORY_FILTER
 const CLIENT_RUNTIME_UTILS_PATH = path.join(
   __dirname,
   '..',
@@ -787,6 +788,15 @@ function createBlogPostFeedArgs() {
   }
 }
 
+function createBlogPostFeedByAuthorArgs(iteration) {
+  return {
+    where: { authorId: iteration + 42 },
+    take: 10,
+    orderBy: [{ createdAt: 'desc' }],
+    select: createBlogPostPageSelect((1 << blogPageRootScalarFields.length) - 1),
+  }
+}
+
 function createBlogPostPageSelect(mask) {
   const select = {}
   for (let i = 0; i < blogPageRootScalarFields.length; i++) {
@@ -882,6 +892,8 @@ function createClientArgs(scenario, iteration) {
       return createBlogPostPageArgs(iteration)
     case 'blog-feed':
       return createBlogPostFeedArgs()
+    case 'blog-feed-by-author':
+      return createBlogPostFeedByAuthorArgs(iteration)
     case 'blog-page-alternating':
       return createBlogPostPageRootMaskArgs(iteration % 2 === 0 ? 0b1111111 : 0b0000011, iteration)
     default:
@@ -925,6 +937,76 @@ function createClientProtocolQuery(scenario, iteration) {
         action: 'findMany',
         query: {
           arguments: {
+            take: 10,
+            orderBy: [{ createdAt: 'desc' }],
+          },
+          selection: {
+            id: true,
+            title: true,
+            slug: true,
+            content: true,
+            published: true,
+            viewCount: true,
+            createdAt: true,
+            author: {
+              selection: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+            category: {
+              selection: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            tags: {
+              selection: {
+                tag: {
+                  selection: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+            comments: {
+              arguments: {
+                take: 10,
+                orderBy: [{ createdAt: 'desc' }],
+              },
+              selection: {
+                id: true,
+                content: true,
+                createdAt: true,
+                author: {
+                  selection: {
+                    id: true,
+                    name: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            _count: {
+              selection: {
+                likes: true,
+                comments: true,
+              },
+            },
+          },
+        },
+      }
+    case 'blog-feed-by-author':
+      return {
+        modelName: 'Post',
+        action: 'findMany',
+        query: {
+          arguments: {
+            where: { authorId: iteration + 42 },
             take: 10,
             orderBy: [{ createdAt: 'desc' }],
           },
@@ -1071,6 +1153,8 @@ function tryExtractStaticDescriptor(scenario, args, cacheKey) {
       return tryExtractBlogPostPageDescriptor(args, cacheKey)
     case 'blog-feed':
       return tryExtractBlogPostFeedDescriptor(args, cacheKey)
+    case 'blog-feed-by-author':
+      return tryExtractBlogPostFeedByAuthorDescriptor(args, cacheKey)
     default:
       throw new Error('Unknown static descriptor scenario: ' + scenario)
   }
@@ -1182,6 +1266,44 @@ function tryExtractBlogPostFeedDescriptor(args, cacheKey) {
   return { cacheKey, placeholderValues: {} }
 }
 
+function tryExtractBlogPostFeedByAuthorDescriptor(args, cacheKey) {
+  if (!hasExactKeys(args, ['where', 'take', 'orderBy', 'select']) || args.take !== 10) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['authorId']) || !isInt32(where.authorId)) {
+    return undefined
+  }
+
+  if (!matchesBlogPageOrderBy(args.orderBy)) {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, blogPageRootSelectKeys)) {
+    return undefined
+  }
+
+  for (const field of blogPageRootScalarFields) {
+    if (select[field] !== true) {
+      return undefined
+    }
+  }
+
+  if (
+    !matchesSelectObject(select.author, blogPageUserSelectKeys) ||
+    !matchesSelectObject(select.category, blogPageSlugSelectKeys) ||
+    !matchesBlogPageTagsSelection(select.tags) ||
+    !matchesBlogPageCommentsSelection(select.comments) ||
+    !matchesSelectObject(select._count, blogPageCountSelectKeys)
+  ) {
+    return undefined
+  }
+
+  return { cacheKey, placeholderValues: { '%1': where.authorId } }
+}
+
 function createDescriptorMatcherRegistry() {
   return {
     getMatcher(context) {
@@ -1193,7 +1315,11 @@ function createDescriptorMatcherRegistry() {
       } else if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
         scenario = 'blog-page-by-id'
       } else if (context.model === 'Post' && context.action === 'findMany' && context.clientMethod === 'post.findMany') {
-        scenario = 'blog-feed'
+        const root = getGeneratedExactRoot(context)
+        scenario =
+          root !== undefined && generatedDescriptorHasKeysInOrder(root, ['where', 'take', 'orderBy', 'select'])
+            ? 'blog-feed-by-author'
+            : 'blog-feed'
       } else {
         return undefined
       }
@@ -1220,7 +1346,7 @@ function createExactGeneratedUserDescriptorMatcherRegistry() {
       }
 
       if (context.model === 'Post' && context.action === 'findMany' && context.clientMethod === 'post.findMany') {
-        return bindExactGeneratedBlogPostFeedMatcher(context)
+        return bindExactGeneratedBlogPostFeedByAuthorMatcher(context) ?? bindExactGeneratedBlogPostFeedMatcher(context)
       }
 
       return undefined
@@ -1328,6 +1454,31 @@ function bindExactGeneratedBlogPostFeedMatcher(context) {
   return (args) => matchExactGeneratedBlogPostFeed(args)
 }
 
+function bindExactGeneratedBlogPostFeedByAuthorMatcher(context) {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['where', 'take', 'orderBy', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeysInOrder(where, ['authorId'])) {
+    return undefined
+  }
+
+  const authorId = asGeneratedPlaceholderDescriptor(where.fields.authorId)
+  if (
+    authorId === undefined ||
+    authorId.valueType !== 'int32' ||
+    !isGeneratedConstantDescriptor(root.fields.take, 10) ||
+    !isExactGeneratedBlogPageOrderByDescriptor(root.fields.orderBy) ||
+    getExactGeneratedBlogPostPageSelectDescriptorShape(root.fields.select) !== 'full'
+  ) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedBlogPostFeedByAuthor(args, authorId.name)
+}
+
 function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
   if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
     return undefined
@@ -1400,6 +1551,27 @@ function matchExactGeneratedBlogPostFeed(args) {
   }
 
   return {}
+}
+
+function matchExactGeneratedBlogPostFeedByAuthor(args, authorIdPlaceholder) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder4(args, 'where', 'take', 'orderBy', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'authorId') || !isInt32(where.authorId)) {
+    return undefined
+  }
+
+  if (
+    args.take !== 10 ||
+    !matchesExactGeneratedBlogPageOrderBy(args.orderBy) ||
+    !matchesExactGeneratedBlogPostPageSelect(args.select, 'full')
+  ) {
+    return undefined
+  }
+
+  return { [authorIdPlaceholder]: where.authorId }
 }
 
 function matchesExactGeneratedUserScalarSelect(value) {
@@ -2527,6 +2699,8 @@ function executeClientScenario(client, scenario, iteration) {
       return client.user.findMany(createFindManyUsersArgs())
     case 'blog-feed':
       return client.post.findMany(createBlogPostFeedArgs())
+    case 'blog-feed-by-author':
+      return client.post.findMany(createBlogPostFeedByAuthorArgs(iteration))
     case 'find-unique-batched':
       return Promise.all([
         client.user.findUnique(createFindUniqueArgs(iteration * 2)),
@@ -2548,6 +2722,7 @@ function clientMethodForScenario(scenario) {
     case 'find-many-users':
       return 'user.findMany'
     case 'blog-feed':
+    case 'blog-feed-by-author':
       return 'post.findMany'
     case 'blog-page':
     case 'blog-page-by-id':
@@ -2570,6 +2745,8 @@ function createQuery(scenario, iteration) {
       return createBlogPostPageByIdQuery(iteration + 1)
     case 'blog-feed':
       return createClientProtocolQuery('blog-feed', iteration)
+    case 'blog-feed-by-author':
+      return createClientProtocolQuery('blog-feed-by-author', iteration)
     default:
       throw new Error('Unknown scenario: ' + scenario)
   }
@@ -3333,6 +3510,60 @@ function printMeasurement(measurement: Measurement): void {
   )
 }
 
+function shouldRunFocusedMeasurement(label: string): boolean {
+  return MEASUREMENT_FILTER === undefined || label.includes(MEASUREMENT_FILTER)
+}
+
+async function runFocusedGeneratedMeasurements(clientMf: MiniflareInstance): Promise<void> {
+  const measurements = [
+    [
+      'generated client blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute',
+    ],
+    [
+      'generated client engine precomputed fast path blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-engine-precomputed-fast-path',
+    ],
+    [
+      'generated client request precomputed fast path blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-request-precomputed-fast-path',
+    ],
+    [
+      'generated client descriptor-bound static matcher blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-request-precomputed-descriptor-bound-matcher',
+    ],
+    [
+      'generated client exact descriptor helper blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-request-precomputed-exact-helper',
+    ],
+  ] as const
+
+  let ran = false
+  for (const [label, scenario, iterations, mode] of measurements) {
+    if (!shouldRunFocusedMeasurement(label)) {
+      continue
+    }
+
+    console.log('')
+    printMeasurement(await dispatchRun(clientMf, label, scenario, iterations, true, mode))
+    ran = true
+  }
+
+  if (!ran) {
+    console.log(`No focused Workerd measurements matched ${JSON.stringify(MEASUREMENT_FILTER)}`)
+  }
+}
+
 function printCacheKeyBreakdown(breakdown: CacheKeyBreakdown | undefined): void {
   if (breakdown === undefined || breakdown.keyCount === 0) {
     return
@@ -3381,173 +3612,176 @@ async function run(): Promise<void> {
     runtimeDataModel: dmmfToRuntimeDataModel(dmmf.datamodel),
     parameterizationSchema: buildAndSerializeParamGraph(dmmf),
   }
-  const mf = await createMiniflare(config)
 
-  if (mf === undefined) {
-    return
-  }
+  if (MEASUREMENT_FILTER === undefined) {
+    const mf = await createMiniflare(config)
 
-  try {
-    console.log('Workerd query compiler memory probe')
-    console.log(
-      'Host RSS includes Miniflare/workerd process effects. Use this as a closer edge-runtime signal, not as an exact Cloudflare isolate heap measurement.',
-    )
-    console.log('')
+    if (mf === undefined) {
+      return
+    }
 
-    printMeasurement(await dispatchRun(mf, 'cold smoke compile', 'find-unique', 1, false))
-    console.log('')
+    try {
+      console.log('Workerd query compiler memory probe')
+      console.log(
+        'Host RSS includes Miniflare/workerd process effects. Use this as a closer edge-runtime signal, not as an exact Cloudflare isolate heap measurement.',
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(await dispatchRun(mf, 'retained scalar plan cache', 'user-scalar-selection', 100, true))
-    console.log('')
+      printMeasurement(await dispatchRun(mf, 'cold smoke compile', 'find-unique', 1, false))
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(await dispatchRun(mf, 'retained blog-page plan cache', 'blog-page', 100, true))
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(await dispatchRun(mf, 'retained scalar plan cache', 'user-scalar-selection', 100, true))
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(mf, 'client-cache findUnique value churn', 'find-unique', 100, true, 'client-cache'),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(await dispatchRun(mf, 'retained blog-page plan cache', 'blog-page', 100, true))
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(mf, 'client-cache blog-page value churn', 'blog-page-by-id', 100, true, 'client-cache'),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(mf, 'client-cache findUnique value churn', 'find-unique', 100, true, 'client-cache'),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'client-cache-key findUnique value churn',
-        'find-unique',
-        CLIENT_CACHE_KEY_ITERATIONS,
-        true,
-        'client-cache-key',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(mf, 'client-cache blog-page value churn', 'blog-page-by-id', 100, true, 'client-cache'),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'client-cache-key blog-page value churn',
-        'blog-page-by-id',
-        CLIENT_CACHE_KEY_ITERATIONS,
-        true,
-        'client-cache-key',
-      ),
-    )
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'client-cache-key findUnique value churn',
+          'find-unique',
+          CLIENT_CACHE_KEY_ITERATIONS,
+          true,
+          'client-cache-key',
+        ),
+      )
+      console.log('')
 
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'client-cache-key blog-page value churn',
+          'blog-page-by-id',
+          CLIENT_CACHE_KEY_ITERATIONS,
+          true,
+          'client-cache-key',
+        ),
+      )
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'client-static-descriptor-extract findUnique value churn',
-        'find-unique',
-        DESCRIPTOR_ITERATIONS,
-        false,
-        'client-static-descriptor-extract',
-      ),
-    )
-    console.log('')
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'client-static-descriptor-extract blog-page value churn',
-        'blog-page-by-id',
-        DESCRIPTOR_ITERATIONS,
-        false,
-        'client-static-descriptor-extract',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'client-static-descriptor-extract findUnique value churn',
+          'find-unique',
+          DESCRIPTOR_ITERATIONS,
+          false,
+          'client-static-descriptor-extract',
+        ),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'client-lazy-descriptor-extract findUnique value churn',
-        'find-unique',
-        DESCRIPTOR_ITERATIONS,
-        false,
-        'client-lazy-descriptor-extract',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'client-static-descriptor-extract blog-page value churn',
+          'blog-page-by-id',
+          DESCRIPTOR_ITERATIONS,
+          false,
+          'client-static-descriptor-extract',
+        ),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'client-lazy-descriptor-extract blog-page value churn',
-        'blog-page-by-id',
-        DESCRIPTOR_ITERATIONS,
-        false,
-        'client-lazy-descriptor-extract',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'client-lazy-descriptor-extract findUnique value churn',
+          'find-unique',
+          DESCRIPTOR_ITERATIONS,
+          false,
+          'client-lazy-descriptor-extract',
+        ),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'raw result-set blog page assembly / nested rows',
-        'blog-page-by-id',
-        RAW_RESULT_SET_ITERATIONS,
-        false,
-        'raw-result-set-assembly',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'client-lazy-descriptor-extract blog-page value churn',
+          'blog-page-by-id',
+          DESCRIPTOR_ITERATIONS,
+          false,
+          'client-lazy-descriptor-extract',
+        ),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'raw result-set direct assembler blog page / nested rows',
-        'blog-page-by-id',
-        RAW_RESULT_SET_ITERATIONS,
-        false,
-        'raw-result-set-direct-assembler',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'raw result-set blog page assembly / nested rows',
+          'blog-page-by-id',
+          RAW_RESULT_SET_ITERATIONS,
+          false,
+          'raw-result-set-assembly',
+        ),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'raw result-set writer program blog page / nested rows',
-        'blog-page-by-id',
-        RAW_RESULT_SET_ITERATIONS,
-        false,
-        'raw-result-set-writer-program',
-      ),
-    )
-    console.log('')
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'raw result-set direct assembler blog page / nested rows',
+          'blog-page-by-id',
+          RAW_RESULT_SET_ITERATIONS,
+          false,
+          'raw-result-set-direct-assembler',
+        ),
+      )
+      console.log('')
 
-    await clearWorkerCache(mf)
-    printMeasurement(
-      await dispatchRun(
-        mf,
-        'raw result-set static-wave writer program blog page / nested rows',
-        'blog-page-by-id',
-        RAW_RESULT_SET_ITERATIONS,
-        false,
-        'raw-result-set-static-wave-writer-program',
-      ),
-    )
-  } finally {
-    await mf.dispose()
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'raw result-set writer program blog page / nested rows',
+          'blog-page-by-id',
+          RAW_RESULT_SET_ITERATIONS,
+          false,
+          'raw-result-set-writer-program',
+        ),
+      )
+      console.log('')
+
+      await clearWorkerCache(mf)
+      printMeasurement(
+        await dispatchRun(
+          mf,
+          'raw result-set static-wave writer program blog page / nested rows',
+          'blog-page-by-id',
+          RAW_RESULT_SET_ITERATIONS,
+          false,
+          'raw-result-set-static-wave-writer-program',
+        ),
+      )
+    } finally {
+      await mf.dispose()
+    }
   }
 
   const clientMf = await createMiniflare(config)
@@ -3557,6 +3791,13 @@ async function run(): Promise<void> {
   }
 
   try {
+    if (MEASUREMENT_FILTER !== undefined) {
+      console.log('Workerd query compiler memory probe')
+      console.log(`Focused generated-client filter: ${JSON.stringify(MEASUREMENT_FILTER)}`)
+      await runFocusedGeneratedMeasurements(clientMf)
+      return
+    }
+
     const precomputedMeasurements = [
       [
         'client-internal-precomputed-protocol findUnique value churn',
@@ -3798,6 +4039,61 @@ async function run(): Promise<void> {
         clientMf,
         'generated client exact descriptor helper blog-feed warmed cache',
         'blog-feed',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client blog-feed-by-author warmed cache',
+        'blog-feed-by-author',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client engine precomputed fast path blog-feed-by-author warmed cache',
+        'blog-feed-by-author',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path blog-feed-by-author warmed cache',
+        'blog-feed-by-author',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client descriptor-bound static matcher blog-feed-by-author warmed cache',
+        'blog-feed-by-author',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client exact descriptor helper blog-feed-by-author warmed cache',
+        'blog-feed-by-author',
         GENERATED_BLOG_PAGE_ITERATIONS,
         true,
         'client-execute-request-precomputed-exact-helper',
