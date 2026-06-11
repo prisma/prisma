@@ -12819,6 +12819,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The tiny target-cache fast-path tweak helped some `findMany` rows but lost the targeted `findUnique` rows and the feed exact-helper product row in close control. The accepted `cachedTargetKeys` shape stays.
 
+- Rejected experiment: delete target-cached proxy keys from the layer map.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Removed the separate `cachedTargetKeys` set from `createCompositeProxy()`.
+    - After a stable layer value was cached on the proxy target, deleted that property from `keysToLayerMap` instead of tracking it in a second set.
+    - Goal: let warmed target-cached gets take the `keysToLayerMap.get(prop)` miss and fall through to the target property without a second cached-key membership check, while keeping explicit overwrite semantics separate from the target cache.
+  - Correctness:
+    - `pnpm --filter @prisma/client test createCompositeProxy.test.ts cacheProperties.test.ts applyModel.test.ts --runInBand`: passed.
+    - `pnpm --filter @prisma/client build`: passed on the patched tree before the Workerd comparison.
+    - `pnpm exec prettier --check packages/client/src/runtime/core/compositeProxy/createCompositeProxy.ts`: passed.
+  - Timing:
+    - 500k `findMany users` patch -> close control:
+      - default generated: `2.51 -> 2.45 us/op` (control better).
+      - engine-precomputed: `2.55 -> 2.52` (control better).
+      - request-precomputed: `2.54 -> 2.53` (tie/slightly control).
+      - descriptor-bound static: `2.46 -> 2.37` (control better).
+      - exact-helper: `2.33 -> 2.35` (patch slightly better).
+      - runtime exact-helper: `2.37 -> 2.44` (patch better).
+    - Targeted 500k generated rows patch -> close control:
+      - `generated client exact descriptor helper findUnique`: `2.83 -> 3.15 us/op` (patch better).
+      - `generated client request precomputed fast path findUnique`: `3.07 -> 3.31` (patch better).
+    - 300k feed-by-author patch -> close control:
+      - default generated: `10.68 -> 10.80 us/op` (patch better).
+      - engine-precomputed: `10.71 -> 10.64` (control better).
+      - request-precomputed: `10.94 -> 10.66` (control better).
+      - descriptor-bound static: `9.38 -> 9.39` (tie/slightly patch).
+      - exact-helper: `9.02 -> 9.17` (patch better).
+      - trusted lower-bound helper: `8.74 -> 8.75` (tie).
+    - 20k Workerd feed-by-author patch -> adjacent reverted control:
+      - default generated worker-loop: `8.50 -> 8.60 us/op` (patch better).
+      - engine-precomputed: `7.25 -> 7.70` (patch better).
+      - request-precomputed: `7.35 -> 7.55` (patch better).
+      - descriptor-bound static: `7.20 -> 7.05` (control better).
+      - exact-helper: `6.60 -> 6.55` (control better).
+      - exact-helper host dispatch: `7.83 -> 7.90` (patch slightly better).
+      - hoisted exact worker-loop: `6.05 -> 6.05` (tie).
+  - Decision:
+    - Revert. Node simple rows were mixed and the target-runtime signal rejected the change on the priority descriptor-bound/exact-helper feed rows. Keeping `cachedTargetKeys` is marginally more code, but its Workerd behavior is better and it preserves the accepted target-cache shape without another ambiguous proxy branch reshuffle.
+
 - Accepted benchmark coverage: Workerd hoisted generated action rows.
   - Timestamp: 2026-06-11.
   - Patch:
