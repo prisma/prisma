@@ -11729,6 +11729,17 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This broadens the internal nested exact-helper template from numeric IDs to string unique fields under the same descriptor-bound self-test and oracle proof. It does not change default behavior and is not a new measured speedup by itself, but it makes the exact-helper path less benchmark-special before a real allowlist policy.
 
+- Accepted coverage follow-up: generated-output tests emit the slug blog-page exact descriptor template.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Updated both generator `internal-exact-descriptor-helpers.prisma` fixtures to include `template:Post.findUnique:slug:blogPagePostV1` and mark `Post.slug` as `@unique`.
+    - Extended the generated-output assertions to require the second blog-page binder plus the emitted string placeholder and runtime `typeof value !== "string"` checks.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "emits internal exact descriptor helpers"`: passed.
+  - Decision:
+    - Keep. This proves the real generated JS and TS output includes the string-template binder; the earlier oracle tests were intentionally stronger semantically, but they exercised the generated code through `vm` rather than package generator output.
+
 ## Useful Commands
 
 ```sh

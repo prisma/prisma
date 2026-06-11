@@ -5,7 +5,7 @@ datasource db {
 generator client {
   provider                       = "prisma-client-ts"
   output                         = "./generated-exact-descriptor"
-  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findMany:take:id,email,name", "template:Post.findUnique:id:blogPagePostV1"]
+  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findMany:take:id,email,name", "template:Post.findUnique:id:blogPagePostV1", "template:Post.findUnique:slug:blogPagePostV1"]
 }
 
 model User {
@@ -36,7 +36,7 @@ model Tag {
 model Post {
   id         Int            @id
   title      String
-  slug       String
+  slug       String         @unique
   content    String
   published  Boolean
   viewCount  Int

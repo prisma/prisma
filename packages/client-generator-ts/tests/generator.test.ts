@@ -163,6 +163,7 @@ describe('generator', () => {
     )
     expect(classFile).toContain('config.descriptorMatcherRegistry = {')
     expect(classFile).toContain('function __internalExactDescriptorBindBlogPagePostV1_0')
+    expect(classFile).toContain('function __internalExactDescriptorBindBlogPagePostV1_1')
     expect(classFile).toContain('"model": "User"')
     expect(classFile).toContain('context.model === "Post"')
     expect(classFile).toContain('"action": "findUnique"')
@@ -174,6 +175,9 @@ describe('generator', () => {
     expect(classFile).toContain('"valueType": "bigint"')
     expect(classFile).toContain('"valueType": "boolean"')
     expect(classFile).toContain('"select": [')
+    expect(classFile).toContain('where.fields["slug"]')
+    expect(classFile).toContain('placeholder.valueType !== "string"')
+    expect(classFile).toContain('typeof value !== "string"')
     expect(classFile).toContain('__internalExactDescriptorBlogPagePostV1SelectShape')
   })
 
