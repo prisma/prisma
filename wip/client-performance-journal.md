@@ -13026,6 +13026,43 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The patch was too small and moved the target-runtime rows in the wrong direction. Do not retry cached `paramOverrides` metadata as a standalone cleanup; any next request-path proof should remove a larger action/request phase or specialize the descriptor-hit call directly.
 
+- Rejected generated call-surface cleanup: specialized extension-free edge applied-client proxy.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed `packages/client/src/runtime/core/model/applyModelsAndClientExtensions.ts` to route extension-free `TARGET_BUILD_TYPE === 'wasm-compiler-edge'` clients through a specialized proxy instead of the generic composite proxy.
+    - The specialized proxy kept model delegates in a direct key-to-model table, handled `$parent` / `rawClient` directly, and avoided the generic layer `Map` / `Set` lookup on `client.post`.
+    - Added temporary `applyModelsAndClientExtensions.test.ts` coverage for edge model reuse, `$parent`, `unApplyModelsAndClientExtensions()`, and extension fallback.
+  - Correctness:
+    - With the spike applied: `pnpm exec prettier --check packages/client/src/runtime/core/model/applyModelsAndClientExtensions.ts packages/client/src/runtime/core/model/applyModelsAndClientExtensions.test.ts`: passed.
+    - With the spike applied: `pnpm --filter @prisma/client test applyModelsAndClientExtensions.test.ts applyModel.test.ts createCompositeProxy.test.ts cacheProperties.test.ts --runInBand`: passed, 33 tests and 1 snapshot.
+    - With the spike applied: `pnpm --filter @prisma/client build`: passed before Workerd measurement.
+    - After reverting the spike source/test: `pnpm --filter @prisma/client build`: passed before close control.
+  - Timing:
+    - Rebuilt Workerd 50k feed-by-author specialized proxy worker-loop:
+      - default generated: `7.50 us/op`.
+      - hoisted default: `7.08`.
+      - engine-precomputed: `7.22`.
+      - engine-precomputed hoisted: `6.88`.
+      - request-precomputed: `6.94`.
+      - request-precomputed hoisted: `6.98`.
+      - descriptor-bound static: `6.68`.
+      - descriptor-bound static hoisted: `6.62`.
+      - exact-helper: `6.32`.
+      - exact-helper hoisted: `5.96`.
+    - Rebuilt close control after full source revert:
+      - default generated: `7.30 us/op`.
+      - hoisted default: `6.86`.
+      - engine-precomputed: `7.12`.
+      - engine-precomputed hoisted: `6.70`.
+      - request-precomputed: `6.94`.
+      - request-precomputed hoisted: `6.80`.
+      - descriptor-bound static: `6.70`.
+      - descriptor-bound static hoisted: `6.52`.
+      - exact-helper: `6.26`.
+      - exact-helper hoisted: `6.02`.
+  - Decision:
+    - Revert. The specialized outer proxy only tied or slightly helped descriptor-bound normal and exact-helper hoisted rows, while the close control beat it on default, hoisted default, engine-precomputed, request-precomputed hoisted, descriptor-bound hoisted, and exact-helper normal rows. Do not retry direct-table edge applied-client proxies as a standalone call-surface cleanup; the remaining normal-vs-hoisted gap likely needs generated-code hoisting or a larger generated surface change.
+
 ## Useful Commands
 
 ```sh
