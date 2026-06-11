@@ -11494,6 +11494,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. Avoiding the relation scope objects through a separate single-binding render helper added enough extra call/evaluator shape overhead to soften all product-shaped rows. Do not retry this as a standalone runtime helper; a useful render/scope proof likely needs a larger compiled query-leaf shape that avoids both scope objects and generic render/evaluate machinery together.
 
+- Accepted optimization: compiled final-owner query-leaf renderers.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added strict final-owner-local compact template SQL renderers in `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`.
+    - The renderer is compiled once per accepted final-owner raw-nested relation query, only for compact template SQL with direct placeholders/constants and `T` tuple fragments. It rejects raw SQL, generators, tuple-list fragments, arg-type tuples, mismatched scope names, and mismatched arg-type counts.
+    - Final-owner relation query execution now tries the compiled renderer first and falls back to `#executeRawNestedReadDbQuery()` plus `createRawNestedRelationScope()` if the query shape is unsupported or exceeds the max bind limit. Comments/instrumentation still use the pre-existing generic raw-nested fallback before this path.
+    - Updated `query-interpreter.test.ts` final-owner/wrapper-list fixtures to exercise compiler-style tuple fragments so the tuple renderer branch is covered by the focused interpreter test.
+  - Verification:
+    - `git diff --check`: passed.
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 249 tests under the package's test-filter behavior.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client build`: passed before the test-only fixture edits; runtime source was already at the accepted shape.
+  - Close control:
+    - The immediately preceding reverted controls from this turn measured direct / exact compact / generated nested rows at 5.77 / 5.77 / 12.18 us/op.
+    - The prior committed lazy-dedupe checkpoint measured direct / exact compact / generated nested rows at 5.78 / 5.35 / 11.77 us/op.
+  - Timing:
+    - Initial patched gate: direct 4.45 us/op, exact compact 4.43 us/op, generated nested 9.96 us/op.
+    - Repeat with higher iterations: `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 ...`: 4.34 us/op, `queryRaw=3500000`.
+    - Repeat with higher iterations: `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=200000 ...`: 9.53 us/op, `queryRaw=1400000`.
+    - Final post-test/build source sample: direct 4.45 us/op, exact compact 4.39 us/op, generated nested 9.96 us/op.
+    - Properly warmed Workerd smoke after rebuilding `@prisma/client` with `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`:
+      - default generated blog-page: 11.50 us/op host-dispatch, 10.40 us/op worker loop, `queryRaw=140000`.
+      - engine-precomputed blog-page: 7.63 us/op host-dispatch, 6.45 us/op worker loop, `precomputed fast path: hits 20000`.
+      - request-precomputed blog-page: 10.15 us/op host-dispatch, 9.10 us/op worker loop, `precomputed fast path: hits 20000`.
+      - alternating-shape default generated blog-page: 11.44 us/op host-dispatch, 10.35 us/op worker loop, one compile miss as expected.
+  - Decision:
+    - Keep. This is the larger render/scope phase removal that the rejected single-binding helper pointed toward: it avoids relation scope objects and generic render/evaluate machinery together for the current final-owner raw-nested relation shape. The focused Node product-shaped rows improve materially versus both the close control and the prior committed checkpoint, and the Workerd nested rows stay healthy with stronger precomputed-path timings. Preserve the strict guards and fallback instead of widening this into a generic render helper without product-shaped evidence.
+
 ## Useful Commands
 
 ```sh

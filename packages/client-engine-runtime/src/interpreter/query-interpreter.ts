@@ -1,4 +1,11 @@
-import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
+import {
+  ArgScalarType,
+  ArgType,
+  ConnectionInfo,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
+} from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 import { klona } from 'klona'
 
@@ -6,17 +13,20 @@ import { QueryEvent } from '../events'
 import {
   type CompactJoinExpression,
   type CompactResultObjectNode,
+  type DynamicArgType,
   FieldInitializer,
   FieldOperation,
   type FieldType,
   getPrismaValueGeneratorArgs,
   getPrismaValueGeneratorName,
   getPrismaValuePlaceholderName,
+  getPrismaValuePlaceholderType,
   getValidationError,
   InMemoryOps,
   isPrismaValueGenerator,
   isPrismaValuePlaceholder,
   JoinExpression,
+  type QueryPlanArgScalarType,
   type QueryPlanBinding,
   type QueryPlanCompactNode,
   QueryPlanDbQuery,
@@ -867,40 +877,37 @@ export class QueryInterpreter {
       const childList = program.childListRelation
 
       const [uniqueResult0, uniqueResult1, wrapperResultSet, childListResultSet] = await Promise.all([
-        this.#executeRawNestedReadDbQuery(
+        this.#executeRawNestedFinalOwnerDbQuery(
           unique0.query,
+          unique0.renderQuery,
           context,
-          createRawNestedRelationScope(
-            context.scope,
-            unique0.scopeName,
-            rootRow[unique0.parentColumnIndex],
-            unique0.canUseLocalScope,
-          ),
+          unique0.scopeName,
+          rootRow[unique0.parentColumnIndex],
+          unique0.canUseLocalScope,
         ),
-        this.#executeRawNestedReadDbQuery(
+        this.#executeRawNestedFinalOwnerDbQuery(
           unique1.query,
+          unique1.renderQuery,
           context,
-          createRawNestedRelationScope(
-            context.scope,
-            unique1.scopeName,
-            rootRow[unique1.parentColumnIndex],
-            unique1.canUseLocalScope,
-          ),
+          unique1.scopeName,
+          rootRow[unique1.parentColumnIndex],
+          unique1.canUseLocalScope,
         ),
-        this.#executeRawNestedReadDbQuery(
+        this.#executeRawNestedFinalOwnerDbQuery(
           wrapperList.sourceQuery,
+          wrapperList.renderSourceQuery,
           context,
-          createRawNestedRelationScope(
-            context.scope,
-            wrapperList.sourceScopeName,
-            rootKey,
-            wrapperList.canUseLocalSourceScope,
-          ),
+          wrapperList.sourceScopeName,
+          rootKey,
+          wrapperList.canUseLocalSourceScope,
         ),
-        this.#executeRawNestedReadDbQuery(
+        this.#executeRawNestedFinalOwnerDbQuery(
           childList.query,
+          childList.renderQuery,
           context,
-          createRawNestedRelationScope(context.scope, childList.scopeName, rootKey, childList.canUseLocalScope),
+          childList.scopeName,
+          rootKey,
+          childList.canUseLocalScope,
         ),
       ])
 
@@ -950,25 +957,21 @@ export class QueryInterpreter {
 
       if (hasWrapperTargets && hasChildTargets) {
         const [wrapperChildResultSet, childTargetResultSet] = await Promise.all([
-          this.#executeRawNestedReadDbQuery(
+          this.#executeRawNestedFinalOwnerDbQuery(
             wrapperList.childQuery,
+            wrapperList.renderChildQuery,
             context,
-            createRawNestedRelationScope(
-              context.scope,
-              wrapperList.childScopeName,
-              wrapperTargetIds,
-              wrapperList.canUseLocalChildScope,
-            ),
+            wrapperList.childScopeName,
+            wrapperTargetIds,
+            wrapperList.canUseLocalChildScope,
           ),
-          this.#executeRawNestedReadDbQuery(
+          this.#executeRawNestedFinalOwnerDbQuery(
             childList.uniqueRelationQuery,
+            childList.renderUniqueRelationQuery,
             context,
-            createRawNestedRelationScope(
-              context.scope,
-              childList.uniqueRelationScopeName,
-              childTargetIds,
-              childList.canUseLocalUniqueRelationScope,
-            ),
+            childList.uniqueRelationScopeName,
+            childTargetIds,
+            childList.canUseLocalUniqueRelationScope,
           ),
         ])
         root[wrapperList.fieldName] = mapRawNestedFinalOwnerWrapperList(
@@ -979,15 +982,13 @@ export class QueryInterpreter {
         )
         attachRawNestedFinalOwnerUniqueChildren(childTargets, childList, childTargetResultSet.rows)
       } else if (hasWrapperTargets) {
-        const wrapperChildResultSet = await this.#executeRawNestedReadDbQuery(
+        const wrapperChildResultSet = await this.#executeRawNestedFinalOwnerDbQuery(
           wrapperList.childQuery,
+          wrapperList.renderChildQuery,
           context,
-          createRawNestedRelationScope(
-            context.scope,
-            wrapperList.childScopeName,
-            wrapperTargetIds,
-            wrapperList.canUseLocalChildScope,
-          ),
+          wrapperList.childScopeName,
+          wrapperTargetIds,
+          wrapperList.canUseLocalChildScope,
         )
         root[wrapperList.fieldName] = mapRawNestedFinalOwnerWrapperList(
           rootKey,
@@ -997,15 +998,13 @@ export class QueryInterpreter {
         )
       } else {
         root[wrapperList.fieldName] = []
-        const childTargetResultSet = await this.#executeRawNestedReadDbQuery(
+        const childTargetResultSet = await this.#executeRawNestedFinalOwnerDbQuery(
           childList.uniqueRelationQuery,
+          childList.renderUniqueRelationQuery,
           context,
-          createRawNestedRelationScope(
-            context.scope,
-            childList.uniqueRelationScopeName,
-            childTargetIds,
-            childList.canUseLocalUniqueRelationScope,
-          ),
+          childList.uniqueRelationScopeName,
+          childTargetIds,
+          childList.canUseLocalUniqueRelationScope,
         )
         attachRawNestedFinalOwnerUniqueChildren(childTargets, childList, childTargetResultSet.rows)
       }
@@ -1211,6 +1210,28 @@ export class QueryInterpreter {
     return this.#executeQuery(dbQuery, { ...context, scope })
   }
 
+  #executeRawNestedFinalOwnerDbQuery(
+    dbQuery: QueryPlanDbQuery,
+    renderDbQuery: RawNestedFinalOwnerQueryRenderer | undefined,
+    context: QueryRuntimeContext,
+    scopeName: string,
+    scopeValue: unknown,
+    canUseLocalScope: boolean,
+  ): Promise<SqlResultSet> {
+    if (renderDbQuery !== undefined) {
+      const rendered = renderDbQuery(scopeValue, this.#maxChunkSize)
+      if (rendered !== undefined && rendered.length === 1 && !isRawSqlQuery(dbQuery)) {
+        return context.queryable.queryRaw(asMutable(rendered[0]))
+      }
+    }
+
+    return this.#executeRawNestedReadDbQuery(
+      dbQuery,
+      context,
+      createRawNestedRelationScope(context.scope, scopeName, scopeValue, canUseLocalScope),
+    )
+  }
+
   #withQuerySpanAndEvent<T>(
     query: DeepReadonly<SqlQuery>,
     queryable: SqlQueryable,
@@ -1352,10 +1373,15 @@ type RawNestedFinalOwnerProgram = {
 }
 
 type RawNestedFinalOwnerRowWriter = (row: readonly unknown[]) => PrismaObject
+type RawNestedFinalOwnerQueryRenderer = (
+  bindingValue: unknown,
+  maxChunkSize: number | undefined,
+) => DeepReadonly<SqlQuery>[] | undefined
 
 type RawNestedFinalOwnerUniqueRelation = {
   fieldName: string
   query: QueryPlanDbQuery
+  renderQuery: RawNestedFinalOwnerQueryRenderer | undefined
   parentColumnIndex: number
   childColumnIndex: number
   scopeName: string
@@ -1366,6 +1392,7 @@ type RawNestedFinalOwnerUniqueRelation = {
 type RawNestedFinalOwnerWrapperListRelation = {
   fieldName: string
   sourceQuery: QueryPlanDbQuery
+  renderSourceQuery: RawNestedFinalOwnerQueryRenderer | undefined
   sourceParentColumnIndex: number
   sourceChildColumnIndex: number
   sourceScopeName: string
@@ -1373,6 +1400,7 @@ type RawNestedFinalOwnerWrapperListRelation = {
   wrapperChildColumnIndex: number
   childFieldName: string
   childQuery: QueryPlanDbQuery
+  renderChildQuery: RawNestedFinalOwnerQueryRenderer | undefined
   childColumnIndex: number
   childScopeName: string
   canUseLocalChildScope: boolean
@@ -1382,6 +1410,7 @@ type RawNestedFinalOwnerWrapperListRelation = {
 type RawNestedFinalOwnerChildListRelation = {
   fieldName: string
   query: QueryPlanDbQuery
+  renderQuery: RawNestedFinalOwnerQueryRenderer | undefined
   parentColumnIndex: number
   childColumnIndex: number
   scopeName: string
@@ -1389,6 +1418,7 @@ type RawNestedFinalOwnerChildListRelation = {
   writeChild: RawNestedFinalOwnerRowWriter
   uniqueRelationFieldName: string
   uniqueRelationQuery: QueryPlanDbQuery
+  renderUniqueRelationQuery: RawNestedFinalOwnerQueryRenderer | undefined
   uniqueRelationParentColumnIndex: number
   uniqueRelationChildColumnIndex: number
   uniqueRelationScopeName: string
@@ -1399,6 +1429,236 @@ type RawNestedFinalOwnerChildListRelation = {
 type RawNestedFinalOwnerChildTarget = {
   id: unknown
   record: PrismaObject
+}
+
+type RawNestedFinalOwnerQueryArg = { kind: 'binding'; dateTime: boolean } | { kind: 'constant'; value: unknown }
+
+type RawNestedFinalOwnerRenderPart =
+  | string
+  | { kind: 'param'; argIndex: number }
+  | {
+      kind: 'tuple'
+      argIndex: number
+      itemPrefix: string
+      itemSeparator: string
+      itemSuffix: string
+    }
+
+function tryCompileRawNestedFinalOwnerQueryRenderer(
+  dbQuery: QueryPlanDbQuery,
+  scopeName: string,
+): RawNestedFinalOwnerQueryRenderer | undefined {
+  if (!Array.isArray(dbQuery)) {
+    return undefined
+  }
+
+  const fragments = dbQuery[0]
+  const placeholderPrefix = dbQuery[1][0]
+  const placeholderHasNumbering = dbQuery[1][1]
+  const queryArgs = dbQuery[2]
+  const argTypes = dbQuery[3]
+  if (argTypes.length !== queryArgs.length) {
+    return undefined
+  }
+
+  const compiledArgs = new Array<RawNestedFinalOwnerQueryArg>(queryArgs.length)
+  const compiledArgTypes = new Array<ArgType>(argTypes.length)
+
+  for (let i = 0; i < queryArgs.length; i++) {
+    const arg = queryArgs[i]
+    if (isPrismaValuePlaceholder(arg)) {
+      if (getPrismaValuePlaceholderName(arg) !== scopeName) {
+        return undefined
+      }
+      compiledArgs[i] = {
+        kind: 'binding',
+        dateTime: getPrismaValuePlaceholderType(arg) === 'DateTime',
+      }
+    } else if (isPrismaValueGenerator(arg)) {
+      return undefined
+    } else {
+      compiledArgs[i] = { kind: 'constant', value: arg }
+    }
+
+    const argType = toRawNestedFinalOwnerArgType(argTypes[i])
+    if (argType === undefined) {
+      return undefined
+    }
+    compiledArgTypes[i] = argType
+  }
+
+  const parts: RawNestedFinalOwnerRenderPart[] = []
+  let placeholderNumber = 1
+  let paramIndex = 0
+  let hasTuple = false
+
+  for (let i = 0; i < fragments.length; i++) {
+    const fragment = fragments[i]
+    if (typeof fragment === 'string') {
+      parts.push(fragment)
+      continue
+    }
+
+    if (paramIndex >= compiledArgs.length) {
+      return undefined
+    }
+
+    if (fragment === null) {
+      parts.push(renderRawNestedFinalOwnerPlaceholder(placeholderPrefix, placeholderHasNumbering, placeholderNumber++))
+      parts.push({ kind: 'param', argIndex: paramIndex++ })
+      continue
+    }
+
+    if (fragment[0] !== 'T') {
+      return undefined
+    }
+
+    hasTuple = true
+    parts.push({
+      kind: 'tuple',
+      argIndex: paramIndex++,
+      itemPrefix: fragment[1],
+      itemSeparator: fragment[2],
+      itemSuffix: fragment[3],
+    })
+  }
+
+  if (paramIndex !== compiledArgs.length) {
+    return undefined
+  }
+
+  if (!hasTuple) {
+    const sqlParts = new Array<string>(parts.length)
+    const argIndexes: number[] = []
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i]
+      if (typeof part === 'string') {
+        sqlParts[i] = part
+      } else if (part.kind === 'param') {
+        sqlParts[i] = ''
+        argIndexes.push(part.argIndex)
+      } else {
+        return undefined
+      }
+    }
+
+    const sql = sqlParts.join('')
+    return (bindingValue, maxChunkSize) => {
+      if (maxChunkSize !== undefined && argIndexes.length > maxChunkSize) {
+        return undefined
+      }
+
+      const args = new Array<unknown>(argIndexes.length)
+      for (let i = 0; i < argIndexes.length; i++) {
+        args[i] = resolveRawNestedFinalOwnerQueryArg(compiledArgs[argIndexes[i]], bindingValue)
+      }
+      return [{ sql, args, argTypes: compiledArgTypes }]
+    }
+  }
+
+  return (bindingValue, maxChunkSize) => {
+    let sql = ''
+    let renderedParamCount = 0
+    let nextPlaceholderNumber = 1
+    const args: unknown[] = []
+    const renderedArgTypes: ArgType[] = []
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i]
+      if (typeof part === 'string') {
+        sql += part
+        continue
+      }
+
+      const value = resolveRawNestedFinalOwnerQueryArg(compiledArgs[part.argIndex], bindingValue)
+      if (part.kind === 'param') {
+        sql += renderRawNestedFinalOwnerPlaceholder(placeholderPrefix, placeholderHasNumbering, nextPlaceholderNumber++)
+        args.push(value)
+        renderedArgTypes.push(compiledArgTypes[part.argIndex])
+        renderedParamCount++
+        continue
+      }
+
+      const tuple = Array.isArray(value) ? value : [value]
+      sql += renderRawNestedFinalOwnerTuplePlaceholders(
+        part,
+        tuple.length,
+        placeholderPrefix,
+        placeholderHasNumbering,
+        nextPlaceholderNumber,
+      )
+      nextPlaceholderNumber += tuple.length
+      renderedParamCount += tuple.length
+      for (let tupleIndex = 0; tupleIndex < tuple.length; tupleIndex++) {
+        args.push(tuple[tupleIndex])
+        renderedArgTypes.push(compiledArgTypes[part.argIndex])
+      }
+    }
+
+    if (maxChunkSize !== undefined && renderedParamCount > maxChunkSize) {
+      return undefined
+    }
+
+    return [{ sql, args, argTypes: renderedArgTypes }]
+  }
+}
+
+function resolveRawNestedFinalOwnerQueryArg(arg: RawNestedFinalOwnerQueryArg, bindingValue: unknown): unknown {
+  if (arg.kind === 'constant') {
+    return arg.value
+  }
+  if (arg.dateTime && typeof bindingValue === 'string') {
+    return new Date(bindingValue)
+  }
+  return bindingValue
+}
+
+function renderRawNestedFinalOwnerPlaceholder(
+  placeholderPrefix: string,
+  placeholderHasNumbering: boolean,
+  placeholderNumber: number,
+): string {
+  return placeholderHasNumbering ? `${placeholderPrefix}${placeholderNumber}` : placeholderPrefix
+}
+
+function renderRawNestedFinalOwnerTuplePlaceholders(
+  fragment: Extract<RawNestedFinalOwnerRenderPart, { kind: 'tuple' }>,
+  length: number,
+  placeholderPrefix: string,
+  placeholderHasNumbering: boolean,
+  placeholderNumber: number,
+): string {
+  if (length === 0) {
+    return '(NULL)'
+  }
+
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    if (i > 0) {
+      result += fragment.itemSeparator
+    }
+    result += fragment.itemPrefix
+    result += renderRawNestedFinalOwnerPlaceholder(placeholderPrefix, placeholderHasNumbering, placeholderNumber++)
+    result += fragment.itemSuffix
+  }
+  return `(${result})`
+}
+
+function toRawNestedFinalOwnerArgType(argType: DynamicArgType): ArgType | undefined {
+  if (typeof argType === 'string') {
+    return RAW_NESTED_FINAL_OWNER_ARG_TYPES[argType]
+  }
+  if (Array.isArray(argType)) {
+    return {
+      arity: 'scalar',
+      scalarType: RAW_NESTED_FINAL_OWNER_ARG_TYPE_NAMES[argType[0]],
+      dbType: argType[1],
+    }
+  }
+  if (typeof argType === 'object' && !Array.isArray(argType) && 'arity' in argType && argType.arity === 'tuple') {
+    return undefined
+  }
+  return argType as ArgType
 }
 
 function tryCompileRawNestedFinalOwnerProgram(query: RawNestedReadQuery): RawNestedFinalOwnerProgram | undefined {
@@ -1478,6 +1738,7 @@ function tryCompileRawNestedFinalOwnerUniqueRelation(
   return {
     fieldName: relation[1],
     query: childQuery[0],
+    renderQuery: tryCompileRawNestedFinalOwnerQueryRenderer(childQuery[0], relation[5]),
     parentColumnIndex: relation[3],
     childColumnIndex: relation[4],
     scopeName: relation[5],
@@ -1517,6 +1778,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
   return {
     fieldName: relation[1],
     sourceQuery: sourceQuery[0],
+    renderSourceQuery: tryCompileRawNestedFinalOwnerQueryRenderer(sourceQuery[0], relation[5]),
     sourceParentColumnIndex: relation[3],
     sourceChildColumnIndex: relation[4],
     sourceScopeName: relation[5],
@@ -1524,6 +1786,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
     wrapperChildColumnIndex: childRelation[3],
     childFieldName: childRelation[1],
     childQuery: childRelation[2][0],
+    renderChildQuery: tryCompileRawNestedFinalOwnerQueryRenderer(childRelation[2][0], childRelation[5]),
     childColumnIndex: childRelation[4],
     childScopeName: childRelation[5],
     canUseLocalChildScope: true,
@@ -1563,6 +1826,7 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
   return {
     fieldName: relation[1],
     query: childQuery[0],
+    renderQuery: tryCompileRawNestedFinalOwnerQueryRenderer(childQuery[0], relation[5]),
     parentColumnIndex: relation[3],
     childColumnIndex: relation[4],
     scopeName: relation[5],
@@ -1570,6 +1834,7 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
     writeChild,
     uniqueRelationFieldName: uniqueRelation[1],
     uniqueRelationQuery: uniqueRelation[2][0],
+    renderUniqueRelationQuery: tryCompileRawNestedFinalOwnerQueryRenderer(uniqueRelation[2][0], uniqueRelation[5]),
     uniqueRelationParentColumnIndex: uniqueRelation[3],
     uniqueRelationChildColumnIndex: uniqueRelation[4],
     uniqueRelationScopeName: uniqueRelation[5],
@@ -1867,6 +2132,64 @@ const RAW_NESTED_CONVERT_UNSUPPORTED = 5
 const RAW_NESTED_CONVERT_DATE_JS = 6
 const RAW_NESTED_CONVERT_FULL = 7
 const RAW_NESTED_INDEX_THRESHOLD = 8
+const RAW_NESTED_FINAL_OWNER_STRING_ARG_TYPE = Object.freeze({
+  arity: 'scalar',
+  scalarType: 'string',
+}) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_INT_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'int' }) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_BIGINT_ARG_TYPE = Object.freeze({
+  arity: 'scalar',
+  scalarType: 'bigint',
+}) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_FLOAT_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'float' }) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_DECIMAL_ARG_TYPE = Object.freeze({
+  arity: 'scalar',
+  scalarType: 'decimal',
+}) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_BOOLEAN_ARG_TYPE = Object.freeze({
+  arity: 'scalar',
+  scalarType: 'boolean',
+}) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_ENUM_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'enum' }) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_UUID_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'uuid' }) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_JSON_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'json' }) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_DATETIME_ARG_TYPE = Object.freeze({
+  arity: 'scalar',
+  scalarType: 'datetime',
+}) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_BYTES_ARG_TYPE = Object.freeze({ arity: 'scalar', scalarType: 'bytes' }) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_UNKNOWN_ARG_TYPE = Object.freeze({
+  arity: 'scalar',
+  scalarType: 'unknown',
+}) satisfies ArgType
+const RAW_NESTED_FINAL_OWNER_ARG_TYPES: Record<QueryPlanArgScalarType, ArgType> = Object.freeze({
+  s: RAW_NESTED_FINAL_OWNER_STRING_ARG_TYPE,
+  i: RAW_NESTED_FINAL_OWNER_INT_ARG_TYPE,
+  I: RAW_NESTED_FINAL_OWNER_BIGINT_ARG_TYPE,
+  f: RAW_NESTED_FINAL_OWNER_FLOAT_ARG_TYPE,
+  d: RAW_NESTED_FINAL_OWNER_DECIMAL_ARG_TYPE,
+  b: RAW_NESTED_FINAL_OWNER_BOOLEAN_ARG_TYPE,
+  e: RAW_NESTED_FINAL_OWNER_ENUM_ARG_TYPE,
+  u: RAW_NESTED_FINAL_OWNER_UUID_ARG_TYPE,
+  j: RAW_NESTED_FINAL_OWNER_JSON_ARG_TYPE,
+  D: RAW_NESTED_FINAL_OWNER_DATETIME_ARG_TYPE,
+  B: RAW_NESTED_FINAL_OWNER_BYTES_ARG_TYPE,
+  '?': RAW_NESTED_FINAL_OWNER_UNKNOWN_ARG_TYPE,
+})
+const RAW_NESTED_FINAL_OWNER_ARG_TYPE_NAMES: Record<QueryPlanArgScalarType, ArgScalarType> = Object.freeze({
+  s: 'string',
+  i: 'int',
+  I: 'bigint',
+  f: 'float',
+  d: 'decimal',
+  b: 'boolean',
+  e: 'enum',
+  u: 'uuid',
+  j: 'json',
+  D: 'datetime',
+  B: 'bytes',
+  '?': 'unknown',
+})
 
 type RawNestedConvertKind =
   | typeof RAW_NESTED_CONVERT_STRING

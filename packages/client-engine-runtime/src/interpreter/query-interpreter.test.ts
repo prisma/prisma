@@ -486,7 +486,7 @@ test('interprets compact raw nested read wrapper-list relations', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', 1)
   const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', { $p: ['@parent$id', 'int'] })
-  const tagQuery = templateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const tagQuery = tupleTemplateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
   const plan = [
     'n',
     [
@@ -566,7 +566,7 @@ test('interprets compact raw nested read wrapper-list relations', async () => {
     id: 1,
     tags: [{ tag: { id: 10, name: 'Rust' } }, { tag: { id: 11, name: 'Wasm' } }],
   })
-  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [[10, 11]]])
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [1], [10, 11]])
 })
 
 test('interprets compact raw nested read wrapper relations', async () => {
@@ -672,11 +672,11 @@ test('interprets compact raw nested read final-owner relations with scalar metad
   const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', {
     $p: ['@parent$id', 'int'],
   })
-  const tagQuery = templateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const tagQuery = tupleTemplateQuery('SELECT id, name FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
   const commentsQuery = templateQuery('SELECT id, createdAt, authorId, postId FROM Comment WHERE postId = ', {
     $p: ['@parent$id', 'int'],
   })
-  const commentAuthorQuery = templateQuery('SELECT id, name FROM User WHERE id IN ', {
+  const commentAuthorQuery = tupleTemplateQuery('SELECT id, name FROM User WHERE id IN ', {
     $p: ['@parent$authorId', 'int'],
   })
   const plan = [
@@ -872,7 +872,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
       { id: 201, createdAt: new Date('2024-01-03T00:00:00.000Z'), author: { id: 11, name: 'Bob' } },
     ],
   })
-  expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [20], [1], [1], [[100, 101]], [[10, 11]]])
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [20], [1], [1], [100, 101], [10, 11]])
 })
 
 test('skips compact raw nested read wrapper children for empty wrapper rows', async () => {
@@ -1255,6 +1255,9 @@ function emptyResultSet(): SqlResultSet {
 }
 function templateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
   return [[sqlPrefix, null], ['?', false], [arg], ['i'], false]
+}
+function tupleTemplateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
+  return [[sqlPrefix, ['T', '', ',', '']], ['?', false], [arg], ['i'], true]
 }
 function rejectingQueryable(): SqlQueryable {
   return {
