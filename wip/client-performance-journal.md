@@ -12471,6 +12471,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Interpretation:
     - The correctness follow-up stayed in the expected post-non-unique-final-owner band. This refresh is not a keep/revert gate for a speed change; it confirms the local build artifacts are coherent after the committed fallback/filter fix.
 
+- Rejected runtime experiment: non-unique final-owner second-wave branch scheduling.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Replaced the non-unique final-owner second-wave `Promise.all([maybePromise.then(...), maybePromise.then(...)])` shape with explicit `hasWrapperTargets` / `hasChildTargets` branches.
+    - The goal was to avoid two `.then((resultSet) => resultSet.rows)` continuations and `Promise.resolve([])` placeholders on the current feed fixture while keeping the executor shape otherwise unchanged.
+    - This was the same lead a read-only scout independently identified as a plausible narrow runtime cleanup.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts` passed, 26 tests.
+    - With the spike applied: `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Timing:
+    - First patched 100k full feed table:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `10.42 / 10.49 / 9.42 / 9.32 us/op`.
+      - direct / raw compact / exact compact / direct after phase warmup / local executor: `7.37 / 7.43 / 7.44 / 7.53 / 7.49 us/op`.
+    - Close reversed control after rebuilding:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `10.29 / 11.00 / 9.91 / 9.75 us/op`.
+      - direct / raw compact / exact compact / direct after phase warmup / local executor: `7.83 / 8.73 / 7.88 / 7.93 / 7.93 us/op`.
+    - Reapplied 100k after rebuilding:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `10.13 / 11.13 / 9.70 / 9.28 us/op`.
+      - direct / raw compact / exact compact / direct after phase warmup / local executor: `7.38 / 7.36 / 7.29 / 7.44 / 7.42 us/op`.
+    - Isolated 300k rows, patched:
+      - generated default / request-precomputed / exact-helper / direct after phase warmup: `10.27 / 10.04 / 9.27 / 6.89 us/op`.
+    - Isolated 300k rows, reverted control:
+      - generated default / request-precomputed / exact-helper / direct after phase warmup: `10.22 / 10.37 / 8.99 / 6.94 us/op`.
+  - Decision:
+    - Revert. The branch shape helps request-precomputed and phase-warmed direct in the isolated 300k rows, but generated default is neutral/slightly worse and exact-helper regresses materially (`8.99 -> 9.27 us/op`). Do not retry second-wave scheduling as a standalone cleanup; it needs to be part of a larger relation assembly rewrite or static writer schedule.
+
 ## Useful Commands
 
 ```sh
