@@ -854,6 +854,9 @@ export class QueryInterpreter {
       if (context.hasSqlCommenter || context.usesQueryInstrumentation) {
         fallbackQuery ??= this.#compileRawNestedReadQuery(query, enums)
         const fallbackResult = await fallbackQuery(context, context.scope)
+        if (!unique) {
+          return { value: fallbackResult.records }
+        }
         if (fallbackResult.records.length > 1) {
           throw new Error(`Expected zero or one element, got ${fallbackResult.records.length}`)
         }
@@ -1053,7 +1056,11 @@ export class QueryInterpreter {
       )
 
       const wrapperRows = wrapperResultSet.rows
-      const childListRows = childListResultSet.rows
+      const childListRows = filterRawNestedRelationRows(
+        childListResultSet.rows,
+        childList.childColumnIndex,
+        childList.operations,
+      )
       const listRecords: PrismaObject[] = []
       const childTargets: RawNestedFinalOwnerChildTarget[] = []
       const childTargetIds: unknown[] = []

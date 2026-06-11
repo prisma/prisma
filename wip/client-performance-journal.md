@@ -12420,6 +12420,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - This also removes the known over-fetch for paginated child rows in this strict final-owner path: nested comment authors are loaded only for kept comments. The generic fallback still applies relation ops after child-query recursion, so keep the new test if refactoring this path.
     - The remaining feed gap is now roughly generated wrapper/descriptor overhead plus final-owner relation assembly cost above the 7 us/op direct path. Further raw-nested feed work should profile this new non-unique final-owner executor, not the old compact-join process nodes.
 
+- Accepted correctness follow-up: final-owner relation-op filtering and non-unique fallback.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - `#tryCompileRawNestedFinalOwnerRead()` now returns `fallbackResult.records` for non-unique reads when SQL comments or query instrumentation force the generic raw-nested fallback. The old fallback branch was still unique-shaped and would throw on more than one root record.
+    - The unique-root final-owner direct path now filters `childListResultSet.rows` through `filterRawNestedRelationRows()` before loading nested unique child rows, matching the non-unique direct path for supported no-cursor relation pagination.
+    - Extended `query-interpreter.test.ts` final-owner coverage so the unique-root fixture uses `comments.take: 1`, the non-unique fixture covers one-root and two-root result sets, and the non-unique SQL-comment fallback returns the same array-shaped result.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 26 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Decision:
+    - Keep as correctness and coverage. This is not a performance win, but it closes the fallback and unique-root relation-op semantics exposed by the accepted non-unique final-owner path. The fake adapter in the test now respects the requested post ids so the one-root semantic check mirrors real SQL filtering.
+
+- Rejected runtime experiment: one-root branch for non-unique raw-nested final-owner execution.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily added a `rootResultSet.rows.length === 1` branch inside the non-unique final-owner executor.
+    - The branch reused the unique-root direct assembly shape but returned `[root]`, avoiding the generic root-array/page-scope assembly path for one-row `findMany` results.
+    - Kept the correctness fixes above separately after reverting the branch.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts` passed, 26 tests; `pnpm --filter @prisma/client-engine-runtime build` passed.
+  - Timing:
+    - First patched 100k full feed table looked positive:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `10.18 / 10.05 / 9.01 / 8.88 us/op`.
+      - direct / direct after phase warmup / local executor: `6.82 / 7.56 / 7.55 us/op`.
+    - Close control after reversing and rebuilding:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `10.35 / 10.68 / 9.61 / 9.39 us/op`.
+      - direct / direct after phase warmup / local executor: `7.35 / 7.51 / 7.52 us/op`.
+    - Reapplied 100k after rebuilding was mixed:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `11.21 / 10.42 / 9.30 / 9.20 us/op`.
+      - direct / direct after phase warmup / local executor: `7.07 / 7.84 / 7.83 us/op`.
+    - Isolated 300k row checks were still mixed:
+      - Patched exact-helper / direct-after-phase / generated default: `9.00 / 6.68 / 10.10 us/op`.
+      - Reverted control exact-helper / direct-after-phase / generated default: `8.85 / 6.89 / 10.15 us/op`.
+  - Decision:
+    - Revert the one-root branch. It helps isolated direct execution slightly but fails the generated/exact-helper gate and adds a large duplicated executor branch. Do not retry one-root final-owner branching unless a profile shows the generic root-array assembly itself dominating a real product row; a useful follow-up should remove a larger relation assembly phase or emit a static writer schedule.
+
 ## Useful Commands
 
 ```sh

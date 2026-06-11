@@ -857,7 +857,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
           3,
           '@parent$id',
           false,
-          {},
+          { pagination: { take: 1 } },
         ],
       ],
     ],
@@ -946,12 +946,9 @@ test('interprets compact raw nested read final-owner relations with scalar metad
     author: { id: 10, name: 'Alice' },
     category: { id: 20, name: 'Engineering' },
     tags: [{ tag: { id: 100, name: 'Rust' } }, { tag: { id: 101, name: 'Wasm' } }],
-    comments: [
-      { id: 200, createdAt: new Date('2024-01-02T00:00:00.000Z'), author: { id: 10, name: 'Alice' } },
-      { id: 201, createdAt: new Date('2024-01-03T00:00:00.000Z'), author: { id: 11, name: 'Bob' } },
-    ],
+    comments: [{ id: 200, createdAt: new Date('2024-01-02T00:00:00.000Z'), author: { id: 10, name: 'Alice' } }],
   })
-  expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [20], [1], [1], [100, 101], [10, 11]])
+  expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [20], [1], [1], [100, 101], [10]])
 })
 
 test('interprets non-unique compact raw nested final-owner relation pagination', async () => {
@@ -1077,6 +1074,26 @@ test('interprets non-unique compact raw nested final-owner relation pagination',
     ],
     false,
   ] satisfies QueryPlanNode
+  const expected = [
+    {
+      id: 1,
+      author: { id: 10, name: 'Alice' },
+      category: { id: 20, name: 'Engineering' },
+      tags: [],
+      comments: [{ id: 1000, author: { id: 100, name: 'Commenter 100' } }],
+    },
+    {
+      id: 2,
+      author: { id: 11, name: 'Bob' },
+      category: { id: 21, name: 'Design' },
+      tags: [],
+      comments: [{ id: 1002, author: { id: 102, name: 'Commenter 102' } }],
+    },
+  ]
+  let rootRows = [
+    [1, 10, 20],
+    [2, 11, 21],
+  ]
   const observedQueries: SqlQuery[] = []
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -1087,10 +1104,7 @@ test('interprets non-unique compact raw nested final-owner relation pagination',
         return Promise.resolve({
           columnNames: ['id', 'authorId', 'categoryId'],
           columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
-          rows: [
-            [1, 10, 20],
-            [2, 11, 21],
-          ],
+          rows: rootRows,
         })
       }
       if (query.sql.startsWith('SELECT id, name FROM Category')) {
@@ -1111,6 +1125,7 @@ test('interprets non-unique compact raw nested final-owner relation pagination',
         })
       }
       if (query.sql.startsWith('SELECT id, authorId, postId')) {
+        const requestedPostIds = new Set(query.args)
         return Promise.resolve({
           columnNames: ['id', 'authorId', 'postId'],
           columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],
@@ -1119,7 +1134,7 @@ test('interprets non-unique compact raw nested final-owner relation pagination',
             [1001, 101, 1],
             [1002, 102, 2],
             [1003, 103, 2],
-          ],
+          ].filter((row) => requestedPostIds.has(row[2])),
         })
       }
       if (query.sql.startsWith('SELECT id, name FROM User')) {
@@ -1140,24 +1155,32 @@ test('interprets non-unique compact raw nested final-owner relation pagination',
       return Promise.resolve(0)
     },
   }
-  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual([
-    {
-      id: 1,
-      author: { id: 10, name: 'Alice' },
-      category: { id: 20, name: 'Engineering' },
-      tags: [],
-      comments: [{ id: 1000, author: { id: 100, name: 'Commenter 100' } }],
-    },
-    {
-      id: 2,
-      author: { id: 11, name: 'Bob' },
-      category: { id: 21, name: 'Design' },
-      tags: [],
-      comments: [{ id: 1002, author: { id: 102, name: 'Commenter 102' } }],
-    },
-  ])
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual(expected)
   expect(observedQueries.map((query) => query.args)).toContainEqual([100, 102])
   expect(observedQueries.map((query) => query.args)).not.toContainEqual([100, 101, 102, 103])
+
+  rootRows = [[1, 10, 20]]
+  observedQueries.length = 0
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual(expected.slice(0, 1))
+  expect(observedQueries.map((query) => query.args)).toContainEqual([100])
+  expect(observedQueries.map((query) => query.args)).not.toContainEqual([100, 101])
+
+  rootRows = [
+    [1, 10, 20],
+    [2, 11, 21],
+  ]
+  observedQueries.length = 0
+  await expect(
+    interpreter.run(plan, {
+      ...runtimeOptions,
+      queryable,
+      sqlCommenter: {
+        plugins: [() => ({ source: 'test' })],
+        queryInfo: { type: 'single', modelName: 'Post', action: 'findMany', query: {} },
+      },
+    }),
+  ).resolves.toEqual(expected)
+  expect(observedQueries.some((query) => query.sql.includes("/*source='test'*/"))).toBe(true)
 })
 
 test('skips compact raw nested read wrapper children for empty wrapper rows', async () => {
