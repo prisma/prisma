@@ -11740,6 +11740,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This proves the real generated JS and TS output includes the string-template binder; the earlier oracle tests were intentionally stronger semantically, but they exercised the generated code through `vm` rather than package generator output.
 
+- Rejected raw-nested experiment: final-owner root scope renderer.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily compiled the final-owner root compact SQL query into a scope-based renderer, mirroring the kept relation query-leaf renderer but reading request placeholders from `context.scope`.
+    - The patch preserved fallback to `#executeRawNestedReadDbQuery()` for unsupported shapes and did not change the internal raw-nested plan format.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts -t "raw nested"`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Focused raw-result timing:
+    - Patched 100k: compact node 4.26 us/op, exact compact node 4.53 us/op.
+    - Close control after reverting: compact node 4.55 us/op, exact compact node 4.85 us/op.
+    - Reapplied patched confirmation: compact node 4.44 us/op, exact compact node 4.76 us/op.
+  - Generated-client timing:
+    - Patched 50k generated blog-page stable / alternating: 11.61 / 10.53 us/op, then 11.45 / 10.52 on reapply.
+    - Close control after reverting: 10.72 / 10.80 us/op.
+  - Decision:
+    - Revert. The compact-node micro-row improved, but the product-shaped stable generated-client blog-page row regressed in close A/B. Do not retry root-scope rendering as a standalone cleanup without a profile showing root rendering dominates generated nested rows.
+
+- Rejected repeated raw-nested experiment: final-owner child target arrays.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Replaced `RawNestedFinalOwnerChildTarget { id, record }` object allocation with parallel `childTargetRecords`, `childTargetIds`, and `uniqueChildTargetIds` arrays in the final-owner second-wave path.
+    - This repeated a previously documented trap in `AGENTS.md`; the refreshed run confirmed the product-shaped timing is not strong enough.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts -t "raw nested"`: passed, 11 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Focused raw-result timing:
+    - Patched 100k compact / exact compact node: 4.40 / 4.69 us/op.
+    - Close control after reverting: 4.39 / 4.72 us/op.
+  - Generated-client timing:
+    - Patched 50k generated blog-page stable / alternating: 10.38 / 10.57 us/op.
+    - Close control after reverting: 10.27 / 10.41 us/op.
+  - Decision:
+    - Revert. The exact compact row moved only within noise and both generated-client rows were faster in the close control. Do not retry target-object removal or small-list dedupe as standalone allocation cleanups; they need to be part of a larger final-owner slot/static-wave rewrite.
+
 ## Useful Commands
 
 ```sh
