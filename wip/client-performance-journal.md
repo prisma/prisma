@@ -11456,6 +11456,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow allocation cleanup on the accepted final-owner/raw-nested path, with focused direct and generated Node rows in the recent healthy band and a properly warmed Workerd nested smoke matching the current post-final-owner range. Do not reintroduce unconditional `Set` allocation for small raw-nested scopes without fanout-specific timing evidence.
 
+- Rejected experiment: unroll direct final-owner row writers.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed `tryCompileRawNestedFinalOwnerRowWriter()` to recognize direct string-field mappings and return straight-line row writers for mapping lengths 0-4.
+    - The generic path also routed through a small final-owner field-value wrapper around `mapRawNestedFieldValue()`.
+    - The goal was to reduce per-record loop/array overhead for repeated child records in the accepted final-owner raw-nested path.
+  - Verification:
+    - `git diff --check`: passed.
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 249 tests under the package's test-filter behavior.
+  - Patched timing:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 5.85 us/op, `queryRaw=2100000`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 5.68 us/op, `queryRaw=2100000`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 12.94 us/op, `queryRaw=700000`.
+  - Close reverted control:
+    - Direct row: 5.77 us/op, `queryRaw=2100000`.
+    - Exact compact node row: 5.77 us/op, `queryRaw=2100000`.
+    - Generated nested row: 12.18 us/op, `queryRaw=700000`.
+  - Decision:
+    - Revert. Straight-line direct final-owner row writer closures did not improve the direct row and materially softened the generated product-shaped row in the close pair. Do not retry direct-field row-writer unrolling as a standalone patch; the next raw-nested result-shape proof needs to remove a larger phase such as generic SQL rendering/scope construction or final-owner relation wave work.
+
 ## Useful Commands
 
 ```sh
