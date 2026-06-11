@@ -171,3 +171,5 @@ You may only need to build and update one of these modules if your changes are i
 2. Build only `query-compiler-wasm` if your changes are related to query planning and execution but do not touch the schema or DMMF in any way.
 
 When in doubt, build both to avoid unexpected behavior. Time and cost of compilation is always less than of debugging.
+
+- **Windows Defender false positives**: The esbuild-bundled Prisma CLI (`build/index.js`) periodically triggers heuristic-based antivirus detections on Windows (Windows Defender flagging it as a trojan). This is a well-known false positive pattern — esbuild's dense bundled output matches heuristic signatures for obfuscated code. Historical precedent: issue #10717 (Dec 2021, confirmed bug, labeled `topic: external`) and issue #29636 (Jun 2026). The npm package has SLSA provenance attestation and is published via GitHub Actions OIDC trusted publisher, providing strong supply-chain integrity guarantees. When users report antivirus detections, the recommended workaround is to add the file path to Windows Defender's exclusion list and to report the false positive to Microsoft. This is not a supply chain attack indicator.
