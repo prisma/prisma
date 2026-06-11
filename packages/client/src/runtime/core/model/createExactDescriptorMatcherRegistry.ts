@@ -14,6 +14,7 @@ type ExactDescriptorMatcherSpec = {
   clientMethod: string
   field: string
   valueType: ExactDescriptorMatcherValueType
+  enumValues?: Record<string, string>
   select: string[]
 }
 
@@ -23,6 +24,7 @@ type ExactDescriptorMatcherValueType =
   | 'bytes'
   | 'date'
   | 'decimal'
+  | 'enum'
   | 'float'
   | 'json'
   | 'number'
@@ -92,6 +94,7 @@ function bindFindUniqueMatcher(
     spec.valueType !== 'bytes' &&
     spec.valueType !== 'date' &&
     spec.valueType !== 'decimal' &&
+    spec.valueType !== 'enum' &&
     spec.valueType !== 'json' &&
     placeholder !== undefined &&
     matchesPlaceholderDescriptorValueType(placeholder.valueType, spec.valueType) &&
@@ -140,6 +143,17 @@ function bindFindUniqueMatcher(
       const placeholderName = getSinglePlaceholderNameForValue(context, String(initialValue))
       if (placeholderName !== undefined) {
         return (args) => matchFindUniqueBigIntArgs(args, spec, placeholderName)
+      }
+    }
+  }
+
+  if (spec.valueType === 'enum' && matchesSelectDescriptor(root.fields.select, spec.select)) {
+    const initialValue = getFindUniqueWhereFieldValue(context.args, spec.field)
+    const initialDbValue = getEnumDbValue(spec, initialValue)
+    if (initialDbValue !== undefined) {
+      const placeholderName = getSinglePlaceholderNameForValue(context, initialDbValue)
+      if (placeholderName !== undefined) {
+        return (args) => matchFindUniqueEnumArgs(args, spec, placeholderName)
       }
     }
   }
@@ -315,6 +329,28 @@ function matchFindUniqueJsonArgs(
   return { [placeholderName]: value }
 }
 
+function matchFindUniqueEnumArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isRecord(where) || !hasOwnEnumerableKeysInOrder(where, [spec.field])) {
+    return undefined
+  }
+
+  const value = getEnumDbValue(spec, where[spec.field])
+  if (value === undefined || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: value }
+}
+
 function matchFindManyPlaceholderArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
@@ -460,6 +496,12 @@ function matchesPlaceholderDescriptorValueType(
 
 function descriptorValueTypeForSpec(specValueType: ExactDescriptorMatcherValueType): string {
   return specValueType === 'number' ? 'int32' : specValueType
+}
+
+function getEnumDbValue(spec: ExactDescriptorMatcherSpec, value: unknown): string | undefined {
+  return typeof value === 'string' && spec.enumValues !== undefined && Object.hasOwn(spec.enumValues, value)
+    ? spec.enumValues[value]
+    : undefined
 }
 
 function isEmptyObjectDescriptor(value: unknown): boolean {

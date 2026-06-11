@@ -12000,6 +12000,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The allocation win is real but only two allocations on filter-heavy rows, has no effect on the current nested compiler rows, and the close timing confirmation softened representative filter/aggregate compile rows. Do not retry scalar-filter `SmallVec` scratch vectors as a standalone allocation cleanup without a new CPU profile.
 
+- Accepted productization slice: flat exact descriptor helpers support mapped enum `findUnique` args.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added an `enum` value type to `createExactDescriptorMatcherRegistry()` and the JS/TS generator `internalExactDescriptorHelpers` parser.
+    - Generator specs now carry `enumValues`, mapping schema enum names to database enum names (`dbName ?? name`).
+    - The runtime binds enum helpers only when the learned args contain a schema enum string whose mapped database value is the single precomputed placeholder value. Later calls return the mapped database value in descriptor placeholder order.
+    - Enum helper args reject unknown enum strings and tagged/object enum-like values so the normal serializer and validator keep owning uncertain cases.
+    - Select validation now accepts scalar and enum select fields; no old/new internal spec format reader was added because generated clients and runtime are version-lockstep.
+  - Verification:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 16 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 7 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 7 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+    - An initial ad hoc `pnpm --filter @prisma/client exec tsc --noEmit --pretty false --project packages/client/tsconfig.json` failed because `pnpm --filter` executes from the package directory and the project path was therefore wrong; it was replaced by the package build above.
+  - Decision:
+    - Keep. This is exact-helper parity/productization, not a fresh speed win. It keeps enum mapping explicit instead of treating enums as plain strings, and it preserves slow-path validation for any value shape not proven by the descriptor-bound self-test.
+
+- Rejected architecture shortcut: `serde_wasm_bindgen`-only query compiler request entrypoint.
+  - Timestamp: 2026-06-11.
+  - Scout result:
+    - A focused code scout confirmed the current public ABI remains `QueryCompiler.compile(request: string)` / `compileBatch(batchRequest: string)` in `packages/client-common/src/QueryCompiler.ts`.
+    - JS cache misses still run `parameterizeQuery()`, `JSON.stringify(parameterizedQuery.query)`, and `compiler.compile(request)` from `ClientEngine.ts`.
+    - Wasm `QueryCompiler.compile()` still accepts a Rust `String`, calls `RequestBody::try_from_str()`, deserializes to owned `JsonBody`, adapts through `JsonProtocolAdapter`, and then compiles from owned `Operation` / `Selection` / `ArgumentValue` trees.
+    - `FieldQuery.arguments` remains `Option<IndexMap<String, serde_json::Value>>`; `ArgumentValue` remains an owned enum over Prisma values, maps, vectors, and raw JSON values before graph build.
+    - Current source has no active `compileFromValue` / `compileSerdeWasmBindgen` query compiler request entrypoint; the earlier sidecar was reverted.
+  - Decision:
+    - Do not pursue `let request: JsonBody = tsify::serde_wasm_bindgen::from_value(request)?;` as a standalone win. It would only replace the request-string transport and `serde_json::from_str`, while preserving the Rust-owned `JsonBody` / untyped map / `Operation` materialization path. It also does not help the hot cache-hit path where the correct goal is to avoid entering Wasm at all.
+  - Follow-up lead:
+    - The practical wedge remains descriptor-bound cache hits over original JS args: validate one generated shape exactly, extract placeholder values in descriptor order, and call `requestPrecomputedCachedResult()` / request-precomputed paths on hits.
+    - A deeper Rust/Wasm follow-up would need shape-bound JS-value views or generated/static accessors that check structural identity and extract placeholders before `RequestBody::try_from_str()`. Generic `Reflect` walking and `serde_wasm_bindgen::from_value` into `JsonBody` stay rejected.
+
 ## Useful Commands
 
 ```sh

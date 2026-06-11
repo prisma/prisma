@@ -22,6 +22,8 @@ The current path is:
 
 `serde_wasm_bindgen::from_value(request)` only skips part of step 5. The release-Wasm `compileFromValue(JsValue)` spike was neutral to slower because it still built the same owned Rust maps before validation and compilation.
 
+The 2026-06-11 Rust/Wasm scout rechecked the current code and found no active `compileFromValue` / `compileSerdeWasmBindgen` request entrypoint. A shallow `from_value()` entrypoint would still produce owned `JsonBody`, `IndexMap<String, serde_json::Value>`, `Operation`, `Selection`, and `ArgumentValue` structures before graph build. That makes it the same rejected class of change as the earlier release-Wasm sidecar unless the request parser itself becomes JS-value-backed or borrowed.
+
 The useful target is either:
 
 - avoid Wasm entirely on hot cache hits, or

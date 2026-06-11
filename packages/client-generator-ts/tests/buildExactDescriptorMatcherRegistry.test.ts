@@ -14,6 +14,15 @@ import { ParamGraph } from '../../param-graph/src'
 import { buildExactDescriptorMatcherRegistry } from '../src/utils/buildExactDescriptorMatcherRegistry'
 
 const datamodel = {
+  enums: [
+    {
+      name: 'Status',
+      values: [
+        { name: 'ACTIVE', dbName: 'A' },
+        { name: 'INACTIVE', dbName: null },
+      ],
+    },
+  ],
   models: [
     {
       name: 'Post',
@@ -27,6 +36,7 @@ const datamodel = {
       fields: [
         { name: 'id', kind: 'scalar', isList: false, isId: true, isUnique: false, type: 'Int' },
         { name: 'email', kind: 'scalar', isList: false, isId: false, isUnique: false, type: 'String' },
+        { name: 'status', kind: 'enum', isList: false, isId: false, isUnique: true, type: 'Status' },
       ],
     },
   ],
@@ -77,6 +87,22 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     })
 
     expect(matcher).toBe(flatMatcher)
+  })
+
+  test('emits enum exact descriptor specs with database value mappings', () => {
+    const { factory } = createRegistry(['User.findUnique:status:id,status'])
+
+    expect(factory).toHaveBeenCalledWith([
+      {
+        model: 'User',
+        action: 'findUnique',
+        clientMethod: 'user.findUnique',
+        field: 'status',
+        valueType: 'enum',
+        enumValues: { ACTIVE: 'A', INACTIVE: 'INACTIVE' },
+        select: ['id', 'status'],
+      },
+    ])
   })
 
   test('matches the serializer and parameterizer oracle for the blog page template', async () => {
@@ -176,7 +202,7 @@ function createRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: str
 
   vm.runInNewContext(code, { __factory: factory, config })
 
-  return { registry: config.descriptorMatcherRegistry, flatGetMatcher, flatMatcher }
+  return { registry: config.descriptorMatcherRegistry, flatGetMatcher, flatMatcher, factory }
 }
 
 async function createBlogPageOracle() {

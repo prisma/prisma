@@ -126,6 +126,26 @@ test('binds exact string scalar matchers', () => {
   expect(matcher?.({ where: { email: 2 }, select: { id: true, email: true } })).toBeUndefined()
 })
 
+test('binds exact enum scalar matchers with mapped database values', () => {
+  const matcher = bindMatcher({
+    field: 'status',
+    valueType: 'enum',
+    enumValues: { ACTIVE: 'A', INACTIVE: 'I' },
+    placeholderName: '%1',
+    placeholderValue: 'A',
+    descriptorValue: 'ACTIVE',
+    select: ['id', 'status'],
+  })
+
+  expect(matcher?.({ where: { status: 'INACTIVE' }, select: { id: true, status: true } })).toEqual({
+    '%1': 'I',
+  })
+  expect(matcher?.({ where: { status: 'UNKNOWN' }, select: { id: true, status: true } })).toBeUndefined()
+  expect(
+    matcher?.({ where: { status: { $type: 'Enum', value: 'ACTIVE' } }, select: { id: true, status: true } }),
+  ).toBeUndefined()
+})
+
 test('binds exact boolean scalar matchers', () => {
   const matcher = bindMatcher({
     field: 'enabled',
@@ -393,6 +413,7 @@ test('binds exact findMany constant take matchers without placeholders', () => {
 function bindMatcher({
   field,
   valueType,
+  enumValues,
   placeholderName,
   placeholderValue,
   descriptorValue = placeholderValue,
@@ -400,7 +421,8 @@ function bindMatcher({
   extraPlaceholderValues,
 }: {
   field: string
-  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'json' | 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'enum' | 'float' | 'json' | 'number' | 'string'
+  enumValues?: Record<string, string>
   placeholderName: string
   placeholderValue: unknown
   descriptorValue?: unknown
@@ -414,6 +436,7 @@ function bindMatcher({
       clientMethod: 'user.findUnique',
       field,
       valueType,
+      enumValues,
       select,
     },
   ])
@@ -447,7 +470,9 @@ function bindMatcher({
                         ? { kind: 'object', keys: [], fields: {} }
                         : valueType === 'json'
                           ? { kind: 'object', keys: [], fields: {} }
-                          : { kind: 'placeholder', name: placeholderName, valueType: descriptorValueType(valueType) },
+                          : valueType === 'enum'
+                            ? { kind: 'constant', value: descriptorValue }
+                            : { kind: 'placeholder', name: placeholderName, valueType: descriptorValueType(valueType) },
             },
           },
           select: {

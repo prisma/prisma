@@ -6,6 +6,7 @@ type ExactDescriptorMatcherSpec = {
   clientMethod: string
   field: string
   valueType: ExactDescriptorMatcherValueType
+  enumValues?: Record<string, string>
   select: string[]
 }
 
@@ -15,6 +16,7 @@ type ExactDescriptorMatcherValueType =
   | 'bytes'
   | 'date'
   | 'decimal'
+  | 'enum'
   | 'float'
   | 'json'
   | 'number'
@@ -99,7 +101,7 @@ function parseExactDescriptorMatcherSpec(
     throw new Error(`Invalid internalExactDescriptorHelpers model ${JSON.stringify(model)}`)
   }
 
-  const valueType = getExactMatcherValueType(dmmfModel, action, field)
+  const value = getExactMatcherValue(dmmfModel, datamodel, action, field)
 
   const select = selectCsv.split(',').filter((value) => value.length > 0)
   if (select.length === 0) {
@@ -110,7 +112,11 @@ function parseExactDescriptorMatcherSpec(
   }
   for (const selectFieldName of select) {
     const selectField = dmmfModel.fields.find((candidate) => candidate.name === selectFieldName)
-    if (selectField === undefined || selectField.kind !== 'scalar' || selectField.isList) {
+    if (
+      selectField === undefined ||
+      (selectField.kind !== 'scalar' && selectField.kind !== 'enum') ||
+      selectField.isList
+    ) {
       throw new Error(
         `Invalid internalExactDescriptorHelpers select field ${JSON.stringify(`${model}.${selectFieldName}`)}`,
       )
@@ -122,26 +128,27 @@ function parseExactDescriptorMatcherSpec(
     action,
     clientMethod: `${dmmfToJSModelName(model)}.${action}`,
     field,
-    valueType,
+    ...value,
     select,
   }
 }
 
-function getExactMatcherValueType(
+function getExactMatcherValue(
   dmmfModel: DMMF.Model,
+  datamodel: DMMF.Datamodel,
   action: 'findUnique' | 'findMany',
   field: string,
-): ExactDescriptorMatcherValueType {
+): { valueType: ExactDescriptorMatcherValueType; enumValues?: Record<string, string> } {
   if (action === 'findMany') {
     if (field !== 'take') {
       throw new Error(`internalExactDescriptorHelpers findMany field must be "take" ${JSON.stringify(field)}`)
     }
 
-    return 'number'
+    return { valueType: 'number' }
   }
 
   const dmmfField = dmmfModel.fields.find((candidate) => candidate.name === field)
-  if (dmmfField === undefined || dmmfField.kind !== 'scalar' || dmmfField.isList) {
+  if (dmmfField === undefined || (dmmfField.kind !== 'scalar' && dmmfField.kind !== 'enum') || dmmfField.isList) {
     throw new Error(`Invalid internalExactDescriptorHelpers field ${JSON.stringify(`${dmmfModel.name}.${field}`)}`)
   }
   if (!dmmfField.isId && !dmmfField.isUnique) {
@@ -150,25 +157,37 @@ function getExactMatcherValueType(
     )
   }
 
+  if (dmmfField.kind === 'enum') {
+    const dmmfEnum = datamodel.enums.find((candidate) => candidate.name === dmmfField.type)
+    if (dmmfEnum === undefined) {
+      throw new Error(`Invalid internalExactDescriptorHelpers enum ${JSON.stringify(dmmfField.type)}`)
+    }
+
+    return {
+      valueType: 'enum',
+      enumValues: Object.fromEntries(dmmfEnum.values.map((value) => [value.name, value.dbName ?? value.name])),
+    }
+  }
+
   switch (dmmfField.type) {
     case 'BigInt':
-      return 'bigint'
+      return { valueType: 'bigint' }
     case 'Boolean':
-      return 'boolean'
+      return { valueType: 'boolean' }
     case 'Bytes':
-      return 'bytes'
+      return { valueType: 'bytes' }
     case 'DateTime':
-      return 'date'
+      return { valueType: 'date' }
     case 'Decimal':
-      return 'decimal'
+      return { valueType: 'decimal' }
     case 'Float':
-      return 'float'
+      return { valueType: 'float' }
     case 'Json':
-      return 'json'
+      return { valueType: 'json' }
     case 'Int':
-      return 'number'
+      return { valueType: 'number' }
     case 'String':
-      return 'string'
+      return { valueType: 'string' }
     default:
       throw new Error(`Unsupported internalExactDescriptorHelpers field type ${JSON.stringify(dmmfField.type)}`)
   }
@@ -208,7 +227,7 @@ function parseExactDescriptorMatcherTemplateSpec(
     throw new Error(`Invalid internalExactDescriptorHelpers model ${JSON.stringify(model)}`)
   }
 
-  const valueType = getExactMatcherValueType(dmmfModel, action, field)
+  const { valueType } = getExactMatcherValue(dmmfModel, datamodel, action, field)
   if (valueType !== 'number' && valueType !== 'string') {
     throw new Error(
       `internalExactDescriptorHelpers template field must be an Int or String unique field ${JSON.stringify(field)}`,
