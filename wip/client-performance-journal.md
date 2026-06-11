@@ -11585,6 +11585,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The allocation savings are real but small, and the close Criterion pair regressed the affected connect rows. Do not replace nested `connect` filter `unique()` with manual linear `Vec` dedupe as a standalone allocation cleanup without a new CPU hypothesis.
 
+- Rejected experiment: exact-matcher-first descriptor extraction.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed `packages/client/src/runtime/core/model/applyModel.ts::tryExtractLazyDescriptors()` to try every stored `descriptor.exactMatcher` before running generic lazy descriptor fallback.
+    - Extracted the generic structural fallback into `tryExtractLazyDescriptorFallback()`.
+    - The hypothesis was that alternating cached shapes pay for a failed exact matcher plus a failed generic structural walk on the previous MRU descriptor before matching the current descriptor; trying exact matchers first might avoid the failed generic walk.
+  - Verification:
+    - `pnpm --filter @prisma/client test applyModel.test.ts --runInBand`: passed, 10 tests.
+  - Close baseline before patch:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog page' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`:
+      - Stable exact-helper blog-page: 8.71 us/op, `queryRaw=700000`.
+      - Alternating exact-helper blog-page: 9.03 us/op, `queryRaw=700000`.
+    - Request-precomputed adjacent rows: stable 10.06 us/op, alternating 10.28.
+    - Descriptor-bound static adjacent rows: stable 8.97 us/op, alternating 9.91.
+  - Patched timing:
+    - Exact-helper blog-page stable / alternating: 9.09 / 9.16 us/op.
+    - Descriptor-bound static blog-page stable / alternating: 9.59 / 9.62 us/op.
+  - Close reverted control:
+    - Exact-helper blog-page stable / alternating: 8.68 / 8.98 us/op.
+  - Decision:
+    - Revert. The two-phase extraction policy slightly helped descriptor-bound static alternating rows but regressed the stable exact-helper and stable static rows, and the exact-helper alternating row was still softer than control. Keep the current MRU order of exact-then-lazy per descriptor unless a future shape-specific policy proves stable and alternating wins together.
+
 ## Useful Commands
 
 ```sh
