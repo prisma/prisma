@@ -12627,6 +12627,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The first patched run looked positive only against a noisy older baseline; the close same-session control was faster than patched. Do not retry no-placeholder hit-object reuse or empty-placeholder allocation avoidance as a standalone lazy-descriptor cleanup unless a profile isolates that exact allocation as a dominant cost.
 
+- Rejected Rust allocation experiment: optional `CreateRecord.selection_order` for non-result creates.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed `query-compiler/core/src/query_ast/write.rs::CreateRecord.selection_order` from `Vec<String>` to `Option<Vec<String>>`.
+    - `create_record_node_from_args()` set `selection_order: None` for helper-created regular create nodes, while `atomic_create_record_node()` kept `Some(selection_order)` for result-bearing atomic creates.
+    - `query-compiler/query-compiler/src/data_mapper.rs::map_write_query()` returned no result node for `CreateRecord` values with `None`.
+    - This avoided eagerly collecting primary-id db-name strings for create nodes that are used only for dependencies and are not serialized as the mutation result.
+  - Verification:
+    - With the spike applied: `cargo check -p query-compiler` passed.
+    - `cargo test -p query-compiler --profile profiling` compiled but failed on two pre-existing stale raw-nested snapshot expectations (`nested-pagination-query`, `query-non-unique-one2m-pagination`), unrelated to this patch.
+  - Allocation profile:
+    - Command: `ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-create,create-nested-create-with-composite-id,update-create-child-one2m,update-create-parent-one2m,create-nested-connect,create-nested-connectOrCreate-m2one,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,upsert CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo run -p query-compiler --example allocation_profile --profile profiling`.
+    - Graph-build / full-compile allocation count changes:
+      - `create-nested-create`: `438 / 1230` -> `436 / 1228`.
+      - `create-nested-create-with-composite-id`: `351 / 1369` -> `348 / 1366`.
+      - `create-nested-connect`: `495 / 1346` -> `493 / 1344`.
+      - `create-nested-connectOrCreate-m2one`: `445 / 1378` -> `441 / 1374`.
+      - `create-nested-connectOrCreate-mixed`: `799 / 2621` -> `793 / 2615`.
+      - `create-nested-connectOrCreate-one2m`: `677 / 2321` -> `673 / 2317`.
+      - `update-create-child-one2m`, `upsert`: unchanged; `update-create-parent-one2m` moved `341 / 833` -> `339 / 831`.
+  - Criterion:
+    - Patched medians from `cargo bench -p query-compiler --profile profiling -- "compile/(create-nested-create|create-nested-create-with-composite-id|update-create-child-one2m|update-create-parent-one2m|create-nested-connect|create-nested-connectOrCreate-(m2one|mixed|one2m)|upsert)"`:
+      - `create-nested-connect` `156.14 us`, `create-nested-connectOrCreate-m2one` `169.09 us`, `create-nested-connectOrCreate-mixed` `318.85 us`, `create-nested-connectOrCreate-one2m` `281.71 us`, `create-nested-create-with-composite-id` `170.15 us`, `create-nested-create` `153.01 us`, `update-create-child-one2m` `117.00 us`, `update-create-parent-one2m` `92.91 us`, `upsert` `77.81 us`.
+    - Close reverted controls:
+      - `create-nested-connect` `157.50 us`, `create-nested-connectOrCreate-m2one` `170.83 us`, `create-nested-connectOrCreate-mixed` `310.62 us`, `create-nested-connectOrCreate-one2m` `274.32 us`, `create-nested-create-with-composite-id` `165.77 us`, `create-nested-create` `153.51 us`, `update-create-child-one2m` `115.29 us`, `update-create-parent-one2m` `92.98 us`, `upsert` `76.51 us`.
+  - Decision:
+    - Revert. The allocation reduction was real, but the close control was faster on the larger connectOrCreate, composite create, update-child, and upsert rows, while other rows were neutral/mixed. Do not retry deferred/non-result `CreateRecord.selection_order` as a standalone allocation cleanup without a new CPU hypothesis.
+
 ## Useful Commands
 
 ```sh

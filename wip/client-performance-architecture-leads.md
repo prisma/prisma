@@ -112,6 +112,7 @@ Less promising without a sharper hypothesis:
 - arenas for long-lived schema objects,
 - changing shared model/schema ownership before profiling shows it on CPU or retained-memory paths.
 - single-link `RelationLinkage` storage by itself. The 2026-06-11 spike saved 3-6 allocations on some focused rows but softened enough Criterion medians to be rejected.
+- deferred/non-result `CreateRecord.selection_order` by itself. The 2026-06-11 spike saved 2-6 allocations on create-heavy graph-build/full-compile rows, but close Criterion favored the reverted control on larger create/connectOrCreate rows.
 
 ### Arena Spike Shape
 
