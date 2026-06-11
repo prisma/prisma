@@ -12197,6 +12197,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. The allocation savings are real but small, and the timing gate did not stay neutral-to-positive across the focused rows. `nested-pagination-query` improved, but `query-many-m2m`, `query-m2o`, and especially `query-m2o-lateral` softened in close repeats.
     - Do not retry single-link `RelationLinkage` storage as a standalone allocation cleanup. Revisit only if a broader relation-link construction refactor removes another phase and has a CPU hypothesis beyond saving a few containers.
 
+- Rejected runtime experiment: lazy `RequestParams` / callsite construction for precomputed cached-result descriptor hits.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - `tryRequestHandlerPrecomputedCachedResultFastPath()` computes a full `RequestParams` object and `getCallSite()` before calling `RequestHandler.requestPrecomputedCachedResult()`, even though successful descriptor hits only need `protocolQuery`, cache key/placeholders, and `isWrite`.
+    - Deferring callsite/error params until catch might reduce non-batchable generated descriptor-hit rows such as `findMany users` and the constant-`take` blog-feed helper.
+  - Patch tried and reverted:
+    - Added `RequestHandler.requestPrecomputedCachedResultFastPath()` accepting a lightweight params object and a lazy `getCallsite` callback.
+    - Routed `tryRequestHandlerPrecomputedCachedResultFastPath()` through that method on descriptor hits.
+    - Slow path, batching path, existing `requestPrecomputedCachedResult()`, and engine cache-miss fallback behavior were left intact.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts applyModel.test.ts --runInBand`: passed, 18 tests.
+    - Patched `CLIENT_ENGINE_CACHE_TIMING_FILTER='findMany users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper / runtime exact: `2.75 / 2.97 / 2.73 / 2.59 / 2.76 us/op`.
+      - request-handler split row: `2.20 us/op`.
+    - Close reverted control for the same command:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper / runtime exact: `2.47 / 2.52 / 2.40 / 2.39 / 2.42 us/op`.
+      - request-handler split row: `2.26 us/op`.
+    - Patched `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `22.73 / 21.83 / 19.26 / 18.44 us/op`.
+    - Close reverted control for the same command:
+      - generated default / request-precomputed / descriptor-bound static / exact-helper: `22.38 / 21.68 / 19.02 / 18.15 us/op`.
+  - Decision:
+    - Revert. The synthetic request-handler split row improved slightly, but the product-shaped generated rows softened in adjacent controls. The current eager params/callsite construction is not the visible bottleneck for descriptor hits.
+    - Do not retry lazy `RequestParams` / callsite construction as a standalone fast-path patch. A useful request-wrapper change needs to remove a larger product-visible layer or beat generated rows directly.
+
 ## Useful Commands
 
 ```sh
