@@ -11435,6 +11435,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate checkpoint, with the slower rebuilt Node nested number carried forward rather than the older best repeat.
 
+- Accepted optimization: lazy raw-nested scope dedupe for small fanouts.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - In `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, changed raw-nested scope-value collection and the final-owner child-target ID list from unconditional `Set` allocation to an array-first helper that uses linear `includes()` while the unique value count is below `RAW_NESTED_INDEX_THRESHOLD`, then promotes to a `Set`.
+    - This preserves the existing SameValueZero uniqueness behavior while avoiding a heap allocation for common small scopes such as unique roots, one-to-one children, and low-fanout wrapper/list targets.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 249 tests under the package's test-filter behavior.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 5.78 us/op, `queryRaw=2100000`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact compact node blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 5.35 us/op, `queryRaw=2100000`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: 11.77 us/op, `queryRaw=700000`.
+    - First Workerd smoke set unrelated generated rows to one iteration and under-warmed the generated section; do not use that default row as evidence. The properly warmed smoke used `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 WORKERD_CLIENT_CACHE_KEY_ITERATIONS=1 WORKERD_DESCRIPTOR_ITERATIONS=1 WORKERD_PRECOMPUTED_ITERATIONS=1 WORKERD_RAW_RESULT_SET_ITERATIONS=1 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` and measured:
+      - default generated blog-page: 11.76 us/op host-dispatch, 10.60 us/op worker loop, `queryRaw=140000`.
+      - request-precomputed blog-page: 11.15 us/op host-dispatch, 10.00 us/op worker loop, `precomputed fast path: hits 20000`.
+      - engine-precomputed blog-page: 8.44 us/op host-dispatch, 7.30 us/op worker loop.
+      - alternating-shape default generated blog-page: 12.78 us/op host-dispatch, 11.40 us/op worker loop, one compile miss as expected.
+  - Decision:
+    - Keep. This is a narrow allocation cleanup on the accepted final-owner/raw-nested path, with focused direct and generated Node rows in the recent healthy band and a properly warmed Workerd nested smoke matching the current post-final-owner range. Do not reintroduce unconditional `Set` allocation for small raw-nested scopes without fanout-specific timing evidence.
+
 ## Useful Commands
 
 ```sh

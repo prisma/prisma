@@ -922,7 +922,7 @@ export class QueryInterpreter {
       const listRecords: PrismaObject[] = []
       const childTargets: RawNestedFinalOwnerChildTarget[] = []
       const childTargetIds: unknown[] = []
-      const seenChildTargetIds = new Set<unknown>()
+      let seenChildTargetIds: Set<unknown> | undefined
 
       for (let rowIndex = 0; rowIndex < childListRows.length; rowIndex++) {
         const row = childListRows[rowIndex]
@@ -935,10 +935,7 @@ export class QueryInterpreter {
 
         const targetId = row[childList.uniqueRelationParentColumnIndex]
         childTargets.push({ id: targetId, record: childRecord })
-        if (!seenChildTargetIds.has(targetId)) {
-          seenChildTargetIds.add(targetId)
-          childTargetIds.push(targetId)
-        }
+        seenChildTargetIds = pushRawNestedUniqueScopeValue(childTargetIds, targetId, seenChildTargetIds)
       }
       root[childList.fieldName] = listRecords
 
@@ -2009,15 +2006,39 @@ function getRawNestedScopeValue(rows: readonly unknown[][], columnIndex: number)
   }
 
   const values: unknown[] = []
-  const seen = new Set<unknown>()
+  let seen: Set<unknown> | undefined
   for (let i = 0; i < rows.length; i++) {
-    const value = rows[i][columnIndex]
+    seen = pushRawNestedUniqueScopeValue(values, rows[i][columnIndex], seen)
+  }
+  return values
+}
+
+function pushRawNestedUniqueScopeValue(
+  values: unknown[],
+  value: unknown,
+  seen: Set<unknown> | undefined,
+): Set<unknown> | undefined {
+  if (seen !== undefined) {
     if (!seen.has(value)) {
       seen.add(value)
       values.push(value)
     }
+    return seen
   }
-  return values
+
+  if (values.length < RAW_NESTED_INDEX_THRESHOLD) {
+    if (!values.includes(value)) {
+      values.push(value)
+    }
+    return undefined
+  }
+
+  const nextSeen = new Set(values)
+  if (!nextSeen.has(value)) {
+    nextSeen.add(value)
+    values.push(value)
+  }
+  return nextSeen
 }
 
 function attachRawNestedDirectRelationByIndex(
