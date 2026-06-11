@@ -11669,6 +11669,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The static `%1` object literal did not beat the close dynamic-placeholder control on the stable nested exact-helper row and was only neutral on alternating. Do not retry this as a local exact-helper micro-optimization without a new profile showing computed placeholder object creation as material.
 
+- Rejected repeated Rust experiment: pre-size `raw_result_column_mappings()`.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Retried changing `query-compiler/query-compiler/src/translate/query/read.rs::raw_result_column_mappings()` from `Vec::new()` to `Vec::with_capacity(selection_order.len())`.
+    - This repeated an already documented local trap; `AGENTS.md` already had a warning for this exact helper.
+  - Verification while patched:
+    - `cargo fmt --check`: passed.
+    - `cargo check -p query-compiler --features postgresql`: passed.
+  - Allocation profile:
+    - Command: `ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`.
+    - `query-m2o`: `translate_ir` 327 allocations unchanged, allocated 27.2 -> 27.0 KiB; `full_compile` 568 allocations unchanged, allocated 72.5 -> 72.3 KiB.
+    - `query-many-m2m`: `translate_ir` 425 allocations unchanged, allocated 33.8 -> 33.6 KiB; `full_compile` 733 allocations unchanged, allocated 80.5 -> 80.3 KiB.
+    - `nested-pagination-query`: `translate_ir` 388 allocations unchanged, allocated 37.1 -> 36.9 KiB; `full_compile` 673 allocations unchanged, allocated 81.1 -> 80.9 KiB.
+  - Criterion:
+    - Patched command: `cargo bench -p query-compiler --bench compilation_bench -- "query-m2o|query-many-m2m|nested-pagination-query"` with local release LTO disabled.
+    - Patched medians:
+      - `nested-pagination-query`: 42.920 us.
+      - `query-m2o-lateral`: 38.339 us.
+      - `query-m2o`: 40.565 us.
+      - `query-many-m2m`: 47.394 us.
+    - Close control after reverting the helper to `Vec::new()`:
+      - `nested-pagination-query`: 41.162 us.
+      - `query-m2o-lateral`: 37.862 us.
+      - `query-m2o`: 38.197 us.
+      - `query-many-m2m`: 45.323 us.
+  - Decision:
+    - Revert. This is byte-only on the sampled allocation profile and the close control is faster on every targeted compile row. Do not retry without a new callsite/profile reason that changes more than the output vector capacity.
+
 ## Useful Commands
 
 ```sh
