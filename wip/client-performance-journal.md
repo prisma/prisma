@@ -12171,6 +12171,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as benchmark coverage only. This gives a product-shaped non-unique-root baseline for the constant-`take` blog-feed shape and shows the larger runtime target is not another exact-helper tweak: current generated feed still sits about `5.5-7.5 us/op` above direct/local execution, while the benchmark-only compact raw-nested node is another roughly `6.3 us/op` below direct/local.
     - The next runtime lead for this shape should be a paged owner-writer/static-wave proof for non-unique root reads, with compiler support if it wins. Do not broaden `take` handling or introduce generic nested descriptor machinery to explain this gap.
 
+- Rejected Rust experiment: single-link `RelationLinkage` storage.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - The common related-read translation path builds one `ConditionalLink`, one one-element `Vec<ScalarCondition>`, and one `BTreeMap<ScalarField, Vec<ScalarCondition>>`.
+    - Replacing that with empty/single/many `RelationLinkage` storage and promoting to `BTreeMap` only on multiple conditions might remove small `translate_ir` allocations without changing query semantics.
+  - Patch tried and reverted:
+    - Removed the `ConditionalLink` wrapper from the hot translation path.
+    - Changed `RelationLinkage` to store `Empty`, `Single { field, condition }`, or `Many(BTreeMap<...>)`.
+    - Updated one-to-many and many-to-many builders to consume a flat `(ScalarField, ScalarCondition)` iterator.
+    - Added a `RelationLinkage::single(...)` constructor and avoided moving the `BTreeMap` on subsequent `Many` additions.
+  - Verification while patched:
+    - `cargo check -p query-compiler --features postgresql`: passed.
+    - Focused allocation profile command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,nested-pagination-query,nested-pagination-join' ALLOC_PROFILE_ITERATIONS=3 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - Allocation patched vs close control:
+      - `query-m2o`: `translate_ir 324 / full_compile 565` vs control `327 / 568` allocs/op.
+      - `query-many-m2m`: `422 / 730` vs control `425 / 733`.
+      - `nested-pagination-query`: `382 / 667` vs control `388 / 673`.
+      - `nested-pagination-join`: unchanged at `404 / 689`.
+    - Focused Criterion close control medians were `nested-pagination-join 86.597 us`, `nested-pagination-query 88.921`, `query-m2o-lateral 80.788`, `query-m2o 78.587`, `query-many-m2m 88.136`.
+    - Patched timing repeats stayed mixed:
+      - First patched medians: `87.188 / 87.007 / 80.684 / 79.065 / 88.847 us` for the same rows.
+      - Optimized patched medians: `87.067 / 86.898 / 83.065 / 79.116 / 88.960 us`.
+  - Decision:
+    - Revert. The allocation savings are real but small, and the timing gate did not stay neutral-to-positive across the focused rows. `nested-pagination-query` improved, but `query-many-m2m`, `query-m2o`, and especially `query-m2o-lateral` softened in close repeats.
+    - Do not retry single-link `RelationLinkage` storage as a standalone allocation cleanup. Revisit only if a broader relation-link construction refactor removes another phase and has a CPU hypothesis beyond saving a few containers.
+
 ## Useful Commands
 
 ```sh
