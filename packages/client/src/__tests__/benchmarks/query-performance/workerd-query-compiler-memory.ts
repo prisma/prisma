@@ -773,6 +773,21 @@ function createBlogPostPageArgs(iteration) {
 }
 
 function createBlogPostPageRootMaskArgs(mask, iteration) {
+  return {
+    where: { id: iteration + 1 },
+    select: createBlogPostPageSelect(mask),
+  }
+}
+
+function createBlogPostFeedArgs() {
+  return {
+    take: 10,
+    orderBy: [{ createdAt: 'desc' }],
+    select: createBlogPostPageSelect((1 << blogPageRootScalarFields.length) - 1),
+  }
+}
+
+function createBlogPostPageSelect(mask) {
   const select = {}
   for (let i = 0; i < blogPageRootScalarFields.length; i++) {
     if ((mask & (1 << i)) !== 0) {
@@ -832,10 +847,7 @@ function createBlogPostPageRootMaskArgs(mask, iteration) {
     },
   }
 
-  return {
-    where: { id: iteration + 1 },
-    select,
-  }
+  return select
 }
 
 const blogPageRootSelectKeys = [
@@ -868,6 +880,8 @@ function createClientArgs(scenario, iteration) {
     case 'blog-page':
     case 'blog-page-by-id':
       return createBlogPostPageArgs(iteration)
+    case 'blog-feed':
+      return createBlogPostFeedArgs()
     case 'blog-page-alternating':
       return createBlogPostPageRootMaskArgs(iteration % 2 === 0 ? 0b1111111 : 0b0000011, iteration)
     default:
@@ -902,6 +916,75 @@ function createClientProtocolQuery(scenario, iteration) {
             id: true,
             email: true,
             name: true,
+          },
+        },
+      }
+    case 'blog-feed':
+      return {
+        modelName: 'Post',
+        action: 'findMany',
+        query: {
+          arguments: {
+            take: 10,
+            orderBy: [{ createdAt: 'desc' }],
+          },
+          selection: {
+            id: true,
+            title: true,
+            slug: true,
+            content: true,
+            published: true,
+            viewCount: true,
+            createdAt: true,
+            author: {
+              selection: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+            category: {
+              selection: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            tags: {
+              selection: {
+                tag: {
+                  selection: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+            comments: {
+              arguments: {
+                take: 10,
+                orderBy: [{ createdAt: 'desc' }],
+              },
+              selection: {
+                id: true,
+                content: true,
+                createdAt: true,
+                author: {
+                  selection: {
+                    id: true,
+                    name: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            _count: {
+              selection: {
+                likes: true,
+                comments: true,
+              },
+            },
           },
         },
       }
@@ -986,6 +1069,8 @@ function tryExtractStaticDescriptor(scenario, args, cacheKey) {
     case 'blog-page':
     case 'blog-page-by-id':
       return tryExtractBlogPostPageDescriptor(args, cacheKey)
+    case 'blog-feed':
+      return tryExtractBlogPostFeedDescriptor(args, cacheKey)
     default:
       throw new Error('Unknown static descriptor scenario: ' + scenario)
   }
@@ -1064,6 +1149,39 @@ function tryExtractBlogPostPageDescriptor(args, cacheKey) {
   return { cacheKey, placeholderValues: { '%1': where.id } }
 }
 
+function tryExtractBlogPostFeedDescriptor(args, cacheKey) {
+  if (!hasExactKeys(args, ['take', 'orderBy', 'select']) || args.take !== 10) {
+    return undefined
+  }
+
+  if (!matchesBlogPageOrderBy(args.orderBy)) {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, blogPageRootSelectKeys)) {
+    return undefined
+  }
+
+  for (const field of blogPageRootScalarFields) {
+    if (select[field] !== true) {
+      return undefined
+    }
+  }
+
+  if (
+    !matchesSelectObject(select.author, blogPageUserSelectKeys) ||
+    !matchesSelectObject(select.category, blogPageSlugSelectKeys) ||
+    !matchesBlogPageTagsSelection(select.tags) ||
+    !matchesBlogPageCommentsSelection(select.comments) ||
+    !matchesSelectObject(select._count, blogPageCountSelectKeys)
+  ) {
+    return undefined
+  }
+
+  return { cacheKey, placeholderValues: {} }
+}
+
 function createDescriptorMatcherRegistry() {
   return {
     getMatcher(context) {
@@ -1074,6 +1192,8 @@ function createDescriptorMatcherRegistry() {
         scenario = 'find-many-users'
       } else if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
         scenario = 'blog-page-by-id'
+      } else if (context.model === 'Post' && context.action === 'findMany' && context.clientMethod === 'post.findMany') {
+        scenario = 'blog-feed'
       } else {
         return undefined
       }
@@ -1097,6 +1217,10 @@ function createExactGeneratedUserDescriptorMatcherRegistry() {
 
       if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
         return bindExactGeneratedBlogPostPageMatcher(context)
+      }
+
+      if (context.model === 'Post' && context.action === 'findMany' && context.clientMethod === 'post.findMany') {
+        return bindExactGeneratedBlogPostFeedMatcher(context)
       }
 
       return undefined
@@ -1187,6 +1311,23 @@ function bindExactGeneratedBlogPostPageMatcher(context) {
   return (args) => matchExactGeneratedBlogPostPage(args, id.name, selectShape)
 }
 
+function bindExactGeneratedBlogPostFeedMatcher(context) {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeysInOrder(root, ['take', 'orderBy', 'select'])) {
+    return undefined
+  }
+
+  if (
+    !isExactGeneratedBlogPageOrderByDescriptor(root.fields.orderBy) ||
+    getExactGeneratedBlogPostPageSelectDescriptorShape(root.fields.select) !== 'full' ||
+    !isGeneratedConstantDescriptor(root.fields.take, 10)
+  ) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedBlogPostFeed(args)
+}
+
 function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
   if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
     return undefined
@@ -1243,6 +1384,22 @@ function matchExactGeneratedBlogPostPage(args, idPlaceholder, selectShape) {
   }
 
   return { [idPlaceholder]: where.id }
+}
+
+function matchExactGeneratedBlogPostFeed(args) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder3(args, 'take', 'orderBy', 'select')) {
+    return undefined
+  }
+
+  if (
+    args.take !== 10 ||
+    !matchesExactGeneratedBlogPageOrderBy(args.orderBy) ||
+    !matchesExactGeneratedBlogPostPageSelect(args.select, 'full')
+  ) {
+    return undefined
+  }
+
+  return {}
 }
 
 function matchesExactGeneratedUserScalarSelect(value) {
@@ -1329,6 +1486,19 @@ function matchesExactGeneratedBlogPageCommentsSelection(value) {
     select.content === true &&
     select.createdAt === true &&
     matchesExactGeneratedSelectionWrapper3(select.author, 'id', 'name', 'avatar')
+  )
+}
+
+function matchesExactGeneratedBlogPageOrderBy(value) {
+  if (!Array.isArray(value) || value.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = value[0]
+  return (
+    isDescriptorRecord(firstOrderBy) &&
+    hasOwnEnumerableKeysInOrder1(firstOrderBy, 'createdAt') &&
+    firstOrderBy.createdAt === 'desc'
   )
 }
 
@@ -1462,6 +1632,20 @@ function isExactGeneratedBlogPageCommentsSelectionDescriptor(value) {
     isGeneratedConstantDescriptor(select.fields.content, true) &&
     isGeneratedConstantDescriptor(select.fields.createdAt, true) &&
     isExactGeneratedSelectionWrapperDescriptor(select.fields.author, blogPageUserSelectKeys)
+  )
+}
+
+function isExactGeneratedBlogPageOrderByDescriptor(value) {
+  const orderBy = asGeneratedArrayDescriptor(value)
+  if (orderBy === undefined || orderBy.items.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = asGeneratedObjectDescriptor(orderBy.items[0])
+  return (
+    firstOrderBy !== undefined &&
+    generatedDescriptorHasKeysInOrder(firstOrderBy, ['createdAt']) &&
+    isGeneratedConstantDescriptor(firstOrderBy.fields.createdAt, 'desc')
   )
 }
 
@@ -1623,13 +1807,7 @@ function matchesBlogPageCommentsSelection(value) {
     return false
   }
 
-  const orderBy = value.orderBy
-  if (!Array.isArray(orderBy) || orderBy.length !== 1) {
-    return false
-  }
-
-  const firstOrderBy = orderBy[0]
-  if (!isDescriptorRecord(firstOrderBy) || !hasExactKeys(firstOrderBy, ['createdAt']) || firstOrderBy.createdAt !== 'desc') {
+  if (!matchesBlogPageOrderBy(value.orderBy)) {
     return false
   }
 
@@ -1639,6 +1817,15 @@ function matchesBlogPageCommentsSelection(value) {
   }
 
   return select.id === true && select.content === true && select.createdAt === true && matchesSelectObject(select.author, blogPageUserSelectKeys)
+}
+
+function matchesBlogPageOrderBy(value) {
+  if (!Array.isArray(value) || value.length !== 1) {
+    return false
+  }
+
+  const firstOrderBy = value[0]
+  return isDescriptorRecord(firstOrderBy) && hasExactKeys(firstOrderBy, ['createdAt']) && firstOrderBy.createdAt === 'desc'
 }
 
 function matchesSelectObject(value, keys) {
@@ -2338,6 +2525,8 @@ function executeClientScenario(client, scenario, iteration) {
       return client.user.findUnique(createClientArgs(scenario, iteration))
     case 'find-many-users':
       return client.user.findMany(createFindManyUsersArgs())
+    case 'blog-feed':
+      return client.post.findMany(createBlogPostFeedArgs())
     case 'find-unique-batched':
       return Promise.all([
         client.user.findUnique(createFindUniqueArgs(iteration * 2)),
@@ -2358,6 +2547,8 @@ function clientMethodForScenario(scenario) {
       return 'user.findUnique'
     case 'find-many-users':
       return 'user.findMany'
+    case 'blog-feed':
+      return 'post.findMany'
     case 'blog-page':
     case 'blog-page-by-id':
     case 'blog-page-alternating':
@@ -2377,6 +2568,8 @@ function createQuery(scenario, iteration) {
       return createBlogPostPageQuery((iteration % ((1 << postScalarFields.length) - 1)) + 1)
     case 'blog-page-by-id':
       return createBlogPostPageByIdQuery(iteration + 1)
+    case 'blog-feed':
+      return createClientProtocolQuery('blog-feed', iteration)
     default:
       throw new Error('Unknown scenario: ' + scenario)
   }
@@ -3553,6 +3746,61 @@ async function run(): Promise<void> {
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-runtime-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client blog-feed warmed cache',
+        'blog-feed',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client engine precomputed fast path blog-feed warmed cache',
+        'blog-feed',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path blog-feed warmed cache',
+        'blog-feed',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client descriptor-bound static matcher blog-feed warmed cache',
+        'blog-feed',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client exact descriptor helper blog-feed warmed cache',
+        'blog-feed',
+        GENERATED_BLOG_PAGE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
       ),
     )
     console.log('')

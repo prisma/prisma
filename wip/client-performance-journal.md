@@ -12121,6 +12121,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The focused rows are neutral/noise-level, and returning adapter-owned mutable `Date` objects weakens result isolation. Do not retry borrowed final-owner `Date` values as a standalone patch; only revisit if a larger final-owner ownership contract removes a whole materialization phase and explicitly covers mutable scalar ownership.
 
+- Accepted benchmark coverage: Workerd constant-`take` blog-feed descriptor rows.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added the benchmark-only `Post.findMany` nested blog-feed shape to `workerd-query-compiler-memory.ts`.
+    - The shape uses constant `take: 10`, `orderBy: [{ createdAt: 'desc' }]`, and the same full nested blog-page selection as the Node feed row.
+    - Added Workerd generated-client rows for default, engine-precomputed, request-precomputed, descriptor-bound static, and exact descriptor helper modes.
+    - Added hand-written static and exact worker-side matchers for this one shape. The helper rejects changed `take`, changed `orderBy`, changed selection, or different root key order, and returns an empty placeholder object because `take` is still a literal cache-key component.
+    - This is benchmark harness coverage only; product code was already guarded by the internal generated-template slice.
+  - Verification:
+    - Low-count smoke: `WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20 WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=5 WORKERD_CLIENT_CACHE_KEY_ITERATIONS=5 WORKERD_DESCRIPTOR_ITERATIONS=5 WORKERD_PRECOMPUTED_ITERATIONS=5 WORKERD_RAW_RESULT_SET_ITERATIONS=5 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`: passed, blog-feed precomputed fast paths hit `20/20`.
+    - 5k Workerd run: default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper host dispatch measured `30.62 / 20.22 / 21.86 / 20.60 / 19.54 us/op`; worker request loop measured `25.20 / 16.00 / 18.00 / 16.00 / 15.60 us/op`; each precomputed row hit `5000/5000`.
+    - 10k Workerd repeat: host dispatch measured `22.18 / 17.79 / 17.76 / 17.77 / 17.95 us/op`; worker request loop measured `19.50 / 15.80 / 15.50 / 15.80 / 15.90 us/op`; each precomputed row hit `10000/10000`.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep the Workerd benchmark row. The Workerd signal confirms the constant-feed cache-hit architecture avoids the default generated path by roughly 19-42% depending on run/timer surface, but the exact helper itself is not clearly faster than the simpler request-precomputed path in the 10k repeat. Treat this as product-shaped coverage for the strict `take: 10` generated template, not as a reason to broaden to arbitrary `take` or generic nested matchers.
+
 ## Useful Commands
 
 ```sh
