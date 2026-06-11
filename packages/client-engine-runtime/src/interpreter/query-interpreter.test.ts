@@ -103,8 +103,8 @@ test('interprets compact expression nodes', async () => {
     [
       null,
       {
-        id: 'int',
-        type: 'string',
+        id: 'i',
+        type: 's',
       },
     ],
     {},

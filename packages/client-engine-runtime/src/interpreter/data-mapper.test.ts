@@ -18,8 +18,8 @@ test('maps result sets directly like serialized SQL rows', () => {
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
-      name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
+      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
+      name: { type: 'field', dbName: 'name', fieldType: { type: 's', arity: 'scalar' } },
     },
   ] satisfies ResultNode
 
@@ -37,8 +37,8 @@ test('maps compact scalar field nodes', () => {
   const structure = [
     null,
     {
-      id: 'int',
-      name: 'string',
+      id: 'i',
+      name: 's',
     },
   ] satisfies ResultNode
 
@@ -55,8 +55,8 @@ test('maps compact result object nodes', () => {
   const structure = [
     null,
     {
-      id: 'int',
-      type: 'string',
+      id: 'i',
+      type: 's',
     },
   ] satisfies ResultNode
 
@@ -71,8 +71,8 @@ test('maps compact result object nodes with serialized names', () => {
       profile: [
         'profile',
         {
-          id: 'int',
-          type: 'string',
+          id: 'i',
+          type: 's',
         },
       ],
     },
@@ -92,7 +92,7 @@ test('direct result-set mapping uses the last duplicate column name', () => {
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
+      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
     },
   ] satisfies ResultNode
 
@@ -105,8 +105,8 @@ test('direct result-set mapping caches independently for different column orders
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
-      name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
+      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
+      name: { type: 'field', dbName: 'name', fieldType: { type: 's', arity: 'scalar' } },
     },
   ] satisfies ResultNode
 
@@ -150,11 +150,11 @@ test('direct result-set mapping can return native JavaScript values', () => {
   const structure = [
     null,
     {
-      bigint: { type: 'field', dbName: 'bigint', fieldType: { type: 'bigint', arity: 'scalar' } },
-      decimal: { type: 'field', dbName: 'decimal', fieldType: { type: 'decimal', arity: 'scalar' } },
-      createdAt: { type: 'field', dbName: 'createdAt', fieldType: { type: 'datetime', arity: 'scalar' } },
+      bigint: { type: 'field', dbName: 'bigint', fieldType: { type: 'I', arity: 'scalar' } },
+      decimal: { type: 'field', dbName: 'decimal', fieldType: { type: 'd', arity: 'scalar' } },
+      createdAt: { type: 'field', dbName: 'createdAt', fieldType: { type: 'D', arity: 'scalar' } },
       bytes: { type: 'field', dbName: 'bytes', fieldType: { type: 'bytes', encoding: 'base64', arity: 'scalar' } },
-      json: { type: 'field', dbName: 'json', fieldType: { type: 'json', arity: 'scalar' } },
+      json: { type: 'field', dbName: 'json', fieldType: { type: 'j', arity: 'scalar' } },
     },
   ] satisfies ResultNode
 

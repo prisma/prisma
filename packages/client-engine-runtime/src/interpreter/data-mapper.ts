@@ -120,9 +120,9 @@ function getFieldType(node: FieldResultNode): FieldType {
 
 function getScalarTypeName(fieldType: FieldType): CanonicalScalarTypeName {
   const scalarTypeName = typeof fieldType === 'string' ? fieldType : fieldType.type
-  return (
-    FIELD_SCALAR_TYPE_NAMES[scalarTypeName as CompactFieldScalarTypeName] ?? (scalarTypeName as CanonicalScalarTypeName)
-  )
+  return scalarTypeName === 'enum' || scalarTypeName === 'bytes'
+    ? scalarTypeName
+    : FIELD_SCALAR_TYPE_NAMES[scalarTypeName]
 }
 
 function isListField(fieldType: FieldType): boolean {

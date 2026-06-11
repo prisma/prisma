@@ -359,7 +359,7 @@ export type FieldArity = Arity | 'required' | 'optional'
 
 export type FieldType = FieldScalarTypeName | ({ arity?: FieldArity } & FieldScalarType)
 
-export type FieldScalarTypeName = CanonicalFieldScalarTypeName | CompactFieldScalarTypeName
+export type FieldScalarTypeName = CompactFieldScalarTypeName
 
 export type CanonicalFieldScalarTypeName =
   | 'string'
@@ -377,7 +377,7 @@ export type CompactFieldScalarTypeName = 's' | 'i' | 'I' | 'f' | 'b' | 'j' | 'o'
 
 export type FieldScalarType =
   | {
-      type: FieldScalarTypeName
+      type: CompactFieldScalarTypeName
     }
   | { type: 'enum'; name: string }
   | { type: 'bytes'; encoding: 'array' | 'base64' | 'hex' }

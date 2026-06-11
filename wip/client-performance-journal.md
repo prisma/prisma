@@ -11381,6 +11381,60 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate performance checkpoint. The latest Node nested generated-client row is about 4.9x faster than the original generated-client cleanup baseline.
 
+- Accepted cleanup: remove canonical result `FieldType` scalar tags.
+  - Timestamp: 2026-06-11.
+  - User guidance:
+    - Internal runtime/query-plan data structures are version-lockstep across producers and consumers. If the producer emits the new compact shape, do not keep old/new compatibility readers on the consumer side unless the boundary is genuinely external.
+  - Patch:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/data_mapper.rs`, changed structured result `FieldType` scalar serialization from canonical names (`string`, `int`, `datetime`, etc.) to compact tags (`s`, `i`, `D`, etc.). This affects object-shaped field types used for list fields and other metadata-carrying field nodes; ordinary non-list default-`dbName` primitive fields already serialized as compact string result nodes.
+    - In `packages/client-engine-runtime/src/query-plan.ts`, made `FieldScalarTypeName` compact-only and restricted structured scalar `fieldType.type` to `CompactFieldScalarTypeName`.
+    - In `data-mapper.ts`, removed the canonical scalar fallback in `getScalarTypeName()`.
+    - In `query-interpreter.ts`, removed canonical raw-nested `FieldType` string cases from `getRawNestedConvertKind()`.
+    - Updated data-mapper/query-interpreter tests from canonical result field tags to compact tags.
+  - Producer/runtime shape proof:
+    - Rebuilt local query-compiler Wasm with `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`.
+    - Refreshed Prisma's file dependency with `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`; reverted unrelated `@ark/attest` lockfile churn, so no lockfile change remained.
+    - Compiled representative sqlite `findUnique` / blog-page plans plus the PostgreSQL `DataTypes` scalar-list fixture through the rebuilt Wasm and scanned only `d` result nodes plus raw-nested `n` mappings:
+      - `resultCompactStrings=11`
+      - `resultCanonicalStrings=0`
+      - `fieldTypeCompactObjects=1`
+      - `fieldTypeCanonicalObjects=0`
+      - `rawNestedCompact=38`
+      - `rawNestedCanonical=0`
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler --features postgresql`: passed.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast/small postgresql, sqlite, mysql, sqlserver, and cockroachdb artifacts.
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/data-mapper.test.ts src/interpreter/query-interpreter.test.ts`: passed, 249 tests under the package's test-filter behavior.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client test query-plan-cache.test.ts --runInBand`: passed, 28 tests.
+    - `pnpm --filter @prisma/client build`: passed.
+    - `git diff --check` in both `/home/aqrln.guest/prisma` and `/home/aqrln.guest/prisma-engines`: passed.
+  - Timing:
+    - Initial patched rows after rebuild were noisy: parallel 50k direct/generated rows measured 8.93 / 16.39 us/op, then sequential patched repeats measured direct 6.06 us/op and generated 12.38 then 11.60 us/op.
+    - Close temporary TS-reader control, with the Rust producer still rebuilt but the TS canonical readers restored, measured:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`: 5.62 us/op, `queryRaw=2100000`.
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog page / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...`: 11.40 us/op, `queryRaw=700000`.
+    - Reapplied cleanup with the mapper expression kept close to the old monomorphic lookup shape, rebuilt runtime/client, then measured:
+      - Direct row: 6.02 us/op, `queryRaw=2100000`.
+      - Generated row: 12.05 us/op, `queryRaw=700000`.
+  - Memory:
+    - `node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/query-plan-cache-memory.ts` after the cleanup stayed in the recent retained-plan band:
+      - `blog page / edge default warm`: retained 100, heapDelta 693.9 KiB, keyRetained 48.3 KiB, planJsonRetained 335.4 KiB, serializedPerEntry 3.8 KiB.
+      - `blog page / node default warm`: retained 1000, heapDelta 4.48 MiB, keyRetained 512.2 KiB, planJsonRetained 3.33 MiB.
+  - Decision:
+    - Keep as internal-format hygiene required by the version-lockstep rule, not as a performance win. The close A/B was neutral-to-slightly softer on Node direct/generated rows, so this cleanup should not be counted as a contributor to the headline gains. Do not reintroduce canonical result scalar readers; if later rows show a stable regression, optimize the compact-only implementation rather than restoring old-format compatibility.
+
+- Documentation refresh: intermediate report after compact-only result `FieldType` scalar tags.
+  - Timestamp: 2026-06-11.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Updated the report date to 2026-06-11.
+    - Updated the headline Node generated blog-page warmed-cache row from the older 10.66 us/op checkpoint to the latest rebuilt 12.05 us/op row, making the Node nested magnitude about 4.4x faster than the original 52.71 us/op generated-client cleanup baseline.
+    - Added canonical result `FieldType` scalar tags to the internal-format cleanup summary, with the close-control caveat that this is format hygiene rather than a speed contributor.
+    - Updated current-status text and raw-nested format-cleanup text with the final 6.02 us/op direct row and 12.05 us/op generated row.
+  - Decision:
+    - Keep the report as the current intermediate checkpoint, with the slower rebuilt Node nested number carried forward rather than the older best repeat.
+
 ## Useful Commands
 
 ```sh

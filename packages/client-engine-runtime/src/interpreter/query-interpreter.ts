@@ -1913,22 +1913,16 @@ function resolveRawResultColumnMappings(mappings: readonly RawResultColumnMappin
 function getRawNestedConvertKind(fieldType: FieldType): RawNestedConvertKind {
   switch (fieldType) {
     case 's':
-    case 'string':
       return RAW_NESTED_CONVERT_STRING
     case 'i':
-    case 'int':
       return RAW_NESTED_CONVERT_INT
     case 'f':
-    case 'float':
       return RAW_NESTED_CONVERT_FLOAT
     case 'b':
-    case 'boolean':
       return RAW_NESTED_CONVERT_BOOLEAN
     case 'x':
-    case 'unsupported':
       return RAW_NESTED_CONVERT_UNSUPPORTED
     case 'D':
-    case 'datetime':
       return RAW_NESTED_CONVERT_DATE_JS
     default:
       return RAW_NESTED_CONVERT_FULL
