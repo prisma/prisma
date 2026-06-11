@@ -11930,6 +11930,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This turns primitive Json unique/equality values into reusable cache-key shapes while preserving operator-specific String placeholder behavior. It also makes the internal Json exact-helper parity story coherent for primitive plus structural Json values without taking over `null` or special validation-sensitive cases.
 
+- Rejected runtime spike: final-owner row-writer direct-prefix/two-level path specialization.
+  - Timestamp: 2026-06-11.
+  - Hypothesis:
+    - The current final-owner raw-nested product path still lags the benchmark-only writer lower bounds. A same-session sweep measured direct/exact compact blog-page at 4.76/4.75 us/op, benchmark writer program at 4.08, and static-wave writer at 3.81 over 300k iterations.
+    - The previously rejected row-writer loop-unroll spike only covered short direct string-field mapping lengths. This retry targeted the root-shaped case more directly by handling a direct-field prefix plus two-level metadata paths like `_count.comments` without per-field `typeof` and generic `setRawNestedPath()` checks.
+  - Patch tried and reverted:
+    - Added a `tryCompileRawNestedFinalOwnerRowWriter()` specialization for all-direct mappings and direct-prefix/two-level-path-tail mappings, preserving key order by accepting only path tails after direct fields.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 24 tests.
+    - Patched `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan after phase warmup blog page / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ... client-engine-cache-timing.ts`: 4.76 us/op.
+    - Same-session control immediately before the patch was 4.78 us/op for a narrow direct-row run and 4.76 us/op in the lower-bound sweep, so the patch was neutral at best.
+  - Decision:
+    - Revert. This confirms the remaining gap to the 4.08/3.81 writer-program lower bounds is not recovered by only shaving direct/path row-writer branch overhead. The next raw-nested product proof needs a larger ownership/static-schedule change or a different concrete source of generic overhead.
+
 ## Useful Commands
 
 ```sh
