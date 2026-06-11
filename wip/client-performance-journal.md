@@ -12874,6 +12874,48 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as benchmark evidence. The target runtime still shows generated call-surface headroom after the accepted target-cache product slice, especially for the exact-helper feed row. This supports a future generated-code-level hoist/deeper applied-client shape, but does not itself change product behavior.
 
+- Rejected generated call-surface experiment: edge-only direct lazy model properties.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed `applyModelsAndClientExtensions()` so `TARGET_BUILD_TYPE === 'wasm-compiler-edge'` clients with no client-extension properties skipped the outer applied-client composite proxy.
+    - The patch defined `$parent` and lazy model properties directly on the client target, while keeping the existing proxy path for client extensions.
+    - Goal: remove the outer `client.post` proxy trap from edge generated-client calls while leaving the accepted model/action target-cache slice in place for `.findMany`.
+  - Correctness:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/model/applyModelsAndClientExtensions.ts`: passed.
+    - `pnpm --filter @prisma/client test applyModel.test.ts createCompositeProxy.test.ts cacheProperties.test.ts --runInBand`: passed.
+    - `pnpm --filter @prisma/client build`: passed for the patched tree, the reverted close control, the reapplied patched tree, and the final reverted tree.
+  - Timing:
+    - 20k Workerd feed-by-author patch -> close reverted control worker-loop:
+      - default generated: `8.25 -> 8.00 us/op` (control better).
+      - hoisted default: `8.70 -> 7.30` (control better).
+      - engine-precomputed: `7.40 -> 7.15` (control better).
+      - engine-precomputed hoisted: `7.25 -> 7.25` (tie).
+      - request-precomputed: `7.30 -> 7.55` (patch better).
+      - request-precomputed hoisted: `7.00 -> 6.95` (control slightly better).
+      - descriptor-bound static: `7.20 -> 7.20` (tie).
+      - descriptor-bound hoisted: `6.85 -> 6.85` (tie).
+      - exact-helper: `6.70 -> 6.95` (patch better).
+      - exact-helper hoisted: `6.20 -> 6.10` (control better).
+    - 50k Workerd feed-by-author close reverted control -> reapplied patch worker-loop:
+      - default generated: `7.30 -> 7.38 us/op`.
+      - hoisted default: `7.54 -> 7.74`.
+      - engine-precomputed: `7.06 -> 7.28`.
+      - engine-precomputed hoisted: `6.68 -> 6.76`.
+      - request-precomputed: `6.94 -> 7.02`.
+      - request-precomputed hoisted: `6.92 -> 6.96`.
+      - descriptor-bound static: `6.82 -> 6.96`.
+      - descriptor-bound hoisted: `6.36 -> 6.40`.
+      - exact-helper: `6.18 -> 6.30`.
+      - exact-helper hoisted: `6.04 -> 6.10`.
+    - 50k Workerd host-dispatch control -> patch told the same story on product rows:
+      - default generated: `13.08 -> 13.66 us/op`.
+      - engine-precomputed: `7.65 -> 7.87`.
+      - request-precomputed: `7.46 -> 7.52`.
+      - descriptor-bound static: `7.35 -> 7.45`.
+      - exact-helper: `6.67 -> 6.78`.
+  - Decision:
+    - Revert. The 20k run was mixed, but the higher-iteration Workerd A/B rejected the patch across every normal and hoisted feed-by-author worker-loop row. The hoisted-action benchmark remains useful evidence of call-surface headroom, but simply bypassing the outer applied-client proxy on edge clients is not the right product shape.
+
 ## Useful Commands
 
 ```sh
