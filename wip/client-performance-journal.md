@@ -12608,6 +12608,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The patch removed repeated scans but made the direct product feed row slower before generated-client checks, so the current row sizes favor the existing linear assembly. Do not retry Map pre-indexing of non-unique final-owner relation rowsets as a standalone patch; a useful follow-up needs a static writer/wave schedule or a different ownership change that avoids both scans and Map/write-ahead overhead.
 
+- Rejected generated-helper experiment: no-placeholder lazy descriptor hit reuse.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily added a `hasPlaceholders` flag to learned lazy descriptors.
+    - For zero-placeholder descriptors, `tryExtractLazyDescriptor()` returned the stored `precomputedQueryPlanCacheHit` after a successful shape match instead of allocating a fresh empty `placeholderValues` object and a copied hit object.
+    - The target was the constant-`take` generated blog-feed cache hit, where the learned descriptor validates a large static args tree but has no dynamic placeholders.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client test applyModel.test.ts --runInBand` passed, 10 tests.
+  - Timing:
+    - Fresh pre-patch baseline before this spike:
+      - `generated client blog feed / nested rows warmed cache`: `10.76 us/op` over 300k.
+    - Patched:
+      - `generated client blog feed / nested rows warmed cache`: `10.30 us/op` over 300k.
+      - `generated client blog feed by author / nested rows warmed cache`: `10.71 us/op` over 300k, in the recent placeholder-bearing band.
+    - Close reverted control:
+      - `generated client blog feed / nested rows warmed cache`: `10.22 us/op` over 300k.
+  - Decision:
+    - Revert. The first patched run looked positive only against a noisy older baseline; the close same-session control was faster than patched. Do not retry no-placeholder hit-object reuse or empty-placeholder allocation avoidance as a standalone lazy-descriptor cleanup unless a profile isolates that exact allocation as a dominant cost.
+
 ## Useful Commands
 
 ```sh
