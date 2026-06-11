@@ -68,3 +68,19 @@ test('supports compact nested pagination without explicit parent defaults', () =
     },
   ])
 })
+
+test('skips linked pagination when total rows are within take', () => {
+  const records = [
+    { id: 1, postId: 1, title: 'one' },
+    { id: 2, postId: 2, title: 'two' },
+  ]
+
+  expect(
+    processRecords(structuredClone(records), {
+      linkingFields: ['postId'],
+      pagination: {
+        take: 10,
+      },
+    } satisfies InMemoryOps),
+  ).toEqual(records)
+})

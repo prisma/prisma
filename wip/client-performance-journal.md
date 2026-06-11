@@ -12305,6 +12305,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Revert. The final-owner compiled-renderer win does not generalize to ordinary compact join `q` leaves with this renderer shape; product rows softened despite strict fallback guards.
     - Do not retry a generic compact `q` renderer as a standalone optimization. A useful compact-join feed change needs to remove a larger phase such as joined-result ownership, outer data-map copying, or compiler-emitted raw-nested/static writer shape.
 
+- Accepted runtime optimization: skip provably no-op linked pagination.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - `processManyRecords()` now skips `paginate()` when pagination has no cursor, no positive skip, a present `take`, and `take >= records.length`.
+    - This targets compact `p` process nodes in the current `Post.findMany` blog-feed plan, especially nested branches such as `comments.take: 10` where the returned branch rows are already smaller than the requested page.
+    - The guard stays deliberately narrow: missing `take`, cursors, positive skips, and dynamic parameter evaluation still use the generic linked-pagination path.
+    - Added focused coverage in `in-memory-processing.test.ts` for linked pagination where the total returned rows are within `take`.
+  - Correctness/verification:
+    - `pnpm --filter @prisma/client-engine-runtime test in-memory-processing.test.ts`: passed, 4 tests.
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts in-memory-processing.test.ts`: passed, 28 tests.
+  - Timing:
+    - Patched 300k:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: `13.67 us/op`, `queryRaw=2100000`.
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog feed / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: `18.81 us/op`, `queryRaw=2100000`.
+    - Close reverted controls for the same commands:
+      - Direct plan: `15.55 us/op`.
+      - Generated client: `20.84 us/op`.
+  - Decision:
+    - Keep. The adjacent 300k A/B improved the current compact-join feed shape by about 12% on direct execution and about 10% on the generated-client warmed-cache row, and the condition is small enough to reason about: if the total result set is no larger than `take`, every linked parent group is also no larger than `take`.
+    - This supersedes the older broad/noisy no-op pagination spike only for this narrower `take >= total rows` condition on current product feed rows. Do not generalize it to clone skipping, absent-`take` pagination, cursor paths, or broader static `InMemoryOps` reuse without fresh product-row evidence.
+
 ## Useful Commands
 
 ```sh

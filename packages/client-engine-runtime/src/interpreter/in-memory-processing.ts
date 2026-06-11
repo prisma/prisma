@@ -50,7 +50,10 @@ function processManyRecords(records: Record<string, unknown>[], ops: InMemoryOps
   }
 
   if (ops.pagination) {
-    records = paginate(records, ops.pagination, ops.linkingFields ?? null)
+    const { cursor, skip, take } = ops.pagination
+    if (!(cursor == null && (skip == null || skip <= 0) && take != null && take >= records.length)) {
+      records = paginate(records, ops.pagination, ops.linkingFields ?? null)
+    }
   }
 
   if (ops.reverse) {
