@@ -15,7 +15,15 @@ type ExactDescriptorMatcherSpec = {
   select: string[]
 }
 
-type ExactDescriptorMatcherValueType = 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'number' | 'string'
+type ExactDescriptorMatcherValueType =
+  | 'bigint'
+  | 'boolean'
+  | 'bytes'
+  | 'date'
+  | 'decimal'
+  | 'float'
+  | 'number'
+  | 'string'
 
 type GeneratedExactDescriptor =
   | { kind: 'constant'; value: unknown }
@@ -384,6 +392,8 @@ function matchesPrimitiveValueType(value: unknown, valueType: ExactDescriptorMat
       return typeof value === 'bigint'
     case 'boolean':
       return typeof value === 'boolean'
+    case 'float':
+      return isFiniteFloat(value)
     case 'number':
       return isInt32(value)
     case 'string':
@@ -397,11 +407,19 @@ function isInt32(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && MIN_INT <= value && value <= MAX_INT
 }
 
+function isFiniteFloat(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && !Number.isInteger(value)
+}
+
 function matchesPlaceholderDescriptorValueType(
   descriptorValueType: string,
   specValueType: ExactDescriptorMatcherValueType,
 ): boolean {
-  return descriptorValueType === (specValueType === 'number' ? 'int32' : specValueType)
+  return descriptorValueType === descriptorValueTypeForSpec(specValueType)
+}
+
+function descriptorValueTypeForSpec(specValueType: ExactDescriptorMatcherValueType): string {
+  return specValueType === 'number' ? 'int32' : specValueType
 }
 
 function isEmptyObjectDescriptor(value: unknown): boolean {

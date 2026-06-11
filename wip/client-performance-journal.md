@@ -11861,6 +11861,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a correctness/safety tightening for the internal exact-helper productization path. `Float @unique` remains a separate lead; it likely needs a distinct semantic value type and oracle coverage that proves cache-key stability across the parameterizer's Int-vs-Float numeric promotion behavior.
 
+- Accepted productization slice: flat exact descriptor helpers support non-integer `Float @unique` args.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added a distinct `float` exact-helper value type to the runtime exact descriptor matcher registry and JS/TS generator `internalExactDescriptorHelpers` parser.
+    - The runtime binds Float helpers only to learned descriptors whose placeholder value type is `float`, and later calls must pass finite non-integer numbers.
+    - Integer Float inputs intentionally do not hit the `float` exact helper because the parameterizer currently encodes integer numeric values as `Int` placeholders when the scalar mask permits Float. Those values can still use the generic `int32` lazy descriptor when that is what the slow path learned.
+    - Non-finite numbers intentionally miss the helper and fall back to the normal path.
+    - Added generated-output coverage for `User.findUnique:score:id,score` in both generator fixtures.
+  - Verification:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 13 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This completes the numeric exact-helper split introduced by the semantic lazy descriptor change: Int-shaped helpers stay `int32`, Float helpers are finite non-integer only, and mixed integer/non-integer Float traffic falls back rather than reusing the wrong query-plan cache key.
+
 ## Useful Commands
 
 ```sh

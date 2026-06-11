@@ -141,6 +141,23 @@ test('binds exact boolean scalar matchers', () => {
   expect(matcher?.({ where: { enabled: 'false' }, select: { id: true, enabled: true } })).toBeUndefined()
 })
 
+test('binds exact float scalar matchers for finite non-integer args', () => {
+  const matcher = bindMatcher({
+    field: 'score',
+    valueType: 'float',
+    placeholderName: '%1',
+    placeholderValue: 12.5,
+    select: ['id', 'score'],
+  })
+
+  expect(matcher?.({ where: { score: 45.25 }, select: { id: true, score: true } })).toEqual({
+    '%1': 45.25,
+  })
+  expect(matcher?.({ where: { score: 45 }, select: { id: true, score: true } })).toBeUndefined()
+  expect(matcher?.({ where: { score: Number.NaN }, select: { id: true, score: true } })).toBeUndefined()
+  expect(matcher?.({ where: { score: Number.POSITIVE_INFINITY }, select: { id: true, score: true } })).toBeUndefined()
+})
+
 test('binds exact bigint scalar matchers', () => {
   const matcher = bindMatcher({
     field: 'externalId',
@@ -312,7 +329,7 @@ function bindMatcher({
   extraPlaceholderValues,
 }: {
   field: string
-  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'number' | 'string'
   placeholderName: string
   placeholderValue: unknown
   descriptorValue?: unknown
@@ -427,6 +444,8 @@ function bindFindManyMatcher({
   })
 }
 
-function descriptorValueType(valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'number' | 'string') {
+function descriptorValueType(
+  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'number' | 'string',
+) {
   return valueType === 'number' ? 'int32' : valueType
 }

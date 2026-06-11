@@ -5,7 +5,7 @@ datasource db {
 generator client {
   provider                       = "prisma-client-js"
   output                         = "./generated-exact-descriptor"
-  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findUnique:fingerprint:id,fingerprint", "User.findUnique:createdAt:id,createdAt", "User.findUnique:balance:id,balance", "User.findMany:take:id,email,name", "template:Post.findUnique:id:blogPagePostV1", "template:Post.findUnique:slug:blogPagePostV1"]
+  internalExactDescriptorHelpers = ["User.findUnique:id:id,email,name", "User.findUnique:score:id,score", "User.findUnique:externalId:id,externalId", "User.findUnique:enabled:id,enabled", "User.findUnique:fingerprint:id,fingerprint", "User.findUnique:createdAt:id,createdAt", "User.findUnique:balance:id,balance", "User.findMany:take:id,email,name", "template:Post.findUnique:id:blogPagePostV1", "template:Post.findUnique:slug:blogPagePostV1"]
 }
 
 model User {
@@ -13,6 +13,7 @@ model User {
   email      String
   name       String
   avatar     String?
+  score      Float     @unique
   externalId BigInt    @unique
   enabled    Boolean   @unique
   fingerprint Bytes    @unique
