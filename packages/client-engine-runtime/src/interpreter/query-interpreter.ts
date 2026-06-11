@@ -839,7 +839,7 @@ export class QueryInterpreter {
     unique: boolean,
     enums: Record<string, Record<string, string>>,
   ): CompiledQueryNode | undefined {
-    if (!unique || this.#resultFormat !== 'js' || Object.keys(enums).length !== 0) {
+    if (this.#resultFormat !== 'js' || Object.keys(enums).length !== 0) {
       return undefined
     }
 
@@ -861,13 +861,140 @@ export class QueryInterpreter {
       }
 
       const rootResultSet = await this.#executeRawNestedReadDbQuery(program.rootQuery, context, context.scope)
-      if (rootResultSet.rows.length > 1) {
+      if (unique && rootResultSet.rows.length > 1) {
         throw new Error(`Expected zero or one element, got ${rootResultSet.rows.length}`)
       }
 
       const rootRow = rootResultSet.rows[0]
       if (rootRow === undefined) {
-        return { value: null }
+        return { value: unique ? null : [] }
+      }
+
+      if (!unique) {
+        const roots = new Array<PrismaObject>(rootResultSet.rows.length)
+        for (let rowIndex = 0; rowIndex < rootResultSet.rows.length; rowIndex++) {
+          roots[rowIndex] = program.writeRoot(rootResultSet.rows[rowIndex])
+        }
+
+        const unique0 = program.uniqueRelations[0]
+        const unique1 = program.uniqueRelations[1]
+        const wrapperList = program.wrapperListRelation
+        const childList = program.childListRelation
+
+        const [uniqueResult0, uniqueResult1, wrapperResultSet, childListResultSet] = await Promise.all([
+          this.#executeRawNestedFinalOwnerDbQuery(
+            unique0.query,
+            unique0.renderQuery,
+            context,
+            unique0.scopeName,
+            getRawNestedScopeValue(rootResultSet.rows, unique0.parentColumnIndex),
+            unique0.canUseLocalScope,
+          ),
+          this.#executeRawNestedFinalOwnerDbQuery(
+            unique1.query,
+            unique1.renderQuery,
+            context,
+            unique1.scopeName,
+            getRawNestedScopeValue(rootResultSet.rows, unique1.parentColumnIndex),
+            unique1.canUseLocalScope,
+          ),
+          this.#executeRawNestedFinalOwnerDbQuery(
+            wrapperList.sourceQuery,
+            wrapperList.renderSourceQuery,
+            context,
+            wrapperList.sourceScopeName,
+            getRawNestedScopeValue(rootResultSet.rows, wrapperList.sourceParentColumnIndex),
+            wrapperList.canUseLocalSourceScope,
+          ),
+          this.#executeRawNestedFinalOwnerDbQuery(
+            childList.query,
+            childList.renderQuery,
+            context,
+            childList.scopeName,
+            getRawNestedScopeValue(rootResultSet.rows, childList.parentColumnIndex),
+            childList.canUseLocalScope,
+          ),
+        ])
+
+        const wrapperRows = wrapperResultSet.rows
+        const childListRows = filterRawNestedRelationRows(
+          childListResultSet.rows,
+          childList.childColumnIndex,
+          childList.operations,
+        )
+
+        const wrapperTargetIds = getRawNestedScopeValue(wrapperRows, wrapperList.wrapperChildColumnIndex)
+        const childTargetIds = getRawNestedScopeValue(childListRows, childList.uniqueRelationParentColumnIndex)
+        const hasWrapperTargets = wrapperRows.length > 0
+        const hasChildTargets = childListRows.length > 0
+
+        const [wrapperChildRows, childTargetRows] = await Promise.all([
+          hasWrapperTargets
+            ? this.#executeRawNestedFinalOwnerDbQuery(
+                wrapperList.childQuery,
+                wrapperList.renderChildQuery,
+                context,
+                wrapperList.childScopeName,
+                wrapperTargetIds,
+                wrapperList.canUseLocalChildScope,
+              ).then((resultSet) => resultSet.rows)
+            : Promise.resolve([]),
+          hasChildTargets
+            ? this.#executeRawNestedFinalOwnerDbQuery(
+                childList.uniqueRelationQuery,
+                childList.renderUniqueRelationQuery,
+                context,
+                childList.uniqueRelationScopeName,
+                childTargetIds,
+                childList.canUseLocalUniqueRelationScope,
+              ).then((resultSet) => resultSet.rows)
+            : Promise.resolve([]),
+        ])
+
+        for (let rowIndex = 0; rowIndex < rootResultSet.rows.length; rowIndex++) {
+          const rootRow = rootResultSet.rows[rowIndex]
+          const root = roots[rowIndex]
+          const rootKey = rootRow[program.rootKeyColumnIndex]
+
+          root[unique0.fieldName] = mapRawNestedFirstFinalOwnerChild(
+            uniqueResult0.rows,
+            unique0.childColumnIndex,
+            rootRow[unique0.parentColumnIndex],
+            unique0.writeChild,
+          )
+          root[unique1.fieldName] = mapRawNestedFirstFinalOwnerChild(
+            uniqueResult1.rows,
+            unique1.childColumnIndex,
+            rootRow[unique1.parentColumnIndex],
+            unique1.writeChild,
+          )
+          root[wrapperList.fieldName] = mapRawNestedFinalOwnerWrapperList(
+            rootKey,
+            wrapperList,
+            wrapperRows,
+            wrapperChildRows,
+          )
+
+          const childRecords: PrismaObject[] = []
+          for (let childIndex = 0; childIndex < childListRows.length; childIndex++) {
+            const childRow = childListRows[childIndex]
+            if (childRow[childList.childColumnIndex] !== rootKey) {
+              continue
+            }
+
+            const childRecord = childList.writeChild(childRow)
+            childRecord[childList.uniqueRelationFieldName] = mapRawNestedFirstFinalOwnerChild(
+              childTargetRows,
+              childList.uniqueRelationChildColumnIndex,
+              childRow[childList.uniqueRelationParentColumnIndex],
+              childList.writeUniqueRelationChild,
+            )
+            childRecords.push(childRecord)
+          }
+          root[childList.fieldName] = childRecords
+        }
+
+        return { value: roots }
       }
 
       const root = program.writeRoot(rootRow)
@@ -1421,6 +1548,7 @@ type RawNestedFinalOwnerChildListRelation = {
   childColumnIndex: number
   scopeName: string
   canUseLocalScope: boolean
+  operations: DeepReadonly<InMemoryOps>
   writeChild: RawNestedFinalOwnerRowWriter
   uniqueRelationFieldName: string
   uniqueRelationQuery: QueryPlanDbQuery
@@ -1812,7 +1940,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
 function tryCompileRawNestedFinalOwnerChildListRelation(
   relation: RawNestedReadDirectRelation,
 ): RawNestedFinalOwnerChildListRelation | undefined {
-  if (!inMemoryOpsAreEmpty(relation[7])) {
+  if (!rawNestedRelationOperationsAreSupported(relation[7])) {
     return undefined
   }
 
@@ -1851,6 +1979,7 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
     childColumnIndex: relation[4],
     scopeName: relation[5],
     canUseLocalScope: true,
+    operations: relation[7],
     writeChild,
     uniqueRelationFieldName: uniqueRelation[1],
     uniqueRelationQuery: uniqueRelation[2][0],
@@ -2116,21 +2245,13 @@ function processRawNestedRelationResult(
     return result
   }
 
-  if (
-    operations.distinct != null ||
-    operations.linkingFields != null ||
-    operations.reverse ||
-    (operations.nested !== undefined && Object.keys(operations.nested).length > 0)
-  ) {
+  if (!rawNestedRelationOperationsAreSupported(operations)) {
     throw new Error('Unsupported raw nested relation in-memory operations')
   }
 
   const pagination = operations.pagination
   if (pagination == null) {
     return result
-  }
-  if (pagination.cursor != null) {
-    throw new Error('Unsupported raw nested relation cursor pagination')
   }
 
   const skip = pagination.skip ?? 0
@@ -2161,6 +2282,62 @@ function processRawNestedRelationResult(
   }
 
   return { rows, records }
+}
+
+function filterRawNestedRelationRows(
+  rows: readonly unknown[][],
+  childColumnIndex: number,
+  operations: DeepReadonly<InMemoryOps>,
+): readonly unknown[][] {
+  if (inMemoryOpsAreEmpty(operations)) {
+    return rows
+  }
+
+  if (!rawNestedRelationOperationsAreSupported(operations)) {
+    throw new Error('Unsupported raw nested relation in-memory operations')
+  }
+
+  const pagination = operations.pagination
+  if (pagination == null) {
+    return rows
+  }
+
+  const skip = pagination.skip ?? 0
+  const take = pagination.take
+  if (skip <= 0 && (take == null || take >= rows.length)) {
+    return rows
+  }
+
+  const filteredRows: unknown[][] = []
+  const seenByParent = new Map<unknown, number>()
+
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index]
+    const parentKey = row[childColumnIndex]
+    const seen = seenByParent.get(parentKey) ?? 0
+    seenByParent.set(parentKey, seen + 1)
+
+    if (seen < skip) {
+      continue
+    }
+    if (take != null && seen - skip >= take) {
+      continue
+    }
+
+    filteredRows.push(row as unknown[])
+  }
+
+  return filteredRows
+}
+
+function rawNestedRelationOperationsAreSupported(ops: DeepReadonly<InMemoryOps>): boolean {
+  return (
+    ops.distinct == null &&
+    ops.linkingFields == null &&
+    !ops.reverse &&
+    (ops.nested === undefined || Object.keys(ops.nested).length === 0) &&
+    (ops.pagination == null || ops.pagination.cursor == null)
+  )
 }
 
 function inMemoryOpsAreEmpty(ops: DeepReadonly<InMemoryOps>): boolean {

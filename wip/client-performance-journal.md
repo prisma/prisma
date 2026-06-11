@@ -12384,6 +12384,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - The emitted feed plan now reaches the raw-compact lower-bound band for this fixture, so the next feed work should target raw-nested relation execution/assembly costs or generated-client wrapper/descriptor overhead, not the old compact-join `d/l/j` product path unless a different query still emits that shape.
     - The current runtime applies relation pagination after nested child relations have been loaded, which preserves output semantics but may over-fetch nested child relations for dropped child rows on larger datasets. A future production-quality relation-ops path can move the filter before nested child relation execution if profiles show that over-fetch matters.
 
+- Accepted runtime optimization: non-unique raw-nested final-owner execution.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - `#tryCompileRawNestedFinalOwnerRead()` now accepts non-unique raw-nested reads in `js` result mode when the same strict final-owner program shape compiles.
+    - The non-unique executor builds root owner records in result order, runs relation queries with page-level scopes, filters supported relation-op child rows before loading their nested unique children, and writes final nested result objects directly.
+    - `RawNestedFinalOwnerChildListRelation` can carry supported relation ops; unique root relations, wrapper-list source relations, wrapper children, and unique nested child relations still require empty ops.
+    - Added `query-interpreter.test.ts` coverage with two root rows and `comments.take: 1`, asserting the nested comment-author query receives only the two kept author ids (`[100, 102]`) rather than all four comment author ids.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 26 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client build`: passed before the Workerd smoke.
+  - Timing:
+    - First patched 100k feed run:
+      - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `10.25 / 10.89 / 10.67 / 9.63 / 9.89 us/op`.
+      - direct / raw compact / exact raw compact: `7.51 / 7.43 / 7.35 us/op`.
+      - direct after phase warmup / local executor: `7.52 / 7.58 us/op`.
+    - Close reversed control for the same 100k command:
+      - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `12.90 / 12.87 / 12.64 / 11.44 / 11.30 us/op`.
+      - direct / raw compact / exact raw compact: `9.28 / 9.42 / 9.43 us/op`.
+      - direct after phase warmup / local executor: `9.56 / 9.50 us/op`.
+    - Reapplied 100k:
+      - generated default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `10.31 / 10.76 / 10.62 / 9.55 / 9.31 us/op`.
+      - direct / raw compact / exact raw compact: `7.40 / 7.41 / 7.36 us/op`.
+      - direct after phase warmup / local executor: `7.49 / 7.47 us/op`.
+    - Higher-iteration confirmation:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog feed / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: `10.17 us/op`, `queryRaw=2100000`.
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...client-engine-cache-timing.ts`: `6.95 us/op`, `queryRaw=2100000`.
+    - Rebuilt Workerd smoke: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author warmed cache' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 ...workerd-query-compiler-memory.ts`:
+      - worker-loop default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `10.00 / 10.40 / 9.40 / 10.20 / 7.60 us/op`.
+      - host dispatch default / engine-precomputed / request-precomputed / descriptor-bound static / exact-helper: `74.19 / 16.43 / 14.86 / 15.81 / 12.86 us/op`.
+      - all precomputed rows hit `5000`; all rows issued `queryRaw=35000`, `executeRaw=0`.
+  - Decision:
+    - Keep. After the previous compiler change made the product feed emit raw-nested relation ops, the old non-unique final-owner idea became product-relevant. The close A/B improved generated default by about 20% (`12.90 -> 10.31 us/op`), request-precomputed by about 16% (`12.64 -> 10.62`), exact-helper by about 18% (`11.30 -> 9.31`), and direct plan by about 20% (`9.28 -> 7.40`).
+    - This also removes the known over-fetch for paginated child rows in this strict final-owner path: nested comment authors are loaded only for kept comments. The generic fallback still applies relation ops after child-query recursion, so keep the new test if refactoring this path.
+    - The remaining feed gap is now roughly generated wrapper/descriptor overhead plus final-owner relation assembly cost above the 7 us/op direct path. Further raw-nested feed work should profile this new non-unique final-owner executor, not the old compact-join process nodes.
+
 ## Useful Commands
 
 ```sh
