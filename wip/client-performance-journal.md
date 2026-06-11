@@ -12690,6 +12690,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Prototype a hoisted/materialized-action variant and compare 300k close A/B on generated promise construction, generated exact/trusted blog-feed-by-author, cached-wrapper exact/trusted, direct plan, and simple `findUnique` / `findMany users`.
     - Keep only if it narrows the generated exact-helper vs cached-wrapper exact gap by at least about `0.3 us/op` on feed-by-author without simple-row regressions or proxy/fluent/transaction semantic damage.
 
+- Rejected generated-cache-hit experiment: materialized extension-free model action target.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily refactored `packages/client/src/runtime/core/model/applyModel.ts` so extension-free model delegates used own data properties for all model action functions on the model proxy target.
+    - Models with model extensions kept the old `cacheProperties(modelActionsLayer(...))` layer so extension overrides stayed exact.
+    - The goal was to make `client.post.findMany(...)` avoid the model-action composite layer / cached-property lookup before descriptor extraction.
+  - Verification:
+    - With the spike applied: `pnpm --filter @prisma/client test applyModel.test.ts --runInBand` passed, 10 tests.
+    - With the spike applied: `pnpm --filter @prisma/client test createCompositeProxy.test.ts cacheProperties.test.ts --runInBand` passed, 19 tests and 1 snapshot.
+  - Timing:
+    - Close unpatched constant feed control immediately before this spike:
+      - default / engine-precomputed / request-precomputed / descriptor-bound / exact-helper: `10.05 / 10.33 / 10.32 / 9.08 / 8.83 us/op`.
+    - Patched constant feed 300k:
+      - `10.16 / 10.59 / 10.37 / 9.20 / 9.01 us/op`.
+    - Unpatched by-author feed baseline:
+      - default / engine-precomputed / request-precomputed / descriptor-bound / exact-helper / trusted-helper: `10.62 / 10.95 / 10.79 / 9.34 / 9.09 / 8.61 us/op`.
+    - Patched by-author feed 300k:
+      - `10.74 / 10.66 / 10.65 / 9.37 / 9.09 / 8.61 us/op`.
+  - Decision:
+    - Revert. Materializing inner model action functions did not narrow the generated exact-helper vs cached-wrapper gap; constant feed softened versus close control, and by-author exact/trusted rows stayed unchanged. If this lead is revisited, it likely needs outer client model delegate materialization or a generated-code-level hoist proof rather than eager model-action data properties alone.
+
 ## Useful Commands
 
 ```sh
