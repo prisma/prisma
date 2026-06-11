@@ -12949,6 +12949,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the benchmark row, revert the runtime patch. The full-table generated rows looked mildly positive, but the direct runtime gate rejected the assembly helper in both close 300k and narrow 500k checks. This confirms that local scan-order reshaping is not enough for the tiny feed fixture; the next runtime proof needs a producer-emitted/static writer descriptor that removes more of the phase, or a different product row with larger relation fanout.
 
+- Accepted target-runtime call-surface optimization: edge-only plain model delegates.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - `packages/client/src/runtime/core/model/applyModel.ts` now returns a lazy plain-object model delegate for extension-free `TARGET_BUILD_TYPE === 'wasm-compiler-edge'` clients.
+    - The edge delegate defines lazy action/`fields` properties and materializes each property as a normal own data property on first access.
+    - Node `client` builds and extension-bearing delegates keep the existing composite-proxy path.
+    - The model-action construction logic was factored into `createModelAction()` so both the old proxy path and the edge plain delegate share descriptor-learning, fluent, aggregate, transaction, and fallback behavior.
+  - Correctness:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/model/applyModel.ts packages/client/src/runtime/core/model/applyModel.test.ts`: passed.
+    - `pnpm --filter @prisma/client test applyModel.test.ts createCompositeProxy.test.ts cacheProperties.test.ts --runInBand`: passed, 31 tests and 1 snapshot.
+    - `pnpm --filter @prisma/client build`: passed after applying the edge-only patch.
+    - Added `applyModel.test.ts` coverage proving the extension-free edge delegate starts with lazy `findMany` getter properties and replaces them with data properties after first access.
+  - Timing:
+    - Universal plain-delegate variant, before edge-only gating:
+      - Node 300k exact-helper patch vs adjacent control:
+        - `findUnique`: `2.80` vs `2.73 us/op` (control better).
+        - `findMany users`: `2.32` vs `2.33`.
+        - `blog page`: `7.77` vs `7.95`.
+        - `blog feed`: `8.83` vs `8.97`.
+        - `blog feed by author`: `9.04` vs `9.18`.
+      - Node 1M exact-helper `findUnique` patch/control: `2.64 / 2.56 us/op` on the first pair, then `2.70 / 2.74` after the edge-only refactor. Treat simple Node rows as noisy but not cleanly improved.
+      - Decision from this subshape: do not ship the universal plain delegate; gate the product change to edge where the target-runtime evidence is stronger.
+    - Rebuilt Workerd 50k feed-by-author universal patch vs rebuilt reverted control worker-loop:
+      - default generated: `7.36` vs `7.44 us/op`.
+      - hoisted default: `6.88` vs `6.98`.
+      - engine-precomputed: `7.26` vs `7.36`.
+      - request-precomputed: `6.96` vs `7.06`.
+      - descriptor-bound static: `6.74` vs `7.02`.
+      - descriptor-bound static hoisted: `6.38` vs `6.42`.
+      - exact-helper: `6.20` vs `6.40`.
+      - exact-helper hoisted: `6.04` vs `6.22`.
+    - Final edge-only rebuilt Workerd 50k feed-by-author worker-loop:
+      - default generated: `7.42 us/op`.
+      - hoisted default: `6.82`.
+      - engine-precomputed: `6.78`.
+      - engine-precomputed hoisted: `6.84`.
+      - request-precomputed: `7.00`.
+      - request-precomputed hoisted: `6.74`.
+      - descriptor-bound static: `6.80`.
+      - descriptor-bound static hoisted: `6.28`.
+      - exact-helper: `6.10`.
+      - exact-helper hoisted: `5.98`.
+  - Decision:
+    - Keep the edge-only patch. It removes an inner model delegate proxy layer only on the Cloudflare/edge build, where the rebuilt 50k Workerd A/B improved the priority descriptor-bound/exact-helper feed rows. The universal version was too broad because Node source simple rows were mixed; the final gate avoids changing Node `client` behavior while preserving extension semantics through the existing proxy path.
+
 ## Useful Commands
 
 ```sh

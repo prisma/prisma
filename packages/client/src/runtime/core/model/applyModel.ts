@@ -22,6 +22,7 @@ import type { Action } from '../types/exported/JsApi'
 import { applyAggregates } from './applyAggregates'
 import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
+import { defaultPropertyDescriptor } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
@@ -86,6 +87,14 @@ const maxLazyDescriptors = 2
  * @returns
  */
 export function applyModel(client: Client, dmmfModelName: string) {
+  if (
+    client._extensions.isEmpty() &&
+    typeof TARGET_BUILD_TYPE !== 'undefined' &&
+    TARGET_BUILD_TYPE === 'wasm-compiler-edge'
+  ) {
+    return applyPlainModel(client, dmmfModelName)
+  }
+
   const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName) ?? {}
 
   const layers = [
@@ -98,6 +107,47 @@ export function applyModel(client: Client, dmmfModelName: string) {
   ]
 
   return createCompositeProxy({}, layers)
+}
+
+function applyPlainModel(client: Client, dmmfModelName: string) {
+  const jsModelName = dmmfToJSModelName(dmmfModelName)
+  const ownKeys = Object.keys(DMMF.ModelAction).concat('count')
+  const target: Record<string, unknown> = {}
+
+  for (const key of ownKeys) {
+    defineLazyModelProperty(target, key, () => createModelAction(client, dmmfModelName, jsModelName, key))
+  }
+
+  defineLazyModelProperty(target, 'fields', () => {
+    const model = client._runtimeDataModel.models[dmmfModelName]
+    return applyFieldsProxy(dmmfModelName, model)
+  })
+  target.name = dmmfModelName
+  target.$name = dmmfModelName
+  Object.defineProperty(target, '$parent', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return client._appliedParent
+    },
+  })
+
+  return target
+}
+
+function defineLazyModelProperty(target: Record<string, unknown>, key: string, factory: () => unknown): void {
+  Object.defineProperty(target, key, {
+    enumerable: true,
+    configurable: true,
+    get() {
+      const value = factory()
+      Reflect.defineProperty(target, key, {
+        ...defaultPropertyDescriptor,
+        value,
+      })
+      return value
+    },
+  })
 }
 
 /**
@@ -118,115 +168,118 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
 
     getPropertyValue(key) {
       const dmmfActionName = key as DMMF.ModelAction
-      const clientMethod = `${jsModelName}.${key}`
-
-      // we return a function as the model action that we want to expose
-      // it takes user args and executes the request in a Prisma Promise
-      let descriptors: LazyDescriptor[] | undefined
-      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
-        return client._createPrismaPromise(
-          (transaction) => {
-            if (canUseEnginePrecomputedFastPath(client, paramOverrides, transaction)) {
-              const fastPath = tryEnginePrecomputedFastPath({
-                client,
-                args: userArgs,
-                action: dmmfActionName,
-                model: dmmfModelName,
-                clientMethod,
-                descriptors,
-                rememberDescriptor: (nextDescriptor) => {
-                  descriptors = rememberLazyDescriptor(descriptors, nextDescriptor)
-                },
-              })
-
-              if (fastPath !== undefined) {
-                return fastPath
-              }
-            }
-
-            if (
-              canUseRequestHandlerPrecomputedCachedResultFastPath(client, paramOverrides, transaction, dmmfActionName)
-            ) {
-              const fastPath = tryRequestHandlerPrecomputedCachedResultFastPath({
-                client,
-                args: userArgs,
-                action: dmmfActionName,
-                model: dmmfModelName,
-                clientMethod,
-                paramOverrides,
-                descriptors,
-              })
-
-              if (fastPath !== undefined) {
-                return fastPath
-              }
-            }
-
-            if (canUseRequestPrecomputedFastPath(client, paramOverrides, transaction)) {
-              const fastPath = tryRequestPrecomputedFastPath({
-                client,
-                args: userArgs,
-                action: dmmfActionName,
-                model: dmmfModelName,
-                clientMethod,
-                paramOverrides,
-                descriptors,
-                rememberDescriptor: (nextDescriptor) => {
-                  descriptors = rememberLazyDescriptor(descriptors, nextDescriptor)
-                },
-              })
-
-              if (fastPath !== undefined) {
-                return fastPath
-              }
-            }
-
-            const callSite = 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat)
-            const params: InternalRequestParams = {
-              // data and its dataPath for nested results
-              args: userArgs,
-              dataPath: [],
-
-              // action name and its related model
-              action: dmmfActionName,
-              model: dmmfModelName,
-
-              // method name for display only
-              clientMethod,
-              jsModelName,
-
-              // transaction information
-              transaction,
-
-              // stack trace
-              callsite: callSite,
-            }
-
-            return client._request({ ...params, ...paramOverrides })
-          },
-          {
-            action: dmmfActionName,
-            args: userArgs,
-            model: dmmfModelName,
-          },
-        )
-      }
-
-      // we give the control over action for building the fluent api
-      if ((fluentProps as readonly string[]).includes(dmmfActionName)) {
-        return applyFluent(client, dmmfModelName, action)
-      }
-
-      // we handle the edge case of aggregates that need extra steps
-      if (isValidAggregateName(key)) {
-        return applyAggregates(client, key, action)
-      }
-
-      return action({}) // and by default, don't override any params
+      return createModelAction(client, dmmfModelName, jsModelName, dmmfActionName)
     },
 
     cachePropertiesOnTarget: true,
   }
+}
+
+function createModelAction(client: Client, dmmfModelName: string, jsModelName: string, key: string) {
+  const dmmfActionName = key as DMMF.ModelAction
+  const clientMethod = `${jsModelName}.${key}`
+
+  // we return a function as the model action that we want to expose
+  // it takes user args and executes the request in a Prisma Promise
+  let descriptors: LazyDescriptor[] | undefined
+  const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
+    return client._createPrismaPromise(
+      (transaction) => {
+        if (canUseEnginePrecomputedFastPath(client, paramOverrides, transaction)) {
+          const fastPath = tryEnginePrecomputedFastPath({
+            client,
+            args: userArgs,
+            action: dmmfActionName,
+            model: dmmfModelName,
+            clientMethod,
+            descriptors,
+            rememberDescriptor: (nextDescriptor) => {
+              descriptors = rememberLazyDescriptor(descriptors, nextDescriptor)
+            },
+          })
+
+          if (fastPath !== undefined) {
+            return fastPath
+          }
+        }
+
+        if (canUseRequestHandlerPrecomputedCachedResultFastPath(client, paramOverrides, transaction, dmmfActionName)) {
+          const fastPath = tryRequestHandlerPrecomputedCachedResultFastPath({
+            client,
+            args: userArgs,
+            action: dmmfActionName,
+            model: dmmfModelName,
+            clientMethod,
+            paramOverrides,
+            descriptors,
+          })
+
+          if (fastPath !== undefined) {
+            return fastPath
+          }
+        }
+
+        if (canUseRequestPrecomputedFastPath(client, paramOverrides, transaction)) {
+          const fastPath = tryRequestPrecomputedFastPath({
+            client,
+            args: userArgs,
+            action: dmmfActionName,
+            model: dmmfModelName,
+            clientMethod,
+            paramOverrides,
+            descriptors,
+            rememberDescriptor: (nextDescriptor) => {
+              descriptors = rememberLazyDescriptor(descriptors, nextDescriptor)
+            },
+          })
+
+          if (fastPath !== undefined) {
+            return fastPath
+          }
+        }
+
+        const callSite = 'callsite' in paramOverrides ? paramOverrides.callsite : getCallSite(client._errorFormat)
+        const params: InternalRequestParams = {
+          // data and its dataPath for nested results
+          args: userArgs,
+          dataPath: [],
+
+          // action name and its related model
+          action: dmmfActionName,
+          model: dmmfModelName,
+
+          // method name for display only
+          clientMethod,
+          jsModelName,
+
+          // transaction information
+          transaction,
+
+          // stack trace
+          callsite: callSite,
+        }
+
+        return client._request({ ...params, ...paramOverrides })
+      },
+      {
+        action: dmmfActionName,
+        args: userArgs,
+        model: dmmfModelName,
+      },
+    )
+  }
+
+  // we give the control over action for building the fluent api
+  if ((fluentProps as readonly string[]).includes(dmmfActionName)) {
+    return applyFluent(client, dmmfModelName, action)
+  }
+
+  // we handle the edge case of aggregates that need extra steps
+  if (isValidAggregateName(key)) {
+    return applyAggregates(client, key, action)
+  }
+
+  return action({}) // and by default, don't override any params
 }
 
 function canUseEnginePrecomputedFastPath(

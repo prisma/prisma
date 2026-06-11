@@ -366,6 +366,28 @@ test('stores the runtime exact bigint matcher after slow-path parity self-test',
   )
 })
 
+test('uses lazy plain model properties for extension-free edge delegates', () => {
+  const previousTargetBuildType = (globalThis as any).TARGET_BUILD_TYPE
+  ;(globalThis as any).TARGET_BUILD_TYPE = 'wasm-compiler-edge'
+
+  try {
+    const { user } = createClient()
+    const lazyDescriptor = Object.getOwnPropertyDescriptor(user, 'findMany')
+    expect(typeof lazyDescriptor?.get).toBe('function')
+
+    const findMany = user.findMany
+    const materializedDescriptor = Object.getOwnPropertyDescriptor(user, 'findMany')
+    expect(materializedDescriptor?.value).toBe(findMany)
+    expect(Object.hasOwn(materializedDescriptor ?? {}, 'get')).toBe(false)
+  } finally {
+    if (previousTargetBuildType === undefined) {
+      delete (globalThis as any).TARGET_BUILD_TYPE
+    } else {
+      ;(globalThis as any).TARGET_BUILD_TYPE = previousTargetBuildType
+    }
+  }
+})
+
 function createSpiedExactRegistry() {
   const exactRegistry = createExactDescriptorMatcherRegistry([
     {
