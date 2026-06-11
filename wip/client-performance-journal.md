@@ -12819,6 +12819,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The tiny target-cache fast-path tweak helped some `findMany` rows but lost the targeted `findUnique` rows and the feed exact-helper product row in close control. The accepted `cachedTargetKeys` shape stays.
 
+- Accepted benchmark coverage: Workerd hoisted generated action rows.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added benchmark-only hoisted generated action modes to `workerd-query-compiler-memory.ts`.
+    - `prepareClientScenario(client, scenario)` captures the relevant generated action once (`client.user.findUnique`, `client.user.findMany`, `client.post.findUnique`, or `client.post.findMany`) and reuses it inside `runClientExecuteScenario()` when the dispatch mode ends in `-hoisted-action`.
+    - Added focused `blog-feed-by-author` Workerd rows for default generated, engine-precomputed, request-precomputed, descriptor-bound static, and exact-helper modes.
+  - Timing:
+    - 20k focused Workerd `blog-feed-by-author` normal -> hoisted:
+      - default generated: host `25.87 -> 8.84 us/op`, worker-loop `8.30 -> 7.35 us/op`. Treat host default as first-measurement/init-skewed; worker-loop is the useful signal here.
+      - engine-precomputed: host `9.46 -> 8.71`, worker-loop `8.05 -> 7.20`.
+      - request-precomputed: host `8.60 -> 8.23`, worker-loop `7.25 -> 7.05`.
+      - descriptor-bound static: host `8.47 -> 8.38`, worker-loop `7.20 -> 7.15`.
+      - exact-helper: host `7.84 -> 7.32`, worker-loop `6.55 -> 6.05`.
+  - Decision:
+    - Keep as benchmark evidence. The target runtime still shows generated call-surface headroom after the accepted target-cache product slice, especially for the exact-helper feed row. This supports a future generated-code-level hoist/deeper applied-client shape, but does not itself change product behavior.
+
 ## Useful Commands
 
 ```sh

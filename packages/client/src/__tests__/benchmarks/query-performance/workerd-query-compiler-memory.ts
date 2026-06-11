@@ -2715,6 +2715,43 @@ function executeClientScenario(client, scenario, iteration) {
   }
 }
 
+function prepareClientScenario(client, scenario) {
+  switch (scenario) {
+    case 'find-unique': {
+      const findUnique = client.user.findUnique
+      return (iteration) => findUnique(createFindUniqueArgs(iteration))
+    }
+    case 'find-many-users': {
+      const findMany = client.user.findMany
+      return () => findMany(createFindManyUsersArgs())
+    }
+    case 'blog-feed': {
+      const findMany = client.post.findMany
+      return () => findMany(createBlogPostFeedArgs())
+    }
+    case 'blog-feed-by-author': {
+      const findMany = client.post.findMany
+      return (iteration) => findMany(createBlogPostFeedByAuthorArgs(iteration))
+    }
+    case 'find-unique-batched': {
+      const findUnique = client.user.findUnique
+      return (iteration) =>
+        Promise.all([
+          findUnique(createFindUniqueArgs(iteration * 2)),
+          findUnique(createFindUniqueArgs(iteration * 2 + 1)),
+        ])
+    }
+    case 'blog-page':
+    case 'blog-page-by-id':
+    case 'blog-page-alternating': {
+      const findUnique = client.post.findUnique
+      return (iteration) => findUnique(createClientArgs(scenario, iteration))
+    }
+    default:
+      throw new Error('Unknown client-execute scenario: ' + scenario)
+  }
+}
+
 function clientMethodForScenario(scenario) {
   switch (scenario) {
     case 'find-unique':
@@ -3198,7 +3235,7 @@ async function runClientPrecomputedScenario(scenario, iterations, variant) {
   }
 }
 
-async function runClientExecuteScenario(scenario, iterations, retain, precomputedFastPath) {
+async function runClientExecuteScenario(scenario, iterations, retain, precomputedFastPath, hoistedAction = false) {
   const usesPrecomputedFastPath = precomputedFastPath !== undefined
   const usesDescriptorMatcher =
     precomputedFastPath === 'descriptor-bound' ||
@@ -3261,8 +3298,12 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
   await client.$connect()
 
   try {
+    const operation = hoistedAction
+      ? prepareClientScenario(client, scenario)
+      : (iteration) => executeClientScenario(client, scenario, iteration)
+
     if (retain) {
-      await executeClientScenario(client, scenario, 0)
+      await operation(0)
     }
 
     resetCounts()
@@ -3270,7 +3311,7 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
     const start = performance.now()
 
     for (let i = 0; i < iterations; i++) {
-      checksum += checksumResult(await executeClientScenario(client, scenario, i))
+      checksum += checksumResult(await operation(i))
     }
 
     const elapsedMs = performance.now() - start
@@ -3279,7 +3320,7 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
     return {
       scenario,
       mode:
-        precomputedFastPath === 'engine'
+        (precomputedFastPath === 'engine'
           ? 'client-execute-engine-precomputed-fast-path'
           : precomputedFastPath === 'request'
             ? 'client-execute-request-precomputed-fast-path'
@@ -3289,7 +3330,7 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
             ? 'client-execute-request-precomputed-runtime-exact-helper'
             : precomputedFastPath === 'exact-helper'
               ? 'client-execute-request-precomputed-exact-helper'
-              : 'client-execute',
+              : 'client-execute') + (hoistedAction ? '-hoisted-action' : ''),
       iterations,
       retain,
       initMs: performance.now() - startInit - elapsedMs,
@@ -3335,16 +3376,28 @@ export default {
       let result
       if (mode === 'client-execute') {
         result = await runClientExecuteScenario(scenario, iterations, retain)
+      } else if (mode === 'client-execute-hoisted-action') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, undefined, true)
       } else if (mode === 'client-execute-engine-precomputed-fast-path') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'engine')
+      } else if (mode === 'client-execute-engine-precomputed-fast-path-hoisted-action') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'engine', true)
       } else if (mode === 'client-execute-request-precomputed-fast-path') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'request')
+      } else if (mode === 'client-execute-request-precomputed-fast-path-hoisted-action') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'request', true)
       } else if (mode === 'client-execute-request-precomputed-descriptor-bound-matcher') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'descriptor-bound')
+      } else if (mode === 'client-execute-request-precomputed-descriptor-bound-matcher-hoisted-action') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'descriptor-bound', true)
       } else if (mode === 'client-execute-request-precomputed-runtime-exact-helper') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'runtime-exact-helper')
+      } else if (mode === 'client-execute-request-precomputed-runtime-exact-helper-hoisted-action') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'runtime-exact-helper', true)
       } else if (mode === 'client-execute-request-precomputed-exact-helper') {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'exact-helper')
+      } else if (mode === 'client-execute-request-precomputed-exact-helper-hoisted-action') {
+        result = await runClientExecuteScenario(scenario, iterations, retain, 'exact-helper', true)
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -3523,10 +3576,22 @@ async function runFocusedGeneratedMeasurements(clientMf: MiniflareInstance): Pro
       'client-execute',
     ],
     [
+      'generated client hoisted action blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-hoisted-action',
+    ],
+    [
       'generated client engine precomputed fast path blog-feed-by-author warmed cache',
       'blog-feed-by-author',
       GENERATED_BLOG_PAGE_ITERATIONS,
       'client-execute-engine-precomputed-fast-path',
+    ],
+    [
+      'generated client engine precomputed fast path hoisted action blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-engine-precomputed-fast-path-hoisted-action',
     ],
     [
       'generated client request precomputed fast path blog-feed-by-author warmed cache',
@@ -3535,16 +3600,34 @@ async function runFocusedGeneratedMeasurements(clientMf: MiniflareInstance): Pro
       'client-execute-request-precomputed-fast-path',
     ],
     [
+      'generated client request precomputed fast path hoisted action blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-request-precomputed-fast-path-hoisted-action',
+    ],
+    [
       'generated client descriptor-bound static matcher blog-feed-by-author warmed cache',
       'blog-feed-by-author',
       GENERATED_BLOG_PAGE_ITERATIONS,
       'client-execute-request-precomputed-descriptor-bound-matcher',
     ],
     [
+      'generated client descriptor-bound static matcher hoisted action blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-request-precomputed-descriptor-bound-matcher-hoisted-action',
+    ],
+    [
       'generated client exact descriptor helper blog-feed-by-author warmed cache',
       'blog-feed-by-author',
       GENERATED_BLOG_PAGE_ITERATIONS,
       'client-execute-request-precomputed-exact-helper',
+    ],
+    [
+      'generated client exact descriptor helper hoisted action blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-request-precomputed-exact-helper-hoisted-action',
     ],
   ] as const
 
