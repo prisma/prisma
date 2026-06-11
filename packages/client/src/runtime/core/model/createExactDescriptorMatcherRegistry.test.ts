@@ -54,6 +54,9 @@ test('binds an exact findUnique scalar matcher to a learned descriptor', () => {
   expect(matcher?.({ where: { id: 2 }, select: { id: true, email: true, name: true } })).toEqual({ '%1': 2 })
   expect(matcher?.({ select: { id: true, email: true, name: true }, where: { id: 2 } })).toBeUndefined()
   expect(matcher?.({ where: { id: '2' }, select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(matcher?.({ where: { id: 2.5 }, select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(matcher?.({ where: { id: Number.NaN }, select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(matcher?.({ where: { id: 2 ** 31 }, select: { id: true, email: true, name: true } })).toBeUndefined()
   expect(matcher?.({ where: { id: 2 }, select: { id: true, email: true, name: true, extra: true } })).toBeUndefined()
 })
 
@@ -283,6 +286,8 @@ test('binds exact findMany take matchers', () => {
 
   expect(matcher?.({ take: 20, select: { id: true, email: true, name: true } })).toEqual({ '%1': 20 })
   expect(matcher?.({ take: '20', select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(matcher?.({ take: 20.5, select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(matcher?.({ take: Number.POSITIVE_INFINITY, select: { id: true, email: true, name: true } })).toBeUndefined()
   expect(matcher?.({ select: { id: true, email: true, name: true }, take: 20 })).toBeUndefined()
   expect(matcher?.({ take: 20, select: { id: true, email: true } })).toBeUndefined()
 })

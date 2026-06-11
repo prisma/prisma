@@ -103,6 +103,7 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     expect(matcher?.({ select: nextArgs.select, where: nextArgs.where })).toBeUndefined()
     expect(matcher?.({ ...nextArgs, extra: true })).toBeUndefined()
     expect(matcher?.({ where: { id: '202' }, select: nextArgs.select })).toBeUndefined()
+    expect(matcher?.({ where: { id: 202.5 }, select: nextArgs.select })).toBeUndefined()
     expect(matcher?.({ where: nextArgs.where, select: { ...nextArgs.select, slug: undefined } })).toBeUndefined()
     expect(matcher?.({ where: nextArgs.where, select: { ...nextArgs.select, slug: skip } })).toBeUndefined()
     expect(

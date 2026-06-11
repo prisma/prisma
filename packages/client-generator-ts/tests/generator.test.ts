@@ -183,7 +183,7 @@ describe('generator', () => {
     expect(classFile).toContain('"select": [')
     expect(classFile).toContain('where.fields["slug"]')
     expect(classFile).toContain('placeholder.valueType !== "string"')
-    expect(classFile).toContain('typeof value !== "string"')
+    expect(classFile).toContain('typeof value === "string"')
     expect(classFile).toContain('__internalExactDescriptorBlogPagePostV1SelectShape')
   })
 

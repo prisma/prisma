@@ -23,6 +23,9 @@ type GeneratedExactDescriptor =
   | { kind: 'array'; items: GeneratedExactDescriptor[] }
   | { kind: 'object'; keys: string[]; fields: Record<string, GeneratedExactDescriptor> }
 
+const MAX_INT = 2 ** 31 - 1
+const MIN_INT = -(2 ** 31)
+
 export function createExactDescriptorMatcherRegistry(
   specs: readonly ExactDescriptorMatcherSpec[],
 ): DescriptorBoundMatcherRegistry {
@@ -169,7 +172,7 @@ function matchFindUniqueArgs(
   }
 
   const value = where[spec.field]
-  if (typeof value !== spec.valueType || !matchesSelectArgs(args.select, spec.select)) {
+  if (!matchesPrimitiveValueType(value, spec.valueType) || !matchesSelectArgs(args.select, spec.select)) {
     return undefined
   }
 
@@ -274,7 +277,7 @@ function matchFindManyPlaceholderArgs(
   }
 
   const value = args[spec.field]
-  if (typeof value !== spec.valueType || !matchesSelectArgs(args.select, spec.select)) {
+  if (!matchesPrimitiveValueType(value, spec.valueType) || !matchesSelectArgs(args.select, spec.select)) {
     return undefined
   }
 
@@ -367,12 +370,31 @@ function asConstantDescriptorValue(value: unknown, valueType: ExactDescriptorMat
   if (
     !isRecord(value) ||
     value.kind !== 'constant' ||
-    (valueType === 'date' ? !(value.value instanceof Date) : typeof value.value !== valueType)
+    (valueType === 'date' ? !(value.value instanceof Date) : !matchesPrimitiveValueType(value.value, valueType))
   ) {
     return undefined
   }
 
   return value.value
+}
+
+function matchesPrimitiveValueType(value: unknown, valueType: ExactDescriptorMatcherValueType): boolean {
+  switch (valueType) {
+    case 'bigint':
+      return typeof value === 'bigint'
+    case 'boolean':
+      return typeof value === 'boolean'
+    case 'number':
+      return isInt32(value)
+    case 'string':
+      return typeof value === 'string'
+    default:
+      return false
+  }
+}
+
+function isInt32(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && MIN_INT <= value && value <= MAX_INT
 }
 
 function isEmptyObjectDescriptor(value: unknown): boolean {

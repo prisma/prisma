@@ -11834,6 +11834,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is productization/parity groundwork rather than a fresh benchmark win, and it stays descriptor-bound plus slow-path self-tested. Remaining special scalar parity work is Json-like values and any broader value-form coverage that can be proven against the serializer/parameterizer oracle.
 
+- Accepted safety/productization slice: exact descriptor numeric helpers reject non-Int values.
+  - Timestamp: 2026-06-11.
+  - Context:
+    - A DMMF probe showed both `Json @unique` and `Float @unique` are legal schema shapes, but adding `Float` to the existing `number` exact-helper value type would be unsafe.
+    - The parameterizer chooses numeric placeholder types from the runtime value: finite 32-bit integers use `Int`, non-integers use `Float`, and larger integers may use `BigInt` or stay unparameterized depending on the input edge.
+    - Existing internal `number` helper specs are currently `Int`-shaped (`findUnique` Int roots and `findMany:take`), not generic floating-point specs.
+  - Patch:
+    - Kept `Float` unsupported in `internalExactDescriptorHelpers` for now.
+    - Changed runtime flat `number` matchers to accept only finite signed 32-bit integers.
+    - Changed generated blog-page template matchers to use the same signed 32-bit integer guard for `Int` roots, while keeping string roots as string-only.
+    - Added fallback tests for fractional, non-finite, and out-of-range flat numeric values and for fractional generated-template Int roots.
+  - Verification:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 12 tests.
+    - `pnpm --filter @prisma/client test applyModel.test.ts -t "descriptor" --runInBand`: passed, 8 selected tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This is a correctness/safety tightening for the internal exact-helper productization path. `Float @unique` remains a separate lead; it likely needs a distinct semantic value type and oracle coverage that proves cache-key stability across the parameterizer's Int-vs-Float numeric promotion behavior.
+
 ## Useful Commands
 
 ```sh

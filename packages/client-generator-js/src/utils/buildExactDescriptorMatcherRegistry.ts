@@ -252,6 +252,8 @@ ${blogPagePostV1TemplateSupportCode}`
 function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
   const field = JSON.stringify(template.field)
   const valueType = JSON.stringify(template.valueType)
+  const valueMatches =
+    template.valueType === 'number' ? '__internalExactDescriptorIsInt32(value)' : `typeof value === ${valueType}`
 
   return `function __internalExactDescriptorBindBlogPagePostV1_${index}(context) {
   const root = __internalExactDescriptorRoot(context)
@@ -284,7 +286,7 @@ function __internalExactDescriptorMatchBlogPagePostV1_${index}(args, valuePlaceh
   }
 
   const value = where[${field}]
-  if (typeof value !== ${valueType} || !__internalExactDescriptorMatchesBlogPagePostV1Select(args.select, selectShape)) {
+  if (!(${valueMatches}) || !__internalExactDescriptorMatchesBlogPagePostV1Select(args.select, selectShape)) {
     return undefined
   }
 
@@ -674,6 +676,10 @@ function __internalExactDescriptorKeys12(value) {
     keys[10] === 'comments' &&
     keys[11] === '_count'
   )
+}
+
+function __internalExactDescriptorIsInt32(value) {
+  return typeof value === 'number' && Number.isInteger(value) && -(2 ** 31) <= value && value <= 2 ** 31 - 1
 }
 
 function __internalExactDescriptorIsRecord(value) {

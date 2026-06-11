@@ -268,7 +268,7 @@ describe('generator', () => {
     expect(index).toContain('"select": [')
     expect(index).toContain('where.fields["slug"]')
     expect(index).toContain('placeholder.valueType !== "string"')
-    expect(index).toContain('typeof value !== "string"')
+    expect(index).toContain('typeof value === "string"')
     expect(index).toContain('__internalExactDescriptorBlogPagePostV1SelectShape')
   })
 
