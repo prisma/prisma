@@ -11476,6 +11476,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. Straight-line direct final-owner row writer closures did not improve the direct row and materially softened the generated product-shaped row in the close pair. Do not retry direct-field row-writer unrolling as a standalone patch; the next raw-nested result-shape proof needs to remove a larger phase such as generic SQL rendering/scope construction or final-owner relation wave work.
 
+- Rejected experiment: single-binding render path for final-owner relation queries.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily added `renderQueryWithSingleBinding()` in `render-query.ts`, plus a final-owner-only `#executeRawNestedReadDbQueryWithSingleBinding()` helper.
+    - Routed the six local-scope final-owner relation queries through this helper to avoid constructing `{ [scopeName]: value }` relation scope objects before `renderQuery()`.
+    - Generic query execution, comments/instrumentation fallback, and non-final-owner raw-nested recursion were left on the existing `renderQuery()` path.
+  - Verification:
+    - `git diff --check`: passed.
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts src/interpreter/render-query.test.ts`: passed, 249 tests under the package's test-filter behavior.
+  - Patched timing:
+    - Direct nested row: 5.89 us/op, `queryRaw=2100000`.
+    - Exact compact node row: 5.88 us/op, `queryRaw=2100000`.
+    - Generated nested row: 12.64 us/op, `queryRaw=700000`.
+  - Close control:
+    - Used the immediately preceding reverted-control rows from the final-owner row-writer spike: direct 5.77 us/op, exact compact 5.77 us/op, generated 12.18 us/op.
+  - Decision:
+    - Revert. Avoiding the relation scope objects through a separate single-binding render helper added enough extra call/evaluator shape overhead to soften all product-shaped rows. Do not retry this as a standalone runtime helper; a useful render/scope proof likely needs a larger compiled query-leaf shape that avoids both scope objects and generic render/evaluate machinery together.
+
 ## Useful Commands
 
 ```sh
