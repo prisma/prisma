@@ -11881,6 +11881,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This completes the numeric exact-helper split introduced by the semantic lazy descriptor change: Int-shaped helpers stay `int32`, Float helpers are finite non-integer only, and mixed integer/non-integer Float traffic falls back rather than reusing the wrong query-plan cache key.
 
+- Accepted productization slice: flat exact descriptor helpers support plain structural `Json @unique` args.
+  - Timestamp: 2026-06-11.
+  - Probe:
+    - A tiny DMMF/param-graph probe for `model User { id Int @id meta Json @unique }` showed direct Json primitives are not parameterized for `findUnique`: string/int/float/bool values kept `placeholderValues: {}` and therefore do not produce reusable Json-placeholder cache keys.
+    - The same probe showed direct Json objects and arrays parameterize to one `{ type: "Json" }` placeholder whose value is the JSON string: `{ a: 1 }` -> `{"a":1}`, `[1, "x"]` -> `[1,"x"]`.
+  - Patch:
+    - Added a `json` value type to the runtime exact descriptor matcher registry and JS/TS generator `internalExactDescriptorHelpers` parser.
+    - The runtime binds Json helpers only when the learned args are a plain object/array, the descriptor-bound self-test finds exactly one placeholder whose value equals the slow path's structural Json string, and the generated select shape still matches exactly.
+    - Later calls match only plain JSON objects/arrays with finite numbers, no sparse arrays, no inherited enumerable keys, no `$type` tagged-value objects, no `toJSON`, no `ArrayBuffer` views, no null-enum objects, and no `undefined` / `Prisma.skip`; every special value or validation-sensitive shape falls back to the normal serializer/parameterizer.
+    - Primitive Json values intentionally do not hit the helper because the current parameterizer does not turn them into reusable Json placeholders.
+    - Added generated-output coverage for `User.findUnique:metadata:id,metadata` in both generator fixtures.
+  - Verification:
+    - DMMF/param-graph probe: direct Json primitives preserved, direct Json object/array parameterized to one Json placeholder as described above.
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 15 tests.
+    - `pnpm --filter @prisma/client test applyModel.test.ts -t "descriptor" --runInBand`: passed, 8 selected tests.
+    - `pnpm --filter @prisma/client-generator-js test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-ts test generator.test.ts -t "internal exact descriptor"`: passed.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 6 tests.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Decision:
+    - Keep. This is narrow productization/parity groundwork, not a fresh benchmark win. The helper only covers the Json values that produce a reusable Json placeholder today and refuses shapes where duplicating the serializer would be risky. Do not broaden this into a generic Json serializer without oracle coverage against `serializeJsonQuery()` + `parameterizeQuery()` for null enums, tagged values, `toJSON`, strict undefined, and provider-specific validation.
+
 ## Useful Commands
 
 ```sh

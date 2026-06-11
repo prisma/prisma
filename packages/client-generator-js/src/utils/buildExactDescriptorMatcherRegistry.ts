@@ -16,6 +16,7 @@ type ExactDescriptorMatcherValueType =
   | 'date'
   | 'decimal'
   | 'float'
+  | 'json'
   | 'number'
   | 'string'
 
@@ -162,6 +163,8 @@ function getExactMatcherValueType(
       return 'decimal'
     case 'Float':
       return 'float'
+    case 'Json':
+      return 'json'
     case 'Int':
       return 'number'
     case 'String':

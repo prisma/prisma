@@ -3,8 +3,10 @@ import type {
   DescriptorBoundMatcherContext,
   DescriptorBoundMatcherRegistry,
 } from '@prisma/client-common'
+import { isObjectEnumValue } from '@prisma/client-runtime-utils'
 
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
+import { isSkip } from '../types'
 
 type ExactDescriptorMatcherSpec = {
   model: string
@@ -22,6 +24,7 @@ type ExactDescriptorMatcherValueType =
   | 'date'
   | 'decimal'
   | 'float'
+  | 'json'
   | 'number'
   | 'string'
 
@@ -31,8 +34,11 @@ type GeneratedExactDescriptor =
   | { kind: 'array'; items: GeneratedExactDescriptor[] }
   | { kind: 'object'; keys: string[]; fields: Record<string, GeneratedExactDescriptor> }
 
+type ExactJsonValue = null | string | number | boolean | ExactJsonValue[] | { [key: string]: ExactJsonValue }
+
 const MAX_INT = 2 ** 31 - 1
 const MIN_INT = -(2 ** 31)
+const invalidExactJsonValue = Symbol('invalidExactJsonValue')
 
 export function createExactDescriptorMatcherRegistry(
   specs: readonly ExactDescriptorMatcherSpec[],
@@ -86,6 +92,7 @@ function bindFindUniqueMatcher(
     spec.valueType !== 'bytes' &&
     spec.valueType !== 'date' &&
     spec.valueType !== 'decimal' &&
+    spec.valueType !== 'json' &&
     placeholder !== undefined &&
     matchesPlaceholderDescriptorValueType(placeholder.valueType, spec.valueType) &&
     matchesSelectDescriptor(root.fields.select, spec.select)
@@ -133,6 +140,17 @@ function bindFindUniqueMatcher(
       const placeholderName = getSinglePlaceholderNameForValue(context, String(initialValue))
       if (placeholderName !== undefined) {
         return (args) => matchFindUniqueBigIntArgs(args, spec, placeholderName)
+      }
+    }
+  }
+
+  if (spec.valueType === 'json' && matchesSelectDescriptor(root.fields.select, spec.select)) {
+    const initialValue = getFindUniqueWhereFieldValue(context.args, spec.field)
+    const initialJsonValue = stringifyExactJsonValue(initialValue)
+    if (initialJsonValue !== undefined) {
+      const placeholderName = getSinglePlaceholderNameForValue(context, initialJsonValue)
+      if (placeholderName !== undefined) {
+        return (args) => matchFindUniqueJsonArgs(args, spec, placeholderName)
       }
     }
   }
@@ -273,6 +291,28 @@ function matchFindUniqueDecimalArgs(
   }
 
   return { [placeholderName]: value.toFixed() }
+}
+
+function matchFindUniqueJsonArgs(
+  args: unknown,
+  spec: ExactDescriptorMatcherSpec,
+  placeholderName: string,
+): Record<string, unknown> | undefined {
+  if (!isRecord(args) || !hasOwnEnumerableKeysInOrder(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isRecord(where) || !hasOwnEnumerableKeysInOrder(where, [spec.field])) {
+    return undefined
+  }
+
+  const value = stringifyExactJsonValue(where[spec.field])
+  if (value === undefined || !matchesSelectArgs(args.select, spec.select)) {
+    return undefined
+  }
+
+  return { [placeholderName]: value }
 }
 
 function matchFindManyPlaceholderArgs(
@@ -452,6 +492,106 @@ function getSinglePlaceholderNameForValue(
 function bytesToBase64(value: ArrayBufferView): string {
   const { buffer, byteOffset, byteLength } = value
   return Buffer.from(buffer, byteOffset, byteLength).toString('base64')
+}
+
+function stringifyExactJsonValue(value: unknown): string | undefined {
+  try {
+    if (!Array.isArray(value) && !isPlainJsonObject(value)) {
+      return undefined
+    }
+
+    const normalized = normalizeExactJsonValue(value, new Set())
+    if (normalized === invalidExactJsonValue) {
+      return undefined
+    }
+
+    return JSON.stringify(normalized)
+  } catch {
+    return undefined
+  }
+}
+
+function normalizeExactJsonValue(value: unknown, seen: Set<object>): ExactJsonValue | typeof invalidExactJsonValue {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
+    return value
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : invalidExactJsonValue
+  }
+
+  if (typeof value !== 'object' || isSkip(value) || isObjectEnumValue(value) || ArrayBuffer.isView(value)) {
+    return invalidExactJsonValue
+  }
+
+  if (seen.has(value)) {
+    return invalidExactJsonValue
+  }
+
+  seen.add(value)
+  try {
+    if (Array.isArray(value)) {
+      const result = new Array<ExactJsonValue>(value.length)
+      for (let i = 0; i < value.length; i++) {
+        if (!Object.hasOwn(value, i)) {
+          return invalidExactJsonValue
+        }
+
+        const item = normalizeExactJsonValue(value[i], seen)
+        if (item === invalidExactJsonValue) {
+          return invalidExactJsonValue
+        }
+
+        result[i] = item
+      }
+
+      return result
+    }
+
+    if (!isPlainJsonObject(value)) {
+      return invalidExactJsonValue
+    }
+
+    if (Object.hasOwn(value, '$type') || typeof value.toJSON === 'function') {
+      return invalidExactJsonValue
+    }
+
+    const keys = Object.keys(value)
+    let keyIndex = 0
+    for (const key in value) {
+      if (!Object.hasOwn(value, key) || keys[keyIndex] !== key) {
+        return invalidExactJsonValue
+      }
+      keyIndex++
+    }
+    if (keyIndex !== keys.length) {
+      return invalidExactJsonValue
+    }
+
+    const result: Record<string, ExactJsonValue> = {}
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      const item = normalizeExactJsonValue(value[key], seen)
+      if (item === invalidExactJsonValue) {
+        return invalidExactJsonValue
+      }
+
+      result[key] = item
+    }
+
+    return result
+  } finally {
+    seen.delete(value)
+  }
+}
+
+function isPlainJsonObject(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
 }
 
 function descriptorHasKeys(

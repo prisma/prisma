@@ -244,6 +244,68 @@ test('binds exact bytes scalar matchers for Uint8Array args', () => {
   expect(matcher?.({ where: { fingerprint: [4, 5] }, select: { id: true, fingerprint: true } })).toBeUndefined()
 })
 
+test('binds exact json scalar matchers for plain structural args', () => {
+  const matcher = bindMatcher({
+    field: 'metadata',
+    valueType: 'json',
+    placeholderName: '%1',
+    placeholderValue: '{"tag":"initial","nested":[true,null,1]}',
+    descriptorValue: { tag: 'initial', nested: [true, null, 1] },
+    select: ['id', 'metadata'],
+  })
+
+  expect(
+    matcher?.({
+      where: { metadata: { tag: 'next', nested: [false, null, 2.5] } },
+      select: { id: true, metadata: true },
+    }),
+  ).toEqual({
+    '%1': '{"tag":"next","nested":[false,null,2.5]}',
+  })
+  expect(
+    matcher?.({
+      where: { metadata: ['next', { nested: true }] },
+      select: { id: true, metadata: true },
+    }),
+  ).toEqual({
+    '%1': '["next",{"nested":true}]',
+  })
+})
+
+test('rejects json matcher args that need the normal serializer', () => {
+  const matcher = bindMatcher({
+    field: 'metadata',
+    valueType: 'json',
+    placeholderName: '%1',
+    placeholderValue: '{"tag":"initial"}',
+    descriptorValue: { tag: 'initial' },
+    select: ['id', 'metadata'],
+  })
+
+  expect(matcher?.({ where: { metadata: 'initial' }, select: { id: true, metadata: true } })).toBeUndefined()
+  expect(matcher?.({ where: { metadata: { tag: undefined } }, select: { id: true, metadata: true } })).toBeUndefined()
+  expect(matcher?.({ where: { metadata: { tag: skip } }, select: { id: true, metadata: true } })).toBeUndefined()
+  expect(
+    matcher?.({ where: { metadata: { value: Number.NaN } }, select: { id: true, metadata: true } }),
+  ).toBeUndefined()
+  expect(
+    matcher?.({
+      where: { metadata: { $type: 'Json', value: '{"tag":"next"}' } },
+      select: { id: true, metadata: true },
+    }),
+  ).toBeUndefined()
+  expect(
+    matcher?.({
+      where: { metadata: { toJSON: () => ({ tag: 'next' }) } },
+      select: { id: true, metadata: true },
+    }),
+  ).toBeUndefined()
+
+  const inherited = Object.create({ inherited: true })
+  inherited.tag = 'next'
+  expect(matcher?.({ where: { metadata: inherited }, select: { id: true, metadata: true } })).toBeUndefined()
+})
+
 test('does not bind bigint scalar matchers when placeholder ownership is ambiguous', () => {
   const matcher = bindMatcher({
     field: 'externalId',
@@ -329,7 +391,7 @@ function bindMatcher({
   extraPlaceholderValues,
 }: {
   field: string
-  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'number' | 'string'
+  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'json' | 'number' | 'string'
   placeholderName: string
   placeholderValue: unknown
   descriptorValue?: unknown
@@ -374,7 +436,9 @@ function bindMatcher({
                       ? { kind: 'object', keys: [], fields: {} }
                       : valueType === 'decimal'
                         ? { kind: 'object', keys: [], fields: {} }
-                        : { kind: 'placeholder', name: placeholderName, valueType: descriptorValueType(valueType) },
+                        : valueType === 'json'
+                          ? { kind: 'object', keys: [], fields: {} }
+                          : { kind: 'placeholder', name: placeholderName, valueType: descriptorValueType(valueType) },
             },
           },
           select: {
@@ -445,7 +509,7 @@ function bindFindManyMatcher({
 }
 
 function descriptorValueType(
-  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'number' | 'string',
+  valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'float' | 'json' | 'number' | 'string',
 ) {
   return valueType === 'number' ? 'int32' : valueType
 }
