@@ -61,6 +61,18 @@ describe('defineConfig', () => {
         shadowDatabaseUrl: 'postgresql://SHADOW_DATABASE_URL',
       })
     })
+    test('when `directUrl` is provided in datasource, it should be set correctly', () => {
+      const config = defineConfig({
+        datasource: {
+          url: 'postgresql://DATABASE_URL',
+          directUrl: 'postgresql://DIRECT_URL',
+        },
+      })
+      expect(config.datasource).toMatchObject({
+        url: 'postgresql://DATABASE_URL',
+        directUrl: 'postgresql://DIRECT_URL',
+      })
+    })
   })
 
   describe('migrations', () => {
