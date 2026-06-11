@@ -11522,6 +11522,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is the larger render/scope phase removal that the rejected single-binding helper pointed toward: it avoids relation scope objects and generic render/evaluate machinery together for the current final-owner raw-nested relation shape. The focused Node product-shaped rows improve materially versus both the close control and the prior committed checkpoint, and the Workerd nested rows stay healthy with stronger precomputed-path timings. Preserve the strict guards and fallback instead of widening this into a generic render helper without product-shaped evidence.
 
+- Rejected experiment: return a single final-owner rendered query instead of a one-element array.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Temporarily changed `RawNestedFinalOwnerQueryRenderer` to return `DeepReadonly<SqlQuery> | undefined` instead of `DeepReadonly<SqlQuery>[] | undefined`.
+    - Updated the compiled flat and tuple renderers to return the single `SqlQuery` directly and removed the `rendered.length === 1` / `rendered[0]` check in `#executeRawNestedFinalOwnerDbQuery()`.
+    - The hypothesis was that the accepted final-owner compiled query leaves still allocate six short one-element arrays per nested blog-page request and that removing them might improve the product path.
+  - Verification:
+    - `git diff --check`: passed.
+    - `pnpm --filter @prisma/client-engine-runtime test -- src/interpreter/query-interpreter.test.ts`: passed, 249 tests under the package's test-filter behavior.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Patched timing:
+    - Initial patched sample:
+      - Direct nested row: 4.31 us/op, `queryRaw=2100000`.
+      - Exact compact node row: 4.25 us/op, `queryRaw=2100000`.
+      - Generated nested row: 9.80 us/op, `queryRaw=700000`.
+    - Reapplied patched sample:
+      - Generated nested row: 9.93 us/op, `queryRaw=700000`.
+      - Direct nested row: 4.40 us/op, `queryRaw=2100000`.
+  - Close control:
+    - Reverted direct nested row: 4.36 us/op, `queryRaw=2100000`.
+    - Reverted exact compact node row: 4.32 us/op, `queryRaw=2100000`.
+    - Reverted generated nested row: 9.54 us/op, `queryRaw=700000`.
+  - Decision:
+    - Revert. The direct/exact rows were only noise-level positive/neutral, while the generated product-shaped row was repeatedly softer in the patched samples. Do not retry one-element rendered-query array removal as a standalone cleanup; it is too small and can perturb generated timing the wrong way.
+
 ## Useful Commands
 
 ```sh
