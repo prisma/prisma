@@ -79,7 +79,7 @@ function bindFindUniqueMatcher(
     spec.valueType !== 'date' &&
     spec.valueType !== 'decimal' &&
     placeholder !== undefined &&
-    placeholder.valueType === spec.valueType &&
+    matchesPlaceholderDescriptorValueType(placeholder.valueType, spec.valueType) &&
     matchesSelectDescriptor(root.fields.select, spec.select)
   ) {
     return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
@@ -148,7 +148,7 @@ function bindFindManyMatcher(
   const value = root.fields[spec.field]
   const placeholder = asPlaceholderDescriptor(value)
   if (placeholder !== undefined) {
-    return placeholder.valueType === spec.valueType
+    return matchesPlaceholderDescriptorValueType(placeholder.valueType, spec.valueType)
       ? (args) => matchFindManyPlaceholderArgs(args, spec, placeholder.name)
       : undefined
   }
@@ -395,6 +395,13 @@ function matchesPrimitiveValueType(value: unknown, valueType: ExactDescriptorMat
 
 function isInt32(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && MIN_INT <= value && value <= MAX_INT
+}
+
+function matchesPlaceholderDescriptorValueType(
+  descriptorValueType: string,
+  specValueType: ExactDescriptorMatcherValueType,
+): boolean {
+  return descriptorValueType === (specValueType === 'number' ? 'int32' : specValueType)
 }
 
 function isEmptyObjectDescriptor(value: unknown): boolean {

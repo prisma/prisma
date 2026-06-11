@@ -997,7 +997,7 @@ function tryExtractFindUniqueDescriptor(args, cacheKey) {
   }
 
   const where = args.where
-  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || typeof where.id !== 'number') {
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || !isInt32(where.id)) {
     return undefined
   }
 
@@ -1036,7 +1036,7 @@ function tryExtractBlogPostPageDescriptor(args, cacheKey) {
   }
 
   const where = args.where
-  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || typeof where.id !== 'number') {
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['id']) || !isInt32(where.id)) {
     return undefined
   }
 
@@ -1137,7 +1137,7 @@ function bindExactGeneratedUserFindUniqueMatcher(context) {
   }
 
   const id = asGeneratedPlaceholderDescriptor(where.fields.id)
-  if (id === undefined || id.valueType !== 'number' || !isExactGeneratedUserScalarSelectDescriptor(root.fields.select)) {
+  if (id === undefined || id.valueType !== 'int32' || !isExactGeneratedUserScalarSelectDescriptor(root.fields.select)) {
     return undefined
   }
 
@@ -1157,7 +1157,7 @@ function bindExactGeneratedUserFindManyMatcher(context) {
   const take = root.fields.take
   const takePlaceholder = asGeneratedPlaceholderDescriptor(take)
   if (takePlaceholder !== undefined) {
-    return takePlaceholder.valueType === 'number'
+    return takePlaceholder.valueType === 'int32'
       ? (args) => matchExactGeneratedUserFindManyWithTakePlaceholder(args, takePlaceholder.name)
       : undefined
   }
@@ -1180,7 +1180,7 @@ function bindExactGeneratedBlogPostPageMatcher(context) {
 
   const id = asGeneratedPlaceholderDescriptor(where.fields.id)
   const selectShape = getExactGeneratedBlogPostPageSelectDescriptorShape(root.fields.select)
-  if (id === undefined || id.valueType !== 'number' || selectShape === undefined) {
+  if (id === undefined || id.valueType !== 'int32' || selectShape === undefined) {
     return undefined
   }
 
@@ -1193,7 +1193,7 @@ function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
   }
 
   const where = args.where
-  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || typeof where.id !== 'number') {
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || !isInt32(where.id)) {
     return undefined
   }
 
@@ -1205,7 +1205,7 @@ function matchExactGeneratedUserFindUnique(args, idPlaceholder) {
 }
 
 function matchExactGeneratedUserFindManyWithTakePlaceholder(args, takePlaceholder) {
-  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'take', 'select') || typeof args.take !== 'number') {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'take', 'select') || !isInt32(args.take)) {
     return undefined
   }
 
@@ -1234,7 +1234,7 @@ function matchExactGeneratedBlogPostPage(args, idPlaceholder, selectShape) {
   }
 
   const where = args.where
-  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || typeof where.id !== 'number') {
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'id') || !isInt32(where.id)) {
     return undefined
   }
 
@@ -1676,7 +1676,11 @@ function buildLazyDescriptorNode(value, placeholdersByValue) {
   const valueKey = lazyDescriptorValueKey(value)
   const placeholderName = valueKey === undefined ? undefined : placeholdersByValue.get(valueKey)
   if (placeholderName !== undefined) {
-    return { kind: 'placeholder', name: placeholderName, valueType: value === null ? 'null' : typeof value }
+    const valueType = lazyDescriptorValueType(value)
+    if (valueType === undefined) {
+      return { kind: 'constant', value }
+    }
+    return { kind: 'placeholder', name: placeholderName, valueType }
   }
 
   if (Array.isArray(value)) {
@@ -1709,7 +1713,7 @@ function matchesLazyDescriptorNode(descriptor, value, placeholderValues) {
     case 'constant':
       return Object.is(value, descriptor.value)
     case 'placeholder':
-      if ((value === null ? 'null' : typeof value) !== descriptor.valueType) {
+      if (lazyDescriptorValueType(value) !== descriptor.valueType) {
         return false
       }
       if (Object.hasOwn(placeholderValues, descriptor.name)) {
@@ -1741,18 +1745,44 @@ function matchesLazyDescriptorNode(descriptor, value, placeholderValues) {
 }
 
 function lazyDescriptorValueKey(value) {
+  const valueType = lazyDescriptorValueType(value)
+  if (valueType === undefined) {
+    return undefined
+  }
+
   switch (typeof value) {
     case 'string':
-      return 'string:' + value
-    case 'number':
-      return Number.isFinite(value) ? 'number:' + value : undefined
-    case 'boolean':
-      return 'boolean:' + (value ? 'true' : 'false')
     case 'bigint':
-      return 'bigint:' + value
+      return valueType + ':' + value
+    case 'number':
+      return valueType + ':' + value
+    case 'boolean':
+      return valueType + ':' + (value ? 'true' : 'false')
     default:
       return undefined
   }
+}
+
+function lazyDescriptorValueType(value) {
+  switch (typeof value) {
+    case 'string':
+      return 'string'
+    case 'boolean':
+      return 'boolean'
+    case 'bigint':
+      return 'bigint'
+    case 'number':
+      if (isInt32(value)) {
+        return 'int32'
+      }
+      return Number.isFinite(value) && !Number.isInteger(value) ? 'float' : undefined
+    default:
+      return undefined
+  }
+}
+
+function isInt32(value) {
+  return typeof value === 'number' && Number.isInteger(value) && -(2 ** 31) <= value && value <= 2 ** 31 - 1
 }
 
 function isDescriptorRecord(value) {

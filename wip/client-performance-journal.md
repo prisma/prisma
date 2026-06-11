@@ -11842,8 +11842,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Existing internal `number` helper specs are currently `Int`-shaped (`findUnique` Int roots and `findMany:take`), not generic floating-point specs.
   - Patch:
     - Kept `Float` unsupported in `internalExactDescriptorHelpers` for now.
+    - Changed learned lazy descriptors to store numeric placeholder value types as `int32` or `float` instead of raw `typeof value === "number"`.
+    - This matters because exact matchers intentionally fall back to the generic lazy descriptor when a strict shape check misses; the generic fallback also has to reject numeric values that would change parameterization.
     - Changed runtime flat `number` matchers to accept only finite signed 32-bit integers.
     - Changed generated blog-page template matchers to use the same signed 32-bit integer guard for `Int` roots, while keeping string roots as string-only.
+    - Updated the Node and Workerd benchmark descriptor mirrors to use the same semantic numeric descriptor types.
     - Added fallback tests for fractional, non-finite, and out-of-range flat numeric values and for fractional generated-template Int roots.
   - Verification:
     - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 12 tests.

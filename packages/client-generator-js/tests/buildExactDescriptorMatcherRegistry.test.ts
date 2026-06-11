@@ -226,7 +226,7 @@ function buildLazyDescriptorNode(value: unknown, placeholderValues: Record<strin
     return {
       kind: 'placeholder',
       name: placeholderName,
-      valueType: value === null ? 'null' : typeof value,
+      valueType: descriptorValueType(value),
     }
   }
 
@@ -259,6 +259,14 @@ function getPlaceholderName(value: unknown, placeholderValues: Record<string, un
   return undefined
 }
 
+function descriptorValueType(value: unknown): string {
+  if (typeof value === 'number' && Number.isInteger(value) && -(2 ** 31) <= value && value <= 2 ** 31 - 1) {
+    return 'int32'
+  }
+
+  return value === null ? 'null' : typeof value
+}
+
 function getStringCacheKeyPart(value: string | undefined): string {
   if (value === undefined) {
     return '-1:'
@@ -271,7 +279,7 @@ function getSingleQueryCacheKey(query: { modelName?: string; action: string }, q
   return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
 }
 
-function blogPageDescriptor(shape: 'full' | 'minimal', field = 'id', valueType: 'number' | 'string' = 'number') {
+function blogPageDescriptor(shape: 'full' | 'minimal', field = 'id', valueType: 'int32' | 'string' = 'int32') {
   return {
     root: objectDescriptor(['where', 'select'], {
       where: objectDescriptor([field], { [field]: placeholder('%1', valueType) }),
@@ -371,7 +379,7 @@ function objectDescriptor(keys: readonly string[], fields: Record<string, unknow
   return { kind: 'object', keys: [...keys], fields }
 }
 
-function placeholder(name: string, valueType: 'number' | 'string' = 'number') {
+function placeholder(name: string, valueType: 'int32' | 'string' = 'int32') {
   return { kind: 'placeholder', name, valueType }
 }
 

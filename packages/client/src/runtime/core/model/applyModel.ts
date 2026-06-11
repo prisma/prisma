@@ -600,10 +600,15 @@ function buildLazyDescriptorNode(value: unknown, placeholdersByValue: Map<string
   const valueKey = lazyDescriptorValueKey(value)
   const placeholderName = valueKey === undefined ? undefined : placeholdersByValue.get(valueKey)
   if (placeholderName !== undefined) {
+    const valueType = lazyDescriptorValueType(value)
+    if (valueType === undefined) {
+      return { kind: 'constant', value }
+    }
+
     return {
       kind: 'placeholder',
       name: placeholderName,
-      valueType: value === null ? 'null' : typeof value,
+      valueType,
     }
   }
 
@@ -656,7 +661,7 @@ function matchesLazyDescriptorNode(
       return Object.is(value, descriptor.value)
 
     case 'placeholder':
-      if ((value === null ? 'null' : typeof value) !== descriptor.valueType) {
+      if (lazyDescriptorValueType(value) !== descriptor.valueType) {
         return false
       }
 
@@ -754,15 +759,37 @@ function promoteLazyDescriptor(descriptors: LazyDescriptor[], index: number): vo
 }
 
 function lazyDescriptorValueKey(value: unknown): string | undefined {
+  const valueType = lazyDescriptorValueType(value)
+  if (valueType === undefined) {
+    return undefined
+  }
+
   switch (typeof value) {
     case 'string':
-      return `string:${value}`
-    case 'number':
-      return Number.isFinite(value) ? `number:${value}` : undefined
-    case 'boolean':
-      return `boolean:${value ? 'true' : 'false'}`
     case 'bigint':
-      return `bigint:${value}`
+      return `${valueType}:${value}`
+    case 'number':
+      return `${valueType}:${value}`
+    case 'boolean':
+      return `${valueType}:${value ? 'true' : 'false'}`
+    default:
+      return undefined
+  }
+}
+
+function lazyDescriptorValueType(value: unknown): string | undefined {
+  switch (typeof value) {
+    case 'string':
+      return 'string'
+    case 'boolean':
+      return 'boolean'
+    case 'bigint':
+      return 'bigint'
+    case 'number':
+      if (Number.isInteger(value) && -(2 ** 31) <= value && value <= 2 ** 31 - 1) {
+        return 'int32'
+      }
+      return Number.isFinite(value) && !Number.isInteger(value) ? 'float' : undefined
     default:
       return undefined
   }

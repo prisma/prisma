@@ -30,7 +30,7 @@ test('binds an exact findUnique scalar matcher to a learned descriptor', () => {
             kind: 'object',
             keys: ['id'],
             fields: {
-              id: { kind: 'placeholder', name: '%1', valueType: 'number' },
+              id: { kind: 'placeholder', name: '%1', valueType: 'int32' },
             },
           },
           select: {
@@ -280,7 +280,7 @@ test('rejects generated args that would change the exact query shape', () => {
 
 test('binds exact findMany take matchers', () => {
   const matcher = bindFindManyMatcher({
-    takeDescriptor: { kind: 'placeholder', name: '%1', valueType: 'number' },
+    takeDescriptor: { kind: 'placeholder', name: '%1', valueType: 'int32' },
     placeholderValues: { '%1': 10 },
   })
 
@@ -357,7 +357,7 @@ function bindMatcher({
                       ? { kind: 'object', keys: [], fields: {} }
                       : valueType === 'decimal'
                         ? { kind: 'object', keys: [], fields: {} }
-                        : { kind: 'placeholder', name: placeholderName, valueType },
+                        : { kind: 'placeholder', name: placeholderName, valueType: descriptorValueType(valueType) },
             },
           },
           select: {
@@ -379,7 +379,7 @@ function bindFindManyMatcher({
   takeDescriptor,
   placeholderValues,
 }: {
-  takeDescriptor: { kind: 'placeholder'; name: string; valueType: 'number' } | { kind: 'constant'; value: number }
+  takeDescriptor: { kind: 'placeholder'; name: string; valueType: 'int32' } | { kind: 'constant'; value: number }
   placeholderValues: Record<string, unknown>
 }) {
   const registry = createExactDescriptorMatcherRegistry([
@@ -425,4 +425,8 @@ function bindFindManyMatcher({
       placeholderValues,
     },
   })
+}
+
+function descriptorValueType(valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'number' | 'string') {
+  return valueType === 'number' ? 'int32' : valueType
 }

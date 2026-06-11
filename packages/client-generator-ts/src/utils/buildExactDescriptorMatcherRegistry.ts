@@ -252,6 +252,7 @@ ${blogPagePostV1TemplateSupportCode}`
 function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpec, index: number): string {
   const field = JSON.stringify(template.field)
   const valueType = JSON.stringify(template.valueType)
+  const descriptorValueType = JSON.stringify(template.valueType === 'number' ? 'int32' : template.valueType)
   const valueMatches =
     template.valueType === 'number' ? '__internalExactDescriptorIsInt32(value)' : `typeof value === ${valueType}`
 
@@ -268,7 +269,7 @@ function buildBlogPagePostV1Template(template: ExactDescriptorMatcherTemplateSpe
 
   const placeholder = __internalExactDescriptorAsPlaceholder(where.fields[${field}])
   const selectShape = __internalExactDescriptorBlogPagePostV1SelectShape(root.fields.select)
-  if (placeholder === undefined || placeholder.valueType !== ${valueType} || selectShape === undefined) {
+  if (placeholder === undefined || placeholder.valueType !== ${descriptorValueType} || selectShape === undefined) {
     return undefined
   }
 
