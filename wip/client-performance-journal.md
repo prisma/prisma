@@ -12497,6 +12497,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The branch shape helps request-precomputed and phase-warmed direct in the isolated 300k rows, but generated default is neutral/slightly worse and exact-helper regresses materially (`8.99 -> 9.27 us/op`). Do not retry second-wave scheduling as a standalone cleanup; it needs to be part of a larger relation assembly rewrite or static writer schedule.
 
+- Accepted benchmark coverage: feed-by-author exact descriptor cached-wrapper lower bound.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Generalized `measureCachedRequestWrapperGeneratedDescriptorScenario()` in `client-engine-cache-timing.ts` to accept a descriptor extractor factory bound once from the learned cache key and placeholder values.
+    - Preserved the existing blog-page static descriptor row by binding the current `tryExtractGeneratedBlogPostPageDescriptor()` extractor.
+    - Added `cached request wrapper exact descriptor blog feed by author / nested rows`, using the exact generated `Post.findMany` feed-by-author matcher shape to extract only the `authorId` placeholder for the cached wrapper lower-bound row.
+  - Verification:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 ...client-engine-cache-timing.ts`: passed and printed the new row.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - Same 100k run, selected rows:
+      - generated exact-helper blog feed by author: `9.74 us/op`.
+      - cached request wrapper exact descriptor blog feed by author: `8.80 us/op`.
+      - cached request wrapper lazy descriptor blog feed by author: `10.90 us/op`.
+      - generated default / request-precomputed / descriptor-bound static: `11.15 / 10.98 / 9.83 us/op`.
+      - serialize / serialize-cache-key / lazy-descriptor-extract: `4.02 / 7.84 / 2.68 us/op`.
+  - Decision:
+    - Keep as benchmark coverage. The exact cached-wrapper lower bound is about `0.94 us/op` below the generated exact-helper product row on this run, so the remaining feed-by-author exact-helper gap is not only matcher extraction. The lazy descriptor wrapper remains much slower, so future generated/helper work should separate exact extraction, request wrapper, and engine execution before changing product code.
+
 ## Useful Commands
 
 ```sh

@@ -303,6 +303,12 @@ type StaticDescriptorExtraction = {
   placeholderValues: Record<string, unknown>
 }
 
+type StaticDescriptorExtractor = (args: Record<string, unknown>) => StaticDescriptorExtraction | undefined
+type StaticDescriptorExtractorFactory = (
+  cacheKey: string,
+  placeholderValues: Record<string, unknown>,
+) => StaticDescriptorExtractor | undefined
+
 type LazyStaticDescriptor = {
   cacheKey: string
   root: LazyDescriptorNode
@@ -1004,6 +1010,30 @@ function tryExtractGeneratedBlogPostPageDescriptor(
     cacheKey,
     placeholderValues: { '%1': where.id },
   }
+}
+
+function bindGeneratedBlogPostPageDescriptorExtractor(cacheKey: string): StaticDescriptorExtractor {
+  return (args) => tryExtractGeneratedBlogPostPageDescriptor(args, cacheKey)
+}
+
+function bindExactGeneratedBlogPostFeedByAuthorDescriptorExtractor(
+  cacheKey: string,
+  placeholderValues: Record<string, unknown>,
+): StaticDescriptorExtractor | undefined {
+  const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
+  if (authorIdPlaceholder === undefined) {
+    return undefined
+  }
+
+  return (args) => {
+    const exactPlaceholderValues = matchExactGeneratedBlogPostFeedByAuthor(args, authorIdPlaceholder)
+    return exactPlaceholderValues === undefined ? undefined : { cacheKey, placeholderValues: exactPlaceholderValues }
+  }
+}
+
+function getOnlyPlaceholderName(placeholderValues: Record<string, unknown>): string | undefined {
+  const entries = Object.keys(placeholderValues)
+  return entries.length === 1 ? entries[0] : undefined
 }
 
 function createBenchmarkDescriptorBoundMatcherRegistry(): DescriptorBoundMatcherRegistry {
@@ -6560,6 +6590,7 @@ async function measureCachedRequestWrapperGeneratedDescriptorScenario(
   paramGraph: ParamGraph,
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   scenario: GeneratedClientSerializeScenario & { adapterFactory: ScenarioAdapterFactory },
+  descriptorExtractorFactory: StaticDescriptorExtractorFactory,
 ) {
   const counts: Counts = {
     compile: 0,
@@ -6576,20 +6607,24 @@ async function measureCachedRequestWrapperGeneratedDescriptorScenario(
     tracingHelper: noopTracingHelper,
     provider: 'sqlite',
   })
-  const { query, parameterizedQuery, queryPart, cacheKey } = getGeneratedScenarioParameterizedShape(
+  const { query, parameterizedQuery, placeholderValues, queryPart, cacheKey } = getGeneratedScenarioParameterizedShape(
     config,
     paramGraph,
     scenario,
   )
+  const extractDescriptor = descriptorExtractorFactory(cacheKey, placeholderValues)
+  if (extractDescriptor === undefined) {
+    throw new Error(`Expected generated descriptor extractor to bind for ${scenario.name}`)
+  }
   const cache = new QueryPlanCache(100)
   cache.setSingle(cacheKey, compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)))
 
   let consumedResults = 0
   try {
     for (let i = 0; i < scenario.iterations; i++) {
-      const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
+      const extraction = extractDescriptor(scenario.args(i))
       if (extraction === undefined) {
-        throw new Error('Expected generated blog-page descriptor to match benchmark args')
+        throw new Error('Expected generated descriptor to match benchmark args')
       }
       const plan = cache.getSingle(extraction.cacheKey)!
       const result = await executor.execute({
@@ -6611,9 +6646,9 @@ async function measureCachedRequestWrapperGeneratedDescriptorScenario(
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
-      const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
+      const extraction = extractDescriptor(scenario.args(i))
       if (extraction === undefined) {
-        throw new Error('Expected generated blog-page descriptor to match benchmark args')
+        throw new Error('Expected generated descriptor to match benchmark args')
       }
       const plan = cache.getSingle(extraction.cacheKey)!
       const result = await executor.execute({
@@ -7540,6 +7575,36 @@ async function main(): Promise<void> {
           paramGraph,
           baseConfig,
           measuredScenario,
+          bindGeneratedBlogPostPageDescriptorExtractor,
+        ),
+      )
+    }
+
+    for (const scenario of generatedClientSerializeScenarios) {
+      if (
+        scenario.adapterFactory === undefined ||
+        scenario.name !== 'generated client serialize blog feed by author / nested rows warmed cache'
+      ) {
+        continue
+      }
+
+      const measuredScenario = {
+        ...scenario,
+        adapterFactory: scenario.adapterFactory,
+        name: scenario.name
+          .replace('generated client serialize', 'cached request wrapper exact descriptor')
+          .replace(' warmed cache', ''),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureCachedRequestWrapperGeneratedDescriptorScenario(
+          compiler,
+          paramGraph,
+          baseConfig,
+          measuredScenario,
+          bindExactGeneratedBlogPostFeedByAuthorDescriptorExtractor,
         ),
       )
     }
