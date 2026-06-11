@@ -12994,6 +12994,38 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the edge-only patch. It removes an inner model delegate proxy layer only on the Cloudflare/edge build, where the rebuilt 50k Workerd A/B improved the priority descriptor-bound/exact-helper feed rows. The universal version was too broad because Node source simple rows were mixed; the final gate avoids changing Node `client` behavior while preserving extension semantics through the existing proxy path.
 
+- Rejected generated-cache-hit request-path cleanup: precompute model-action param override metadata.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed `packages/client/src/runtime/core/model/applyModel.ts::createModelAction()` so the returned action function computed `canIgnorePrecomputedFastPathParamOverrides(paramOverrides)`, `dataPath`, and callsite-override state once when `action(paramOverrides)` was called.
+    - The fast-path gates then consumed the cached boolean instead of rechecking `Object.keys(paramOverrides)` inside each PrismaPromise callback, and request construction reused the precomputed data path / callsite state.
+    - Goal: reduce per-hit generated cache-hit request glue after the accepted edge plain-delegate slice.
+  - Correctness:
+    - With the spike applied: `pnpm exec prettier --check packages/client/src/runtime/core/model/applyModel.ts`: passed.
+    - With the spike applied: `pnpm --filter @prisma/client test applyModel.test.ts RequestHandler.test.ts createCompositeProxy.test.ts cacheProperties.test.ts --runInBand`: passed, 39 tests and 1 snapshot, after fixing a missed helper destructuring field.
+    - With the spike applied: `pnpm --filter @prisma/client build`: passed before Workerd measurement.
+  - Timing:
+    - Node 300k exact-helper patch vs adjacent reverted control:
+      - `findUnique`: `2.79` vs `2.71 us/op` (control better).
+      - batched `findUnique`: `6.29` vs `6.24` (control better).
+      - `findMany users`: `2.35` vs `2.39` (patch better).
+      - hoisted `findMany users`: `2.31` vs `2.28` (control better).
+      - blog page: `7.90` vs `8.03` (patch better).
+      - blog feed: `8.92` vs `8.75` (control better).
+      - blog feed by author: `8.91` vs `8.95` (patch slightly better).
+      - hoisted blog feed by author: `8.83` vs `8.83` (tie).
+    - Rebuilt Workerd 50k feed-by-author patch worker-loop, compared to the accepted edge plain-delegate baseline:
+      - default generated: `7.36` vs `7.42 us/op` (patch better).
+      - hoisted default: `6.92` vs `6.82` (baseline better).
+      - engine-precomputed: `7.40` vs `6.78` (baseline better).
+      - request-precomputed: `6.90` vs `7.00` (patch better).
+      - descriptor-bound static: `6.92` vs `6.80` (baseline better).
+      - descriptor-bound static hoisted: `6.32` vs `6.28` (baseline better).
+      - exact-helper: `6.32` vs `6.10` (baseline better).
+      - exact-helper hoisted: `6.12` vs `5.98` (baseline better).
+  - Decision:
+    - Revert. The patch was too small and moved the target-runtime rows in the wrong direction. Do not retry cached `paramOverrides` metadata as a standalone cleanup; any next request-path proof should remove a larger action/request phase or specialize the descriptor-hit call directly.
+
 ## Useful Commands
 
 ```sh
