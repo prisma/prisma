@@ -25,5 +25,7 @@ export function cacheProperties<KeyType extends string | symbol>(
     getPropertyDescriptor(key) {
       return baseLayer.getPropertyDescriptor?.(key)
     },
+
+    cachePropertiesOnTarget: baseLayer.cachePropertiesOnTarget,
   }
 }

@@ -231,6 +231,30 @@ test('recalculates property on every access', () => {
   expect(proxy.prop).toBe(2)
 })
 
+test('can cache stable layer properties on the target after first access', () => {
+  const target = {} as Record<string, unknown>
+  const getPropertyValue = jest.fn(() => 'from proxy')
+  const proxy = createCompositeProxy(target, [
+    {
+      getKeys() {
+        return ['prop']
+      },
+
+      getPropertyValue,
+      cachePropertiesOnTarget: true,
+    },
+  ])
+
+  expect(proxy.prop).toBe('from proxy')
+  expect(proxy.prop).toBe('from proxy')
+  expect(target.prop).toBe('from proxy')
+  expect(getPropertyValue).toHaveBeenCalledTimes(1)
+
+  proxy.prop = 'override'
+
+  expect(proxy.prop).toBe('override')
+})
+
 test('allows to override a property from a layer', () => {
   const target = {} as Record<string, unknown>
 

@@ -25,6 +25,12 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
    * @param key
    */
   has?(key: KeyType): boolean
+
+  /**
+   * Caches resolved property values on the proxy target after first access.
+   * Use only for layers whose property values are stable for the proxy lifetime.
+   */
+  cachePropertiesOnTarget?: boolean
 }
 
 const customInspect = Symbol.for('nodejs.util.inspect.custom')
@@ -42,6 +48,7 @@ const customInspect = Symbol.for('nodejs.util.inspect.custom')
 export function createCompositeProxy<T extends object>(target: T, layers: CompositeProxyLayer[]): T {
   const keysToLayerMap = mapKeysToLayers(layers)
   const overwrittenKeys = new Set<string | symbol>()
+  const cachedTargetKeys = new Set<string | symbol>()
 
   const proxy = new Proxy(target, {
     get(target, prop) {
@@ -50,10 +57,24 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
         return target[prop]
       }
 
+      if (cachedTargetKeys.has(prop)) {
+        return target[prop]
+      }
+
       // next, we see if property is defined in one of the layers
       const layer = keysToLayerMap.get(prop)
       if (layer) {
-        return layer.getPropertyValue(prop)
+        const value = layer.getPropertyValue(prop)
+        if (layer.cachePropertiesOnTarget === true) {
+          const descriptor = layer.getPropertyDescriptor?.(prop)
+          Reflect.defineProperty(target, prop, {
+            ...defaultPropertyDescriptor,
+            ...descriptor,
+            value,
+          })
+          cachedTargetKeys.add(prop)
+        }
+        return value
       }
 
       // finally, we read a prop from target
@@ -83,6 +104,7 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
       if (layer?.getPropertyDescriptor?.(prop)?.writable === false) {
         return false
       }
+      cachedTargetKeys.delete(prop)
       overwrittenKeys.add(prop)
       return Reflect.set(target, prop, value)
     },
@@ -109,6 +131,7 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
     },
 
     defineProperty(target, property, attributes) {
+      cachedTargetKeys.delete(property)
       overwrittenKeys.add(property)
       return Reflect.defineProperty(target, property, attributes)
     },

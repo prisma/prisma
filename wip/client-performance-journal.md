@@ -12746,6 +12746,50 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as benchmark evidence. This is not product behavior, but it proves that generated call-surface lookup costs are still visible: roughly `0.2-0.4 us/op` on the measured generated paths, and enough to close about `0.3 us/op` of the feed-by-author exact-helper gap. The earlier model-action-target product attempt failed, so the next product spike should target outer model delegate materialization, generated client code hoisting, or another shape that removes both `client.post` and `.findMany` lookup per call without breaking extension/fluent/transaction semantics.
 
+- Accepted product optimization: target-cache stable model delegate/action proxy properties.
+  - Timestamp: 2026-06-11.
+  - Patch:
+    - Added an opt-in `cachePropertiesOnTarget` flag to `CompositeProxyLayer`.
+    - `createCompositeProxy()` now stores stable layer values on the proxy target after the first access and checks that target cache before returning to the layer map.
+    - `modelsLayer()` and `modelActionsLayer()` opt into target caching, and no longer wrap those layers in `cacheProperties()`. This keeps model delegates and model action functions lazy while avoiding repeated `keysToLayerMap` / `Cache.getOrCreate()` work on warmed generated calls.
+    - `cacheProperties()` forwards the opt-in flag for any future wrapped stable layer, and `createCompositeProxy.test.ts` covers first-access target caching plus explicit overwrite behavior.
+  - Correctness:
+    - `pnpm --filter @prisma/client test createCompositeProxy.test.ts cacheProperties.test.ts applyModel.test.ts --runInBand`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+    - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`: passed after the build.
+  - Timing:
+    - First full target-cache patch versus close reverted control was directionally good but mixed on simple rows; removing the duplicate `Cache` wrappers produced the kept narrowed patch below.
+    - 300k `findUnique` close control -> narrowed patch:
+      - default generated: `3.11 -> 2.93 us/op`.
+      - batched default: `7.21 -> 6.89 us/op`.
+      - engine-precomputed: `2.57 -> 2.42 us/op`.
+      - request-precomputed: `3.14 -> 3.03 us/op`.
+      - descriptor-bound static: `3.20 -> 3.00 us/op`.
+      - exact-helper: `3.00 -> 2.89 us/op`.
+      - runtime exact-helper: `2.95 -> 2.93 us/op`.
+    - 300k `findMany users` close control -> narrowed patch:
+      - default generated: `2.66 -> 2.59 us/op`.
+      - engine-precomputed: `2.94 -> 2.59 us/op`.
+      - request-precomputed: `2.66 -> 2.65 us/op`.
+      - descriptor-bound static: `2.62 -> 2.53 us/op`.
+      - exact-helper: `2.51 -> 2.40 us/op`.
+      - runtime exact-helper: `2.63 -> 2.49 us/op`.
+    - 300k feed-by-author close control -> narrowed patch:
+      - default generated: `10.98 -> 11.00 us/op` (neutral).
+      - engine-precomputed: `11.16 -> 11.00 us/op`.
+      - request-precomputed: `10.84 -> 10.70 us/op`.
+      - descriptor-bound static: `9.50 -> 9.46 us/op`.
+      - exact-helper: `9.23 -> 9.21 us/op`.
+      - trusted lower-bound helper: `8.78 -> 8.91 us/op` (regressed; benchmark-only lower-bound row, not product behavior).
+    - Workerd blog-feed-by-author 20k post-build smoke:
+      - default generated: `27.27 us/op` host dispatch, `8.15 us/op` worker loop.
+      - engine-precomputed: `9.16 us/op` host dispatch, `7.65 us/op` worker loop.
+      - request-precomputed: `9.08 us/op` host dispatch, `7.55 us/op` worker loop.
+      - descriptor-bound static: `8.50 us/op` host dispatch, `7.10 us/op` worker loop.
+      - exact-helper: `7.98 us/op` host dispatch, `6.70 us/op` worker loop.
+  - Decision:
+    - Keep. This is a small product-path win that recovers part of the benchmark-only hoisted action gap without eager model/action allocation and without changing extension/fluent/overwrite semantics. The feed-by-author product rows are neutral-to-slightly-positive, while the simple generated rows improve broadly. It does not remove proxy traps or close the full hoisted-action lower bound; generated-code-level hoisting or a deeper applied-client shape may still be needed.
+
 ## Useful Commands
 
 ```sh

@@ -89,7 +89,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
   const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName) ?? {}
 
   const layers = [
-    cacheProperties(modelActionsLayer(client, dmmfModelName)),
+    modelActionsLayer(client, dmmfModelName),
     fieldsPropertyLayer(client, dmmfModelName),
     addObjectProperties(modelExtensions),
     addProperty('name', () => dmmfModelName),
@@ -224,6 +224,8 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
 
       return action({}) // and by default, don't override any params
     },
+
+    cachePropertiesOnTarget: true,
   }
 }
 
