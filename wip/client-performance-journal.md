@@ -14110,6 +14110,9 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
     - `PATH="$HOME/.cargo/bin:$PATH" INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and updated the two expected snapshots.
     - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
   - Allocation profile:
     - Command:
       - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested cargo run -p query-compiler --example allocation_profile --release`
