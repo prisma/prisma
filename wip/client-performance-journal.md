@@ -13264,6 +13264,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is the result-object variant that the earlier `IndexMap::with_capacity()` spike failed to prove: replacing the container, with capacity from known selection order, saves bytes across the sampled translation rows and improves Criterion broadly. It is not an internal wire-format compatibility change and should be committed in `prisma-engines`.
 
+- Verification refresh: local query-compiler Wasm rebuild after ordered vector result objects.
+  - Timestamp: 2026-06-12.
+  - Source commit:
+    - `/home/aqrln.guest/prisma-engines` commit `21a8db27dfd` (`perf(query-compiler): store result object fields in vectors`).
+  - Build:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`
+    - Result: passed for both `fast` and `small` profiles across `postgresql`, `sqlite`, `mysql`, `sqlserver`, and `cockroachdb`.
+    - Build script used the local `jq-python-shim-0.1`; `wasm-opt` and `wasm2wat` were not installed, so the script skipped them as before.
+    - Reported fast zipped sizes: PostgreSQL `2.568 MiB`, SQLite `2.497 MiB`, MySQL `2.541 MiB`, SQL Server `2.560 MiB`, CockroachDB `2.583 MiB`.
+    - Reported small zipped sizes were effectively the same in this local dev-profile build: PostgreSQL `2.568 MiB`, SQLite `2.497 MiB`, MySQL `2.541 MiB`, SQL Server `2.560 MiB`, CockroachDB `2.583 MiB`.
+  - Prisma package link check:
+    - `packages/client/package.json` and `pnpm-lock.yaml` already point `@prisma/query-compiler-wasm` at `file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`.
+    - `sha256sum` confirmed the rebuilt SQLite `query_compiler_fast_bg.wasm` matched the installed package copy under `node_modules/.pnpm/.../@prisma/query-compiler-wasm` and `packages/client/node_modules/@prisma/query-compiler-wasm`.
+  - Node smoke:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows: `findUnique 601.49 us/op`, `findMany 402.34 us/op`, blog page `2776.30 us/op`.
+    - Decision: smoke passed; this validates the rebuilt local SQLite Wasm can compile the benchmark miss shapes from the Prisma source harness.
+  - Workerd smoke:
+    - Command: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Rows worker loop: default `10.20 us/op`, hoisted default `7.80`, engine-precomputed `8.40`, engine-precomputed hoisted `9.00`, request-precomputed `8.60`, request-precomputed hoisted `7.80`, descriptor-bound static `8.00`, descriptor-bound static hoisted `9.00`, exact-helper `7.60`, exact-helper hoisted `6.80`.
+    - Counters: every generated row had `5000/0` cache hits/misses; all precomputed rows reported `5000` fast-path hits and `0` learns.
+    - Decision: smoke passed on the Cloudflare-like harness with the local Wasm package. Treat this as rebuild validation, not as a fresh product timing A/B for the Rust result-object change, because the row is warmed-cache execution and the result-object change primarily affects compile/translation.
+
 ## Useful Commands
 
 ```sh
