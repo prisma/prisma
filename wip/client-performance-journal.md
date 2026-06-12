@@ -14070,6 +14070,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The allocation savings were limited to non-grouped aggregate subquery column extraction and did not survive timing gates; controls were faster on the join/lateral/nested rows and matched or beat the patched simple/group rows.
 
+- Rechecked rejected experiment: manual nested `connect` / `disconnect` filter dedupe.
+  - Timestamp: 2026-06-12.
+  - Patch tried in `/home/aqrln.guest/prisma-engines`:
+    - Replaced `itertools::unique()` in `query_graph_builder::write::nested::connect_nested` and both unique-filter paths in `disconnect_nested` with a small `Vec` plus linear `existing == &filter` scan.
+    - This extended the earlier connect-only rejection to nested disconnect.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler --check`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-connect,update-connect,update-connect-child-one2m,update-connect-parent-one2m,update-m2m-disconnect,update-set-nested cargo run -p query-compiler --example allocation_profile --release`
+    - Patched -> close reverted-control counts:
+      - `create-nested-connect`: `graph_build 489 -> 491`, `full_compile 1337 -> 1339`, full allocated bytes `146.4 -> 147.6 KiB`.
+      - `update-connect`: `graph_build 568 -> 570`, `full_compile 1365 -> 1367`, full allocated bytes `160.4 -> 161.9 KiB`.
+      - `update-connect-child-one2m`: `graph_build 429 -> 431`, `full_compile 953 -> 955`, full allocated bytes `113.7 -> 115.0 KiB`.
+      - `update-connect-parent-one2m`: `graph_build 306 -> 308`, `full_compile 801 -> 803`, full allocated bytes `99.0 -> 100.4 KiB`.
+      - `update-m2m-disconnect`: `graph_build 417 -> 419`, `full_compile 1255 -> 1257`, full allocated bytes `133.8 -> 135.3 KiB`.
+      - `update-set-nested` stayed unchanged at `graph_build 641`, `full_compile 1998`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connect|update-connect|update-connect-child-one2m|update-connect-parent-one2m|update-m2m-disconnect)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `create-nested-connect 154.74 us`, `update-connect-child-one2m 105.79 us`, `update-connect-parent-one2m 90.751 us`, `update-connect 162.45 us`, `update-m2m-disconnect 137.56 us`.
+    - Close reverted-control medians: `create-nested-connect 155.04 us`, `update-connect-child-one2m 108.53 us`, `update-connect-parent-one2m 93.929 us`, `update-connect 170.25 us`, `update-m2m-disconnect 142.43 us`.
+    - Reapplied patched medians: `create-nested-connect 157.23 us`, `update-connect-child-one2m 110.98 us`, `update-connect-parent-one2m 94.478 us`, `update-connect 168.63 us`, `update-m2m-disconnect 144.60 us`.
+  - Decision:
+    - Reverted. The allocation savings are real but only two allocations per affected row, and the reapply Criterion run softened on four of the five focused rows relative to the close control. Keep the existing `unique()` paths unless a broader graph-shape change changes the CPU profile.
+
 ## Useful Commands
 
 ```sh
