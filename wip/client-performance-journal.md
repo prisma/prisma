@@ -13285,7 +13285,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Command: `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
     - Rows worker loop: default `10.20 us/op`, hoisted default `7.80`, engine-precomputed `8.40`, engine-precomputed hoisted `9.00`, request-precomputed `8.60`, request-precomputed hoisted `7.80`, descriptor-bound static `8.00`, descriptor-bound static hoisted `9.00`, exact-helper `7.60`, exact-helper hoisted `6.80`.
     - Counters: every generated row had `5000/0` cache hits/misses; all precomputed rows reported `5000` fast-path hits and `0` learns.
-    - Decision: smoke passed on the Cloudflare-like harness with the local Wasm package. Treat this as rebuild validation, not as a fresh product timing A/B for the Rust result-object change, because the row is warmed-cache execution and the result-object change primarily affects compile/translation.
+  - Decision: smoke passed on the Cloudflare-like harness with the local Wasm package. Treat this as rebuild validation, not as a fresh product timing A/B for the Rust result-object change, because the row is warmed-cache execution and the result-object change primarily affects compile/translation.
+
+- Test maintenance: update raw-nested pagination query-compiler snapshots.
+  - Timestamp: 2026-06-12.
+  - Context:
+    - While verifying the ordered-vector result-object patch, `cargo test -p query-compiler` failed on the clean control branch for `nested-pagination-query` and `query-non-unique-one2m-pagination`.
+    - The failure was pre-existing branch drift: snapshots still expected the old `dataMap` / `join` representation, while the current compiler emits `rawNestedRead` for those pagination shapes.
+  - Patch:
+    - Updated `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/tests/snapshots/queries__queries@nested-pagination-query.json.snap`.
+    - Updated `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/tests/snapshots/queries__queries@query-non-unique-one2m-pagination.json.snap`.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed and wrote the two snapshots.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler`: passed after the snapshot update.
+  - Decision:
+    - Keep as test-gate repair for the current raw-nested compiler shape. This adds no old/new compatibility support and makes the local query-compiler package test usable again.
 
 ## Useful Commands
 
