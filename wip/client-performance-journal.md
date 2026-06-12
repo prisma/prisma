@@ -13332,6 +13332,56 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The allocation win is too small and comes with a measured `query-many-m2m` compile regression. Do not retry the borrowed raw-column-index view without a new CPU hypothesis that preserves the allocation savings while avoiding slower m2m ordinal lookups.
 
+- Accepted change: skip search-filter merge work for boolean groups without search conditions.
+  - Timestamp: 2026-06-12.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` commit `69faaa96948` (`perf(query-compiler): skip search merge for no-search groups`).
+  - Patch:
+    - Added a borrowed `contains_search_filter()` guard in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs`.
+    - `merge_search_filters()` now skips `fold_filter()` and `fold_search_filters()` only for `Filter::And` / `Filter::Or` / `Filter::Not` trees that contain no `ScalarCondition::Search` or `ScalarCondition::NotSearch`.
+    - Scalar filters keep the old path; an earlier broader guard was narrowed after scalar/control Criterion rows looked softer.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core filter --lib`: passed, 5 tests.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='filter-not-contains-param,filter-contains-param,filter-startswith-param,filter-in-param-insensitive,filter-not-in-param-insensitive,group-by' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Patched vs close control:
+      - `filter-not-contains-param`: `graph_build 369 allocs/op, 53.8 KiB` vs `373, 54.5 KiB`; `compile_ir 536` vs `540`; `full_compile 612, 74.3 KiB` vs `616, 75.0 KiB`.
+      - Controls unchanged at allocation-count level: `filter-contains-param` `graph_build 284` / `full_compile 516`; `filter-startswith-param` `284` / `512`; `filter-in-param-insensitive` `292` / `535`; `filter-not-in-param-insensitive` `292` / `535`; `group-by` `322` / `614`.
+  - Criterion:
+    - Control baseline:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(filter-not-contains-param|filter-contains-param|filter-startswith-param|filter-in-param-insensitive|filter-not-in-param-insensitive|group-by)" --sample-size 10 --warm-up-time 1 --measurement-time 2 --save-baseline no-search-filter-merge-base`
+    - Narrowed patched comparison:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(filter-not-contains-param|filter-contains-param|filter-startswith-param|filter-in-param-insensitive|filter-not-in-param-insensitive|group-by)" --sample-size 10 --warm-up-time 1 --measurement-time 2 --baseline no-search-filter-merge-base`
+      - `filter-not-contains-param`: `67.795 us`, `+0.2068%`, no performance change detected.
+      - `filter-contains-param-insensitive`: `58.881 us`, `-0.0222%`, no change.
+      - `filter-contains-param`: `59.811 us`, `+0.9721%`, within noise threshold.
+      - `filter-in-param-insensitive`: `61.534 us`, `+1.0242%`, within noise threshold.
+      - `filter-not-in-param-insensitive`: `61.401 us`, `+0.6305%`, within noise threshold.
+      - `filter-startswith-param`: `59.388 us`, `+0.8397%`, within noise threshold.
+      - `group-by`: `58.449 us`, `+0.9569%`, within noise threshold.
+    - Reversed-control repeat against the same baseline showed similar drift without the patch: `filter-contains-param +0.7954%`, `filter-in-param-insensitive +0.7405%`, `filter-not-contains-param +0.2080%`, `filter-not-in-param-insensitive +0.4401%`, `filter-startswith-param +0.2243%`, and `group-by +2.5406%`, all within Criterion's noise threshold.
+  - Local Wasm rebuild:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`
+    - Result: passed for `fast` and `small` profiles across `postgresql`, `sqlite`, `mysql`, `sqlserver`, and `cockroachdb`.
+    - Build script skipped `wasm-opt` and `wasm2wat` because they are not installed.
+    - Reported fast zipped sizes: PostgreSQL `2.569 MiB`, SQLite `2.497 MiB`, MySQL `2.541 MiB`, SQL Server `2.560 MiB`, CockroachDB `2.583 MiB`.
+    - Reported small zipped sizes: PostgreSQL `2.569 MiB`, SQLite `2.498 MiB`, MySQL `2.541 MiB`, SQL Server `2.560 MiB`, CockroachDB `2.583 MiB`.
+    - `sha256sum` confirmed the rebuilt SQLite fast Wasm matched the installed Prisma package copy under root `node_modules/.pnpm/.../@prisma/query-compiler-wasm` and `packages/client/node_modules/@prisma/query-compiler-wasm`.
+  - Prisma smoke:
+    - Node compile miss command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows: `findUnique 538.61 us/op`, `findMany 382.54 us/op`, blog page `2786.92 us/op`.
+    - Workerd smoke command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Worker-loop rows: default `10.40 us/op`, hoisted default `8.00`, engine-precomputed `8.60`, engine-precomputed hoisted `7.40`, request-precomputed `7.60`, request-precomputed hoisted `7.40`, descriptor-bound static `7.60`, descriptor-bound static hoisted `9.00`, exact-helper `7.40`, exact-helper hoisted `7.00`.
+    - Counters: every Workerd generated row had `5000/0` cache hits/misses; all precomputed rows reported `5000` fast-path hits and `0` learns.
+  - Decision:
+    - Keep. The patch is a narrow graph-build allocation cleanup for no-search boolean groups, with timing neutral after close patched/control/reversed-control checks and passing query tests. This is not an internal format change and adds no old/new compatibility path.
+
 ## Useful Commands
 
 ```sh
