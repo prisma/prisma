@@ -14021,6 +14021,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/query-plan-executor build`: passed.
     - `pnpm build`: passed with 44/44 Turbo tasks successful, 36 cached, in 1m44.547s.
 
+- Accepted change: stream aggregate result mappings in selection order.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `37b0b015f9c` (`perf(query-compiler): stream aggregate result mappings`).
+  - Patch:
+    - Replaced `get_result_node_for_aggregation()`'s temporary `IndexSet` plus `itertools::sorted_by_key()` over flattened selector identifiers with a direct walk over the already-paired `selection_order` / `selectors` vectors.
+    - The graph builder creates those two vectors together, so the mapper can emit result fields in request order without rebuilding an ordering set and sorting the flattened identifiers.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler --check`: passed.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=aggregate,aggregate-custom,group-by cargo run -p query-compiler --example allocation_profile --release`
+    - Close control -> patched counts:
+      - `aggregate`: `translate_ir 247 -> 242`, `compile_ir 534 -> 529`, `full_compile 612 -> 607`; `translate_ir` allocated bytes moved `19.2 -> 17.9 KiB`.
+      - `aggregate-custom`: `translate_ir 367 -> 358`, `compile_ir 531 -> 522`, `full_compile 678 -> 669`; `translate_ir` allocated bytes moved `31.2 -> 26.4 KiB`.
+      - `group-by`: `translate_ir 212 -> 207`, `compile_ir 534 -> 529`, `full_compile 614 -> 609`; `translate_ir` allocated bytes moved `13.0 -> 11.7 KiB`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(aggregate|aggregate-custom|group-by)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `aggregate-custom 80.238 us`, `aggregate 67.021 us`, `group-by 59.866 us`.
+    - Close reversed-control medians: `aggregate-custom 81.288 us`, `aggregate 63.611 us`, `group-by 61.026 us`.
+    - Reapplied patched medians: `aggregate-custom 77.501 us`, `aggregate 62.646 us`, `group-by 58.293 us`.
+  - Decision:
+    - Keep. Allocation savings are localized to aggregation result mapping, snapshots pass, and the reapply Criterion run is neutral-to-positive against close control despite one noisy first patched `aggregate` run.
+
 ## Useful Commands
 
 ```sh
