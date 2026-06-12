@@ -13804,6 +13804,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This saves 3-7 graph-build/full-compile allocations on the nested write target rows with close Criterion neutral-to-positive overall and sampled read/filter/upsert controls allocation-neutral.
 
+- Rejected experiment: pre-index `parse_arguments()` inputs by schema argument.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_document/parser.rs::parse_arguments()` to build a `SmallVec<[Option<&ArgumentValue>; 8]>` with one slot per schema argument.
+    - The provided-argument pass validated names, preserved first-duplicate semantics by only filling an empty slot, and the schema-argument pass read from the indexed slot instead of scanning `given_arguments` for every schema field.
+    - The conditional-required sibling check also looked up the required schema argument index and checked the same slot.
+  - Hypothesis:
+    - Common query fields repeatedly scan small argument vectors during successful parsing. Pre-indexing once might reduce successful parser CPU without changing validation output.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-core -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_validation --lib`: passed but ran 0 tests after filtering, so this was only a smoke gate.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='filter-contains-param,filter-contains-param-insensitive,query-m2o,query-many-m2m,nested-pagination-query,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no allocation-count movement versus the current post-projected-edge baseline on the sampled rows.
+    - Representative rows stayed at `filter-contains-param 46 into_doc / 284 graph_build / 445 compile_ir / 516 full_compile`, `filter-contains-param-insensitive 46 / 288 / 449 / 522`, `query-m2o 162 / 485 / 564`, `query-many-m2m 237 / 658 / 729`, `nested-pagination-query 200 / 486 / 571`, `create-nested-connectOrCreate-mixed 785 / 2424 / 2596`, and `update-set-nested 645 / 1886 / 2002`.
+  - Criterion:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(filter-contains-param|filter-contains-param-insensitive|query-m2o|query-many-m2m|nested-pagination-query|create-nested-connectOrCreate-mixed|update-set-nested)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians included `create-nested-connectOrCreate-mixed 307.16 us` with no change, `filter-contains-param-insensitive 62.073 us` with no change, `filter-contains-param 60.158 us` within noise but slower, `query-m2o 78.783 us` within noise but slower, and `query-many-m2m 88.591 us` with no change.
+    - Criterion reported regressions for `nested-pagination-query 76.609 us` (`+2.72%`) and `update-set-nested 252.65 us` (`+6.99%`).
+  - Decision:
+    - Revert. The indexed lookup adds parser bookkeeping without moving allocation counts, and it regresses two important focused compile rows. Do not retry this standalone `SmallVec`/schema-index argument lookup without a new CPU profile that specifically shows repeated argument scans dominating.
+
 - Documentation refresh: intermediate performance report after prepared request-surface safety.
   - Timestamp: 2026-06-12.
   - Report path: `wip/client-performance-intermediate-report.md`.
