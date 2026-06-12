@@ -14098,6 +14098,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The allocation savings are real but only two allocations per affected row, and the reapply Criterion run softened on four of the five focused rows relative to the close control. Keep the existing `unique()` paths unless a broader graph-shape change changes the CPU profile.
 
+- Accepted change: join many-to-many connect-or-create branches before connecting.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `9b870cf327e` (`perf(query-compiler): join m2m connect-or-create branches`).
+  - Patch:
+    - Changed `query_graph_builder::write::nested::connect_or_create_nested::handle_many_to_many()` so the `if exists` branch returns the existing child id and the `else create` branch returns the created child id through `Flow::Return`.
+    - Runs one shared `connect_records_node()` after the `if` instead of creating duplicate `ConnectRecords` nodes in both branches.
+    - Updated the `create-nested-connectOrCreate-mixed` and `create-nested-connectOrCreate-one2m` snapshots; the new plan visibly removes the duplicated junction insert branches and binds the selected child id once.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler --check`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and updated the two expected snapshots.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested cargo run -p query-compiler --example allocation_profile --release`
+    - Current pre-patch baseline -> patched:
+      - `create-nested-connectOrCreate-mixed`: `graph_build 780 -> 770`, `translate_ir 1639 -> 1511`, `full_compile 2591 -> 2453`; patched full allocated bytes were `291.8 KiB`.
+      - `create-nested-connectOrCreate-one2m`: `graph_build 665 -> 657`, `translate_ir 1473 -> 1346`, `full_compile 2297 -> 2162`; patched full allocated bytes were `258.3 KiB`.
+      - `create-nested-connectOrCreate-m2one` stayed at `graph_build 433`, `full_compile 1361`.
+      - `update-set-nested` stayed at `graph_build 641`, `full_compile 1998`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `m2one 168.92 us`, `mixed 307.86 us`, `one2m 273.32 us`, `update-set-nested 249.86 us`.
+    - Close reverted-control medians: `m2one 169.52 us`, `mixed 322.60 us`, `one2m 284.31 us`, `update-set-nested 251.68 us`.
+    - Reapplied patched medians: `m2one 168.06 us`, `mixed 306.83 us`, `one2m 272.83 us`, `update-set-nested 245.62 us`.
+  - Decision:
+    - Keep. This removes a duplicated semantic graph branch rather than a local container, saves about 135-138 full-compile allocations on the targeted m2m connect-or-create rows, and improves close Criterion by roughly 4.5% on `mixed` and `one2m` while controls stay neutral-to-positive.
+
 ## Useful Commands
 
 ```sh
