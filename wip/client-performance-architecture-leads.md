@@ -131,6 +131,7 @@ Less promising without a sharper hypothesis:
 - direct `SelectionResult` constructors for already-selected pairs by themselves. The 2026-06-12 spike added a `from_selected_pairs()` constructor and used it in translation plus nearby selection helpers; allocation counts were unchanged on sampled rows, and quick Criterion regressed `nested-upsert-nested-only` by about 5.3%.
 - duplicate many-to-many nested-upsert target-read sharing as a small parser/graph rewrite. The 2026-06-12 exact-match spike shared the duplicate `Category` read in `nested-upsert-nested-only` while keeping branch-local `ConnectRecords`, but the target row regressed from `full_compile 3011` to `3032` and `translate_ir 1723` to `1749`; a true hoist also needs branch-aware error-order proof.
 - JSON protocol `Selection` nested-vector pre-sizing by itself. The 2026-06-12 spike tried schema/selection-set capacity hints and then a narrowed root-only `Vec::with_capacity(query_selection.len())`; the narrowed patch added 1-2 allocations on representative `into_doc` / `full_compile` rows, so eager allocation is worse than the current empty-vector growth pattern.
+- single-scalar related-read parent-result extraction by itself. The 2026-06-12 spike bypassed `split_into()` / `FieldSelection::assimilate()` only for matching single-scalar parent/child link types, but allocation counts were unchanged and close Criterion was mostly neutral-to-slightly-worse; the one small pagination win was not enough to keep the branch.
 
 ### Arena Spike Shape
 

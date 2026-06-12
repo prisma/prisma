@@ -14455,6 +14455,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. Eager vector allocation in the JSON adapter is worse than the current empty-vector plus push growth pattern on sampled rows. Do not retry selection-vector pre-sizing as a standalone request-adapter allocation cleanup without a different profile showing the current growth path is hot.
 
+- Rejected experiment: single-scalar parent-result fast path for related reads.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - `build_read_related_records()` and `build_raw_read_related_records()` both handle `parent_results` by building a parent link `FieldSelection`, splitting a `SelectionResult`, assimilating it into the child filter scalar selection, then adding placeholder `IN` conditions.
+    - For the common single-scalar relation case, the translator can directly read the one parent placeholder and add the child filter condition when parent and child scalar type/arity match, while falling back to the existing compound/coercion path otherwise.
+  - Patch tried:
+    - Added a shared `add_parent_result_conditions()` helper for both generic and raw-nested related reads.
+    - Added a conservative `add_single_scalar_parent_result_condition()` branch gated by `parent_field.single_left_scalar()`, `get_single_relation_scalar_for_filters()`, matching `type_identifier_with_arity()`, and presence of the selected parent scalar in the result. Compound or mismatched cases still used the existing `split_into()` + `FieldSelection::assimilate()` path.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=nested-pagination-query,nested-distinct-pagination-query,query-non-unique-one2m-pagination,query-unique-one2m-pagination,query-many-one2m,query-many-m2m,nested-pagination-join,nested-distinct-pagination-join,query-m2o,create-nested-create cargo run -p query-compiler --example allocation_profile --release`
+    - Result: allocation counts were unchanged across the sampled rows. Representative full-compile counts stayed `nested-pagination-query 571`, `nested-distinct-pagination-query 727`, `query-non-unique-one2m-pagination 751`, `query-unique-one2m-pagination 683`, `query-many-one2m 632`, `query-many-m2m 729`, `nested-pagination-join 687`, `nested-distinct-pagination-join 752`, `query-m2o 564`, and `create-nested-create 1226`.
+  - Criterion evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-pagination-query|nested-distinct-pagination-query|query-non-unique-one2m-pagination|query-unique-one2m-pagination|query-many-one2m|query-many-m2m|nested-pagination-join|nested-distinct-pagination-join|query-m2o|create-nested-create)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Close reverted-control medians: `create-nested-create 143.32 us`, `nested-distinct-pagination-join 93.908 us`, `nested-distinct-pagination-query 90.753 us`, `nested-pagination-join 86.159 us`, `nested-pagination-query 74.258 us`, `query-m2o 76.792 us`, `query-many-m2m 86.374 us`, `query-many-one2m 83.444 us`, `query-non-unique-one2m-pagination 90.331 us`, `query-unique-one2m-pagination 84.440 us`.
+    - Reapplied patched medians: `create-nested-create 144.18 us`, `nested-distinct-pagination-join 94.369 us`, `nested-distinct-pagination-query 90.923 us`, `nested-pagination-join 86.053 us`, `nested-pagination-query 74.227 us`, `query-m2o 77.138 us`, `query-many-m2m 86.601 us`, `query-many-one2m 83.793 us`, `query-non-unique-one2m-pagination 89.729 us`, `query-unique-one2m-pagination 84.874 us`.
+  - Decision:
+    - Reverted. The patch did not move allocation counts, and close Criterion was neutral-to-slightly-worse across most rows. The only target improvement, `query-non-unique-one2m-pagination 90.331 -> 89.729 us`, was too small and isolated to keep added branch/helper complexity.
+    - Do not retry this single-scalar related-read parent-results branch as a standalone cleanup. A useful related-read rewrite needs to remove a larger phase than the final `split_into()` / `assimilate()` handoff.
+
 ## Useful Commands
 
 ```sh
