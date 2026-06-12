@@ -13952,6 +13952,60 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is small but has a precise fixture, real allocation movement on the target compound selector row, and neutral-to-positive focused timing. It also keeps the materializing field resolver as the only representation used by callers that need scalar fields, without adding old/new internal formats.
 
+- Rejected/no-movement experiment: skip return-node dependency normalization without projected dependencies.
+  - Timestamp: 2026-06-12.
+  - Patch tried in `/home/aqrln.guest/prisma-engines`:
+    - Added an early `if dependencies.as_slice().is_empty() { continue; }` in `QueryGraph::ensure_return_nodes_have_parent_dependency()`.
+    - Hypothesis: return nodes with no outgoing projected dependencies do not need the rest of the normalization loop.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,query-m2o cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no sampled row changed allocation count or allocated bytes.
+  - Decision:
+    - Reverted before Criterion. The branch did not move allocation counts, so it is not worth keeping as a speculative control-flow cleanup.
+
+- Accepted change: direct incoming-edge scan in `normalize_if_nodes()`.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `a30ce85177f` (`perf(query-compiler): avoid cloning incoming if edges`).
+  - Context:
+    - This supersedes the 2026-06-07 rejection of the same broad idea. That older run saw create-row regressions on the then-current code. A fresh close A/B on the current compiler branch covered the original concern rows again and did not reproduce the old regression.
+  - Patch:
+    - Replaced `self.incoming_edges(&sibling).into_iter().any(...)` inside `QueryGraph::normalize_if_nodes()` with a direct `petgraph::edges_directed(..., Direction::Incoming).any(...)` helper for `Then` / `Else` edges.
+    - This avoids allocating and sorting an incoming `EdgeRef` vector when the code only needs a boolean sibling-parentage check.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,update-set-nested-prisma#27650,query-m2o cargo run -p query-compiler --example allocation_profile --release`
+    - Close control -> patched allocation counts:
+      - `create-nested-connectOrCreate-mixed`: `graph_build 785 -> 780`, `compile_ir 2424 -> 2419`, `full_compile 2596 -> 2591`.
+      - `create-nested-connectOrCreate-one2m`: `graph_build 667 -> 665`, `compile_ir 2140 -> 2138`, `full_compile 2299 -> 2297`.
+      - `create-nested-connectOrCreate-m2one`: `graph_build 436 -> 433`, `compile_ir 1247 -> 1244`, `full_compile 1364 -> 1361`.
+      - `update-set-nested`: `graph_build 645 -> 641`, `compile_ir 1886 -> 1882`, `full_compile 2002 -> 1998`.
+      - `update-set-nested-prisma#27650` stayed at `806 / 1753 / 1814`.
+      - `query-m2o` stayed at `162 / 485 / 564`.
+  - Criterion A/B:
+    - Main command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested|update-set-nested-prisma#27650|query-m2o)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Close control -> patched medians:
+      - `create-nested-connectOrCreate-m2one`: `174.05 -> 161.11 us`, reported improved.
+      - `create-nested-connectOrCreate-mixed`: `312.33 -> 308.16 us`, reported improved.
+      - `create-nested-connectOrCreate-one2m`: `272.24 -> 270.74 us`, within noise threshold but lower.
+      - `query-m2o`: `79.157 -> 77.637 us`, within noise threshold but lower.
+      - `update-set-nested-prisma#27650`: `206.69 -> 200.64 us`, reported improved.
+      - `update-set-nested`: `236.32 -> 236.02 us`, no change.
+    - Old-rejection guard command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-create|create-nested-create-with-composite-id|create-m2m)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched -> reversed-control medians:
+      - `create-m2m`: `179.90 -> 181.92 us`.
+      - `create-nested-create-with-composite-id`: `163.47 -> 164.45 us`.
+      - `create-nested-create`: `144.52 -> 154.11 us` on a noisy control run with one high outlier.
+  - Verification after keeping:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+  - Decision:
+    - Keep. On the current codebase, the allocation savings are small but repeatable on if-heavy nested writes, close Criterion is neutral-to-positive, and the create-row recheck no longer reproduces the old regression.
+
 ## Useful Commands
 
 ```sh
