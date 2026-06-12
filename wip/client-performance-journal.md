@@ -13838,6 +13838,65 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate checkpoint requested by the user. The safety patch is not a new speed win, but it removes a concrete stale-value blocker for productizing generated/internal prepared operations.
 
+- Rejected experiment: transparent runtime prepared-query matcher registry for generated delegates.
+  - Timestamp: 2026-06-12.
+  - Scout context:
+    - A read-only generated-cache-hit scout concluded the clean prepared-operation product seam is a generated-owned helper/surface that owns the static `protocolQuery`, `parameterizedQuery`, cache key, placeholder name, and exact validator, then goes through `client._createPrismaPromise()` and `RequestHandler.requestPrecomputedCachedResult()`.
+    - The scout explicitly warned that transparently recovering the prepared benchmark through existing runtime proxy delegates is the wrong first seam because generated clients currently emit config/types and return `runtime.getPrismaClient(config)` rather than generated model-action implementations.
+  - Patch:
+    - Temporarily added `PreparedQueryPlanMatcherRegistry` / `PreparedQueryPlanMatcher` to `@prisma/client-common` generated config.
+    - Wired `getPrismaClient()` to store `config.preparedQueryPlanMatcherRegistry`.
+    - Added an `applyModel()` hook inside the existing request-handler precomputed cached-result eligibility gate, before lazy descriptor extraction, so a matcher could return a static `protocolQuery` plus `PrecomputedQueryPlanCacheHit`.
+    - Added focused `applyModel.test.ts` coverage for prepared-hit use and miss fallback.
+    - Added a benchmark-only `generated client prepared query matcher blog feed by author / nested rows warmed cache` row that installed a concrete registry for the current `Post.findMany` blog-feed-by-author template, with full exact arg-shape validation and the same parameterized query/cache key as the serializer/parameterizer path.
+  - Verification before revert:
+    - `pnpm --filter @prisma/client test applyModel.test.ts --runInBand`: passed, 14 tests with the prototype.
+    - `pnpm --filter @prisma/client-common build`: passed, needed so `@prisma/client` saw the new exported config types.
+    - `pnpm --filter @prisma/client build`: passed after rebuilding `client-common`.
+  - Benchmark:
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Key rows:
+      - Prepared operation / request-surface lower-bound rows: `8.02 / 8.43 us/op`.
+      - Generated default / hoisted default: `10.89 / 10.71 us/op`.
+      - Request-precomputed / hoisted request-precomputed: `11.51 / 10.87 us/op`.
+      - Descriptor-bound static / hoisted: `9.60 / 9.61 us/op`.
+      - Exact-helper / hoisted exact: `9.45 / 9.17 us/op`.
+      - Trusted-helper / hoisted trusted: `9.23 / 8.73 us/op`.
+      - Prototype prepared-query matcher / hoisted: `9.35 / 9.21 us/op`.
+      - Cached wrapper exact / trusted / lazy: `8.89 / 8.12 / 10.81 us/op`.
+      - Direct/local lower bounds: direct `7.51`, raw compact `7.46`, phase-warmed direct `7.60`, local executor `7.52 us/op`.
+  - Decision:
+    - Revert. The transparent runtime matcher hook is only noise-level against the existing exact helper and does not recover the prepared request-surface lower bound. It also adds a broad generated-config/runtime delegate surface that the scout identified as the wrong first product seam.
+    - Keep the prepared-operation benchmark as architecture evidence, but the next product proof should be an explicit generated-owned prepared helper/surface, or another generated shape that removes args/protocol construction by construction. Do not add an old/new internal format or a generic runtime prepared registry.
+
+- Scout result: next query-compiler allocation leads.
+  - Timestamp: 2026-06-12.
+  - Scout command:
+    - Read-only sidecar in `/home/aqrln.guest/prisma-engines` ran a 10-iteration allocation profile with `CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target`.
+  - Current signal:
+    - `query-m2m`: `translate_ir 447 allocs/op`, `graph_build 213`.
+    - `query-many-m2m`: `translate_ir 421`, `graph_build 237`.
+    - `create-nested-create-with-composite-id`: `translate_ir 931`, `graph_build 349`, `serialize_json 13`.
+  - Candidate 1:
+    - Files/functions: `query-compiler/query-builders/sql-query-builder/src/model_extensions/column.rs`, `model_extensions/relation.rs`, and `select/mod.rs`.
+    - Hypothesis: `ColumnIterator` boxes iterators and relation/M2M paths build small or one-element vectors before boxing. A small inline iterator or `ColumnIterator::one`/small-buffer path might reduce `translate_ir` allocation counts on M2M rows.
+    - Why it is new: this is not the rejected graph traversal `SmallVec` work, not the rejected `RelationLinkage` storage rewrite, and not the rejected relation scalar helper detours.
+    - Suggested rows: `query-m2m`, `query-many-m2m`, `create-m2m`, `update-m2m-disconnect`, with `query-m2o` and `filter-contains-param` controls.
+    - Suggested commands:
+      - `CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=query-m2m,query-many-m2m,create-m2m,update-m2m-disconnect,query-m2o,filter-contains-param cargo run -p query-compiler --example allocation_profile --release`
+      - `cargo bench -p query-compiler -- query-m2m`
+      - `cargo bench -p query-compiler -- query-many-m2m`
+      - `cargo bench -p query-compiler -- create-m2m`
+      - `cargo bench -p query-compiler -- update-m2m-disconnect`
+  - Candidate 2:
+    - Files/functions: `query-compiler/core/src/query_graph_builder/extractors/utils.rs::resolve_compound_field()` and `extractors/filters/mod.rs`.
+    - Hypothesis: unique-filter validation and partitioning call compound-field resolution for boolean checks and materialize `Vec<ScalarFieldRef>` even when they only need to know whether a name is a compound selector. Splitting boolean/name matching from field materialization might help compound-selector fixtures.
+    - Why it is new: not the rejected `ScalarFilterParser` scratch-vector/flattening work and not the rejected empty-filter `retain()` patch.
+    - Caveat: existing fixtures barely exercise compound selector syntax; a focused `compound-findUnique` / update fixture would be needed before spending a full benchmark cycle.
+  - Next action:
+    - Prefer Candidate 1 first because it has existing M2M fixtures and directly targets high `translate_ir` allocation rows. Keep close allocation and Criterion gates; revert if allocation-only wins soften timing.
+
 ## Useful Commands
 
 ```sh
