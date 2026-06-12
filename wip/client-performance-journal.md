@@ -14299,7 +14299,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The target rows improved against the close control by about 16% (`150.40 -> 126.52 us`) and 10% (`252.50 -> 226.72 us`) while saving 203/206 full-compile allocations. Existing scalar upsert, nested-upsert, empty-set, and non-empty set controls stayed allocation-neutral and timing-neutral after the clean rerun.
   - Follow-up:
-    - The immediate graph-shape family is exhausted. The next Rust work should start from a fresh allocation profile, likely graph-build temporary selections/filters or translation result structures rather than another upsert/set branch.
+    - One remaining `set` graph-shape follow-up is required child-side disconnect validation. If that is consumed, the next Rust work should start from a fresh allocation profile, likely graph-build temporary selections/filters or translation result structures rather than another upsert/set branch.
+
+- Accepted change: skip required child-side set disconnect updates.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `a87f6ccff37` (`perf(query-compiler): skip required set disconnect updates`).
+  - Patch:
+    - Changed one-to-many nested `set` handling so required child-side disconnect paths validate that the old-only row set is empty and return immediately.
+    - Added a helper that inserts a validation-only `Node::Empty` with `DataExpectation::empty_rows(RelationViolation::from(parent_relation_field))`.
+    - For `set: []` on a required child-side relation, the focused IR now reads old children, validates `rowCountEq 0`, and returns `()` instead of building an unreachable `UPDATE ... SET userId = NULL`.
+    - For non-empty `set` on a required child-side relation, the right-minus-left diff is similarly validation-only; optional child-side relations still build the real nulling update.
+    - No old/new internal graph compatibility branch was added. The producer and consumer graph/IR versions are lockstep.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-set-required-target INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and updated the focused snapshots.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-set-required-target cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `git diff --check`: passed before the engines commit.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-wasm-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles after deleting older `/tmp/prisma-engines-*` target directories to recover space. The first attempt failed with `Disk quota exceeded` in `/tmp/prisma-engines-set-required-target`.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
+  - Allocation A/B:
+    - Command:
+      - `ALLOC_PROFILE_QUERIES=update-set-nested-empty,update-set-nested,update-set-nested-prisma#27650,upsert,nested-upsert-nested-only,create-nested-connectOrCreate-mixed PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-set-required-release CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Current accepted baseline -> patched:
+      - `update-set-nested-empty`: `graph_build 511 -> 501`, `translate_ir 861 -> 706`, `compile_ir 1372 -> 1207`, `full_compile 1476 -> 1311`, full allocated bytes `176.1 -> 154.1 KiB`.
+      - `update-set-nested`: `graph_build 641 -> 633`, `translate_ir 1241 -> 1087`, `full_compile 1998 -> 1836`.
+      - `update-set-nested-prisma#27650` stayed at `full_compile 1689`.
+      - `upsert` stayed at `full_compile 707`.
+      - `nested-upsert-nested-only` stayed at `full_compile 3011`.
+      - `create-nested-connectOrCreate-mixed` stayed at `full_compile 2453`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-set-required-release CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(update-set-nested-empty|update-set-nested|update-set-nested-prisma#27650|upsert|nested-upsert-nested-only|create-nested-connectOrCreate-mixed)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `create-nested-connectOrCreate-mixed 312.95 us`, `nested-upsert-nested-only 403.19 us`, `update-set-nested-empty 188.49 us`, `update-set-nested-prisma#27650 204.40 us`, `update-set-nested 243.21 us`, `upsert 90.756 us`.
+    - First reverted-control rerun was discarded because every row globally slowed down, including unrelated controls: `create-nested-connectOrCreate-mixed 414.08 us`, `nested-upsert-nested-only 601.21 us`, `update-set-nested-empty 375.68 us`, `update-set-nested-prisma#27650 349.75 us`, `update-set-nested 716.98 us`, `upsert 139.40 us`.
+    - Usable close reverted-control medians: `create-nested-connectOrCreate-mixed 488.60 us`, `nested-upsert-nested-only 493.90 us`, `update-set-nested-empty 268.38 us`, `update-set-nested-prisma#27650 228.55 us`, `update-set-nested 270.66 us`, `upsert 80.987 us`.
+    - Reapplied patched medians: `create-nested-connectOrCreate-mixed 335.56 us`, `nested-upsert-nested-only 435.70 us`, `update-set-nested-empty 188.09 us`, `update-set-nested-prisma#27650 199.52 us`, `update-set-nested 257.81 us`, `upsert 78.610 us`.
+  - Decision:
+    - Keep. Required child-side disconnect updates were semantically unreachable because any row needing disconnection must fail relation validation. The target rows improved against the close control by about 30% (`268.38 -> 188.09 us`) for `update-set-nested-empty` and about 5% (`270.66 -> 257.81 us`) for `update-set-nested`, while saving 165/162 full-compile allocations. The first control was invalid due a broad machine slowdown; the usable control plus reapplied run stayed neutral-to-positive on sampled controls.
+  - Follow-up:
+    - This exhausts the immediate no-op branch family. The next Rust query-compiler work should start from a fresh allocation or CPU profile rather than another local `set`/`upsert` branch cleanup.
 
 - Rejected experiment: skip scalar-only connect-or-create create-return nodes.
   - Timestamp: 2026-06-12.
