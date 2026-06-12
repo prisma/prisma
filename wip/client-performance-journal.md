@@ -14415,6 +14415,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a zero-allocation CPU cleanup on the request-adapter success path. The close control was slower across the row set, and the reapplied patch stayed neutral-to-positive: meaningful wins held for `create-nested-connectOrCreate-mixed`, `nested-pagination-query`, and `nested-upsert-nested-only`; `create-nested-create` and `filter-contains-param` were neutral on reapply.
 
+- Accepted experiment: skip root result-map construction for guaranteed raw-nested reads.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `491ce36d76c perf(query-compiler): skip raw nested result maps`.
+  - Hypothesis:
+    - `translate()` builds `map_result_structure(&graph, ...)` before translation, then discards that structure when the translated root is already `Expression::RawNestedRead`.
+    - For root read queries that structurally guarantee the existing raw-nested path, we can skip building the result mapper up front instead of building and throwing it away.
+  - Patch kept:
+    - Collect root nodes before result-map construction.
+    - Add a conservative read-query preflight that only returns true for one root query-mode nested read with mapper-compatible scalar/virtual selections, no root in-memory ops, non-chunking filters, supported single-scalar raw-nested relations, no unsupported relation ops, no composites, and no `parent_results`.
+    - Skip `map_result_structure()` only when that preflight succeeds.
+    - Add a hard invariant guard: if the preflight predicts raw-nested and translation does not produce `RawNestedRead`, compilation errors instead of returning an unmapped result.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=query-m2o,query-many-m2m,query-many-one2m,nested-pagination-query,query-non-unique-one2m-pagination,query-unique-one2m-pagination,nested-pagination-join,nested-distinct-pagination-join,aggregate,create-nested-create cargo run -p query-compiler --example allocation_profile --release`
+    - Current baseline -> patched full-compile allocations:
+      - `query-m2o`: `564 -> 549`.
+      - `query-many-m2m`: `729 -> 714`.
+      - `query-many-one2m`: `632 -> 606`.
+      - `nested-pagination-query`: `571 -> 560`.
+      - `query-non-unique-one2m-pagination`: `751 -> 729`.
+      - `query-unique-one2m-pagination`: `683 -> 661`.
+      - Controls unchanged: `nested-pagination-join 687`, `nested-distinct-pagination-join 752`, `aggregate 607`, `create-nested-create 1226`.
+    - Target `translate_ir` counts dropped by the same skipped mapper phase: `query-m2o 323 -> 308`, `query-many-m2m 421 -> 406`, `query-many-one2m 322 -> 296`, `nested-pagination-query 286 -> 275`, `query-non-unique-one2m-pagination 350 -> 328`, `query-unique-one2m-pagination 354 -> 332`.
+  - Criterion evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(query-m2o|query-many-m2m|query-many-one2m|nested-pagination-query|query-non-unique-one2m-pagination|query-unique-one2m-pagination|nested-pagination-join|nested-distinct-pagination-join|aggregate|create-nested-create)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians were mixed against Criterion's stored baseline, so a close reverted control and patched rerun were used.
+    - Close reverted-control medians: `aggregate 62.588 us`, `create-nested-create 150.38 us`, `nested-distinct-pagination-join 97.824 us`, `nested-pagination-join 90.552 us`, `nested-pagination-query 86.483 us` noisy, `query-m2o 80.136 us`, `query-many-m2m 90.660 us`, `query-many-one2m 89.095 us` noisy, `query-non-unique-one2m-pagination 95.069 us`, `query-unique-one2m-pagination 88.537 us`.
+    - Final patched rerun medians on the smaller target/control set: `aggregate 60.964 us`, `create-nested-create 151.81 us`, `nested-pagination-join 88.362 us`, `nested-pagination-query 74.597 us`, `query-m2o 76.818 us`, `query-many-one2m 82.877 us`, `query-non-unique-one2m-pagination 89.717 us`.
+  - Validation:
+    - `cargo check -p query-compiler`: passed.
+    - `cargo test -p query-compiler`: passed.
+    - `make build-qc-wasm`: first retry after the harness restart failed while linking the CockroachDB bundle with `rust-lld` SIGBUS because `/tmp` was 80% full; after deleting the disposable `/tmp/prisma-engines-scout-target` benchmark cache, the full fast+small provider Wasm build passed.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only tracked diff was unrelated `@ark/attest` TypeScript peer lockfile churn, so it was reverted.
+    - `pnpm --filter @prisma/client build`: passed against the rebuilt local Wasm package.
+  - Decision:
+    - Keep. This is now a bounded version of the earlier raw-nested `map_result_structure()` upper-bound lead: only roots that are guaranteed to use the existing raw-nested output skip the mapper. Allocation counts moved cleanly on query-mode nested read rows, sampled controls stayed allocation-neutral, and close Criterion reruns were neutral-to-positive despite one noisy first pass.
+
 - Rejected experiment: share duplicate M2M nested-upsert connect target reads.
   - Timestamp: 2026-06-12.
   - Hypothesis:
