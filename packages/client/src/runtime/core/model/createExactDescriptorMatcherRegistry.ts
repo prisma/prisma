@@ -10,7 +10,7 @@ import { isSkip } from '../types'
 
 type ExactDescriptorMatcherSpec = {
   model: string
-  action: 'findUnique' | 'findMany'
+  action: 'findUnique' | 'findFirst' | 'findFirstOrThrow' | 'findMany'
   clientMethod: string
   field: string
   valueType: ExactDescriptorMatcherValueType
@@ -57,7 +57,9 @@ export function createExactDescriptorMatcherRegistry(
           let matcher: DescriptorBoundMatcher | undefined
           switch (spec.action) {
             case 'findUnique':
-              matcher = bindFindUniqueMatcher(context, spec)
+            case 'findFirst':
+            case 'findFirstOrThrow':
+              matcher = bindWhereSelectMatcher(context, spec)
               break
             case 'findMany':
               matcher = bindFindManyMatcher(context, spec)
@@ -75,7 +77,7 @@ export function createExactDescriptorMatcherRegistry(
   }
 }
 
-function bindFindUniqueMatcher(
+function bindWhereSelectMatcher(
   context: DescriptorBoundMatcherContext,
   spec: ExactDescriptorMatcherSpec,
 ): DescriptorBoundMatcher | undefined {
@@ -100,7 +102,7 @@ function bindFindUniqueMatcher(
     matchesPlaceholderDescriptorValueType(placeholder.valueType, spec.valueType) &&
     matchesSelectDescriptor(root.fields.select, spec.select)
   ) {
-    return (args) => matchFindUniqueArgs(args, spec, placeholder.name)
+    return (args) => matchWhereSelectArgs(args, spec, placeholder.name)
   }
 
   if (spec.valueType === 'bytes' && matchesSelectDescriptor(root.fields.select, spec.select)) {
@@ -108,7 +110,7 @@ function bindFindUniqueMatcher(
     if (ArrayBuffer.isView(initialValue) && isEmptyObjectDescriptor(where.fields[spec.field])) {
       const placeholderName = getSinglePlaceholderNameForValue(context, bytesToBase64(initialValue))
       if (placeholderName !== undefined) {
-        return (args) => matchFindUniqueBytesArgs(args, spec, placeholderName)
+        return (args) => matchWhereSelectBytesArgs(args, spec, placeholderName)
       }
     }
   }
@@ -122,7 +124,7 @@ function bindFindUniqueMatcher(
     ) {
       const placeholderName = getSinglePlaceholderNameForValue(context, initialValue.toISOString())
       if (placeholderName !== undefined) {
-        return (args) => matchFindUniqueDateArgs(args, spec, placeholderName)
+        return (args) => matchWhereSelectDateArgs(args, spec, placeholderName)
       }
     }
   }
@@ -132,7 +134,7 @@ function bindFindUniqueMatcher(
     if (isDecimalJsLike(initialValue)) {
       const placeholderName = getSinglePlaceholderNameForValue(context, initialValue.toFixed())
       if (placeholderName !== undefined) {
-        return (args) => matchFindUniqueDecimalArgs(args, spec, placeholderName)
+        return (args) => matchWhereSelectDecimalArgs(args, spec, placeholderName)
       }
     }
   }
@@ -142,7 +144,7 @@ function bindFindUniqueMatcher(
     if (initialValue !== undefined) {
       const placeholderName = getSinglePlaceholderNameForValue(context, String(initialValue))
       if (placeholderName !== undefined) {
-        return (args) => matchFindUniqueBigIntArgs(args, spec, placeholderName)
+        return (args) => matchWhereSelectBigIntArgs(args, spec, placeholderName)
       }
     }
   }
@@ -153,7 +155,7 @@ function bindFindUniqueMatcher(
     if (initialDbValue !== undefined) {
       const placeholderName = getSinglePlaceholderNameForValue(context, initialDbValue)
       if (placeholderName !== undefined) {
-        return (args) => matchFindUniqueEnumArgs(args, spec, placeholderName)
+        return (args) => matchWhereSelectEnumArgs(args, spec, placeholderName)
       }
     }
   }
@@ -164,7 +166,7 @@ function bindFindUniqueMatcher(
     if (initialJsonValue !== undefined) {
       const placeholderName = getSinglePlaceholderNameForValue(context, initialJsonValue)
       if (placeholderName !== undefined) {
-        return (args) => matchFindUniqueJsonArgs(args, spec, placeholderName)
+        return (args) => matchWhereSelectJsonArgs(args, spec, placeholderName)
       }
     }
   }
@@ -197,7 +199,7 @@ function bindFindManyMatcher(
   return constant !== undefined ? (args) => matchFindManyConstantArgs(args, spec, constant) : undefined
 }
 
-function matchFindUniqueArgs(
+function matchWhereSelectArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,
@@ -219,7 +221,7 @@ function matchFindUniqueArgs(
   return { [placeholderName]: value }
 }
 
-function matchFindUniqueBigIntArgs(
+function matchWhereSelectBigIntArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,
@@ -241,7 +243,7 @@ function matchFindUniqueBigIntArgs(
   return { [placeholderName]: String(value) }
 }
 
-function matchFindUniqueDateArgs(
+function matchWhereSelectDateArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,
@@ -263,7 +265,7 @@ function matchFindUniqueDateArgs(
   return { [placeholderName]: value.toISOString() }
 }
 
-function matchFindUniqueBytesArgs(
+function matchWhereSelectBytesArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,
@@ -285,7 +287,7 @@ function matchFindUniqueBytesArgs(
   return { [placeholderName]: bytesToBase64(value) }
 }
 
-function matchFindUniqueDecimalArgs(
+function matchWhereSelectDecimalArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,
@@ -307,7 +309,7 @@ function matchFindUniqueDecimalArgs(
   return { [placeholderName]: value.toFixed() }
 }
 
-function matchFindUniqueJsonArgs(
+function matchWhereSelectJsonArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,
@@ -329,7 +331,7 @@ function matchFindUniqueJsonArgs(
   return { [placeholderName]: value }
 }
 
-function matchFindUniqueEnumArgs(
+function matchWhereSelectEnumArgs(
   args: unknown,
   spec: ExactDescriptorMatcherSpec,
   placeholderName: string,

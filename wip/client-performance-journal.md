@@ -13125,6 +13125,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `findFirst` filter semantics are broader than unique equality. The first slice must stay exact single-field scalar/enum equality and rely on serializer/parameterizer/cache-key oracle tests; no broad filter matcher or trusted shortcut.
     - Generic lazy descriptors may already cover this shape enough that the win is small. Keep only with close A/B evidence.
 
+- Accepted exact-helper productization slice: flat `findFirst` / `findFirstOrThrow` internal specs.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Extended `createExactDescriptorMatcherRegistry()` to bind the existing strict `where + select` exact matcher shape for `findFirst` and `findFirstOrThrow`, in addition to `findUnique`.
+    - Extended both TS and JS generator `internalExactDescriptorHelpers` parsing to accept `findFirst` / `findFirstOrThrow` specs for exact scalar/enum non-list fields without requiring uniqueness. `findUnique` still requires `@id` / `@unique`, and `findMany` stays `take`-only.
+    - Added `client-engine-cache-timing.ts` rows for generated `findFirst users / warmed cache`, including default, request-precomputed, descriptor-bound static, hand exact-helper, and runtime exact-helper modes.
+  - Correctness:
+    - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 18 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 13 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 13 tests.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client build`: passed.
+  - Timing:
+    - First 300k `findFirst users` run:
+      - default generated: `2.21 us/op`.
+      - request-precomputed: `2.25`.
+      - descriptor-bound static: `2.11`.
+      - hand exact-helper: `2.07`.
+      - runtime exact-helper: `2.08`.
+    - Repeat 300k run:
+      - default generated: `2.23 us/op`.
+      - request-precomputed: `2.25`.
+      - descriptor-bound static: `2.20`.
+      - hand exact-helper: `2.09`.
+      - runtime exact-helper: `2.14`.
+  - Decision:
+    - Keep as internal-only productization groundwork. The win is small but repeat-positive for exact-helper rows, tests/builds pass, and it uses the existing descriptor self-test / exact-shape contract. Do not broaden this into arbitrary `findFirst` filter matching; add oracle coverage before enabling any new shape.
+
 ## Useful Commands
 
 ```sh

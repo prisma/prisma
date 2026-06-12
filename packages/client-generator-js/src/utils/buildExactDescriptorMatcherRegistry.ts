@@ -2,7 +2,7 @@ import type * as DMMF from '@prisma/dmmf'
 
 type ExactDescriptorMatcherSpec = {
   model: string
-  action: 'findUnique' | 'findMany'
+  action: 'findUnique' | 'findFirst' | 'findFirstOrThrow' | 'findMany'
   clientMethod: string
   field: string
   valueType: ExactDescriptorMatcherValueType
@@ -115,7 +115,7 @@ function parseExactDescriptorMatcherSpec(
 
   const model = modelAction.slice(0, separator)
   const action = modelAction.slice(separator + 1)
-  if (action !== 'findUnique' && action !== 'findMany') {
+  if (action !== 'findUnique' && action !== 'findFirst' && action !== 'findFirstOrThrow' && action !== 'findMany') {
     throw new Error(`Unsupported internalExactDescriptorHelpers action ${JSON.stringify(action)}`)
   }
 
@@ -159,7 +159,7 @@ function parseExactDescriptorMatcherSpec(
 function getExactMatcherValue(
   dmmfModel: DMMF.Model,
   datamodel: DMMF.Datamodel,
-  action: 'findUnique' | 'findMany',
+  action: ExactDescriptorMatcherSpec['action'],
   field: string,
 ): { valueType: ExactDescriptorMatcherValueType; enumValues?: Record<string, string> } {
   if (action === 'findMany') {
@@ -174,7 +174,7 @@ function getExactMatcherValue(
   if (dmmfField === undefined || (dmmfField.kind !== 'scalar' && dmmfField.kind !== 'enum') || dmmfField.isList) {
     throw new Error(`Invalid internalExactDescriptorHelpers field ${JSON.stringify(`${dmmfModel.name}.${field}`)}`)
   }
-  if (!dmmfField.isId && !dmmfField.isUnique) {
+  if (action === 'findUnique' && !dmmfField.isId && !dmmfField.isUnique) {
     throw new Error(
       `internalExactDescriptorHelpers findUnique field must be unique ${JSON.stringify(`${dmmfModel.name}.${field}`)}`,
     )

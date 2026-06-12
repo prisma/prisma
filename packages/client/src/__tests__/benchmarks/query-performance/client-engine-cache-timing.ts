@@ -229,7 +229,7 @@ type GeneratedClientSerializeScenario = {
   name: string
   iterations: number
   modelName: string
-  action: 'findUnique'
+  action: 'findUnique' | 'findFirst' | 'findMany'
   clientMethod: string
   args: (iteration: number) => Record<string, unknown>
   query: (iteration: number) => JsonQuery
@@ -701,6 +701,23 @@ function createFindManyUsersQuery(): JsonQuery {
   }
 }
 
+function createFindFirstUserQuery(email: string): JsonQuery {
+  return {
+    modelName: 'User',
+    action: 'findFirst',
+    query: {
+      arguments: {
+        where: { email },
+      },
+      selection: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    },
+  }
+}
+
 function addBlogPostPageNestedSelection(selection: Record<string, unknown>): void {
   selection.author = {
     selection: {
@@ -854,6 +871,17 @@ function createGeneratedFindUniqueArgs(iteration: number): Record<string, unknow
 function createGeneratedFindManyUsersArgs(): Record<string, unknown> {
   return {
     take: 10,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  }
+}
+
+function createGeneratedFindFirstUserArgs(iteration: number): Record<string, unknown> {
+  return {
+    where: { email: `user${(iteration % 10) + 1}@example.test` },
     select: {
       id: true,
       email: true,
@@ -1067,6 +1095,10 @@ function createBenchmarkDescriptorBoundMatcherRegistry(): DescriptorBoundMatcher
         return (args) => matchGeneratedUserFindMany(args, expectedPlaceholders)
       }
 
+      if (context.model === 'User' && context.action === 'findFirst' && context.clientMethod === 'user.findFirst') {
+        return (args) => matchGeneratedUserFindFirst(args, expectedPlaceholders)
+      }
+
       if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
         return (args) => matchGeneratedBlogPostPage(args, expectedPlaceholders)
       }
@@ -1092,6 +1124,10 @@ function createExactGeneratedUserDescriptorMatcherRegistry(): DescriptorBoundMat
 
       if (context.model === 'User' && context.action === 'findMany' && context.clientMethod === 'user.findMany') {
         return bindExactGeneratedUserFindManyMatcher(context)
+      }
+
+      if (context.model === 'User' && context.action === 'findFirst' && context.clientMethod === 'user.findFirst') {
+        return bindExactGeneratedUserFindFirstMatcher(context)
       }
 
       if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
@@ -1176,6 +1212,31 @@ function bindExactGeneratedUserFindManyMatcher(
   return isGeneratedConstantDescriptor(take, 10)
     ? (args) => matchExactGeneratedUserFindManyWithConstantTake(args)
     : undefined
+}
+
+function bindExactGeneratedUserFindFirstMatcher(
+  context: DescriptorBoundMatcherContext,
+): DescriptorBoundMatcher | undefined {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeys(root, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeys(where, ['email'])) {
+    return undefined
+  }
+
+  const email = asGeneratedPlaceholderDescriptor(where.fields.email)
+  if (
+    email === undefined ||
+    email.valueType !== 'string' ||
+    !isExactGeneratedUserScalarSelectDescriptor(root.fields.select)
+  ) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedUserFindFirst(args, email.name)
 }
 
 function bindExactGeneratedBlogPostPageMatcher(
@@ -1289,6 +1350,26 @@ function matchExactGeneratedUserFindManyWithConstantTake(args: unknown): Record<
   }
 
   return EMPTY_PLACEHOLDER_VALUES
+}
+
+function matchExactGeneratedUserFindFirst(
+  args: unknown,
+  emailPlaceholder: string,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'email') || typeof where.email !== 'string') {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return { [emailPlaceholder]: where.email }
 }
 
 function matchExactGeneratedBlogPostPage(
@@ -1839,6 +1920,26 @@ function matchGeneratedUserFindMany(
   }
 
   return constantPlaceholderValues(expectedPlaceholders)
+}
+
+function matchGeneratedUserFindFirst(
+  args: unknown,
+  expectedPlaceholders: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  if (!isDescriptorRecord(args) || !hasExactOwnEnumerableKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactOwnEnumerableKeys(where, ['email']) || typeof where.email !== 'string') {
+    return undefined
+  }
+
+  if (!matchesTrueSelection(args.select, ['id', 'email', 'name'])) {
+    return undefined
+  }
+
+  return singlePlaceholderValues(expectedPlaceholders, where.email)
 }
 
 function matchGeneratedBlogPostPage(
@@ -7061,6 +7162,13 @@ async function main(): Promise<void> {
       operation: (client) => client.user.findMany(createGeneratedFindManyUsersArgs()),
     },
     {
+      name: 'generated client findFirst users / warmed cache',
+      iterations: benchmarkIterations(500),
+      query: createFindFirstUserQuery('user1@example.test'),
+      resultSet: USER_UNIQUE_RESULT,
+      operation: (client, iteration) => client.user.findFirst(createGeneratedFindFirstUserArgs(iteration)),
+    },
+    {
       name: 'generated client hoisted action findUnique / warmed cache',
       iterations: benchmarkIterations(500),
       query: createFindUniqueQuery(1),
@@ -7145,6 +7253,16 @@ async function main(): Promise<void> {
       args: createGeneratedFindManyUsersArgs,
       query: () => createFindManyUsersQuery(),
       resultSet: USER_SCALAR_RESULT,
+    },
+    {
+      name: 'generated client serialize findFirst users / warmed cache',
+      iterations: benchmarkIterations(500),
+      modelName: 'User',
+      action: 'findFirst',
+      clientMethod: 'user.findFirst',
+      args: createGeneratedFindFirstUserArgs,
+      query: (iteration) => createFindFirstUserQuery(`user${(iteration % 10) + 1}@example.test`),
+      resultSet: USER_UNIQUE_RESULT,
     },
     {
       name: 'generated client serialize blog page / nested rows warmed cache',
@@ -7406,6 +7524,7 @@ async function main(): Promise<void> {
       scenario.name !== 'generated client findUnique / warmed cache' &&
       scenario.name !== 'generated client batched findUnique / warmed cache' &&
       scenario.name !== 'generated client findMany users / warmed cache' &&
+      scenario.name !== 'generated client findFirst users / warmed cache' &&
       scenario.name !== 'generated client hoisted action findUnique / warmed cache' &&
       scenario.name !== 'generated client hoisted action findMany users / warmed cache' &&
       scenario.name !== 'generated client blog page / nested rows warmed cache' &&
@@ -7473,12 +7592,21 @@ async function main(): Promise<void> {
       valueType: 'number',
       select: ['id', 'email', 'name'],
     },
+    {
+      model: 'User',
+      action: 'findFirst',
+      clientMethod: 'user.findFirst',
+      field: 'email',
+      valueType: 'string',
+      select: ['id', 'email', 'name'],
+    },
   ])
   for (const scenario of generatedClientScenarios) {
     if (
       scenario.name !== 'generated client findUnique / warmed cache' &&
       scenario.name !== 'generated client batched findUnique / warmed cache' &&
       scenario.name !== 'generated client findMany users / warmed cache' &&
+      scenario.name !== 'generated client findFirst users / warmed cache' &&
       scenario.name !== 'generated client hoisted action findUnique / warmed cache' &&
       scenario.name !== 'generated client hoisted action findMany users / warmed cache'
     ) {

@@ -151,6 +151,36 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     ])
   })
 
+  test('emits findFirst exact descriptor specs for non-unique scalar fields', () => {
+    const { factory } = createRegistry(['User.findFirst:email:id,email'])
+
+    expect(factory).toHaveBeenCalledWith([
+      {
+        model: 'User',
+        action: 'findFirst',
+        clientMethod: 'user.findFirst',
+        field: 'email',
+        valueType: 'string',
+        select: ['id', 'email'],
+      },
+    ])
+  })
+
+  test('emits findFirstOrThrow exact descriptor specs for non-unique scalar fields', () => {
+    const { factory } = createRegistry(['User.findFirstOrThrow:email:id,email'])
+
+    expect(factory).toHaveBeenCalledWith([
+      {
+        model: 'User',
+        action: 'findFirstOrThrow',
+        clientMethod: 'user.findFirstOrThrow',
+        field: 'email',
+        valueType: 'string',
+        select: ['id', 'email'],
+      },
+    ])
+  })
+
   test('matches the serializer and parameterizer oracle for the blog page template', async () => {
     const oracle = await createBlogPageOracle()
     const { registry } = createRegistryFromDatamodel(oracle.datamodel, ['template:Post.findUnique:id:blogPagePostV1'])

@@ -60,6 +60,45 @@ test('binds an exact findUnique scalar matcher to a learned descriptor', () => {
   expect(matcher?.({ where: { id: 2 }, select: { id: true, email: true, name: true, extra: true } })).toBeUndefined()
 })
 
+test('binds exact findFirst scalar matchers to learned where/select descriptors', () => {
+  const matcher = bindMatcher({
+    action: 'findFirst',
+    clientMethod: 'user.findFirst',
+    field: 'email',
+    valueType: 'string',
+    placeholderName: '%1',
+    placeholderValue: 'alice@example.test',
+    select: ['id', 'email', 'name'],
+  })
+
+  expect(matcher?.({ where: { email: 'bob@example.test' }, select: { id: true, email: true, name: true } })).toEqual({
+    '%1': 'bob@example.test',
+  })
+  expect(matcher?.({ where: { email: 2 }, select: { id: true, email: true, name: true } })).toBeUndefined()
+  expect(
+    matcher?.({ select: { id: true, email: true, name: true }, where: { email: 'bob@example.test' } }),
+  ).toBeUndefined()
+})
+
+test('binds exact findFirstOrThrow scalar matchers to learned where/select descriptors', () => {
+  const matcher = bindMatcher({
+    action: 'findFirstOrThrow',
+    clientMethod: 'user.findFirstOrThrow',
+    field: 'email',
+    valueType: 'string',
+    placeholderName: '%1',
+    placeholderValue: 'alice@example.test',
+    select: ['id', 'email'],
+  })
+
+  expect(matcher?.({ where: { email: 'bob@example.test' }, select: { id: true, email: true } })).toEqual({
+    '%1': 'bob@example.test',
+  })
+  expect(
+    matcher?.({ where: { email: 'bob@example.test' }, select: { id: true, email: true, name: true } }),
+  ).toBeUndefined()
+})
+
 test('does not bind when the learned descriptor does not match the spec', () => {
   const registry = createExactDescriptorMatcherRegistry([
     {
@@ -411,6 +450,8 @@ test('binds exact findMany constant take matchers without placeholders', () => {
 })
 
 function bindMatcher({
+  action = 'findUnique',
+  clientMethod = 'user.findUnique',
   field,
   valueType,
   enumValues,
@@ -420,6 +461,8 @@ function bindMatcher({
   select,
   extraPlaceholderValues,
 }: {
+  action?: 'findUnique' | 'findFirst' | 'findFirstOrThrow'
+  clientMethod?: string
   field: string
   valueType: 'bigint' | 'boolean' | 'bytes' | 'date' | 'decimal' | 'enum' | 'float' | 'json' | 'number' | 'string'
   enumValues?: Record<string, string>
@@ -432,8 +475,8 @@ function bindMatcher({
   const registry = createExactDescriptorMatcherRegistry([
     {
       model: 'User',
-      action: 'findUnique',
-      clientMethod: 'user.findUnique',
+      action,
+      clientMethod,
       field,
       valueType,
       enumValues,
@@ -443,8 +486,8 @@ function bindMatcher({
 
   return registry.getMatcher({
     model: 'User',
-    action: 'findUnique',
-    clientMethod: 'user.findUnique',
+    action,
+    clientMethod,
     args: {
       where: { [field]: descriptorValue },
       select: Object.fromEntries(select.map((fieldName) => [fieldName, true])),

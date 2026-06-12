@@ -51,6 +51,8 @@ A later direct-validation cleanup kept the same full user-argument shape checks 
 
 A 2026-06-12 benchmark-only attempt to replace generated exact-helper fixed-width `Object.keys()` validators with `for...in` / `Object.hasOwn()` scans was rejected. Close control beat patched on the product-safe by-author rows: generated exact-helper `8.98` vs `9.60 us/op`, hoisted exact `8.78` vs `9.35`, and cached-wrapper exact `8.12` vs `8.88`. Keep the current key-array checks unless a different generated-shape proof changes the validation contract.
 
+Flat `findFirst` / `findFirstOrThrow` exact-helper specs are now supported internally for strict one-field scalar/enum equality plus exact select. The first `findFirst users` row is small but positive: request-precomputed / hand exact / runtime exact measured `2.25 / 2.07 / 2.08 us/op`, then `2.25 / 2.09 / 2.14` on repeat. This is productization groundwork for exact helpers, not permission to build a broad filter matcher.
+
 ### What A Wasm Reference-Type Version Would Need
 
 A direct Rust-over-JS implementation probably needs generated/static access strategy, not generic `js_sys::Reflect` traversal. Prior `Reflect` walkers were much slower than native `JSON.stringify()` and JS exact descriptor helpers.
