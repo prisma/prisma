@@ -14165,6 +14165,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes a redundant semantic node and reload from a nested-only update path, saves 125 full-compile allocations on `update-set-nested-prisma#27650`, and improves the close Criterion target by about 7% while nearby controls stay neutral or noisy.
 
+- Rejected experiment: skip parent-create missing-related validation for nested create child edges.
+  - Timestamp: 2026-06-12.
+  - Patch tried in `/home/aqrln.guest/prisma-engines`:
+    - In `query_graph_builder::write::nested::create_nested`, made the `DataExpectation::non_empty_rows(...)` on one-to-many nested create child edges conditional on `!utils::node_is_create(graph, &parent_node)`.
+    - The hypothesis was that a parent `CreateRecord` returning the inline relation fields cannot produce an empty row without failing itself, so the child-edge validation wrapper is redundant for create-parent nested create.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler --check`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=create-nested-create,create-nested-create-with-composite-id,create-m2m,update-create-child-one2m,update-set-nested cargo run -p query-compiler --example allocation_profile --release`
+    - Patched counts versus current broad-profile baseline:
+      - `create-nested-create`: `full_compile 1226 -> 1199`, `translate_ir 677 -> 656`.
+      - `create-nested-create-with-composite-id`: `full_compile 1367 -> 1338`, `translate_ir 931 -> 909`.
+      - `create-m2m`: `full_compile 1615 -> 1588`, `translate_ir 918 -> 897`.
+      - `update-create-child-one2m` stayed at `full_compile 1008`.
+      - `update-set-nested` stayed at `full_compile 1998`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-create|create-nested-create-with-composite-id|create-m2m|update-create-child-one2m|update-set-nested)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians: `create-m2m 179.02 us`, `create-nested-create-with-composite-id 163.76 us`, `create-nested-create 148.41 us`, `update-create-child-one2m 117.23 us`, `update-set-nested 245.99 us`.
+    - Close reverted-control medians: `create-m2m 180.47 us`, `create-nested-create-with-composite-id 164.41 us`, `create-nested-create 144.49 us`, `update-create-child-one2m 113.33 us`, `update-set-nested 237.16 us`.
+  - Decision:
+    - Reverted. The allocation savings were real on create-parent nested create rows, but close Criterion softened on the important `create-nested-create` row and unrelated controls. Keep the parent-create child-edge validation unless a broader graph-shape change gives a new CPU reason.
+
 ## Useful Commands
 
 ```sh
