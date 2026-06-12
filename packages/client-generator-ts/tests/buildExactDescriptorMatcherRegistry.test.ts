@@ -8,6 +8,7 @@ import { buildParamGraph } from '@prisma/param-graph-builder'
 import { describe, expect, test, vi } from 'vitest'
 
 import { serializeJsonQuery } from '../../client/src/runtime/core/jsonProtocol/serializeJsonQuery'
+import { createExactDescriptorMatcherRegistry } from '../../client/src/runtime/core/model/createExactDescriptorMatcherRegistry'
 import { skip } from '../../client/src/runtime/core/types/exported/Skip'
 import { parameterizeQuery } from '../../client-engine-runtime/src/parameterization/parameterize'
 import { ParamGraph } from '../../param-graph/src'
@@ -181,6 +182,61 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     ])
   })
 
+  test('matches the serializer and parameterizer oracle for flat findFirst exact matchers', async () => {
+    const oracle = await createBlogPageOracle('findFirst', 'user.findFirst', 'User')
+    const registry = createRealRegistryFromDatamodel(oracle.datamodel, ['User.findFirst:email:id,email,name'])
+    const firstArgs = userEmailArgs('alice@example.test')
+    const nextArgs = userEmailArgs('bob@example.test')
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'User',
+      action: 'findFirst',
+      clientMethod: 'user.findFirst',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(Object.keys(matcher?.(nextArgs) ?? {})).toEqual(Object.keys(next.placeholderValues))
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(first.placeholderValues).toEqual({ '%1': 'alice@example.test' })
+    expect(next.placeholderValues).toEqual({ '%1': 'bob@example.test' })
+    expect(matcher?.({ select: nextArgs.select, where: nextArgs.where })).toBeUndefined()
+    expect(matcher?.({ ...nextArgs, extra: true })).toBeUndefined()
+    expect(matcher?.({ where: { email: 2 }, select: nextArgs.select })).toBeUndefined()
+    expect(matcher?.({ where: { email: { contains: 'bob' } }, select: nextArgs.select })).toBeUndefined()
+    expect(matcher?.({ where: { email: 'bob@example.test', name: 'Bob' }, select: nextArgs.select })).toBeUndefined()
+    expect(matcher?.({ where: nextArgs.where, select: { ...nextArgs.select, name: undefined } })).toBeUndefined()
+    expect(matcher?.({ where: nextArgs.where, select: { ...nextArgs.select, name: skip } })).toBeUndefined()
+  })
+
+  test('matches the serializer and parameterizer oracle for flat findFirstOrThrow exact matchers', async () => {
+    const oracle = await createBlogPageOracle('findFirstOrThrow', 'user.findFirstOrThrow', 'User')
+    const registry = createRealRegistryFromDatamodel(oracle.datamodel, ['User.findFirstOrThrow:email:id,email'])
+    const firstArgs = userEmailArgs('carol@example.test', ['id', 'email'])
+    const nextArgs = userEmailArgs('dave@example.test', ['id', 'email'])
+    const first = oracle.fromArgs(firstArgs)
+    const next = oracle.fromArgs(nextArgs)
+    const matcher = registry.getMatcher({
+      model: 'User',
+      action: 'findFirstOrThrow',
+      clientMethod: 'user.findFirstOrThrow',
+      descriptor: first.descriptor,
+      precomputedQueryPlanCacheHit: {
+        cacheKey: first.cacheKey,
+        placeholderValues: first.placeholderValues,
+      },
+    })
+
+    expect(matcher?.(nextArgs)).toEqual(next.placeholderValues)
+    expect(first.cacheKey).toBe(next.cacheKey)
+    expect(matcher?.(userEmailArgs('dave@example.test'))).toBeUndefined()
+  })
+
   test('matches the serializer and parameterizer oracle for the blog page template', async () => {
     const oracle = await createBlogPageOracle()
     const { registry } = createRegistryFromDatamodel(oracle.datamodel, ['template:Post.findUnique:id:blogPagePostV1'])
@@ -348,6 +404,15 @@ function createRegistry(configValue: string[]) {
   return createRegistryFromDatamodel(datamodel, configValue)
 }
 
+function createRealRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: string[]) {
+  const code = buildExactDescriptorMatcherRegistry(datamodel, configValue, '__factory')
+  const config: any = {}
+
+  vm.runInNewContext(code, { __factory: createExactDescriptorMatcherRegistry, config })
+
+  return config.descriptorMatcherRegistry
+}
+
 function createRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: string[]) {
   const code = buildExactDescriptorMatcherRegistry(datamodel, configValue, '__factory')
   const config: any = {}
@@ -361,8 +426,9 @@ function createRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: str
 }
 
 async function createBlogPageOracle(
-  action: 'findUnique' | 'findMany' = 'findUnique',
+  action: 'findUnique' | 'findMany' | 'findFirst' | 'findFirstOrThrow' = 'findUnique',
   clientMethod = 'post.findUnique',
+  modelName = 'Post',
 ) {
   const dmmf = await internals.getInternalDMMF({ datamodel: benchmarkSchema })
   if ('error' in dmmf) {
@@ -383,7 +449,7 @@ async function createBlogPageOracle(
     datamodel: dmmf.datamodel,
     fromArgs(args: Record<string, unknown>) {
       const query = serializeJsonQuery({
-        modelName: 'Post',
+        modelName,
         runtimeDataModel,
         action,
         args,
@@ -545,6 +611,13 @@ function blogFeedByAuthorArgs(authorId: number, take: number) {
     take,
     orderBy: [{ createdAt: 'desc' }],
     select: blogPageArgs('full', 0).select,
+  }
+}
+
+function userEmailArgs(email: string, selectKeys: readonly string[] = ['id', 'email', 'name']) {
+  return {
+    where: { email },
+    select: Object.fromEntries(selectKeys.map((key) => [key, true])),
   }
 }
 

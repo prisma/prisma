@@ -343,6 +343,29 @@ test('stores the runtime exact findMany matcher after slow-path parity self-test
   )
 })
 
+test('stores the runtime exact findFirst matcher after slow-path parity self-test', async () => {
+  const { registry, getMatcher, matchers } = createSpiedExactRegistry()
+  const { engine, requestHandler, user } = createClient({
+    descriptorMatcherRegistry: registry,
+    placeholderValues: { '%1': 'alice@example.test' },
+  })
+
+  await user.findFirst({ where: { email: 'alice@example.test' }, select: { id: true, email: true, name: true } })
+  await user.findFirst({ where: { email: 'bob@example.test' }, select: { id: true, email: true, name: true } })
+
+  expect(getMatcher).toHaveBeenCalledTimes(1)
+  expect(matchers).toHaveLength(1)
+  expect(matchers[0]).toHaveBeenCalledTimes(2)
+  expect(engine.getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  expect(requestHandler.request).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      precomputedQueryPlanCacheHit: expect.objectContaining({
+        placeholderValues: { '%1': 'bob@example.test' },
+      }),
+    }),
+  )
+})
+
 test('stores the runtime exact bigint matcher after slow-path parity self-test', async () => {
   const { registry, getMatcher, matchers } = createSpiedExactRegistry()
   const { engine, requestHandler, user } = createClient({
@@ -404,6 +427,14 @@ function createSpiedExactRegistry() {
       clientMethod: 'user.findMany',
       field: 'take',
       valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
+    {
+      model: 'User',
+      action: 'findFirst',
+      clientMethod: 'user.findFirst',
+      field: 'email',
+      valueType: 'string',
       select: ['id', 'email', 'name'],
     },
     {

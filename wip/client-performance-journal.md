@@ -13173,6 +13173,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep the report as the current intermediate checkpoint requested by the user. The new `findFirst` work is a narrow internal-helper/productization win, not a broad default-row magnitude change.
 
+- Accepted exact-helper productization coverage: flat `findFirst` / `findFirstOrThrow` oracle and self-test gates.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Added real serializer/parameterizer/cache-key oracle coverage in both JS and TS generator `buildExactDescriptorMatcherRegistry.test.ts` files for `User.findFirst:email:id,email,name` and `User.findFirstOrThrow:email:id,email`.
+    - The oracle tests now execute the generated flat config with the real `createExactDescriptorMatcherRegistry()` factory instead of the mocked flat fallback, then verify placeholder values, cache-key stability, placeholder key order, root key order rejection, extra root key rejection, wrong value-type rejection, broad object-filter rejection, extra `where` field rejection, and `undefined` / `Prisma.skip` select rejection.
+    - Extended generated-output fixtures to include the flat `findFirst` / `findFirstOrThrow` specs and assert the emitted generated clients contain those action specs.
+    - Added `applyModel.test.ts` coverage that the runtime exact `findFirst` matcher is stored after the slow-path parity self-test and reused for the next call.
+  - Verification:
+    - `pnpm --filter @prisma/client test src/runtime/core/model/applyModel.test.ts src/runtime/core/model/createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 30 tests.
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 15 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 15 tests.
+    - `pnpm --filter @prisma/client-generator-ts exec vitest run tests/generator.test.ts -t "emits internal exact descriptor helpers" --testTimeout 30000`: passed, 1 selected test.
+    - `pnpm --filter @prisma/client-generator-js exec vitest run tests/generator.test.ts -t "emits internal exact descriptor helpers" --testTimeout 30000`: passed, 1 selected test.
+  - Decision:
+    - Keep. This does not change timing, but it removes the largest missing parity proof for the new flat `findFirst` shape while preserving the narrow exact one-field equality contract. Broad `findFirst` filter matching remains out of scope.
+
 ## Useful Commands
 
 ```sh
