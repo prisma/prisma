@@ -13549,14 +13549,55 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. The experiment's only premise was allocation reduction, and the focused allocation profile showed none on the sampled filter/group/nested rows.
 
-- New lead: remaining Rust allocation candidate from subagent scout.
+- Rejected experiment: `FieldSelection::into_without_relations()` no-relation early return.
   - Timestamp: 2026-06-12.
-  - Candidate:
-    - Consuming `FieldSelection` fast paths in `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field_selection.rs`.
-    - `FieldSelection::into_without_relations()` consumes `self` but still allocates a filtered vector even when no relation selections exist. An early relation scan could return `self` for scalar-only selections.
-    - `FieldSelection::into_virtuals_last()` partitions into two vectors and then collects a third when virtuals exist; a manual one-result-vector move with virtual tail may reduce heap traffic for `_count` selections.
-    - Likely rows: scalar query-strategy reads like `filter-contains-param`, `filter-startswith-param`, and virtual-heavy aggregate rows such as `aggregate-join`, `aggregate-join-lateral`, and `aggregate-nested-m2m`.
-    - Risk: the no-relation guard adds a scan, and `partition()` may already optimize well for small selections. Require allocation and Criterion evidence.
+  - Patch:
+    - Added an early scan/return to `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field_selection.rs` so `into_without_relations()` returned `self` when no relation fields were present.
+  - Verification with the patch applied:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='filter-contains-param,filter-startswith-param,filter-not-contains-param,group-by,query-m2o,query-many-m2m,query-many-one2m,nested-pagination-query,aggregate-join,aggregate-join-lateral,aggregate-nested-m2m,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - No sampled row moved allocation counts. Representative unchanged rows: `filter-contains-param 161 translate_ir / 516 full_compile`, `query-m2o 323 / 564`, `query-many-m2m 421 / 729`, `nested-pagination-query 286 / 571`, `aggregate-join 271 / 460`, `aggregate-join-lateral 242 / 431`, `aggregate-nested-m2m 604 / 1432`, `create-nested-connectOrCreate-mixed 1639 / 2608`, and `update-set-nested 1241 / 2008`.
+  - Decision:
+    - Reverted before Criterion. The no-relation early scan did not save allocations in sampled rows, likely because the consuming `Vec` filter/collect path already reuses the source buffer in the common no-relation case.
+
+- Accepted change: reduce virtual field selection allocations.
+  - Timestamp: 2026-06-12.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` commit `6b97cbc7d5f` (`perf(query-compiler): reduce virtual field selection allocations`).
+  - Patch:
+    - Rewrote `FieldSelection::into_virtuals_last()` in `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field_selection.rs` to count virtual selections once, keep the existing zero-virtual early return, then build one final vector with a virtual tail.
+    - This replaces `partition()` plus a third `chain(...).collect()` result vector when virtual selections exist.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='aggregate-join,aggregate-join-lateral,aggregate-nested-m2m,group-by,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Patched final shape versus the immediately preceding no-relation-scan run:
+      - `aggregate-join`: `translate_ir 270 allocs/op, 22.7 KiB` vs `271, 24.9 KiB`; `full_compile 459, 46.4 KiB` vs `460, 48.6 KiB`.
+      - `aggregate-join-lateral`: `translate_ir 241, 21.3 KiB` vs `242, 23.6 KiB`; `full_compile 430, 45.0 KiB` vs `431, 47.2 KiB`.
+      - `aggregate-nested-m2m`: `translate_ir 603, 48.1 KiB` vs `604, 50.3 KiB`; `full_compile 1431, 164.5 KiB` vs `1432, 166.8 KiB`.
+      - Controls stayed allocation-count neutral: `group-by 212/614`, `query-m2o 323/564`, `query-many-m2m 421/729`, `nested-pagination-query 286/571`, `filter-contains-param 161/516`, `create-nested-connectOrCreate-mixed 1639/2608`, `update-set-nested 1241/2008`.
+  - Criterion:
+    - First patched baseline then reverted control:
+      - Patched medians: `aggregate-join-lateral 51.906 us`, `aggregate-join 52.828 us`, `aggregate-nested-m2m 148.76 us`, `group-by 58.293 us`, `query-m2o 81.664 us`.
+      - Reverted control versus patched: `aggregate-join-lateral +2.1957%` no change, `aggregate-join +1.7044%` no change, `aggregate-nested-m2m -1.2764%` within noise, `group-by +10.316%` regressed, `query-m2o -2.4215%` within noise. This run had obvious control drift, so it was not treated as decisive.
+    - Reverse narrow control -> patched repeat:
+      - Control medians: `aggregate-join-lateral 52.243 us`, `aggregate-join 53.607 us`, `aggregate-nested-m2m 151.89 us`, `group-by 60.507 us`.
+      - Patched comparison: `aggregate-join-lateral 52.429 us`, `+1.0378%`, within noise; `aggregate-join 52.646 us`, `-1.8152%`, improved; `aggregate-nested-m2m 147.94 us`, `-2.7477%`, improved; `group-by 59.243 us`, `+0.1074%`, no change.
+  - Local Wasm rebuild:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`
+    - Result: passed for `fast` and `small` profiles across `postgresql`, `sqlite`, `mysql`, `sqlserver`, and `cockroachdb`.
+    - Build script skipped `wasm-opt` and `wasm2wat` because they are not installed.
+    - Reported fast zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.542 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+    - Reported small zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.542 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+  - Decision:
+    - Keep. This is a narrow aggregate/virtual selection allocation cleanup with clear allocation-byte savings and a neutral-to-positive focused Criterion surface.
 
 ## Useful Commands
 
