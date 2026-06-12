@@ -103,6 +103,8 @@ Smaller Rust allocation wins were kept only when Criterion stayed neutral-to-pos
 
 The latest kept Rust-side cleanup is another small but clean graph-build win: engines commit `8778c84c831` streams nested relation linking-field selections through `FieldSelection::union_iter()` instead of collecting a temporary `Vec`. It saves one `graph_build` and `full_compile` allocation/op on the sampled nested read/write fixtures. The same-session Criterion control was positive across the focused filter; representative patched vs reverted medians were `query-m2o` 28.13 vs 30.84 us, `query-many-m2m` 33.68 vs 36.60 us, `nested-pagination-query` 30.10 vs 33.55 us, and `update-set-nested` 101.78 vs 107.07 us.
 
+The newest Rust-side allocation win replaces `ResultNode::Object`'s ordered `IndexMap` with a capacity-sized `Vec` in the query compiler result mapper. This is different from the earlier rejected "pre-size the IndexMap" spike: the kept patch removes hash-table storage entirely while preserving the same serialized result-object map. Close allocation profiles saved `translate_ir` bytes across representative rows, including `query-m2o` 27.4 -> 26.0 KiB, `query-many-m2m` 34.0 -> 32.6 KiB, `aggregate-custom` 33.0 -> 31.2 KiB, and `create-nested-connectOrCreate-mixed` 149.3 -> 147.8 KiB. Criterion improved sampled compile rows by about 2-6% (`query-many-one2m` -6.0%, `aggregate` -5.4%, `aggregate-custom` -4.9%, `query-m2o` -3.2%, `update-set-nested` -2.3%), while `nested-pagination-query` was neutral.
+
 ## What Did Not Pay Off
 
 Several plausible ideas were tested and rejected:

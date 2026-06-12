@@ -108,6 +108,7 @@ Good candidates:
 - query-document parser and protocol adapter success paths,
 - graph-build temporary selections and filters,
 - translation-side result structures that are built and immediately consumed,
+- ordered result-object builders where the semantic order is already known. Replacing `ResultNode::Object`'s `IndexMap` with a capacity-sized `Vec` paid off on 2026-06-12 because it removed hashing/bucket storage instead of merely pre-sizing the old map; close Criterion improved sampled compile rows by about 2-6% with no significant regressions.
 - raw-nested read-builder metadata only if it removes a larger translate phase. A 2026-06-12 owned raw-nested builder guarded by exact preflight was rejected: it passed `cargo check`, but patched `translate_ir` allocs/op worsened from `327/425/326` to `331/429/330` on `query-m2o` / `query-many-m2m` / `query-many-one2m`, and pagination rows also softened by one allocation.
 
 Less promising without a sharper hypothesis:
