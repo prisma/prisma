@@ -129,6 +129,7 @@ Less promising without a sharper hypothesis:
 - aggregation SQL `extract_columns()` linear scalar-field dedupe by itself. The 2026-06-12 spike saved allocations on `aggregate` and `aggregate-custom`, but close Criterion favored the reverted control on adjacent aggregate join/lateral/nested rows and matched or beat the patch on simple/group rows.
 - scalar-only connect-or-create create-return node removal by itself. The 2026-06-12 spike saved 15-29 full-compile allocations on connect-or-create fixtures, but close Criterion was not robust and the narrowed M2M-only version regressed `create-nested-connectOrCreate-one2m` against the individual reverted control.
 - direct `SelectionResult` constructors for already-selected pairs by themselves. The 2026-06-12 spike added a `from_selected_pairs()` constructor and used it in translation plus nearby selection helpers; allocation counts were unchanged on sampled rows, and quick Criterion regressed `nested-upsert-nested-only` by about 5.3%.
+- duplicate many-to-many nested-upsert target-read sharing as a small parser/graph rewrite. The 2026-06-12 exact-match spike shared the duplicate `Category` read in `nested-upsert-nested-only` while keeping branch-local `ConnectRecords`, but the target row regressed from `full_compile 3011` to `3032` and `translate_ir 1723` to `1749`; a true hoist also needs branch-aware error-order proof.
 
 ### Arena Spike Shape
 

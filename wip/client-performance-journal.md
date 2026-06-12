@@ -14415,6 +14415,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a zero-allocation CPU cleanup on the request-adapter success path. The close control was slower across the row set, and the reapplied patch stayed neutral-to-positive: meaningful wins held for `create-nested-connectOrCreate-mixed`, `nested-pagination-query`, and `nested-upsert-nested-only`; `create-nested-create` and `filter-contains-param` were neutral on reapply.
 
+- Rejected experiment: share duplicate M2M nested-upsert connect target reads.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - The `nested-upsert-nested-only` fixture builds two identical `Category` target reads for `categories.connect { id: 10 }`: one under the update/`Then` branch and one under the create/`Else` branch.
+    - Sharing just the target read while keeping branch-local `ConnectRecords` writes looked like a narrow way to avoid duplicate graph/translation work without adding any old/new internal format compatibility.
+  - Patch tried:
+    - Parsed the create branch with `WriteArgsParser` inside `nested_upsert()` so both create/update nested operation lists were available before `create_record_node_from_args()`.
+    - Detected exact matching M2M relation `connect` envelopes in the create and update branches, stripped the matched operation from both nested lists, created one shared target read, then attached separate branch-local `ConnectRecords` nodes to `then_node` and `create_node`.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,upsert-nested-only-update,upsert,create-nested-connectOrCreate-mixed,create-nested-connect,create-m2m,update-set-nested cargo run -p query-compiler --example allocation_profile --release`
+    - Current accepted baseline -> patched:
+      - `nested-upsert-nested-only`: `graph_build 1110 -> 1105`, `translate_ir 1723 -> 1749`, `full_compile 3011 -> 3032`, allocated bytes `361.2 -> 358.4 KiB`.
+      - Controls were unchanged: `upsert-nested-only-update 1895`, `upsert 707`, `create-nested-connectOrCreate-mixed 2453`, `create-nested-connect 1339`, `create-m2m 1615`, `update-set-nested 1836`.
+  - Decision:
+    - Reverted before Criterion. The patch saved only five graph-build allocations but added 26 translation allocations and 21 full-compile allocations on the target row. The scout also flagged the larger design risk: a true hoist of target reads above the `if` can change observable error order for missing connect targets versus branch selection and branch-local create/update errors unless the graph grows a branch-aware shared-node primitive.
+    - Do not retry duplicate M2M nested-upsert target-read sharing as a small parser/graph rewrite. Revisit only as part of a broader branch-aware graph representation or another design that proves error ordering and removes more than a single branch-local read.
+
 ## Useful Commands
 
 ```sh
