@@ -13786,6 +13786,14 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
     - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested|update-set-nested-prisma#27650|query-m2o|query-many-m2m|nested-pagination-query|filter-contains-param|upsert)" --sample-size 10 --warm-up-time 1 --measurement-time 2`
 
+- Documentation refresh: intermediate performance report after prepared request-surface safety.
+  - Timestamp: 2026-06-12.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Update:
+    - Refreshed the latest-context sentence, magnitude table, generated-cache-hit contributor section, JS-owned/cache-hit lead, and status summary with the prepared request-surface benchmark plus `PrecomputedQueryPlanCacheHit.parameterizedQuery` miss-path safety patch.
+  - Decision:
+    - Keep the report as the current intermediate checkpoint requested by the user. The safety patch is not a new speed win, but it removes a concrete stale-value blocker for productizing generated/internal prepared operations.
+
 ## Useful Commands
 
 ```sh
