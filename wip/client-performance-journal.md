@@ -13063,6 +13063,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert. The specialized outer proxy only tied or slightly helped descriptor-bound normal and exact-helper hoisted rows, while the close control beat it on default, hoisted default, engine-precomputed, request-precomputed hoisted, descriptor-bound hoisted, and exact-helper normal rows. Do not retry direct-table edge applied-client proxies as a standalone call-surface cleanup; the remaining normal-vs-hoisted gap likely needs generated-code hoisting or a larger generated surface change.
 
+- Generated call-surface scout: transparent generated-code hoisting is not available for the current public API shape.
+  - Timestamp: 2026-06-12.
+  - Evidence:
+    - The TS generator exports `PrismaClient = $Class.getPrismaClientClass()` from `packages/client-generator-ts/src/TSClient/file-generators/ClientFile.ts`, and `getPrismaClientClass()` returns `runtime.getPrismaClient(config)` from `packages/client-generator-ts/src/TSClient/file-generators/ClassFile.ts`.
+    - The runtime constructor then returns `applyModelsAndClientExtensions(this)` from `packages/client/src/runtime/getPrismaClient.ts`.
+    - The benchmark-only hoisted rows explicitly move `const findMany = client.post.findMany` outside the measured loop. Product generated code cannot rewrite arbitrary user code that still spells `client.post.findMany(args)`.
+    - Accepted target-cache and edge plain-delegate work already recover the transparent caching available behind this public syntax without changing the API shape. The remaining hoisted-action gap includes the property expression itself, especially the outer applied-client proxy `get` trap.
+  - Decision:
+    - Do not spend more time on "generated-code hoisting" as a transparent optimization for existing `client.model.action(args)` calls. A real recovery of the hoisted lower bound would require a new generated-owned call surface, such as generated/static prepared operation helpers that close over model actions, or a broader generated API shape. Treat that as a separate API/product design, not the next runtime micro-optimization.
+
 ## Useful Commands
 
 ```sh
