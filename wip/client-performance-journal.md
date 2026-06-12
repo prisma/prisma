@@ -14433,6 +14433,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted before Criterion. The patch saved only five graph-build allocations but added 26 translation allocations and 21 full-compile allocations on the target row. The scout also flagged the larger design risk: a true hoist of target reads above the `if` can change observable error order for missing connect targets versus branch selection and branch-local create/update errors unless the graph grows a branch-aware shared-node primitive.
     - Do not retry duplicate M2M nested-upsert target-read sharing as a small parser/graph rewrite. Revisit only as part of a broader branch-aware graph representation or another design that proves error ordering and removes more than a single branch-local read.
 
+- Rejected experiment: pre-size JSON protocol `Selection` nested vectors.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - `JsonProtocolAdapter::convert_selection()` creates `Selection` values with empty nested-selection vectors and then pushes fields from the JSON protocol selection set. Pre-sizing those vectors from the known `SelectionSet` / schema field counts looked like a small request-adapter allocation cleanup.
+  - Patch tried:
+    - Broad version: added `Selection::with_nested_capacity()`, `Selection::reserve_nested_selections()`, `SelectionSet::len()`, pre-sized the root selection from the incoming selection-set length, and pre-sized wildcard shorthand/default composite selection builders from schema object field counts.
+    - Narrowed version: reverted the broad reserves and kept only root `Vec::with_capacity(query_selection.len())` inside `convert_selection()`.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-nested-create,nested-pagination-query,query-non-unique-one2m-pagination,query-many-one2m,filter-contains-param,create-nested-connectOrCreate-mixed,update-set-nested,nested-upsert-nested-only cargo run -p query-compiler --example allocation_profile --release`
+    - Current accepted baseline -> narrowed root-only patch:
+      - `create-nested-create`: `into_doc 75 -> 77`, `full_compile 1226 -> 1228`.
+      - `query-many-one2m`: `into_doc 66 -> 68`, `full_compile 632 -> 634`.
+      - `filter-contains-param`: `into_doc 46 -> 47`, `full_compile 516 -> 517`.
+      - `create-nested-connectOrCreate-mixed`: `into_doc 103 -> 104`, `full_compile 2453 -> 2454`.
+      - `update-set-nested`: `into_doc 77 -> 79`, `full_compile 1836 -> 1838`.
+      - `nested-upsert-nested-only`: `into_doc 106 -> 108`, `full_compile 3011 -> 3013`.
+      - `nested-pagination-query` stayed at `into_doc 61`, `full_compile 571`; `query-non-unique-one2m-pagination` softened `full_compile 751 -> 752`.
+    - The broader reserve/capacity version was also negative, with representative patched counts `create-nested-create full_compile 1228`, `create-nested-connectOrCreate-mixed 2455`, `update-set-nested 1838`, and `nested-upsert-nested-only 3014`.
+  - Decision:
+    - Reverted before Criterion. Eager vector allocation in the JSON adapter is worse than the current empty-vector plus push growth pattern on sampled rows. Do not retry selection-vector pre-sizing as a standalone request-adapter allocation cleanup without a different profile showing the current growth path is hot.
+
 ## Useful Commands
 
 ```sh
