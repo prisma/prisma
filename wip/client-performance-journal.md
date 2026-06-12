@@ -13618,6 +13618,64 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject. Inlining the success call around `RequestHandler.requestPrecomputedCachedResult()` made the product-shaped descriptor-hit rows clearly slower, despite doing less visible work. Do not retry this as a local `applyModel` shortcut without a new Promise/microtask or V8-shape hypothesis.
 
+- Measurement refresh: blog-feed-by-author prepared-surface and lower-bound rows.
+  - Timestamp: 2026-06-12.
+  - Context:
+    - Reran the focused generated `Post.findMany` blog-feed-by-author cache-hit row after the direct cached-result shortcut rejection to keep the prepared-operation lead grounded in current harness behavior.
+    - This remains architecture evidence, not product behavior. The safe product proof is still generated-owned prepared descriptors or another exact internal surface with batching/error/miss semantics, not a raw closure that bypasses the public request path.
+  - Node command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Key Node rows:
+    - Generated default / request-precomputed / descriptor-bound static / exact-helper: `10.37 / 10.68 / 9.43 / 9.07 us/op`.
+    - Exact-helper hoisted / trusted helper / trusted hoisted: `9.09 / 8.71 / 8.57 us/op`.
+    - Prepared exact operation: `7.76 us/op`.
+    - Cached request wrapper exact / trusted / lazy: `8.50 / 7.83 / 10.51 us/op`.
+    - Direct plan / local executor lower-bound rows: `7.21 / 7.60 us/op`, with the phase-warmed direct row at `7.25 us/op`.
+  - Workerd command:
+    - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+  - Key Workerd worker-loop rows:
+    - Default generated / hoisted default: `8.75 / 8.15 us/op`.
+    - Engine-precomputed / hoisted: `7.90 / 7.30 us/op`.
+    - Request-precomputed / hoisted: `7.40 / 7.10 us/op`.
+    - Descriptor-bound static / hoisted: `7.45 / 6.60 us/op`.
+    - Exact-helper / hoisted exact: `6.55 / 6.20 us/op`.
+    - Prepared exact operation: `5.05 us/op`, with host dispatch `6.32 us/op`.
+  - Decision:
+    - Keep the prepared-operation row as a strong generated-owned surface lead. It remains close to direct/cached-wrapper lower bounds on Node and about 22-23% faster than exact-helper in the Workerd worker loop, but productization must preserve exact shape proof, placeholder order, cache miss behavior, batching, and error mapping.
+
+- Accepted change: reuse dependency reload candidates.
+  - Timestamp: 2026-06-12.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` commit `202f7b09aaa` (`perf(query-compiler): reuse dependency reload candidates`).
+  - Patch:
+    - Changed `QueryGraph::finalize()` in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs` so `normalize_data_dependencies()` returns reload candidates and `insert_reloads()` consumes that list.
+    - This removes the second `find_unsatisfied_dependencies()` pass through the query graph after dependency normalization. The internal API was replaced outright; no old/new compatibility branch was added.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+    - Earlier same-patch `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_graph --lib`: passed, 5 filtered tests.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,query-m2o,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Patched final rows:
+      - `create-nested-connectOrCreate-mixed`: `graph_build 792`, `compile_ir 2431`, `full_compile 2603` versus current baseline `797 / 2436 / 2608`.
+      - `create-nested-connectOrCreate-one2m`: `graph_build 671`, `compile_ir 2144`, `full_compile 2303` versus `675 / 2148 / 2307`.
+      - `create-nested-connectOrCreate-m2one`: `graph_build 441`, `compile_ir 1252`, `full_compile 1369`.
+      - `update-set-nested`: `graph_build 648`, `compile_ir 1889`, `full_compile 2005` versus `651 / 1892 / 2008`.
+      - Controls stayed allocation-count neutral: `query-m2o 162 / 485 / 564`, `filter-contains-param 284 / 445 / 516`, and `upsert 300 / 635 / 707`.
+  - Criterion:
+    - Patched baseline medians included `create-nested-connectOrCreate-mixed 311.29 us`, `one2m 272.24 us`, `m2one 163.94 us`, `update-set-nested 239.80 us`, `query-m2o 77.646 us`, `query-many-m2m 88.319 us`, `filter-contains-param 59.488 us`, and `upsert 75.662 us`.
+    - Reverted control compared to patched was within noise or no-change across the focused set: mixed control `312.49 us` (`+1.2986%`), one2m `273.53 us` (`+0.3596%`), m2one `165.42 us` (`+0.6507%`), update-set `239.92 us` (`+0.0956%`), `query-m2o 78.004 us` (`+1.6875%`), `query-many-m2m 87.797 us` (`-0.4657%`), `filter-contains-param 59.478 us` (`+0.2563%`), and `upsert 75.372 us` (`-0.4085%`).
+  - Local Wasm rebuild:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`
+    - Result: passed for `fast` and `small` profiles across `postgresql`, `sqlite`, `mysql`, `sqlserver`, and `cockroachdb`.
+    - Build script skipped `wasm-opt` and `wasm2wat` because they are not installed.
+    - Reported fast zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.543 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+    - Reported small zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.543 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+  - Decision:
+    - Keep. This is a small graph-build allocation cleanup on nested write rows with neutral focused timing and no sampled read/filter/upsert allocation movement.
+
 ## Useful Commands
 
 ```sh
