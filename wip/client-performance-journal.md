@@ -13924,6 +13924,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. The allocation wins are clear but they trade dynamic dispatch/heap allocations for a larger inline iterator object and slower SQL-query-builder translation on the focused rows.
     - Do not retry `ColumnIterator` boxed-iterator removal, broad small-buffer column iterators, or one-column relation-column constructors as standalone cleanup unless a CPU profile shows the old boxing itself dominating and a new design proves neutral-to-positive Criterion first.
 
+- Accepted change: compound selector checks without field-vector materialization.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`).
+  - Patch:
+    - Added `query-compound-id.json` plus its query snapshot for the existing `ParentModelWithCompositeId @@id([a, b])` schema model.
+    - Added `is_compound_field()` in `query_graph_builder/extractors/utils.rs` for boolean-only compound selector checks.
+    - Switched unique-filter partitioning, native-upsert eligibility, and batch-compaction compound checks from `resolve_compound_field(...).is_some()` to `is_compound_field()`.
+    - Kept `resolve_compound_field()` as the only path that materializes `Vec<ScalarFieldRef>` when callers actually need the fields.
+    - Compared generated compound names without constructing the joined `a_b` string when no explicit compound id/index name exists.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and wrote `queries__queries@query-compound-id.json.snap`.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=query-compound-id,query-m2o,filter-contains-param,upsert,create-nested-create-with-composite-id cargo run -p query-compiler --example allocation_profile --release`
+    - `query-compound-id` close control -> patched:
+      - `graph_build 154 -> 151`, `compile_ir 317 -> 314`, `full_compile 365 -> 362` allocs/op.
+      - `into_doc`, `translate_ir`, and `serialize_json` stayed unchanged.
+    - Controls stayed allocation-neutral: `query-m2o 564 full_compile`, `filter-contains-param 516`, `upsert 707`, and `create-nested-create-with-composite-id 1367` in both close runs.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(query-compound-id|query-m2o|filter-contains-param|upsert|create-nested-create-with-composite-id)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Close old-code medians: `query-compound-id 42.656 us`, `query-m2o 79.480 us`, `filter-contains-param 63.061 us`, `upsert 78.748 us`, `create-nested-create-with-composite-id 175.29 us`.
+    - Patched medians: `query-compound-id 42.180 us` (within noise threshold but lower), `query-m2o 79.701 us` (no change), `filter-contains-param 60.889 us` (no change), `upsert 77.114 us` (reported improved), `create-nested-create-with-composite-id 171.50 us` (no change).
+  - Decision:
+    - Keep. This is small but has a precise fixture, real allocation movement on the target compound selector row, and neutral-to-positive focused timing. It also keeps the materializing field resolver as the only representation used by callers that need scalar fields, without adding old/new internal formats.
+
 ## Useful Commands
 
 ```sh
