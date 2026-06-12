@@ -14190,6 +14190,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The allocation savings were real on create-parent nested create rows, but close Criterion softened on the important `create-nested-create` row and unrelated controls. Keep the parent-create child-edge validation unless a broader graph-shape change gives a new CPU reason.
 
+- Accepted change: skip nested-only upsert update nodes.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `34bde27cfb5` (`perf(query-compiler): skip nested-only upsert update nodes`).
+  - Patch:
+    - Added `nested-upsert-nested-only.json`, a focused fixture where `User.posts.upsert.update` has nested `categories.connect` work but no scalar `Post` writes.
+    - Changed `nested_upsert()` to parse update args once. If the update branch has no scalar args and at least one nested operation, the `Then` branch validates the found child row and passes it through `Flow::Return`.
+    - Nested update operations attach to the returned child row, avoiding the old empty `UpdateRecord` node and its reload. Scalar update branches still use `update_record_node_from_args()` and preserve on-update emulation.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler --check`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and created the new focused snapshot.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,upsert,update-set-nested,update-set-nested-prisma#27650,create-nested-connectOrCreate-mixed cargo run -p query-compiler --example allocation_profile --release`
+    - Close reverted-control -> patched:
+      - `nested-upsert-nested-only`: `graph_build 1113 -> 1110`, `translate_ir 1857 -> 1723`, `compile_ir 2970 -> 2833`, `full_compile 3148 -> 3011`, full allocated bytes `372.0 -> 361.2 KiB`.
+      - `upsert` stayed at `full_compile 707`.
+      - `update-set-nested` stayed at `full_compile 1998`.
+      - `update-set-nested-prisma#27650` stayed at `full_compile 1689`.
+      - `create-nested-connectOrCreate-mixed` stayed at `full_compile 2453`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-upsert-nested-only|upsert|update-set-nested|update-set-nested-prisma#27650|create-nested-connectOrCreate-mixed)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `create-nested-connectOrCreate-mixed 298.40 us`, `nested-upsert-nested-only 366.11 us`, `update-set-nested-prisma#27650 188.46 us`, `update-set-nested 238.40 us`, `upsert 75.494 us`.
+    - Close reverted-control medians: `create-nested-connectOrCreate-mixed 297.18 us`, `nested-upsert-nested-only 382.03 us`, `update-set-nested-prisma#27650 192.70 us`, `update-set-nested 250.01 us`, `upsert 86.573 us`.
+    - Reapplied patched medians: `create-nested-connectOrCreate-mixed 297.72 us`, `nested-upsert-nested-only 366.53 us`, `update-set-nested-prisma#27650 194.44 us`, `update-set-nested 244.57 us`, `upsert 83.741 us`.
+  - Decision:
+    - Keep. This is the same semantic no-op write-node pattern as the accepted nested-only update change, now applied to nested upsert `Then` branches. It saves 137 full-compile allocations on the new focused fixture and improves close Criterion by about 4% while existing upsert/nested controls stay noisy but not locally regressed.
+  - Follow-up leads from the same scout:
+    - Top-level upsert with empty or nested-only update branch may have the same empty-update-node shape, but it needs a focused fixture and careful result-read ordering around `GetFirstNonEmpty`.
+    - One-to-many `set: []` can likely bypass `read_new`, two diff nodes, and the impossible connect branch; add an `update-set-nested-empty` fixture before trying it.
+
 ## Useful Commands
 
 ```sh
