@@ -3510,7 +3510,7 @@ async function runClientExecuteScenario(scenario, iterations, retain, precompute
   }
 }
 
-async function runClientPreparedExactOperationScenario(scenario, iterations) {
+async function runClientPreparedExactOperationScenario(scenario, iterations, surface = 'engine') {
   if (scenario !== 'blog-feed-by-author') {
     throw new Error('Prepared exact operation only supports blog-feed-by-author')
   }
@@ -3537,19 +3537,41 @@ async function runClientPreparedExactOperationScenario(scenario, iterations) {
     const queryPart = JSON.stringify(parameterizedQuery.query)
     const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
     const requestOptions = { isWrite: false }
+    const requestBase = {
+      protocolQuery,
+      modelName: protocolQuery.modelName,
+      action: protocolQuery.action,
+      dataPath: [],
+      clientMethod: 'post.findMany.preparedExact',
+      extensions: client._extensions,
+    }
     const preparedOperation = (authorId) => {
       if (!isInt32(authorId)) {
         throw new Error('Expected prepared authorId to be an int32')
       }
 
-      return client._engine.requestPrecomputedCachedResult(
-        protocolQuery,
-        {
-          cacheKey,
-          placeholderValues: { '%1': authorId },
-        },
-        requestOptions,
-      )
+      const precomputedQueryPlanCacheHit = {
+        cacheKey,
+        placeholderValues: { '%1': authorId },
+      }
+      if (surface === 'request-surface') {
+        const args = { authorId }
+        return client._createPrismaPromise(
+          () =>
+            client._requestHandler.requestPrecomputedCachedResult({
+              ...requestBase,
+              args,
+              precomputedQueryPlanCacheHit,
+            }),
+          {
+            action: protocolQuery.action,
+            args,
+            model: protocolQuery.modelName,
+          },
+        )
+      }
+
+      return client._engine.requestPrecomputedCachedResult(protocolQuery, precomputedQueryPlanCacheHit, requestOptions)
     }
 
     resetCounts()
@@ -3564,7 +3586,10 @@ async function runClientPreparedExactOperationScenario(scenario, iterations) {
 
     return {
       scenario,
-      mode: 'client-execute-prepared-exact-operation',
+      mode:
+        surface === 'request-surface'
+          ? 'client-execute-prepared-exact-request-surface'
+          : 'client-execute-prepared-exact-operation',
       iterations,
       retain: true,
       initMs: performance.now() - startInit - elapsedMs,
@@ -3634,6 +3659,8 @@ export default {
         result = await runClientExecuteScenario(scenario, iterations, retain, 'exact-helper', true)
       } else if (mode === 'client-execute-prepared-exact-operation') {
         result = await runClientPreparedExactOperationScenario(scenario, iterations)
+      } else if (mode === 'client-execute-prepared-exact-request-surface') {
+        result = await runClientPreparedExactOperationScenario(scenario, iterations, 'request-surface')
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -3906,6 +3933,12 @@ async function runFocusedGeneratedMeasurements(clientMf: MiniflareInstance): Pro
       'blog-feed-by-author',
       GENERATED_BLOG_PAGE_ITERATIONS,
       'client-execute-prepared-exact-operation',
+    ],
+    [
+      'prepared exact request surface blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-prepared-exact-request-surface',
     ],
   ] as const
 

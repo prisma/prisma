@@ -3355,6 +3355,113 @@ async function measurePreparedExactOperationScenario(
   }
 }
 
+async function measurePreparedExactRequestSurfaceScenario(
+  config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
+  paramGraph: ParamGraph,
+  scenario: GeneratedClientSerializeScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const PrismaClient = getPrismaClient({
+    runtimeDataModel: config.runtimeDataModel,
+    previewFeatures: [],
+    clientVersion: config.clientVersion,
+    engineVersion: '0000000000000000000000000000000000000000',
+    activeProvider: 'sqlite',
+    inlineSchema: BENCHMARK_DATAMODEL,
+    compilerWasm: getQueryCompilerWasmConfig('sqlite'),
+    parameterizationSchema: config.parameterizationSchema,
+  })
+  const client = new PrismaClient({
+    adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
+    errorFormat: 'minimal',
+    queryPlanCacheMaxSize: 100,
+  }) as any
+
+  const firstArgs = scenario.args(0)
+  const { query, cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
+  const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
+  if (authorIdPlaceholder === undefined) {
+    throw new Error('Expected one generated blog-feed-by-author placeholder')
+  }
+
+  const protocolQuery = scenario.query(0)
+  const requestBase = {
+    protocolQuery,
+    dataPath: [],
+    action: scenario.action,
+    modelName: scenario.modelName,
+    clientMethod: `${scenario.clientMethod}.preparedExact`,
+    extensions: client._extensions,
+  }
+  const preparedOperation = (authorId: number) => {
+    if (!isInt32(authorId)) {
+      throw new Error('Expected prepared authorId to be an int32')
+    }
+
+    const args = { authorId }
+    return client._createPrismaPromise(
+      () =>
+        client._requestHandler.requestPrecomputedCachedResult({
+          ...requestBase,
+          args,
+          precomputedQueryPlanCacheHit: {
+            cacheKey,
+            placeholderValues: { [authorIdPlaceholder]: authorId },
+          },
+        }),
+      {
+        action: scenario.action,
+        args,
+        model: scenario.modelName,
+      },
+    )
+  }
+
+  try {
+    await client.$connect()
+    await client._request({
+      dataPath: [],
+      action: scenario.action,
+      model: scenario.modelName,
+      clientMethod: scenario.clientMethod,
+      args: firstArgs,
+      protocolQuery,
+    })
+    resetCounts(counts)
+
+    let checksum = 0
+    const beforeHeap = heapUsed()
+    const started = performance.now()
+    for (let i = 0; i < scenario.iterations; i++) {
+      const result = await preparedOperation(i + 42)
+      checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
+    }
+    const elapsedMs = performance.now() - started
+    const afterHeap = heapUsed()
+
+    if (checksum < 0) {
+      throw new Error('unreachable')
+    }
+
+    return {
+      name: scenario.name,
+      iterations: scenario.iterations,
+      query,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / scenario.iterations,
+      counts: { ...counts },
+      heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+    } satisfies DirectPlanMeasurement
+  } finally {
+    await client.$disconnect()
+  }
+}
+
 function compileDirectPlan(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
@@ -7571,6 +7678,23 @@ async function main(): Promise<void> {
       continue
     }
     printDirectPlanMeasurement(await measurePreparedExactOperationScenario(baseConfig, paramGraph, measuredScenario))
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.name !== 'generated client serialize blog feed by author / nested rows warmed cache') {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: 'prepared exact request surface blog feed by author / nested rows warmed cache',
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measurePreparedExactRequestSurfaceScenario(baseConfig, paramGraph, measuredScenario),
+    )
   }
 
   for (const scenario of generatedClientScenarios) {

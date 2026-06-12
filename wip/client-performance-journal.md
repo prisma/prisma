@@ -13676,6 +13676,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a small graph-build allocation cleanup on nested write rows with neutral focused timing and no sampled read/filter/upsert allocation movement.
 
+- Accepted benchmark probe: prepared exact request surface for blog-feed-by-author.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Added `measurePreparedExactRequestSurfaceScenario()` to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Added `client-execute-prepared-exact-request-surface` mode and a focused row to `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - The row warms the normal generated-client path once to learn the cached plan, validates only `authorId: int32`, creates a fresh `PrismaPromise` per call, and routes a static protocol query/cache key plus dynamic placeholder map through `RequestHandler.requestPrecomputedCachedResult()`.
+    - This is benchmark-only. It does not change product behavior, does not add a new internal format, and does not weaken descriptor exactness for arbitrary public args.
+  - Node smoke:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared exact request surface blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Result: `18.29 us/op`, `queryRaw=7000`.
+  - Node focused comparison:
+    - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Key rows:
+      - Prepared direct / request-surface prepared: `7.53 / 7.87 us/op`.
+      - Generated default / request-precomputed / descriptor-bound static / exact-helper: `10.44 / 10.48 / 9.27 / 9.22 us/op`.
+      - Exact-helper hoisted / trusted helper / trusted hoisted: `8.90 / 8.82 / 8.34 us/op`.
+      - Cached request wrapper exact / trusted / lazy: `8.13 / 7.83 / 10.22 us/op`.
+      - Direct plan / local executor lower-bound rows: `7.20 / 7.19 us/op`.
+  - Workerd smoke:
+    - Command: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='prepared exact request surface blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Result: request-surface prepared worker loop `14.00 us/op` over 1000 iterations, `1000/0` cache hits/misses, `precomputed fast path: hits 1000`.
+  - Workerd focused comparison:
+    - Command: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Key worker-loop rows:
+      - Prepared direct / request-surface prepared: `5.05 / 5.40 us/op`.
+      - Generated default / hoisted default: `7.95 / 7.60 us/op`.
+      - Request-precomputed / request-precomputed hoisted: `7.20 / 6.85 us/op`.
+      - Descriptor-bound static / hoisted: `6.95 / 6.65 us/op`.
+      - Exact-helper / exact-helper hoisted: `6.35 / 5.95 us/op`.
+    - Host dispatch rows for direct prepared / request-surface prepared / exact-helper / hoisted exact: `6.19 / 6.56 / 7.56 / 7.16 us/op`.
+    - All generated and prepared rows reported `20000/0` cache hits/misses; prepared rows reported `precomputed fast path: hits 20000`.
+  - Decision:
+    - Keep as benchmark coverage and architecture evidence. The product-shaped request-surface row is only about `0.34 us/op` slower than the direct prepared lower bound on Node and `0.35 us/op` slower in the Workerd worker loop, while remaining materially faster than exact-helper rows. The next product proof should be a generated-owned prepared surface or a descriptor-preseeded exact path that preserves error mapping, cache miss behavior, batching-aware routing, and exact placeholder order.
+
 ## Useful Commands
 
 ```sh
