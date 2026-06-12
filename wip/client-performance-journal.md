@@ -14532,6 +14532,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. This internal-format replacement is mechanically fine under the lockstep rule, but it does not remove measured Rust allocations on the relevant rows and is not worth cross-repo shape churn as a standalone compiler optimization. Revisit only if a TS runtime profile shows `Object.entries()` on `i` / `M` nodes matters for write execution.
 
+- Rejected experiment: single-child many-to-many nested bulk create.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - `nested_create()` already has a bulk path for many-to-many nested creates when the connector supports `CreateMany` and `InsertReturning`, but it only uses it for more than one child. Letting the existing m2m bulk path handle one child might remove some regular `CreateRecord` graph/translation overhead on `create-m2m`.
+  - Patch tried:
+    - Changed the bulk-create guard in `query-compiler/core/src/query_graph_builder/write/nested/create_nested.rs` so single-child many-to-many nested creates used the existing `CreateManyRecords` + connect shape, while one-to-many kept the old `child_records_count > 1` guard.
+  - Validation:
+    - `cargo check -p query-compiler`: passed.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-m2m,create-nested-create,create-nested-connect,create-nested-connectOrCreate-mixed,nested-upsert-nested-only,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: the target row regressed. `create-m2m` moved from the current baseline `graph_build 576`, `translate_ir 918`, `full_compile 1615` to patched `graph_build 576`, `translate_ir 933`, `full_compile 1630`. Nearby controls stayed unchanged (`create-nested-create 1226`, `create-nested-connect 1339`, `create-nested-connectOrCreate-mixed 2453`, `nested-upsert-nested-only 3011`, `aggregate 607` full-compile allocations).
+  - Decision:
+    - Reverted before Criterion. The existing regular single-record create shape is cheaper than `CreateManyRecords` for the one-child m2m fixture; do not retry single-child m2m bulk create unless a SQL builder/runtime execution profile shows a different bottleneck than compiler allocation count.
+
 ## Useful Commands
 
 ```sh
