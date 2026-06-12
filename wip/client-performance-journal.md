@@ -13382,6 +13382,65 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The patch is a narrow graph-build allocation cleanup for no-search boolean groups, with timing neutral after close patched/control/reversed-control checks and passing query tests. This is not an internal format change and adds no old/new compatibility path.
 
+- Accepted change: cache query-graph result reachability during translation.
+  - Timestamp: 2026-06-12.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` commit `63ac52cb5bf` (`perf(query-compiler): cache result reachability during translation`).
+  - Patch:
+    - Added `QueryGraph::parent_nodes()` as a no-allocation, unsorted parent-node iterator in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs`.
+    - Added a private `ResultReachability` bitmap in `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate.rs`, seeded from `graph.result_nodes()` and reverse-walked through `parent_nodes()`.
+    - `NodeTranslator::process_children()` now checks child result-subgraph membership through the bitmap instead of repeatedly calling `QueryGraph::subgraph_contains_result()` for each direct child.
+    - This deliberately does not rewrite `subgraph_contains_result()` itself. Earlier direct `petgraph` traversal inside that helper saved allocations but regressed Criterion; the accepted shape caches topology-derived reachability once and leaves the helper semantics/order untouched for other callers.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_graph --lib`: passed, 5 filtered tests.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 ALLOC_PROFILE_QUERIES='create-nested-create,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,upsert' cargo run -p query-compiler --example allocation_profile --release`
+    - Patched final shape with `parent_nodes()` vs close reverted control:
+      - `create-nested-create`: `translate_ir 677 allocs/op, 65.3 KiB` vs `675, 65.3 KiB`; `full_compile 1228` vs `1226`. This is the known two-allocation tax from the reachability bitmap on a simpler nested-create shape.
+      - `create-nested-connectOrCreate-mixed`: `translate_ir 1639, 147.7 KiB` vs `1645, 147.8 KiB`; `full_compile 2610` vs `2616`.
+      - `create-nested-connectOrCreate-one2m`: `translate_ir 1473, 131.1 KiB` vs `1480, 131.2 KiB`; `full_compile 2309` vs `2316`.
+      - `update-set-nested`: `translate_ir 1241, 111.6 KiB` vs `1260, 111.9 KiB`; `full_compile 2010` vs `2029`.
+      - `update-set-nested-prisma#27650`: `translate_ir 947, 93.6 KiB` vs `951, 93.7 KiB`; `full_compile 1824` vs `1828`.
+      - Controls stayed allocation-count neutral: `query-m2o` `translate_ir 323` / `full_compile 564`; `query-many-m2m` `421` / `729`; `nested-pagination-query` `286` / `571`; `filter-contains-param` `161` / `516`; `upsert` `335` / `707`.
+    - A lazy/thresholded variant was tried and rejected before Criterion because it weakened the useful allocation rows (`update-set-nested` saved only 11 instead of 18-19 allocations) while still adding allocations to simple nested create.
+  - Criterion:
+    - Broad control -> patched comparison for the first version was positive but too run-order-sensitive to trust by itself: nested targets improved about 3-4%, and several neutral-allocation controls also improved.
+    - Broad final-shape control -> patched comparison later showed broad regressions, including neutral controls, so it was treated as contaminated machine/order noise.
+    - Narrow final-shape reverse confirmation used patched as baseline and reverted as comparison:
+      - Command:
+        - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- 'compile/(create-nested-connectOrCreate-one2m|update-set-nested|filter-contains-param|upsert)' --sample-size 20 --warm-up-time 2 --measurement-time 3 --save-baseline result-reachability-narrow-patched`
+        - Then reverted the patch and ran the same command with `--baseline result-reachability-narrow-patched`, then reapplied the patch.
+      - Patched baseline medians: `create-nested-connectOrCreate-one2m 274.50 us`, `filter-contains-param-insensitive 61.902 us`, `filter-contains-param 60.821 us`, `update-set-nested-prisma#27650 209.94 us`, `update-set-nested 249.02 us`, `upsert 77.892 us`.
+      - Reverted comparison:
+        - `create-nested-connectOrCreate-one2m`: `278.81 us`, `+1.9871%`, Criterion reported reverted control regressed versus patched.
+        - `update-set-nested`: `253.53 us`, `+1.8212%`, within noise threshold.
+        - `update-set-nested-prisma#27650`: `210.06 us`, `+0.4950%`, within noise threshold.
+        - `filter-contains-param-insensitive`: `62.253 us`, no change detected.
+        - `filter-contains-param`: `61.335 us`, within noise threshold.
+        - `upsert`: `78.393 us`, within noise threshold.
+    - Decision from timing: not a broad CPU win, but the final shape is neutral-to-positive in the closest repeat and does not show target/control regressions strong enough to reject the allocation savings.
+  - Local Wasm rebuild:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`
+    - Result: passed for `fast` and `small` profiles across `postgresql`, `sqlite`, `mysql`, `sqlserver`, and `cockroachdb`.
+    - Build script skipped `wasm-opt` and `wasm2wat` because they are not installed.
+    - Reported fast zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.543 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+    - Reported small zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.543 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+    - `sha256sum` confirmed the rebuilt SQLite fast Wasm matched the installed Prisma package copies under root `node_modules/.pnpm/.../@prisma/query-compiler-wasm` and `packages/client/node_modules/@prisma/query-compiler-wasm`: `7c9a7e27168fb6974ed506e8cd5af2fac3868df4bad97e2bcf9c028262a4011e`.
+  - Prisma smoke:
+    - Node compile miss command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compile current miss' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Rows: `findUnique 597.76 us/op`, `findMany 423.35 us/op`, blog page `2906.43 us/op`.
+    - Workerd smoke command:
+      - `LOCAL_QC_BUILD_DIRECTORY=/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Worker-loop rows: default `10.40 us/op`, hoisted default `8.20`, engine-precomputed `11.20`, engine-precomputed hoisted `9.40`, request-precomputed `8.80`, request-precomputed hoisted `8.00`, descriptor-bound static `8.00`, descriptor-bound static hoisted `8.20`, exact-helper `7.40`, exact-helper hoisted `7.20`.
+    - Counters: every Workerd generated row had `5000/0` cache hits/misses; all precomputed rows reported `5000` fast-path hits and `0` learns.
+  - Decision:
+    - Keep. This is a narrow topology-cache allocation cleanup for nested write translation, with sampled read/filter/upsert controls allocation-neutral and focused Criterion neutral-to-positive. It is not an internal data-format change and adds no old/new compatibility path.
+
 ## Useful Commands
 
 ```sh

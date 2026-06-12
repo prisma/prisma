@@ -4,7 +4,7 @@ Date: 2026-06-12.
 
 This report summarizes the current magnitude of the performance and memory gains from the ongoing Prisma Client performance branch. The numbers are from the persistent journal and focused probes in this branch; many rows are microbenchmarks over fake adapters or Miniflare/workerd harnesses, so they should be read as directional product-path evidence rather than final customer benchmarks.
 
-Latest refresh: includes the June 12 Workerd `findFirst users` exact-helper coverage and the accompanying journal/field-note updates through commit `82c1f7772`.
+Latest refresh: includes the June 12 Workerd `findFirst users` exact-helper coverage, the query-compiler result-reachability cache through engines commit `63ac52cb5bf`, and the accompanying journal/field-note updates.
 
 ## Headline
 
@@ -156,7 +156,7 @@ Several plausible ideas were tested and rejected:
 
 4. Explore the radical JS-owned query/cache-hit architecture as a larger design, not as `serde_wasm_bindgen`. The current request path is still `ClientEngine` JS parameterization -> `JSON.stringify` cache key/request -> Wasm `QueryCompiler.compile(request: string)` -> Rust `RequestBody::try_from_str()` -> owned `JsonBody` / `serde_json::Value` -> owned `Operation`. A `serde_wasm_bindgen::from_value()` entrypoint would only remove the string transport unless it also replaces the Rust-owned request adapter, and it would not help hot cache hits that should avoid Wasm entirely. A handle-only cached `findMany` spike that merely removed `protocolQuery` from the final cached-plan engine call was rejected as noise-level, and JS-only pagination `take` parameterization is blocked by the engines pagination model rejecting `Param<Int>`. The next proof has to remove larger phases together: descriptor/protocol construction, structural identity, Rust-owned request materialization, pagination placeholder support in engines, or plan/result transfer. Compile misses can still fall back to the current Rust-owned path initially.
 
-5. Continue Rust allocation work from profile-backed structures: `graph_build`/`translate_ir` containers, relation scalar helper vectors, parser/query-document success-path allocations, and SQL/query plan serialization. Avoid broad arena rewrites until a specific compile-local ownership target is identified. A refreshed raw-nested `map_result_structure()` upper-bound probe saved only 17-35 allocations/op and 1.3-3.5 KiB/op when forced off, so that skip is only worth revisiting as part of a broader consume-once translation refactor.
+5. Continue Rust allocation work from profile-backed structures: `graph_build`/`translate_ir` containers, relation scalar helper vectors, parser/query-document success-path allocations, and SQL/query plan serialization. Avoid broad arena rewrites until a specific compile-local ownership target is identified. The latest accepted compiler cleanup precomputes result reachability once during translation, saving full-compile allocations on nested writes such as `create-nested-connectOrCreate-mixed` 2616 -> 2610, `create-nested-connectOrCreate-one2m` 2316 -> 2309, and `update-set-nested` 2029 -> 2010, while sampled read/filter/upsert controls stayed allocation-neutral and narrow Criterion stayed neutral-to-positive. A refreshed raw-nested `map_result_structure()` upper-bound probe saved only 17-35 allocations/op and 1.3-3.5 KiB/op when forced off, so that skip is only worth revisiting as part of a broader consume-once translation refactor.
 
 ## Status
 
