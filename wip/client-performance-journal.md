@@ -14514,6 +14514,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. The patch did not move allocation counts, and close Criterion was neutral-to-slightly-worse across most rows. The only target improvement, `query-non-unique-one2m-pagination 90.331 -> 89.729 us`, was too small and isolated to keep added branch/helper complexity.
     - Do not retry this single-scalar related-read parent-results branch as a standalone cleanup. A useful related-read rewrite needs to remove a larger phase than the final `split_into()` / `assimilate()` handoff.
 
+- Rejected experiment: compact `InitializeRecord` / `MapRecord` field entry arrays.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - Compact plan `i` / `M` nodes are internal producer/consumer data structures, so replacing their field payload from object maps to ordered `[name, value]` arrays could avoid Rust `BTreeMap` construction and TS `Object.entries()` iteration without carrying old-format compatibility.
+  - Patch tried:
+    - Changed Rust `Expression::InitializeRecord` and `Expression::MapRecord` fields from `BTreeMap<String, ...>` to `Vec<(String, ...)>`, preserving duplicate overwrite semantics with a small linear replace helper.
+    - Updated the compact query-plan TS types and `QueryInterpreter` to consume entry arrays directly, with no object-shape fallback.
+  - Validation:
+    - `cargo check -p query-compiler`: passed.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts`: passed.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-nested-connect,create-nested-connectOrCreate-mixed,create-nested-create,create-m2m,update-connect,update-connect-child-one2m,update-m2m-disconnect,update-set-nested,upsert-nested-only-update,query-m2o,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no allocation-count movement on sampled write-heavy rows or controls. Representative full-compile counts stayed `create-nested-connect 1339`, `create-nested-connectOrCreate-mixed 2453`, `create-nested-create 1226`, `create-m2m 1615`, `update-connect 1367`, `update-connect-child-one2m 955`, `update-m2m-disconnect 1257`, `update-set-nested 1836`, `upsert-nested-only-update 1895`, `query-m2o 549`, and `aggregate 607`.
+  - Decision:
+    - Reverted before Criterion. This internal-format replacement is mechanically fine under the lockstep rule, but it does not remove measured Rust allocations on the relevant rows and is not worth cross-repo shape churn as a standalone compiler optimization. Revisit only if a TS runtime profile shows `Object.entries()` on `i` / `M` nodes matters for write execution.
+
 ## Useful Commands
 
 ```sh
