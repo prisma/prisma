@@ -14226,6 +14226,42 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Top-level upsert with empty or nested-only update branch may have the same empty-update-node shape, but it needs a focused fixture and careful result-read ordering around `GetFirstNonEmpty`.
     - One-to-many `set: []` can likely bypass `read_new`, two diff nodes, and the impossible connect branch; add an `update-set-nested-empty` fixture before trying it.
 
+- Accepted change: specialize one-to-many nested empty `set`.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `d3d45546416` (`perf(query-compiler): specialize empty nested set`).
+  - Patch:
+    - Added `update-set-nested-empty.json`, a focused one-to-many `User.posts.set: []` fixture.
+    - Changed `query_graph_builder::write::nested::set_nested::handle_one_to_many()` so an empty filter reads old children once, validates the required-child-side relation violation directly on that row set, and updates those ids to disconnect them.
+    - Removed the old empty-set graph's `WHERE 1=0` new-child read, left/right diff nodes, dead connect `if`, and disconnect diff. There is no old/new internal graph compatibility branch; producer and consumer are version-lockstep.
+    - Updated the focused snapshot; the new IR validates `get 1` and updates `Post.userId = NULL` from `get 1` directly.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and updated the expected focused snapshot.
+    - Reapplied-state `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `git diff --check`: passed before the engines commit.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=update-set-nested-empty,update-set-nested,update-set-nested-prisma#27650,upsert,nested-upsert-nested-only cargo run -p query-compiler --example allocation_profile --release`
+    - Current baseline -> patched:
+      - `update-set-nested-empty`: `graph_build 533 -> 511`, `translate_ir 1183 -> 861`, `compile_ir 1716 -> 1372`, `full_compile 1820 -> 1476`, full allocated bytes `221.7 -> 176.1 KiB`.
+      - `update-set-nested` stayed at `full_compile 1998`.
+      - `update-set-nested-prisma#27650` stayed at `full_compile 1689`.
+      - `upsert` stayed at `full_compile 707`.
+      - `nested-upsert-nested-only` stayed at `full_compile 3011`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(update-set-nested-empty|update-set-nested|update-set-nested-prisma#27650|upsert|nested-upsert-nested-only)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Initial current baseline medians: `nested-upsert-nested-only 376.07 us`, `update-set-nested-empty 229.49 us`, `update-set-nested-prisma#27650 195.35 us`, `update-set-nested 246.92 us`, `upsert 81.000 us`.
+    - First patched medians: `nested-upsert-nested-only 362.21 us`, `update-set-nested-empty 185.06 us`, `update-set-nested-prisma#27650 192.35 us`, `update-set-nested 252.11 us`, `upsert 78.333 us`.
+    - Close reverted-control medians: `nested-upsert-nested-only 359.67 us`, `update-set-nested-empty 224.62 us`, `update-set-nested-prisma#27650 191.86 us`, `update-set-nested 249.62 us`, `upsert 76.816 us`.
+    - Reapplied patched medians: `nested-upsert-nested-only 359.46 us`, `update-set-nested-empty 183.41 us`, `update-set-nested-prisma#27650 192.61 us`, `update-set-nested 247.96 us`, `upsert 79.875 us`.
+  - Decision:
+    - Keep. This removes a dead semantic graph branch for the exact empty-set shape, saves 344 full-compile allocations and about 45.6 KiB allocated on the focused row, and improves close Criterion by about 18-20%. Existing non-empty `set`, nested-only update, nested-upsert, and top-level upsert controls stayed allocation-neutral; timing noise on `upsert` remained within the same-session baseline/control band.
+  - Follow-up:
+    - Top-level upsert with empty or nested-only update data remains the next graph-shape lead from this family.
+
 ## Useful Commands
 
 ```sh
