@@ -14367,6 +14367,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The allocation savings are too small and timing is not robust; do not retry scalar-only create-return node removal as a standalone connect-or-create cleanup. A larger branch-shape change like the already-accepted M2M branch join can still be worthwhile when it removes duplicated semantic work.
 
+- Rejected experiment: direct `SelectionResult` constructor for already-selected pairs.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - `translate::process_edge_selections()` already returns `Vec<(SelectedField, PrismaValue)>`, but `SelectionResult::new(fields)` maps that vector through `Into<SelectedField>` and collects a new `Vec`. Adding a `SelectionResult::from_selected_pairs()` constructor and using it in translation looked like a cheap way to avoid re-normalizing dependency selections.
+  - Patch tried:
+    - Added `SelectionResult::from_selected_pairs(Vec<(SelectedField, PrismaValue)>)`.
+    - Used it in `translate.rs::transform_node()` for `RowSink::All`, `ExactlyOne`, `AtMostOne`, `Single`, filter sinks, and `ExactlyOneWriteArgs`.
+    - Also used it in `SelectionResult::split_into()`, `Record::extract_selection_result()`, `FieldSelection::assimilate()`, and `impl From<(T, PrismaValue)> for SelectionResult`.
+  - Allocation evidence:
+    - Focused allocation command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-empty,update-set-nested-prisma#27650,create-nested-create,query-many-m2m,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no allocation-count or allocated-byte changes on any sampled row. Representative unchanged full-compile counts: `nested-upsert-nested-only 3011`, `create-nested-connectOrCreate-mixed 2453`, `create-nested-connectOrCreate-one2m 2162`, `update-set-nested 1836`, `query-many-m2m 729`, `aggregate 607`.
+  - Criterion evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-upsert-nested-only|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|update-set-nested|update-set-nested-empty|query-many-m2m|aggregate)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians were mixed: `aggregate 64.227 us` regressed within noise, `create-nested-connectOrCreate-mixed 318.37 us` no clear change, `create-nested-connectOrCreate-one2m 269.16 us` no clear change, `nested-upsert-nested-only 376.88 us` regressed by about 5.3%, while `query-many-m2m 91.036 us`, `update-set-nested-empty 172.82 us`, and `update-set-nested 238.76 us` improved in that same run.
+  - Decision:
+    - Reverted. The patch saved no allocations and made the largest target row, `nested-upsert-nested-only`, significantly worse in the quick Criterion run. Do not retry this constructor-only shortcut without a separate CPU profile proving `SelectionResult::new()` itself is hot.
+
 ## Useful Commands
 
 ```sh

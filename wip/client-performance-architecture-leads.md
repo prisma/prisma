@@ -128,6 +128,7 @@ Less promising without a sharper hypothesis:
 - deferred/non-result `CreateRecord.selection_order` by itself. The 2026-06-11 spike saved 2-6 allocations on create-heavy graph-build/full-compile rows, but close Criterion favored the reverted control on larger create/connectOrCreate rows.
 - aggregation SQL `extract_columns()` linear scalar-field dedupe by itself. The 2026-06-12 spike saved allocations on `aggregate` and `aggregate-custom`, but close Criterion favored the reverted control on adjacent aggregate join/lateral/nested rows and matched or beat the patch on simple/group rows.
 - scalar-only connect-or-create create-return node removal by itself. The 2026-06-12 spike saved 15-29 full-compile allocations on connect-or-create fixtures, but close Criterion was not robust and the narrowed M2M-only version regressed `create-nested-connectOrCreate-one2m` against the individual reverted control.
+- direct `SelectionResult` constructors for already-selected pairs by themselves. The 2026-06-12 spike added a `from_selected_pairs()` constructor and used it in translation plus nearby selection helpers; allocation counts were unchanged on sampled rows, and quick Criterion regressed `nested-upsert-nested-only` by about 5.3%.
 
 ### Arena Spike Shape
 
