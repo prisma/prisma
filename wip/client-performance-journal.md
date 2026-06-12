@@ -14130,6 +14130,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes a duplicated semantic graph branch rather than a local container, saves about 135-138 full-compile allocations on the targeted m2m connect-or-create rows, and improves close Criterion by roughly 4.5% on `mixed` and `one2m` while controls stay neutral-to-positive.
 
+- Accepted change: skip redundant nested-only to-one update nodes.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `6f256b26dfd` (`perf(query-compiler): skip nested-only update nodes`).
+  - Patch:
+    - Split `update_record_node()` so nested update can parse `WriteArgsParser` once and call `update_record_node_from_args()` for normal updates.
+    - In `nested_update()`, when the parsed update has no scalar write args and at least one nested operation, the graph now validates the child lookup and feeds it through a `Flow::Return` pass-through node.
+    - The nested child operations attach to that pass-through node instead of creating an empty `UpdateRecord` plus a redundant `SELECT` reload.
+    - Updated `update-set-nested-prisma#27650` snapshot; the new plan removes the extra second `User` lookup and uses `let 2 = get 1` after the missing-child validation.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler --check`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and updated the expected snapshot.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=update-set-nested-prisma#27650,update-set-nested,create-nested-connectOrCreate-mixed,update-create-child-one2m,update-create-parent-one2m cargo run -p query-compiler --example allocation_profile --release`
+    - Target row:
+      - `update-set-nested-prisma#27650`: `graph_build 806 -> 802`, `compile_ir 1753 -> 1628`, `full_compile 1814 -> 1689`; patched `translate_ir` was `826`, and patched full allocated bytes were `187.2 KiB`.
+    - Controls in the patched run:
+      - `update-set-nested` stayed at `graph_build 641`, `translate_ir 1241`, `full_compile 1998`.
+      - `create-nested-connectOrCreate-mixed` stayed at `graph_build 770`, `translate_ir 1511`, `full_compile 2453` after the m2m branch-joining win.
+      - `update-create-child-one2m` stayed in band at `full_compile 1008`.
+      - `update-create-parent-one2m` stayed in band at `full_compile 829`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(update-set-nested-prisma#27650|update-set-nested|create-nested-connectOrCreate-mixed|update-create-child-one2m|update-create-parent-one2m)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `create-nested-connectOrCreate-mixed 297.19 us`, `update-create-child-one2m 117.03 us`, `update-create-parent-one2m 93.322 us`, `update-set-nested-prisma#27650 192.87 us`, `update-set-nested 243.05 us`.
+    - Close reverted-control medians: `create-nested-connectOrCreate-mixed 298.43 us`, `update-create-child-one2m 116.29 us`, `update-create-parent-one2m 92.878 us`, `update-set-nested-prisma#27650 207.32 us`, `update-set-nested 242.33 us`.
+    - Reapplied patched medians: `create-nested-connectOrCreate-mixed 303.31 us`, `update-create-child-one2m 116.75 us`, `update-create-parent-one2m 96.550 us`, `update-set-nested-prisma#27650 193.03 us`, `update-set-nested 243.32 us`.
+  - Decision:
+    - Keep. This removes a redundant semantic node and reload from a nested-only update path, saves 125 full-compile allocations on `update-set-nested-prisma#27650`, and improves the close Criterion target by about 7% while nearby controls stay neutral or noisy.
+
 ## Useful Commands
 
 ```sh
