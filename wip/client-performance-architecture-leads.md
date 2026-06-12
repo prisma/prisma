@@ -104,13 +104,14 @@ Good candidates:
 - query-document parser and protocol adapter success paths,
 - graph-build temporary selections and filters,
 - translation-side result structures that are built and immediately consumed,
-- raw-nested read-builder metadata that currently clones field selections or relation scalars.
+- raw-nested read-builder metadata only if it removes a larger translate phase. A 2026-06-12 owned raw-nested builder guarded by exact preflight was rejected: it passed `cargo check`, but patched `translate_ir` allocs/op worsened from `327/425/326` to `331/429/330` on `query-m2o` / `query-many-m2m` / `query-many-one2m`, and pagination rows also softened by one allocation.
 
 Less promising without a sharper hypothesis:
 
 - broad `Arc` replacement,
 - arenas for long-lived schema objects,
 - changing shared model/schema ownership before profiling shows it on CPU or retained-memory paths.
+- standalone preflight-owned raw-nested builders that duplicate the existing fallback checks before consuming `ReadQuery` values.
 - single-link `RelationLinkage` storage by itself. The 2026-06-11 spike saved 3-6 allocations on some focused rows but softened enough Criterion medians to be rejected.
 - deferred/non-result `CreateRecord.selection_order` by itself. The 2026-06-11 spike saved 2-6 allocations on create-heavy graph-build/full-compile rows, but close Criterion favored the reverted control on larger create/connectOrCreate rows.
 

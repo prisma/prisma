@@ -13073,6 +13073,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Do not spend more time on "generated-code hoisting" as a transparent optimization for existing `client.model.action(args)` calls. A real recovery of the hoisted lower bound would require a new generated-owned call surface, such as generated/static prepared operation helpers that close over model actions, or a broader generated API shape. Treat that as a separate API/product design, not the next runtime micro-optimization.
 
+- Rejected Rust ownership spike: owned raw-nested read builder guarded by exact preflight.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs` so the successful raw-nested path consumed top-level `args`, `selection_order`, and nested `ReadQuery` values instead of cloning before a possible fallback.
+    - Added allocation-free-looking preflight predicates to mirror the old `None` fallback conditions, plus a `QueryBuilder::should_split_get_records()` hook so chunked SQL reads stayed on the non-raw fallback path.
+    - Goal: remove clones of top-level `QueryArguments`, child `RelatedRecordsQuery.parent_results`, child `selected_fields`, child `args`, and recursive nested query vectors on raw-nested read success.
+  - Correctness:
+    - With the spike applied: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - With the spike applied: `cargo test -p query-compiler` compiled, then failed only two insta snapshots because `nested-pagination-query` and `query-non-unique-one2m-pagination` rendered as `rawNestedRead` instead of the older `dataMap` / `join` snapshot form.
+    - The spike and temporary `.snap.new` files were stashed and dropped after the allocation gate failed; `/home/aqrln.guest/prisma-engines` is clean again.
+  - Allocation profile:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,query-many-one2m,nested-pagination-query,nested-pagination-join,query-non-unique-one2m-pagination' ALLOC_PROFILE_ITERATIONS=5 ALLOC_PROFILE_WARMUP=1 cargo run -p query-compiler --example allocation_profile --release`.
+    - Patched `translate_ir` allocs/op vs close stashed control:
+      - `query-m2o`: `331` vs `327`; `full_compile` `572` vs `568`.
+      - `query-many-m2m`: `429` vs `425`; `full_compile` `737` vs `733`.
+      - `query-many-one2m`: `330` vs `326`; `full_compile` `640` vs `636`.
+      - `nested-pagination-query`: `289` vs `288`; `full_compile` `574` vs `573`.
+      - `nested-pagination-join`: `404` vs `404`; `full_compile` `689` vs `689`.
+      - `query-non-unique-one2m-pagination`: `355` vs `354`; `full_compile` `756` vs `755`.
+  - Decision:
+    - Revert/reject before Criterion. The owned-builder shape did not reduce allocation counts; it regressed the targeted raw-nested rows by four allocations/op and slightly softened pagination rows. Do not retry a standalone "borrowed builder plus exact preflight" approach. If raw-nested ownership is revisited, it should be part of a larger consume-once translation refactor or a builder API that transfers fallback ownership without a second preflight pass.
+
 ## Useful Commands
 
 ```sh
