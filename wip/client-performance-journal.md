@@ -13710,6 +13710,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as benchmark coverage and architecture evidence. The product-shaped request-surface row is only about `0.34 us/op` slower than the direct prepared lower bound on Node and `0.35 us/op` slower in the Workerd worker loop, while remaining materially faster than exact-helper rows. The next product proof should be a generated-owned prepared surface or a descriptor-preseeded exact path that preserves error mapping, cache miss behavior, batching-aware routing, and exact placeholder order.
 
+- Rejected experiment: exact descriptor hit direct precomputed object shape.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed `tryExtractLazyDescriptor()` in `packages/client/src/runtime/core/model/applyModel.ts` so exact matcher hits returned `{ cacheKey, placeholderValues }` directly when the stored hit had no `parameterizedQuery` or `queryInfoQuery`, instead of spreading `descriptor.precomputedQueryPlanCacheHit` and replacing `placeholderValues`.
+    - The hypothesis was that the common no-commenter cached-result path could avoid object spread overhead and move exact-helper rows toward the prepared request-surface benchmark.
+  - Patched measurement:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - Patched by-author exact-helper row: `9.01 us/op`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='exact descriptor helper' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`
+      - Patched rows included: `findUnique 2.88`, batched `findUnique 6.35`, `findMany users 2.45`, `findFirst users 2.10`, blog page `8.03`, blog feed `9.14`, blog feed by author `9.06`, hoisted by-author `9.02`, alternating blog page `8.84`, runtime exact `findUnique 2.80`, runtime exact batched `6.75`, runtime exact `findMany 2.48`, runtime exact `findFirst 2.23` us/op.
+  - Close reverted control:
+    - The patch was fully reverted; `git diff -- packages/client/src/runtime/core/model/applyModel.ts` was empty.
+    - Same broad exact-helper command produced: `findUnique 2.74`, batched `findUnique 6.28`, `findMany users 2.44`, `findFirst users 2.15`, blog page `7.73`, blog feed `8.74`, blog feed by author `9.02`, hoisted by-author `8.93`, alternating blog page `8.82`, runtime exact `findUnique 2.83`, runtime exact batched `6.73`, runtime exact `findMany 2.41`, runtime exact `findFirst 2.16` us/op.
+  - Decision:
+    - Reject. The small by-author-only first run did not hold on the broader same-session control; nested blog-page/feed rows were clearly better with the original spread shape, and simple rows were mixed.
+
 ## Useful Commands
 
 ```sh
