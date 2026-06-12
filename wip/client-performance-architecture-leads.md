@@ -105,7 +105,7 @@ Use compile-local ownership scopes rather than a repository-wide memory-manageme
 
 Good candidates:
 
-- query-document parser and protocol adapter success paths,
+- query-document parser and protocol adapter success paths. A small request-adapter success-path cleanup was accepted in engines commit `e761557fa45`: `JsonProtocolAdapter::convert_selection()` now records false selection keys during its main selection walk instead of pre-scanning the map. This did not change allocation counts, but close Criterion was neutral-to-positive on sampled compile rows, with the clearest wins on `create-nested-connectOrCreate-mixed`, `nested-pagination-query`, and `nested-upsert-nested-only`.
 - graph-build temporary selections and filters,
 - translation-side result structures that are built and immediately consumed,
 - aggregation result-node data mapping in `query-compiler/query-compiler/src/data_mapper.rs::get_result_node_for_aggregation()` was accepted in engines commit `37b0b015f9c`: streaming the paired `selection_order` / `selectors` vectors removed the `IndexSet` / `ordered_set.get_index_of()` sorting path and saved 5-9 `translate_ir` / `full_compile` allocations on `aggregate`, `aggregate-custom`, and `group-by`.

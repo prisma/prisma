@@ -14386,6 +14386,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The patch saved no allocations and made the largest target row, `nested-upsert-nested-only`, significantly worse in the quick Criterion run. Do not retry this constructor-only shortcut without a separate CPU profile proving `SelectionResult::new()` itself is hot.
 
+- Accepted change: collect JSON protocol selection exclusions inline.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `e761557fa45` (`perf(request-handlers): collect selection exclusions inline`).
+  - Patch:
+    - Removed `SelectionSet::get_excluded_keys()`, which scanned every JSON protocol selection before the main conversion loop.
+    - `JsonProtocolAdapter::convert_selection()` now records `<field>: false` keys while it already walks the selection map.
+    - Delayed removal semantics are preserved: false keys are still removed only after `$scalars` / `$composites` and nested selections have been processed, so wildcard-plus-exclusion behavior remains unchanged.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target cargo test -p request-handlers protocols::json::protocol_adapter -- --nocapture`: invalid local invocation; failed before exercising the patch because the protocol adapter fixture schema uses `provider = "mongodb"` and the package was built without that feature.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target cargo test -p request-handlers --features mongodb protocols::json::protocol_adapter -- --nocapture`: passed, 25 tests.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target cargo fmt -p request-handlers --check`: passed.
+    - `git diff --check`: passed before the engines commit.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-wasm-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 ALLOC_PROFILE_QUERIES=query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,create-nested-create,create-nested-connectOrCreate-mixed,update-set-nested,nested-upsert-nested-only cargo run -p query-compiler --example allocation_profile --release`
+    - Result: allocation counts and allocated bytes were unchanged on sampled rows. Representative full-compile counts stayed `query-m2o 564`, `query-many-m2m 729`, `nested-pagination-query 571`, `filter-contains-param 516`, `create-nested-create 1226`, `create-nested-connectOrCreate-mixed 2453`, `update-set-nested 1836`, and `nested-upsert-nested-only 3011`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(query-m2o|query-many-m2m|nested-pagination-query|filter-contains-param|create-nested-create|create-nested-connectOrCreate-mixed|update-set-nested|nested-upsert-nested-only)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians: `create-nested-connectOrCreate-mixed 289.28 us`, `create-nested-create 159.83 us`, `filter-contains-param 60.098 us`, `nested-pagination-query 74.542 us`, `nested-upsert-nested-only 370.26 us`, `query-m2o 77.889 us`, `query-many-m2m 88.122 us`, `update-set-nested 222.74 us`.
+    - Close reverted-control medians: `create-nested-connectOrCreate-mixed 343.43 us`, `create-nested-create 156.15 us`, `filter-contains-param 62.806 us`, `nested-pagination-query 79.422 us`, `nested-upsert-nested-only 387.94 us`, `query-m2o 86.310 us`, `query-many-m2m 91.513 us`, `update-set-nested 244.35 us`.
+    - Reapplied patched medians: `create-nested-connectOrCreate-mixed 302.61 us`, `create-nested-create 155.02 us`, `filter-contains-param 62.529 us`, `nested-pagination-query 77.710 us`, `nested-upsert-nested-only 368.04 us`, `query-m2o 81.550 us`, `query-many-m2m 90.669 us`, `update-set-nested 238.88 us`.
+  - Decision:
+    - Keep. This is a zero-allocation CPU cleanup on the request-adapter success path. The close control was slower across the row set, and the reapplied patch stayed neutral-to-positive: meaningful wins held for `create-nested-connectOrCreate-mixed`, `nested-pagination-query`, and `nested-upsert-nested-only`; `create-nested-create` and `filter-contains-param` were neutral on reapply.
+
 ## Useful Commands
 
 ```sh
