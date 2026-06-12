@@ -13441,6 +13441,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow topology-cache allocation cleanup for nested write translation, with sampled read/filter/upsert controls allocation-neutral and focused Criterion neutral-to-positive. It is not an internal data-format change and adds no old/new compatibility path.
 
+- Accepted benchmark probe: prepared exact operation for generated-owned blog-feed-by-author cache hits.
+  - Timestamp: 2026-06-12.
+  - Context:
+    - Follow-up to the JS-owned query/cache-hit architecture discussion after the shallow `serde_wasm_bindgen` / `compileFromValue(JsValue)` path and cache-key-only handle path both failed to show enough ceiling.
+    - The target question was whether a generated-owned surface that already knows structural identity can beat descriptor-bound exact helpers by skipping public args construction, descriptor walks, and cache-key work on a hot nested read cache hit.
+  - Patch:
+    - Added `measurePreparedExactOperationScenario()` to `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+    - Added `client-execute-prepared-exact-operation` mode and a focused Workerd row to `packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`.
+    - The benchmark warms the normal client path once to learn the cached plan, then loops a prepared operation for `Post.findMany` blog-feed-by-author. The prepared operation validates only that `authorId` is a signed 32-bit integer and calls `client._engine.requestPrecomputedCachedResult()` with a static protocol query, static cache key, and dynamic `{ "%1": authorId }` placeholder map.
+    - This is intentionally benchmark-only. It does not weaken the current descriptor-bound exact matcher guards for arbitrary user args and does not add any old/new internal format compatibility path.
+  - Node verification:
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=1000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Smoke row:
+      - Prepared exact operation measured `12.96 us/op` with `queryRaw=7000`.
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Key rows:
+      - `prepared exact operation blog feed by author / nested rows warmed cache`: `7.55 us/op`, `queryRaw=2100000`.
+      - Generated default / request-precomputed / descriptor-bound static / exact-helper: `10.45 / 10.52 / 9.27 / 9.23 us/op`.
+      - Exact-helper hoisted / trusted helper / trusted hoisted: `9.05 / 8.63 / 8.41 us/op`.
+      - Cached request wrapper exact / trusted / lazy: `8.16 / 7.72 / 10.26 us/op`.
+      - Direct/local lower-bound rows stayed around `7.15-7.29 us/op`.
+  - Workerd verification:
+    - Command:
+      - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Key worker-loop rows:
+      - Default generated / hoisted default: `7.95 / 7.25 us/op`.
+      - Engine-precomputed / hoisted: `7.20 / 7.05`.
+      - Request-precomputed / hoisted: `7.15 / 6.75`.
+      - Descriptor-bound static / hoisted: `6.90 / 7.15`.
+      - Exact-helper / hoisted exact: `6.45 / 6.05`.
+      - Prepared exact operation: `5.05 us/op`.
+    - Prepared exact host dispatch measured `6.28 us/op`; precomputed fast-path hits were `20000`, learns were `0`, cache hits/misses were `20000/0`, and `queryRaw=140000`.
+  - Decision:
+    - Keep as benchmark coverage and architecture evidence. The prepared operation is about 18% faster than the Node exact-helper row and about 22% faster than the Workerd exact-helper worker-loop row, while landing close to the cached-wrapper/direct lower bound.
+    - Productization should be a generated-owned prepared surface or descriptor-bound generated helper factory that proves exact structural identity by construction or through a first slow-path self-test. Do not turn this into a generic Wasm `Reflect` walker, do not weaken the existing descriptor exactness checks for arbitrary user args, and keep batching-aware routing for `findUnique`-style calls.
+
 ## Useful Commands
 
 ```sh
