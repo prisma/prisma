@@ -13527,14 +13527,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Practical implication:
     - Keep the prepared row as lower-bound evidence. The next product proof should target generated/internal pre-seeded descriptors with oracle tests and batching/error semantics, not a raw closure that calls `_engine.requestPrecomputedCachedResult()` directly.
 
-- New lead: next Rust allocation candidates from subagent scout.
+- Rejected experiment: in-place empty-filter stripping inside `extract_filter()`.
   - Timestamp: 2026-06-12.
-  - Candidate 1:
-    - In-place empty-filter stripping in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs` inside nested `extract_filter()`.
-    - Current shape builds a `Vec<Filter>`, then rebuilds another vector just to remove `Filter::Empty` before matching on `len()`. A mutable first vector plus `retain()` may reduce graph-build allocations on filter-heavy rows.
-    - Likely rows: `filter-contains-param`, `filter-contains-param-insensitive`, `filter-startswith-param`, `filter-in-param-insensitive`, `filter-not-*`, `group-by`, and nested rows with `where` filters.
-    - Risk: vectors are small and filter-adjacent allocation wins have regressed Criterion before, so require close A/B timing.
-  - Candidate 2:
+  - Patch:
+    - Changed the two nested `extract_filter()` empty-strip blocks in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs` from `into_iter().filter(...).collect::<Vec<Filter>>()` to in-place `Vec::retain()`.
+  - Verification with the patch applied:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core filter --lib`: passed, 5 filtered tests.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='filter-contains-param,filter-contains-param-insensitive,filter-startswith-param,filter-in-param-insensitive,filter-not-contains-param,filter-not-in-param-insensitive,group-by,query-m2o,create-nested-connectOrCreate-mixed,update-set-nested' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - No sampled row moved allocation counts versus the current baseline:
+      - `filter-contains-param`: `graph_build 284`, `full_compile 516`.
+      - `filter-contains-param-insensitive`: `graph_build 288`, `full_compile 522`.
+      - `filter-startswith-param`: `graph_build 284`, `full_compile 512`.
+      - `filter-in-param-insensitive` / `filter-not-in-param-insensitive`: `graph_build 292`, `full_compile 535`.
+      - `filter-not-contains-param`: `graph_build 369`, `full_compile 612`.
+      - `group-by`: `graph_build 322`, `full_compile 614`.
+      - Controls unchanged: `query-m2o 162/564`, `create-nested-connectOrCreate-mixed 797/2608`, `update-set-nested 651/2008`.
+  - Decision:
+    - Reverted before Criterion. The experiment's only premise was allocation reduction, and the focused allocation profile showed none on the sampled filter/group/nested rows.
+
+- New lead: remaining Rust allocation candidate from subagent scout.
+  - Timestamp: 2026-06-12.
+  - Candidate:
     - Consuming `FieldSelection` fast paths in `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field_selection.rs`.
     - `FieldSelection::into_without_relations()` consumes `self` but still allocates a filtered vector even when no relation selections exist. An early relation scan could return `self` for scalar-only selections.
     - `FieldSelection::into_virtuals_last()` partitions into two vectors and then collects a third when virtuals exist; a manual one-result-vector move with virtual tail may reduce heap traffic for `_count` selections.
