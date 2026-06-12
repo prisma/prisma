@@ -13774,17 +13774,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Use:
     - Treat these as the current allocation baseline for the next query-graph / parser allocation experiments.
 
-- New lead: remove dependency-normalization edge-vector allocation in query compiler.
+- Accepted query-compiler cleanup: iterate projected dependency edges without sorted edge vectors.
   - Timestamp: 2026-06-12.
-  - Scout result:
-    - `ensure_return_nodes_have_parent_dependency()` and `find_unsatisfied_dependencies()` in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs` still call `outgoing_edges()` / `incoming_edges()`, which allocate and sort `Vec<EdgeRef>`.
-    - These paths only need projected dependency selections and, for return nodes, the first incoming projected dependency edge. A narrow helper over `self.graph.edges_directed(...).filter_map(|edge| edge.weight().borrow())` may avoid the sorted edge vectors without touching previously rejected traversal rewrites around `subgraph_contains_result()`, `is_direct_child()`, or `direct_child_pairs()`.
-  - Suggested validation:
-    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-core -p query-compiler`
-    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_graph --lib`
-    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`
-    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
-    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested|update-set-nested-prisma#27650|query-m2o|query-many-m2m|nested-pagination-query|filter-contains-param|upsert)" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+  - Engines commit: `179cdcbbbf1`.
+  - Patch:
+    - Added private `QueryGraph` helpers that iterate projected data dependency selections and incoming projected dependency edge ids directly over `self.graph.edges_directed(...)`.
+    - Switched `ensure_return_nodes_have_parent_dependency()` and `find_unsatisfied_dependencies()` away from `outgoing_edges()` / `incoming_edges()` when they only need projected dependency payloads.
+    - This intentionally does not touch `subgraph_contains_result()`, `is_direct_child()`, `direct_child_pairs()`, or other previously rejected traversal rewrites.
+  - Allocation profile:
+    - Patched command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Close control was the same command after temporarily reversing the patch.
+    - Rows (`graph_build / compile_ir / full_compile`):
+      - `create-nested-connectOrCreate-mixed`: control `792 / 2431 / 2603`, patched `785 / 2424 / 2596`.
+      - `create-nested-connectOrCreate-one2m`: control `671 / 2144 / 2303`, patched `667 / 2140 / 2299`.
+      - `create-nested-connectOrCreate-m2one`: control `441 / 1252 / 1369`, patched `436 / 1247 / 1364`.
+      - `update-set-nested`: control `648 / 1889 / 2005`, patched `645 / 1886 / 2002`.
+      - `update-set-nested-prisma#27650`: control `810 / 1757 / 1818`, patched `806 / 1753 / 1814`.
+      - Controls stayed neutral: `query-m2o 162 / 485 / 564`, `query-many-m2m 237 / 658 / 729`, `nested-pagination-query 200 / 486 / 571`, `filter-contains-param 284 / 445 / 516`, `upsert 300 / 635 / 707`.
+  - Criterion:
+    - The first patched Criterion command used an unanchored filter and compared against stale saved baselines; the reported percentage changes were misleading, so the decision used a close reverse/reapply A/B with an anchored filter.
+    - Anchored command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested|update-set-nested-prisma#27650|query-m2o|query-many-m2m|nested-pagination-query|filter-contains-param|upsert)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Close control medians: `m2one 163.19 us`, `mixed 307.00`, `one2m 273.27`, `filter-contains-param 58.997`, `nested-pagination-query 80.456`, `query-m2o 78.069`, `query-many-m2m 90.483`, `update-set-nested-prisma#27650 204.76`, `update-set-nested 240.21`, `upsert 75.888`.
+    - Final patched medians: `m2one 162.53 us`, `mixed 306.90`, `one2m 277.69` with one high severe outlier and "No change", `filter-contains-param 59.495` within noise threshold, `nested-pagination-query 75.268`, `query-m2o 78.140`, `query-many-m2m 88.675`, `update-set-nested-prisma#27650 203.72`, `update-set-nested 239.05`, `upsert 75.233`.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-core -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_graph --lib`: passed, 5 filtered tests.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+  - Decision:
+    - Keep. This saves 3-7 graph-build/full-compile allocations on the nested write target rows with close Criterion neutral-to-positive overall and sampled read/filter/upsert controls allocation-neutral.
 
 - Documentation refresh: intermediate performance report after prepared request-surface safety.
   - Timestamp: 2026-06-12.
