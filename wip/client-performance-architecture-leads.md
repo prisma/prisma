@@ -49,6 +49,8 @@ A stricter feed-by-author template now proves the same generated-template approa
 
 A later direct-validation cleanup kept the same full user-argument shape checks but made the hot static select validation straight-line in the generated blog templates. Close 300k feed-by-author rows moved generated exact-helper 9.24 -> 9.16 us/op and cached-wrapper exact 8.26 -> 8.21, with solo confirmations at 9.16 and 8.06. This is a small implementation cleanup, not a change to the broader architecture lead: skipping full nested shape validation still requires a generated-shape proof.
 
+A 2026-06-12 benchmark-only attempt to replace generated exact-helper fixed-width `Object.keys()` validators with `for...in` / `Object.hasOwn()` scans was rejected. Close control beat patched on the product-safe by-author rows: generated exact-helper `8.98` vs `9.60 us/op`, hoisted exact `8.78` vs `9.35`, and cached-wrapper exact `8.12` vs `8.88`. Keep the current key-array checks unless a different generated-shape proof changes the validation contract.
+
 ### What A Wasm Reference-Type Version Would Need
 
 A direct Rust-over-JS implementation probably needs generated/static access strategy, not generic `js_sys::Reflect` traversal. Prior `Reflect` walkers were much slower than native `JSON.stringify()` and JS exact descriptor helpers.

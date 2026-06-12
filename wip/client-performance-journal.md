@@ -13095,6 +13095,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Revert/reject before Criterion. The owned-builder shape did not reduce allocation counts; it regressed the targeted raw-nested rows by four allocations/op and slightly softened pagination rows. Do not retry a standalone "borrowed builder plus exact preflight" approach. If raw-nested ownership is revisited, it should be part of a larger consume-once translation refactor or a builder API that transfers fallback ownership without a second preflight pass.
 
+- Rejected benchmark-only exact-helper key-order scan: `for...in` instead of `Object.keys()`.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed the fixed-width exact-helper key-order validators in `packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts` (`hasOwnEnumerableKeysInOrder1/2/3/4/7/12`) to scan own enumerable keys with `for...in` plus `Object.hasOwn()` instead of allocating `Object.keys()` arrays.
+    - Goal: prove whether generated template support code should avoid `Object.keys()` allocations on descriptor-helper hits before touching emitted product code.
+  - Timing:
+    - Patched 300k by-author run:
+      - generated descriptor-bound static: `9.26 us/op`; hoisted `9.00`.
+      - generated exact-helper: `9.60`; hoisted exact `9.35`.
+      - generated trusted-helper: `8.67`; hoisted trusted `8.27`.
+      - cached-wrapper exact/trusted/lazy: `8.88 / 7.69 / 10.27`.
+    - Close control after stashing/dropping the benchmark patch:
+      - generated descriptor-bound static: `9.27`; hoisted `9.11`.
+      - generated exact-helper: `8.98`; hoisted exact `8.78`.
+      - generated trusted-helper: `8.75`; hoisted trusted `8.30`.
+      - cached-wrapper exact/trusted/lazy: `8.12 / 7.72 / 10.26`.
+  - Decision:
+    - Revert/reject. The product-safe exact-helper rows regressed materially, and the tiny trusted-row benefit is benchmark-only because it skips full user-argument shape validation. Keep the existing fixed-width `Object.keys()` validators in generated exact-helper/template code.
+
+- New exact-helper productization lead: flat `findFirst` / `findFirstOrThrow` internal helper support.
+  - Timestamp: 2026-06-12.
+  - Source: subagent scout `019eb92e-ba38-7ad3-a897-b903332a07c7`.
+  - Candidate:
+    - Extend `createExactDescriptorMatcherRegistry()` and generator parsing to accept internal specs such as `User.findFirst:email:id,email,name` and `User.findFirstOrThrow:email:id,email,name`.
+    - Reuse the current `where + select` `findUnique` binder shape, but keep strict exact root key order `['where', 'select']`, exact one-field scalar/enum equality in `where`, exact scalar/enum select list, and the existing descriptor-bound slow-path self-test before storing the matcher.
+    - Add benchmark rows for generated `findFirst users / warmed cache`; keep this internal-only and gated by Node close A/B before any Workerd run.
+  - Risks:
+    - `findFirst` filter semantics are broader than unique equality. The first slice must stay exact single-field scalar/enum equality and rely on serializer/parameterizer/cache-key oracle tests; no broad filter matcher or trusted shortcut.
+    - Generic lazy descriptors may already cover this shape enough that the win is small. Keep only with close A/B evidence.
+
 ## Useful Commands
 
 ```sh
