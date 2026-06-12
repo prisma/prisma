@@ -14006,6 +14006,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. On the current codebase, the allocation savings are small but repeatable on if-heavy nested writes, close Criterion is neutral-to-positive, and the create-row recheck no longer reproduces the old regression.
 
+- Build fix: query-plan-executor accepts compact tuple plans at the request boundary.
+  - Timestamp: 2026-06-12.
+  - Trigger:
+    - Restarted `pnpm build` after the harness reset.
+    - The first full build failed in `@prisma/query-plan-executor`:
+      - `src/server/server.ts(87,9): error TS2352: Conversion of type 'Record<string, unknown>' to type 'QueryPlanCompactNode' may be a mistake because neither type sufficiently overlaps with the other.`
+      - `src/server/server.ts(103,9): error TS2352: Conversion of type 'Record<string, unknown>' to type 'QueryPlanCompactNode' may be a mistake because neither type sufficiently overlaps with the other.`
+  - Fix:
+    - Changed `QueryRequestBody.plan` in `packages/query-plan-executor/src/server/schemas.ts` from `z.record(z.string(), z.unknown())` to `z.unknown()`.
+    - Reason: compact query plans are internal runtime tuples now; validating them as object records is both too narrow at runtime and no longer overlaps the compact tuple-only `QueryPlanNode` type.
+    - This does not add old/new query-plan compatibility. The boundary remains untyped because `@prisma/client-engine-runtime` does not expose a Zod schema for the internal compact tuples.
+  - Verification:
+    - `pnpm --filter @prisma/query-plan-executor build`: passed.
+    - `pnpm build`: passed with 44/44 Turbo tasks successful, 36 cached, in 1m44.547s.
+
 ## Useful Commands
 
 ```sh
