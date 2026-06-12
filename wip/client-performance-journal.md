@@ -13726,6 +13726,66 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject. The small by-author-only first run did not hold on the broader same-session control; nested blog-page/feed rows were clearly better with the original spread shape, and simple rows were mixed.
 
+- Accepted safety prerequisite: precomputed cached-result misses compile from the stored parameterized query.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - `PrecomputedQueryPlanCacheHit` now always carries its `parameterizedQuery`; this is an internal lockstep shape, not an optional old/new format.
+    - `ClientEngine.requestPrecomputedCachedResult()` no longer falls back through `request(query, ...)` on cache miss. It recompiles from `precomputedQueryPlanCacheHit.parameterizedQuery` and executes with the current `placeholderValues`.
+    - Prepared benchmark rows now include `parameterizedQuery` in their precomputed hits, and the Node harness has a no-cache prepared row to exercise the miss path with `queryPlanCacheMaxSize: 0`.
+  - Why:
+    - The prepared-surface scout found that a future generated/internal prepared operation could pass a static warmup protocol query plus dynamic placeholders. The old miss path would have re-parameterized the static warmup query on cache eviction/disablement, making misses stale or unsafe.
+    - Because all producers and consumers are version-locked, the fix makes `parameterizedQuery` required instead of preserving a legacy hit shape.
+  - Benchmarks:
+    - Node command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared exact' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - Run 1: direct prepared `7.68 us/op`, request-surface prepared `7.81 us/op`, no-cache request-surface row `3543.12 us/op` over 100 iterations with `queryRaw=700`.
+      - Run 2: direct prepared `7.62 us/op`, request-surface prepared `7.79 us/op`, no-cache request-surface row `4169.89 us/op` over 100 iterations with `queryRaw=700`.
+      - Prior prepared-surface accepted row was `7.53 / 7.87 us/op`, so the hot cached path stayed in band while the no-cache row proved the new miss path compiles and executes.
+    - Workerd command: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='prepared exact' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - First worker-loop run: direct prepared `5.85 us/op`, request-surface prepared `6.15 us/op`.
+      - Second worker-loop run: direct prepared `7.95 us/op`, request-surface prepared `5.80 us/op`.
+    - Longer Workerd request-surface command: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='prepared exact request surface' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=50000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - Worker-loop request-surface prepared: `5.68 us/op`, `50000/0` cache hits/misses, `precomputed fast path: hits 50000`.
+      - Prior accepted request-surface worker loop was `5.40 us/op`; this stayed close enough for a safety prerequisite, with the direct row remaining noisy.
+  - Verification:
+    - `pnpm exec prettier --check packages/client/src/runtime/core/engines/common/Engine.ts packages/client/src/runtime/core/engines/client/ClientEngine.ts packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`: passed.
+    - `pnpm --filter @prisma/client build`: passed after updating `RequestHandler.test.ts` to construct complete internal hits.
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`: passed, 8 tests.
+    - `pnpm --filter @prisma/client test applyModel.test.ts --runInBand`: passed, 12 tests.
+    - `git diff --check`: passed.
+  - Decision:
+    - Keep. This is primarily a correctness/safety prerequisite for generated-owned prepared operations. It does not claim a new speed win, but it keeps the hot prepared rows in band and removes the stale-value miss-path blocker without adding internal old-format compatibility.
+
+- Measurement: current query-compiler allocation profile after reload-candidate reuse.
+  - Timestamp: 2026-06-12.
+  - Command:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,create-nested-create,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Rows (`graph_build / translate_ir / compile_ir / full_compile`):
+    - `create-nested-connectOrCreate-mixed`: `792 / 1639 / 2431 / 2603`.
+    - `create-nested-connectOrCreate-one2m`: `671 / 1473 / 2144 / 2303`.
+    - `create-nested-connectOrCreate-m2one`: `441 / 811 / 1252 / 1369`.
+    - `create-nested-create`: `437 / 677 / 1114 / 1227`.
+    - `update-set-nested`: `648 / 1241 / 1889 / 2005`.
+    - `update-set-nested-prisma#27650`: `810 / 947 / 1757 / 1818`.
+    - `query-m2o`: `162 / 323 / 485 / 564`.
+    - `query-many-m2m`: `237 / 421 / 658 / 729`.
+    - `nested-pagination-query`: `200 / 286 / 486 / 571`.
+    - `filter-contains-param`: `284 / 161 / 445 / 516`.
+    - `upsert`: `300 / 335 / 635 / 707`.
+  - Use:
+    - Treat these as the current allocation baseline for the next query-graph / parser allocation experiments.
+
+- New lead: remove dependency-normalization edge-vector allocation in query compiler.
+  - Timestamp: 2026-06-12.
+  - Scout result:
+    - `ensure_return_nodes_have_parent_dependency()` and `find_unsatisfied_dependencies()` in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs` still call `outgoing_edges()` / `incoming_edges()`, which allocate and sort `Vec<EdgeRef>`.
+    - These paths only need projected dependency selections and, for return nodes, the first incoming projected dependency edge. A narrow helper over `self.graph.edges_directed(...).filter_map(|edge| edge.weight().borrow())` may avoid the sorted edge vectors without touching previously rejected traversal rewrites around `subgraph_contains_result()`, `is_direct_child()`, or `direct_child_pairs()`.
+  - Suggested validation:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-core -p query-compiler`
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_graph --lib`
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,update-set-nested,update-set-nested-prisma#27650,query-m2o,query-many-m2m,nested-pagination-query,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|create-nested-connectOrCreate-m2one|update-set-nested|update-set-nested-prisma#27650|query-m2o|query-many-m2m|nested-pagination-query|filter-contains-param|upsert)" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+
 ## Useful Commands
 
 ```sh

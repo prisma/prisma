@@ -62,7 +62,7 @@ export type AccelerateExtensionFetchDecorator = (fetch: AccelerateExtensionFetch
 export type PrecomputedQueryPlanCacheHit = {
   cacheKey: string
   placeholderValues: Record<string, unknown>
-  parameterizedQuery?: JsonQuery
+  parameterizedQuery: JsonQuery
   queryInfoQuery?: JsonQuery['query']
 }
 

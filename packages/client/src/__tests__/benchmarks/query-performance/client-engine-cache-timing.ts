@@ -301,17 +301,20 @@ type DirectDataMapPlan = {
 
 type StaticDescriptorExtraction = {
   cacheKey: string
+  parameterizedQuery: JsonQuery
   placeholderValues: Record<string, unknown>
 }
 
 type StaticDescriptorExtractor = (args: Record<string, unknown>) => StaticDescriptorExtraction | undefined
 type StaticDescriptorExtractorFactory = (
   cacheKey: string,
+  parameterizedQuery: JsonQuery,
   placeholderValues: Record<string, unknown>,
 ) => StaticDescriptorExtractor | undefined
 
 type LazyStaticDescriptor = {
   cacheKey: string
+  parameterizedQuery: JsonQuery
   root: LazyDescriptorNode
 }
 
@@ -1004,6 +1007,7 @@ const BLOG_PAGE_COUNT_SELECT_KEYS = ['likes', 'comments'] as const
 function tryExtractGeneratedBlogPostPageDescriptor(
   args: Record<string, unknown>,
   cacheKey: string,
+  parameterizedQuery: JsonQuery,
 ): StaticDescriptorExtraction | undefined {
   if (!hasExactKeys(args, ['where', 'select'])) {
     return undefined
@@ -1037,16 +1041,21 @@ function tryExtractGeneratedBlogPostPageDescriptor(
 
   return {
     cacheKey,
+    parameterizedQuery,
     placeholderValues: { '%1': where.id },
   }
 }
 
-function bindGeneratedBlogPostPageDescriptorExtractor(cacheKey: string): StaticDescriptorExtractor {
-  return (args) => tryExtractGeneratedBlogPostPageDescriptor(args, cacheKey)
+function bindGeneratedBlogPostPageDescriptorExtractor(
+  cacheKey: string,
+  parameterizedQuery: JsonQuery,
+): StaticDescriptorExtractor {
+  return (args) => tryExtractGeneratedBlogPostPageDescriptor(args, cacheKey, parameterizedQuery)
 }
 
 function bindExactGeneratedBlogPostFeedByAuthorDescriptorExtractor(
   cacheKey: string,
+  parameterizedQuery: JsonQuery,
   placeholderValues: Record<string, unknown>,
 ): StaticDescriptorExtractor | undefined {
   const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
@@ -1056,12 +1065,15 @@ function bindExactGeneratedBlogPostFeedByAuthorDescriptorExtractor(
 
   return (args) => {
     const exactPlaceholderValues = matchExactGeneratedBlogPostFeedByAuthor(args, authorIdPlaceholder)
-    return exactPlaceholderValues === undefined ? undefined : { cacheKey, placeholderValues: exactPlaceholderValues }
+    return exactPlaceholderValues === undefined
+      ? undefined
+      : { cacheKey, parameterizedQuery, placeholderValues: exactPlaceholderValues }
   }
 }
 
 function bindTrustedGeneratedBlogPostFeedByAuthorDescriptorExtractor(
   cacheKey: string,
+  parameterizedQuery: JsonQuery,
   placeholderValues: Record<string, unknown>,
 ): StaticDescriptorExtractor | undefined {
   const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
@@ -1073,7 +1085,7 @@ function bindTrustedGeneratedBlogPostFeedByAuthorDescriptorExtractor(
     const trustedPlaceholderValues = matchTrustedGeneratedBlogPostFeedByAuthor(args, authorIdPlaceholder)
     return trustedPlaceholderValues === undefined
       ? undefined
-      : { cacheKey, placeholderValues: trustedPlaceholderValues }
+      : { cacheKey, parameterizedQuery, placeholderValues: trustedPlaceholderValues }
   }
 }
 
@@ -2206,6 +2218,7 @@ function hasExactOwnEnumerableKeys(value: Record<string, unknown>, expectedKeys:
 function buildLazyStaticDescriptor(
   args: Record<string, unknown>,
   cacheKey: string,
+  parameterizedQuery: JsonQuery,
   placeholderValues: Record<string, unknown>,
 ): LazyStaticDescriptor {
   const placeholdersByValue = new Map<string, string>()
@@ -2218,6 +2231,7 @@ function buildLazyStaticDescriptor(
 
   return {
     cacheKey,
+    parameterizedQuery,
     root: buildLazyDescriptorNode(args, placeholdersByValue),
   }
 }
@@ -2278,6 +2292,7 @@ function tryExtractLazyStaticDescriptor(
 
   return {
     cacheKey: descriptor.cacheKey,
+    parameterizedQuery: descriptor.parameterizedQuery,
     placeholderValues,
   }
 }
@@ -2983,8 +2998,8 @@ function measureGeneratedBlogPostPageDescriptorExtractScenario(
   paramGraph: ParamGraph,
   scenario: GeneratedClientSerializeScenario,
 ): PlanPhaseMeasurement {
-  const { cacheKey } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
-  const firstExtraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(0), cacheKey)
+  const { cacheKey, parameterizedQuery } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
+  const firstExtraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(0), cacheKey, parameterizedQuery)
   if (firstExtraction === undefined) {
     throw new Error('Expected generated blog-page descriptor to match first args')
   }
@@ -2993,7 +3008,7 @@ function measureGeneratedBlogPostPageDescriptorExtractScenario(
   const beforeHeap = heapUsed()
   const started = performance.now()
   for (let i = 0; i < scenario.iterations; i++) {
-    const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey)
+    const extraction = tryExtractGeneratedBlogPostPageDescriptor(scenario.args(i), cacheKey, parameterizedQuery)
     if (extraction === undefined) {
       throw new Error('Expected generated blog-page descriptor to match benchmark args')
     }
@@ -3019,8 +3034,12 @@ function measureGeneratedLazyDescriptorExtractScenario(
   scenario: GeneratedClientSerializeScenario,
 ): PlanPhaseMeasurement {
   const firstArgs = scenario.args(0)
-  const { cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
-  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const { cacheKey, parameterizedQuery, placeholderValues } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
+  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, parameterizedQuery, placeholderValues)
   const firstExtraction = tryExtractLazyStaticDescriptor(descriptor, firstArgs)
   if (firstExtraction === undefined) {
     throw new Error('Expected lazy descriptor to match first args')
@@ -3079,8 +3098,12 @@ async function measureInternalRequestPrecomputedLazyDescriptorScenario(
   }) as any
 
   const firstArgs = scenario.args(0)
-  const { query, cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
-  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const { query, cacheKey, parameterizedQuery, placeholderValues } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
+  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, parameterizedQuery, placeholderValues)
   const staticProtocolQuery = protocolQueryMode === 'static' ? scenario.query(0) : undefined
   const requestBase = {
     dataPath: [],
@@ -3172,8 +3195,12 @@ async function measurePrecomputedLazyDescriptorRequestSurfaceScenario(
   }) as any
 
   const firstArgs = scenario.args(0)
-  const { query, cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
-  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const { query, cacheKey, parameterizedQuery, placeholderValues } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
+  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, parameterizedQuery, placeholderValues)
   const protocolQuery = scenario.query(0)
   const requestBase = {
     protocolQuery,
@@ -3292,7 +3319,11 @@ async function measurePreparedExactOperationScenario(
   }) as any
 
   const firstArgs = scenario.args(0)
-  const { query, cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
+  const { query, cacheKey, parameterizedQuery, placeholderValues } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
   const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
   if (authorIdPlaceholder === undefined) {
     throw new Error('Expected one generated blog-feed-by-author placeholder')
@@ -3310,6 +3341,7 @@ async function measurePreparedExactOperationScenario(
       {
         cacheKey,
         placeholderValues: { [authorIdPlaceholder]: authorId },
+        parameterizedQuery,
       },
       requestOptions,
     )
@@ -3359,6 +3391,7 @@ async function measurePreparedExactRequestSurfaceScenario(
   config: Omit<EngineConfig, 'adapter' | 'queryPlanCacheMaxSize'>,
   paramGraph: ParamGraph,
   scenario: GeneratedClientSerializeScenario,
+  queryPlanCacheMaxSize = 100,
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -3379,11 +3412,15 @@ async function measurePreparedExactRequestSurfaceScenario(
   const client = new PrismaClient({
     adapter: scenario.adapterFactory?.(counts) ?? createAdapterFactory(counts, scenario.resultSet),
     errorFormat: 'minimal',
-    queryPlanCacheMaxSize: 100,
+    queryPlanCacheMaxSize,
   }) as any
 
   const firstArgs = scenario.args(0)
-  const { query, cacheKey, placeholderValues } = getGeneratedScenarioParameterizedShape(config, paramGraph, scenario)
+  const { query, cacheKey, parameterizedQuery, placeholderValues } = getGeneratedScenarioParameterizedShape(
+    config,
+    paramGraph,
+    scenario,
+  )
   const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
   if (authorIdPlaceholder === undefined) {
     throw new Error('Expected one generated blog-feed-by-author placeholder')
@@ -3412,6 +3449,7 @@ async function measurePreparedExactRequestSurfaceScenario(
           precomputedQueryPlanCacheHit: {
             cacheKey,
             placeholderValues: { [authorIdPlaceholder]: authorId },
+            parameterizedQuery,
           },
         }),
       {
@@ -6987,7 +7025,7 @@ async function measureCachedRequestWrapperGeneratedDescriptorScenario(
     paramGraph,
     scenario,
   )
-  const extractDescriptor = descriptorExtractorFactory(cacheKey, placeholderValues)
+  const extractDescriptor = descriptorExtractorFactory(cacheKey, parameterizedQuery, placeholderValues)
   if (extractDescriptor === undefined) {
     throw new Error(`Expected generated descriptor extractor to bind for ${scenario.name}`)
   }
@@ -7087,7 +7125,7 @@ async function measureCachedRequestWrapperLazyDescriptorScenario(
     paramGraph,
     scenario,
   )
-  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, placeholderValues)
+  const descriptor = buildLazyStaticDescriptor(firstArgs, cacheKey, parameterizedQuery, placeholderValues)
   const cache = new QueryPlanCache(100)
   cache.setSingle(cacheKey, compiler.compile(getSingleQueryRequest(parameterizedQuery, queryPart)))
 
@@ -7694,6 +7732,24 @@ async function main(): Promise<void> {
     }
     printDirectPlanMeasurement(
       await measurePreparedExactRequestSurfaceScenario(baseConfig, paramGraph, measuredScenario),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.name !== 'generated client serialize blog feed by author / nested rows warmed cache') {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      iterations: Math.min(scenario.iterations, 100),
+      name: 'prepared exact request surface no cache blog feed by author / nested rows warmed cache',
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measurePreparedExactRequestSurfaceScenario(baseConfig, paramGraph, measuredScenario, 0),
     )
   }
 

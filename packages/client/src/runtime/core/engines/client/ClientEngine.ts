@@ -889,13 +889,42 @@ export class ClientEngine implements Engine {
     const queryPlanCache = this.#queryPlanCache
     const cachedPlan = queryPlanCache?.getSingle(precomputedQueryPlanCacheHit.cacheKey)
     if (cachedPlan === undefined) {
-      const response = await this.request<Record<string, T>>(query, {
-        interactiveTransaction,
-        isWrite,
-        precomputedQueryPlanCacheHit,
-        customDataProxyFetch,
-      })
-      return response.data[query.action]
+      const parameterizedQuery = precomputedQueryPlanCacheHit.parameterizedQuery
+      if (parameterizedQuery.modelName !== query.modelName || parameterizedQuery.action !== query.action) {
+        throw new Error('Precomputed query plan cache hit does not match the request query')
+      }
+
+      const { executor, queryCompiler } =
+        this.#getConnectedEngine() ??
+        (await this.#ensureStarted().catch((err) => {
+          throw this.#transformRequestError(err, JSON.stringify(query))
+        }))
+
+      let plan = queryPlanCache?.getSingle(precomputedQueryPlanCacheHit.cacheKey)
+      if (plan === undefined) {
+        try {
+          const queryPart = JSON.stringify(parameterizedQuery.query)
+          const request = getSingleQueryRequest(parameterizedQuery, queryPart)
+          plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
+          queryPlanCache?.setSingle(precomputedQueryPlanCacheHit.cacheKey, plan)
+        } catch (error) {
+          throw this.#transformCompileError(error)
+        }
+      }
+
+      try {
+        return (await executor.execute({
+          plan,
+          model: parameterizedQuery.modelName,
+          operation: parameterizedQuery.action,
+          placeholderValues: precomputedQueryPlanCacheHit.placeholderValues,
+          transaction: undefined,
+          batchIndex: undefined,
+          customFetch: customDataProxyFetch?.(globalThis.fetch),
+        })) as T
+      } catch (e: any) {
+        throw this.#transformRequestError(e, JSON.stringify(query))
+      }
     }
 
     const { executor } =

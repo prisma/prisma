@@ -3553,6 +3553,7 @@ async function runClientPreparedExactOperationScenario(scenario, iterations, sur
       const precomputedQueryPlanCacheHit = {
         cacheKey,
         placeholderValues: { '%1': authorId },
+        parameterizedQuery,
       }
       if (surface === 'request-surface') {
         const args = { authorId }

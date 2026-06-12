@@ -19,6 +19,17 @@ function createRequestHandler(engine: unknown): RequestHandler {
   return new RequestHandler(client)
 }
 
+function createPrecomputedQueryPlanCacheHit(
+  query: JsonQuery,
+  placeholderValues: Record<string, unknown> = { '%1': 1 },
+) {
+  return {
+    cacheKey: 'cache-key',
+    parameterizedQuery: query,
+    placeholderValues,
+  }
+}
+
 test('unpack preserves native JSON values when deserialization is skipped', () => {
   const handler = Object.create(RequestHandler.prototype) as RequestHandler
   const jsonValue = { $type: 'DateTime', value: 'not a protocol value' }
@@ -44,10 +55,7 @@ test('requests precomputed cached results directly', async () => {
       },
     },
   }
-  const precomputedQueryPlanCacheHit = {
-    cacheKey: 'cache-key',
-    placeholderValues: { '%1': 1 },
-  }
+  const precomputedQueryPlanCacheHit = createPrecomputedQueryPlanCacheHit(query)
   const engine = {
     requestPrecomputedCachedResult: jest.fn().mockResolvedValue([{ id: 1 }]),
   }
@@ -101,10 +109,7 @@ test('maps direct precomputed cached result errors through request handling', as
       dataPath: [],
       clientMethod: 'user.findMany',
       extensions,
-      precomputedQueryPlanCacheHit: {
-        cacheKey: 'cache-key',
-        placeholderValues: { '%1': 1 },
-      },
+      precomputedQueryPlanCacheHit: createPrecomputedQueryPlanCacheHit(query),
     }),
   ).rejects.toMatchObject({
     code: 'P2002',
@@ -130,10 +135,7 @@ test('requests precomputed cached results directly for singleton batchable reque
       },
     },
   }
-  const precomputedQueryPlanCacheHit = {
-    cacheKey: 'cache-key',
-    placeholderValues: { '%1': 1 },
-  }
+  const precomputedQueryPlanCacheHit = createPrecomputedQueryPlanCacheHit(query)
   const engine = {
     request: jest.fn(),
     requestBatch: jest.fn(),
@@ -174,10 +176,7 @@ test('forwards precomputed query plan cache hits to single requests', async () =
       },
     },
   }
-  const precomputedQueryPlanCacheHit = {
-    cacheKey: 'cache-key',
-    placeholderValues: { '%1': 1 },
-  }
+  const precomputedQueryPlanCacheHit = createPrecomputedQueryPlanCacheHit(query)
   const engine = {
     request: jest.fn().mockResolvedValue({ data: { findMany: [] } }),
   }
@@ -223,14 +222,8 @@ test('forwards precomputed query plan cache hits to batch requests', async () =>
     requestPrecomputedCachedResult: jest.fn(),
   }
   const handler = createRequestHandler(engine)
-  const firstPrecomputedQueryPlanCacheHit = {
-    cacheKey: 'cache-key',
-    placeholderValues: { '%1': 1 },
-  }
-  const secondPrecomputedQueryPlanCacheHit = {
-    cacheKey: 'cache-key',
-    placeholderValues: { '%1': 1 },
-  }
+  const firstPrecomputedQueryPlanCacheHit = createPrecomputedQueryPlanCacheHit(query)
+  const secondPrecomputedQueryPlanCacheHit = createPrecomputedQueryPlanCacheHit(query)
 
   await Promise.all([
     handler.request({
@@ -292,10 +285,7 @@ test('does not forward partial precomputed query plan cache hits to batch reques
       dataPath: [],
       clientMethod: 'user.findUnique',
       extensions,
-      precomputedQueryPlanCacheHit: {
-        cacheKey: 'cache-key',
-        placeholderValues: { '%1': 1 },
-      },
+      precomputedQueryPlanCacheHit: createPrecomputedQueryPlanCacheHit(query),
     }),
     handler.request({
       protocolQuery: query,
