@@ -126,6 +126,7 @@ Less promising without a sharper hypothesis:
 - single-link `RelationLinkage` storage by itself. The 2026-06-11 spike saved 3-6 allocations on some focused rows but softened enough Criterion medians to be rejected.
 - deferred/non-result `CreateRecord.selection_order` by itself. The 2026-06-11 spike saved 2-6 allocations on create-heavy graph-build/full-compile rows, but close Criterion favored the reverted control on larger create/connectOrCreate rows.
 - aggregation SQL `extract_columns()` linear scalar-field dedupe by itself. The 2026-06-12 spike saved allocations on `aggregate` and `aggregate-custom`, but close Criterion favored the reverted control on adjacent aggregate join/lateral/nested rows and matched or beat the patch on simple/group rows.
+- scalar-only connect-or-create create-return node removal by itself. The 2026-06-12 spike saved 15-29 full-compile allocations on connect-or-create fixtures, but close Criterion was not robust and the narrowed M2M-only version regressed `create-nested-connectOrCreate-one2m` against the individual reverted control.
 
 ### Arena Spike Shape
 

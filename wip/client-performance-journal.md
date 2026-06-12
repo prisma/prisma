@@ -14301,6 +14301,34 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Follow-up:
     - The immediate graph-shape family is exhausted. The next Rust work should start from a fresh allocation profile, likely graph-build temporary selections/filters or translation result structures rather than another upsert/set branch.
 
+- Rejected experiment: skip scalar-only connect-or-create create-return nodes.
+  - Timestamp: 2026-06-12.
+  - Hypothesis:
+    - After the accepted M2M connect-or-create branch join, scalar-only create branches still built a `Flow::Return` node to project the created child id back into the `if` result. For create payloads with no nested writes, the create node's own result can be the branch result, so the extra return node looked removable.
+  - Patch tried:
+    - First version applied this to many-to-many, one-to-many inlined-parent, and one-to-one inlined-parent connect-or-create branches, parsing create args once to preserve nested-create semantics.
+    - Narrowed version kept only the many-to-many branch after the broader patch made the mixed row unhealthy.
+  - Allocation evidence:
+    - Full patch saved small but real allocation counts:
+      - `create-nested-connectOrCreate-mixed`: `full_compile 2453 -> 2424`.
+      - `create-nested-connectOrCreate-one2m`: `2162 -> 2146`.
+      - `create-nested-connectOrCreate-m2one`: `1361 -> 1346`.
+    - M2M-only patch saved:
+      - `create-nested-connectOrCreate-mixed`: `2453 -> 2438`.
+      - `create-nested-connectOrCreate-one2m`: `2162 -> 2146`.
+      - `create-nested-connectOrCreate-m2one`: unchanged at `1361`.
+  - Criterion evidence:
+    - Full patch was mixed/noisy and regressed the important mixed fixture on confirmation:
+      - Initial patched medians: `m2one 172.02 us`, `mixed 307.89 us`, `one2m 282.44 us`.
+      - Close reverted-control medians: `m2one 174.29 us`, `mixed 305.44 us`, `one2m 311.17 us` with a very wide one2m interval.
+      - Reapplied full patch medians: `m2one 168.51 us`, `mixed 319.22 us`, `one2m 269.19 us`; mixed worsened while one2m improved.
+    - M2M-only narrowed patch did not survive close individual A/B:
+      - M2M-only all-row run medians: `m2one 172.17 us`, `mixed 305.68 us`, `one2m 278.23 us`.
+      - Reverted individual control: `one2m 274.35 us`, `mixed 318.97 us`.
+      - Reapplied individual one2m: `286.87 us`, reported regression versus the close control.
+  - Decision:
+    - Reverted. The allocation savings are too small and timing is not robust; do not retry scalar-only create-return node removal as a standalone connect-or-create cleanup. A larger branch-shape change like the already-accepted M2M branch join can still be worthwhile when it removes duplicated semantic work.
+
 ## Useful Commands
 
 ```sh
