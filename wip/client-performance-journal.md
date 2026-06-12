@@ -13164,6 +13164,15 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as internal-only productization groundwork and benchmark coverage. The Node win is small but repeat-positive for exact-helper rows, the Workerd row shows target-runtime precomputed helper wins over default and request-precomputed, tests/builds pass, and it uses the existing descriptor self-test / exact-shape contract. Do not broaden this into arbitrary `findFirst` filter matching; add oracle coverage before enabling any new shape.
 
+- Documentation refresh: intermediate performance report after Workerd `findFirst` coverage.
+  - Timestamp: 2026-06-12.
+  - Report path: `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Added the latest Workerd `findFirst users` exact-helper coverage to the headline context, magnitude table, generated-cache-hit contributor section, rejected-work summary, and current exact-helper lead.
+    - Kept the total-gain headline unchanged: simple Worker cache-hit paths are still past 3x, nested Worker blog-page is about 3.9x versus the early calibrated baseline, and the biggest contributors remain generated-client cache-hit/precomputed request work, public API/serializer cleanup, query-plan memory compaction, raw-nested execution, and profile-backed Rust compile allocation slices.
+  - Decision:
+    - Keep the report as the current intermediate checkpoint requested by the user. The new `findFirst` work is a narrow internal-helper/productization win, not a broad default-row magnitude change.
+
 ## Useful Commands
 
 ```sh
