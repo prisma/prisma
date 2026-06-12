@@ -13479,6 +13479,68 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as benchmark coverage and architecture evidence. The prepared operation is about 18% faster than the Node exact-helper row and about 22% faster than the Workerd exact-helper worker-loop row, while landing close to the cached-wrapper/direct lower bound.
     - Productization should be a generated-owned prepared surface or descriptor-bound generated helper factory that proves exact structural identity by construction or through a first slow-path self-test. Do not turn this into a generic Wasm `Reflect` walker, do not weaken the existing descriptor exactness checks for arbitrary user args, and keep batching-aware routing for `findUnique`-style calls.
 
+- Accepted change: avoid synthetic write-graph helper read names.
+  - Timestamp: 2026-06-12.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` commit `fd443cdf449` (`perf(query-compiler): avoid synthetic read query names`).
+  - Patch:
+    - Replaced debug-only synthetic read query names with `String::new()` in:
+      - `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/utils.rs` for `read_ids_infallible()`, `read_id_infallible()`, and `insert_find_children_by_parent_node()`.
+      - `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph/mod.rs` for reload reads inserted by `QueryGraph::insert_reloads()`.
+    - These are internal helper reads, not user-facing response aliases or external protocol data. This keeps the internal lockstep rule: no old/new query-name compatibility branch was added.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries`: passed, 1 test.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-core query_graph --lib`: passed, 5 filtered tests.
+  - Allocation profile:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,query-m2o,filter-contains-param,upsert' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+    - Patched final rows:
+      - `create-nested-connectOrCreate-mixed`: `graph_build 797 allocs/op`, `full_compile 2608` versus baseline `799` / `2610`.
+      - `create-nested-connectOrCreate-one2m`: `graph_build 675`, `full_compile 2307` versus baseline `677` / `2309`.
+      - `update-set-nested`: `graph_build 651`, `full_compile 2008` versus baseline `653` / `2010`.
+      - Controls stayed allocation-count neutral: `query-m2o 162/564`, `filter-contains-param 284/516`, and `upsert 300/707`.
+  - Criterion:
+    - First close patched baseline then reverted control:
+      - Patched medians included `create-nested-connectOrCreate-mixed 304.48 us`, `one2m 273.62 us`, `update-set-nested 244.92 us`, `query-m2o 78.909 us`, `filter-contains-param 59.610 us`, `upsert 81.468 us`.
+      - Reverted control compared against that baseline was slower on target nested writes: mixed `311.50 us` (`+2.4344%`), one2m `283.25 us` (`+3.3435%`), `update-set-nested 251.49 us` (`+4.8047%`). Read controls also moved, so this was treated as noisy but not a target regression.
+    - Reverse-order check saved a reverted control baseline, then reapplied the patch:
+      - Reverted control baseline medians included mixed `303.86 us`, one2m `273.54 us`, `update-set-nested 240.11 us`, `query-m2o 77.551 us`, `filter-contains-param 59.387 us`, `upsert 79.160 us`.
+      - Patched-after-control comparison moved almost every row slower by roughly 5-10% (`query-m2o +5.2367%`, filter control `+5.7068%`, update-set `+10.573%`), while `upsert` stayed within noise. This was global machine/order drift, not a localized code-path signal.
+    - Decision from timing: no clear localized regression; keep based on deterministic allocation savings, tiny low-risk diff, passing tests, and the positive first close comparison. Do not claim this as a CPU win.
+  - Local Wasm rebuild:
+    - Command: `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 make build-qc-wasm`
+    - Result: passed for `fast` and `small` profiles across `postgresql`, `sqlite`, `mysql`, `sqlserver`, and `cockroachdb`.
+    - Build script skipped `wasm-opt` and `wasm2wat` because they are not installed.
+    - Reported fast zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.499 MiB`, MySQL `2.543 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+    - Reported small zipped sizes: PostgreSQL `2.570 MiB`, SQLite `2.500 MiB`, MySQL `2.543 MiB`, SQL Server `2.562 MiB`, CockroachDB `2.584 MiB`.
+  - Decision:
+    - Keep. This is a small graph-build allocation cleanup for internal synthetic read nodes, saving two allocations on the targeted nested-write rows without affecting sampled read/filter/upsert allocation counts.
+
+- New lead: pre-seeded exact descriptors instead of productizing the prepared-operation benchmark closure.
+  - Timestamp: 2026-06-12.
+  - Subagent review conclusion:
+    - The benchmark-only prepared operation bypasses public `client.model.action(args)`, `PrismaPromise` construction, request-handler error mapping, batching semantics, full exact descriptor validation, and cold cache-miss behavior. It should not be productized as-is.
+    - The safe seam is an internal generated/pre-seeded exact descriptor or prepared surface installed before `tryRequestHandlerPrecomputedCachedResultFastPath()`, still using exact matchers or an equivalent shape proof for key order, nested static selections, `orderBy`, placeholder order, and guarded fast-path eligibility.
+    - One concrete miss-path issue: `ClientEngine.requestPrecomputedCachedResult()` currently falls back through `request(query, ...)` and re-parameterizes the supplied protocol query on a cache miss. A prepared descriptor path must either prove the plan is present or teach the miss path to compile from the precomputed parameterized query plus current placeholder values.
+  - Practical implication:
+    - Keep the prepared row as lower-bound evidence. The next product proof should target generated/internal pre-seeded descriptors with oracle tests and batching/error semantics, not a raw closure that calls `_engine.requestPrecomputedCachedResult()` directly.
+
+- New lead: next Rust allocation candidates from subagent scout.
+  - Timestamp: 2026-06-12.
+  - Candidate 1:
+    - In-place empty-filter stripping in `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs` inside nested `extract_filter()`.
+    - Current shape builds a `Vec<Filter>`, then rebuilds another vector just to remove `Filter::Empty` before matching on `len()`. A mutable first vector plus `retain()` may reduce graph-build allocations on filter-heavy rows.
+    - Likely rows: `filter-contains-param`, `filter-contains-param-insensitive`, `filter-startswith-param`, `filter-in-param-insensitive`, `filter-not-*`, `group-by`, and nested rows with `where` filters.
+    - Risk: vectors are small and filter-adjacent allocation wins have regressed Criterion before, so require close A/B timing.
+  - Candidate 2:
+    - Consuming `FieldSelection` fast paths in `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/field_selection.rs`.
+    - `FieldSelection::into_without_relations()` consumes `self` but still allocates a filtered vector even when no relation selections exist. An early relation scan could return `self` for scalar-only selections.
+    - `FieldSelection::into_virtuals_last()` partitions into two vectors and then collects a third when virtuals exist; a manual one-result-vector move with virtual tail may reduce heap traffic for `_count` selections.
+    - Likely rows: scalar query-strategy reads like `filter-contains-param`, `filter-startswith-param`, and virtual-heavy aggregate rows such as `aggregate-join`, `aggregate-join-lateral`, and `aggregate-nested-m2m`.
+    - Risk: the no-relation guard adds a scan, and `partition()` may already optimize well for small selections. Require allocation and Criterion evidence.
+
 ## Useful Commands
 
 ```sh
