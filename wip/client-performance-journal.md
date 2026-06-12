@@ -14047,6 +14047,29 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. Allocation savings are localized to aggregation result mapping, snapshots pass, and the reapply Criterion run is neutral-to-positive against close control despite one noisy first patched `aggregate` run.
 
+- Rejected experiment: linear aggregation column dedupe in SQL extraction.
+  - Timestamp: 2026-06-12.
+  - Patch tried in `/home/aqrln.guest/prisma-engines`:
+    - Rewrote `query-builders/sql-query-builder/src/read.rs::extract_columns()` to accumulate unique `ScalarFieldRef`s with a linear `db_name()` check and then emit `field.as_column(ctx)` directly.
+    - This removed the temporary cloned field-vector flattening, `itertools::unique_by(|field| field.db_name().to_owned())`, and the final boxed `AsColumns` iterator on the aggregation subquery column path.
+  - Verification while patched:
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=aggregate,aggregate-custom,group-by,aggregate-nested-m2m,aggregate-join,aggregate-join-lateral cargo run -p query-compiler --example allocation_profile --release`
+    - Relative to the current streamed aggregate-mapper baseline, patched rows moved:
+      - `aggregate`: `translate_ir 242 -> 236`, `full_compile 607 -> 601`.
+      - `aggregate-custom`: `translate_ir 358 -> 341`, `full_compile 669 -> 652`.
+      - `group-by`, `aggregate-nested-m2m`, `aggregate-join`, and `aggregate-join-lateral` were unchanged.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(aggregate|aggregate-custom|group-by|aggregate-nested-m2m|aggregate-join|aggregate-join-lateral)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians: `aggregate-custom 77.389 us`, `aggregate-join-lateral 53.541 us`, `aggregate-join 54.154 us`, `aggregate-nested-m2m 153.46 us`, `aggregate 64.173 us`, `group-by 60.443 us`.
+    - Close reverted-control medians: `aggregate-custom 78.234 us`, `aggregate-join-lateral 52.202 us`, `aggregate-join 52.413 us`, `aggregate-nested-m2m 151.63 us`, `aggregate 64.018 us`, `group-by 59.964 us`.
+  - Decision:
+    - Reverted. The allocation savings were limited to non-grouped aggregate subquery column extraction and did not survive timing gates; controls were faster on the join/lateral/nested rows and matched or beat the patched simple/group rows.
+
 ## Useful Commands
 
 ```sh
