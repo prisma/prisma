@@ -14262,6 +14262,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Follow-up:
     - Top-level upsert with empty or nested-only update data remains the next graph-shape lead from this family.
 
+- Accepted change: skip no-op top-level upsert update nodes.
+  - Timestamp: 2026-06-12.
+  - Engines commit: `a3ee45d7d44` (`perf(query-compiler): skip noop upsert updates`).
+  - Patch:
+    - Added `upsert-empty-update.json`, covering a top-level `User.upsert` with `update: {}`.
+    - Added `upsert-nested-only-update.json`, covering a top-level `User.upsert` where the update branch only runs nested `posts.create`.
+    - Changed `query_graph_builder::write::upsert::upsert_record()` to parse update args once. If there are no scalar writes, the `Then` branch now returns the initial parent-id read through `Flow::Return`; nested update operations attach to that return node when present.
+    - Scalar update branches still use `update_record_node_from_args()` and keep the existing on-update emulation path. Empty/nested-only update branches skip the no-op update/read path because `WriteArgs::update_datetimes()` only adds `@updatedAt` values when scalar args are non-empty.
+    - Updated the focused snapshots; the existing-record branch now uses `let 2 = get 0` before the result read / nested create instead of issuing an extra unique `SELECT` constrained by email and id.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed and updated the expected focused snapshots.
+    - Reapplied-state `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target INSTA_UPDATE=always cargo test -p query-compiler --test queries queries -- --nocapture`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo fmt -p query-core -p query-compiler --check`: failed only on pre-existing unrelated rustfmt drift in `query_graph/mod.rs`, filter extraction, connect-or-create, and nested update imports; `upsert.rs` was manually adjusted to match rustfmt's wrapping.
+    - `git diff --check`: passed before the engines commit.
+    - `PATH="/tmp/prisma-build-tools:$HOME/.cargo/bin:$PATH" make build-qc-wasm`: passed for fast/small PostgreSQL, SQLite, MySQL, SQL Server, and CockroachDB Wasm bundles.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; the only lockfile diff was unrelated `@ark/attest` TypeScript peer churn, so it was reverted and no Prisma dependency files were kept changed.
+    - `pnpm --filter @prisma/client build`: passed against the refreshed local Wasm package.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=upsert-empty-update,upsert-nested-only-update,upsert,nested-upsert-nested-only,update-set-nested-empty,update-set-nested cargo run -p query-compiler --example allocation_profile --release`
+    - Current baseline -> patched:
+      - `upsert-empty-update`: `graph_build 329 -> 317`, `translate_ir 855 -> 664`, `compile_ir 1184 -> 981`, `full_compile 1250 -> 1047`, full allocated bytes `135.4 -> 115.4 KiB`.
+      - `upsert-nested-only-update`: `graph_build 635 -> 620`, `translate_ir 1349 -> 1158`, `compile_ir 1984 -> 1778`, `full_compile 2101 -> 1895`, full allocated bytes `237.1 -> 217.9 KiB`.
+      - `upsert` stayed at `full_compile 707`.
+      - `nested-upsert-nested-only` stayed at `full_compile 3011`.
+      - `update-set-nested-empty` stayed at `full_compile 1476`.
+      - `update-set-nested` stayed at `full_compile 1998`.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(upsert-empty-update|upsert-nested-only-update|upsert|nested-upsert-nested-only|update-set-nested-empty|update-set-nested)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Initial current baseline medians: `nested-upsert-nested-only 358.97 us`, `update-set-nested-empty 184.95 us`, `update-set-nested 242.73 us`, `upsert-empty-update 150.50 us`, `upsert-nested-only-update 253.41 us`, `upsert 75.845 us`.
+    - First patched medians: `nested-upsert-nested-only 366.80 us`, `update-set-nested-empty 185.72 us`, `update-set-nested 245.64 us`, `upsert-empty-update 128.19 us`, `upsert-nested-only-update 233.82 us`, `upsert 78.318 us`.
+    - Close reverted-control medians: `nested-upsert-nested-only 366.91 us`, `update-set-nested-empty 182.12 us`, `update-set-nested 240.36 us`, `upsert-empty-update 150.40 us`, `upsert-nested-only-update 252.50 us`, `upsert 75.676 us`.
+    - Reapplied patched medians after a noisy parallel build run was discarded: `nested-upsert-nested-only 358.05 us`, `update-set-nested-empty 182.57 us`, `update-set-nested 250.31 us`, `upsert-empty-update 126.52 us`, `upsert-nested-only-update 226.72 us`, `upsert 75.463 us`.
+  - Decision:
+    - Keep. The target rows improved against the close control by about 16% (`150.40 -> 126.52 us`) and 10% (`252.50 -> 226.72 us`) while saving 203/206 full-compile allocations. Existing scalar upsert, nested-upsert, empty-set, and non-empty set controls stayed allocation-neutral and timing-neutral after the clean rerun.
+  - Follow-up:
+    - The immediate graph-shape family is exhausted. The next Rust work should start from a fresh allocation profile, likely graph-build temporary selections/filters or translation result structures rather than another upsert/set branch.
+
 ## Useful Commands
 
 ```sh
