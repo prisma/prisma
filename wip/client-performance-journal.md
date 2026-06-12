@@ -13301,6 +13301,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep as test-gate repair for the current raw-nested compiler shape. This adds no old/new compatibility support and makes the local query-compiler package test usable again.
 
+- Rejected experiment: replace raw nested `RawColumnIndexes` vector with a borrowed ordinal view.
+  - Timestamp: 2026-06-12.
+  - Context:
+    - Scout lead was to remove the short-lived `Vec<(Cow<str>, usize)>` built per raw nested read query in `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs`.
+    - Prototype replaced `RawColumnIndexes.indexes` with a borrowed view over `FieldSelection`, plus a many-to-many mode borrowing the hidden linking alias from `JoinMetadata`.
+    - A refinement reused the already-found `selection_index` in `raw_result_column_mappings()` and cached the m2m scalar count in the view so the experiment was not simply trading heap allocation for repeated result-field scans.
+  - Verification:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo fmt -p query-compiler`: passed.
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+    - Allocation command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-many-m2m,query-many-one2m,nested-pagination-query,nested-pagination-join,query-non-unique-one2m-pagination' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+    - Patched vs close control allocation profile:
+      - `query-m2o`: `translate_ir 321 allocs/op, 25.8 KiB` vs `323, 26.0 KiB`; `full_compile 562` vs `564`.
+      - `query-many-m2m`: `translate_ir 418, 32.4 KiB` vs `421, 32.6 KiB`; `full_compile 726` vs `729`.
+      - `query-many-one2m`: `translate_ir 320, 26.5 KiB` vs `322, 26.7 KiB`; `full_compile 630` vs `632`.
+      - `nested-pagination-query`: `translate_ir 284, 24.2 KiB` vs `286, 24.3 KiB`; `full_compile 569` vs `571`.
+      - `nested-pagination-join`: unchanged at `translate_ir 402` and `full_compile 687`.
+      - `query-non-unique-one2m-pagination`: `translate_ir 348, 27.9 KiB` vs `350, 28.1 KiB`; `full_compile 749` vs `751`.
+    - Criterion control baseline:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(query-m2o|query-many-m2m|query-many-one2m|nested-pagination-query|nested-pagination-join|query-non-unique-one2m-pagination)" --sample-size 10 --warm-up-time 1 --measurement-time 2 --save-baseline raw-column-indexes-view-base`
+    - Refined patched Criterion comparison:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "compile/(query-m2o|query-many-m2m|query-many-one2m|nested-pagination-query|nested-pagination-join|query-non-unique-one2m-pagination)" --sample-size 10 --warm-up-time 1 --measurement-time 2 --baseline raw-column-indexes-view-base`
+      - `query-many-m2m`: `87.556 us`, `+1.7487%`, Criterion reported "Performance has regressed."
+      - `query-m2o`: `77.728 us`, `+0.7120%`, within noise threshold.
+      - `query-many-one2m`: `81.607 us`, `+0.6476%`, within noise threshold.
+      - `nested-pagination-query`: `74.863 us`, `+0.5666%`, within noise threshold.
+      - `nested-pagination-join`: `86.849 us`, `+0.7376%`, no change detected.
+      - `query-non-unique-one2m-pagination`: `90.437 us`, `+0.9084%`, within noise threshold.
+  - Decision:
+    - Revert. The allocation win is too small and comes with a measured `query-many-m2m` compile regression. Do not retry the borrowed raw-column-index view without a new CPU hypothesis that preserves the allocation savings while avoiding slower m2m ordinal lookups.
+
 ## Useful Commands
 
 ```sh
