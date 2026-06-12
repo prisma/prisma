@@ -13599,6 +13599,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow aggregate/virtual selection allocation cleanup with clear allocation-byte savings and a neutral-to-positive focused Criterion surface.
 
+- Rejected experiment: inline direct cached-result success path from `applyModel`.
+  - Timestamp: 2026-06-12.
+  - Patch:
+    - Temporarily changed `tryRequestHandlerPrecomputedCachedResultFastPath()` in `packages/client/src/runtime/core/model/applyModel.ts` to call `engine.requestPrecomputedCachedResult()` directly for descriptor-hit `findMany` / `findFirst` / `findFirstOrThrow` requests when callsites were disabled (`errorFormat: "minimal"` or edge without `$EnabledCallSite`) and `PRISMA_CLIENT_GET_TIME` was not active.
+    - The intent was to avoid building the full `RequestHandler` params object on successful cached-result hits while preserving error handling through `handleAndLogRequestError()` on rejection.
+  - Patched measurement:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - Patched exact-helper row: `10.22 us/op` over 300k, `precomputedHits=300000`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client request precomputed fast path blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`
+      - Patched request-precomputed row: `12.11 us/op`, `precomputedHits=300000`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ...`
+      - Patched default generated row: `11.79 us/op`.
+  - Close reverted control:
+    - The patch was reverted fully before control measurement; `git diff -- packages/client/src/runtime/core/model/applyModel.ts` was empty.
+    - Exact-helper row returned to `9.02 us/op` over 300k, `precomputedHits=300000`.
+    - Request-precomputed row returned to `10.80 us/op`, `precomputedHits=300000`.
+  - Decision:
+    - Reject. Inlining the success call around `RequestHandler.requestPrecomputedCachedResult()` made the product-shaped descriptor-hit rows clearly slower, despite doing less visible work. Do not retry this as a local `applyModel` shortcut without a new Promise/microtask or V8-shape hypothesis.
+
 ## Useful Commands
 
 ```sh
