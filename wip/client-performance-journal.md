@@ -13897,6 +13897,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Next action:
     - Prefer Candidate 1 first because it has existing M2M fixtures and directly targets high `translate_ir` allocation rows. Keep close allocation and Criterion gates; revert if allocation-only wins soften timing.
 
+- Rejected experiment: inline `ColumnIterator` / small relation-column buffer.
+  - Timestamp: 2026-06-12.
+  - Patch tried in `/home/aqrln.guest/prisma-engines`:
+    - Added `smallvec.workspace = true` to `query-compiler/query-builders/sql-query-builder`.
+    - Replaced `ColumnIterator`'s boxed `dyn Iterator` with a `SmallVec<[Column<'static>; 4]>` iterator plus a `mark_selected` flag, so `mark_all_selected()` no longer boxed a mapped iterator.
+    - Changed scalar and implicit M2M one-column paths in `model_extensions/column.rs`, `model_extensions/relation.rs`, and `select/mod.rs` to build the iterator directly instead of allocating one-element `Vec`s.
+  - Compile gate:
+    - `cargo check -p sql-query-builder` was not a valid standalone gate because `quaint` requires one of the SQL backend features.
+    - `PATH="$HOME/.cargo/bin:$PATH" cargo check -p query-compiler`: passed.
+  - Allocation A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES=query-m2m,query-many-m2m,create-m2m,update-m2m-disconnect,query-m2o,filter-contains-param cargo run -p query-compiler --example allocation_profile --release`
+    - Patched `translate_ir` allocation counts:
+      - `query-m2m 429`, `query-many-m2m 403`, `create-m2m 892`, `update-m2m-disconnect 751`, `query-m2o 312`, `filter-contains-param 157`.
+    - Close reverted control `translate_ir` allocation counts:
+      - `query-m2m 447`, `query-many-m2m 421`, `create-m2m 918`, `update-m2m-disconnect 772`, `query-m2o 323`, `filter-contains-param 161`.
+    - Allocation deltas were real: 18 fewer on both M2M read rows, 26 fewer on `create-m2m`, 21 fewer on `update-m2m-disconnect`, 11 fewer on `query-m2o`, and 4 fewer on the scalar filter control.
+  - Criterion A/B:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(query-m2m|query-many-m2m|create-m2m|update-m2m-disconnect|query-m2o|filter-contains-param)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched run medians: `create-m2m 213.76 us`, `filter-contains-param 66.742 us`, `query-m2m 104.14 us`, `query-m2o 90.975 us`, `query-many-m2m 102.35 us`, `update-m2m-disconnect 164.78 us`.
+    - Close reverted control medians: `create-m2m 194.40 us`, `filter-contains-param 65.969 us`, `query-m2m 95.979 us`, `query-m2o 84.434 us`, `query-many-m2m 94.380 us`, `update-m2m-disconnect 152.49 us`.
+    - Reapplied patched confirmation medians: `create-m2m 204.31 us`, `filter-contains-param 64.063 us`, `query-m2m 101.45 us`, `query-m2o 90.809 us`, `query-many-m2m 100.99 us`, `update-m2m-disconnect 160.10 us`. Criterion reported regressions for `query-m2o`, `query-many-m2m`, and `update-m2m-disconnect`; `query-m2m` stayed slower but within the configured noise threshold.
+  - Decision:
+    - Reverted. The allocation wins are clear but they trade dynamic dispatch/heap allocations for a larger inline iterator object and slower SQL-query-builder translation on the focused rows.
+    - Do not retry `ColumnIterator` boxed-iterator removal, broad small-buffer column iterators, or one-column relation-column constructors as standalone cleanup unless a CPU profile shows the old boxing itself dominating and a new design proves neutral-to-positive Criterion first.
+
 ## Useful Commands
 
 ```sh
