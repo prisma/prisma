@@ -658,6 +658,23 @@ function createFindUniqueQuery(iteration) {
   }
 }
 
+function createFindFirstUserQuery(email) {
+  return {
+    modelName: 'User',
+    action: 'findFirst',
+    query: {
+      arguments: {
+        where: { email },
+      },
+      selection: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    },
+  }
+}
+
 function createFindManyQuery(mask) {
   const selection = {}
 
@@ -750,6 +767,17 @@ function createBlogPostPageByIdQuery(id) {
 function createFindUniqueArgs(iteration) {
   return {
     where: { id: iteration + 1 },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  }
+}
+
+function createFindFirstUserArgs(iteration) {
+  return {
+    where: { email: 'user' + ((iteration % 10) + 1) + '@example.test' },
     select: {
       id: true,
       email: true,
@@ -885,6 +913,8 @@ function createClientArgs(scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
       return createFindUniqueArgs(iteration)
+    case 'find-first-users':
+      return createFindFirstUserArgs(iteration)
     case 'find-many-users':
       return createFindManyUsersArgs()
     case 'blog-page':
@@ -931,6 +961,8 @@ function createClientProtocolQuery(scenario, iteration) {
           },
         },
       }
+    case 'find-first-users':
+      return createFindFirstUserQuery('user' + ((iteration % 10) + 1) + '@example.test')
     case 'blog-feed':
       return {
         modelName: 'Post',
@@ -1146,6 +1178,8 @@ function tryExtractStaticDescriptor(scenario, args, cacheKey) {
   switch (scenario) {
     case 'find-unique':
       return tryExtractFindUniqueDescriptor(args, cacheKey)
+    case 'find-first-users':
+      return tryExtractFindFirstUserDescriptor(args, cacheKey)
     case 'find-many-users':
       return tryExtractFindManyUsersDescriptor(args, cacheKey)
     case 'blog-page':
@@ -1180,6 +1214,28 @@ function tryExtractFindUniqueDescriptor(args, cacheKey) {
   }
 
   return { cacheKey, placeholderValues: { '%1': where.id } }
+}
+
+function tryExtractFindFirstUserDescriptor(args, cacheKey) {
+  if (!hasExactKeys(args, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasExactKeys(where, ['email']) || typeof where.email !== 'string') {
+    return undefined
+  }
+
+  const select = args.select
+  if (!isDescriptorRecord(select) || !hasExactKeys(select, ['id', 'email', 'name'])) {
+    return undefined
+  }
+
+  if (select.id !== true || select.email !== true || select.name !== true) {
+    return undefined
+  }
+
+  return { cacheKey, placeholderValues: { '%1': where.email } }
 }
 
 function tryExtractFindManyUsersDescriptor(args, cacheKey) {
@@ -1310,6 +1366,8 @@ function createDescriptorMatcherRegistry() {
       let scenario
       if (context.model === 'User' && context.action === 'findUnique' && context.clientMethod === 'user.findUnique') {
         scenario = 'find-unique'
+      } else if (context.model === 'User' && context.action === 'findFirst' && context.clientMethod === 'user.findFirst') {
+        scenario = 'find-first-users'
       } else if (context.model === 'User' && context.action === 'findMany' && context.clientMethod === 'user.findMany') {
         scenario = 'find-many-users'
       } else if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
@@ -1341,6 +1399,10 @@ function createExactGeneratedUserDescriptorMatcherRegistry() {
         return bindExactGeneratedUserFindManyMatcher(context)
       }
 
+      if (context.model === 'User' && context.action === 'findFirst' && context.clientMethod === 'user.findFirst') {
+        return bindExactGeneratedUserFindFirstMatcher(context)
+      }
+
       if (context.model === 'Post' && context.action === 'findUnique' && context.clientMethod === 'post.findUnique') {
         return bindExactGeneratedBlogPostPageMatcher(context)
       }
@@ -1370,6 +1432,14 @@ function createRuntimeExactGeneratedUserDescriptorMatcherRegistry() {
       clientMethod: 'user.findMany',
       field: 'take',
       valueType: 'number',
+      select: ['id', 'email', 'name'],
+    },
+    {
+      model: 'User',
+      action: 'findFirst',
+      clientMethod: 'user.findFirst',
+      field: 'email',
+      valueType: 'string',
       select: ['id', 'email', 'name'],
     },
   ])
@@ -1415,6 +1485,29 @@ function bindExactGeneratedUserFindManyMatcher(context) {
   return isGeneratedConstantDescriptor(take, 10)
     ? (args) => matchExactGeneratedUserFindManyWithConstantTake(args)
     : undefined
+}
+
+function bindExactGeneratedUserFindFirstMatcher(context) {
+  const root = getGeneratedExactRoot(context)
+  if (root === undefined || !generatedDescriptorHasKeys(root, ['where', 'select'])) {
+    return undefined
+  }
+
+  const where = asGeneratedObjectDescriptor(root.fields.where)
+  if (where === undefined || !generatedDescriptorHasKeys(where, ['email'])) {
+    return undefined
+  }
+
+  const email = asGeneratedPlaceholderDescriptor(where.fields.email)
+  if (
+    email === undefined ||
+    email.valueType !== 'string' ||
+    !isExactGeneratedUserScalarSelectDescriptor(root.fields.select)
+  ) {
+    return undefined
+  }
+
+  return (args) => matchExactGeneratedUserFindFirst(args, email.name)
 }
 
 function bindExactGeneratedBlogPostPageMatcher(context) {
@@ -1518,6 +1611,23 @@ function matchExactGeneratedUserFindManyWithConstantTake(args) {
   }
 
   return {}
+}
+
+function matchExactGeneratedUserFindFirst(args, emailPlaceholder) {
+  if (!isDescriptorRecord(args) || !hasOwnEnumerableKeysInOrder2(args, 'where', 'select')) {
+    return undefined
+  }
+
+  const where = args.where
+  if (!isDescriptorRecord(where) || !hasOwnEnumerableKeysInOrder1(where, 'email') || typeof where.email !== 'string') {
+    return undefined
+  }
+
+  if (!matchesExactGeneratedUserScalarSelect(args.select)) {
+    return undefined
+  }
+
+  return { [emailPlaceholder]: where.email }
 }
 
 function matchExactGeneratedBlogPostPage(args, idPlaceholder, selectShape) {
@@ -2695,6 +2805,8 @@ function executeClientScenario(client, scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
       return client.user.findUnique(createClientArgs(scenario, iteration))
+    case 'find-first-users':
+      return client.user.findFirst(createFindFirstUserArgs(iteration))
     case 'find-many-users':
       return client.user.findMany(createFindManyUsersArgs())
     case 'blog-feed':
@@ -2720,6 +2832,10 @@ function prepareClientScenario(client, scenario) {
     case 'find-unique': {
       const findUnique = client.user.findUnique
       return (iteration) => findUnique(createFindUniqueArgs(iteration))
+    }
+    case 'find-first-users': {
+      const findFirst = client.user.findFirst
+      return (iteration) => findFirst(createFindFirstUserArgs(iteration))
     }
     case 'find-many-users': {
       const findMany = client.user.findMany
@@ -2756,6 +2872,8 @@ function clientMethodForScenario(scenario) {
   switch (scenario) {
     case 'find-unique':
       return 'user.findUnique'
+    case 'find-first-users':
+      return 'user.findFirst'
     case 'find-many-users':
       return 'user.findMany'
     case 'blog-feed':
@@ -2774,6 +2892,8 @@ function createQuery(scenario, iteration) {
   switch (scenario) {
     case 'find-unique':
       return createFindUniqueQuery(iteration)
+    case 'find-first-users':
+      return createFindFirstUserQuery('user' + ((iteration % 10) + 1) + '@example.test')
     case 'user-scalar-selection':
       return createFindManyQuery((iteration % 1023) + 1)
     case 'blog-page':
@@ -2804,6 +2924,22 @@ function parameterizeQueryForClientCache(query) {
           where: {
             ...query.query.arguments.where,
             id: createParam('%1', 'Int'),
+          },
+        },
+      },
+    }
+  }
+
+  if (query.action === 'findFirst' && query.modelName === 'User' && query.query?.arguments?.where?.email !== undefined) {
+    return {
+      ...query,
+      query: {
+        ...query.query,
+        arguments: {
+          ...query.query.arguments,
+          where: {
+            ...query.query.arguments.where,
+            email: createParam('%1', 'String'),
           },
         },
       },
@@ -3570,6 +3706,42 @@ function shouldRunFocusedMeasurement(label: string): boolean {
 async function runFocusedGeneratedMeasurements(clientMf: MiniflareInstance): Promise<void> {
   const measurements = [
     [
+      'generated client findFirst users warmed cache',
+      'find-first-users',
+      GENERATED_FIND_UNIQUE_ITERATIONS,
+      'client-execute',
+    ],
+    [
+      'generated client engine precomputed fast path findFirst users warmed cache',
+      'find-first-users',
+      GENERATED_FIND_UNIQUE_ITERATIONS,
+      'client-execute-engine-precomputed-fast-path',
+    ],
+    [
+      'generated client request precomputed fast path findFirst users warmed cache',
+      'find-first-users',
+      GENERATED_FIND_UNIQUE_ITERATIONS,
+      'client-execute-request-precomputed-fast-path',
+    ],
+    [
+      'generated client descriptor-bound static matcher findFirst users warmed cache',
+      'find-first-users',
+      GENERATED_FIND_UNIQUE_ITERATIONS,
+      'client-execute-request-precomputed-descriptor-bound-matcher',
+    ],
+    [
+      'generated client exact descriptor helper findFirst users warmed cache',
+      'find-first-users',
+      GENERATED_FIND_UNIQUE_ITERATIONS,
+      'client-execute-request-precomputed-exact-helper',
+    ],
+    [
+      'generated client runtime exact descriptor helper findFirst users warmed cache',
+      'find-first-users',
+      GENERATED_FIND_UNIQUE_ITERATIONS,
+      'client-execute-request-precomputed-runtime-exact-helper',
+    ],
+    [
       'generated client blog-feed-by-author warmed cache',
       'blog-feed-by-author',
       GENERATED_BLOG_PAGE_ITERATIONS,
@@ -4001,6 +4173,72 @@ async function run(): Promise<void> {
         clientMf,
         'generated client runtime exact descriptor helper findUnique warmed cache',
         'find-unique',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-runtime-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client findFirst users warmed cache',
+        'find-first-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client engine precomputed fast path findFirst users warmed cache',
+        'find-first-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-engine-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client request precomputed fast path findFirst users warmed cache',
+        'find-first-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-fast-path',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client descriptor-bound static matcher findFirst users warmed cache',
+        'find-first-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-descriptor-bound-matcher',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client exact descriptor helper findFirst users warmed cache',
+        'find-first-users',
+        GENERATED_FIND_UNIQUE_ITERATIONS,
+        true,
+        'client-execute-request-precomputed-exact-helper',
+      ),
+    )
+    console.log('')
+    printMeasurement(
+      await dispatchRun(
+        clientMf,
+        'generated client runtime exact descriptor helper findFirst users warmed cache',
+        'find-first-users',
         GENERATED_FIND_UNIQUE_ITERATIONS,
         true,
         'client-execute-request-precomputed-runtime-exact-helper',

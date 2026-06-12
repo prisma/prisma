@@ -13131,6 +13131,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Extended `createExactDescriptorMatcherRegistry()` to bind the existing strict `where + select` exact matcher shape for `findFirst` and `findFirstOrThrow`, in addition to `findUnique`.
     - Extended both TS and JS generator `internalExactDescriptorHelpers` parsing to accept `findFirst` / `findFirstOrThrow` specs for exact scalar/enum non-list fields without requiring uniqueness. `findUnique` still requires `@id` / `@unique`, and `findMany` stays `take`-only.
     - Added `client-engine-cache-timing.ts` rows for generated `findFirst users / warmed cache`, including default, request-precomputed, descriptor-bound static, hand exact-helper, and runtime exact-helper modes.
+    - Added `workerd-query-compiler-memory.ts` coverage for the same `User.findFirst({ where: { email }, select: { id, email, name } })` scenario across default, engine-precomputed, request-precomputed, descriptor-bound static, hand exact-helper, and runtime exact-helper modes.
   - Correctness:
     - `pnpm --filter @prisma/client test createExactDescriptorMatcherRegistry.test.ts --runInBand`: passed, 18 tests.
     - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 13 tests.
@@ -13138,6 +13139,7 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client-generator-ts build`: passed.
     - `pnpm --filter @prisma/client-generator-js build`: passed.
     - `pnpm --filter @prisma/client build`: passed.
+    - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='findFirst users' WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=500 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`: passed; all six rows had `500/0` cache hits, and all precomputed rows had `500` fast-path hits.
   - Timing:
     - First 300k `findFirst users` run:
       - default generated: `2.21 us/op`.
@@ -13151,8 +13153,16 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - descriptor-bound static: `2.20`.
       - hand exact-helper: `2.09`.
       - runtime exact-helper: `2.14`.
+    - First 20k Workerd `findFirst users` focused run:
+      - host dispatch default / engine-precomputed / request-precomputed / descriptor-bound static / hand exact-helper / runtime exact-helper: `15.67 / 3.39 / 3.31 / 3.28 / 3.04 / 2.93 us/op`.
+      - worker-loop default / engine-precomputed / request-precomputed / descriptor-bound static / hand exact-helper / runtime exact-helper: `2.60 / 2.10 / 2.15 / 2.10 / 2.00 / 1.90 us/op`.
+      - all generated rows had `20000/0` cache hits; all precomputed rows had `20000` fast-path hits.
+    - Repeat 20k Workerd focused run:
+      - host dispatch default / engine-precomputed / request-precomputed / descriptor-bound static / hand exact-helper / runtime exact-helper: `15.56 / 3.32 / 3.24 / 3.28 / 3.01 / 2.93 us/op`.
+      - worker-loop default / engine-precomputed / request-precomputed / descriptor-bound static / hand exact-helper / runtime exact-helper: `2.55 / 2.10 / 2.05 / 2.15 / 1.95 / 1.90 us/op`.
+      - all generated rows had `20000/0` cache hits; all precomputed rows had `20000` fast-path hits.
   - Decision:
-    - Keep as internal-only productization groundwork. The win is small but repeat-positive for exact-helper rows, tests/builds pass, and it uses the existing descriptor self-test / exact-shape contract. Do not broaden this into arbitrary `findFirst` filter matching; add oracle coverage before enabling any new shape.
+    - Keep as internal-only productization groundwork and benchmark coverage. The Node win is small but repeat-positive for exact-helper rows, the Workerd row shows target-runtime precomputed helper wins over default and request-precomputed, tests/builds pass, and it uses the existing descriptor self-test / exact-shape contract. Do not broaden this into arbitrary `findFirst` filter matching; add oracle coverage before enabling any new shape.
 
 ## Useful Commands
 
