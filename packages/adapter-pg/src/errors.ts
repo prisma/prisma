@@ -57,6 +57,13 @@ export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   throw error
 }
 
+function parseKeyFields(detail: string | undefined): string[] | undefined {
+  return detail
+    ?.match(/Key \(([^)]+)\)/)
+    ?.at(1)
+    ?.split(', ')
+}
+
 function mapDriverError(error: DatabaseError): MappedError {
   switch (error.code) {
     case '22001':
@@ -80,10 +87,7 @@ function mapDriverError(error: DatabaseError): MappedError {
       if (error.constraint) {
         constraint = { index: error.constraint }
       } else {
-        const fields = error.detail
-          ?.match(/Key \(([^)]+)\)/)
-          ?.at(1)
-          ?.split(', ')
+        const fields = parseKeyFields(error.detail)
         if (fields !== undefined) {
           constraint = { fields }
         }
@@ -95,10 +99,7 @@ function mapDriverError(error: DatabaseError): MappedError {
       }
     }
     case '23502': {
-      const fields = error.detail
-        ?.match(/Key \(([^)]+)\)/)
-        ?.at(1)
-        ?.split(', ')
+      const fields = parseKeyFields(error.detail)
       return {
         kind: 'NullConstraintViolation',
         constraint: fields !== undefined ? { fields } : undefined,
