@@ -12,6 +12,21 @@ export interface Command {
  */
 export type Commands = { [command: string]: Command }
 
+export type CompletionValue = { value: string; description?: string }
+
+export interface CompletionOption {
+  name: string
+  description: string
+  values?: CompletionValue[] | (() => CompletionValue[])
+}
+
+export interface CommandCompletion {
+  name: string
+  description: string
+  options?: CompletionOption[]
+  subcommands?: CommandCompletion[]
+}
+
 export type Dictionary<T> = {
   [key: string]: T
 }

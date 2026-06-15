@@ -4,6 +4,7 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   formatms,
@@ -321,4 +322,16 @@ ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Cl
     }
     return DbPull.help
   }
+}
+
+export const dbPullCompletion: CommandCompletion = {
+  name: 'db pull',
+  description: 'Pull the schema from an existing database',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'force', description: 'Ignore current Prisma schema and overwrite' },
+    { name: 'print', description: 'Print the introspected Prisma schema to stdout' },
+    { name: 'composite-type-depth', description: 'Specify the depth for introspecting composite types' },
+  ],
 }

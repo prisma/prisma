@@ -27,12 +27,6 @@ import { studioCompletion } from '../Studio'
 import { validateCompletion } from '../Validate'
 import { versionCompletion } from '../Version'
 
-/**
- * Shell completion entry point. Completion descriptors live next to their
- * commands; this file just gathers them and hands them to `@bomb.sh/tab`.
- * Adding a new top-level command means adding one import to ALL_COMPLETIONS.
- */
-
 // `dev` is implemented in `@prisma/cli-dev` (loaded via `SubCommand` in bin.ts),
 // so its descriptor lives here rather than colocated with the command.
 const devCompletion: CommandCompletion = {

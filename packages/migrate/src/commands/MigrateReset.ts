@@ -4,6 +4,7 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   getSchemaDatasourceProvider,
@@ -174,4 +175,16 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
     }
     return MigrateReset.help
   }
+}
+
+export const migrateResetCompletion: CommandCompletion = {
+  name: 'migrate reset',
+  description: 'Reset your database and apply all migrations',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'force', description: 'Skip the confirmation prompt' },
+    { name: 'skip-seed', description: 'Skip triggering seed' },
+    { name: 'skip-generate', description: 'Skip triggering generators' },
+  ],
 }

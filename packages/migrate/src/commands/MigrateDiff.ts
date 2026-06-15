@@ -3,6 +3,7 @@ import Debug from '@prisma/debug'
 import {
   arg,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   getSchemaWithPath,
@@ -321,6 +322,27 @@ ${bold('Examples')}
     }
     return MigrateDiff.help
   }
+}
+
+export const migrateDiffCompletion: CommandCompletion = {
+  name: 'migrate diff',
+  description: 'Compare the database schema from two arbitrary sources',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'from-url', description: 'URL of the source database' },
+    { name: 'to-url', description: 'URL of the target database' },
+    { name: 'from-schema-datamodel', description: 'Path to a Prisma schema file for the source' },
+    { name: 'to-schema-datamodel', description: 'Path to a Prisma schema file for the target' },
+    { name: 'from-schema-datasource', description: 'URL to the source database' },
+    { name: 'to-schema-datasource', description: 'URL to the target database' },
+    { name: 'from-migrations', description: 'Path to migrations directory for source' },
+    { name: 'to-migrations', description: 'Path to migrations directory for target' },
+    { name: 'from-empty', description: 'Assume the source schema is empty' },
+    { name: 'to-empty', description: 'Assume the target schema is empty' },
+    { name: 'script', description: 'Output a SQL script' },
+    { name: 'exit-code', description: 'Change the exit code behavior' },
+  ],
 }
 
 export function getRemovedTargetParameterHint(parameter: string): string | undefined {

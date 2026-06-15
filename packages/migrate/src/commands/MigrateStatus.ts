@@ -4,6 +4,7 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   getCommandWithExecutor,
@@ -243,4 +244,13 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
     }
     return MigrateStatus.help
   }
+}
+
+export const migrateStatusCompletion: CommandCompletion = {
+  name: 'migrate status',
+  description: 'Check the status of your database migrations',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+  ],
 }

@@ -7,6 +7,7 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   getCommandWithExecutor,
@@ -353,4 +354,17 @@ ${green('Your database is now in sync with your schema.')}\n`,
     }
     return MigrateDev.help
   }
+}
+
+export const migrateDevCompletion: CommandCompletion = {
+  name: 'migrate dev',
+  description: 'Create and apply migrations in development',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'name', description: 'Name of the migration' },
+    { name: 'create-only', description: 'Create a new migration but do not apply it' },
+    { name: 'skip-seed', description: 'Skip triggering seed' },
+    { name: 'skip-generate', description: 'Skip triggering generators' },
+  ],
 }

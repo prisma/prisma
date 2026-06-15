@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { Command, Commands } from '@prisma/internals'
+import type { Command, CommandCompletion, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 
@@ -78,4 +78,9 @@ ${bold('Examples')}
     }
     return DbCommand.help
   }
+}
+
+export const dbCompletion: CommandCompletion = {
+  name: 'db',
+  description: 'Manage your database schema and lifecycle',
 }

@@ -3,6 +3,7 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   getCommandWithExecutor,
@@ -180,4 +181,15 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
     }
     return MigrateResolve.help
   }
+}
+
+export const migrateResolveCompletion: CommandCompletion = {
+  name: 'migrate resolve',
+  description: 'Mark a migration as applied or rolled back',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'applied', description: 'Mark a migration as applied' },
+    { name: 'rolled-back', description: 'Mark a migration as rolled back' },
+  ],
 }

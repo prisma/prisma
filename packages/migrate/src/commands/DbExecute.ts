@@ -5,6 +5,7 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -161,4 +162,15 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     }
     return DbExecute.help
   }
+}
+
+export const dbExecuteCompletion: CommandCompletion = {
+  name: 'db execute',
+  description: 'Execute SQL or scripts on your database',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'file', description: 'Path to a file with SQL or script' },
+    { name: 'stdin', description: 'Read SQL or script from stdin' },
+  ],
 }

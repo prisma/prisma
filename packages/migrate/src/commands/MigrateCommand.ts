@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { Command, Commands } from '@prisma/internals'
+import type { Command, CommandCompletion, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 
@@ -107,4 +107,9 @@ ${bold('Examples')}
     }
     return MigrateCommand.help
   }
+}
+
+export const migrateCompletion: CommandCompletion = {
+  name: 'migrate',
+  description: 'Migrate your database',
 }

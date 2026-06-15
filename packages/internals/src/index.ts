@@ -22,8 +22,11 @@ export {
 } from './cli/schemaContext'
 export type {
   Command,
+  CommandCompletion,
   Commands,
   CompiledGeneratorDefinition,
+  CompletionOption,
+  CompletionValue,
   Dictionary,
   GeneratorConfig,
   GeneratorDefinition,

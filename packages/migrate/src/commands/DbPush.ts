@@ -4,6 +4,7 @@ import {
   canPrompt,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   formatms,
@@ -275,4 +276,16 @@ ${bold(red('All data will be lost.'))}
     }
     return DbPush.help
   }
+}
+
+export const dbPushCompletion: CommandCompletion = {
+  name: 'db push',
+  description: 'Push the Prisma schema state to the database',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'accept-data-loss', description: 'Ignore data loss warnings' },
+    { name: 'force-reset', description: 'Force a reset of the database before push' },
+    { name: 'skip-generate', description: 'Skip triggering generators after push' },
+  ],
 }
