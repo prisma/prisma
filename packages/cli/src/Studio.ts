@@ -702,13 +702,14 @@ export const studioCompletion: CommandCompletion = {
   name: 'studio',
   description: 'Browse your data with Prisma Studio',
   options: [
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'url', description: 'Database connection string (overrides the one in your Prisma config file)' },
     {
       name: 'port',
       description: 'Port to start Studio on',
       values: [
-        { value: '5555', description: 'Default Studio port' },
+        { value: '51212', description: 'Default Studio port' },
+        { value: '5555', description: 'Common custom port' },
         { value: '3000', description: 'Alternative port' },
       ],
     },
@@ -722,6 +723,5 @@ export const studioCompletion: CommandCompletion = {
         { value: 'safari', description: 'Safari' },
       ],
     },
-    { name: 'hostname', description: 'Hostname to bind the Express server to' },
   ],
 }

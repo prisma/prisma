@@ -129,8 +129,5 @@ export class Mcp implements Command {
 export const mcpCompletion: CommandCompletion = {
   name: 'mcp',
   description: 'Starts an MCP server to use with AI development tools',
-  options: [
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
-  ],
+  options: [{ name: 'early-access', description: 'Enable early access features' }],
 }
