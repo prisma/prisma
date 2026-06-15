@@ -106,6 +106,7 @@
     }
   },
   "devDependencies": {
+    "@bomb.sh/tab": "0.0.16",
     "@inquirer/prompts": "7.3.3",
     "@libsql/client": "0.8.1",
     "@modelcontextprotocol/sdk": "1.13.2",
@@ -182,7 +183,6 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@bomb.sh/tab": "0.0.16",
     "@prisma/config": "workspace:*",
     "@prisma/dev": "0.24.9",
     "@prisma/engines": "workspace:*",

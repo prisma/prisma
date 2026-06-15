@@ -426,9 +426,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@bomb.sh/tab':
-        specifier: 0.0.16
-        version: 0.0.16(commander@13.1.0)
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
@@ -448,6 +445,9 @@ importers:
         specifier: 3.4.7
         version: 3.4.7
     devDependencies:
+      '@bomb.sh/tab':
+        specifier: 0.0.16
+        version: 0.0.16(commander@13.1.0)
       '@inquirer/prompts':
         specifier: 7.3.3
         version: 7.3.3(@types/node@20.19.25)
