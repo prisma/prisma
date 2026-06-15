@@ -182,7 +182,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@bomb.sh/tab": "0.0.9",
+    "@bomb.sh/tab": "0.0.16",
     "@prisma/config": "workspace:*",
     "@prisma/dev": "0.24.9",
     "@prisma/engines": "workspace:*",
