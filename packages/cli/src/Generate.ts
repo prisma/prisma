@@ -6,6 +6,7 @@ import {
   arg,
   BuiltInProvider,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   Generator,
@@ -365,4 +366,20 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
+}
+
+export const generateCompletion: CommandCompletion = {
+  name: 'generate',
+  description: 'Generate artifacts (e.g. Prisma Client)',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'watch', description: 'Watch the Prisma schema and rerun after a change' },
+    { name: 'generator', description: 'Generator to use (may be provided multiple times)' },
+    { name: 'no-engine', description: 'Generate a client for use with Accelerate only' },
+    { name: 'no-hints', description: 'Hides the hint messages but still outputs errors and warnings' },
+    { name: 'allow-no-models', description: 'Allow generating a client without models' },
+    { name: 'require-models', description: 'Do not allow generating a client without models' },
+    { name: 'sql', description: 'Generate typed sql module' },
+  ],
 }

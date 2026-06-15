@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Command, link } from '@prisma/internals'
+import { Command, type CommandCompletion, link } from '@prisma/internals'
 import execa from 'execa'
 import { z } from 'zod'
 
@@ -124,4 +124,13 @@ export class Mcp implements Command {
 
     return ''
   }
+}
+
+export const mcpCompletion: CommandCompletion = {
+  name: 'mcp',
+  description: 'Starts an MCP server to use with AI development tools',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+  ],
 }

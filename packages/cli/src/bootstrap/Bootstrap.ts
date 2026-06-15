@@ -5,7 +5,7 @@ import path from 'node:path'
 import { confirm } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { loadConfigFromFile } from '@prisma/config'
-import type { Command } from '@prisma/internals'
+import type { Command, CommandCompletion } from '@prisma/internals'
 import { arg, format, HelpError, isError } from '@prisma/internals'
 import { DbSeed, MigrateDev } from '@prisma/migrate'
 import * as checkpoint from 'checkpoint-client'
@@ -23,6 +23,7 @@ import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, 
 import {
   addDependencies,
   addDevDependencies,
+  CURATED_TEMPLATES,
   detectPackageManager,
   downloadAndExtractTemplate,
   installDependencies,
@@ -647,4 +648,22 @@ ${bold('Examples')}
     }
     return Bootstrap.help
   }
+}
+
+export const bootstrapCompletion: CommandCompletion = {
+  name: 'bootstrap',
+  description: 'Bootstrap a Prisma Postgres project',
+  options: [
+    { name: 'api-key', description: 'Workspace API key (CI / non-interactive)' },
+    { name: 'database', description: 'Database ID to link to (e.g. db_abc123)' },
+    {
+      name: 'template',
+      description: 'Starter template name',
+      values: () => CURATED_TEMPLATES.map((t) => ({ value: t.name, description: `${t.label} starter` })),
+    },
+    {
+      name: 'force',
+      description: 'Re-link even if already linked to Prisma Postgres',
+    },
+  ],
 }

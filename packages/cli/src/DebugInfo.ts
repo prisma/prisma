@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { Command } from '@prisma/internals'
+import type { Command, CommandCompletion } from '@prisma/internals'
 import {
   arg,
   createSchemaPathInput,
@@ -146,4 +146,9 @@ ${underline('-- CI detected? --')}
 ${isCi()}
 `
   }
+}
+
+export const debugInfoCompletion: CommandCompletion = {
+  name: 'debug',
+  description: 'Displays Prisma debug info',
 }

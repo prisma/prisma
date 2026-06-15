@@ -9,6 +9,7 @@ import {
   canConnectToDatabase,
   checkUnsupportedDataProxy,
   Command,
+  type CommandCompletion,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -771,4 +772,39 @@ function assertDatasourceProvider(thing: unknown): asserts thing is ConnectorTyp
         .join(', ')} or "${DATASOURCE_PROVIDERS.at(-1)}".`,
     )
   }
+}
+
+export const initCompletion: CommandCompletion = {
+  name: 'init',
+  description: 'Set up Prisma for your app',
+  options: [
+    {
+      name: 'url',
+      description: 'Define a custom datasource url',
+      values: [
+        { value: 'postgresql://', description: 'PostgreSQL connection string' },
+        { value: 'mysql://', description: 'MySQL connection string' },
+        { value: 'sqlite:', description: 'SQLite connection string' },
+        { value: 'mongodb://', description: 'MongoDB connection string' },
+        { value: 'sqlserver://', description: 'SQL Server connection string' },
+      ],
+    },
+    {
+      name: 'datasource-provider',
+      description: 'Define the datasource provider',
+      values: [
+        { value: 'postgresql', description: 'PostgreSQL' },
+        { value: 'mysql', description: 'MySQL' },
+        { value: 'sqlite', description: 'SQLite' },
+        { value: 'mongodb', description: 'MongoDB' },
+        { value: 'sqlserver', description: 'SQL Server' },
+        { value: 'cockroachdb', description: 'CockroachDB' },
+      ],
+    },
+    {
+      name: 'generator-provider',
+      description: 'Define the generator provider',
+      values: [{ value: 'prisma-client' }, { value: 'prisma-client-js' }],
+    },
+  ],
 }

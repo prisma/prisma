@@ -4,6 +4,7 @@ import {
   arg,
   BinaryType,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   formatTable,
@@ -127,4 +128,10 @@ export class Version implements Command {
     }
     return []
   }
+}
+
+export const versionCompletion: CommandCompletion = {
+  name: 'version',
+  description: 'Displays Prisma version info',
+  options: [{ name: 'json', description: 'Output version information as JSON' }],
 }

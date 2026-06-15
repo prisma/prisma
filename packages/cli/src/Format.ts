@@ -5,6 +5,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   formatms,
@@ -118,4 +119,14 @@ Or specify a Prisma schema path
     }
     return Format.help
   }
+}
+
+export const formatCompletion: CommandCompletion = {
+  name: 'format',
+  description: 'Format your Prisma schema',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'check', description: 'Check if the schema is formatted' },
+  ],
 }

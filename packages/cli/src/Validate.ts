@@ -4,6 +4,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
+  type CommandCompletion,
   createSchemaPathInput,
   format,
   getConfig,
@@ -118,4 +119,13 @@ ${bold('Examples')}
     }
     return Validate.help
   }
+}
+
+export const validateCompletion: CommandCompletion = {
+  name: 'validate',
+  description: 'Validate your Prisma schema',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+  ],
 }

@@ -1,7 +1,7 @@
 import { access, constants, readFile } from 'node:fs/promises'
 
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
+import { arg, type Command, type CommandCompletion, format, HelpError, isError } from '@prisma/internals'
 import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
 import { type SerializedError, serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
@@ -696,4 +696,32 @@ function withCors(response: Response): Response {
     status: response.status,
     statusText: response.statusText,
   })
+}
+
+export const studioCompletion: CommandCompletion = {
+  name: 'studio',
+  description: 'Browse your data with Prisma Studio',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+    {
+      name: 'port',
+      description: 'Port to start Studio on',
+      values: [
+        { value: '5555', description: 'Default Studio port' },
+        { value: '3000', description: 'Alternative port' },
+      ],
+    },
+    {
+      name: 'browser',
+      description: 'Browser to auto-open Studio in',
+      values: [
+        { value: 'none', description: 'Do not open browser' },
+        { value: 'chrome', description: 'Google Chrome' },
+        { value: 'firefox', description: 'Mozilla Firefox' },
+        { value: 'safari', description: 'Safari' },
+      ],
+    },
+    { name: 'hostname', description: 'Hostname to bind the Express server to' },
+  ],
 }
