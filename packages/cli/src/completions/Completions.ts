@@ -49,6 +49,7 @@ export class Completions implements Command {
   private setupCompletions() {
     // Root level commands
     const init = t.command('init', 'Set up Prisma for your app')
+    const bootstrap = t.command('bootstrap', 'Bootstrap a Prisma Postgres project')
     const dev = t.command('dev', 'Start a local Prisma Postgres server for development')
     const generate = t.command('generate', 'Generate artifacts (e.g. Prisma Client)')
     t.command('db', 'Manage your database schema and lifecycle')
@@ -129,6 +130,23 @@ export class Completions implements Command {
       complete('prisma-client', '')
       complete('prisma-client-js', '')
     })
+
+    // bootstrap options
+    bootstrap.option('api-key', 'Workspace API key (CI / non-interactive)')
+    bootstrap.option('database', 'Database ID to link to (e.g. db_abc123)')
+    bootstrap.option('template', 'Starter template name', (complete) => {
+      complete('nextjs', 'Next.js starter')
+      complete('express', 'Express starter')
+      complete('hono', 'Hono starter')
+      complete('fastify', 'Fastify starter')
+      complete('nuxt', 'Nuxt starter')
+      complete('sveltekit', 'SvelteKit starter')
+      complete('remix', 'Remix starter')
+      complete('react-router-7', 'React Router 7 starter')
+      complete('astro', 'Astro starter')
+      complete('nest', 'NestJS starter')
+    })
+    bootstrap.option('force', 'Re-link even if already linked to Prisma Postgres')
 
     // dev options (for Prisma Postgres local database)
     dev.option('name', 'Target a specific database instance', (complete) => {
