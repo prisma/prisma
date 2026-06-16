@@ -106,7 +106,7 @@
     }
   },
   "devDependencies": {
-    "@bomb.sh/tab": "0.0.16",
+    "@bomb.sh/tab": "0.0.17",
     "@inquirer/prompts": "7.3.3",
     "@libsql/client": "0.8.1",
     "@modelcontextprotocol/sdk": "1.13.2",
