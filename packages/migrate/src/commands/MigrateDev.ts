@@ -362,9 +362,9 @@ export const migrateDevCompletion: CommandCompletion = {
   options: [
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
-    { name: 'name', description: 'Name of the migration' },
+    { name: 'url', description: 'Override the datasource URL from the Prisma config file' },
+    { name: 'name', description: 'Name the migration' },
+    { name: 'n', description: 'Short for --name' },
     { name: 'create-only', description: 'Create a new migration but do not apply it' },
-    { name: 'skip-seed', description: 'Skip triggering seed' },
-    { name: 'skip-generate', description: 'Skip triggering generators' },
   ],
 }

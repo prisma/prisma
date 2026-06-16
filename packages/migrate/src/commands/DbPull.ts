@@ -330,8 +330,10 @@ export const dbPullCompletion: CommandCompletion = {
   options: [
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
-    { name: 'force', description: 'Ignore current Prisma schema and overwrite' },
+    { name: 'url', description: 'Override the datasource URL from the Prisma config file' },
+    { name: 'force', description: 'Ignore current Prisma schema file' },
     { name: 'print', description: 'Print the introspected Prisma schema to stdout' },
     { name: 'composite-type-depth', description: 'Specify the depth for introspecting composite types' },
+    { name: 'schemas', description: 'Specify database schemas to introspect (overrides datasource block)' },
   ],
 }

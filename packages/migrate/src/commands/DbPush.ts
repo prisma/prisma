@@ -284,8 +284,8 @@ export const dbPushCompletion: CommandCompletion = {
   options: [
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'url', description: 'Override the datasource URL from the Prisma config file' },
     { name: 'accept-data-loss', description: 'Ignore data loss warnings' },
     { name: 'force-reset', description: 'Force a reset of the database before push' },
-    { name: 'skip-generate', description: 'Skip triggering generators after push' },
   ],
 }

@@ -151,4 +151,8 @@ ${isCi()}
 export const debugInfoCompletion: CommandCompletion = {
   name: 'debug',
   description: 'Displays Prisma debug info',
+  options: [
+    { name: 'schema', description: 'Custom path to your Prisma schema' },
+    { name: 'config', description: 'Custom path to your Prisma config file' },
+  ],
 }

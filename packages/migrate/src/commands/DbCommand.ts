@@ -83,4 +83,5 @@ ${bold('Examples')}
 export const dbCompletion: CommandCompletion = {
   name: 'db',
   description: 'Manage your database schema and lifecycle',
+  options: [{ name: 'config', description: 'Custom path to your Prisma config file' }],
 }

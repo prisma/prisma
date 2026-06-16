@@ -68,14 +68,25 @@ const devCompletion: CommandCompletion = {
       description: 'Port number for the shadow database server',
       values: [{ value: '51215', description: 'Default shadow database port' }],
     },
+    { name: 'detach', description: 'Run the server in the background' },
+    { name: 'd', description: 'Short for --detach' },
     { name: 'debug', description: 'Enable debug mode' },
   ],
 }
+
+const devLsCompletion: CommandCompletion = { name: 'dev ls', description: 'List available servers' }
+const devRmCompletion: CommandCompletion = { name: 'dev rm', description: 'Remove servers' }
+const devStartCompletion: CommandCompletion = { name: 'dev start', description: 'Start one or more stopped servers' }
+const devStopCompletion: CommandCompletion = { name: 'dev stop', description: 'Stop servers' }
 
 const ALL_COMPLETIONS: CommandCompletion[] = [
   initCompletion,
   bootstrapCompletion,
   devCompletion,
+  devLsCompletion,
+  devRmCompletion,
+  devStartCompletion,
+  devStopCompletion,
   generateCompletion,
   studioCompletion,
   validateCompletion,

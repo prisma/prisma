@@ -806,5 +806,9 @@ export const initCompletion: CommandCompletion = {
       description: 'Define the generator provider',
       values: [{ value: 'prisma-client' }, { value: 'prisma-client-js' }],
     },
+    { name: 'preview-feature', description: 'Define a preview feature to use (can be specified multiple times)' },
+    { name: 'output', description: 'Define Prisma Client generator output path' },
+    { name: 'with-model', description: 'Add an example model to the created schema file' },
+    { name: 'db', description: 'Provision a fully managed Prisma Postgres database on the Prisma Data Platform' },
   ],
 }

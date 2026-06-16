@@ -112,4 +112,5 @@ ${bold('Examples')}
 export const migrateCompletion: CommandCompletion = {
   name: 'migrate',
   description: 'Migrate your database',
+  options: [{ name: 'config', description: 'Custom path to your Prisma config file' }],
 }

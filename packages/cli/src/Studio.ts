@@ -714,8 +714,27 @@ export const studioCompletion: CommandCompletion = {
       ],
     },
     {
+      name: 'p',
+      description: 'Short for --port',
+      values: [
+        { value: '51212', description: 'Default Studio port' },
+        { value: '5555', description: 'Common custom port' },
+        { value: '3000', description: 'Alternative port' },
+      ],
+    },
+    {
       name: 'browser',
       description: 'Browser to auto-open Studio in',
+      values: [
+        { value: 'none', description: 'Do not open browser' },
+        { value: 'chrome', description: 'Google Chrome' },
+        { value: 'firefox', description: 'Mozilla Firefox' },
+        { value: 'safari', description: 'Safari' },
+      ],
+    },
+    {
+      name: 'b',
+      description: 'Short for --browser',
       values: [
         { value: 'none', description: 'Do not open browser' },
         { value: 'chrome', description: 'Google Chrome' },

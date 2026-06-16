@@ -184,7 +184,6 @@ export const migrateResetCompletion: CommandCompletion = {
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
     { name: 'force', description: 'Skip the confirmation prompt' },
-    { name: 'skip-seed', description: 'Skip triggering seed' },
-    { name: 'skip-generate', description: 'Skip triggering generators' },
+    { name: 'f', description: 'Short for --force' },
   ],
 }
