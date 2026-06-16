@@ -133,5 +133,8 @@ export class Version implements Command {
 export const versionCompletion: CommandCompletion = {
   name: 'version',
   description: 'Displays Prisma version info',
-  options: [{ name: 'json', description: 'Output version information as JSON' }],
+  options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
+    { name: 'json', description: 'Output version information as JSON' },
+  ],
 }

@@ -702,10 +702,12 @@ export const studioCompletion: CommandCompletion = {
   name: 'studio',
   description: 'Browse your data with Prisma Studio',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
     { name: 'url', description: 'Database connection string (overrides the one in your Prisma config file)' },
     {
       name: 'port',
+      alias: 'p',
       description: 'Port to start Studio on',
       values: [
         { value: '51212', description: 'Default Studio port' },
@@ -714,27 +716,9 @@ export const studioCompletion: CommandCompletion = {
       ],
     },
     {
-      name: 'p',
-      description: 'Short for --port',
-      values: [
-        { value: '51212', description: 'Default Studio port' },
-        { value: '5555', description: 'Common custom port' },
-        { value: '3000', description: 'Alternative port' },
-      ],
-    },
-    {
       name: 'browser',
+      alias: 'b',
       description: 'Browser to auto-open Studio in',
-      values: [
-        { value: 'none', description: 'Do not open browser' },
-        { value: 'chrome', description: 'Google Chrome' },
-        { value: 'firefox', description: 'Mozilla Firefox' },
-        { value: 'safari', description: 'Safari' },
-      ],
-    },
-    {
-      name: 'b',
-      description: 'Short for --browser',
       values: [
         { value: 'none', description: 'Do not open browser' },
         { value: 'chrome', description: 'Google Chrome' },

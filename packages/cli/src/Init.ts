@@ -778,13 +778,14 @@ export const initCompletion: CommandCompletion = {
   name: 'init',
   description: 'Set up Prisma for your app',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     {
       name: 'url',
       description: 'Define a custom datasource url',
       values: [
         { value: 'postgresql://', description: 'PostgreSQL connection string' },
         { value: 'mysql://', description: 'MySQL connection string' },
-        { value: 'sqlite:', description: 'SQLite connection string' },
+        { value: 'file:', description: 'SQLite connection string' },
         { value: 'mongodb://', description: 'MongoDB connection string' },
         { value: 'sqlserver://', description: 'SQL Server connection string' },
       ],

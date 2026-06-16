@@ -125,6 +125,7 @@ export const validateCompletion: CommandCompletion = {
   name: 'validate',
   description: 'Validate your Prisma schema',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
   ],

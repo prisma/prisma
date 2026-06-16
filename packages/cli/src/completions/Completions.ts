@@ -23,6 +23,8 @@ import { generateCompletion } from '../Generate'
 import { initCompletion } from '../Init'
 import { mcpCompletion } from '../mcp/MCP'
 import { platformCompletion } from '../platform/_Platform'
+import { postgresLinkCompletion } from '../postgres/link/Link'
+import { postgresCompletion } from '../postgres/PostgresCommand'
 import { studioCompletion } from '../Studio'
 import { validateCompletion } from '../Validate'
 import { versionCompletion } from '../Version'
@@ -35,32 +37,20 @@ const devCompletion: CommandCompletion = {
   options: [
     {
       name: 'name',
-      description: 'Target a specific database instance',
-      values: [{ value: 'my-db', description: 'Example database name' }],
-    },
-    {
-      name: 'n',
-      description: 'Short for --name',
-      values: [{ value: 'my-db', description: 'Example database name' }],
+      alias: 'n',
+      description: 'Name of the server (helps keep state isolated between different projects)',
+      values: [{ value: 'default', description: 'Default server name' }],
     },
     {
       name: 'port',
+      alias: 'p',
       description: 'Main port number for the HTTP server',
       values: [{ value: '51213', description: 'Default HTTP server port' }],
     },
     {
-      name: 'p',
-      description: 'Short for --port',
-      values: [{ value: '51213', description: 'Default HTTP server port' }],
-    },
-    {
       name: 'db-port',
+      alias: 'P',
       description: 'Port number for the database server',
-      values: [{ value: '51214', description: 'Default database port' }],
-    },
-    {
-      name: 'P',
-      description: 'Short for --db-port',
       values: [{ value: '51214', description: 'Default database port' }],
     },
     {
@@ -68,16 +58,47 @@ const devCompletion: CommandCompletion = {
       description: 'Port number for the shadow database server',
       values: [{ value: '51215', description: 'Default shadow database port' }],
     },
-    { name: 'detach', description: 'Run the server in the background' },
-    { name: 'd', description: 'Short for --detach' },
-    { name: 'debug', description: 'Enable debug mode' },
+    { name: 'detach', alias: 'd', description: 'Run the server in the background' },
+    { name: 'debug', description: 'Enable debug logging' },
   ],
 }
 
-const devLsCompletion: CommandCompletion = { name: 'dev ls', description: 'List available servers' }
-const devRmCompletion: CommandCompletion = { name: 'dev rm', description: 'Remove servers' }
-const devStartCompletion: CommandCompletion = { name: 'dev start', description: 'Start one or more stopped servers' }
-const devStopCompletion: CommandCompletion = { name: 'dev stop', description: 'Stop servers' }
+const devDebugOption: CompletionOption = { name: 'debug', description: 'Enable debug logging' }
+
+const devLsCompletion: CommandCompletion = {
+  name: 'dev ls',
+  description: 'List available servers',
+  options: [devDebugOption],
+}
+
+const devRmCompletion: CommandCompletion = {
+  name: 'dev rm',
+  description: 'Remove servers',
+  options: [devDebugOption, { name: 'force', description: 'Stop any running servers before removing them' }],
+}
+
+const devStartCompletion: CommandCompletion = {
+  name: 'dev start',
+  description: 'Start one or more stopped servers',
+  options: [devDebugOption],
+}
+
+const devStopCompletion: CommandCompletion = {
+  name: 'dev stop',
+  description: 'Stop servers',
+  options: [devDebugOption],
+}
+
+const SUPPORTED_SHELLS = ['zsh', 'bash', 'fish', 'powershell'] as const
+
+const completeCompletion: CommandCompletion = {
+  name: 'complete',
+  description: 'Generate shell completion script',
+  subcommands: SUPPORTED_SHELLS.map((shell) => ({
+    name: `complete ${shell}`,
+    description: `Generate completion script for ${shell}`,
+  })),
+}
 
 const ALL_COMPLETIONS: CommandCompletion[] = [
   initCompletion,
@@ -95,6 +116,9 @@ const ALL_COMPLETIONS: CommandCompletion[] = [
   debugInfoCompletion,
   mcpCompletion,
   platformCompletion,
+  postgresCompletion,
+  postgresLinkCompletion,
+  completeCompletion,
   dbCompletion,
   dbExecuteCompletion,
   dbPullCompletion,
@@ -123,16 +147,25 @@ function registerCompletion(descriptor: CommandCompletion): void {
 
 function registerOption(command: ReturnType<typeof t.command>, option: CompletionOption): void {
   if (option.values === undefined) {
-    command.option(option.name, option.description)
+    if (option.alias !== undefined) {
+      command.option(option.name, option.description, option.alias)
+    } else {
+      command.option(option.name, option.description)
+    }
     return
   }
 
-  command.option(option.name, option.description, (complete) => {
-    const values = typeof option.values === 'function' ? option.values() : (option.values ?? [])
-    for (const v of values) {
-      complete(v.value, v.description ?? '')
-    }
-  })
+  command.option(
+    option.name,
+    option.description,
+    (complete) => {
+      const values = typeof option.values === 'function' ? option.values() : (option.values ?? [])
+      for (const v of values) {
+        complete(v.value, v.description ?? '')
+      }
+    },
+    option.alias,
+  )
 }
 
 export class Completions implements Command {
@@ -159,7 +192,7 @@ export class Completions implements Command {
 
     const firstArg = args._[0]
 
-    if (firstArg && ['zsh', 'bash', 'fish', 'powershell'].includes(firstArg)) {
+    if (firstArg && (SUPPORTED_SHELLS as readonly string[]).includes(firstArg)) {
       this.setupCompletions()
       try {
         t.setup('prisma', 'prisma', firstArg)
@@ -169,7 +202,7 @@ export class Completions implements Command {
       }
     }
 
-    return Promise.resolve(new HelpError('Invalid shell type. Must be one of: zsh, bash, fish, powershell'))
+    return Promise.resolve(new HelpError(`Invalid shell type. Must be one of: ${SUPPORTED_SHELLS.join(', ')}`))
   }
 
   private setupCompletions(): void {

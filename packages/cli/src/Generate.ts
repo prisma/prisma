@@ -372,6 +372,7 @@ export const generateCompletion: CommandCompletion = {
   name: 'generate',
   description: 'Generate artifacts (e.g. Prisma Client)',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
     { name: 'watch', description: 'Watch the Prisma schema and rerun after a change' },
