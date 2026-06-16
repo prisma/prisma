@@ -10,7 +10,7 @@ import { dim } from 'kleur/colors'
 
 const PRISMA_EXAMPLES_TARBALL_URL = 'https://api.github.com/repos/prisma/prisma-examples/tarball/latest'
 
-export interface TemplateEntry {
+interface TemplateEntry {
   name: string
   label: string
 }

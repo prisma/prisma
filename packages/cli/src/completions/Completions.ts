@@ -38,19 +38,31 @@ const devCompletion: CommandCompletion = {
       description: 'Target a specific database instance',
       values: [{ value: 'my-db', description: 'Example database name' }],
     },
-    { name: 'n', description: 'Short for --name' },
+    {
+      name: 'n',
+      description: 'Short for --name',
+      values: [{ value: 'my-db', description: 'Example database name' }],
+    },
     {
       name: 'port',
       description: 'Main port number for the HTTP server',
       values: [{ value: '51213', description: 'Default HTTP server port' }],
     },
-    { name: 'p', description: 'Short for --port' },
+    {
+      name: 'p',
+      description: 'Short for --port',
+      values: [{ value: '51213', description: 'Default HTTP server port' }],
+    },
     {
       name: 'db-port',
       description: 'Port number for the database server',
       values: [{ value: '51214', description: 'Default database port' }],
     },
-    { name: 'P', description: 'Short for --db-port' },
+    {
+      name: 'P',
+      description: 'Short for --db-port',
+      values: [{ value: '51214', description: 'Default database port' }],
+    },
     {
       name: 'shadow-db-port',
       description: 'Port number for the shadow database server',
@@ -105,7 +117,7 @@ function registerOption(command: ReturnType<typeof t.command>, option: Completio
   }
 
   command.option(option.name, option.description, (complete) => {
-    const values = typeof option.values === 'function' ? option.values() : option.values!
+    const values = typeof option.values === 'function' ? option.values() : (option.values ?? [])
     for (const v of values) {
       complete(v.value, v.description ?? '')
     }
