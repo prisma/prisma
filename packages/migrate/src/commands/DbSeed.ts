@@ -102,6 +102,7 @@ export const dbSeedCompletion: CommandCompletion = {
   name: 'db seed',
   description: 'Seed your database',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
   ],

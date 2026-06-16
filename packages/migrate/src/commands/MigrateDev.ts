@@ -360,11 +360,11 @@ export const migrateDevCompletion: CommandCompletion = {
   name: 'migrate dev',
   description: 'Create and apply migrations in development',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
     { name: 'url', description: 'Override the datasource URL from the Prisma config file' },
-    { name: 'name', description: 'Name the migration' },
-    { name: 'n', description: 'Short for --name' },
+    { name: 'name', alias: 'n', description: 'Name the migration' },
     { name: 'create-only', description: 'Create a new migration but do not apply it' },
   ],
 }

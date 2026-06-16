@@ -187,6 +187,7 @@ export const migrateResolveCompletion: CommandCompletion = {
   name: 'migrate resolve',
   description: 'Mark a migration as applied or rolled back',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
     { name: 'applied', description: 'Mark a migration as applied' },

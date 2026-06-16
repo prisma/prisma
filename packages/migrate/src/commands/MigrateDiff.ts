@@ -328,9 +328,9 @@ export const migrateDiffCompletion: CommandCompletion = {
   name: 'migrate diff',
   description: 'Compare the database schema from two arbitrary sources',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
-    { name: 'output', description: 'Write the diff to a file instead of stdout' },
-    { name: 'o', description: 'Short for --output' },
+    { name: 'output', alias: 'o', description: 'Write the diff to a file instead of stdout' },
     { name: 'from-empty', description: 'Assume the source data model is empty' },
     { name: 'from-schema', description: 'Path to a Prisma schema file as the source' },
     { name: 'from-migrations', description: 'Path to a Prisma migrations directory as the source' },

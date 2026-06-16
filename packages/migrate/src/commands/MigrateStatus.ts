@@ -250,6 +250,7 @@ export const migrateStatusCompletion: CommandCompletion = {
   name: 'migrate status',
   description: 'Check the status of your database migrations',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
   ],

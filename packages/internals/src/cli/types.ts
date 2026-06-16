@@ -17,6 +17,7 @@ export type CompletionValue = { value: string; description?: string }
 export interface CompletionOption {
   name: string
   description: string
+  alias?: string
   values?: CompletionValue[] | (() => CompletionValue[])
 }
 

@@ -328,6 +328,7 @@ export const dbPullCompletion: CommandCompletion = {
   name: 'db pull',
   description: 'Pull the schema from an existing database',
   options: [
+    { name: 'help', alias: 'h', description: 'Display this help message' },
     { name: 'schema', description: 'Custom path to your Prisma schema' },
     { name: 'config', description: 'Custom path to your Prisma config file' },
     { name: 'url', description: 'Override the datasource URL from the Prisma config file' },
