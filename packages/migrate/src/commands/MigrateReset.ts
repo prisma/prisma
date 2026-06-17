@@ -5,6 +5,8 @@ import {
   checkUnsupportedDataProxy,
   Command,
   type CommandCompletion,
+  completionConfigPaths,
+  completionSchemaPaths,
   createSchemaPathInput,
   format,
   getSchemaDatasourceProvider,
@@ -182,8 +184,8 @@ export const migrateResetCompletion: CommandCompletion = {
   description: 'Reset your database and apply all migrations',
   options: [
     { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'schema', description: 'Custom path to your Prisma schema', values: completionSchemaPaths },
+    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
     { name: 'force', alias: 'f', description: 'Skip the confirmation prompt' },
   ],
 }

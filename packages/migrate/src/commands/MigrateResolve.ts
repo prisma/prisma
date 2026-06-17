@@ -4,6 +4,9 @@ import {
   checkUnsupportedDataProxy,
   Command,
   type CommandCompletion,
+  completionConfigPaths,
+  completionMigrationIds,
+  completionSchemaPaths,
   createSchemaPathInput,
   format,
   getCommandWithExecutor,
@@ -188,9 +191,9 @@ export const migrateResolveCompletion: CommandCompletion = {
   description: 'Mark a migration as applied or rolled back',
   options: [
     { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
-    { name: 'applied', description: 'Mark a migration as applied' },
-    { name: 'rolled-back', description: 'Mark a migration as rolled back' },
+    { name: 'schema', description: 'Custom path to your Prisma schema', values: completionSchemaPaths },
+    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
+    { name: 'applied', description: 'Mark a migration as applied', values: completionMigrationIds },
+    { name: 'rolled-back', description: 'Mark a migration as rolled back', values: completionMigrationIds },
   ],
 }

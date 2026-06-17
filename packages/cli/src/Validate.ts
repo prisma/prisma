@@ -5,6 +5,8 @@ import {
   arg,
   Command,
   type CommandCompletion,
+  completionConfigPaths,
+  completionSchemaPaths,
   createSchemaPathInput,
   format,
   getConfig,
@@ -126,7 +128,7 @@ export const validateCompletion: CommandCompletion = {
   description: 'Validate your Prisma schema',
   options: [
     { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'schema', description: 'Custom path to your Prisma schema', values: completionSchemaPaths },
+    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
   ],
 }

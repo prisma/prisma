@@ -1,7 +1,18 @@
 import { access, constants, readFile } from 'node:fs/promises'
 
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, type Command, type CommandCompletion, format, HelpError, isError } from '@prisma/internals'
+import {
+  arg,
+  type Command,
+  type CommandCompletion,
+  completionConfigPaths,
+  completionDatasourceUrls,
+  completionStudioBrowsers,
+  completionStudioPorts,
+  format,
+  HelpError,
+  isError,
+} from '@prisma/internals'
 import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
 import { type SerializedError, serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
@@ -703,28 +714,13 @@ export const studioCompletion: CommandCompletion = {
   description: 'Browse your data with Prisma Studio',
   options: [
     { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
-    { name: 'url', description: 'Database connection string (overrides the one in your Prisma config file)' },
+    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
     {
-      name: 'port',
-      alias: 'p',
-      description: 'Port to start Studio on',
-      values: [
-        { value: '51212', description: 'Default Studio port' },
-        { value: '5555', description: 'Common custom port' },
-        { value: '3000', description: 'Alternative port' },
-      ],
+      name: 'url',
+      description: 'Database connection string (overrides the one in your Prisma config file)',
+      values: completionDatasourceUrls,
     },
-    {
-      name: 'browser',
-      alias: 'b',
-      description: 'Browser to auto-open Studio in',
-      values: [
-        { value: 'none', description: 'Do not open browser' },
-        { value: 'chrome', description: 'Google Chrome' },
-        { value: 'firefox', description: 'Mozilla Firefox' },
-        { value: 'safari', description: 'Safari' },
-      ],
-    },
+    { name: 'port', alias: 'p', description: 'Port to start Studio on', values: completionStudioPorts },
+    { name: 'browser', alias: 'b', description: 'Browser to auto-open Studio in', values: completionStudioBrowsers },
   ],
 }

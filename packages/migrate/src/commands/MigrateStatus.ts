@@ -5,6 +5,8 @@ import {
   checkUnsupportedDataProxy,
   Command,
   type CommandCompletion,
+  completionConfigPaths,
+  completionSchemaPaths,
   createSchemaPathInput,
   format,
   getCommandWithExecutor,
@@ -251,7 +253,7 @@ export const migrateStatusCompletion: CommandCompletion = {
   description: 'Check the status of your database migrations',
   options: [
     { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'schema', description: 'Custom path to your Prisma schema', values: completionSchemaPaths },
+    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
   ],
 }

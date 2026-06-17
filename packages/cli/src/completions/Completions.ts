@@ -1,6 +1,17 @@
 import t from '@bomb.sh/tab'
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, type CommandCompletion, type CompletionOption, HelpError, isError } from '@prisma/internals'
+import {
+  arg,
+  Command,
+  type CommandCompletion,
+  completionDevDbPorts,
+  completionDevHttpPorts,
+  completionDevServerNames,
+  completionDevShadowDbPorts,
+  type CompletionOption,
+  HelpError,
+  isError,
+} from '@prisma/internals'
 import {
   dbCompletion,
   dbExecuteCompletion,
@@ -39,24 +50,24 @@ const devCompletion: CommandCompletion = {
       name: 'name',
       alias: 'n',
       description: 'Name of the server (helps keep state isolated between different projects)',
-      values: [{ value: 'default', description: 'Default server name' }],
+      values: completionDevServerNames,
     },
     {
       name: 'port',
       alias: 'p',
       description: 'Main port number for the HTTP server',
-      values: [{ value: '51213', description: 'Default HTTP server port' }],
+      values: completionDevHttpPorts,
     },
     {
       name: 'db-port',
       alias: 'P',
       description: 'Port number for the database server',
-      values: [{ value: '51214', description: 'Default database port' }],
+      values: completionDevDbPorts,
     },
     {
       name: 'shadow-db-port',
       description: 'Port number for the shadow database server',
-      values: [{ value: '51215', description: 'Default shadow database port' }],
+      values: completionDevShadowDbPorts,
     },
     { name: 'detach', alias: 'd', description: 'Run the server in the background' },
     { name: 'debug', description: 'Enable debug logging' },

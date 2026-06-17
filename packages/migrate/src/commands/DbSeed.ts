@@ -1,5 +1,14 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, type CommandCompletion, format, HelpError, isError } from '@prisma/internals'
+import {
+  arg,
+  Command,
+  type CommandCompletion,
+  completionConfigPaths,
+  completionSchemaPaths,
+  format,
+  HelpError,
+  isError,
+} from '@prisma/internals'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 
@@ -103,7 +112,7 @@ export const dbSeedCompletion: CommandCompletion = {
   description: 'Seed your database',
   options: [
     { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'schema', description: 'Custom path to your Prisma schema' },
-    { name: 'config', description: 'Custom path to your Prisma config file' },
+    { name: 'schema', description: 'Custom path to your Prisma schema', values: completionSchemaPaths },
+    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
   ],
 }

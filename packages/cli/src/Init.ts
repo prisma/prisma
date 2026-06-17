@@ -10,6 +10,9 @@ import {
   checkUnsupportedDataProxy,
   Command,
   type CommandCompletion,
+  completionClientOutputPaths,
+  completionDatasourceUrls,
+  completionPreviewFeatures,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -19,6 +22,10 @@ import {
   PRISMA_POSTGRES_PROVIDER,
   protocolToConnectorType,
 } from '@prisma/internals'
+import {
+  completionDatasourceProviders,
+  completionGeneratorProviders,
+} from '@prisma/internals/src/cli/completion-values'
 import type { operations } from '@prisma/management-api-sdk'
 import dotenv from 'dotenv'
 import { Schema as Shape } from 'effect'
@@ -782,33 +789,24 @@ export const initCompletion: CommandCompletion = {
     {
       name: 'url',
       description: 'Define a custom datasource url',
-      values: [
-        { value: 'postgresql://', description: 'PostgreSQL connection string' },
-        { value: 'mysql://', description: 'MySQL connection string' },
-        { value: 'file:', description: 'SQLite connection string' },
-        { value: 'mongodb://', description: 'MongoDB connection string' },
-        { value: 'sqlserver://', description: 'SQL Server connection string' },
-      ],
+      values: completionDatasourceUrls,
     },
     {
       name: 'datasource-provider',
       description: 'Define the datasource provider',
-      values: [
-        { value: 'postgresql', description: 'PostgreSQL' },
-        { value: 'mysql', description: 'MySQL' },
-        { value: 'sqlite', description: 'SQLite' },
-        { value: 'mongodb', description: 'MongoDB' },
-        { value: 'sqlserver', description: 'SQL Server' },
-        { value: 'cockroachdb', description: 'CockroachDB' },
-      ],
+      values: completionDatasourceProviders,
     },
     {
       name: 'generator-provider',
       description: 'Define the generator provider',
-      values: [{ value: 'prisma-client' }, { value: 'prisma-client-js' }],
+      values: completionGeneratorProviders,
     },
-    { name: 'preview-feature', description: 'Define a preview feature to use (can be specified multiple times)' },
-    { name: 'output', description: 'Define Prisma Client generator output path' },
+    {
+      name: 'preview-feature',
+      description: 'Define a preview feature to use (can be specified multiple times)',
+      values: completionPreviewFeatures,
+    },
+    { name: 'output', description: 'Define Prisma Client generator output path', values: completionClientOutputPaths },
     { name: 'with-model', description: 'Add an example model to the created schema file' },
     { name: 'db', description: 'Provision a fully managed Prisma Postgres database on the Prisma Data Platform' },
   ],
