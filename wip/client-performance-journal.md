@@ -14605,6 +14605,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. The generic prototype is slower than the current compact-node/product direct path for this feed shape, so it is not a useful lower bound. A future non-unique writer/static-wave experiment must own the whole phase more specifically than the generic prototype and should not be justified by this row.
 
+- Accepted change: merge read selected-field, selection-order, and nested-query extraction.
+  - Timestamp: 2026-06-18.
+  - Engines commit: `825e696ac5c perf(query-compiler): merge read selection extraction`.
+  - Hypothesis:
+    - `extract_selected_fields()` had enough ownership of `nested_fields` to build selected fields, selection order, and nested read queries in one consuming loop instead of first borrowing the field list for `collect_selected_fields()` and then consuming it in `collect_selection_order_and_nested_queries()`.
+    - The existing helper APIs should stay for other callers; this is intentionally a narrow hot helper merge, not a broad read-selection rewrite.
+  - Patch kept:
+    - In `query-compiler/core/src/query_graph_builder/read/utils.rs`, replaced the two-pass helper composition inside `extract_selected_fields()` with one loop over `FieldPair`.
+    - Scalars move their parsed field name directly into `selection_order`; composites clone only the selection-order name before consuming the parsed field; relations collect linking scalar fields, optionally collect join selections, and then consume the parsed field into `related::find_related()`.
+    - The final `merge_relation_selections()` call stays unchanged.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,nested-upsert-nested-only,update-set-nested,create-nested-create,query-many-m2m,query-m2o,nested-pagination-query,create-many-and-return,update-one-returning,delete-one,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: the targeted nested/write rows saved three `graph_build`, `compile_ir`, and `full_compile` allocations, while sampled read/aggregate controls stayed unchanged.
+      - `create-nested-connectOrCreate-mixed`: `graph_build 769 -> 766`, `compile_ir 2265 -> 2262`, `full_compile 2437 -> 2434`; `translate_ir` stayed `1496`.
+      - `nested-upsert-nested-only`: `graph_build 1110 -> 1107`, `compile_ir 2833 -> 2830`, `full_compile 3011 -> 3008`; `translate_ir` stayed `1723`.
+      - `update-set-nested`: `graph_build 633 -> 630`, `compile_ir 1720 -> 1717`, `full_compile 1836 -> 1833`; `translate_ir` stayed `1087`.
+      - `create-nested-create`: `graph_build 436 -> 433`, `compile_ir 1113 -> 1110`, `full_compile 1226 -> 1223`; `translate_ir` stayed `677`.
+      - Controls stayed unchanged: `query-many-m2m 714`, `query-m2o 549`, `nested-pagination-query 560`, and `aggregate 607` full-compile allocations.
+  - Criterion evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(create-nested-connectOrCreate-mixed|nested-upsert-nested-only|update-set-nested|create-nested-create|query-many-m2m|query-m2o|nested-pagination-query|aggregate)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians: `aggregate 60.878 us`, `create-nested-connectOrCreate-mixed 289.23 us`, `create-nested-create 145.82 us`, `nested-pagination-query 74.328 us`, `nested-upsert-nested-only 357.07 us`, `query-m2o 76.363 us`, `query-many-m2m 85.830 us`, and `update-set-nested 219.62 us`.
+    - Close reverted-control medians: `aggregate 60.864 us`, `create-nested-connectOrCreate-mixed 290.76 us`, `create-nested-create 146.85 us`, `nested-pagination-query 74.323 us`, `nested-upsert-nested-only 359.65 us`, `query-m2o 76.839 us`, `query-many-m2m 86.418 us`, and `update-set-nested 223.25 us`.
+  - Validation:
+    - `cargo check -p query-compiler`: passed.
+    - `cargo test -p query-compiler --test queries`: passed.
+    - `cargo test -p query-compiler`: passed.
+    - `make build-qc-wasm`: passed for fast and small Wasm packages across postgresql/sqlite/mysql/sqlserver/cockroachdb.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; only unrelated `@ark/attest` lockfile peer churn appeared and was reverted.
+    - `pnpm --filter @prisma/client build`: sandboxed run failed with `listen EPERM` on `/tmp/tsx-501/26.pipe`; rerun outside the sandbox passed.
+  - Decision:
+    - Kept and committed. The allocation savings are small but repeatable, close Criterion favored the merged pass on the target rows, and snapshot tests preserve emitted plan shapes. This is a version-lockstep internal refactor with no old/new format support.
+
 ## Useful Commands
 
 ```sh
