@@ -14725,6 +14725,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Branch-local filter clone elision did not move allocation counts on current fixtures, and the added `Option<Filter>` ownership plumbing is not worth keeping for byte-only/noisy timing effects. Revisit only with a fixture/profile proving the cloned filter payload is material.
 
+- Rejected experiment: skip parent selection merge in `insert_find_children_by_parent_node()`.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - `insert_find_children_by_parent_node()` always builds the parent projected selection as `parent_model_id.merge(parent_linking_fields)`, even when the relation linking fields are already the primary identifier.
+    - Reusing the existing `get_selected_fields()` helper for the parent side could skip that merge in common nested-write read-check paths.
+  - Patch tried:
+    - Changed parent projected selection construction in `query_graph_builder/write/utils.rs` to call `get_selected_fields(&parent_model, parent_linking_fields)`.
+    - Reused the already-bound `child_model` for the child selected fields.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-nested-connect,update-set-nested,update-set-nested-prisma#27650,nested-upsert-nested-only,upsert-nested-only-update,create-nested-connectOrCreate-mixed,query-m2o,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no allocation-count movement. Full-compile counts stayed `create-nested-connect 1336`, `update-set-nested 1833`, `update-set-nested-prisma#27650 1687`, `nested-upsert-nested-only 3008`, `upsert-nested-only-update 1892`, `create-nested-connectOrCreate-mixed 2434`, `query-m2o 549`, and `aggregate 607`.
+  - Validation:
+    - Patched `cargo check -p query-compiler`: passed.
+    - Reverted `cargo check -p query-compiler`: passed and the engines checkout returned clean.
+  - Decision:
+    - Reverted before Criterion. The helper reuse is mechanically fine, but it does not move the measured nested-write allocation counts.
+
 ## Useful Commands
 
 ```sh
