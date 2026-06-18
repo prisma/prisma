@@ -14547,6 +14547,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. The existing regular single-record create shape is cheaper than `CreateManyRecords` for the one-child m2m fixture; do not retry single-child m2m bulk create unless a SQL builder/runtime execution profile shows a different bottleneck than compiler allocation count.
 
+- Accepted change: skip the create-side return node in many-to-many nested connect-or-create.
+  - Timestamp: 2026-06-18.
+  - Engines commit: `8b2a45cfe7b perf(query-compiler): skip m2m create return node`.
+  - Hypothesis:
+    - In `handle_many_to_many()` for nested `connectOrCreate`, the `Else` branch creates the child with `CreateRecord`, whose selected fields are already the child primary identifier. The downstream m2m connect consumes the `If` node result, so the create branch can return the `CreateRecord` expression directly instead of wrapping it in an extra `Flow::Return`.
+  - Patch kept:
+    - Removed the create-side `Flow::Return(Vec::new())` node and its projected `ReturnInput` edge in `query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs`.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connectOrCreate-m2one,nested-upsert-nested-only,create-m2m,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: target m2m-containing rows improved while controls stayed flat. `create-nested-connectOrCreate-mixed` moved `graph_build 770 -> 769`, `translate_ir 1511 -> 1496`, `full_compile 2453 -> 2437`. `create-nested-connectOrCreate-one2m` moved `graph_build 657 -> 656`, `translate_ir 1346 -> 1330`, `full_compile 2162 -> 2145`. Controls stayed unchanged: `create-nested-connectOrCreate-m2one 1361`, `nested-upsert-nested-only 3011`, `create-m2m 1615`, and `aggregate 607` full-compile allocations.
+  - Criterion evidence:
+    - First patched pass medians: `aggregate 62.773 us`, `create-m2m 187.43 us`, `create-nested-connectOrCreate-m2one 167.31 us`, `create-nested-connectOrCreate-mixed 301.22 us`, `create-nested-connectOrCreate-one2m 298.93 us` noisy, `nested-upsert-nested-only 361.21 us`.
+    - Close reverted-control medians: `aggregate 62.281 us`, `create-m2m 190.54 us`, `create-nested-connectOrCreate-m2one 170.32 us`, `create-nested-connectOrCreate-mixed 312.73 us`, `create-nested-connectOrCreate-one2m 277.13 us`, `nested-upsert-nested-only 378.32 us`. The unrelated control rows were noisy, so the decision used a narrowed reapply.
+    - Narrowed reapply medians: `create-nested-connectOrCreate-m2one 169.70 us` unchanged vs close control, `create-nested-connectOrCreate-mixed 307.96 us` improved within noise threshold vs close control, and `create-nested-connectOrCreate-one2m 270.91 us` improved about 2.2% vs close control.
+  - Validation:
+    - `cargo check -p query-compiler`: passed.
+    - `cargo test -p query-compiler --test queries`: passed.
+    - `cargo test -p query-compiler`: passed.
+    - `make build-qc-wasm`: passed for fast and small Wasm packages across postgresql/sqlite/mysql/sqlserver/cockroachdb.
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: completed; only unrelated `@ark/attest` lockfile churn appeared and was reverted.
+    - `pnpm --filter @prisma/client build`: passed after rerun outside the sandbox because sandboxed `tsx` failed to listen on `/tmp/tsx-...pipe` with `EPERM`.
+  - Decision:
+    - Kept and committed. This is a clean graph-node removal on the exact m2m nested connect-or-create branch. It avoids old/new internal compatibility and relies on the existing `CreateRecord` selected identifier.
+
 ## Useful Commands
 
 ```sh
