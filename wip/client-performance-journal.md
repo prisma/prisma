@@ -14880,6 +14880,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. Reusing and mutating the precomputed-hit placeholder map is neutral-to-negative in Node and would be risky to productize for concurrent prepared calls anyway.
     - Do not retry mutable hit/placeholder object reuse as a generated prepared-helper cleanup. The remaining gap needs a different surface change, not aliasing mutable cache-hit state.
 
+- Rejected experiment: omit PrismaPromise operation spec for generated prepared helper.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The generated prepared helper still allocates a small PrismaPromise operation spec object `{ action, args, model }` on every hot call.
+    - A benchmark-only row that calls `client._createPrismaPromise(callback)` without the spec could show whether that object materially contributes to the remaining gap.
+  - Patch tried:
+    - Added optional `omitPrismaPromiseSpec` mode to `createBenchmarkPreparedOperationRegistry()` in `client-engine-cache-timing.ts`.
+    - Added `generated client prepared operation no promise spec blog feed by author / nested rows warmed cache`.
+    - Reverted the benchmark-only patch fully after timing.
+  - Timing evidence:
+    - No-spec 300k row:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client prepared operation no promise spec blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `9.33 us/op`, `queryRaw=2100000`, `precomputedHits=300000`.
+    - Same-checkout unchanged generated prepared row:
+      - `generated client prepared operation blog feed by author / nested rows warmed cache`: `8.59 us/op`, `queryRaw=2100000`, `precomputedHits=300000`.
+  - Decision:
+    - Reverted. Omitting the PrismaPromise spec is slower and would also be semantically suspect for transaction batching / operation metadata.
+    - Do not retry spec omission as a generated prepared-helper cleanup. If the prepared operation surface changes, it needs a larger generated/public design rather than removing metadata from the existing PrismaPromise path.
+
+- Measurement refresh: current query-compiler allocation buckets.
+  - Timestamp: 2026-06-18.
+  - Command:
+    - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-profile-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='query-m2o,query-m2m,query-many-m2m,aggregate,aggregate-custom,group-by,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,update-set-nested-prisma#27650,nested-upsert-nested-only,upsert-nested-only-update' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=3 cargo run -p query-compiler --example allocation_profile --release`
+  - Result summary:
+    - Checkouts stayed clean; build output went to `/tmp/prisma-engines-profile-target`.
+    - Read rows remain much smaller than nested writes. Examples: `query-m2o` full_compile `549 allocs/op`, `70.7 KiB`; `query-m2m` `718`, `79.3 KiB`; `aggregate-custom` `669`, `62.7 KiB`.
+    - Nested writes still dominate: `create-nested-connectOrCreate-mixed` full_compile `2434 allocs/op`, `286.1 KiB`; `create-nested-connectOrCreate-one2m` `2142`, `248.1 KiB`; `update-set-nested` `1833`, `223.4 KiB`; `nested-upsert-nested-only` `3008`, `361.2 KiB`.
+    - Hot phases remain `graph_build` and `translate_ir`, with buckets dominated by mid-sized allocations. For `nested-upsert-nested-only`, `graph_build` was `1107 allocs/op`, `191.6 KiB`, and `translate_ir` was `1723 allocs/op`, `149.5 KiB`; the largest buckets were `257..384 B`, `513..768 B`, `1.0..1.5 KiB`, `385..512 B`, and `129..192 B`.
+  - Interpretation:
+    - This supports the existing architecture lead: do not start a broad `Arc` purge or shallow request-boundary work from this profile. The next Rust patch still needs a named graph-build or translation container/phase target and close Criterion evidence, not allocation counts alone.
+
 - New runtime leads from raw-nested by-author scout.
   - Timestamp: 2026-06-18.
   - Context:
