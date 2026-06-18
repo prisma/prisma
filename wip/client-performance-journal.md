@@ -14995,6 +14995,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep as benchmark infrastructure and lower-bound evidence. A plan-specific final-owner schedule beats the current direct and generic raw-result-set controls by about 5-10% in the focused Node harness.
     - Do not treat this as product runtime behavior. The next product attempt should either compile this schedule into the raw-nested final-owner runtime path or generate an equivalent static writer/wave descriptor. If that changes an internal plan/protocol shape, replace the old shape outright across producers and consumers; do not add old/new internal compatibility readers.
 
+- Rejected experiment: assemble non-unique final-owner child lists directly from raw rows.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The benchmark-only final-owner schedule avoids the generic prefiltered child-row array and target-record staging that the product non-unique final-owner branch uses before per-root assembly.
+    - Moving just that part of the product branch to collect target IDs from raw child rows and assemble child records directly per root might recover some of the schedule lower-bound gap without changing the internal plan shape.
+  - Patch tried:
+    - In `query-interpreter.ts`, stopped assigning `childListRows = filterRawNestedRelationRows(...)` in the non-unique final-owner branch.
+    - Added `collectRawNestedFinalOwnerChildTargetIds()` to collect unique nested-author IDs while applying the existing supported per-parent pagination semantics.
+    - Added `mapRawNestedFinalOwnerChildList()` to scan raw child rows per root, apply `skip` / `take`, write child records, and attach nested unique children after the second-wave query.
+    - Reverted the patch fully after timing; no code kept.
+  - Correctness evidence:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 26 tests.
+    - Note: `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts --runInBand` is invalid for this Vitest package (`CACError: Unknown option --runInBand`).
+  - Timing evidence:
+    - Patched 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.49 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.11 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.53 us/op`.
+    - Accepted checkpoint controls from the same session before the patch:
+      - Direct / raw compact / local: `7.07 / 6.96 / 7.33 us/op`.
+  - Decision:
+    - Reverted. Removing the filtered child-row array and target-record staging by itself does not recover the benchmark schedule lower bound; it worsens the direct and raw compact gates and leaves local worse than the control.
+    - Do not retry this exact productization slice. The remaining schedule gap is likely in the generic row writers and relation-specific attachment/mapping as a whole, not just the child-row filter staging.
+
 ## Useful Commands
 
 ```sh
