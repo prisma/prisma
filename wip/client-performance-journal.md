@@ -14947,6 +14947,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. Compiling only the relation-op filter dispatch is not enough; it worsened the important direct/local rows and only tied raw compact.
     - Treat the small relation-op leads as consumed. The remaining by-author raw-nested lead needs a stricter plan-specific final-owner schedule that owns scopes, filtering, row writing, and final attachment together.
 
+- Rejected experiment: prepared QueryInterpreter runner plus LocalExecutor last-plan cache.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - `QueryInterpreter.run()` still does per-call plan-derived work: compiled-node lookup, `queryPlanUsesNowGenerator()` lookup, context object spread, and instrumentation setup.
+    - A `QueryInterpreter.prepare(queryPlan)` runner plus a LocalExecutor WeakMap/last-plan cache could precompute plan-derived pieces while still taking dynamic `scope`, `queryable`, SQL commenters, and tracing state per invocation.
+  - Patch tried:
+    - Added exported `PreparedQueryRunner` and `QueryInterpreter.prepare(queryPlan)`.
+    - Cached prepared runners in the interpreter by `QueryPlanCompactNode`.
+    - Added a LocalExecutor `WeakMap<QueryPlanNode, PreparedQueryRunner>` and one-entry last-plan fast path for non-transaction execution.
+  - Timing evidence:
+    - Patched first 300k rows:
+      - `local executor blog feed by author / nested rows`: `7.21 us/op`.
+      - `direct plan blog feed by author / nested rows`: `7.12 us/op`.
+      - `interpreter unit blog feed by author / nested rows`: `0.23 us/op`.
+    - Reverted control had one broad outlier:
+      - Local / direct / interpreter-unit: `10.90 / 10.99 / 0.29 us/op`.
+    - Reapplied patched 300k rows:
+      - Local / direct / interpreter-unit: `7.45 / 7.30 / 0.26 us/op`.
+    - Final reverted 300k control:
+      - Local / direct: `7.48 / 7.23 us/op`.
+  - Decision:
+    - Reverted. The LocalExecutor row was noise-level and the direct row softened; this is not enough evidence to add a new prepared runner API/cache.
+    - Do not retry this exact runner-cache shape. A useful prepared-interpreter follow-up needs to own more of the no-comment/no-transaction execution phase than the plan-derived lookup/context wrapper.
+
 ## Useful Commands
 
 ```sh
