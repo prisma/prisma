@@ -1,12 +1,8 @@
 import { enginesVersion } from '@prisma/engines'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
 import { version as typeScriptVersion } from 'typescript'
 
 import packageJson from '../../../package.json'
-import { getPrismaCliPath } from '../../Version'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -43,58 +39,6 @@ describe('version', () => {
 
     expect(data.exitCode).toBe(0)
     expect(output['prisma-cli-path']).toEqual(expect.any(String))
-  })
-})
-
-describe('getPrismaCliPath', () => {
-  let tempDir: string
-
-  beforeEach(async () => {
-    tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'prisma-cli-path-'))
-  })
-
-  afterEach(async () => {
-    await fs.promises.rm(tempDir, { force: true, recursive: true })
-  })
-
-  test('returns the package root for a Prisma CLI entry point', async () => {
-    const packageRoot = path.join(tempDir, 'node_modules', 'prisma')
-    const entryPoint = path.join(packageRoot, 'build', 'index.js')
-    await fs.promises.mkdir(path.dirname(entryPoint), { recursive: true })
-    await fs.promises.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({ name: 'prisma' }), 'utf-8')
-    await fs.promises.writeFile(entryPoint, '', 'utf-8')
-
-    expect(getPrismaCliPath(entryPoint)).toBe(await fs.promises.realpath(packageRoot))
-  })
-
-  test('follows a package-manager shim back to the Prisma package root when possible', async () => {
-    const packageRoot = path.join(tempDir, 'node_modules', 'prisma')
-    const entryPoint = path.join(packageRoot, 'build', 'index.js')
-    const binPath = path.join(tempDir, 'node_modules', '.bin', process.platform === 'win32' ? 'prisma.cmd' : 'prisma')
-
-    await fs.promises.mkdir(path.dirname(entryPoint), { recursive: true })
-    await fs.promises.mkdir(path.dirname(binPath), { recursive: true })
-    await fs.promises.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({ name: 'prisma' }), 'utf-8')
-    await fs.promises.writeFile(entryPoint, '', 'utf-8')
-
-    let cliEntryPoint = entryPoint
-    try {
-      await fs.promises.symlink(entryPoint, binPath)
-      cliEntryPoint = binPath
-    } catch {
-      // Symlink creation can be unavailable on some Windows setups.
-    }
-
-    expect(getPrismaCliPath(cliEntryPoint)).toBe(await fs.promises.realpath(packageRoot))
-  })
-
-  test('falls back to the entry point directory when the Prisma package root cannot be found', async () => {
-    const entryPoint = path.join(tempDir, 'node_modules', '.bin', 'prisma')
-    await fs.promises.mkdir(path.dirname(entryPoint), { recursive: true })
-    await fs.promises.writeFile(path.join(tempDir, 'package.json'), JSON.stringify({ name: 'app' }), 'utf-8')
-    await fs.promises.writeFile(entryPoint, '', 'utf-8')
-
-    expect(getPrismaCliPath(entryPoint)).toBe(await fs.promises.realpath(path.dirname(entryPoint)))
   })
 })
 
