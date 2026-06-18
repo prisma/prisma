@@ -14639,6 +14639,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Kept and committed. The allocation savings are small but repeatable, close Criterion favored the merged pass on the target rows, and snapshot tests preserve emitted plan shapes. This is a version-lockstep internal refactor with no old/new format support.
 
+- Rejected experiment: broaden single-pass read selection extraction to `findMany` and related reads.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The accepted `extract_selected_fields()` merge left the old two-pass selected-field plus selection-order/nested-query composition in `read::many` and `read::related`.
+    - Extending the consuming helper to accept `distinct` and parent-relation lookback could remove more graph-build allocations on read-heavy rows without changing emitted plan shapes.
+  - Patch tried:
+    - Added `extract_selected_fields_with_relation(nested_fields, model, query_schema, distinct, parent_relation)`.
+    - Rewired `find_many_with_options()` and `find_related()` to use it instead of `collect_selected_fields()` plus `collect_selection_order_and_nested_queries()`.
+    - The patch made the old helper APIs dead, so if it had been kept the dead helpers would have been deleted rather than retained as alternate paths.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=query-m2o,query-many-m2m,query-many-one2m,nested-pagination-query,query-non-unique-one2m-pagination,query-unique-one2m-pagination,nested-upsert-nested-only,create-nested-connectOrCreate-mixed,update-set-nested,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Current accepted baseline -> patched full-compile allocations:
+      - `query-m2o`: `549 -> 544`.
+      - `query-many-m2m`: `714 -> 709`.
+      - `query-many-one2m`: `606 -> 600`.
+      - `nested-pagination-query`: `560 -> 557`.
+      - `query-non-unique-one2m-pagination`: `729 -> 725`.
+      - `query-unique-one2m-pagination`: `658 -> 657`.
+      - `nested-upsert-nested-only`: `3008 -> 3003`.
+      - `create-nested-connectOrCreate-mixed`: `2434 -> 2429`.
+      - `update-set-nested`: `1833 -> 1830`.
+      - `aggregate` stayed unchanged at `607`.
+  - Criterion evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(query-m2o|query-many-m2m|query-many-one2m|nested-pagination-query|query-non-unique-one2m-pagination|query-unique-one2m-pagination|nested-upsert-nested-only|create-nested-connectOrCreate-mixed|update-set-nested|aggregate)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians regressed against the accepted baseline in representative rows despite the allocation savings: `aggregate 63.035 us`, `nested-pagination-query 76.557 us`, `nested-upsert-nested-only 366.05 us`, `query-m2o 79.479 us`, `query-many-m2m 89.261 us`, and `update-set-nested 227.52 us`.
+    - Criterion reported significant regressions on `aggregate`, `nested-pagination-query`, `nested-upsert-nested-only`, `query-m2o`, `query-many-m2m`, and `update-set-nested`.
+  - Validation:
+    - Patched `cargo check -p query-compiler`: passed, with dead-code warnings for the old helper APIs.
+    - Reverted `cargo check -p query-compiler`: passed and the engines checkout returned clean.
+  - Decision:
+    - Reverted. This is an allocation-only win with a clear CPU regression on common read and nested-write compile rows. Do not retry broadening the consuming extraction helper into `read::many` / `read::related` as a standalone cleanup unless a new CPU hypothesis explains and avoids the Criterion regression.
+
 ## Useful Commands
 
 ```sh
