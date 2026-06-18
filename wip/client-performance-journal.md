@@ -14925,6 +14925,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. Scope extraction reuse is too small and noisy as a standalone patch; the close control beat or matched patched on the target rows.
     - Do not retry local root-scope coalescing without a larger final-owner schedule that removes a whole phase.
 
+- Rejected experiment: compiled final-owner child-list relation-op filter.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The final-owner child-list relation carries supported no-cursor pagination ops. Instead of storing `operations` and calling `filterRawNestedRelationRows()` on every execution, the compiled final-owner program could store a precompiled `filterRows` closure.
+    - This would remove per-call `inMemoryOpsAreEmpty()`, `rawNestedRelationOperationsAreSupported()`, and pagination object dispatch from the hot by-author child-list path while keeping the generic helper unchanged for other raw-nested paths.
+  - Patch tried:
+    - Added `RawNestedFinalOwnerRelationRowsFilter` and `tryCompileRawNestedFinalOwnerRelationRowsFilter()`.
+    - Replaced `RawNestedFinalOwnerChildListRelation.operations` with `filterRows`.
+    - Factored the existing relation-row pagination loop into `filterRawNestedRelationRowsForPagination()`.
+  - Timing evidence:
+    - Patched 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.24 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.63 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.13 us/op`.
+    - Reverted control 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.18 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.09 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.16 us/op`.
+  - Decision:
+    - Reverted. Compiling only the relation-op filter dispatch is not enough; it worsened the important direct/local rows and only tied raw compact.
+    - Treat the small relation-op leads as consumed. The remaining by-author raw-nested lead needs a stricter plan-specific final-owner schedule that owns scopes, filtering, row writing, and final attachment together.
+
 ## Useful Commands
 
 ```sh
