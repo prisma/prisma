@@ -14882,6 +14882,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Hypothesis: `local executor` still adds wrapper/context work above direct interpreter execution. A benchmark-only `QueryInterpreter.prepare(plan)` shape could test whether preparing a runner for no SQL commenters, no instrumentation, and no transaction removes enough overhead. Do not thread another `ClientEngine` shortcut first because adjacent engine-boundary shortcuts have already been rejected.
     - Gates: `local executor blog feed by author / nested rows` must improve without regressing `direct plan blog feed by author / nested rows`, `interpreter unit blog feed by author / nested rows`, and generated prepared/request-surface by-author rows.
 
+- Rejected experiment: small-parent counter in raw-nested relation-op filtering.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - `filterRawNestedRelationRows()` uses a `Map` to count relation rows per parent while applying supported no-cursor pagination ops.
+    - The by-author feed has a small parent set, so an array-backed counter until `RAW_NESTED_INDEX_THRESHOLD` might avoid `Map` allocation on the hot child-list relation-op path.
+  - Patch tried:
+    - Replaced the unconditional `Map<parentKey, seenCount>` in `filterRawNestedRelationRows()` with `parentKeys` / `seenCounts` arrays that upgraded to a `Map` only after the threshold.
+    - Left `processRawNestedRelationResult()` unchanged and did not change relation assembly or query scheduling.
+  - Timing evidence:
+    - Patched 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.56 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.87 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.49 us/op`.
+    - Reverted control 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.43 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.66 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.45 us/op`.
+  - Decision:
+    - Reverted. Local counter-shape changes in relation-op filtering are not enough; they regress the target direct/local rows.
+    - Keep the broader relation-op lead alive only if the next prototype owns more of the phase, such as a compiled child-list filter/schedule for the exact supported pagination shape.
+
 ## Useful Commands
 
 ```sh
