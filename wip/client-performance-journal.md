@@ -14971,6 +14971,30 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. The LocalExecutor row was noise-level and the direct row softened; this is not enough evidence to add a new prepared runner API/cache.
     - Do not retry this exact runner-cache shape. A useful prepared-interpreter follow-up needs to own more of the no-comment/no-transaction execution phase than the plan-derived lookup/context wrapper.
 
+- Accepted benchmark row: direct final-owner schedule lower bound for by-author feed.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The rejected relation-op, scope-reuse, and prepared-interpreter micro-spikes only moved isolated helpers. The useful next proof is a strict by-author schedule that owns first-wave scopes, relation-op filtering, row writing, and final attachment together.
+    - A benchmark-only raw-result-set row can test that phase-owner shape before changing product runtime code.
+  - Patch kept:
+    - Added `raw result-set direct final-owner schedule blog feed by author / nested rows` to `client-engine-cache-timing.ts`.
+    - The row is hard-coded to the current non-unique by-author topology: root `Post` rows, first-wave `author` / `category` / `PostTag` / `comments`, second-wave `tag` and comment `author`, and exact wrapper output checked by `checksumNestedBlogExactOutput()`.
+    - Added `rawNestedScopeValue()` so the benchmark schedule can pass scalar scopes for single-row relation waves and array scopes for multi-row waves. The same helper also trims the existing unique-root raw-result prototype's parent-id scope, but no speed claim is attached to that auxiliary row.
+  - Timing evidence:
+    - New row:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set direct final-owner schedule blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `6.63 us/op`, `queryRaw=2100000`, `heapDelta=130.9 KiB`.
+    - Adjacent 300k controls:
+      - `direct plan blog feed by author / nested rows`: `7.07 us/op`, `queryRaw=2100000`.
+      - `raw result-set compact node blog feed by author / nested rows`: `6.96 us/op`, `queryRaw=2100000`.
+      - `raw result-set exact compact node blog feed by author / nested rows`: `7.06 us/op`, `queryRaw=2100000`.
+      - `local executor blog feed by author / nested rows`: `7.33 us/op`, `queryRaw=2100000`.
+    - Auxiliary row after the scalar-scope helper:
+      - `raw result-set prototype blog page / nested rows`: `5.26 us/op`, `queryRaw=2100000`; kept as harness cleanup evidence only because no fresh before/after baseline was run.
+  - Decision:
+    - Keep as benchmark infrastructure and lower-bound evidence. A plan-specific final-owner schedule beats the current direct and generic raw-result-set controls by about 5-10% in the focused Node harness.
+    - Do not treat this as product runtime behavior. The next product attempt should either compile this schedule into the raw-nested final-owner runtime path or generate an equivalent static writer/wave descriptor. If that changes an internal plan/protocol shape, replace the old shape outright across producers and consumers; do not add old/new internal compatibility readers.
+
 ## Useful Commands
 
 ```sh

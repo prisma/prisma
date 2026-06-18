@@ -5057,6 +5057,10 @@ function uniqueColumnValues(rows: readonly unknown[][], columnIndex: number): un
   return values
 }
 
+function rawNestedScopeValue(rows: readonly unknown[][], columnIndex: number): unknown {
+  return rows.length === 1 ? rows[0][columnIndex] : uniqueColumnValues(rows, columnIndex)
+}
+
 function attachUniqueRawChildren(
   parentRows: readonly unknown[][],
   parents: readonly Record<string, unknown>[],
@@ -5207,15 +5211,15 @@ async function executeRawResultSetBlogPagePrototype(
     return null
   }
 
-  const postIds = uniqueColumnValues(postRows, 0)
+  const postIdScopeValue = rawNestedScopeValue(postRows, 0)
   const authorIds = uniqueColumnValues(postRows, 7)
   const categoryIds = uniqueColumnValues(postRows, 8)
 
   const [authorResultSet, categoryResultSet, postTagResultSet, commentResultSet] = await Promise.all([
     adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[1], { '@parent$authorId': authorIds }, generators)),
     adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[2], { '@parent$categoryId': categoryIds }, generators)),
-    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[3], { '@parent$id': postIds }, generators)),
-    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[5], { '@parent$id': postIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[3], { '@parent$id': postIdScopeValue }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[5], { '@parent$id': postIdScopeValue }, generators)),
   ])
 
   const tagIds = uniqueColumnValues(postTagResultSet.rows, 1)
@@ -5346,6 +5350,111 @@ async function executeRawResultSetBlogPageDirectAssembler(
       comments: postRow[10],
     },
   }
+}
+
+async function executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule(
+  dbQueries: readonly QueryPlanDbQuery[],
+  placeholderValues: Record<string, unknown>,
+  adapter: BlogPageSqliteAdapter,
+  generators: GeneratorRegistrySnapshot,
+): Promise<Record<string, unknown>[]> {
+  const postResultSet = await adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[0], placeholderValues, generators))
+  const postRows = postResultSet.rows
+  if (postRows.length === 0) {
+    return []
+  }
+
+  const postIds = uniqueColumnValues(postRows, 0)
+  const [authorResultSet, categoryResultSet, postTagResultSet, commentResultSet] = await Promise.all([
+    adapter.queryRaw(
+      renderSingleBlogPageQuery(dbQueries[1], { '@parent$authorId': rawNestedScopeValue(postRows, 7) }, generators),
+    ),
+    adapter.queryRaw(
+      renderSingleBlogPageQuery(dbQueries[2], { '@parent$categoryId': rawNestedScopeValue(postRows, 8) }, generators),
+    ),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[3], { '@parent$id': postIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[5], { '@parent$id': postIds }, generators)),
+  ])
+
+  const roots = new Array<Record<string, unknown>>(postRows.length)
+  for (let rowIndex = 0; rowIndex < postRows.length; rowIndex++) {
+    const postRow = postRows[rowIndex]
+    roots[rowIndex] = {
+      id: postRow[0],
+      title: postRow[1],
+      slug: postRow[2],
+      content: postRow[3],
+      published: postRow[4],
+      viewCount: postRow[5],
+      createdAt: postRow[6],
+      author: mapUserRow(findRowByColumn(authorResultSet.rows, 0, postRow[7])),
+      category: mapCategoryRow(findRowByColumn(categoryResultSet.rows, 0, postRow[8])),
+      tags: [],
+      comments: [],
+      _count: {
+        likes: postRow[9],
+        comments: postRow[10],
+      },
+    }
+  }
+
+  const postTagRows = postTagResultSet.rows
+  const commentRows = commentResultSet.rows
+  const [tagResultSet, commentAuthorResultSet] = await Promise.all([
+    postTagRows.length === 0
+      ? Promise.resolve(EMPTY_RESULT)
+      : adapter.queryRaw(
+          renderSingleBlogPageQuery(dbQueries[4], { '@parent$tagId': rawNestedScopeValue(postTagRows, 1) }, generators),
+        ),
+    commentRows.length === 0
+      ? Promise.resolve(EMPTY_RESULT)
+      : adapter.queryRaw(
+          renderSingleBlogPageQuery(
+            dbQueries[6],
+            { '@parent$authorId': rawNestedScopeValue(commentRows, 3) },
+            generators,
+          ),
+        ),
+  ])
+
+  const tagRows = tagResultSet.rows
+  const commentAuthorRows = commentAuthorResultSet.rows
+  for (let rootIndex = 0; rootIndex < postRows.length; rootIndex++) {
+    const postRow = postRows[rootIndex]
+    const root = roots[rootIndex]
+    const postId = postRow[0]
+    const tags = root.tags as Record<string, unknown>[]
+    const comments = root.comments as Record<string, unknown>[]
+    let commentCount = 0
+
+    for (let tagIndex = 0; tagIndex < postTagRows.length; tagIndex++) {
+      const postTagRow = postTagRows[tagIndex]
+      if (postTagRow[0] === postId) {
+        tags.push({ tag: mapTagRowOrNull(findRowByColumn(tagRows, 0, postTagRow[1])) })
+      }
+    }
+
+    for (let commentIndex = 0; commentIndex < commentRows.length; commentIndex++) {
+      if (commentCount >= 10) {
+        break
+      }
+
+      const commentRow = commentRows[commentIndex]
+      if (commentRow[4] !== postId) {
+        continue
+      }
+
+      comments.push({
+        id: commentRow[0],
+        content: commentRow[1],
+        createdAt: commentRow[2],
+        author: mapUserRow(findRowByColumn(commentAuthorRows, 0, commentRow[3])),
+      })
+      commentCount++
+    }
+  }
+
+  return roots
 }
 
 type BlogPageWriterState = {
@@ -5678,6 +5787,54 @@ async function measureRawResultSetBlogPageDirectAssemblerScenario(
   for (let i = 0; i < scenario.iterations; i++) {
     checksum += checksumNestedBlogExactResult(
       await executeRawResultSetBlogPageDirectAssembler(dbQueries, placeholderValues, adapter, generators),
+    )
+  }
+  const elapsedMs = performance.now() - started
+  const afterHeap = heapUsed()
+
+  if (checksum < 0) {
+    throw new Error('unreachable')
+  }
+
+  return {
+    ...scenario,
+    elapsedMs,
+    averageUs: (elapsedMs * 1000) / scenario.iterations,
+    counts: { ...counts },
+    heapDelta: beforeHeap !== undefined && afterHeap !== undefined ? afterHeap - beforeHeap : undefined,
+  }
+}
+
+async function measureRawResultSetBlogFeedByAuthorFinalOwnerScheduleScenario(
+  compiler: QueryCompiler,
+  paramGraph: ParamGraph,
+  scenario: DirectPlanScenario,
+): Promise<DirectPlanMeasurement> {
+  const counts: Counts = {
+    compile: 0,
+    compileBatch: 0,
+    queryRaw: 0,
+    executeRaw: 0,
+  }
+  const adapter = new BlogPageSqliteAdapter(counts)
+  const { plan, placeholderValues } = compileDirectPlan(compiler, paramGraph, scenario.query)
+  const dbQueries = getDbQueries(plan)
+  if (dbQueries.length !== BLOG_PAGE_RESULT_SETS.length) {
+    throw new Error(`Expected ${BLOG_PAGE_RESULT_SETS.length} blog-page DB queries, got ${dbQueries.length}`)
+  }
+
+  const generators = Object.create(null) as GeneratorRegistrySnapshot
+  checksumNestedBlogExactOutput(
+    await executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule(dbQueries, placeholderValues, adapter, generators),
+  )
+  resetCounts(counts)
+
+  let checksum = 0
+  const beforeHeap = heapUsed()
+  const started = performance.now()
+  for (let i = 0; i < scenario.iterations; i++) {
+    checksum += checksumNestedBlogExactOutput(
+      await executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule(dbQueries, placeholderValues, adapter, generators),
     )
   }
   const elapsedMs = performance.now() - started
@@ -8381,6 +8538,24 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureRawResultSetBlogPageDirectAssemblerScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) =>
+        scenario.adapterFactory !== undefined &&
+        scenario.rawNestedUnique === false &&
+        scenario.name === 'direct plan blog feed by author / nested rows',
+    )) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set direct final-owner schedule'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogFeedByAuthorFinalOwnerScheduleScenario(compiler, paramGraph, measuredScenario),
       )
     }
 
