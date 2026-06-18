@@ -14673,6 +14673,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. This is an allocation-only win with a clear CPU regression on common read and nested-write compile rows. Do not retry broadening the consuming extraction helper into `read::many` / `read::related` as a standalone cleanup unless a new CPU hypothesis explains and avoids the Criterion regression.
 
+- Rejected experiment: one-pass scalar selection/order collection for returning writes.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - Atomic returning create/update/delete paths still call `collect_selected_scalars()` on a borrowed `nested_fields` list and then consume the same list with `collect_selection_order_owned()`.
+    - A scalar-only helper that consumes the list once could remove allocations on `create-many-and-return`, `update-one-returning`, and `delete-one` without touching the already rejected non-result `CreateRecord.selection_order` deferral.
+  - Patch tried:
+    - Added `collect_selected_scalars_and_order(Vec<FieldPair>, &Model) -> (FieldSelection, Vec<String>)`.
+    - Rewired `atomic_create_record_node()`, the `UpdateRecord::WithSelection` returning branch, and atomic `delete_record()` returning to use the new helper.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=create-many-and-return,update-one-returning,delete-one,create-nested-create,update-set-nested,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no useful allocation-count win. `create-many-and-return` stayed `425` full-compile allocations, `update-one-returning` stayed `456`, and `delete-one` regressed `332 -> 333`. Controls stayed unchanged: `create-nested-create 1223`, `update-set-nested 1833`, and `aggregate 607` full-compile allocations.
+    - Some allocated-byte totals moved down on `update-one-returning` / `delete-one`, but allocation count did not improve and `delete-one` added one allocation.
+  - Validation:
+    - Patched `cargo check -p query-compiler`: passed, with dead-code warnings for the old borrowed scalar helper.
+    - Reverted `cargo check -p query-compiler`: passed and the engines checkout returned clean.
+  - Decision:
+    - Reverted before Criterion. The target rows did not improve on allocation count, and the `delete-one` count got worse. Keep the existing borrowed scalar selection plus owned selection-order helper; it is already the accepted 2026-06-08 improvement.
+
 ## Useful Commands
 
 ```sh
