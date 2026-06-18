@@ -14763,6 +14763,51 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted. Removing only the static protocol-query argument and hit-object wrapper at the engine boundary is neutral-to-negative on CPU. Do not retry a queryless prepared engine method as a standalone cleanup; generated-owned prepared work still needs to remove larger phases together, such as public args construction, descriptor/protocol construction, structural identity, or plan/result transfer.
 
+- Accepted experiment: generated-owned prepared operation for blog-feed-by-author.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The benchmark-only prepared request-surface row showed that `Post.findMany` blog-feed-by-author can avoid full public args construction and descriptor matching after the shape is proven.
+    - The existing `template:Post.findMany:authorId:blogFeedByAuthorPostListV1` exact-template proof can safely generate an internal prepared operation for the same strict shape.
+  - Patch kept:
+    - Added an optional `preparedOperationRegistry` to generated client config and installs `_preparedOperations` on each `PrismaClient` instance after `_engine` and `_requestHandler` exist.
+    - Extended the JS and TS exact-descriptor template generator to emit `blogFeedByAuthorPostListV1_<index>` prepared closures for the by-author feed template.
+    - The emitted closure validates only the generated-owned dynamic `authorId` int32 input, learns the cache key / placeholder name from `getPrecomputedQueryPlanCacheHit()` once using a sentinel protocol query, and then calls `RequestHandler.requestPrecomputedCachedResult()` with dynamic placeholder values.
+    - Guards fall back to normal `client.post.findMany(fullArgs)` when driver adapters, request cached-result support, empty extensions, no global omit, no SQL commenters, no tracing, or no debug semantics are not satisfied.
+    - Added Node and Workerd benchmark rows for the generated prepared operation.
+  - Oracle/test evidence:
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 16 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 16 tests.
+    - The new VM tests execute the emitted prepared closure, verify the generated protocol query against the serializer/parameterizer oracle, check placeholder order/value replacement, confirm one-time cache-hit learning, and reject non-int32 `authorId`.
+  - Build evidence:
+    - Initial sandboxed builds failed with `listen EPERM ... /tmp/tsx-501/26.pipe`; rerun with escalation.
+    - `pnpm --filter @prisma/client-generator-ts build`: passed.
+    - `pnpm --filter @prisma/client-generator-js build`: passed.
+    - `pnpm --filter @prisma/client-common build`: passed; needed before client build so generated `PreparedOperation` / `preparedOperationRegistry` types were visible.
+    - `pnpm --filter @prisma/client build`: passed after rebuilding `client-common`.
+  - Node timing evidence:
+    - 100k broad command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - 100k result:
+      - Generated default / exact-helper / generated prepared / prepared request-surface / direct prepared: `11.19 / 9.21 / 8.27 / 8.06 / 7.66 us/op`.
+    - 300k close commands:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client prepared operation blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client exact descriptor helper blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared exact request surface blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - 300k result:
+      - Generated prepared / exact-helper / prepared request-surface: `7.81 / 8.61 / 7.66 us/op`, all with `queryRaw=2100000`.
+  - Workerd timing evidence:
+    - Commands:
+      - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='generated client prepared operation blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='generated client exact descriptor helper blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='prepared exact request surface blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+      - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='generated client blog-feed-by-author warmed cache' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Worker-loop result:
+      - Generated default / exact-helper / generated prepared / prepared request-surface: `10.40 / 8.20 / 7.20 / 6.55 us/op`, all with `20000/0` cache hits/misses for precomputed rows.
+  - Decision:
+    - Keep. This is the first generated-owned prepared operation proof that preserves the request-handler cached-result surface while removing full public args/descriptor matching on the hot path for a strict generated shape.
+    - It is still internal and shape-specific. Do not broaden to arbitrary user args, arbitrary `take`, generic recursive nested matching, or a transparent normal-delegate hook without new oracle coverage and same-runtime gates.
+    - Follow-up should reduce the remaining gap to prepared request-surface lower bounds by trimming per-call guards/allocation in the generated closure or by designing a public/generated operation surface. Keep fallbacks semantically conservative.
+
 ## Useful Commands
 
 ```sh

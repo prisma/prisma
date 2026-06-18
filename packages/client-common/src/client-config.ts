@@ -23,6 +23,12 @@ export type DescriptorBoundMatcherRegistry = {
   getMatcher(context: DescriptorBoundMatcherContext): DescriptorBoundMatcher | undefined
 }
 
+export type PreparedOperation = (...args: unknown[]) => unknown
+
+export type PreparedOperationRegistry = {
+  create(client: unknown): Record<string, PreparedOperation>
+}
+
 /**
  * Config that is stored into the generated client. When the generated client is
  * loaded, this same config is passed to {@link getPrismaClient} which creates a
@@ -52,4 +58,5 @@ export type GetPrismaClientConfig = {
   parameterizationSchema: SerializedParamGraph
 
   descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry
+  preparedOperationRegistry?: PreparedOperationRegistry
 }

@@ -8,6 +8,7 @@ import {
   type DescriptorBoundMatcherContext,
   type DescriptorBoundMatcherRegistry,
   dmmfToRuntimeDataModel,
+  type PreparedOperationRegistry,
   type QueryCompiler,
   type QueryCompilerConstructor,
   type QueryCompilerOptions,
@@ -913,8 +914,12 @@ function createGeneratedBlogPostFeedArgs(_iteration: number): Record<string, unk
 }
 
 function createGeneratedBlogPostFeedByAuthorArgs(iteration: number): Record<string, unknown> {
+  return createGeneratedBlogPostFeedByAuthorArgsForAuthorId(iteration + 42)
+}
+
+function createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId: number): Record<string, unknown> {
   return {
-    where: { authorId: iteration + 42 },
+    where: { authorId },
     take: 10,
     orderBy: [{ createdAt: 'desc' }],
     select: createGeneratedBlogPostPageSelect((1 << BLOG_PAGE_ROOT_SCALAR_FIELDS.length) - 1),
@@ -1092,6 +1097,78 @@ function bindTrustedGeneratedBlogPostFeedByAuthorDescriptorExtractor(
 function getOnlyPlaceholderName(placeholderValues: Record<string, unknown>): string | undefined {
   const entries = Object.keys(placeholderValues)
   return entries.length === 1 ? entries[0] : undefined
+}
+
+function createBenchmarkPreparedOperationRegistry(): PreparedOperationRegistry {
+  return {
+    create(client: any) {
+      const protocolQuery = createBlogPostFeedByAuthorQuery(0, 10)
+      let cachedHit:
+        | { cacheKey: string; parameterizedQuery: JsonQuery; placeholderValues: Record<string, unknown> }
+        | undefined
+      let valuePlaceholder: string | undefined
+
+      return {
+        blogFeedByAuthorPostListV1_0(authorId: unknown) {
+          if (!isInt32(authorId)) {
+            throw new Error('Expected prepared authorId to be an int32')
+          }
+
+          if (
+            client._engineConfig.adapter === undefined ||
+            client._engineConfig.sqlCommenters !== undefined ||
+            !client._extensions.isEmpty() ||
+            client._globalOmit !== undefined ||
+            client._tracingHelper.isEnabled() ||
+            client._isClientDebugEnabled() ||
+            typeof client._engine.getPrecomputedQueryPlanCacheHit !== 'function' ||
+            typeof client._engine.requestPrecomputedCachedResult !== 'function'
+          ) {
+            return client.post.findMany(createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId))
+          }
+
+          if (cachedHit === undefined) {
+            const hit = client._engine.getPrecomputedQueryPlanCacheHit(protocolQuery)
+            if (hit === undefined) {
+              return client.post.findMany(createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId))
+            }
+
+            const entries = Object.entries(hit.placeholderValues)
+            if (entries.length !== 1 || !Object.is(entries[0][1], 0)) {
+              return client.post.findMany(createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId))
+            }
+
+            cachedHit = hit
+            valuePlaceholder = entries[0][0]
+          }
+
+          const args = { authorId }
+          return client._createPrismaPromise(
+            () =>
+              client._requestHandler.requestPrecomputedCachedResult({
+                protocolQuery,
+                dataPath: [],
+                action: 'findMany',
+                modelName: 'Post',
+                clientMethod: 'post.findMany.preparedExact',
+                extensions: client._extensions,
+                args,
+                precomputedQueryPlanCacheHit: {
+                  cacheKey: cachedHit.cacheKey,
+                  placeholderValues: { [valuePlaceholder!]: authorId },
+                  parameterizedQuery: cachedHit.parameterizedQuery,
+                },
+              }),
+            {
+              action: 'findMany',
+              args,
+              model: 'Post',
+            },
+          )
+        },
+      }
+    },
+  }
 }
 
 function createBenchmarkDescriptorBoundMatcherRegistry(): DescriptorBoundMatcherRegistry {
@@ -2700,9 +2777,11 @@ async function measureGeneratedClientScenario(
   scenario: GeneratedClientScenario,
   precomputedFastPath?: 'engine' | 'request',
   descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry,
+  preparedOperationRegistry?: PreparedOperationRegistry,
 ): Promise<DirectPlanMeasurement> {
   const usesPrecomputedFastPath = precomputedFastPath !== undefined
-  const usesInternalOptions = usesPrecomputedFastPath || descriptorMatcherRegistry !== undefined
+  const usesInternalOptions =
+    usesPrecomputedFastPath || descriptorMatcherRegistry !== undefined || preparedOperationRegistry !== undefined
   const counts: Counts = {
     compile: 0,
     compileBatch: 0,
@@ -2731,11 +2810,12 @@ async function measureGeneratedClientScenario(
           enginePrecomputedFastPath: precomputedFastPath === 'engine',
           requestPrecomputedFastPath: precomputedFastPath === 'request',
           configOverride:
-            descriptorMatcherRegistry === undefined
+            descriptorMatcherRegistry === undefined && preparedOperationRegistry === undefined
               ? undefined
               : (config) => ({
                   ...config,
                   descriptorMatcherRegistry,
+                  preparedOperationRegistry,
                 }),
         }
       : undefined,
@@ -7750,6 +7830,33 @@ async function main(): Promise<void> {
     }
     printDirectPlanMeasurement(
       await measurePreparedExactRequestSurfaceScenario(baseConfig, paramGraph, measuredScenario, 0),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.name !== 'generated client serialize blog feed by author / nested rows warmed cache') {
+      continue
+    }
+
+    const measuredScenario: GeneratedClientScenario = {
+      name: 'generated client prepared operation blog feed by author / nested rows warmed cache',
+      iterations: scenario.iterations,
+      query: scenario.query(0),
+      resultSet: scenario.resultSet,
+      adapterFactory: scenario.adapterFactory,
+      operation: (client, iteration) => client._preparedOperations.blogFeedByAuthorPostListV1_0(iteration + 42),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureGeneratedClientScenario(
+        baseConfig,
+        measuredScenario,
+        'request',
+        undefined,
+        createBenchmarkPreparedOperationRegistry(),
+      ),
     )
   }
 

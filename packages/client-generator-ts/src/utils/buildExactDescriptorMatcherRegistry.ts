@@ -343,6 +343,7 @@ function buildTemplateDescriptorMatcherRegistry(
     .join('\n\n')
 
   const templateBinders = templates.map(buildTemplateBinder).join('\n')
+  const preparedOperationRegistry = buildPreparedOperationRegistry(templates)
 
   return `const __internalExactDescriptorFlatRegistry = ${factoryExpression}(${JSON.stringify(flatSpecs, null, 2)})
 config.descriptorMatcherRegistry = {
@@ -353,8 +354,264 @@ ${templateCases}
   },
 }
 
+${preparedOperationRegistry}
 ${templateBinders}
 ${blogPagePostV1TemplateSupportCode}`
+}
+
+function buildPreparedOperationRegistry(templates: ExactDescriptorMatcherTemplateSpec[]): string {
+  const preparedTemplates = templates
+    .map((template, index) => ({ template, index }))
+    .filter(
+      (entry): entry is { template: ExactDescriptorMatcherBlogFeedByAuthorTemplateSpec; index: number } =>
+        entry.template.templateName === 'blogFeedByAuthorPostListV1',
+    )
+
+  if (preparedTemplates.length === 0) {
+    return ''
+  }
+
+  const entries = preparedTemplates
+    .map(({ index }) => {
+      const operationName = JSON.stringify(`blogFeedByAuthorPostListV1_${index}`)
+      return `      ${operationName}: __internalPreparedOperationBlogFeedByAuthorPostListV1_${index}(client)`
+    })
+    .join(',\n')
+  const factories = preparedTemplates
+    .map(({ template, index }) => buildBlogFeedByAuthorPostListV1PreparedOperation(template, index))
+    .join('\n')
+
+  return `config.preparedOperationRegistry = {
+  create(client) {
+    return {
+${entries}
+    }
+  },
+}
+
+${factories}`
+}
+
+function buildBlogFeedByAuthorPostListV1PreparedOperation(
+  template: ExactDescriptorMatcherBlogFeedByAuthorTemplateSpec,
+  index: number,
+): string {
+  const model = JSON.stringify(template.model)
+  const clientMethod = JSON.stringify(`${dmmfToJSModelName(template.model)}.${template.action}.preparedExact`)
+  const field = JSON.stringify(template.field)
+  const protocolQuery = JSON.stringify(createBlogFeedByAuthorPostListV1ProtocolQuery(template), null, 2)
+  const select = JSON.stringify(createBlogPagePostV1ArgsSelect(), null, 2)
+
+  return `function __internalPreparedOperationBlogFeedByAuthorPostListV1_${index}(client) {
+  const protocolQuery = ${protocolQuery}
+  let cachedHit
+  let valuePlaceholder
+
+  return (authorId) => {
+    if (!__internalExactDescriptorIsInt32(authorId)) {
+      throw new Error('Expected prepared authorId to be an int32')
+    }
+
+    if (
+      client._engineConfig.adapter === undefined ||
+      client._engineConfig.sqlCommenters !== undefined ||
+      !client._extensions.isEmpty() ||
+      client._globalOmit !== undefined ||
+      client._tracingHelper.isEnabled() ||
+      client._isClientDebugEnabled() ||
+      typeof client._engine.getPrecomputedQueryPlanCacheHit !== 'function' ||
+      typeof client._engine.requestPrecomputedCachedResult !== 'function'
+    ) {
+      return client.post.findMany(__internalPreparedOperationBlogFeedByAuthorPostListV1Args_${index}(authorId))
+    }
+
+    if (cachedHit === undefined) {
+      const hit = client._engine.getPrecomputedQueryPlanCacheHit(protocolQuery)
+      if (hit === undefined) {
+        return client.post.findMany(__internalPreparedOperationBlogFeedByAuthorPostListV1Args_${index}(authorId))
+      }
+
+      const entries = Object.entries(hit.placeholderValues)
+      if (entries.length !== 1 || !Object.is(entries[0][1], 0)) {
+        return client.post.findMany(__internalPreparedOperationBlogFeedByAuthorPostListV1Args_${index}(authorId))
+      }
+
+      cachedHit = hit
+      valuePlaceholder = entries[0][0]
+    }
+
+    const args = { authorId }
+    return client._createPrismaPromise(
+      () =>
+        client._requestHandler.requestPrecomputedCachedResult({
+          protocolQuery,
+          dataPath: [],
+          action: 'findMany',
+          modelName: ${model},
+          clientMethod: ${clientMethod},
+          extensions: client._extensions,
+          args,
+          precomputedQueryPlanCacheHit: {
+            cacheKey: cachedHit.cacheKey,
+            placeholderValues: { [valuePlaceholder]: authorId },
+            parameterizedQuery: cachedHit.parameterizedQuery,
+          },
+        }),
+      {
+        action: 'findMany',
+        args,
+        model: ${model},
+      },
+    )
+  }
+}
+
+function __internalPreparedOperationBlogFeedByAuthorPostListV1Args_${index}(authorId) {
+  return {
+    where: { [${field}]: authorId },
+    take: 10,
+    orderBy: [{ createdAt: 'desc' }],
+    select: ${select},
+  }
+}
+`
+}
+
+function createBlogFeedByAuthorPostListV1ProtocolQuery(
+  template: ExactDescriptorMatcherBlogFeedByAuthorTemplateSpec,
+): Record<string, unknown> {
+  return {
+    modelName: template.model,
+    action: 'findMany',
+    query: {
+      arguments: {
+        where: { [template.field]: 0 },
+        take: 10,
+        orderBy: [{ createdAt: 'desc' }],
+      },
+      selection: createBlogPagePostV1ProtocolSelection(),
+    },
+  }
+}
+
+function createBlogPagePostV1ProtocolSelection(): Record<string, unknown> {
+  return {
+    id: true,
+    title: true,
+    slug: true,
+    content: true,
+    published: true,
+    viewCount: true,
+    createdAt: true,
+    author: {
+      selection: {
+        id: true,
+        name: true,
+        avatar: true,
+      },
+    },
+    category: {
+      selection: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    },
+    tags: {
+      selection: {
+        tag: {
+          selection: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    },
+    comments: {
+      arguments: {
+        take: 10,
+        orderBy: [{ createdAt: 'desc' }],
+      },
+      selection: {
+        id: true,
+        content: true,
+        createdAt: true,
+        author: {
+          selection: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    },
+    _count: {
+      selection: {
+        likes: true,
+        comments: true,
+      },
+    },
+  }
+}
+
+function createBlogPagePostV1ArgsSelect(): Record<string, unknown> {
+  return {
+    id: true,
+    title: true,
+    slug: true,
+    content: true,
+    published: true,
+    viewCount: true,
+    createdAt: true,
+    author: {
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+      },
+    },
+    category: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    },
+    tags: {
+      select: {
+        tag: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    },
+    comments: {
+      take: 10,
+      orderBy: [{ createdAt: 'desc' }],
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    },
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+      },
+    },
+  }
 }
 
 function getTemplateBinderFunctionName(template: ExactDescriptorMatcherTemplateSpec, index: number): string {

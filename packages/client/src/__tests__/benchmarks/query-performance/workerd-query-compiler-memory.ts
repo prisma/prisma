@@ -817,8 +817,12 @@ function createBlogPostFeedArgs() {
 }
 
 function createBlogPostFeedByAuthorArgs(iteration) {
+  return createBlogPostFeedByAuthorArgsForAuthorId(iteration + 42)
+}
+
+function createBlogPostFeedByAuthorArgsForAuthorId(authorId) {
   return {
-    where: { authorId: iteration + 42 },
+    where: { authorId },
     take: 10,
     orderBy: [{ createdAt: 'desc' }],
     select: createBlogPostPageSelect((1 << blogPageRootScalarFields.length) - 1),
@@ -3618,6 +3622,146 @@ async function runClientPreparedExactOperationScenario(scenario, iterations, sur
   }
 }
 
+function createGeneratedPreparedOperationRegistry() {
+  return {
+    create(client) {
+      const protocolQuery = createClientProtocolQuery('blog-feed-by-author', -42)
+      let cachedHit
+      let valuePlaceholder
+
+      return {
+        blogFeedByAuthorPostListV1_0(authorId) {
+          if (!isInt32(authorId)) {
+            throw new Error('Expected prepared authorId to be an int32')
+          }
+
+          if (
+            client._engineConfig.adapter === undefined ||
+            client._engineConfig.sqlCommenters !== undefined ||
+            !client._extensions.isEmpty() ||
+            client._globalOmit !== undefined ||
+            client._tracingHelper.isEnabled() ||
+            client._isClientDebugEnabled() ||
+            typeof client._engine.getPrecomputedQueryPlanCacheHit !== 'function' ||
+            typeof client._engine.requestPrecomputedCachedResult !== 'function'
+          ) {
+            return client.post.findMany(createBlogPostFeedByAuthorArgsForAuthorId(authorId))
+          }
+
+          if (cachedHit === undefined) {
+            const hit = client._engine.getPrecomputedQueryPlanCacheHit(protocolQuery)
+            if (hit === undefined) {
+              return client.post.findMany(createBlogPostFeedByAuthorArgsForAuthorId(authorId))
+            }
+
+            const entries = Object.entries(hit.placeholderValues)
+            if (entries.length !== 1 || !Object.is(entries[0][1], 0)) {
+              return client.post.findMany(createBlogPostFeedByAuthorArgsForAuthorId(authorId))
+            }
+
+            cachedHit = hit
+            valuePlaceholder = entries[0][0]
+          }
+
+          const args = { authorId }
+          return client._createPrismaPromise(
+            () =>
+              client._requestHandler.requestPrecomputedCachedResult({
+                protocolQuery,
+                dataPath: [],
+                action: 'findMany',
+                modelName: 'Post',
+                clientMethod: 'post.findMany.preparedExact',
+                extensions: client._extensions,
+                args,
+                precomputedQueryPlanCacheHit: {
+                  cacheKey: cachedHit.cacheKey,
+                  placeholderValues: { [valuePlaceholder]: authorId },
+                  parameterizedQuery: cachedHit.parameterizedQuery,
+                },
+              }),
+            {
+              action: 'findMany',
+              args,
+              model: 'Post',
+            },
+          )
+        },
+      }
+    },
+  }
+}
+
+async function runClientGeneratedPreparedOperationScenario(scenario, iterations) {
+  if (scenario !== 'blog-feed-by-author') {
+    throw new Error('Generated prepared operation only supports blog-feed-by-author')
+  }
+
+  const Client = getPrismaClientConstructor()
+  const client = new Client({
+    adapter: createAdapterFactory(),
+    queryPlanCacheMaxSize: 100,
+    __internal: {
+      requestPrecomputedFastPath: true,
+      configOverride: (config) => ({
+        ...config,
+        preparedOperationRegistry: createGeneratedPreparedOperationRegistry(),
+      }),
+    },
+  })
+  const requestPrecomputedCachedResult = client._engine.requestPrecomputedCachedResult.bind(client._engine)
+  client._engine.requestPrecomputedCachedResult = (query, precomputedQueryPlanCacheHit, options) => {
+    counts.precomputedFastPathHits++
+    return requestPrecomputedCachedResult(query, precomputedQueryPlanCacheHit, options)
+  }
+
+  const startInit = performance.now()
+  await client.$connect()
+
+  try {
+    const preparedOperation = client._preparedOperations.blogFeedByAuthorPostListV1_0
+    await preparedOperation(42)
+
+    resetCounts()
+    let checksum = 0
+    const start = performance.now()
+
+    for (let i = 0; i < iterations; i++) {
+      checksum += checksumResult(await preparedOperation(i + 42))
+    }
+
+    const elapsedMs = performance.now() - start
+
+    return {
+      scenario,
+      mode: 'client-execute-generated-prepared-operation',
+      iterations,
+      retain: true,
+      initMs: performance.now() - startInit - elapsedMs,
+      elapsedMs,
+      averageUs: (elapsedMs * 1000) / iterations,
+      cacheHits: iterations,
+      cacheMisses: 0,
+      compileCount: counts.compile,
+      compileBatchCount: counts.compileBatch,
+      queryRawCount: counts.queryRaw,
+      executeRawCount: counts.executeRaw,
+      precomputedFastPathHits: counts.precomputedFastPathHits,
+      precomputedFastPathLearns: counts.precomputedFastPathLearns,
+      precomputedBatchHits: counts.precomputedBatchHits,
+      checksum,
+      retainedEntries: 0,
+      retainedCacheKeyBytes: 0,
+      retainedCacheKeyBreakdown: collectCacheKeyBreakdown([]),
+      retainedPlanSerializedBytes: 0,
+      averagePlanBytes: 0,
+      runtime: navigator.userAgent,
+    }
+  } finally {
+    await client.$disconnect()
+  }
+}
+
 export default {
   async fetch(request) {
     try {
@@ -3662,6 +3806,8 @@ export default {
         result = await runClientPreparedExactOperationScenario(scenario, iterations)
       } else if (mode === 'client-execute-prepared-exact-request-surface') {
         result = await runClientPreparedExactOperationScenario(scenario, iterations, 'request-surface')
+      } else if (mode === 'client-execute-generated-prepared-operation') {
+        result = await runClientGeneratedPreparedOperationScenario(scenario, iterations)
       } else if (mode === 'client-cache') {
         result = runClientCacheScenario(scenario, iterations, retain)
       } else if (mode === 'client-cache-key') {
@@ -3940,6 +4086,12 @@ async function runFocusedGeneratedMeasurements(clientMf: MiniflareInstance): Pro
       'blog-feed-by-author',
       GENERATED_BLOG_PAGE_ITERATIONS,
       'client-execute-prepared-exact-request-surface',
+    ],
+    [
+      'generated client prepared operation blog-feed-by-author warmed cache',
+      'blog-feed-by-author',
+      GENERATED_BLOG_PAGE_ITERATIONS,
+      'client-execute-generated-prepared-operation',
     ],
   ] as const
 

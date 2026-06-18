@@ -398,6 +398,75 @@ describe('buildExactDescriptorMatcherRegistry', () => {
       }),
     ).toBeUndefined()
   })
+
+  test('emits a prepared operation for the blog feed by author template', async () => {
+    const oracle = await createBlogPageOracle('findMany', 'post.findMany')
+    const { config } = createRegistryFromDatamodel(oracle.datamodel, [
+      'template:Post.findMany:authorId:blogFeedByAuthorPostListV1',
+    ])
+    const first = oracle.fromArgs(blogFeedByAuthorArgs(0, 10))
+    const next = oracle.fromArgs(blogFeedByAuthorArgs(43, 10))
+    const requestPrecomputedCachedResult = vi.fn().mockResolvedValue([{ id: 43 }])
+    const fallbackFindMany = vi.fn()
+    const getPrecomputedQueryPlanCacheHit = vi.fn(() => ({
+      cacheKey: first.cacheKey,
+      placeholderValues: first.placeholderValues,
+      parameterizedQuery: first.parameterizedQuery,
+    }))
+    const client = {
+      _engineConfig: {
+        adapter: {},
+        sqlCommenters: undefined,
+      },
+      _extensions: {
+        isEmpty: () => true,
+      },
+      _globalOmit: undefined,
+      _tracingHelper: {
+        isEnabled: () => false,
+      },
+      _isClientDebugEnabled: () => false,
+      _engine: {
+        getPrecomputedQueryPlanCacheHit,
+        requestPrecomputedCachedResult: vi.fn(),
+      },
+      _requestHandler: {
+        requestPrecomputedCachedResult,
+      },
+      _createPrismaPromise: vi.fn((callback) => callback()),
+      post: {
+        findMany: fallbackFindMany,
+      },
+    }
+
+    const prepared = config.preparedOperationRegistry.create(client).blogFeedByAuthorPostListV1_0
+
+    await expect(prepared(43)).resolves.toEqual([{ id: 43 }])
+    expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+    expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledWith(first.query)
+    expect(requestPrecomputedCachedResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocolQuery: first.query,
+        args: { authorId: 43 },
+        action: 'findMany',
+        modelName: 'Post',
+        clientMethod: 'post.findMany.preparedExact',
+        precomputedQueryPlanCacheHit: {
+          cacheKey: first.cacheKey,
+          placeholderValues: next.placeholderValues,
+          parameterizedQuery: first.parameterizedQuery,
+        },
+      }),
+    )
+    expect(
+      Object.keys(requestPrecomputedCachedResult.mock.calls[0][0].precomputedQueryPlanCacheHit.placeholderValues),
+    ).toEqual(Object.keys(next.placeholderValues))
+    expect(fallbackFindMany).not.toHaveBeenCalled()
+    expect(() => prepared(43.5)).toThrow('Expected prepared authorId to be an int32')
+
+    await prepared(44)
+    expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  })
 })
 
 function createRegistry(configValue: string[]) {
@@ -422,7 +491,7 @@ function createRegistryFromDatamodel(datamodel: DMMF.Datamodel, configValue: str
 
   vm.runInNewContext(code, { __factory: factory, config })
 
-  return { registry: config.descriptorMatcherRegistry, flatGetMatcher, flatMatcher, factory }
+  return { registry: config.descriptorMatcherRegistry, flatGetMatcher, flatMatcher, factory, config }
 }
 
 async function createBlogPageOracle(
@@ -463,6 +532,8 @@ async function createBlogPageOracle(
 
       return {
         cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+        query,
+        parameterizedQuery,
         descriptor: { root: buildLazyDescriptorNode(args, placeholderValues) },
         placeholderValues,
       }
