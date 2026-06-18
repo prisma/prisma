@@ -14692,6 +14692,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. The target rows did not improve on allocation count, and the `delete-one` count got worse. Keep the existing borrowed scalar selection plus owned selection-order helper; it is already the accepted 2026-06-08 improvement.
 
+- Deferred design lead: fused one-to-many nested `set` diffs need graph/result-binding support.
+  - Timestamp: 2026-06-18.
+  - Observation:
+    - In `query_graph_builder/write/nested/set_nested.rs`, non-empty one-to-many `set` builds two computation nodes: `DiffLeftToRight` for new children not yet connected and `DiffRightToLeft` for old children to disconnect.
+    - The two nodes duplicate the left/right projected dependency edges, and `translate.rs` emits two `Expression::Diff` nodes. This still looks like a plausible target for `update-set-nested`.
+  - Why not patched immediately:
+    - A single graph computation node cannot simply replace both nodes today. `ProjectedDataDependency` binds a source node's whole result or projected fields into the target node; the two downstream `If` / `UpdateManyRecords` branches need separately addressable left and right diff outputs.
+    - A real fused design likely needs either a graph dependency that can address named outputs from one computation node, or a new internal expression/runtime shape that returns both deltas and lets downstream edges bind one side. That is a broader graph/result-binding redesign, not a small graph-node deletion.
+  - Follow-up:
+    - Revisit as a larger slice if `update-set-nested` remains a priority. If a new compact expression shape is introduced, update Rust producer, TS query-plan types, interpreter, tests, and snapshots lockstep with no old/new compatibility branch.
+
+- Rejected experiment: branch-local nested update/upsert filter clone elision.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - `nested_upsert()` and `nested_update()` clone the child filter before `insert_find_children_by_parent_node()`. Some nested-only branches do not need the original filter after the read check, and some non-parent-inlined branches can move the original filter into the update node instead of cloning again.
+  - Patch tried:
+    - In `nested_upsert()`, parsed update args before the read-check node, tracked the filter with `Option<Filter>`, moved it into the read when no later branch needed it, and cloned only when the update branch or parent-inlined follow-up still needed a filter.
+    - In `nested_update()`, parsed update args before the read-check node, moved the filter into the read for nested-only updates, and otherwise cloned for the read and moved the original into the update.
+  - Allocation evidence:
+    - Patched command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,upsert-nested-only-update,update-set-nested-prisma#27650,update-set-nested,create-nested-connect,create-nested-connectOrCreate-mixed,query-m2o,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Patched result: no allocation-count movement on sampled rows versus the accepted baseline. Representative full-compile counts stayed `nested-upsert-nested-only 3008`, `upsert-nested-only-update 1892`, `update-set-nested-prisma#27650 1687`, `update-set-nested 1833`, `create-nested-connect 1336`, `create-nested-connectOrCreate-mixed 2434`, `query-m2o 549`, and `aggregate 607`.
+    - A close reverted-control rerun confirmed `upsert-nested-only-update` was already `1892`, so the apparent older `1895 -> 1892` delta was stale-baseline drift rather than this patch.
+  - Criterion evidence:
+    - Patched command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-upsert-nested-only|upsert-nested-only-update|update-set-nested-prisma#27650|update-set-nested|create-nested-connect|create-nested-connectOrCreate-mixed|query-m2o|aggregate)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - Patched medians were mixed/noisy without allocation support: `upsert-nested-only-update 229.06 us`, `nested-upsert-nested-only 361.14 us`, `update-set-nested 223.04 us`, `create-nested-connectOrCreate-mixed 301.50 us` with high outliers, `query-m2o 79.338 us`, and `aggregate 62.395 us`.
+  - Validation:
+    - Patched `cargo check -p query-compiler`: passed.
+    - Reverted allocation control returned the engines checkout to clean.
+  - Decision:
+    - Reverted. Branch-local filter clone elision did not move allocation counts on current fixtures, and the added `Option<Filter>` ownership plumbing is not worth keeping for byte-only/noisy timing effects. Revisit only with a fixture/profile proving the cloned filter payload is material.
+
 ## Useful Commands
 
 ```sh
