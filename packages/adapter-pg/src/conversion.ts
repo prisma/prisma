@@ -49,6 +49,10 @@ const ArrayColumnType = {
   XML_ARRAY: 143,
 }
 
+export type CustomTypeInfo = {
+  kind: 'enum-array'
+}
+
 export class UnsupportedNativeDataType extends Error {
   // map of type codes to type names
   static typeNames: { [key: number]: string } = {
@@ -180,7 +184,7 @@ export class UnsupportedNativeDataType extends Error {
  * module to see how other attributes of the field packet such as the field length are used to infer
  * the correct quaint::Value variant.
  */
-export function fieldToColumnType(fieldTypeId: number): ColumnType {
+export function fieldToColumnType(fieldTypeId: number, customTypeInfo?: CustomTypeInfo | null): ColumnType {
   switch (fieldTypeId) {
     case ScalarColumnType.INT2:
     case ScalarColumnType.INT4:
@@ -270,10 +274,22 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       // the serializer in QE because it has access to the query schema, while on
       // this level we would have to query the catalog to introspect the type.
       if (fieldTypeId >= FIRST_NORMAL_OBJECT_ID) {
+        if (customTypeInfo?.kind === 'enum-array') {
+          return ColumnTypeEnum.EnumArray
+        }
+
         return ColumnTypeEnum.Text
       }
       throw new UnsupportedNativeDataType(fieldTypeId)
   }
+}
+
+export function parseUserDefinedEnumArray(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value
+  }
+
+  return parseArray(value)
 }
 
 function normalize_array(element_normalizer: (string) => string): (string) => string[] {

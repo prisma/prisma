@@ -18,7 +18,14 @@ import pg from 'pg'
 
 import { name as packageName } from '../package.json'
 import { FIRST_NORMAL_OBJECT_ID } from './constants'
-import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
+import {
+  customParsers,
+  type CustomTypeInfo,
+  fieldToColumnType,
+  mapArg,
+  parseUserDefinedEnumArray,
+  UnsupportedNativeDataType,
+} from './conversion'
 import { convertDriverError } from './errors'
 
 const types = pg.types
@@ -31,6 +38,7 @@ type TransactionClient = pg.PoolClient
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
+  private readonly customTypeInfo = new Map<number, CustomTypeInfo | null>()
 
   constructor(
     protected readonly client: ClientT,
@@ -47,10 +55,11 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     const { fields, rows } = await this.performIO(query)
 
     const columnNames = fields.map((field) => field.name)
+    const customTypeInfo = await this.getCustomTypeInfo(fields.map((field) => field.dataTypeID))
     let columnTypes: ColumnType[] = []
 
     try {
-      columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
+      columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID, customTypeInfo.get(field.dataTypeID)))
     } catch (e) {
       if (e instanceof UnsupportedNativeDataType) {
         throw new DriverAdapterError({
@@ -68,6 +77,16 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID && !Object.hasOwn(customParsers, field.dataTypeID)) {
           for (let j = 0; j < rows.length; j++) {
             rows[j][i] = await udtParser(field.dataTypeID, rows[j][i], this)
+          }
+        }
+      }
+    }
+
+    if (!udtParser) {
+      for (let i = 0; i < fields.length; i++) {
+        if (customTypeInfo.get(fields[i].dataTypeID)?.kind === 'enum-array') {
+          for (let j = 0; j < rows.length; j++) {
+            rows[j][i] = parseUserDefinedEnumArray(rows[j][i])
           }
         }
       }
@@ -126,6 +145,46 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     } catch (e) {
       this.onError(e)
     }
+  }
+
+  private async getCustomTypeInfo(fieldTypeIds: number[]): Promise<Map<number, CustomTypeInfo | null>> {
+    const uncachedTypeIds = [
+      ...new Set(
+        fieldTypeIds.filter(
+          (fieldTypeId) =>
+            fieldTypeId >= FIRST_NORMAL_OBJECT_ID &&
+            !Object.hasOwn(customParsers, fieldTypeId) &&
+            !this.customTypeInfo.has(fieldTypeId),
+        ),
+      ),
+    ]
+
+    if (uncachedTypeIds.length === 0) {
+      return this.customTypeInfo
+    }
+
+    for (const fieldTypeId of uncachedTypeIds) {
+      this.customTypeInfo.set(fieldTypeId, null)
+    }
+
+    const typeInfo = await this.performIO({
+      sql: `
+        SELECT t.oid::int4, t.typtype = 'b' AND e.typtype = 'e'
+        FROM pg_type t
+        LEFT JOIN pg_type e ON t.typelem = e.oid
+        WHERE t.oid = ANY($1::oid[])
+      `,
+      args: [uncachedTypeIds],
+      argTypes: [{ arity: 'list', scalarType: 'int' }],
+    })
+
+    for (const [oid, isEnumArray] of typeInfo.rows) {
+      if (isEnumArray) {
+        this.customTypeInfo.set(oid, { kind: 'enum-array' })
+      }
+    }
+
+    return this.customTypeInfo
   }
 
   protected onError(error: unknown): never {

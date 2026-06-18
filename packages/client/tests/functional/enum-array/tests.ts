@@ -14,6 +14,10 @@ declare let loaded: {
 
 testMatrix.setupTestSuite(
   ({ driverAdapter, clientRuntime }, _suiteMeta, _clientMeta, _cliMeta, info) => {
+    beforeEach(async () => {
+      await prisma.user.deleteMany()
+    })
+
     test('can create data with an enum array', async () => {
       const { Plan } = loaded
 
@@ -42,6 +46,42 @@ testMatrix.setupTestSuite(
       expectTypeOf(data.plans).toEqualTypeOf<imports.Plan[]>()
       expect(data.plans).toEqual([Plan.FREE])
     })
+
+    testIf(driverAdapter === 'js_pg' && clientRuntime === 'client')(
+      'can retrieve data with an enum array with a raw query',
+      async () => {
+        const { Plan } = loaded
+
+        const users = await prisma.user.createManyAndReturn({
+          data: [
+            {
+              plans: [Plan.FREE, Plan.CUSTOM],
+            },
+            {
+              plans: [Plan.CUSTOM],
+            },
+          ],
+        })
+
+        const data = await prisma.$queryRaw<imports.User[]>`
+        SELECT * FROM "User" WHERE "plans" @> Array['CUSTOM']::"Plan"[]
+      `
+
+        expect(data).toHaveLength(2)
+        expect(data).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: users[0].id,
+              plans: [Plan.FREE, Plan.CUSTOM],
+            }),
+            expect.objectContaining({
+              id: users[1].id,
+              plans: [Plan.CUSTOM],
+            }),
+          ]),
+        )
+      },
+    )
 
     testIf(driverAdapter === 'js_pg' && clientRuntime === 'client')(
       'can retrieve data with an enum array with a raw query and a custom parser',
