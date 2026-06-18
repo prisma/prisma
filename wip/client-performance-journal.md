@@ -14588,6 +14588,23 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. The simple result-node preflight did not remove a measured phase on the sampled rows, and snapshot inspection still showed the candidate write rows shaped around the existing outer `dataMap`. Do not retry this as a standalone preflight/`ThrowOnEmpty` relaxation. A useful follow-up would need a deeper proof that the write expression's final result can bypass the graph-level mapper, not just that one descendant result read translates to raw-nested.
 
+- Rejected runtime lead: generic non-unique raw-result-set prototype for feed-by-author.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The existing benchmark-only raw-result-set prototype handles multi-root attachment generically. Temporarily wiring it to return arrays for non-unique feed rows could reveal a lower bound for a future non-unique final-owner writer/static-wave program.
+  - Patch tried:
+    - Locally extended `executeRawResultSetBlogPagePrototype()` in `client-engine-cache-timing.ts` to return `posts` instead of `posts[0]` for `rawNestedUnique: false`, and allowed the prototype/exact-prototype loops to run for `blog feed by author`.
+  - Measurement:
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set prototype blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Result: `raw result-set prototype blog feed by author / nested rows` measured `8.35 us/op`.
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='raw result-set exact prototype blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Result: `raw result-set exact prototype blog feed by author / nested rows` measured `8.23 us/op`.
+    - Same-session current product/lower-bound context from the refreshed feed run: `direct plan blog feed by author` was `7.50 us/op`, `raw result-set compact node` was `7.45`, and `raw result-set exact compact node` was `7.51`.
+  - Decision:
+    - Reverted. The generic prototype is slower than the current compact-node/product direct path for this feed shape, so it is not a useful lower bound. A future non-unique writer/static-wave experiment must own the whole phase more specifically than the generic prototype and should not be justified by this row.
+
 ## Useful Commands
 
 ```sh
