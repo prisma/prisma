@@ -406,7 +406,7 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     ])
     const first = oracle.fromArgs(blogFeedByAuthorArgs(0, 10))
     const next = oracle.fromArgs(blogFeedByAuthorArgs(43, 10))
-    const requestPrecomputedCachedResult = vi.fn().mockResolvedValue([{ id: 43 }])
+    const requestPreparedReadPrecomputedCachedResult = vi.fn().mockResolvedValue([{ id: 43 }])
     const fallbackFindMany = vi.fn()
     const getPrecomputedQueryPlanCacheHit = vi.fn(() => ({
       cacheKey: first.cacheKey,
@@ -431,7 +431,7 @@ describe('buildExactDescriptorMatcherRegistry', () => {
         requestPrecomputedCachedResult: vi.fn(),
       },
       _requestHandler: {
-        requestPrecomputedCachedResult,
+        requestPreparedReadPrecomputedCachedResult,
       },
       _createPrismaPromise: vi.fn((callback) => callback()),
       post: {
@@ -444,23 +444,21 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     await expect(prepared(43)).resolves.toEqual([{ id: 43 }])
     expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
     expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledWith(first.query)
-    expect(requestPrecomputedCachedResult).toHaveBeenCalledWith(
-      expect.objectContaining({
-        protocolQuery: first.query,
-        args: { authorId: 43 },
-        action: 'findMany',
-        modelName: 'Post',
-        clientMethod: 'post.findMany.preparedExact',
-        precomputedQueryPlanCacheHit: {
-          cacheKey: first.cacheKey,
-          placeholderValues: next.placeholderValues,
-          parameterizedQuery: first.parameterizedQuery,
-        },
-      }),
+    expect(requestPreparedReadPrecomputedCachedResult).toHaveBeenCalledWith(
+      first.query,
+      {
+        cacheKey: first.cacheKey,
+        placeholderValues: next.placeholderValues,
+        parameterizedQuery: first.parameterizedQuery,
+      },
+      { authorId: 43 },
+      'findMany',
+      'Post',
+      'post.findMany.preparedExact',
     )
-    expect(
-      Object.keys(requestPrecomputedCachedResult.mock.calls[0][0].precomputedQueryPlanCacheHit.placeholderValues),
-    ).toEqual(Object.keys(next.placeholderValues))
+    expect(Object.keys(requestPreparedReadPrecomputedCachedResult.mock.calls[0][1].placeholderValues)).toEqual(
+      Object.keys(next.placeholderValues),
+    )
     expect(fallbackFindMany).not.toHaveBeenCalled()
     expect(() => prepared(43.5)).toThrow('Expected prepared authorId to be an int32')
 

@@ -252,6 +252,66 @@ export class RequestHandler {
     }
   }
 
+  requestPreparedReadPrecomputedCachedResult(
+    protocolQuery: JsonQuery,
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    args: JsArgs,
+    action: Action,
+    modelName: string,
+    clientMethod: string,
+  ): Promise<any> {
+    const engine = this.client._engine as EngineWithPrecomputedCachedResult
+    if (engine.requestPrecomputedCachedResult === undefined) {
+      return this.request({
+        protocolQuery,
+        dataPath: [],
+        action,
+        modelName,
+        clientMethod,
+        extensions: this.client._extensions,
+        args,
+        precomputedQueryPlanCacheHit,
+      })
+    }
+
+    try {
+      return engine
+        .requestPrecomputedCachedResult(protocolQuery, precomputedQueryPlanCacheHit, {
+          isWrite: false,
+        })
+        .then((result) => (clientGetTime ? { data: result } : result))
+        .catch((error) =>
+          this.handleRequestErrorForParams(
+            {
+              protocolQuery,
+              dataPath: [],
+              action,
+              modelName,
+              clientMethod,
+              extensions: this.client._extensions,
+              args,
+              precomputedQueryPlanCacheHit,
+            },
+            error,
+          ),
+        )
+    } catch (error) {
+      this.handleRequestErrorForParams(
+        {
+          protocolQuery,
+          dataPath: [],
+          action,
+          modelName,
+          clientMethod,
+          extensions: this.client._extensions,
+          args,
+          precomputedQueryPlanCacheHit,
+        },
+        error,
+      )
+    }
+  }
+
   private trySingleLoaderPrecomputedCachedResult(params: RequestParams): Promise<any> | undefined {
     const engine = this.client._engine as EngineWithPrecomputedCachedResult
     if (

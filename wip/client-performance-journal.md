@@ -14826,6 +14826,62 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. Local-reference/static-guard factoring is a standalone regression on the main Node gate. A follow-up semantics scout found the adapter/sql-commenter/global-omit/engine-method/extension structure checks are mostly static per constructed client and could be hoisted safely, while tracing/debug must remain dynamic; the timing result still rejects this exact factoring as a standalone cleanup.
     - Do not retry this exact approach as a generated prepared-helper cleanup; the next gap-closing attempt needs a different hypothesis, such as removing object allocation or changing the generated operation surface rather than reshaping property reads.
 
+- Accepted experiment: narrow prepared-read RequestHandler surface for generated prepared helper.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The generated prepared helper still allocated a full generic `RequestParams` object for a known guarded read-only cached-result call.
+    - A narrow request-handler method could preserve error mapping and `PrismaPromise` behavior while avoiding generic request-shape allocation, generic `isWrite(protocolQuery.action)`, and unused transaction/dataPath/unpacker fields on this generated prepared path.
+  - Patch kept:
+    - Added `RequestHandler.requestPreparedReadPrecomputedCachedResult(protocolQuery, precomputedQueryPlanCacheHit, args, action, modelName, clientMethod)` for prepared read-only cached-result calls.
+    - Routed the internal `blogFeedByAuthorPostListV1_<index>` generated prepared operation through this narrow surface in the JS and TS generator output.
+    - Kept the fallback through the normal `findMany` args builder when the prepared helper guards fail.
+    - Updated Node and Workerd benchmark mirrors to measure the same generated helper shape.
+  - Test/build evidence:
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 16 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 16 tests.
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`: passed, 8 tests.
+    - `pnpm --filter @prisma/client build`: passed with escalation because sandboxed `tsx` IPC failed with `listen EPERM ... /tmp/tsx-501/26.pipe`.
+  - Node timing evidence:
+    - Patched initial 300k generated prepared row:
+      - `7.85 us/op`, `queryRaw=2100000`.
+    - Close reverse/reapply:
+      - Reverted control generated prepared: `8.03 us/op`.
+      - Reapplied generated prepared: `7.82 us/op`.
+    - Post-build adjacent 300k rows:
+      - Generated prepared / exact-helper / prepared request-surface: `8.06 / 9.20 / 7.86 us/op`.
+    - Interpretation: small/noisy Node improvement, still clearly below exact-helper and close to the request-surface lower bound.
+  - Workerd timing evidence:
+    - Command:
+      - `WORKERD_QUERY_COMPILER_MEMORY_FILTER='generated client prepared operation blog-feed-by-author' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts`
+    - Result:
+      - Generated prepared request loop: `6.70 us/op`, `20000/0` cache hits/misses, `queryRaw=140000`.
+      - Adjacent generated exact-helper / prepared request-surface rows: `8.10 / 6.50 us/op`.
+      - Prior kept Workerd generated prepared row was `7.20 us/op`.
+  - Decision:
+    - Keep. The patch is small, semantically narrow, and target-runtime-positive while Node is neutral-to-slightly-positive.
+    - Do not broaden this method into a generic RequestHandler shortcut without new call shapes and gates. It is currently intended for generated prepared read-only cached hits with no transaction, dataPath, unpacker, tracing, debug, SQL commenters, global omit, or extensions.
+
+- New runtime leads from raw-nested by-author scout.
+  - Timestamp: 2026-06-18.
+  - Context:
+    - The current prepared/helper work is close to the direct/local execution floor for the by-author feed. The next larger gains likely need runtime/interpreter ownership changes, not more RequestHandler/property-read reshaping.
+  - Lead 1: specialize relation-op filtering.
+    - Files/functions: `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`, `tryCompileRawNestedFinalOwnerChildListRelation()` and `filterRawNestedRelationRows()`.
+    - Hypothesis: the by-author final-owner path carries no-cursor per-parent pagination ops; the current generic relation-op filter allocates/counts by parent before nested unique children are loaded. A compiled child-list `filterRows` closure for supported `skip === 0 && take != null` shapes might remove generic Map/counting overhead without revisiting the rejected relation-rowset pre-indexing path.
+    - Gates: Node `direct plan blog feed by author / nested rows`, `local executor blog feed by author / nested rows`, `raw result-set compact node blog feed by author / nested rows`, plus generated exact/prepared by-author rows.
+  - Lead 2: coalesce non-unique final-owner page-scope extraction.
+    - Files/functions: `query-interpreter.ts` non-unique branch around `#tryCompileRawNestedFinalOwnerRead()` and `getRawNestedScopeValue()`.
+    - Hypothesis: wrapper-source and child-list relations share the same root-key column, but the non-unique branch can rescan root rows to build scopes for first-wave relation queries. A tiny per-execution column-index scope cache could remove duplicate scans while preserving current dedupe and Set-threshold semantics.
+    - Gates: Node `direct plan blog feed by author / nested rows`, `direct plan after phase warmup blog feed by author / nested rows`, `local executor blog feed by author / nested rows`, and `direct plan blog feed / nested rows`.
+  - Lead 3: plan-specific non-unique final-owner schedule.
+    - Files/functions: `query-interpreter.ts` `#tryCompileRawNestedFinalOwnerRead()` and per-root assembly helpers.
+    - Hypothesis: the remaining raw-nested headroom likely needs a strict compiled schedule that owns wave scopes, relation-op filtering, row writing, and final attachment for one supported topology. This should not be another one-root branch, Map pre-index, single-pass root-slot writer, or second-wave scheduling tweak.
+    - Gates: 300k `direct plan blog feed by author / nested rows` first, then `local executor`, generated prepared/exact by-author, and Workerd `blog-feed-by-author`.
+  - Lead 4: prepared interpreter execution for the no-comment/no-transaction local path.
+    - Files/functions: `packages/client/src/runtime/core/engines/client/LocalExecutor.ts::execute()` and `QueryInterpreter.run()`.
+    - Hypothesis: `local executor` still adds wrapper/context work above direct interpreter execution. A benchmark-only `QueryInterpreter.prepare(plan)` shape could test whether preparing a runner for no SQL commenters, no instrumentation, and no transaction removes enough overhead. Do not thread another `ClientEngine` shortcut first because adjacent engine-boundary shortcuts have already been rejected.
+    - Gates: `local executor blog feed by author / nested rows` must improve without regressing `direct plan blog feed by author / nested rows`, `interpreter unit blog feed by author / nested rows`, and generated prepared/request-surface by-author rows.
+
 ## Useful Commands
 
 ```sh

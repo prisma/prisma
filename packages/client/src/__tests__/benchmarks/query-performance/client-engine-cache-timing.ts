@@ -1145,20 +1145,18 @@ function createBenchmarkPreparedOperationRegistry(): PreparedOperationRegistry {
           const args = { authorId }
           return client._createPrismaPromise(
             () =>
-              client._requestHandler.requestPrecomputedCachedResult({
+              client._requestHandler.requestPreparedReadPrecomputedCachedResult(
                 protocolQuery,
-                dataPath: [],
-                action: 'findMany',
-                modelName: 'Post',
-                clientMethod: 'post.findMany.preparedExact',
-                extensions: client._extensions,
-                args,
-                precomputedQueryPlanCacheHit: {
+                {
                   cacheKey: cachedHit.cacheKey,
                   placeholderValues: { [valuePlaceholder!]: authorId },
                   parameterizedQuery: cachedHit.parameterizedQuery,
                 },
-              }),
+                args,
+                'findMany',
+                'Post',
+                'post.findMany.preparedExact',
+              ),
             {
               action: 'findMany',
               args,

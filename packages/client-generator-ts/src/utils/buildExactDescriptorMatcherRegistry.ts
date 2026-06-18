@@ -443,20 +443,18 @@ function buildBlogFeedByAuthorPostListV1PreparedOperation(
     const args = { authorId }
     return client._createPrismaPromise(
       () =>
-        client._requestHandler.requestPrecomputedCachedResult({
+        client._requestHandler.requestPreparedReadPrecomputedCachedResult(
           protocolQuery,
-          dataPath: [],
-          action: 'findMany',
-          modelName: ${model},
-          clientMethod: ${clientMethod},
-          extensions: client._extensions,
-          args,
-          precomputedQueryPlanCacheHit: {
+          {
             cacheKey: cachedHit.cacheKey,
             placeholderValues: { [valuePlaceholder]: authorId },
             parameterizedQuery: cachedHit.parameterizedQuery,
           },
-        }),
+          args,
+          'findMany',
+          ${model},
+          ${clientMethod},
+        ),
       {
         action: 'findMany',
         args,
