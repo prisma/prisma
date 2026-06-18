@@ -14743,6 +14743,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. The helper reuse is mechanically fine, but it does not move the measured nested-write allocation counts.
 
+- Rejected experiment: queryless engine method for prepared cached results.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The prepared blog-feed-by-author benchmark still passed a static `protocolQuery` object and a newly allocated `PrecomputedQueryPlanCacheHit` object into `ClientEngine.requestPrecomputedCachedResult()`.
+    - An internal `requestPreparedCachedResult(cacheKey, parameterizedQuery, placeholderValues)` method could avoid the protocol-query argument and hit-object wrapper, compiling misses from the already mandatory `parameterizedQuery`.
+  - Patch tried:
+    - Added `ClientEngine.requestPreparedCachedResult()` that took `cacheKey`, `parameterizedQuery`, dynamic placeholder values, and optional custom fetch.
+    - Added a benchmark-only `prepared exact parameterized query blog feed by author / nested rows warmed cache` row in `client-engine-cache-timing.ts`.
+  - Timing evidence:
+    - 100k command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared exact' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - 100k result:
+      - Existing direct prepared / queryless prepared / request-surface prepared: `7.81 / 7.82 / 8.86 us/op`.
+    - 300k command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared exact' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - 300k result:
+      - Existing direct prepared / queryless prepared / request-surface prepared: `7.02 / 7.24 / 7.63 us/op`.
+  - Decision:
+    - Reverted. Removing only the static protocol-query argument and hit-object wrapper at the engine boundary is neutral-to-negative on CPU. Do not retry a queryless prepared engine method as a standalone cleanup; generated-owned prepared work still needs to remove larger phases together, such as public args construction, descriptor/protocol construction, structural identity, or plan/result transfer.
+
 ## Useful Commands
 
 ```sh
