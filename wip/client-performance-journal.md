@@ -15234,6 +15234,47 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The change removes a real hot translation container for the intended write rows, sampled controls stayed allocation-neutral, focused Criterion was neutral-to-positive, and the internal shape is replaced directly with no backward-compatibility branch.
 
+- Accepted change: skip identity parent bindings for projected dependencies.
+  - Timestamp: 2026-06-18.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `02404611763` (`Skip identity dependency bindings`).
+  - Patch:
+    - `NodeTranslator::process_child_with_dependencies()` now only builds the parent binding for a `ProjectedDataDependency` when that binding actually changes semantics: a row-count expectation or `RowSink::is_unique()` wrapper.
+    - The previous code always built `Binding::new(source.id(), Expression::Get { name: binding::node_result(source) })` and then filtered it out when name and expression were identical. This allocated the source id / `Cow` and transient binding for common non-query projected edges.
+    - Field bindings for query children are unchanged, and validated/unique parent bindings are still emitted.
+  - Allocation evidence:
+    - Patched run in `/tmp/prisma-engines-binding` used `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-binding-target`.
+    - Control run in `/home/aqrln.guest/prisma-engines` used separate `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-binding-control-target`.
+    - Both allocation runs used `ALLOC_PROFILE_ITERATIONS=100`, `ALLOC_PROFILE_WARMUP=10`, and the focused fixture set.
+    - `nested-upsert-nested-only`: `translate_ir/full_compile 1717/3002 -> 1713/2998`.
+    - `update-set-nested`: `1075/1821 -> 1061/1807`.
+    - `create-nested-connectOrCreate-mixed`: `1484/2422 -> 1474/2412`.
+    - `create-nested-connectOrCreate-one2m`: `1325/2137 -> 1321/2133`.
+    - `update-set-nested-prisma#27650`: `823/1684 -> 819/1680`.
+    - `upsert-nested-only-update`: `1153/1887 -> 1149/1883`.
+    - Controls stayed allocation-neutral: `create-nested-create 677/1223`, `query-m2o 308/549`, `query-many-m2m 406/714`, and `aggregate 242/607`.
+  - Criterion evidence:
+    - Broad patched/control passes and longer focused repeats were noisy, but no stable localized regression held after close repeats.
+    - Initial broad patched/control medians on the key changed rows:
+      - Patched: `mixed 297.48 us`, `update-set-nested 229.25`, `upsert-nested-only-update 235.93`.
+      - Control: `mixed 305.82 us`, `update-set-nested 233.04`, `upsert-nested-only-update 229.03`.
+    - Longer focused patched/control medians after repeats:
+      - Patched repeat: `mixed 288.64 us`, `update-set-nested 222.89`, `upsert-nested-only-update 233.54`.
+      - Control repeat: `mixed 289.42 us`, `update-set-nested 223.43`, `upsert-nested-only-update 231.22`.
+    - Interpretation: the first broad upsert row softened, but longer close repeats put all changed rows in the same band, with mixed/update neutral-to-positive and upsert within noise. Keep as a small allocation cleanup, not a headline timing win.
+  - Verification:
+    - In temp checkout:
+      - `cargo fmt -p query-compiler`: passed.
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-binding-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 CARGO_BUILD_JOBS=4 cargo check -p query-compiler --release`: passed.
+      - Same target/settings with `cargo test -p query-compiler --test queries`: passed.
+      - `git diff --check`: passed.
+    - In real `/home/aqrln.guest/prisma-engines` after applying:
+      - `git diff --check`: passed.
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-binding-control-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 CARGO_BUILD_JOBS=4 cargo check -p query-compiler --release`: passed.
+      - Same target/settings with `cargo test -p query-compiler --test queries`: passed.
+  - Decision:
+    - Keep. The change removes identity bindings before allocation instead of constructing and filtering them, moves exactly the intended translation allocation rows, keeps sampled controls allocation-neutral, and did not show a stable timing regression in close Criterion repeats.
+
 ## Useful Commands
 
 ```sh
