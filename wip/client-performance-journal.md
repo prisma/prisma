@@ -15275,6 +15275,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The change removes identity bindings before allocation instead of constructing and filtering them, moves exactly the intended translation allocation rows, keeps sampled controls allocation-neutral, and did not show a stable timing regression in close Criterion repeats.
 
+- Rejected experiment: pre-size `ResultReachability::can_reach_result`.
+  - Timestamp: 2026-06-18.
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-reachability` on branch `reachability-presize-spike`.
+  - Patch:
+    - Added `QueryGraph::node_count()`.
+    - Changed `ResultReachability::new()` from `Vec::new()` plus `resize()` on first reach to `vec![false; graph.node_count()]`.
+  - Allocation evidence:
+    - Patched run used `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-reachability-target`.
+    - Control run used `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-reachability-control-target`.
+    - Both used `ALLOC_PROFILE_ITERATIONS=100`, `ALLOC_PROFILE_WARMUP=10`, and the focused fixture set.
+    - Intended nested-write rows were unchanged:
+      - `nested-upsert-nested-only`: `translate_ir/full_compile 1713/2998` patched and control.
+      - `update-set-nested`: `1061/1807` patched and control.
+      - `create-nested-connectOrCreate-mixed`: `1474/2412` patched and control.
+      - `create-nested-connectOrCreate-one2m`: `1321/2133` patched and control.
+      - `update-set-nested-prisma#27650`: `819/1680` patched and control.
+      - `upsert-nested-only-update`: `1149/1883` patched and control.
+      - `create-nested-create`: `677/1223` patched and control.
+    - Read/aggregate controls regressed by one allocation:
+      - `query-m2o`: `308/549 -> 309/550`.
+      - `query-many-m2m`: `406/714 -> 407/715`.
+      - `aggregate`: `242/607 -> 243/608`.
+  - Verification:
+    - `git diff --check` passed in the side worktree.
+    - No Criterion run was taken because the allocation gate failed before timing.
+    - The side worktree patch was reverted, the temporary Cargo targets were cleaned, and the worktree was removed.
+  - Decision:
+    - Reject. Up-front allocation of the reachability bitmap does not help the targeted nested-write rows and worsens small read/aggregate graphs where the current grow-on-reach vector stays cheaper.
+
 ## Useful Commands
 
 ```sh
