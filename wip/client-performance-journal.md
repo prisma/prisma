@@ -15069,6 +15069,96 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. Removing the filtered child-row array and target-record staging by itself does not recover the benchmark schedule lower bound; it worsens the direct and raw compact gates and leaves local worse than the control.
     - Do not retry this exact productization slice. The remaining schedule gap is likely in the generic row writers and relation-specific attachment/mapping as a whole, not just the child-row filter staging.
 
+- Verification refresh: restarted builds after harness restart.
+  - Timestamp: 2026-06-18.
+  - Commands:
+    - `pnpm --filter @prisma/client-engine-runtime build`
+    - `pnpm --filter @prisma/client build`
+  - Result:
+    - Both builds initially failed inside the sandbox with the known `tsx` IPC error: `listen EPERM: operation not permitted /tmp/tsx-501/26.pipe`.
+    - Rerunning the same commands with escalation passed. `@prisma/client` rebuilt the client, browser, `wasm-compiler-edge`, and provider-specific query compiler Wasm runtime bundles.
+    - `/home/aqrln.guest/prisma` and `/home/aqrln.guest/prisma-engines` stayed clean after the rebuilds.
+  - Post-rebuild Node smoke:
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Key 100k rows:
+      - `generated client blog feed by author / nested rows warmed cache`: `11.30 us/op`, `queryRaw=700000`.
+      - `generated client prepared operation blog feed by author / nested rows warmed cache`: `8.62 us/op`, `queryRaw=700000`, `precomputedHits=100000`.
+      - `generated client exact descriptor helper blog feed by author / nested rows warmed cache`: `9.98 us/op`, `queryRaw=700000`, `precomputedHits=100000`.
+      - `generated client descriptor-bound static matcher blog feed by author / nested rows warmed cache`: `10.39 us/op`.
+      - `prepared exact operation blog feed by author / nested rows warmed cache`: `7.99 us/op`.
+      - `prepared exact request surface blog feed by author / nested rows warmed cache`: `8.47 us/op`.
+      - `client engine cached-result precomputed static protocol lazy descriptor blog feed by author / nested rows warmed cache`: `10.88 us/op`.
+      - `generated client serialize cache key blog feed by author / nested rows warmed cache`: `8.10 us/op`; `generated client lazy descriptor extract`: `3.53 us/op`.
+    - Interpretation:
+      - This is a smoke after rebuilding, not the headline close gate. It confirms the same ordering as the accepted 300k evidence: generated prepared stays ahead of exact-helper/default generated, and the remaining cost is larger than one small object or metadata allocation.
+
+- Architecture scout refresh: `serde_wasm_bindgen` versus JS-owned input.
+  - Timestamp: 2026-06-18.
+  - Scout:
+    - `Raman` (`019edab3-d1a0-7d10-9ec2-e757a709e7e0`) did a read-only boundary scan.
+  - Current boundaries:
+    - `packages/client/src/runtime/core/jsonProtocol/serializeJsonQuery.ts::serializeJsonQuery()` builds the JS JSON protocol object.
+    - `packages/client/src/runtime/getPrismaClient.ts::_executeRequest()` either reuses an internal `protocolQuery` or calls `serializeJsonQuery()` before `RequestHandler`.
+    - `packages/client/src/runtime/core/engines/client/ClientEngine.ts` calls `parameterizeQuery()`, stringifies `parameterizedQuery.query` for cache identity, and passes the request string into the Wasm compiler.
+    - `packages/client-common/src/QueryCompiler.ts` exposes `compile(request: string)` / `compileBatch(batchRequest: string)`.
+    - `query-compiler/query-compiler-wasm/src/compiler.rs` accepts `request: String`, calls `RequestBody::try_from_str()`, `into_doc()`, then `query_compiler::compile()`.
+    - `query-compiler/request-handlers/src/protocols/mod.rs` parses through `serde_json::from_str::<json::JsonBody>()`; `protocols/json/body.rs` owns strings, `IndexMap<String, serde_json::Value>` arguments, and selection maps; `protocols/json/protocol_adapter.rs` converts those into owned `Operation` / `Selection` / `ArgumentValue`.
+  - Assessment:
+    - The user's concern is correct: `tsify::serde_wasm_bindgen::from_value(request)?` would mostly remove string transport and JSON parse on the compile-miss boundary, but it would still build untyped Rust-owned maps before validation/parsing unless the request adapter itself is rewritten around JS-owned or borrowed views.
+    - It also does not remove today's JS `JSON.stringify(parameterizedQuery.query)` cache-key path. Hot cache hits should avoid entering Wasm at all, or use generated/static JS-owned views that do not materialize Rust protocol maps before a miss is known.
+    - The existing rejected `compileFromValue(JsValue)` spike remains the representative evidence: it was neutral-to-slower on compile misses because it still materialized today's owned Rust request structures.
+  - Next proof:
+    - Keep misses on the string path initially.
+    - Use one generated strict read shape to validate JS-owned args exactly, extract placeholders in descriptor order, and hit a cached plan/JS plan object without request serialization or Rust request materialization.
+    - If a deeper Wasm reference-type path is attempted later, it should introduce query-input view traits such as `PrismaString` / object views with Rust-owned unit-test implementations and JS-backed Wasm implementations, and materialize only real internal compiler IR on misses.
+    - Generic `js_sys::Reflect` walking is not enough; previous Reflect/value-walker evidence was slower than JS exact helpers and native stringification.
+
+- Scout: next Rust allocation candidate is `QueryGraph.visited` capacity.
+  - Timestamp: 2026-06-18.
+  - Scout:
+    - `Halley` (`019edab2-ad2d-7990-a144-920b4e626a71`) did a read-only query-compiler scout.
+  - Candidate:
+    - Add a small `QueryGraph` method around `core/src/query_graph/mod.rs`'s `visited: Vec<NodeIndex>` to reserve for `self.graph.node_count()` before translation starts.
+    - Call it once from `query-compiler/src/translate.rs::translate()` before root traversal. Every translated node currently calls `mark_visited()`, so nested-write `translate_ir` rows may pay avoidable vector growth while walking large graphs.
+  - Why this fits the current profile:
+    - It names one compile-local container and should mostly affect `translate_ir` / `full_compile` on nested-write rows such as `nested-upsert-nested-only`, `update-set-nested`, `create-nested-connectOrCreate-mixed`, and `create-nested-connectOrCreate-one2m`.
+    - It is not a broad `Arc` purge, arena rewrite, graph traversal rewrite, or old/new internal format change.
+  - Gates:
+    - Allocation profile should show `translate_ir` and `full_compile` allocation-count drops on named nested-write rows, not just byte movement.
+    - Controls such as `create-nested-create`, `query-m2o`, `query-many-m2m`, and `aggregate` must not regress allocation counts.
+    - Criterion must be neutral-to-positive in close patched/control/reapplied checks; reject on meaningful timing regression even if allocations fall.
+
+- Scout: ranked Rust allocation targets after current profile.
+  - Timestamp: 2026-06-18.
+  - Scout:
+    - `Pauli` (`019edab3-bc85-7963-9389-13e48454e979`) did a read-only query-compiler inspection.
+  - Constraint:
+    - Implementing any engines patch in-place needs write access outside this session's writable roots (`/home/aqrln.guest/prisma` and `/tmp`). Read-only inspection and cargo runs with `CARGO_TARGET_DIR=/tmp/...` are possible, but editing `/home/aqrln.guest/prisma-engines` requires an approved write path or a writable side worktree/copy.
+  - Candidate 1: direct placeholder storage for `Flow` / `Diff` projected inputs.
+    - Files/functions: `core/src/query_graph/mod.rs`, `core/src/query_graph_builder/inputs.rs`, `query-compiler/src/translate.rs`, and `query-compiler/src/selection.rs`.
+    - Current path stores `If`, `Return`, and `Diff` inputs as `Vec<SelectionResult>`, then translation immediately requires exactly one placeholder. A targeted shape could add a direct placeholder/single-projection sink for `IfInput`, `ReturnInput`, `LeftSideDiffInput`, and `RightSideDiffInput`, avoiding `vec![SelectionResult::new(fields)]` plus a secondary selection-result container.
+    - Expected rows: `nested-upsert-nested-only`, `update-set-nested`, `create-nested-connectOrCreate-mixed`, and `create-nested-connectOrCreate-one2m`; likely `translate_ir` more than `graph_build`.
+    - Avoid nearby rejected shapes: `DataRule` SmallVec, `Let.bindings` SmallVec, broad typed binding names, and `SelectionResult::from_selected_pairs()` as standalone changes.
+  - Candidate 2: fused one-to-many nested `set` bidirectional diff.
+    - Files/functions: `core/src/query_graph_builder/write/nested/set_nested.rs`, `core/src/query_graph/mod.rs`, and `query-compiler/src/expression.rs`.
+    - Current non-empty one-to-many `set` builds two diff computation nodes from the same old/new child result sets, with four projected edges, then emits two `Expression::Diff`s. A fused computation with separately addressable left/right outputs could remove one computation node, two edges, and one diff expression.
+    - Expected row: primarily `update-set-nested`; `update-set-nested-empty` is already specialized and should be a control.
+    - If this needs a new internal expression shape, update Rust producer, TS consumers, tests, snapshots, and fixtures lockstep with no old/new compatibility path.
+  - Candidate 3: branch-aware nested-upsert shared target-read proof.
+    - Files/functions: `core/src/query_graph_builder/write/nested/upsert_nested.rs`, `core/src/query_graph_builder/write/nested/mod.rs`, and the `nested-upsert-nested-only` snapshot.
+    - The hot fixture reads/connects the same `Category { id: 10 }` in both upsert branches. A viable proof needs branch-aware hoisting that preserves missing-target error order and shares the target read plus downstream branch result handling, not another local duplicate-read dedupe.
+    - Expected row: `nested-upsert-nested-only`; controls should include `create-nested-connectOrCreate-mixed`, `upsert-nested-only-update`, and `aggregate`.
+    - Avoid retrying the exact-match duplicate target-read sharing spike; it regressed `nested-upsert-nested-only`.
+  - Candidate 4: selective reuse of projected dependency binding names.
+    - Files/functions: `query-compiler/src/binding.rs` and `query-compiler/src/translate.rs`.
+    - Translation formats the same node-result and projected-field names in binding creation and edge-selection transformation. A narrow cache/reuse path for one-field ID projections might remove duplicate string allocations without changing the public expression format.
+    - Expected rows: nested-write translation rows.
+    - Avoid the broad `BindingName` replacement and the manual projected-binding loop; both saved allocations in some places but failed timing or regressed connect-or-create rows.
+  - Prioritization:
+    - `QueryGraph.visited` reserve is the cheapest first spike because it is one local container with a simple keep/reject gate.
+    - Direct placeholder storage is the most plausible larger Rust design from this scout, but it changes more graph/translation plumbing and should be done with close allocation plus Criterion gates.
+
 ## Useful Commands
 
 ```sh
