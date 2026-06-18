@@ -14808,6 +14808,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - It is still internal and shape-specific. Do not broaden to arbitrary user args, arbitrary `take`, generic recursive nested matching, or a transparent normal-delegate hook without new oracle coverage and same-runtime gates.
     - Follow-up should reduce the remaining gap to prepared request-surface lower bounds by trimming per-call guards/allocation in the generated closure or by designing a public/generated operation surface. Keep fallbacks semantically conservative.
 
+- Rejected experiment: local-reference/static-guard factoring in generated prepared helper.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The kept generated prepared helper still re-read several stable client properties on each call: `_engine`, `_requestHandler`, `_createPrismaPromise`, `_extensions`, `_tracingHelper`, `_isClientDebugEnabled`, and static engine/config support checks.
+    - Capturing those in the generated closure and precomputing the adapter/sql-commenter/engine-method guard might reduce the remaining gap to the prepared request-surface lower bound without changing the fallback shape.
+  - Patch tried:
+    - In both generator utilities and benchmark harnesses, captured local `engine`, `requestHandler`, `createPrismaPromise`, `extensions`, `tracingHelper`, and `isClientDebugEnabled` references at prepared-operation creation time.
+    - Replaced the per-call adapter/sql-commenter/engine-method guard with a precomputed `canUsePreparedFastPath`, while still checking extensions, global omit, tracing, and debug each call.
+  - Timing evidence:
+    - Command:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client prepared operation blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - Result:
+      - Patched generated prepared row: `8.37 us/op`, `queryRaw=2100000`.
+      - Prior kept baseline was `7.81 us/op` on the same 300k row.
+  - Decision:
+    - Reverted. Local-reference/static-guard factoring is a standalone regression on the main Node gate. A follow-up semantics scout found the adapter/sql-commenter/global-omit/engine-method/extension structure checks are mostly static per constructed client and could be hoisted safely, while tracing/debug must remain dynamic; the timing result still rejects this exact factoring as a standalone cleanup.
+    - Do not retry this exact approach as a generated prepared-helper cleanup; the next gap-closing attempt needs a different hypothesis, such as removing object allocation or changing the generated operation surface rather than reshaping property reads.
+
 ## Useful Commands
 
 ```sh
