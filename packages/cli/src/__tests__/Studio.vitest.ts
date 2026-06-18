@@ -82,6 +82,63 @@ vi.mock('@prisma/studio-core/data/postgresjs', () => {
   }
 })
 
+describe('Studio URL validation', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    createPoolMock.mockClear()
+    createPostgresJSExecutorMock.mockClear()
+    readFileMock.mockClear()
+    startStudioServerMock.mockClear()
+    serializeErrorMock.mockClear()
+  })
+
+  test('accepts sqlserver:// URLs (semicolon-delimited, not valid WHATWG URLs)', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      ['--browser', 'none', '--port', '5555', '--url', 'sqlserver://localhost;database=mydb;user=sa;password=secret'],
+      defaultTestConfig(),
+    )
+
+    // sqlserver:// skips URL.canParse validation, then hits "not supported"
+    expect(result).toBeInstanceOf(Error)
+    expect((result as Error).message).toBe(
+      'Prisma Studio is not supported for the "sqlserver" protocol.',
+    )
+  })
+
+  test('rejects invalid non-sqlserver URLs', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      ['--browser', 'none', '--port', '5555', '--url', 'not a valid url'],
+      defaultTestConfig(),
+    )
+
+    expect(result).toBeInstanceOf(Error)
+    expect((result as Error).message).toBe('The provided database URL is not valid.')
+  })
+
+  test('passes valid mysql:// URLs through unchanged', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      [
+        '--browser',
+        'none',
+        '--port',
+        '5555',
+        '--url',
+        'mysql://user:password@aws.connect.psdb.cloud/db',
+      ],
+      defaultTestConfig(),
+    )
+
+    expect(result).toBe('')
+    expect(createPoolMock).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('Studio MySQL URL compatibility', () => {
   beforeEach(() => {
     vi.resetModules()

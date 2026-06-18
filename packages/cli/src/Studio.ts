@@ -48,6 +48,14 @@ const PRISMA_LOGO_SVG_DATA_URL = `data:image/svg+xml,${encodeURIComponent(PRISMA
 const ACCELERATE_UNSUPPORTED_MESSAGE =
   'Prisma Studio no longer supports Accelerate URLs (`prisma://` or `prisma+postgres://`). Use a direct database connection string instead.'
 
+/**
+ * Protocols whose connection strings are not valid WHATWG URLs.
+ * URL.canParse would reject them, so we skip that validation.
+ *
+ * https://github.com/prisma/prisma/issues/29620
+ */
+const PROTOCOLS_SKIPPING_URL_VALIDATION = new Set(['sqlserver'])
+
 interface StudioStuff {
   adapter: StudioAdapterType
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
@@ -278,12 +286,9 @@ ${bold('Examples')}
       )
     }
 
-    // Extract protocol before URL validation, since MSSQL connection strings
-    // use semicolons instead of standard query parameters and are not valid WHATWG URLs.
-    // https://github.com/prisma/prisma/issues/29620
-    const protocol = connectionString.split('://')[0]?.toLowerCase() ?? ''
+    const protocol = connectionString.split('://')[0].toLowerCase()
 
-    if (protocol !== 'sqlserver' && !URL.canParse(connectionString)) {
+    if (!PROTOCOLS_SKIPPING_URL_VALIDATION.has(protocol) && !URL.canParse(connectionString)) {
       return new UserFacingError('The provided database URL is not valid.')
     }
 
