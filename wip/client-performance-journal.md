@@ -15156,8 +15156,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Expected rows: nested-write translation rows.
     - Avoid the broad `BindingName` replacement and the manual projected-binding loop; both saved allocations in some places but failed timing or regressed connect-or-create rows.
   - Prioritization:
-    - `QueryGraph.visited` reserve is the cheapest first spike because it is one local container with a simple keep/reject gate.
+    - `QueryGraph.visited` reserve was the cheapest first spike because it is one local container with a simple keep/reject gate. It has now been accepted in engines commit `b2377d67f39`.
     - Direct placeholder storage is the most plausible larger Rust design from this scout, but it changes more graph/translation plumbing and should be done with close allocation plus Criterion gates.
+
+- Accepted change: reserve `QueryGraph.visited` before translation.
+  - Timestamp: 2026-06-18.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `b2377d67f39` (`Reserve query graph visited capacity`).
+  - Patch:
+    - Added `QueryGraph::reserve_visited_capacity()` in `query-compiler/core/src/query_graph/mod.rs`.
+    - `query-compiler/src/translate.rs::translate()` calls it once after result reachability is built and before root traversal starts.
+    - This pre-sizes the compile-local visited vector to the current graph node count, avoiding growth reallocations while translation calls `mark_visited()` for each translated node.
+  - Allocation evidence:
+    - Baseline command in `/home/aqrln.guest/prisma-engines`, then patched command in `/tmp/prisma-engines-visited`, both with `CARGO_TARGET_DIR=/tmp/prisma-engines-visited-target`, `ALLOC_PROFILE_ITERATIONS=100`, `ALLOC_PROFILE_WARMUP=10`, and the focused fixture set.
+    - `nested-upsert-nested-only`: `translate_ir/full_compile 1723/3008 -> 1721/3006`.
+    - `update-set-nested`: `1087/1833 -> 1085/1831`.
+    - `create-nested-connectOrCreate-mixed`: `1496/2434 -> 1494/2432`.
+    - `create-nested-connectOrCreate-one2m`: `1330/2142 -> 1329/2141`.
+    - `update-set-nested-prisma#27650`: `826/1687 -> 825/1686`.
+    - Controls stayed allocation-neutral: `create-nested-create 677/1223`, `query-m2o 308/549`, `query-many-m2m 406/714`, and `aggregate 242/607`.
+  - Criterion evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-visited-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-upsert-nested-only|update-set-nested|create-nested-connectOrCreate-mixed|create-nested-connectOrCreate-one2m|update-set-nested-prisma#27650|create-nested-create|query-m2o|query-many-m2m|aggregate)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+    - First patched medians:
+      - `aggregate 63.085 us`, `create-nested-connectOrCreate-mixed 312.45`, `create-nested-connectOrCreate-one2m 267.78`, `create-nested-create 151.94`, `nested-upsert-nested-only 374.19`, `query-m2o 80.816`, `query-many-m2m 90.643`, `update-set-nested-prisma#27650 196.23`, `update-set-nested 236.92`.
+    - Adjacent control medians:
+      - `aggregate 63.658 us`, `mixed 305.75`, `one2m 270.41`, `create 153.90`, `nested-upsert 378.60`, `query-m2o 80.700`, `query-many-m2m 93.454`, `update-set-nested-prisma#27650 209.69` with a high outlier, `update-set-nested 238.49`.
+    - Reapplied patched medians:
+      - `aggregate 64.747 us` with a high outlier, `mixed 302.31`, `one2m 268.09`, `create 151.93`, `nested-upsert 378.30`, `query-m2o 81.605`, `query-many-m2m 88.906`, `update-set-nested-prisma#27650 195.51`, `update-set-nested 228.87`.
+    - Interpretation: neutral-to-positive overall. The only concerning first patched/control comparison was the mixed row, but the reapply recovered it. Controls were noisy on `update-set-nested-prisma#27650` and `query-many-m2m`, so this is a small allocation cleanup, not a headline timing win.
+  - Verification:
+    - `git diff --check` in `/home/aqrln.guest/prisma-engines`: passed.
+    - A duplicate `cargo check -p query-compiler` and then `cargo check -p query-compiler --release` in the real engines checkout both failed before reaching the package because `/tmp/prisma-engines-visited-target` hit disk quota while building dependencies. The same patch had already compiled in the allocation and Criterion runs from the side clone.
+  - Decision:
+    - Keep. The patch is tiny, allocation counts move exactly on the intended translation rows, sampled controls stay allocation-neutral, and close Criterion is neutral-to-positive enough for a low-risk compile-local capacity cleanup.
 
 ## Useful Commands
 
