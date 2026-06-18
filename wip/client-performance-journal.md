@@ -14572,6 +14572,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Kept and committed. This is a clean graph-node removal on the exact m2m nested connect-or-create branch. It avoids old/new internal compatibility and relies on the existing `CreateRecord` selected identifier.
 
+- Rejected experiment: result-node raw-nested mapper skip plus `ThrowOnEmpty` raw-nested validation.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - Nested write result reads often end in `rawNestedReadUnique`, but the whole write expression still gets wrapped in an outer `dataMap`. Extending the root raw-nested mapper-skip preflight to a single result node, and allowing raw-nested reads to wrap existing `ThrowOnEmpty` validation, might remove that outer result-map construction.
+  - Patch tried:
+    - Added a single-result-node raw-nested preflight in `query-compiler/query-compiler/src/translate.rs`.
+    - Removed the `ThrowOnEmpty` exclusion from raw-nested read translation and wrapped raw-nested expressions in the existing `Validate` node when needed.
+  - Validation:
+    - `cargo check -p query-compiler`: passed.
+  - Allocation evidence:
+    - Command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/tmp/prisma-engines-scout-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,upsert-nested-only-update,update-set-nested,create-m2m,query-one2m-pagination,aggregate cargo run -p query-compiler --example allocation_profile --release`
+    - Result: no allocation movement versus the current baseline after the m2m return-node skip. Full-compile counts stayed `nested-upsert-nested-only 3011`, `create-nested-connectOrCreate-mixed 2437`, `create-nested-connectOrCreate-one2m 2145`, `upsert-nested-only-update 1895`, `update-set-nested 1836`, `create-m2m 1615`, `query-one2m-pagination 1153`, and `aggregate 607`.
+  - Decision:
+    - Reverted before Criterion. The simple result-node preflight did not remove a measured phase on the sampled rows, and snapshot inspection still showed the candidate write rows shaped around the existing outer `dataMap`. Do not retry this as a standalone preflight/`ThrowOnEmpty` relaxation. A useful follow-up would need a deeper proof that the write expression's final result can bypass the graph-level mapper, not just that one descendant result read translates to raw-nested.
+
 ## Useful Commands
 
 ```sh
