@@ -15191,6 +15191,49 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. The patch is tiny, allocation counts move exactly on the intended translation rows, sampled controls stay allocation-neutral, and close Criterion is neutral-to-positive enough for a low-risk compile-local capacity cleanup.
 
+- Accepted change: store projected placeholders directly for `Flow` / `Diff` nodes.
+  - Timestamp: 2026-06-18.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `fd906df5c3d` (`Store projected placeholders directly`).
+  - Patch:
+    - `Flow::If`, `Flow::Return`, and `DiffNode` now store `Option<Placeholder>` for their projected inputs instead of `Vec<SelectionResult>`.
+    - Added `RowSink::ProjectedPlaceholder` for the graph builder's `IfInput`, `ReturnInput`, `LeftSideDiffInput`, and `RightSideDiffInput` edges.
+    - `NodeTranslator::transform_node()` now computes a direct placeholder for these sinks and avoids building `vec![SelectionResult::new(fields)]` only to unwrap the single placeholder during translation.
+    - Removed the query-compiler-local `SelectionResults` / `SelectionResultExt` wrapper. This is a lockstep internal shape replacement with no old/new compatibility reader.
+  - Allocation evidence:
+    - Patched run in `/tmp/prisma-engines-placeholder` used `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-placeholder-target`.
+    - Control run in `/home/aqrln.guest/prisma-engines` used the separate `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-placeholder-control-target`.
+    - Important harness note: do not share one Cargo target across the temp checkout and real checkout. A first attempt reused the target and Cargo mixed same-named path dependencies, compiling the clean `query-compiler` against the temp `query-core`.
+    - Both allocation runs used `ALLOC_PROFILE_ITERATIONS=100`, `ALLOC_PROFILE_WARMUP=10`, and the focused fixture set.
+    - `nested-upsert-nested-only`: `translate_ir/full_compile 1721/3006 -> 1717/3002`.
+    - `update-set-nested`: `1085/1831 -> 1075/1821`.
+    - `create-nested-connectOrCreate-mixed`: `1494/2432 -> 1484/2422`.
+    - `create-nested-connectOrCreate-one2m`: `1329/2141 -> 1325/2137`.
+    - `update-set-nested-prisma#27650`: `825/1686 -> 823/1684`.
+    - `upsert-nested-only-update`: `1157/1891 -> 1153/1887`.
+    - Controls stayed allocation-neutral: `create-nested-create 677/1223`, `query-m2o 308/549`, `query-many-m2m 406/714`, and `aggregate 242/607`.
+  - Criterion evidence:
+    - Broad 10-row patched/control passes were noisy but did not show a stable localized regression; several unchanged rows swung between adjacent runs.
+    - Final focused command, run once patched and once control:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=<patched-or-control-target> CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 CARGO_BUILD_JOBS=4 cargo bench -p query-compiler --bench compilation_bench -- "^compile/(query-m2o|create-nested-connectOrCreate-mixed|update-set-nested)$" --sample-size 15 --warm-up-time 2 --measurement-time 4`
+    - Focused patched medians:
+      - `create-nested-connectOrCreate-mixed 300.24 us`, `query-m2o 81.786 us`, `update-set-nested 236.00 us`.
+    - Focused control medians:
+      - `create-nested-connectOrCreate-mixed 303.62 us`, `query-m2o 88.047 us` with high outliers, `update-set-nested 238.83 us`.
+    - Interpretation: timing is neutral-to-positive on the rows where allocation counts moved, and the read control did not show a stable regression. Treat this as a medium-size internal allocation cleanup, not a headline user-visible timing win.
+  - Verification:
+    - In temp checkout:
+      - `cargo fmt -p query-core -p query-compiler`: passed before trimming unrelated rustfmt-only diff.
+      - `cargo check -p query-compiler --release`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `git diff --check`: passed.
+    - In real `/home/aqrln.guest/prisma-engines` after applying:
+      - `git diff --check`: passed.
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-placeholder-control-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 CARGO_BUILD_JOBS=4 cargo check -p query-compiler --release`: passed.
+      - Same target/settings with `cargo test -p query-compiler --test queries`: passed.
+  - Decision:
+    - Keep. The change removes a real hot translation container for the intended write rows, sampled controls stayed allocation-neutral, focused Criterion was neutral-to-positive, and the internal shape is replaced directly with no backward-compatibility branch.
+
 ## Useful Commands
 
 ```sh
