@@ -14903,6 +14903,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Reverted. Local counter-shape changes in relation-op filtering are not enough; they regress the target direct/local rows.
     - Keep the broader relation-op lead alive only if the next prototype owns more of the phase, such as a compiled child-list filter/schedule for the exact supported pagination shape.
 
+- Rejected experiment: shared root-key scope extraction in non-unique final-owner executor.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - In the non-unique final-owner branch, `wrapperList.sourceParentColumnIndex` and `childList.parentColumnIndex` are already required to match the program root key.
+    - Computing `getRawNestedScopeValue(rootRows, program.rootKeyColumnIndex)` once and sharing it between wrapper-list and child-list first-wave queries could remove one duplicate root-row scan without changing query scheduling or result assembly.
+  - Patch tried:
+    - Introduced a local `rootRows` alias and `rootKeyScopeValue` in the non-unique branch.
+    - Reused `rootKeyScopeValue` for `wrapperList.sourceScopeName` and `childList.scopeName`.
+    - Left unique relation scopes and all later wrapper/child target scopes unchanged.
+  - Timing evidence:
+    - Patched initial 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.43 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.34 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.25 us/op`.
+    - Reverted control 300k rows:
+      - `direct plan blog feed by author / nested rows`: `7.10 us/op`.
+      - `local executor blog feed by author / nested rows`: `7.37 us/op`.
+      - `raw result-set compact node blog feed by author / nested rows`: `7.14 us/op`.
+  - Decision:
+    - Reverted. Scope extraction reuse is too small and noisy as a standalone patch; the close control beat or matched patched on the target rows.
+    - Do not retry local root-scope coalescing without a larger final-owner schedule that removes a whole phase.
+
 ## Useful Commands
 
 ```sh
