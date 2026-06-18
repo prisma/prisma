@@ -15305,6 +15305,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reject. Up-front allocation of the reachability bitmap does not help the targeted nested-write rows and worsens small read/aggregate graphs where the current grow-on-reach vector stays cheaper.
 
+- Rejected experiment: stable prepared-read options plus no success continuation.
+  - Timestamp: 2026-06-18.
+  - Patch:
+    - Added a module-level `preparedReadRequestOptions = { isWrite: false } as const` in `packages/client/src/runtime/RequestHandler.ts`.
+    - Changed `requestPreparedReadPrecomputedCachedResult()` to pass that object to `engine.requestPrecomputedCachedResult()`.
+    - Avoided the success `.then()` when `PRISMA_CLIENT_GET_TIME` is false, returning `request.catch(handleError)` instead.
+    - Added a focused `RequestHandler.test.ts` case proving the direct result shape and stable options object across repeated prepared-read calls.
+  - Verification:
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`: passed with the patch.
+  - Benchmark evidence:
+    - Patched generated prepared row:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client prepared operation blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - Result: `7.94 us/op`.
+    - Reverted control generated prepared row:
+      - Same command.
+      - Result: `7.65 us/op`.
+    - Reverted control prepared request-surface row:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared exact request surface blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - Result: `7.72 us/op`.
+    - Reapplied patched prepared request-surface row:
+      - Same command.
+      - Result: `7.86 us/op`.
+  - Decision:
+    - Reject. The unit-level shape was correct, but the same-session Node A/B regressed both the full generated prepared row and the narrower request-surface row. Do not retry stable read options or no-success-then in `requestPreparedReadPrecomputedCachedResult()` as a standalone cleanup.
+
 ## Useful Commands
 
 ```sh
