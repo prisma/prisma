@@ -14861,6 +14861,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Keep. The patch is small, semantically narrow, and target-runtime-positive while Node is neutral-to-slightly-positive.
     - Do not broaden this method into a generic RequestHandler shortcut without new call shapes and gates. It is currently intended for generated prepared read-only cached hits with no transaction, dataPath, unpacker, tracing, debug, SQL commenters, global omit, or extensions.
 
+- Rejected experiment: mutable one-placeholder generated prepared hit.
+  - Timestamp: 2026-06-18.
+  - Hypothesis:
+    - The generated prepared helper still allocates a fresh precomputed-hit wrapper and one-key `placeholderValues` object per call.
+    - A benchmark-only row that reuses the learned hit wrapper and mutates a one-key placeholder map immediately before `requestPreparedReadPrecomputedCachedResult()` could show whether this allocation is a meaningful part of the remaining gap to the prepared request-surface lower bound.
+  - Patch tried:
+    - Added an optional `mutableHit` mode to `createBenchmarkPreparedOperationRegistry()` in `client-engine-cache-timing.ts`.
+    - Added `generated client prepared operation mutable hit blog feed by author / nested rows warmed cache`, leaving the existing generated prepared row unchanged.
+    - Reverted the benchmark-only patch fully after timing.
+  - Timing evidence:
+    - Mutable-hit 300k row:
+      - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client prepared operation mutable hit blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+      - `8.33 us/op`, `queryRaw=2100000`, `precomputedHits=300000`.
+    - Same-checkout unchanged generated prepared row:
+      - `generated client prepared operation blog feed by author / nested rows warmed cache`: `8.23 us/op`, `queryRaw=2100000`, `precomputedHits=300000`.
+  - Decision:
+    - Reverted. Reusing and mutating the precomputed-hit placeholder map is neutral-to-negative in Node and would be risky to productize for concurrent prepared calls anyway.
+    - Do not retry mutable hit/placeholder object reuse as a generated prepared-helper cleanup. The remaining gap needs a different surface change, not aliasing mutable cache-hit state.
+
 - New runtime leads from raw-nested by-author scout.
   - Timestamp: 2026-06-18.
   - Context:
