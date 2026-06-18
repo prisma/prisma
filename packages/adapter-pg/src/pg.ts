@@ -119,7 +119,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
             },
           },
         },
-        values,
+        // Removed the duplicate `values` argument here!
       )
 
       return result
