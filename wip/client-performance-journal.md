@@ -16163,6 +16163,47 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This saves about 40-42 `translate_ir` / `full_compile` allocations on affected carrier rows, cuts another 5.6-8.0% off the close update-row Criterion medians, and leaves scalar-only empty updates on the requested-selection path so direct return semantics are preserved.
 
+- Accepted query-compiler optimization: nested-upsert shared-connect-only condition-row return.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `bd002ef8ac0` (`perf(query-compiler): return nested upsert shared connect condition`).
+  - Hypothesis:
+    - After `extract_common_m2m_connect()` hoists identical create/update M:N `connect` envelopes out of both nested-upsert branches, the update branch in `nested-upsert-nested-only` has no remaining scalar write args and no nested work.
+    - The `if` condition read already contains the existing child rows needed by the post-branch shared connect. Wrapping those rows in a branch-local `Flow::Return` is redundant for this exact shared-connect-only case.
+    - Nested-only update branches are different: real nested operations attach to the returned child node, so those branches must keep the explicit return node.
+  - Patch:
+    - In `nested_upsert()`, detect `is_shared_connect_only_update` when `shared_connect.is_some()` and `update_args.args` / `update_args.nested` are both empty.
+    - Create `Flow::if_non_empty_returning_condition()` for that exact shape.
+    - Represent the `then_node` as `None` and skip adding a `Then` edge, while still wiring the `Else` edge to the create node and the shared post-`if` connect to the `if` result.
+    - Keep the existing `Flow::Return` path for `is_nested_only_update`, because nested operations attach to the returned child.
+    - Snapshot coverage for `nested-upsert-nested-only` now shows `then get 1` directly instead of `then validate get 1 ...` / post-branch `unique(validate(get 2) ...)`.
+  - Verification:
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-next-target cargo check -p query-core -p query-compiler`: passed.
+    - Full `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-next-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated `queries__queries@nested-upsert-nested-only.json.snap`.
+    - Final `CARGO_TARGET_DIR=/tmp/prisma-engines-next-target cargo test -p query-compiler --test queries`: passed.
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-next-target cargo test -p query-core --lib`: passed, 9 tests.
+    - `git diff --check`: passed.
+  - Allocation evidence:
+    - Patched target: `/tmp/prisma-engines-next-target`.
+    - Clean control worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-nested-upsert-return-control`, based on `6ad7f3a9b1c`.
+    - Control target: `/tmp/prisma-engines-nested-upsert-return-control-target`.
+    - Both used `ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,upsert-nested-only-update,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,update-set-nested,create-m2m,query-m2o,aggregate`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+    - `nested-upsert-nested-only`: `graph_build/translate_ir/compile_ir/full_compile 1036/1361/2397/2575 -> 1029/1348/2377/2555`, full allocated bytes `311.8 -> 307.0 KiB`.
+    - Controls stayed unchanged: `upsert-nested-only-update 598/1120/1835`, `create-nested-connectOrCreate-mixed 705/1427/2304`, `create-nested-connectOrCreate-one2m 616/1274/2049`, `update-set-nested 592/958/1666`, `create-m2m 522/876/1519`, `query-m2o 161/308/548`, `aggregate 279/242/599`.
+    - After the readability cleanup to an `Option<NodeRef>` branch, a short sanity profile still matched the target allocation row (`nested-upsert-nested-only 1029/1348/2555`) with sampled controls unchanged.
+  - Criterion evidence:
+    - Broad patched/control medians from paired runs:
+      - `nested-upsert-nested-only`: `255.24 / 258.64 us`.
+      - `create-nested-connectOrCreate-mixed`: `227.28 / 229.14 us`.
+      - `create-nested-connectOrCreate-one2m`: `202.72 / 203.77 us`.
+      - `upsert-nested-only-update`: `184.47 / 185.02 us`.
+      - `update-set-nested`: `163.09 / 163.74 us`.
+      - `query-m2o`: `63.264 / 63.486 us`.
+      - Aggregate variants stayed in band.
+    - Narrow adjacent repeat on `nested-upsert-nested-only`, `create-nested-connectOrCreate-mixed`, and `upsert-nested-only-update` also favored the patched target (`nested-upsert-nested-only 254.29 us` patched vs `266.29 us` close control), though the close control appeared globally slower.
+  - Decision:
+    - Keep. This is a narrow extension of the accepted condition-row-returning `Flow::If` shape, now applied after nested-upsert shared connect hoisting has removed all branch-local update work. It saves 20 full-compile allocations and about 4.8 KiB/op on the focused fixture, keeps sampled controls flat, and does not add old/new internal format compatibility.
+
 ## Useful Commands
 
 ```sh
