@@ -16320,6 +16320,52 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Rejected and reverted. The child-side validation skip saves only three allocations and does not survive close timing. The trusted-parent sink saves more allocations on nested upsert but clearly regresses Criterion.
   - Do not retry M:N connect-or-create child count validation removal or trusted `RowSink` parent wrappers as standalone cleanups. A future attempt would need to remove a larger semantic phase or make the `Flow::If` result shape itself cheaper without adding a broader translation contract.
 
+## Accepted Query-Compiler Optimization: Shared Final Read For Nested-Only Top-Level Upsert Update (2026-06-19)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `d89ebbdb461` (`perf(query-compiler): share nested-only upsert result read`).
+- Hypothesis:
+  - After `d49c30d27b1`, truly empty top-level upserts share one post-branch final read, but `upsert-nested-only-update` still duplicated the same raw nested final read under both branches.
+  - The update branch cannot use the plain `Flow::Return` wrapper for a shared read when it has nested child writes: the child expression becomes the branch result.
+  - A narrower internal flow node can bind the parent row, run exactly one nested child operation, then return the original parent row to the post-`if` shared final read.
+- Patch:
+  - Added `Flow::ReturnPreservingResult(Option<Placeholder>)` plus `Flow::return_preserving_result()`.
+  - Translation now handles `ReturnPreservingResult` by binding the return expression, executing child expressions, and appending `Get` of the original binding so the branch result remains the parent row.
+  - `ReturnInput` and return-node parent-dependency normalization treat the new flow like `Flow::Return`.
+  - `upsert_record()` shares the final result read when the update branch has no scalar writes, the create branch has no nested operations, and the update branch has either zero nested operations or exactly one nested operation. The exactly-one nested case uses `ReturnPreservingResult`; broader nested-update upserts stay on branch-local final reads until separately proved.
+  - Snapshot coverage for `upsert-nested-only-update` now shows the update branch inserting the nested `Post`, then returning the saved `User` id row, followed by one shared raw nested read outside the `if`.
+- Verification:
+  - Side worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-upsert-preserve-return`.
+  - Main checkout was fast-forwarded to the same commit after the side-worktree commit.
+  - Side worktree `CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-preserve-return-target cargo check -p query-core -p query-compiler`: passed.
+  - Side worktree `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-preserve-return-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated `queries__queries@upsert-nested-only-update.json.snap`.
+  - Side worktree final `CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-preserve-return-target cargo test -p query-compiler --test queries`: passed.
+  - Main checkout final `CARGO_TARGET_DIR=/tmp/prisma-engines-next-profile-target cargo check -p query-core -p query-compiler`: passed.
+  - Main checkout final `CARGO_TARGET_DIR=/tmp/prisma-engines-next-profile-target cargo test -p query-compiler --test queries`: passed.
+  - `git diff --check`: passed.
+- Allocation evidence:
+  - Clean control: `/home/aqrln.guest/prisma-engines` at `d49c30d27b1`, target `/tmp/prisma-engines-next-profile-target`.
+  - Patched side worktree target: `/tmp/prisma-engines-upsert-preserve-return-target`.
+  - Both used `ALLOC_PROFILE_QUERIES=upsert-nested-only-update,upsert-empty-update,upsert,nested-upsert-nested-only,create-nested-connectOrCreate-mixed,update-set-nested`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+  - `upsert-nested-only-update`: `graph_build/translate_ir/compile_ir/full_compile 598/1120/1718/1835 -> 579/779/1358/1475`, full allocated bytes `214.4 -> 177.7 KiB`.
+  - Controls stayed allocation-neutral: `upsert-empty-update 300/465/831`, native `upsert 289/335/696`, `nested-upsert-nested-only 1029/1348/2555`, `create-nested-connectOrCreate-mixed 705/1427/2304`, and `update-set-nested 592/958/1666`.
+- Criterion evidence:
+  - Broad control/patched medians:
+    - `upsert-nested-only-update`: `187.37 / 149.31 us`.
+    - `upsert-empty-update`: `81.775 / 81.143 us`.
+    - native `upsert`: `60.134 / 60.496 us`.
+    - `nested-upsert-nested-only`: `259.20 / 257.33 us`.
+    - `create-nested-connectOrCreate-mixed`: `226.15 / 226.37 us`.
+    - `update-set-nested`: `165.06 / 164.79 us`.
+    - Extra regex controls stayed in band: `update-set-nested-empty 127.89 / 127.56 us`, `update-set-nested-prisma#27650 150.64 / 150.28 us`.
+  - Focused repeat after narrowing the guard:
+    - `upsert-nested-only-update`: `185.21 / 146.76 us`.
+    - `upsert-empty-update`: `78.999 / 79.639 us`.
+    - native `upsert`: `60.043 / 60.668 us`.
+- Decision:
+  - Keep. This removes the duplicated final raw nested read for the one-nested-update top-level upsert shape, saves 360 full-compile allocations and about 36.7 KiB/op, and improves focused target Criterion by about 20-21%.
+  - Keep the guard narrow: the create branch must remain non-nested, and update branches with multiple nested operations still need separate proof before sharing the final read.
+
 ## Useful Commands
 
 ```sh
