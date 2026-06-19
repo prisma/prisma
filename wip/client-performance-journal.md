@@ -16245,6 +16245,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes one whole duplicate final-read branch for the truly empty top-level upsert shape, saves 182 full-compile allocations and about 18.2 KiB/op, improves close target Criterion by about 20%, and leaves nested-branch upserts on the existing safer branch-local read path.
 
+## Build Restart Smoke Checkpoint (2026-06-19)
+
+- Context:
+  - The harness was restarted, so the active builds had to be restarted from a clean Prisma and engines checkout.
+  - `@prisma/client-engine-runtime` and `@prisma/client` both hit the known sandbox-only `tsx` IPC `listen EPERM` failure inside the sandbox and were rerun outside the sandbox.
+- Verification:
+  - `pnpm --filter @prisma/client-engine-runtime build`: passed outside the sandbox.
+  - `pnpm --filter @prisma/client build`: passed outside the sandbox.
+  - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: passed.
+- Smoke timing:
+  - Generated default / generated prepared / exact-helper: `11.07 / 8.47 / 9.73 us/op`.
+  - Prepared direct / prepared request-surface: `7.91 / 8.48 us/op`.
+  - Descriptor-bound static / trusted descriptor helper: `9.91 / 9.04 us/op`.
+- Decision:
+  - Treat this as harness health evidence, not a new headline A/B. The current build keeps the expected ordering: generated prepared remains below exact-helper, and prepared direct/request-surface remains the lower-bound direction for the generated-owned prepared operation work.
+
 ## Useful Commands
 
 ```sh
