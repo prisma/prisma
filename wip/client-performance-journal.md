@@ -15798,6 +15798,35 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rejected and fully reverted. The direct row was neutral against the immediate control, while raw compact and local controls beat the patch clearly. Inlining scalar conversion inside the generic final-owner row writer is not enough and may hurt V8's current optimized shape.
     - The next runtime attempt should compile a full strict non-unique final-owner schedule descriptor that owns waves, relation-op filtering, row writing, and final attachment together. Do not retry row-writer-only scalar conversion as a standalone cleanup.
 
+- Rejected experiment: strict non-unique final-owner runtime branch over the existing program.
+  - Timestamp: 2026-06-19.
+  - Context:
+    - The benchmark-only `raw result-set direct final-owner schedule blog feed by author / nested rows` row still showed a lower bound near `6.6-6.8 us/op`, while the product `direct plan blog feed by author / nested rows` row was around `7.0-7.4 us/op`.
+    - The previous row-writer-only and relation-filter-only attempts failed because they did not own enough of the final-owner phase.
+  - Patch tried:
+    - Added a guarded non-unique branch in `#tryCompileRawNestedFinalOwnerRead()` when all existing final-owner relation query renderers were available.
+    - Reused one root-key scope value for wrapper-list and child-list first-wave queries.
+    - Combined child-list relation pagination filtering with nested unique target scope extraction.
+    - Assembled the known by-author topology directly from `RawNestedFinalOwnerProgram` relations, but still used the existing internal `RawNestedReadQuery` shape, generic row writers, and helper attachment functions. No internal old/new compatibility reader was added.
+    - Reverted the patch fully after the close benchmark failed.
+  - Verification while patched:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 27 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Timing evidence:
+    - First patched 300k by-author table, selected rows:
+      - generated prepared / generated default / exact-helper: `8.08 / 10.53 / 8.96 us/op`.
+      - direct / benchmark-only strict schedule / raw compact / raw exact compact / direct-after-phase / local: `7.18 / 6.57 / 7.11 / 7.16 / 7.24 / 7.19 us/op`.
+    - Reverted control, same 300k table:
+      - generated prepared / generated default / exact-helper: `7.99 / 10.48 / 9.17 us/op`.
+      - direct / benchmark-only strict schedule / raw compact / raw exact compact / direct-after-phase / local: `7.35 / 6.61 / 7.25 / 7.33 / 7.33 / 7.54 us/op`.
+    - Reapply 300k table:
+      - generated prepared / generated default / exact-helper: `7.95 / 10.85 / 9.30 us/op`.
+      - direct / benchmark-only strict schedule / raw compact / raw exact compact / direct-after-phase / local: `7.43 / 6.85 / 7.31 / 7.38 / 12.33 / 9.84 us/op`.
+  - Decision:
+    - Rejected and fully reverted. The initial reverse comparison looked mildly positive on direct/local rows, but the reapply softened the product rows and failed the exact-helper/direct/compact/local gate.
+    - Do not retry a strict schedule as just a runtime branch over `RawNestedFinalOwnerProgram` plus generic row writers/helpers. The remaining lower bound likely needs a compiled/static schedule or lockstep internal plan shape that owns wave scopes, relation-op filtering, relation-specific row writing, and attachment together.
+    - If the internal plan/protocol shape changes, replace producers and consumers together without old/new compatibility paths.
+
 ## Useful Commands
 
 ```sh
