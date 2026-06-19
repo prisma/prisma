@@ -15644,6 +15644,21 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes another old internal query-plan shape from the runtime hot path while preserving the current list-object format that the Rust producer still emits.
 
+- Accepted cleanup: remove raw-nested final-owner legacy scalar arg-type passthrough.
+  - Timestamp: 2026-06-19.
+  - Patch:
+    - Changed `packages/client-engine-runtime/src/interpreter/query-interpreter.ts::toRawNestedFinalOwnerArgType()` to reject legacy scalar `{ arity: 'scalar', scalarType: ... }` objects instead of casting any non-tuple object through as a driver `ArgType`.
+    - Preserved canonical compact scalar strings, compact native tuples, and current list-object arg types. Tuple dynamic arg types still return `undefined` so the unsupported final-owner renderer can fall back to the generic query renderer.
+    - Added focused `query-interpreter.test.ts` coverage using a minimal four-relation raw-nested final-owner topology with a legacy scalar object arg type in a child relation query.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/query-interpreter.test.ts`: passed, 27 tests.
+    - `pnpm --filter @prisma/client-engine-runtime test`: passed, 23 files / 260 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed outside the sandbox.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: `7.15 us/op`, `queryRaw=700000`.
+    - `git diff --check`: passed.
+  - Decision:
+    - Keep. This finishes the scalar arg-type lockstep cleanup in the raw-nested final-owner hot path without changing the canonical list/tuple behavior, and the direct by-author feed row stayed in the expected range.
+
 ## Useful Commands
 
 ```sh

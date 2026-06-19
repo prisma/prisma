@@ -1796,10 +1796,17 @@ function toRawNestedFinalOwnerArgType(argType: DynamicArgType): ArgType | undefi
       dbType: argType[1],
     }
   }
-  if (typeof argType === 'object' && !Array.isArray(argType) && 'arity' in argType && argType.arity === 'tuple') {
-    return undefined
+  if (typeof argType === 'object' && argType !== null && !Array.isArray(argType)) {
+    const arity = (argType as { arity?: unknown }).arity
+    if (arity === 'tuple') {
+      return undefined
+    }
+    if (arity === 'list') {
+      return argType as ArgType
+    }
+    throw new Error(`Invalid query argument type: '${typeof arity === 'string' ? arity : undefined}'`)
   }
-  return argType as ArgType
+  throw new Error(`Invalid query argument type: '${typeof argType}'`)
 }
 
 function tryCompileRawNestedFinalOwnerProgram(query: RawNestedReadQuery): RawNestedFinalOwnerProgram | undefined {

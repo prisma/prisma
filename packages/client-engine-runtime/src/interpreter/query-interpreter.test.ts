@@ -951,6 +951,68 @@ test('interprets compact raw nested read final-owner relations with scalar metad
   expect(observedQueries.map((query) => query.args)).toEqual([[1], [10], [20], [1], [1], [100, 101], [10]])
 })
 
+test('rejects legacy scalar object arg types in compact raw nested final-owner relations', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper, resultFormat: 'js' })
+  const rootQuery = templateQuery('SELECT id, authorId, categoryId FROM Post WHERE id = ', 1)
+  const authorQuery = legacyScalarTemplateQuery('SELECT id FROM User WHERE id = ', {
+    $p: ['@parent$authorId', 'int'],
+  })
+  const categoryQuery = templateQuery('SELECT id FROM Category WHERE id = ', {
+    $p: ['@parent$categoryId', 'int'],
+  })
+  const postTagQuery = templateQuery('SELECT postId, tagId FROM PostTag WHERE postId = ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const tagQuery = tupleTemplateQuery('SELECT id FROM Tag WHERE id IN ', { $p: ['@parent$tagId', 'int'] })
+  const commentsQuery = templateQuery('SELECT id, authorId, postId FROM Comment WHERE postId = ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const commentAuthorQuery = tupleTemplateQuery('SELECT id FROM User WHERE id IN ', {
+    $p: ['@parent$authorId', 'int'],
+  })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 0, 'i']],
+      [
+        ['r', 'author', [authorQuery, [['id', 0, 'i']]], 1, 0, '@parent$authorId', true, {}],
+        ['r', 'category', [categoryQuery, [['id', 0, 'i']]], 2, 0, '@parent$categoryId', true, {}],
+        [
+          'r',
+          'tags',
+          [postTagQuery, [], [['r', 'tag', [tagQuery, [['id', 0, 'i']]], 1, 0, '@parent$tagId', true, {}]]],
+          0,
+          0,
+          '@parent$id',
+          false,
+          {},
+        ],
+        [
+          'r',
+          'comments',
+          [
+            commentsQuery,
+            [
+              ['id', 0, 'i'],
+              ['authorId', 1, 'i'],
+            ],
+            [['r', 'author', [commentAuthorQuery, [['id', 0, 'i']]], 1, 0, '@parent$authorId', true, {}]],
+          ],
+          0,
+          2,
+          '@parent$id',
+          false,
+          {},
+        ],
+      ],
+    ],
+    true,
+  ] as unknown as QueryPlanNode
+
+  await expect(interpreter.run(plan, runtimeOptions)).rejects.toThrow(/Invalid query argument type: 'scalar'/)
+})
+
 test('interprets non-unique compact raw nested final-owner relation pagination', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper, resultFormat: 'js' })
   const rootQuery = tupleTemplateQuery('SELECT id, authorId, categoryId FROM Post WHERE id IN ', [1, 2])
@@ -1570,6 +1632,15 @@ function templateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
 }
 function tupleTemplateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
   return [[sqlPrefix, ['T', '', ',', '']], ['?', false], [arg], ['i'], true]
+}
+function legacyScalarTemplateQuery(sqlPrefix: string, arg: PrismaValue): QueryPlanDbQuery {
+  return [
+    [sqlPrefix, null],
+    ['?', false],
+    [arg],
+    [{ arity: 'scalar', scalarType: 'int' }],
+    false,
+  ] as unknown as QueryPlanDbQuery
 }
 function rejectingQueryable(): SqlQueryable {
   return {
