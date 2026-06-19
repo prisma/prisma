@@ -15857,6 +15857,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rejected and fully reverted before Criterion. The clone is not allocation-visible in the target fixture, and the extra control flow is not worth a CPU benchmark.
     - Do not retry nested-upsert child-filter clone avoidance as a standalone graph-build cleanup without a profile that shows `Filter` cloning itself as a real cost.
 
+- Rejected experiment: two-argument `.then()` in the prepared-read request handler.
+  - Timestamp: 2026-06-19.
+  - Hypothesis:
+    - `RequestHandler.requestPreparedReadPrecomputedCachedResult()` used `.then(success).catch(error)`, allocating an extra continuation on the hot success path.
+    - Replacing it with `.then(success, error)` only in the narrow generated-prepared read handler might reduce the generated prepared/request-surface gap without removing the success mapper or changing placeholder/spec shapes.
+  - Patch tried:
+    - Changed only `packages/client/src/runtime/RequestHandler.ts::requestPreparedReadPrecomputedCachedResult()` to call `.then((result) => ..., (error) => handleRequestErrorForParams(...))`.
+    - Reverted fully after timing.
+  - Verification:
+    - `pnpm --filter @prisma/client test RequestHandler.test.ts --runInBand`: passed, 8 tests.
+    - `pnpm --filter @prisma/client build`: blocked by an unrelated pre-existing type error in `packages/client/src/runtime/core/engines/client/ClientEngine.ts:1306`, not by the `RequestHandler.ts` change.
+  - Timing evidence:
+    - Patched 300k `CLIENT_ENGINE_CACHE_TIMING_FILTER='prepared'` rows:
+      - prepared exact operation / prepared request surface / generated prepared: `8.88 / 10.08 / 11.30 us/op`.
+    - Reverted control:
+      - prepared exact operation / prepared request surface / generated prepared: `7.68 / 8.11 / 8.16 us/op`.
+  - Decision:
+    - Rejected and fully reverted. The two-argument continuation shape is much worse on the same-session prepared rows.
+    - Do not change the narrow prepared-read handler from `.then(success).catch(error)` to `.then(success, error)` as a standalone generated-prepared cleanup.
+
 ## Useful Commands
 
 ```sh
