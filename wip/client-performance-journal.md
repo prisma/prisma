@@ -15588,6 +15588,27 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is the narrow inlined-parent version of create-branch return removal, with stable allocation wins and neutral-to-positive focused timing. Do not generalize it back into the older broad scalar connect-or-create return-removal shape without fresh close evidence.
 
+- Rejected/no-movement experiment: reuse `child_model` for nested update child identifiers.
+  - Timestamp: 2026-06-19.
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-nested-update-child-model-spike` on branch `nested-update-child-model-spike`.
+  - Hypothesis:
+    - `nested_update()` and `nested_update_many()` already receive `child_model`, but still call `parent_relation_field.related_model().shard_aware_primary_identifier()` when constructing the selected child identifier. Reusing `child_model.shard_aware_primary_identifier()` might skip relation-field model lookup work in nested-update graph building.
+  - Patch:
+    - Replaced both `parent_relation_field.related_model().shard_aware_primary_identifier()` calls in `query-compiler/core/src/query_graph_builder/write/nested/update_nested.rs` with `child_model.shard_aware_primary_identifier()`.
+  - Allocation evidence:
+    - Focused allocation profile was exactly unchanged on all sampled rows:
+      - `update-set-nested-prisma#27650`: `graph_build 776`, `translate_ir 819`, `full_compile 1656`.
+      - `update-set-nested`: `597/1024/1737`.
+      - `upsert-nested-only-update`: `601/1149/1867`.
+      - `nested-upsert-nested-only`: `1043/1458/2679`.
+      - `create-nested-connectOrCreate-mixed`: `711/1463/2346`.
+      - `create-nested-connect`: `463/732/1311`.
+      - `query-m2o`: `161/308/548`.
+      - `aggregate`: `279/242/599`.
+  - Decision:
+    - Reverted before Criterion. The identifier construction path is not moving allocation counts on the sampled nested-update rows, so do not churn these call sites without a broader graph-builder change or a CPU profile pointing at this lookup.
+
 ## Useful Commands
 
 ```sh
