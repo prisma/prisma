@@ -16503,6 +16503,65 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Decision:
   - Rejected and reverted. The patch is semantically straightforward, but the allocation win is too small and too close to previously rejected graph-build micro-cleanups. Do not retry relation-count direct-push extraction as a standalone cleanup without a CPU profile showing this helper on the hot path.
 
+## Rejected Experiment: Skip M:N Connect Validation After Create Nodes (2026-06-19)
+
+- Hypothesis:
+  - `connect_records_node()` validates parent and child rows before inserting into the M:N relation table.
+  - When either side is produced by a `CreateRecord`, that side should already be guaranteed to return the requested primary id row, so suppressing the corresponding validation expectation might save graph/translation work on create-heavy M:N rows.
+- Patch tried:
+  - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/connect.rs`, added `utils::node_is_create()` checks around the parent `rowCountNeq 0` and child `rowCountEq expected_connects` expectations.
+  - Existing read/update/connect rows still kept their validations; only create-produced sides used `None`.
+- Allocation evidence:
+  - Patched allocation run used `ALLOC_PROFILE_QUERIES=create-m2m,create-nested-connect,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,nested-upsert-nested-only,update-connect,update-m2m-set,query-m2o,aggregate`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`, and `CARGO_TARGET_DIR=/tmp/prisma-engines-connect-create-target`.
+  - Target rows:
+    - `create-m2m`: full-compile allocations `1519 -> 1509`.
+    - `create-nested-connectOrCreate-mixed`: `2304 -> 2297`.
+    - `create-nested-connectOrCreate-one2m`: `2049 -> 2042`.
+  - `create-nested-connect`, `nested-upsert-nested-only`, `update-connect`, `update-m2m-set`, `query-m2o`, and `aggregate` were allocation-neutral.
+- Criterion evidence:
+  - Patched medians:
+    - `create-m2m 142.96 us`, `create-nested-connectOrCreate-mixed 229.31 us`, `create-nested-connectOrCreate-one2m 205.58 us`, `create-nested-connectOrCreate-m2one 128.21 us`, `query-m2o 64.24 us`, `aggregate 52.75 us`.
+  - Close reverted-control medians:
+    - `create-m2m 143.75 us`, `create-nested-connectOrCreate-mixed 229.25 us`, `create-nested-connectOrCreate-one2m 205.64 us`, `create-nested-connectOrCreate-m2one 127.91 us`, `query-m2o 65.39 us`, `aggregate 51.18 us`.
+- Decision:
+  - Rejected and reverted. The patch saves only 7-10 allocations on target rows, and close timing is neutral/noisy rather than target-positive.
+  - Do not retry create-node M:N connect validation suppression as a standalone cleanup. This is the same weak class as the earlier trusted connect validation experiments; future M:N connect work needs to delete or share a larger semantic phase.
+
+## New Lead: Windowed SQL Distinct Pagination For Relation Joins (2026-06-19)
+
+- Scout:
+  - Subagent `Arendt` (`019ee18f-73b2-7763-8ac3-48bdff903502`) found this as the best next query-compiler lead after engines `241f2cb67b3`.
+- Target:
+  - Relation-join rows where `distinct` plus pagination or incompatible ordering still falls back to `Expression::Process`.
+  - Primary fixtures:
+    - `nested-distinct-pagination-join`
+    - `nested-distinct-incompatible-orderby-join`
+  - Controls:
+    - `nested-distinct-join`
+    - `nested-pagination-join`
+    - `nested-distinct-pagination-query`
+    - optional top-level analogs: `in-mem-distinct-mapped-field-query`, `in-mem-distinct-mapped-field-join`
+- Hypothesis:
+  - Current SQL join builders can push simple compatible distinct into `DISTINCT ON`, but `distinct + pagination` and incompatible `orderBy` still become `dataMap -> process(query)`.
+  - A guarded SQL subquery using `ROW_NUMBER() OVER (PARTITION BY distinct_fields ORDER BY original_order)` could keep the first row per distinct key and then apply skip/take before JSON aggregation, deleting the `process` layer for SQL-capable relation-join shapes.
+- Relevant paths:
+  - `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs`
+  - `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read/in_memory_processing.rs`
+  - `/home/aqrln.guest/prisma-engines/query-compiler/query-structure/src/query_arguments.rs`
+  - `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/sql-query-builder/src/select/mod.rs`
+  - `/home/aqrln.guest/prisma-engines/query-compiler/query-builders/sql-query-builder/src/read.rs`
+- Baseline measured by the scout:
+  - `nested-distinct-pagination-join`: `750` full-compile allocations, about `78.13 us` Criterion median.
+  - `nested-distinct-incompatible-orderby-join`: `831` full-compile allocations, about `82.41 us` Criterion median.
+  - `nested-distinct-pagination-query`: `627` full-compile allocations, about `66.34 us` after `241f2cb67b3`.
+- Starting commands:
+  - Allocation:
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-window-distinct-target ALLOC_PROFILE_QUERIES=nested-distinct-pagination-join,nested-distinct-incompatible-orderby-join,nested-distinct-join,nested-pagination-join,nested-distinct-pagination-query,in-mem-distinct-mapped-field-join,in-mem-distinct-mapped-field-query ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
+  - Criterion:
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-window-distinct-target cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-distinct-pagination-join|nested-distinct-incompatible-orderby-join|nested-distinct-join|nested-pagination-join|nested-distinct-pagination-query|in-mem-distinct-mapped-field-join|in-mem-distinct-mapped-field-query)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
+- Caveat:
+  - This is not the previously rejected `ColumnIterator` / relation-column helper work. It is a semantic SQL-plan change that should be judged by deleting `process` and preserving relation-join pagination/distinct semantics.
+
 ## Useful Commands
 
 ```sh
