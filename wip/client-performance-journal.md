@@ -15739,6 +15739,32 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes redundant graph/translation nodes for the exact existing-branch shapes that return the condition rows, with deterministic allocation wins and neutral-to-positive focused timing overall. Do not use the mode for branches that need checks, nested operations, emulation, or any result other than the condition rows.
 
+- Rejected experiment: generated prepared placeholder map assignment.
+  - Timestamp: 2026-06-19.
+  - Hypothesis:
+    - The kept generated prepared by-author helper still allocates a one-key `placeholderValues` object per hot call.
+    - Replacing the computed-property literal `{ [valuePlaceholder]: authorId }` with `const placeholderValues = {}; placeholderValues[valuePlaceholder] = authorId` might give V8 or Workerd a cheaper construction path while preserving a fresh map per call.
+  - Patch tried:
+    - Updated the JS and TS exact-descriptor template generators for `blogFeedByAuthorPostListV1_<index>`.
+    - Updated the matching Node and Workerd benchmark mirrors so generated rows measured the same placeholder construction shape.
+    - Did not try mutable hit/map reuse; this was only a fresh-object construction tweak.
+  - Verification:
+    - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 16 tests.
+    - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 16 tests.
+  - Timing evidence:
+    - Initial patched rows were mixed and noisy:
+      - Prepared exact / prepared request-surface over 300k Node iterations: `8.75 / 8.90 us/op`.
+      - Generated prepared over 300k Node iterations: `11.87 us/op`.
+      - Reverted control prepared exact / request-surface / generated prepared: `8.19 / 11.20 / 10.04 us/op`.
+    - Fresh same-checkout generated product-path repeat:
+      - Patched Node generated prepared: `7.92 us/op`, `queryRaw=2100000`, `precomputedHits=300000`.
+      - Reverted control Node generated prepared: `8.00 us/op`, `queryRaw=2100000`, `precomputedHits=300000`.
+      - Patched Workerd generated prepared request loop: `6.10 us/op`, `20000/0` cache hits/misses, `queryRaw=140000`.
+      - Reverted control Workerd generated prepared request loop: `6.15 us/op`, `20000/0` cache hits/misses, `queryRaw=140000`.
+  - Decision:
+    - Rejected and fully reverted. The reliable same-checkout product-path comparison is neutral, and the earlier rows moved enough to treat this as benchmark noise rather than a worthy generated-code change.
+    - Do not retry one-key placeholder map assignment as a standalone generated prepared-helper cleanup. The remaining gap needs a larger surface or allocation ownership change.
+
 ## Useful Commands
 
 ```sh
