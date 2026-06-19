@@ -15659,6 +15659,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This finishes the scalar arg-type lockstep cleanup in the raw-nested final-owner hot path without changing the canonical list/tuple behavior, and the direct by-author feed row stayed in the expected range.
 
+- Rejected experiment: direct-wire top-level empty-update upsert result read.
+  - Timestamp: 2026-06-19.
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-empty-upsert-direct-read` on branch `empty-upsert-direct-read-spike`.
+  - Hypothesis:
+    - For top-level upsert with a truly empty update branch, the `then` branch can feed the final result read directly from the initial parent-id read, avoiding the branch-local `Flow::Return` node. Nested-only update branches keep the existing return node because nested writes hang off it.
+  - Patch:
+    - Added `is_empty_update = update_args.args.is_empty() && update_args.nested.is_empty()` in `query-compiler/core/src/query_graph_builder/write/upsert.rs`.
+    - Skipped creating the `Flow::Return` node for that exact branch.
+    - Connected `if_node` directly to `read_node_update` on `Then`, and projected the initial parent-id read into `read_node_update`'s `RecordQueryFilterInput`.
+    - Kept the existing return-node path for nested-only update branches and non-empty update branches unchanged.
+  - Allocation evidence:
+    - Baseline `upsert-empty-update`: `graph_build/translate_ir/full_compile 306/655/1027`, full allocated `114.1 KiB`.
+    - Patched: `303/642/1011`, full allocated `112.1 KiB`.
+    - Sampled controls allocation-neutral: `upsert-nested-only-update 601/1149/1867`, `nested-upsert-nested-only 1043/1458/2679`, `update-set-nested 597/1024/1737`, `query-m2o 161/308/548`, `aggregate 279/242/599`.
+  - Criterion evidence:
+    - Side first pass: `upsert-empty-update 101.55 us`, `upsert-nested-only-update 191.59`, `query-m2o 65.57`.
+    - Clean first control: `upsert-empty-update 100.58 us`, `upsert-nested-only-update 187.15`, `query-m2o 63.73`.
+    - Target-only repeat: patched `102.42 us` vs clean control `97.91 us`.
+  - Verification:
+    - Side worktree `cargo check -p query-core -p query-compiler`: passed.
+    - Focused allocation profile and Criterion commands above.
+  - Decision:
+    - Rejected; removed the side worktree. This is an allocation-only branch simplification with weak/negative target timing; do not retry without a new CPU profile/hypothesis.
+
 ## Useful Commands
 
 ```sh
