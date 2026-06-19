@@ -15827,6 +15827,36 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Do not retry a strict schedule as just a runtime branch over `RawNestedFinalOwnerProgram` plus generic row writers/helpers. The remaining lower bound likely needs a compiled/static schedule or lockstep internal plan shape that owns wave scopes, relation-op filtering, relation-specific row writing, and attachment together.
     - If the internal plan/protocol shape changes, replace producers and consumers together without old/new compatibility paths.
 
+- Measurement update: generated prepared operation CPU profile.
+  - Timestamp: 2026-06-19.
+  - Command:
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='generated client prepared operation blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=500000 pnpm exec node --cpu-prof --cpu-prof-dir=/tmp --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+  - Result:
+    - `generated client prepared operation blog feed by author / nested rows warmed cache`: `8.59 us/op`, `queryRaw=3500000`, `precomputedHits=500000`.
+    - Top profile samples were dominated by benchmark result-set lookup, `query-interpreter.ts` raw-nested final-owner closures, `#executeRawNestedFinalOwnerDbQuery`, `mapRawNestedFieldValue`, `mapRawNestedFirstFinalOwnerChild`, `mapRawNestedFinalOwnerWrapperList`, `renderCompactTemplateSqlQuery`, `getRawNestedScopeValue`, and GC.
+    - `PrismaPromiseImpl.then()` appeared, but lightly compared with executor/interpreter work.
+  - Scout:
+    - Explorer `Jason` suggested two non-rejected generated-prepared experiments: a prepared-read PrismaPromise surface with lazy args/spec, and a narrow `requestPreparedReadPrecomputedCachedResult()` two-argument `.then(success, error)` continuation.
+  - Decision:
+    - Keep these as low-ceiling leads, not the next main path. The profile says the current generated-prepared row is mostly executing the raw-nested final-owner plan and fake adapter result-set path, so more generated wrapper reshaping is unlikely to deliver a material product win unless paired with a larger executor/plan change.
+    - Do not retry already rejected prepared-helper object-shape tweaks: placeholder assignment/reuse, no spec, queryless engine method, stable read-options plus skipped success `.then()`, or guard/property hoisting.
+
+- Rejected Rust experiment: avoid cloning the nested-upsert child filter before read.
+  - Timestamp: 2026-06-19.
+  - Hypothesis:
+    - `nested_upsert()` cloned the child `filter` before `insert_find_children_by_parent_node()` even for shared-connect-only / nested-only shapes where no later branch needs the original filter. The `nested-upsert-nested-only` fixture is a shared-connect case, so moving the read-node creation after update parsing and consuming the filter in that case might save graph-build allocations.
+  - Patch tried:
+    - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/write/nested/upsert_nested.rs`, delayed `insert_find_children_by_parent_node()` until after `update_args` and used an optional retained filter only for paths that need it later.
+    - Reverted the patch fully after allocation profiling.
+  - Verification:
+    - `cargo check -p query-compiler`: passed.
+  - Allocation evidence:
+    - Patched allocation profile with `ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2` on `nested-upsert-nested-only`, connect-or-create controls, `update-set-nested`, `query-m2o`, and `aggregate` was unchanged versus the clean baseline.
+    - Target `nested-upsert-nested-only` stayed at `graph_build/translate_ir/full_compile 1043/1458/2679` allocations and `321.2 KiB` full allocated bytes.
+  - Decision:
+    - Rejected and fully reverted before Criterion. The clone is not allocation-visible in the target fixture, and the extra control flow is not worth a CPU benchmark.
+    - Do not retry nested-upsert child-filter clone avoidance as a standalone graph-build cleanup without a profile that shows `Filter` cloning itself as a real cost.
+
 ## Useful Commands
 
 ```sh
