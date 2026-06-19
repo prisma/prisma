@@ -15949,6 +15949,58 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Preserve as the next large runtime lead. Prior local final-owner helper rewrites and runtime branches over the existing program failed; this has a chance only if it owns the whole phase and updates producer/consumer shapes together.
 
+- Accepted query-compiler optimization: compact validation expectations.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `b64c854d6e2` (`perf(query-compiler): compact validation expectations`).
+  - Scout:
+    - `Harvey` (`019edfc2-5c52-7850-bed9-03a359c82f87`) and `Faraday` (`019edfc2-6e32-7522-970e-eb081aac3e21`) independently identified validation expectations as a graph/translation hotspot: every `DataExpectation` boxed a trait object, and every translated `Validate` expression materialized a `serde_json::Value` context only for the serializer to compact it again.
+  - Patch:
+    - Replaced `Box<dyn DataDependencyError>` with a concrete internal `DataDependencyError` enum.
+    - Moved `DataOperation`, `DependentOperation`, and `RelationType` into the query-graph layer so validation errors keep typed context through graph build.
+    - Changed `Expression::Validate.rules` from heap `Vec<DataRule>` to `SmallVec<[DataRule; 1]>`.
+    - Serialized compact validation contexts directly from the enum.
+    - The query-plan validation tuple format stayed unchanged (`["V", expr, rules, compactId, compactContext]`); no old/new compatibility reader was added.
+  - Verification:
+    - `cargo check -p query-core -p query-compiler`: passed.
+    - `cargo test -p query-compiler --test queries`: passed.
+    - `cargo test -p query-core --lib`: passed, 9 tests.
+    - `git diff --check`: passed.
+  - Allocation evidence:
+    - Patched target: `/home/aqrln.guest/prisma/wip/prisma-engines-validation-error-target`.
+    - Clean control worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-validation-error-control`.
+    - Allocation command used `ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,upsert-nested-only-update,update-set-nested,update-set-nested-prisma#27650,create-m2m,create-nested-connect,query-m2o,aggregate`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`.
+    - Representative `graph_build/translate_ir/full_compile` wins:
+      - `nested-upsert-nested-only`: `1043/1458/2679 -> 1038/1401/2617`.
+      - `create-nested-connectOrCreate-mixed`: `708/1451/2331 -> 705/1427/2304`.
+      - `create-nested-connectOrCreate-one2m`: `620/1315/2094 -> 616/1274/2049`.
+      - `upsert-nested-only-update`: `601/1149/1867 -> 598/1120/1835`.
+      - `update-set-nested`: `597/1024/1737 -> 594/998/1708`.
+      - `update-set-nested-prisma#27650`: `776/819/1656 -> 773/785/1619`.
+      - `create-m2m`: `526/917/1564 -> 522/876/1519`.
+      - `create-nested-connect`: `463/732/1311 -> 460/701/1277`.
+    - Controls stayed allocation-neutral: `query-m2o 161/308/548`, `aggregate 279/242/599`.
+  - Criterion evidence:
+    - First patched/control 10-sample pass medians:
+      - `aggregate`: `65.85 / 65.66 us` (neutral).
+      - `create-m2m`: `189.17 / 193.43 us`.
+      - `create-nested-connect`: `161.65 / 167.54 us`.
+      - `create-nested-connectOrCreate-mixed`: `298.41 / 304.13 us`.
+      - `create-nested-connectOrCreate-one2m`: `268.51 / 309.53 us` (control noisy).
+      - `nested-upsert-nested-only`: `352.22 / 366.68 us`.
+      - `query-m2o`: `83.32 / 86.45 us` (allocation-neutral control).
+      - `update-set-nested-prisma#27650`: `203.31 / 201.82 us` (first-pass slight negative/noisy).
+      - `update-set-nested`: `225.58 / 225.11 us` (neutral).
+      - `upsert-nested-only-update`: `242.68 / 246.70 us`.
+    - Narrow 15-sample repeat over ambiguous/key rows:
+      - Patched/control `aggregate`: `63.14 / 64.97 us`.
+      - `create-nested-connectOrCreate-mixed`: `289.61 / 329.00 us` (control repeat noisy but patched healthy).
+      - `nested-upsert-nested-only`: `334.68 / 347.37 us`.
+      - `update-set-nested-prisma#27650`: `198.57 / 205.90 us`.
+      - `update-set-nested`: `212.90 / 215.38 us`.
+  - Decision:
+    - Keep. This removes a broad compile-local allocation pattern on validation-heavy graphs, keeps read/aggregate controls allocation-neutral, and timing is positive or noise-neutral after paired repeats.
+
 ## Useful Commands
 
 ```sh
