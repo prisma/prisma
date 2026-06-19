@@ -16448,6 +16448,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Keep. This extends the accepted raw-nested M:N cursor/distinct path to mapped scalar fields, saves 577 full-compile allocations and about 49.4 KiB/op on the mapped fixture, and improves focused Criterion by about 36%.
   - Preserve the lockstep shape: operation field names are remapped before serialization, and unsupported mappings fall back. Do not add runtime compatibility readers for DB-name operation keys.
 
+## Accepted Query-Compiler Optimization: Raw-Nested One-To-Many Relation Ops (2026-06-19)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `241f2cb67b3` (`perf(query-compiler): emit raw nested one2m relation ops`).
+- Context:
+  - `nested-distinct-pagination-query` still emitted generic `dataMap -> join -> process` for `User.findMany { posts(distinct: [title], skip: 20, take: 10) }`.
+  - The child query already selected the one-to-many child foreign key (`Post.userId`) used for parent grouping, and the TS runtime record-aware relation-op processor already supports one linking field plus distinct/pagination.
+- Patch:
+  - Generalized the guarded parent-grouped relation-op producer path from M:N-only to list relations that can carry the child relation key.
+  - One-to-many distinct/cursor operation fields are remapped from DB names to raw-record field names before serialization, just like the mapped M:N path.
+  - The one-to-many relation only gets `linkingFields` when distinct/cursor requires record-aware relation ops, preserving the existing row-only skip/take path.
+  - Unsupported or unselected operation fields still fall back before raw-nested emission.
+- Verification:
+  - Scout baseline after engines `0d2d3ad1547`: `nested-distinct-pagination-query` allocation row was `translate_ir 392`, `full_compile 726`, allocated bytes about `88.7 KiB`.
+  - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-one2m-distinct-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated only `nested-distinct-pagination-query`.
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-one2m-distinct-target cargo test -p query-compiler --test queries`: passed.
+  - `cargo fmt -p query-compiler`: passed after rerunning outside the Prisma workspace sandbox; unrelated formatter churn was removed before commit.
+  - `git diff --check`: passed.
+  - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`: passed and rebuilt the local query-compiler Wasm package.
+  - `pnpm --filter @prisma/client build`: passed after rerunning outside the sandbox for the known `tsx` IPC issue.
+- Allocation evidence:
+  - Patched allocation run used `ALLOC_PROFILE_QUERIES=nested-distinct-pagination-query,nested-pagination-query,query-many-one2m,query-one2m-pagination,query-m2m-pagination-mapped-distinct,query-m2o`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`, and `CARGO_TARGET_DIR=/tmp/prisma-engines-one2m-distinct-target`.
+  - Target row:
+    - `nested-distinct-pagination-query`: `translate_ir/full_compile 392/726 -> 293/627`, full allocated bytes `88.7 -> 76.3 KiB`.
+  - Sampled controls stayed in the current band:
+    - `nested-pagination-query 275/559`, `query-many-one2m 296/605`, `query-one2m-pagination 637/1012`, `query-m2m-pagination-mapped-distinct 591/942`, `query-m2o 308/548`.
+- Criterion evidence:
+  - Current control band before the patch: `nested-distinct-pagination-query 75.20 us` in the previous focused run after engines `0d2d3ad1547`.
+  - Patched focused Criterion medians:
+    - `nested-distinct-pagination-query 65.90 us`, about 12% faster than the current control band.
+    - Controls stayed in band: `nested-pagination-query 61.83 us`, `query-many-one2m 68.17 us`, `query-one2m-pagination 93.39 us`, `query-m2m-pagination-mapped-distinct 84.76 us`, `query-m2o 64.65 us`, and `query-m2o-lateral 65.73 us`.
+- Decision:
+  - Keep. This deletes the generic join/process layer for one-to-many distinct+pagination nested reads, saves 99 full-compile allocations and about 12.4 KiB/op, and improves focused Criterion by about 12%.
+  - Keep the guard producer-side: only parent-groupable list relations with representable distinct/cursor record fields may emit the richer raw-nested relation ops.
+
 ## Rejected Experiment: Direct-Push Relation Count Virtual Selections (2026-06-19)
 
 - Hypothesis:
