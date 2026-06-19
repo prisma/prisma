@@ -16001,6 +16001,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes a broad compile-local allocation pattern on validation-heavy graphs, keeps read/aggregate controls allocation-neutral, and timing is positive or noise-neutral after paired repeats.
 
+- Rejected query-compiler experiment: inline `QueryGraph` result/mark bookkeeping vectors.
+  - Timestamp: 2026-06-19.
+  - Hypothesis:
+    - `QueryGraph.result_nodes` and `marked_node_pairs` are usually tiny: one result node, occasionally one or two marked parent/child swaps for inlined-parent relation handling.
+    - Replacing their heap `Vec` storage with `SmallVec<[NodeIndex; 2]>` and `SmallVec<[(NodeRef, NodeRef); 2]>` might remove graph-build allocations without changing graph semantics.
+  - Patch tried:
+    - Changed only the two `QueryGraph` fields to inline `SmallVec` storage.
+    - `push`, `iter`, `contains`, debug formatting, and `std::mem::take()` call sites required no behavior changes.
+    - Reverted fully after timing.
+  - Verification:
+    - `cargo check -p query-core -p query-compiler`: passed.
+  - Allocation evidence:
+    - Patched target: `/home/aqrln.guest/prisma/wip/prisma-engines-graph-smallvec-target`.
+    - Clean control worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-graph-smallvec-control`.
+    - Representative rows after the accepted validation-expectation baseline:
+      - `create-nested-connectOrCreate-mixed`: `703/1427/2302` vs baseline `705/1427/2304`.
+      - `create-nested-connectOrCreate-one2m`: `614/1274/2047` vs `616/1274/2049`.
+      - `nested-upsert-nested-only`: `1037/1401/2616` vs `1038/1401/2617`.
+      - `update-set-nested`: `593/998/1707` vs `594/998/1708`.
+      - `create-m2m`: `521/876/1518` vs `522/876/1519`.
+      - Read/aggregate controls stayed flat.
+  - Criterion evidence:
+    - First patched/control 10-sample pass was mixed: patched/control `create-m2m 193.47 / 187.69 us`, `one2m 282.76 / 266.26`, `mixed 290.97 / 298.88`, `nested-upsert 338.09 / 345.07`, `aggregate 64.26 / 65.80`.
+    - Narrow 15-sample repeat over the ambiguous rows rejected the patch:
+      - Control `create-m2m / mixed / one2m`: `194.50 / 294.58 / 262.27 us`.
+      - Patched `create-m2m / mixed / one2m`: `184.08 / 310.51 / 272.55 us`.
+      - Criterion reported a significant regression on `create-nested-connectOrCreate-mixed` for the patched repeat.
+  - Decision:
+    - Rejected and fully reverted. The allocation win was only 1-2 full-compile allocations and did not survive timing.
+    - Do not retry inline `SmallVec` storage for `QueryGraph.result_nodes` / `marked_node_pairs` as a standalone cleanup.
+  - Cleanup note:
+    - The temporary control worktree was removed.
+    - Removing `/home/aqrln.guest/prisma/wip/prisma-engines-graph-smallvec-target` and `/home/aqrln.guest/prisma/wip/prisma-engines-graph-smallvec-control-target` was blocked by the escalation/usage limit; they are untracked temporary build directories and should be deleted later when approvals are available.
+
 ## Useful Commands
 
 ```sh
