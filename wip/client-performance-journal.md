@@ -16204,6 +16204,47 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a narrow extension of the accepted condition-row-returning `Flow::If` shape, now applied after nested-upsert shared connect hoisting has removed all branch-local update work. It saves 20 full-compile allocations and about 4.8 KiB/op on the focused fixture, keeps sampled controls flat, and does not add old/new internal format compatibility.
 
+- Accepted query-compiler optimization: shared final read for truly empty top-level upsert branches.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `d49c30d27b1` (`perf(query-compiler): share empty upsert result read`).
+  - Hypothesis:
+    - Top-level upsert with `update: {}` and no nested writes in either branch still had two identical final result reads, one under `then` and one under `else`.
+    - For the strict no-nested-branch shape, `Flow::If` can return either the initial parent-id read or the create result, and one post-`if` final read can consume that parent id.
+    - This is different from the rejected direct-wire spike: branch-local reads must stay when create/update branches have nested children, because those child expressions can become the branch result.
+  - Patch:
+    - In `upsert_record()`, compute `can_share_result_read` only when the update branch has no scalar args, the update branch has no nested writes, and the create argument has no nested relation operations.
+    - For that exact shape, create one result read node and attach it to the `if_node` with the same `ExactlyOneFilter` / `MissingRecord::Upsert` dependency.
+    - For every other upsert shape, keep the existing branch-local create/update read nodes.
+    - Snapshot coverage for `upsert-empty-update` now shows `let 4 = if ... then get 0 else create` followed by one final `SELECT` by `4$id`.
+  - Verification:
+    - Side worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-upsert-shared-read`.
+    - Main checkout was fast-forwarded to the same commit after the side-worktree commit.
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-shared-read-target cargo check -p query-core -p query-compiler`: passed in the side worktree.
+    - Full `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-shared-read-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated `queries__queries@upsert-empty-update.json.snap`.
+    - Final side-worktree `CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-shared-read-target cargo test -p query-compiler --test queries`: passed.
+    - Final side-worktree `CARGO_TARGET_DIR=/tmp/prisma-engines-upsert-shared-read-target cargo test -p query-core --lib`: passed, 9 tests.
+    - Main checkout `CARGO_TARGET_DIR=/tmp/prisma-engines-profile-target cargo check -p query-core -p query-compiler`: passed after fast-forward.
+    - `git diff --check`: passed in the side worktree before commit.
+  - Allocation evidence:
+    - Clean control: `/home/aqrln.guest/prisma-engines` at `bd002ef8ac0`, target `/tmp/prisma-engines-profile-target`.
+    - Patched side worktree target: `/tmp/prisma-engines-upsert-shared-read-target`.
+    - Both used `ALLOC_PROFILE_QUERIES=upsert-empty-update,upsert-nested-only-update,upsert,create-nested-connectOrCreate-mixed,update-set-nested`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+    - `upsert-empty-update`: `graph_build/translate_ir/compile_ir/full_compile 304/643/947/1013 -> 300/465/765/831`, full allocated bytes `114.1 -> 95.9 KiB`.
+    - Controls stayed allocation-neutral after tightening the guard: `upsert-nested-only-update 598/1120/1835`, native `upsert 289/335/696`, `create-nested-connectOrCreate-mixed 705/1427/2304`, and `update-set-nested 592/958/1666`.
+  - Criterion evidence:
+    - First broad control/patched medians:
+      - `upsert-empty-update`: `99.564 / 80.766 us`.
+      - `create-nested-connectOrCreate-mixed`: `224.85 / 224.86 us`.
+      - `update-set-nested`: `164.04 / 163.81 us`.
+      - `upsert`: `60.472 / 59.777 us`.
+      - `upsert-nested-only-update` was noisy in the broad pass (`187.70 / 191.75 us`) despite identical allocation counts, so it was repeated narrowly.
+    - Narrow adjacent repeat:
+      - Clean control `upsert-empty-update / upsert-nested-only-update`: `98.758 / 184.25 us`.
+      - Patched `upsert-empty-update / upsert-nested-only-update`: `78.677 / 183.45 us`.
+  - Decision:
+    - Keep. This removes one whole duplicate final-read branch for the truly empty top-level upsert shape, saves 182 full-compile allocations and about 18.2 KiB/op, improves close target Criterion by about 20%, and leaves nested-branch upserts on the existing safer branch-local read path.
+
 ## Useful Commands
 
 ```sh
