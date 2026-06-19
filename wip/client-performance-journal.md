@@ -15684,6 +15684,61 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Rejected; removed the side worktree. This is an allocation-only branch simplification with weak/negative target timing; do not retry without a new CPU profile/hypothesis.
 
+- Accepted query-compiler optimization: let `Flow::If` return condition rows directly.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `e14835e605e` (`perf(query-compiler): return if condition rows directly`).
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-if-condition-return-spike` on branch `if-condition-return-spike`.
+  - Hypothesis:
+    - Some connect-or-create existing branches do no branch-local work. They only execute `Then -> Flow::Return(condition rows)` so the enclosing `if` can produce the selected child id for a downstream connect or parent-link injection. A narrow internal `If` mode can return the condition rows directly and remove the extra return node/edge without changing external protocol shapes.
+  - Patch:
+    - Added `Flow::if_non_empty_returning_condition()` and a `then_returns_condition` field on internal `Flow::If`.
+    - Updated translation so a missing `Then` edge is valid only for that mode, where the `then` expression becomes the same placeholder used for the condition value.
+    - Used the new mode in nested connect-or-create many-to-many existing branches and inlined-parent one-to-many existing branches.
+    - Kept existing return nodes where the branch still needs checks or other work, such as one-to-one existing-parent checks and nested update/upsert return nodes.
+    - Accepted the `create-nested-connectOrCreate-mixed` snapshot update; the expression now shows `then get <condition>` directly and binding numbers shift down.
+  - Allocation evidence:
+    - Baseline after `0f03048514c`:
+      - `create-nested-connectOrCreate-mixed`: `graph_build/translate_ir/full_compile 711/1463/2346`.
+      - `create-nested-connectOrCreate-one2m`: `623/1321/2103`.
+      - `create-nested-connectOrCreate-m2one`: `393/787/1297`.
+    - Patched side and real checkout:
+      - `mixed`: `708/1451/2331`, full allocated `277.6 -> 276.6 KiB`.
+      - `one2m`: `620/1315/2094`, full allocated `244.2 -> 241.7 KiB`.
+      - `m2one`: `391/781/1289`, full allocated `155.1 -> 154.6 KiB`.
+    - Sampled controls stayed allocation-neutral:
+      - `nested-upsert-nested-only 1043/1458/2679`
+      - `create-nested-connect 463/732/1311`
+      - `update-set-nested 597/1024/1737`
+      - `query-m2o 161/308/548`
+      - `aggregate 279/242/599`
+  - Criterion evidence:
+    - First side/control pass:
+      - side `m2one 125.99 us`, clean control `127.81 us`.
+      - side `mixed 232.37 us`, clean control `234.95 us`.
+      - side `one2m 221.32 us` was noisy, clean control `213.23 us`.
+      - controls stayed healthy: side/control `nested-upsert-nested-only 276.73/277.84 us`, `query-m2o 64.95/64.79`, `query-m2o-lateral 65.94/67.97`.
+    - Close target-only repeats:
+      - `one2m`: side `209.73 us`, clean control `208.89 us`; treat as neutral/noisy despite the allocation win.
+      - `m2one`: side `127.23 us`, clean control `128.67 us`.
+      - `mixed`: side `235.07 us`, clean control `237.55 us`.
+  - Verification:
+    - Side worktree:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed after accepting the snapshot update.
+      - `rustfmt --check` on touched Rust files: passed. Whole-repo `cargo fmt --check` still reports unrelated existing drift in `filters/mod.rs` and `update_nested.rs`, so use touched-file rustfmt for this change.
+      - `git diff --check`: passed.
+      - Focused allocation profile and Criterion commands above.
+    - Real engines checkout:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `rustfmt --check` on touched Rust files: passed.
+      - `git diff --check`: passed.
+      - Focused allocation profile matched the side-worktree result.
+  - Decision:
+    - Keep. This removes redundant graph/translation nodes for the exact existing-branch shapes that return the condition rows, with deterministic allocation wins and neutral-to-positive focused timing overall. Do not use the mode for branches that need checks, nested operations, emulation, or any result other than the condition rows.
+
 ## Useful Commands
 
 ```sh
