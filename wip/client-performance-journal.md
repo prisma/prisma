@@ -15900,6 +15900,55 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Kept the headline magnitude unchanged: cache hits are still orders of magnitude faster than recompilation, current product nested feed wins are about 2x on the fresh by-author baseline, several simple/cache-hit rows are past 3x, and the remaining nested-feed step likely needs a whole-phase final-owner schedule or a larger generated/JS-owned cache-hit design.
     - Reiterated the lockstep internal-format rule: internal plan producer and consumer shapes move together with no old-format compatibility reader unless a real external boundary exists.
 
+- Accepted query-compiler optimization: skip M:N disconnect child read for exact primary-id selectors.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `d2fa2a3bf53` (`perf(query-compiler): skip m2m disconnect child read`).
+  - Scout:
+    - `Kuhn` (`019edfae-dcad-7181-a009-1ab693a88c3e`) identified the slice: `update-m2m-disconnect` already carries `{ categories: { disconnect: [{ id: 1 }] } }`, but the graph still compiled a related `Category` read only to populate `DisconnectRecords.child_ids`.
+  - Patch:
+    - Added `disconnect_records_node_with_child_ids()` for M:N disconnects where child IDs are already known.
+    - `nested_disconnect()` now detects the narrow shape where every M:N selector is exactly the related model's single primary identifier and stores those request-owned IDs directly in `DisconnectRecords`.
+    - Alternate unique selectors, compound IDs, non-M:N disconnects, and mixed selector shapes fall back to the existing child-read path.
+    - The snapshot for `update-m2m-disconnect` now removes the `Category` join read and emits the join-table delete with `const(BigInt(1))` as the child ID.
+    - No new serialized/internal format was added; this reuses the existing `DisconnectRecords { parent_id, child_ids, relation_field }` shape.
+  - Verification:
+    - `cargo check -p query-core -p query-compiler`: passed.
+    - `INSTA_GLOB_FILTER='*update-m2m-disconnect*' INSTA_UPDATE=always cargo test -p query-compiler --test queries -- --nocapture`: passed after accepting the focused snapshot.
+    - `cargo test -p query-compiler --test queries`: passed.
+    - `git diff --check`: passed.
+  - Allocation evidence:
+    - Patched run in `/home/aqrln.guest/prisma-engines` used `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-m2m-disconnect-target`.
+    - Clean control run in `/home/aqrln.guest/prisma/wip/prisma-engines-m2m-disconnect-control` used `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-m2m-disconnect-control-target`.
+    - Both used `ALLOC_PROFILE_BUCKETS=1`, `ALLOC_PROFILE_QUERIES=update-m2m-disconnect,create-nested-connect,query-many-m2m,query-m2o`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+    - `update-m2m-disconnect`: `graph_build/translate_ir/full_compile 402/768/1236 -> 389/465/920`, full allocated bytes `133.7 -> 105.5 KiB`.
+    - Controls stayed allocation-neutral: `create-nested-connect 463/732/1311`, `query-many-m2m 236/406/713`, and `query-m2o 161/308/548`.
+  - Criterion evidence:
+    - First focused patched/control pass over target plus controls:
+      - Patched `update-m2m-disconnect`: `107.81 us`.
+      - Clean control `update-m2m-disconnect`: `138.41 us`.
+      - Unchanged controls were in the expected noisy band: patched/control `create-nested-connect 159.35 / 167.92 us`, `query-m2o 78.452 / 78.069`, `query-many-m2m 90.436 / 87.939`.
+    - Target-only longer close A/B:
+      - Patched: `103.33 us`.
+      - Clean control: `138.55 us`.
+  - Decision:
+    - Keep. This removes a whole child-read phase for the exact primary-id M:N disconnect shape, saves 316 full-compile allocations and about 28.2 KiB/op on the target fixture, and improves target Criterion by roughly 25% while sampled controls stay allocation-neutral.
+
+- Architecture lead: fixed-role non-unique final-owner schedule node.
+  - Timestamp: 2026-06-19.
+  - Scout:
+    - `Laplace` (`019edfae-f320-75d3-94f2-aa9780a605f1`) proposed making the by-author lower bound product-shaped by emitting a new fixed-role compact node beside `['n', RawNestedReadQuery, unique, enums?]`, instead of rediscovering the topology at runtime through `tryCompileRawNestedFinalOwnerProgram()`.
+  - Lead:
+    - Candidate shape: a lockstep internal `['N', RawNestedFinalOwnerSchedule, ...]` whose slots own the root query, two unique first-wave relations, wrapper-list source and unique child lookup, child-list relation pagination plus nested unique child lookup, and final attachment.
+    - The schedule must apply child-list pagination before collecting nested unique author IDs; the benchmark-only strict schedule that reads all comment author IDs is not product-correct as-is.
+    - If a fallback raw-nested payload is included for Remote/QPE, SQL commenters, instrumentation, enums, or unsupported result formats, it is still a new internal format emitted by Rust and consumed by TS lockstep, not an old/new compatibility sidecar.
+  - Gates:
+    - Node by-author rows: generated default/prepared/exact-helper, direct plan, strict schedule, raw compact/exact compact, and local executor.
+    - Workerd by-author rows: generated default, exact-helper, prepared request surface, and generated prepared.
+    - Correctness coverage for empty wrapper rows, empty comments, multiple roots, `skip + take`, filtered child-list pagination before second-wave scope extraction, SQL commenter/instrumentation fallback, and QPE/`jsonProtocol` behavior.
+  - Decision:
+    - Preserve as the next large runtime lead. Prior local final-owner helper rewrites and runtime branches over the existing program failed; this has a chance only if it owns the whole phase and updates producer/consumer shapes together.
+
 ## Useful Commands
 
 ```sh
