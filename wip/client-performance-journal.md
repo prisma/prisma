@@ -16286,6 +16286,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Decision:
   - Rejected and reverted. The semantics can be made narrow, but suppressing one validation wrapper saves only one allocation and makes adjacent compile rows consistently slower in Criterion. Do not retry create final-read validation suppression as a standalone cleanup; any future create final-read work needs to remove a larger phase, not just a validation expression.
 
+## Rejected Experiment: Skip Trusted M:N Connect Validation Wrappers (2026-06-19)
+
+- Hypothesis:
+  - After M:N connect-or-create branch joining, the child side of the shared `ConnectRecords` node is produced by an `if_non_empty_returning_condition()` result that is either a unique read row or a create-returning row. Its `rowCountEq 1` / `INCOMPLETE_CONNECT_INPUT` validation looked redundant.
+  - The scout also suggested a broader trusted-parent sink for the nested-upsert shared-connect shape, where the parent side of a shared M:N `connect` is likewise produced by the branch-selected `if` result.
+- Patch tried:
+  - Side worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-coc-child-count`.
+  - Narrow child-side variant: added a `connect_records_node_with_guaranteed_child()` helper and used it only from M:N nested connect-or-create. Snapshots removed the child `rowCountEq 1` validation from `create-nested-connectOrCreate-mixed` and `create-nested-connectOrCreate-one2m`.
+  - Broader variant: added a `RowSink::TrustedSingle` path and a trusted-parent nested connect entry point for the shared nested-upsert M:N connect. Snapshot additionally removed the `unique(validate(get 3) ... MISSING_RELATED_RECORD)` wrapper from `nested-upsert-nested-only` while keeping the category-side `INCOMPLETE_CONNECT_INPUT`.
+- Verification:
+  - Child-side variant:
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-coc-child-count-target cargo check -p query-core -p query-compiler`: passed.
+    - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-coc-child-count-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated only the two connect-or-create snapshots.
+  - Trusted-parent variant:
+    - `CARGO_TARGET_DIR=/tmp/prisma-engines-coc-child-count-target cargo check -p query-core -p query-compiler`: passed.
+    - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-coc-child-count-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated `nested-upsert-nested-only`.
+- Allocation evidence:
+  - Clean control rows from `/home/aqrln.guest/prisma-engines` at `d49c30d27b1`:
+    - `create-nested-connectOrCreate-mixed` full_compile `2304`, `create-nested-connectOrCreate-one2m` `2049`, `nested-upsert-nested-only` `2555`.
+  - Child-side variant:
+    - `create-nested-connectOrCreate-mixed` `graph_build/translate_ir/compile_ir/full_compile 705/1427/2132/2304 -> 705/1424/2129/2301`.
+    - `create-nested-connectOrCreate-one2m` `616/1274/1890/2049 -> 616/1271/1887/2046`.
+    - `create-nested-connectOrCreate-m2one`, `nested-upsert-nested-only`, `create-m2m`, `create-nested-connect`, `update-set-nested`, `query-m2o`, and `aggregate` stayed allocation-neutral.
+  - Trusted-parent variant:
+    - Kept the same child-side savings.
+    - `nested-upsert-nested-only` moved `1029/1348/2377/2555 -> 1023/1342/2365/2543`, about `307.0 -> 306.3 KiB/op`.
+    - Sampled create/read/update/aggregate controls stayed allocation-neutral.
+- Criterion evidence:
+  - Child-side first pass was not robust: earlier control / patched medians were mixed `229.25 -> 228.66 us` and one2m `208.76 -> 205.25`, but a fresh close control undermined the result. Final reverse control beat patched on mixed (`224.69 us` control vs `228.26 us` patched), while one2m was noise-level (`205.97` control vs `205.37` patched).
+  - Trusted-parent variant regressed the close control: `create-nested-connectOrCreate-mixed 229.16 -> 232.19 us`, `create-nested-connectOrCreate-one2m 204.69 -> 207.05`, and `nested-upsert-nested-only 255.93 -> 261.33`.
+- Decision:
+  - Rejected and reverted. The child-side validation skip saves only three allocations and does not survive close timing. The trusted-parent sink saves more allocations on nested upsert but clearly regresses Criterion.
+  - Do not retry M:N connect-or-create child count validation removal or trusted `RowSink` parent wrappers as standalone cleanups. A future attempt would need to remove a larger semantic phase or make the `Flow::If` result shape itself cheaper without adding a broader translation contract.
+
 ## Useful Commands
 
 ```sh
