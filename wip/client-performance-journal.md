@@ -14701,7 +14701,8 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - A single graph computation node cannot simply replace both nodes today. `ProjectedDataDependency` binds a source node's whole result or projected fields into the target node; the two downstream `If` / `UpdateManyRecords` branches need separately addressable left and right diff outputs.
     - A real fused design likely needs either a graph dependency that can address named outputs from one computation node, or a new internal expression/runtime shape that returns both deltas and lets downstream edges bind one side. That is a broader graph/result-binding redesign, not a small graph-node deletion.
   - Follow-up:
-    - Revisit as a larger slice if `update-set-nested` remains a priority. If a new compact expression shape is introduced, update Rust producer, TS query-plan types, interpreter, tests, and snapshots lockstep with no old/new compatibility branch.
+    - Later on 2026-06-18, the narrow `DiffBoth` / `DiffSide` graph and expression shape was prototyped and rejected: it removed one graph computation but side-output access erased the target allocation win and regressed adjacent nested-write controls.
+    - Revisit only as a larger phase-owner slice if `update-set-nested` remains a priority. A future design should own the set connect/disconnect semantics as one operation or remove a whole phase. If a new compact expression or query-plan shape is introduced, update Rust producer, TS query-plan types, interpreter, tests, and snapshots lockstep with no old/new compatibility branch.
 
 - Rejected experiment: branch-local nested update/upsert filter clone elision.
   - Timestamp: 2026-06-18.
@@ -15140,9 +15141,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Current path stores `If`, `Return`, and `Diff` inputs as `Vec<SelectionResult>`, then translation immediately requires exactly one placeholder. A targeted shape could add a direct placeholder/single-projection sink for `IfInput`, `ReturnInput`, `LeftSideDiffInput`, and `RightSideDiffInput`, avoiding `vec![SelectionResult::new(fields)]` plus a secondary selection-result container.
     - Expected rows: `nested-upsert-nested-only`, `update-set-nested`, `create-nested-connectOrCreate-mixed`, and `create-nested-connectOrCreate-one2m`; likely `translate_ir` more than `graph_build`.
     - Avoid nearby rejected shapes: `DataRule` SmallVec, `Let.bindings` SmallVec, broad typed binding names, and `SelectionResult::from_selected_pairs()` as standalone changes.
-  - Candidate 2: fused one-to-many nested `set` bidirectional diff.
+  - Candidate 2: one-to-many nested `set` larger phase-owner rewrite.
     - Files/functions: `core/src/query_graph_builder/write/nested/set_nested.rs`, `core/src/query_graph/mod.rs`, and `query-compiler/src/expression.rs`.
-    - Current non-empty one-to-many `set` builds two diff computation nodes from the same old/new child result sets, with four projected edges, then emits two `Expression::Diff`s. A fused computation with separately addressable left/right outputs could remove one computation node, two edges, and one diff expression.
+    - Current non-empty one-to-many `set` builds two diff computation nodes from the same old/new child result sets, with four projected edges, then emits two `Expression::Diff`s.
+    - A later `DiffBoth` / side-output prototype proved that merely fusing the diff object is not enough: side projections increased translation allocations and regressed adjacent nested-write controls. A viable follow-up must remove or own a larger semantic phase, such as combined set connect/disconnect handling.
     - Expected row: primarily `update-set-nested`; `update-set-nested-empty` is already specialized and should be a control.
     - If this needs a new internal expression shape, update Rust producer, TS consumers, tests, snapshots, and fixtures lockstep with no old/new compatibility path.
   - Candidate 3: branch-aware nested-upsert shared target-read proof.
@@ -15329,6 +15331,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
       - Result: `7.86 us/op`.
   - Decision:
     - Reject. The unit-level shape was correct, but the same-session Node A/B regressed both the full generated prepared row and the narrower request-surface row. Do not retry stable read options or no-success-then in `requestPreparedReadPrecomputedCachedResult()` as a standalone cleanup.
+
+- Rejected experiment: fused one-to-many nested `set` bidirectional diff object.
+  - Timestamp: 2026-06-18.
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both` on branch `diff-both-spike`.
+  - Patch:
+    - Added `Computation::DiffBoth(DiffNode)` and `DiffSide::{LeftToRight, RightToLeft}` in the Rust query graph.
+    - Added `QueryGraphDependency::ProjectedDiffDataDependency(...)` so downstream branches could bind one side of a fused diff result.
+    - Added `Expression::DiffBoth` with compact tag `"B"` and `Expression::DiffSide` with compact tag `"b"`.
+    - Reworked the non-empty one-to-many nested `set` graph to build one fused diff node from the old/new child result sets, then route left-only rows to connect and right-only rows to disconnect/required-validation branches.
+    - No old/new compatibility readers were added; the prototype treated the internal graph/expression shape as a lockstep replacement.
+  - Verification:
+    - `cargo check -p query-core -p query-compiler`: passed in the side worktree.
+    - The rejected prototype still had a dead-code warning for unused `binding::diff_side_field()`.
+  - Allocation evidence:
+    - Patched command:
+      - `PATH="$HOME/.cargo/bin:$PATH" CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-diff-both-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 CARGO_BUILD_JOBS=4 ALLOC_PROFILE_ITERATIONS=100 ALLOC_PROFILE_WARMUP=10 ALLOC_PROFILE_QUERIES='update-set-nested,update-set-nested-empty,update-set-nested-prisma#27650,nested-upsert-nested-only,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,query-m2o,query-many-m2m,aggregate' cargo run -p query-compiler --example allocation_profile --release`
+    - Control command used the same profile settings in `/home/aqrln.guest/prisma-engines` with `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/wip/prisma-engines-diff-both-control-target`.
+    - Target row:
+      - `update-set-nested`: graph_build `630 -> 626`, but `translate_ir/full_compile 1061/1807 -> 1064/1806`. Net result was only one saved full-compile allocation while translation regressed by three allocations.
+    - Controls regressed:
+      - `update-set-nested-empty`: `704/1306 -> 706/1308`.
+      - `update-set-nested-prisma#27650`: `819/1680 -> 824/1685`.
+      - `nested-upsert-nested-only`: `1713/2998 -> 1720/3005`.
+      - `create-nested-connectOrCreate-mixed`: `1474/2412 -> 1478/2416`.
+      - `create-nested-connectOrCreate-one2m`: `1321/2133 -> 1325/2137`.
+    - Read/aggregate controls stayed allocation-neutral:
+      - `query-m2o`: `308/549`.
+      - `query-many-m2m`: `406/714`.
+      - `aggregate`: `242/607`.
+  - Decision:
+    - Reject before Criterion or TS runtime support. The shape removed one graph computation and two input edges, but it introduced side bindings/side expressions that erased the target allocation win and regressed adjacent nested-write controls.
+    - Do not retry this narrow `DiffBoth` object plus side-projection shape as the fused-set design. A viable future one-to-many `set` rewrite needs to own a larger semantic phase, such as connect/disconnect set handling as one operation, instead of exposing a bidirectional diff object and then paying side-access overhead downstream.
+  - Cleanup:
+    - Cleaned the patched and control Cargo target directories:
+      - `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both-target`
+      - `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both-control-target`
+    - Removing the side worktree itself was blocked by the current escalation usage limit, so `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both` remains as an untracked cleanup item.
 
 ## Useful Commands
 
