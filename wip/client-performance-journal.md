@@ -15877,6 +15877,20 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rejected and fully reverted. The two-argument continuation shape is much worse on the same-session prepared rows.
     - Do not change the narrow prepared-read handler from `.then(success).catch(error)` to `.then(success, error)` as a standalone generated-prepared cleanup.
 
+- Accepted build/runtime format fix: raw SQL query plans use canonical compact scalar arg types.
+  - Timestamp: 2026-06-19.
+  - Context:
+    - Restarting `pnpm --filter @prisma/client build` exposed a TypeScript error in `ClientEngine.ts::compileRawQuery()`.
+    - The first visible problem was a tuple discriminant inferred as `'q' | 'x'`, but splitting the branch exposed the real mismatch: `deserializeRawParameters()` returned driver-adapter scalar `ArgType` objects (`{ arity: 'scalar', scalarType: ... }`) while internal `QueryPlanRawSql.argTypes` now expects compact `QueryPlanArgType` values.
+  - Change:
+    - `compileRawQuery()` now returns explicit `['q', rawSql]` / `['x', rawSql]` tuples.
+    - `deserializeRawParameters()` now maps scalar raw parameters to canonical compact query-plan scalar codes (`'s'`, `'d'`, `'I'`, `'D'`, `'B'`, `'?'`, etc.) and keeps list arg objects only for list arity.
+    - `deserializeRawParameters.test.ts` now asserts the compact scalar output.
+    - No old scalar-object compatibility reader was added.
+  - Verification:
+    - `pnpm --filter @prisma/client test deserializeRawParameters.test.ts --runInBand`: passed, 15 tests.
+    - `pnpm --filter @prisma/client build`: passed after the fix.
+
 ## Useful Commands
 
 ```sh
