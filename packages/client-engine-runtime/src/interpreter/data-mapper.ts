@@ -77,7 +77,7 @@ function isObjectNode(node: ResultNode | ObjectResultNode): node is ObjectResult
 }
 
 function isFieldNode(node: ResultNode): node is FieldResultNode {
-  return typeof node === 'string' || (!isObjectNode(node) && 'fieldType' in node)
+  return typeof node === 'string' || (!isObjectNode(node) && !('type' in node) && 'fieldType' in node)
 }
 
 function getObjectFields(node: ObjectResultNode): Record<string, ResultNode> {

@@ -43,31 +43,31 @@ export function generateNestedData(userCount: number, postsPerUser: number): Rec
 export const USER_STRUCTURE: ResultNode = [
   null,
   {
-    id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
-    email: { type: 'field', dbName: 'email', fieldType: { type: 'string', arity: 'scalar' } },
-    name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
-    bio: { type: 'field', dbName: 'bio', fieldType: { type: 'string', arity: 'scalar' } },
-    avatar: { type: 'field', dbName: 'avatar', fieldType: { type: 'string', arity: 'scalar' } },
-    isActive: { type: 'field', dbName: 'isActive', fieldType: { type: 'boolean', arity: 'scalar' } },
-    role: { type: 'field', dbName: 'role', fieldType: { type: 'string', arity: 'scalar' } },
-    createdAt: { type: 'field', dbName: 'createdAt', fieldType: { type: 'datetime', arity: 'scalar' } },
+    id: 'i',
+    email: 's',
+    name: 's',
+    bio: 's',
+    avatar: 's',
+    isActive: 'b',
+    role: 's',
+    createdAt: 'D',
   },
 ]
 
 export const USER_WITH_POSTS_STRUCTURE: ResultNode = [
   null,
   {
-    id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
-    email: { type: 'field', dbName: 'email', fieldType: { type: 'string', arity: 'scalar' } },
-    name: { type: 'field', dbName: 'name', fieldType: { type: 'string', arity: 'scalar' } },
+    id: 'i',
+    email: 's',
+    name: 's',
     posts: [
       'posts',
       {
-        id: { type: 'field', dbName: 'id', fieldType: { type: 'int', arity: 'scalar' } },
-        title: { type: 'field', dbName: 'title', fieldType: { type: 'string', arity: 'scalar' } },
-        content: { type: 'field', dbName: 'content', fieldType: { type: 'string', arity: 'scalar' } },
-        published: { type: 'field', dbName: 'published', fieldType: { type: 'boolean', arity: 'scalar' } },
-        viewCount: { type: 'field', dbName: 'viewCount', fieldType: { type: 'int', arity: 'scalar' } },
+        id: 'i',
+        title: 's',
+        content: 's',
+        published: 'b',
+        viewCount: 'i',
       },
     ],
   },

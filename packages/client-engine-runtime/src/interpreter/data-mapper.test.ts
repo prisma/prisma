@@ -17,8 +17,8 @@ test('maps result sets directly like serialized SQL rows', () => {
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
-      name: { type: 'field', dbName: 'name', fieldType: { type: 's', arity: 'scalar' } },
+      id: 'i',
+      name: 's',
     },
   ] satisfies ResultNode
 
@@ -91,7 +91,7 @@ test('direct result-set mapping uses the last duplicate column name', () => {
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
+      id: 'i',
     },
   ] satisfies ResultNode
 
@@ -104,8 +104,8 @@ test('direct result-set mapping caches independently for different column orders
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
-      name: { type: 'field', dbName: 'name', fieldType: { type: 's', arity: 'scalar' } },
+      id: 'i',
+      name: 's',
     },
   ] satisfies ResultNode
 
@@ -132,4 +132,15 @@ test('direct result-set mapping caches independently for different column orders
       {},
     ),
   ).toEqual([{ id: 2, name: 'Bob' }])
+})
+
+test('rejects legacy field result nodes with a type discriminator', () => {
+  const structure = [
+    null,
+    {
+      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
+    },
+  ] as unknown as ResultNode
+
+  expect(() => applyDataMap([{ id: 1 }], structure, {})).toThrow(/Invalid data mapping node type/)
 })
