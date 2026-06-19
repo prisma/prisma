@@ -16110,6 +16110,59 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes the old-child-read phase for all M:N `set` shapes, saves 336 full-compile allocations and about 29.5 KiB/op on the non-empty target fixture, and improves target Criterion by about 16% with sampled controls flat or slightly favorable.
 
+- Accepted query-compiler optimization: id-only top-level empty update carriers.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `6ad7f3a9b1c` (`perf(query-compiler): narrow empty update carrier projection`).
+  - Hypothesis:
+    - Top-level `updateOne` with no scalar write args can still create an `UpdateRecord` carrier when nested writes or nested selections require a later result read.
+    - In those cases the carrier row only feeds parent identity into nested operations and the final read. Selecting the full requested scalar payload is wasted work.
+    - Scalar-only empty updates are different: if there is no nested work or nested selection, the update node directly returns the user result and must keep the requested selection.
+  - Patch:
+    - In `update_record_node()`, moved `update_args.nested` into a local so the selection decision can see whether nested writes exist before consuming the nested map.
+    - When `args.is_empty()` and either the selected field has nested selection or nested writes exist, the carrier `UpdateRecordWithSelection` now uses `model.shard_aware_primary_identifier()` and primary-id `selection_order`.
+    - Otherwise it keeps the existing `collect_selected_scalars()` / requested selection order path.
+    - Snapshot coverage now shows id-only carrier reads for nested-upsert nested-only, update connect/create, M:N disconnect/set, and one-to-many nested set shapes.
+  - Verification:
+    - `cargo check -p query-core -p query-compiler`: passed before the full snapshot surface was discovered.
+    - Focused `update-m2m-set` snapshot update: passed.
+    - Full `INSTA_UPDATE=always cargo test -p query-compiler --test queries -- --nocapture`: passed after rerunning with filesystem approval because the test rewrites snapshots/graphs under `/home/aqrln.guest/prisma-engines`.
+    - Final `cargo test -p query-compiler --test queries`: passed.
+    - `cargo test -p query-core --lib`: passed, 9 tests.
+    - `git diff --check`: passed.
+  - Allocation evidence:
+    - Patched target: `/home/aqrln.guest/prisma/wip/prisma-engines-update-carrier-target`.
+    - Clean control worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-update-carrier-control`, based on `6a92e4ddeeb`.
+    - Both used `ALLOC_PROFILE_QUERIES=update-m2m-set,update-m2m-set-empty,update-m2m-disconnect,update-connect,update-set-nested,query-m2o,query-many-m2m`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+    - `update-m2m-set`: `graph_build/translate_ir/full_compile 511/976/1586 -> 509/936/1544`, full allocated bytes `178.1 -> 171.5 KiB`.
+    - `update-m2m-set-empty`: `417/704/1208 -> 415/664/1166`, full allocated bytes `135.7 -> 129.2 KiB`.
+    - `update-m2m-disconnect`: `387/445/898 -> 386/405/857`, full allocated bytes `104.1 -> 98.5 KiB`.
+    - `update-connect`: `548/655/1314 -> 546/615/1272`, full allocated bytes `158.2 -> 151.8 KiB`.
+    - `update-set-nested`: `594/998/1708 -> 592/958/1666`, full allocated bytes `201.2 -> 194.7 KiB`.
+    - Read controls stayed allocation-neutral: `query-m2o 161/308/548`, `query-many-m2m 236/406/713`.
+  - Criterion evidence:
+    - First broad patched/control medians:
+      - `update-connect`: `126.37 / 133.91 us`.
+      - `update-m2m-disconnect`: `77.789 / 83.999 us`.
+      - `update-m2m-set-empty`: `110.10 / 115.99 us`.
+      - `update-m2m-set`: `143.99 / 153.47 us`.
+      - `update-set-nested-empty`: `125.67 / 131.60 us`.
+      - `update-set-nested`: `162.83 / 168.60 us`.
+      - `update-set-nested-prisma#27650`: `148.91 / 150.93 us`.
+      - Read controls moved slightly with same-session drift: `query-m2o 63.117 / 64.591 us`, `query-many-m2m 71.011 / 73.100 us`.
+    - Close control followed by patched repeat on update rows:
+      - `update-connect-child-one2m`: `79.675 / 84.969 us`.
+      - `update-connect-parent-one2m`: `69.527 / 73.992 us`.
+      - `update-connect`: `125.38 / 135.02 us`.
+      - `update-m2m-disconnect`: `77.855 / 84.666 us`.
+      - `update-m2m-set-empty`: `108.72 / 117.66 us`.
+      - `update-m2m-set`: `142.32 / 152.61 us`.
+      - `update-set-nested-empty`: `125.02 / 134.28 us`.
+      - `update-set-nested-prisma#27650`: `148.99 / 151.70 us`.
+      - `update-set-nested`: `162.71 / 172.40 us`.
+  - Decision:
+    - Keep. This saves about 40-42 `translate_ir` / `full_compile` allocations on affected carrier rows, cuts another 5.6-8.0% off the close update-row Criterion medians, and leaves scalar-only empty updates on the requested-selection path so direct return semantics are preserved.
+
 ## Useful Commands
 
 ```sh
