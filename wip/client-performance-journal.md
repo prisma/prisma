@@ -16366,6 +16366,33 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Keep. This removes the duplicated final raw nested read for the one-nested-update top-level upsert shape, saves 360 full-compile allocations and about 36.7 KiB/op, and improves focused target Criterion by about 20-21%.
   - Keep the guard narrow: the create branch must remain non-nested, and update branches with multiple nested operations still need separate proof before sharing the final read.
 
+## In-Flight Lead: Raw-Nested M:N Cursor/Distinct Relation Ops (2026-06-19)
+
+- Context:
+  - The current main checkpoints are Prisma `b4fb293ac` and engines `d89ebbdb461`.
+  - The intermediate report has been prepared from those checkpoints. No new accepted performance numbers are claimed after the nested-only upsert shared-read win.
+  - Active side worktrees exist at `wip/prisma-engines-raw-nested-m2m-ops` and `wip/prisma-client-raw-nested-m2m-ops`; they are not accepted result branches.
+- Scout finding:
+  - `query-one2m-pagination` is actually an implicit M:N `Post.findMany { categories(...) }` shape with nested `cursor: { id: 1 }`, `skip: 1`, `take: 1`, and `distinct: ["id"]`.
+  - Engines currently falls back because `raw_nested_relation_operations_may_be_supported()` rejects cursor-bearing in-memory pagination for non-unique parents, and then rejects required in-memory distinct. The fallback plan is `dataMap -> join -> process` with `linkingFields: CategoryToPost@Post`, `distinct: id`, and cursor pagination.
+  - TS already has the eight-slot raw relation tuple with `operations`, but `query-interpreter.ts` only supports no-cursor relation-local pagination and rejects `distinct`, `linkingFields`, `reverse`, nested ops, and `pagination.cursor`.
+- Prototype state:
+  - A first engines-side patch allowed parent-grouped ops for M:N and changed the snapshot to `rawNestedRead`, but it is not safe to commit as-is. It would emit richer relation operations that the baseline Prisma runtime rejects.
+  - The engines worktree also contains rustfmt-only churn in unrelated files; clean those before any acceptance decision.
+- Hazards:
+  - A plain engines-only "allow M:N ops" change is not sufficient for the exact fixture.
+  - Global distinct can drop children shared by multiple parents unless distinct is keyed by parent/linking field.
+  - Cursor SQL prefiltering can return later children for parents that do not contain the cursor child unless per-parent cursor membership is preserved.
+  - Runtime raw-nested records use Prisma field names, while current query-mode distinct serialization may use DB names. Before accepting a richer runtime op path, either guard distinct fields to `db_name == name` or add a lockstep plan-shape mapping that keeps distinct field names unambiguous.
+  - The final-owner row-only fast path must keep the old no-cursor/no-distinct support predicate unless its row filter learns the richer semantics too.
+- Viable next shapes:
+  - Lockstep producer/consumer path: engines emits richer M:N relation ops only behind guards; Prisma runtime processes raw rows/records in the same order as generic `processManyRecords()` for distinct plus per-parent cursor/skip/take; tests cover multi-parent rows, shared children, duplicate categories, parents without the cursor child, and mapped distinct fields.
+  - Narrow engines-only path: implicit M:N, single-scalar relation, no cursor, no reverse, no nested relation ops, and `distinct` exactly on the related model primary id where distinct is provably redundant per parent because the implicit join-table pair is unique. This does not cover the current fixture.
+- Verification plan if resumed:
+  - Engines: `cargo check -p query-compiler`, `cargo test -p query-compiler --test queries`, allocation profile, and Criterion over `query-one2m-pagination`, `query-m2m`, `query-many-m2m`, `query-non-unique-one2m-pagination`, `query-unique-one2m-pagination`, `nested-pagination-query`, and `nested-distinct-pagination-query`.
+  - Prisma runtime: focused `query-interpreter.test.ts` coverage for raw-nested relation ops with `linkingFields`, `distinct`, and cursor pagination, then `@prisma/client-engine-runtime` build/tests.
+  - Connector semantics: add/query existing nested pagination tests for M:N cursor/skip/take, especially a parent that has later children but does not contain the cursor child.
+
 ## Useful Commands
 
 ```sh
