@@ -15486,17 +15486,58 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is a broad, low-risk parser success-path allocation win with neutral-to-positive focused timing and clean query-document/query-compiler tests.
 
-- Future lead: required-child one-to-many nested `set` phase-owner operation.
+- Accepted change: required-child one-to-many nested `set` phase-owner operation.
   - Timestamp: 2026-06-19.
-  - Scout summary:
-    - Do not retry the rejected `DiffBoth` / side-projection object. It fused only the diff object and then paid the side-access cost downstream.
-    - A more promising design is a new internal phase-owner node/expression for required-child one-to-many `set`, limited first to the single-scalar id/link shape.
-    - The operation would own the read-old/read-new/connect/update/required-violation sequence instead of creating separately addressable left/right diff nodes.
-    - Preserve observable order: read old and new children, connect/update new-only rows first when needed, then evaluate old-only required-relation violations.
-    - If it needs a new compact expression/query-plan shape, update Rust producer, TS query-plan types/interpreter/validation, snapshots, and tests lockstep with no old/new compatibility branch.
-  - Suggested acceptance gate:
-    - Target `update-set-nested`; keep `update-set-nested-empty`, `update-set-nested-prisma#27650`, nested-upsert, read, and aggregate rows as controls.
-    - Worth keeping if it saves at least about 75 full-compile allocations on the target or shows a clear Criterion win with controls flat.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `102c8fb35ae` (`perf(query-compiler): own required nested set phase`).
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-required-set-owner` on branch `required-set-owner-spike`.
+  - Patch:
+    - Added `Computation::RequiredOneToManySet` for the required child-side, single-scalar id/link one-to-many nested `set` shape.
+    - `handle_one_to_many()` routes only that narrow non-empty required-child branch through the new computation node. Optional child-side, empty set, and composite id/link shapes stay on the existing graph.
+    - Translation emits only existing expression primitives: one left diff binding, conditional parent validation plus update for new-only children, and direct old-only diff validation for the required-relation violation.
+    - This removes the separate graph-level right-diff computation, `If` node, empty validation node, duplicate parent unique/validation binding inside the update branch, and one-use right-diff binding.
+    - No TS runtime/query-plan format changed and no old/new compatibility branch was added.
+  - Allocation evidence:
+    - Baseline after the singleton parser commit:
+      - `update-set-nested`: `graph_build 608`, `translate_ir 1061`, `full_compile 1785`, full allocated `218.8 KiB`.
+    - Patched side-worktree and real-checkout profile:
+      - `update-set-nested`: `graph_build 597`, `translate_ir 1024`, `full_compile 1737`, full allocated `202.5 KiB`.
+      - This saves 11 graph-build allocations, 37 translation allocations, 48 full-compile allocations, and about `16.3 KiB/op`.
+    - Sampled controls stayed allocation-neutral:
+      - `update-set-nested-empty 704/1297`
+      - `update-set-nested-prisma#27650 819/1656`
+      - `nested-upsert-nested-only 1458/2679`
+      - `create-nested-connectOrCreate-mixed 1474/2357`
+      - `create-nested-connectOrCreate-one2m 1321/2103`
+      - `query-m2o 308/548`
+      - `aggregate 242/599`
+  - Criterion evidence:
+    - Side-worktree first target/control pass was noisy but positive on the target:
+      - patched `update-set-nested` about `219.76 us`, clean control `225.07 us`.
+    - Narrow repeat before the final one-use right-diff cleanup:
+      - patched `update-set-nested` `211.20 us`, clean control `224.55 us`.
+      - `query-m2o` was flat on repeat (`77.56 us` patched, `78.17 us` control).
+    - Final target-only longer A/B after the right-diff cleanup:
+      - side patched `213.54 us`, clean control `238.16 us`.
+      - real checkout patched sanity `209.34 us`.
+    - Because Criterion was noisy across runs, treat this as target-positive with allocation proof rather than a broad timing headline.
+  - Verification:
+    - Side worktree:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed after accepting the `update-set-nested` snapshot.
+      - `rustfmt --check` on touched Rust files: passed.
+      - `git diff --check`: passed.
+      - Focused allocation profile and Criterion commands above.
+    - Real engines checkout after applying:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `rustfmt --check` on touched Rust files: passed.
+      - `git diff --check`: passed.
+      - Focused allocation profile matched the side-worktree result.
+      - Target-only Criterion sanity measured `update-set-nested` at `209.34 us`.
+  - Decision:
+    - Keep. This is the larger phase-owner shape the rejected `DiffBoth` spike was pointing toward: it removes a real graph/translation phase for the required-child set target, keeps controls allocation-neutral, and keeps internal shapes lockstep with no compatibility readers.
 
 ## Useful Commands
 
