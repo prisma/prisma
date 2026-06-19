@@ -15437,6 +15437,67 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes duplicated branch-local reads/connects for the exact shared many-to-many nested-upsert shape, gives a large target-row allocation win plus a clear Criterion win, and leaves sampled controls allocation-neutral.
 
+- Accepted change: consume singleton query-document parser input values.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `a38dbd892f7` (`perf(query-compiler): consume singleton parsed values`).
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-parser-consume` on branch `parser-consume-spike`.
+  - Patch:
+    - `query_document::parser.rs::parse_input_value()` now routes the common single-input-type case through `parse_input_value_single()`.
+    - The singleton path consumes `ArgumentValue`, moving list/object/scalar payloads into `parse_list()`, `parse_input_object()`, `parse_scalar()`, and placeholder parsing instead of cloning before validation succeeds.
+    - The multi-input union path remains on the old borrowed/cloned shape so it can keep collecting failures across possible input types.
+    - Invalid-type error helpers materialize owned `ArgumentValue` only on the error path.
+    - This is a parser success-path ownership cleanup only. No internal protocol/query-plan format changed, and no old/new compatibility readers were added.
+  - Allocation evidence:
+    - Baseline command in the real engines checkout before the patch used `ALLOC_PROFILE_ITERATIONS=100`, `ALLOC_PROFILE_WARMUP=10`, and the focused nested/read/filter/aggregate fixture set.
+    - Patched real-checkout confirmation after applying matched the side-worktree profile:
+      - `update-set-nested`: `graph_build 630 -> 608`, `full_compile 1807 -> 1785`.
+      - `nested-upsert-nested-only`: `graph_build 1096 -> 1043`, `full_compile 2732 -> 2679`.
+      - `create-nested-connectOrCreate-mixed`: `graph_build 766 -> 711`, `full_compile 2412 -> 2357`.
+      - `create-nested-connect`: `graph_build 488 -> 463`, `full_compile 1336 -> 1311`.
+      - `filter-contains-param`: `graph_build 284 -> 276`, `full_compile 516 -> 508`.
+      - `query-compound-id`: `graph_build 149 -> 137`, `full_compile 360 -> 348`.
+      - `aggregate`: `graph_build 287 -> 279`, `full_compile 607 -> 599`.
+      - Read controls moved only by one allocation on sampled relation rows (`query-m2o 549 -> 548`, `query-many-m2m 714 -> 713`, `nested-pagination-query 560 -> 559`).
+    - The biggest sampled wins are broad graph-build reductions on object/list-heavy request parsing rather than translation changes; `translate_ir` stayed unchanged on most rows.
+  - Criterion evidence:
+    - Side-worktree focused patched/control pass was neutral-to-positive overall. Longer repeat medians:
+      - `create-nested-connect`: patched `149.95 us`, control `155.18 us`.
+      - `create-nested-connectOrCreate-mixed`: patched `281.33 us`, control `304.96 us` with a high control outlier.
+      - `filter-contains-param`: patched `59.146 us`, control `61.398 us`.
+      - `query-compound-id`: patched `39.858 us`, control `41.537 us`.
+      - `update-set-nested`: patched `216.32 us`, control `226.96 us`.
+    - First patched/control pass also had no localized regression after the `create-nested-connect` row recovered on repeat.
+  - Verification:
+    - Side worktree:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-core --lib query_document`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `rustfmt --check query-compiler/core/src/query_document/parser.rs`: passed.
+      - `git diff --check`: passed.
+    - Real engines checkout after applying:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-core --lib query_document`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `rustfmt --check query-compiler/core/src/query_document/parser.rs`: passed.
+      - `git diff --check`: passed.
+      - Focused allocation profile with `ALLOC_PROFILE_QUERIES='update-set-nested,nested-upsert-nested-only,create-nested-connectOrCreate-mixed,create-nested-connect,filter-contains-param,query-compound-id,query-m2o,aggregate'`: matched the side-worktree allocation result.
+  - Decision:
+    - Keep. This is a broad, low-risk parser success-path allocation win with neutral-to-positive focused timing and clean query-document/query-compiler tests.
+
+- Future lead: required-child one-to-many nested `set` phase-owner operation.
+  - Timestamp: 2026-06-19.
+  - Scout summary:
+    - Do not retry the rejected `DiffBoth` / side-projection object. It fused only the diff object and then paid the side-access cost downstream.
+    - A more promising design is a new internal phase-owner node/expression for required-child one-to-many `set`, limited first to the single-scalar id/link shape.
+    - The operation would own the read-old/read-new/connect/update/required-violation sequence instead of creating separately addressable left/right diff nodes.
+    - Preserve observable order: read old and new children, connect/update new-only rows first when needed, then evaluate old-only required-relation violations.
+    - If it needs a new compact expression/query-plan shape, update Rust producer, TS query-plan types/interpreter/validation, snapshots, and tests lockstep with no old/new compatibility branch.
+  - Suggested acceptance gate:
+    - Target `update-set-nested`; keep `update-set-nested-empty`, `update-set-nested-prisma#27650`, nested-upsert, read, and aggregate rows as controls.
+    - Worth keeping if it saves at least about 75 full-compile allocations on the target or shows a clear Criterion win with controls flat.
+
 ## Useful Commands
 
 ```sh
