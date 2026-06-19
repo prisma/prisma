@@ -15765,6 +15765,39 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Rejected and fully reverted. The reliable same-checkout product-path comparison is neutral, and the earlier rows moved enough to treat this as benchmark noise rather than a worthy generated-code change.
     - Do not retry one-key placeholder map assignment as a standalone generated prepared-helper cleanup. The remaining gap needs a larger surface or allocation ownership change.
 
+- Rejected experiment: inline scalar conversion in final-owner row writer.
+  - Timestamp: 2026-06-19.
+  - Context:
+    - A 500k CPU profile of `direct plan blog feed by author / nested rows` measured the product direct row at `6.98 us/op`; visible sampled hot functions included fake-adapter result lookup, `#executeRawNestedFinalOwnerDbQuery`, anonymous final-owner loops, `mapRawNestedFirstFinalOwnerChild`, `mapRawNestedFieldValue`, `mapRawNestedFinalOwnerWrapperList`, and `getRawNestedScopeValue`.
+    - The benchmark-only strict schedule row measured `6.75 us/op` in the same 500k profiling pass. That keeps the lower bound alive, but narrows the direct-vs-schedule gap for this run to about `0.23 us/op`.
+  - Scout:
+    - `Singer` (`019edf8b-f99f-7970-a42e-2c5cf1b60205`) confirmed the useful product direction is still a full strict non-unique final-owner schedule descriptor compiled from the existing `RawNestedReadQuery`, not another local helper rewrite.
+    - Required invariants: non-unique only, `js` result format, empty enums, no SQL commenters/instrumentation, exactly two root unique leaf relations, one wrapper-list relation with one unique child, one child-list relation with one unique child, compiled query renderers available, duplicate root rows preserved with fresh child objects, and child-list nested unique IDs collected only from rows that survive per-parent pagination.
+  - Hypothesis:
+    - The current `tryCompileRawNestedFinalOwnerRowWriter()` calls `mapRawNestedFieldValue()` for every mapped field, even on the strict final-owner path where `resultFormat` is always `js` and enums are empty.
+    - Inlining the common compact scalar conversion switch inside the compiled writer might remove a visible function-call hotspot while preserving fallback conversion semantics.
+  - Patch tried:
+    - Replaced the per-field `mapRawNestedFieldValue()` call inside `tryCompileRawNestedFinalOwnerRowWriter()` with an inline `switch` over the already precomputed `convertKinds`.
+    - Kept fallback calls to `mapRawFieldValue()` for non-fast-path values and left internal query-plan shapes unchanged.
+    - Reverted the patch fully after timing.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 27 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed.
+  - Timing evidence:
+    - Fresh pre-patch direct baseline:
+      - `direct plan blog feed by author / nested rows`: `7.13 us/op`.
+    - Patched broad 300k by-author table, selected rows:
+      - generated prepared / generated default / exact-helper: `8.51 / 10.76 / 9.58 us/op`.
+      - direct / raw compact / raw exact compact / direct-after-phase / local: `7.45 / 7.36 / 7.46 / 7.58 / 7.70 us/op`.
+      - benchmark-only strict schedule: `6.62 us/op`.
+    - Reverted controls:
+      - direct: `7.46 us/op`.
+      - raw compact: `7.12 us/op`.
+      - local executor: `7.30 us/op`.
+  - Decision:
+    - Rejected and fully reverted. The direct row was neutral against the immediate control, while raw compact and local controls beat the patch clearly. Inlining scalar conversion inside the generic final-owner row writer is not enough and may hurt V8's current optimized shape.
+    - The next runtime attempt should compile a full strict non-unique final-owner schedule descriptor that owns waves, relation-op filtering, row writing, and final attachment together. Do not retry row-writer-only scalar conversion as a standalone cleanup.
+
 ## Useful Commands
 
 ```sh
