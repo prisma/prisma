@@ -404,6 +404,80 @@ test('applies compact raw nested relation pagination per parent', async () => {
   ])
 })
 
+test('applies compact raw nested relation distinct and cursor pagination per parent', async () => {
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  const rootQuery = templateQuery('SELECT id FROM Post WHERE id IN ', [10, 20, 30])
+  const categoriesQuery = templateQuery('SELECT id, name, postId FROM Category WHERE postId IN ', {
+    $p: ['@parent$id', 'int'],
+  })
+  const plan = [
+    'n',
+    [
+      rootQuery,
+      [['id', 0, 'i']],
+      [
+        [
+          'r',
+          'categories',
+          [
+            categoriesQuery,
+            [
+              ['id', 0, 'i'],
+              ['name', 1, 's'],
+            ],
+          ],
+          0,
+          2,
+          '@parent$id',
+          false,
+          {
+            distinct: ['id'],
+            linkingFields: ['CategoryToPost@Post'],
+            pagination: { cursor: { id: 1 }, skip: 1, take: 1 },
+          },
+        ],
+      ],
+    ],
+    false,
+  ] satisfies QueryPlanNode
+  const queryable: SqlQueryable = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-test',
+    queryRaw(query) {
+      if (query.sql.startsWith('SELECT id FROM Post')) {
+        return Promise.resolve({
+          columnNames: ['id'],
+          columnTypes: [ColumnTypeEnum.Int32],
+          rows: [[10], [20], [30]],
+        })
+      }
+      return Promise.resolve({
+        columnNames: ['id', 'name', 'postId'],
+        columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Int32],
+        rows: [
+          [1, 'cursor post ten', 10],
+          [1, 'duplicate post ten', 10],
+          [2, 'selected post ten', 10],
+          [3, 'later post ten', 10],
+          [1, 'cursor post twenty', 20],
+          [2, 'selected post twenty', 20],
+          [3, 'later post twenty', 20],
+          [2, 'no cursor post thirty', 30],
+          [3, 'later post thirty', 30],
+        ],
+      })
+    },
+    executeRaw() {
+      return Promise.resolve(0)
+    },
+  }
+  await expect(interpreter.run(plan, { ...runtimeOptions, queryable })).resolves.toEqual([
+    { id: 10, categories: [{ id: 2, name: 'selected post ten' }] },
+    { id: 20, categories: [{ id: 2, name: 'selected post twenty' }] },
+    { id: 30, categories: [] },
+  ])
+})
+
 test('keeps inherited scope for raw nested child queries with outer placeholders', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const rootQuery = templateQuery('SELECT id FROM Post WHERE id = ', { $p: ['%postId', 'int'] })

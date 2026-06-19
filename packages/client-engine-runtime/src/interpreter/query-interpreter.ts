@@ -43,7 +43,7 @@ import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
-import { assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
+import { assertNever, DeepReadonly, DeepUnreadonly, doKeysMatch } from '../utils'
 import { applyDataMap, applyDataMapToResultSet, mapRawFieldValue, type QueryResultFormat } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
@@ -1954,7 +1954,7 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
 function tryCompileRawNestedFinalOwnerChildListRelation(
   relation: RawNestedReadDirectRelation,
 ): RawNestedFinalOwnerChildListRelation | undefined {
-  if (!rawNestedRelationOperationsAreSupported(relation[7])) {
+  if (!rawNestedRowRelationOperationsAreSupported(relation[7])) {
     return undefined
   }
 
@@ -2259,8 +2259,12 @@ function processRawNestedRelationResult(
     return result
   }
 
-  if (!rawNestedRelationOperationsAreSupported(operations)) {
+  if (!rawNestedResultRelationOperationsAreSupported(operations)) {
     throw new Error('Unsupported raw nested relation in-memory operations')
+  }
+
+  if (!rawNestedRowRelationOperationsAreSupported(operations)) {
+    return processRawNestedRelationResultWithRecords(result, childColumnIndex, operations)
   }
 
   const pagination = operations.pagination
@@ -2298,6 +2302,147 @@ function processRawNestedRelationResult(
   return { rows, records }
 }
 
+function processRawNestedRelationResultWithRecords(
+  result: RawNestedReadResult,
+  childColumnIndex: number,
+  operations: DeepReadonly<InMemoryOps>,
+): RawNestedReadResult {
+  let rows = result.rows
+  let records = result.records
+
+  if (operations.distinct != null) {
+    const distinct = distinctRawNestedRelationResult(
+      rows,
+      records,
+      childColumnIndex,
+      operations.distinct,
+      operations.linkingFields != null,
+    )
+    rows = distinct.rows
+    records = distinct.records
+  }
+
+  if (operations.pagination != null) {
+    return paginateRawNestedRelationResult(
+      rows,
+      records,
+      childColumnIndex,
+      operations.pagination,
+      operations.linkingFields != null,
+    )
+  }
+
+  return rows === result.rows ? result : { rows, records }
+}
+
+function distinctRawNestedRelationResult(
+  rows: readonly unknown[][],
+  records: readonly PrismaObject[],
+  childColumnIndex: number,
+  distinctFields: readonly string[],
+  includeParentKey: boolean,
+): RawNestedReadResult {
+  const seen = new Set<string>()
+  const distinctRows: unknown[][] = []
+  const distinctRecords: PrismaObject[] = []
+
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index]
+    const key = getRawNestedRelationDistinctKey(record, distinctFields, rows[index][childColumnIndex], includeParentKey)
+
+    if (seen.has(key)) {
+      continue
+    }
+
+    seen.add(key)
+    distinctRows.push(rows[index] as unknown[])
+    distinctRecords.push(record)
+  }
+
+  return { rows: distinctRows, records: distinctRecords }
+}
+
+function getRawNestedRelationDistinctKey(
+  record: PrismaObject,
+  fields: readonly string[],
+  parentKey: unknown,
+  includeParentKey: boolean,
+): string {
+  const values = new Array<unknown>(fields.length + (includeParentKey ? 1 : 0))
+
+  for (let index = 0; index < fields.length; index++) {
+    const field = fields[index]
+    if (!Object.prototype.hasOwnProperty.call(record, field)) {
+      throw new Error('Unsupported raw nested relation distinct field')
+    }
+    values[index] = record[field]
+  }
+
+  if (includeParentKey) {
+    values[fields.length] = parentKey
+  }
+
+  return JSON.stringify(values)
+}
+
+function paginateRawNestedRelationResult(
+  rows: readonly unknown[][],
+  records: readonly PrismaObject[],
+  childColumnIndex: number,
+  pagination: DeepReadonly<NonNullable<InMemoryOps['pagination']>>,
+  perParent: boolean,
+): RawNestedReadResult {
+  if (!perParent) {
+    return paginateRawNestedRelationResultSingleList(rows, records, pagination)
+  }
+
+  const groupedByParent = new Map<string, { rows: unknown[][]; records: PrismaObject[] }>()
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index]
+    const parentKey = JSON.stringify([row[childColumnIndex]])
+    let group = groupedByParent.get(parentKey)
+    if (group === undefined) {
+      group = { rows: [], records: [] }
+      groupedByParent.set(parentKey, group)
+    }
+    group.rows.push(row as unknown[])
+    group.records.push(records[index])
+  }
+
+  const groups = Array.from(groupedByParent.entries())
+  groups.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
+
+  const resultRows: unknown[][] = []
+  const resultRecords: PrismaObject[] = []
+
+  for (const [, group] of groups) {
+    const paginated = paginateRawNestedRelationResultSingleList(group.rows, group.records, pagination)
+    resultRows.push(...paginated.rows)
+    resultRecords.push(...paginated.records)
+  }
+
+  return { rows: resultRows, records: resultRecords }
+}
+
+function paginateRawNestedRelationResultSingleList(
+  rows: readonly unknown[][],
+  records: readonly PrismaObject[],
+  { cursor, skip, take }: DeepReadonly<NonNullable<InMemoryOps['pagination']>>,
+): RawNestedReadResult {
+  const cursorIndex = cursor != null ? records.findIndex((record) => doKeysMatch(record, cursor)) : 0
+  if (cursorIndex === -1) {
+    return { rows: [], records: [] }
+  }
+
+  const start = cursorIndex + (skip ?? 0)
+  const end = take != null ? start + take : rows.length
+
+  return {
+    rows: rows.slice(start, end) as unknown[][],
+    records: records.slice(start, end),
+  }
+}
+
 function filterRawNestedRelationRows(
   rows: readonly unknown[][],
   childColumnIndex: number,
@@ -2307,7 +2452,7 @@ function filterRawNestedRelationRows(
     return rows
   }
 
-  if (!rawNestedRelationOperationsAreSupported(operations)) {
+  if (!rawNestedRowRelationOperationsAreSupported(operations)) {
     throw new Error('Unsupported raw nested relation in-memory operations')
   }
 
@@ -2344,7 +2489,15 @@ function filterRawNestedRelationRows(
   return filteredRows
 }
 
-function rawNestedRelationOperationsAreSupported(ops: DeepReadonly<InMemoryOps>): boolean {
+function rawNestedResultRelationOperationsAreSupported(ops: DeepReadonly<InMemoryOps>): boolean {
+  return (
+    !ops.reverse &&
+    (ops.nested === undefined || Object.keys(ops.nested).length === 0) &&
+    (ops.linkingFields == null || ops.linkingFields.length === 1)
+  )
+}
+
+function rawNestedRowRelationOperationsAreSupported(ops: DeepReadonly<InMemoryOps>): boolean {
   return (
     ops.distinct == null &&
     ops.linkingFields == null &&
