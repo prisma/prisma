@@ -16410,6 +16410,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Keep. This removes the generic `dataMap -> join -> process` fallback for the M:N cursor/distinct pagination fixture, saves 147 full-compile allocations and about 14.8 KiB/op, and improves focused Criterion by about 12% while sampled controls stay flat.
   - Keep the guards narrow. Mapped cursor/distinct fields stay generic until the internal plan carries an explicit operation-field mapping, and row-only final-owner paths must not accept cursor/distinct/linking ops without a separate row-level semantics proof.
 
+## Rejected Experiment: Direct-Push Relation Count Virtual Selections (2026-06-19)
+
+- Hypothesis:
+  - `query_graph_builder::read::utils::extract_relation_count_selections()` builds a temporary `Vec<SelectedField>` for `_count` relation selections, and both callers immediately extend another selected-fields vector with it.
+  - Replacing the helper with a direct-push `extend_relation_count_selections()` could remove that temporary vector on relation-count rows such as `aggregate-nested-m2m`.
+- Patch tried:
+  - In `/home/aqrln.guest/prisma-engines/query-compiler/core/src/query_graph_builder/read/utils.rs`, replaced `extract_relation_count_selections() -> Vec<SelectedField>` with a helper that pushes each `SelectedField::Virtual(RelationCount(...))` directly into the caller's vector.
+  - Updated the two callers in `pairs_to_selections()` and `extract_selected_fields()`.
+- Verification:
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-perf-target cargo check -p query-core -p query-compiler`: passed.
+- Allocation evidence:
+  - Patched allocation run used `ALLOC_PROFILE_QUERIES=aggregate-nested-m2m,aggregate-join,aggregate-join-lateral,aggregate,aggregate-custom,group-by,query-m2m,query-one2m-pagination,create-nested-connectOrCreate-mixed,update-set-nested`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`.
+  - `aggregate-nested-m2m` moved `graph_build/compile_ir/full_compile 660/1256/1406 -> 658/1254/1404`, allocated bytes `162.4 -> 159.9 KiB`.
+  - `aggregate-join` moved `121/391/458 -> 120/390/457`; `aggregate-join-lateral` moved `121/362/429 -> 120/361/428`.
+  - `aggregate`, `aggregate-custom`, `group-by`, `query-m2m`, `query-one2m-pagination`, `create-nested-connectOrCreate-mixed`, and `update-set-nested` stayed allocation-neutral.
+- Criterion evidence:
+  - A patched Criterion pass over `aggregate-nested-m2m|aggregate-join|aggregate-join-lateral|group-by|query-m2m|create-nested-connectOrCreate-mixed` did not produce a strong enough signal to justify keeping a 1-2 allocation cleanup. Observed patched medians included `aggregate-join-lateral 42.20 us`, `aggregate-join 42.80 us`, `aggregate-nested-m2m 124.83 us`, `create-nested-connectOrCreate-mixed 237.45 us`, `group-by 49.13 us`, and `query-m2m 71.59 us`, with no fresh explicit control showing a material product win.
+- Decision:
+  - Rejected and reverted. The patch is semantically straightforward, but the allocation win is too small and too close to previously rejected graph-build micro-cleanups. Do not retry relation-count direct-push extraction as a standalone cleanup without a CPU profile showing this helper on the hot path.
+
 ## Useful Commands
 
 ```sh
