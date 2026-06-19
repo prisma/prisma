@@ -16072,6 +16072,44 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This removes the child-read phase for the exact M:N `set: []` shape, saves 339 full-compile allocations and about 30.0 KiB/op on the target fixture, and improves target Criterion by about 19% with sampled controls flat.
 
+- Accepted query-compiler optimization: parent-only M:N non-empty `set`.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `6a92e4ddeeb` (`perf(query-compiler): skip m2m set child read`).
+  - Hypothesis:
+    - Non-empty many-to-many nested `set` also does not need to read old child ids before deleting relation-table rows. It only needs to validate and connect the requested new children after the wipe.
+    - Reusing the parent-key `DisconnectAllRecords` phase should remove the old-child read while preserving the existing new-child read, exact row-count validation, and `ConnectRecords` behavior.
+  - Patch:
+    - Changed `handle_many_to_many()` so every M:N `set` first creates `disconnect_all_records_node()`.
+    - The empty path still returns immediately after the parent-key delete.
+    - The non-empty path now reads requested child ids after the delete and uses the existing `connect_records_node()` validation/connect path.
+    - Removed the old inline `DisconnectRecords` construction and old-child projected dependency from M:N `set`.
+    - Added `update-m2m-set.json` fixture and snapshot coverage. The snapshot proves the plan deletes from `_CategoryToPost` by parent id, reads the requested `Category` ids, validates `rowCountEq 2`, and then inserts relation rows.
+    - This extends the existing internal `DisconnectAllRecords` write-query shape; no old/new compatibility reader was added.
+  - Verification:
+    - `cargo check -p query-core -p query-compiler`: passed.
+    - Focused snapshot with `INSTA_GLOB_FILTER='*update-m2m-set*' INSTA_UPDATE=always cargo test -p query-compiler --test queries -- --nocapture`: passed after rerunning with filesystem approval because the sandbox made test snapshot/graph writes read-only.
+    - `cargo test -p query-compiler --test queries`: passed.
+    - `cargo test -p query-core --lib`: passed, 9 tests.
+    - `git diff --check`: passed.
+  - Allocation evidence:
+    - Patched target: `/home/aqrln.guest/prisma/wip/prisma-engines-m2m-set-nonempty-target`.
+    - Clean control worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-m2m-set-nonempty-control`, based on `45947adb1f5` with only the new fixture copied in.
+    - Both used `ALLOC_PROFILE_QUERIES=update-m2m-set,update-m2m-set-empty,update-m2m-disconnect,update-set-nested,query-many-m2m,query-m2o`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+    - `update-m2m-set`: `graph_build/translate_ir/full_compile 526/1297/1922 -> 511/976/1586`, full allocated bytes `207.6 -> 178.1 KiB`.
+    - Controls stayed unchanged: `update-m2m-set-empty 417/704/1208`, `update-m2m-disconnect 387/445/898`, `update-set-nested 594/998/1708`, `query-many-m2m 236/406/713`, `query-m2o 161/308/548`.
+  - Criterion evidence:
+    - Patched/control medians from the paired focused run:
+      - `update-m2m-set`: `154.82 / 184.92 us`.
+      - `update-m2m-set-empty`: `119.99 / 122.11 us`.
+      - `update-m2m-disconnect`: `85.731 / 86.599 us`.
+      - `update-set-nested`: `172.87 / 174.65 us`.
+      - `query-many-m2m`: `72.354 / 73.896 us`.
+      - `query-m2o`: `66.904 / 67.860 us`.
+      - Extra rows included by the regex stayed in band: `query-m2o-lateral 66.916 / 67.049 us`, `update-set-nested-empty 135.32 / 137.86 us`, `update-set-nested-prisma#27650 154.17 / 155.86 us`.
+  - Decision:
+    - Keep. This removes the old-child-read phase for all M:N `set` shapes, saves 336 full-compile allocations and about 29.5 KiB/op on the non-empty target fixture, and improves target Criterion by about 16% with sampled controls flat or slightly favorable.
+
 ## Useful Commands
 
 ```sh
