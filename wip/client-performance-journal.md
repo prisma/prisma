@@ -15368,7 +15368,74 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - Cleaned the patched and control Cargo target directories:
       - `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both-target`
       - `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both-control-target`
-    - Removing the side worktree itself was blocked by the current escalation usage limit, so `/home/aqrln.guest/prisma/wip/prisma-engines-diff-both` remains as an untracked cleanup item.
+    - Removed the side worktree after escalation was available again.
+
+- Rejected experiment: skip field bindings for `RowSink::Discard`.
+  - Timestamp: 2026-06-19.
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-discard-bindings` on branch `discard-bindings-spike`.
+  - Patch:
+    - Changed the translation guard for `create_field_bindings` to skip bindings when `sink` was `RowSink::Discard`.
+    - Hypothesis: some write/helper children build projected field bindings that are immediately discarded by the parent expression.
+  - Allocation evidence:
+    - The patch did not move allocation counts on the sampled nested/read/aggregate rows or on validation-heavy returning/write rows.
+    - Representative unchanged full-compile counts included `nested-upsert-nested-only 2998`, `create-nested-connectOrCreate-mixed 2412`, `update-set-nested 1807`, `query-m2o 549`, `aggregate 607`, `update-one-returning 456`, `delete-one 332`, `delete-many 312`, `upsert 704`, and `update-connect 1364`.
+  - Decision:
+    - Reject before Criterion. `RowSink::Discard` is not the allocation source on the sampled hot rows, so the extra sink branch is just more translation control flow.
+  - Cleanup:
+    - Reverted the side worktree patch and removed the worktree and target directory.
+
+- Accepted change: join identical many-to-many nested-upsert connects after the branch.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `09374a92e87` (`perf(query-compiler): join shared nested upsert m2m connect`).
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-nested-upsert-join` on branch `nested-upsert-join-spike`.
+  - Patch:
+    - `nested_upsert()` now converts the create/update inputs to maps once, detects one identical many-to-many `connect` envelope present in both branches when the update branch contains only that connect, removes it from both branch-local maps, and runs one shared `connect_nested_query()` after the `if` using the branch result as the parent.
+    - The update `Then` branch returns the existing child row when the removed shared connect was the only update work, so the shared post-`if` connect can target either the found row or the created row.
+    - Removal uses `shift_remove()` so remaining create scalar field order stays stable for snapshots.
+    - This is a narrow internal graph replacement, not an old/new format compatibility path.
+  - Snapshot:
+    - Updated `queries__queries@nested-upsert-nested-only.json.snap`.
+    - The new shape is `let 2 = if (...) then validate(get 1) else create Post ...`, followed by one `Category` read and one `_CategoryToPost` insert using the unified `var(2$id)` parent id.
+  - Allocation evidence:
+    - Baseline in the real engines checkout before the patch:
+      - `nested-upsert-nested-only`: `graph_build 1107`, `translate_ir/full_compile 1713/2998`, full allocated `360.3 KiB`, `serialize_json 27`.
+    - Patched side-worktree and real-checkout checks:
+      - `nested-upsert-nested-only`: `graph_build 1096`, `translate_ir/full_compile 1458/2732`, full allocated `327.0 KiB`, `serialize_json 20`.
+      - This saves 255 `translate_ir` allocations, 266 `full_compile` allocations, about `33.3 KiB/op`, and seven JSON serialization allocations on the targeted fixture.
+    - Sampled controls stayed allocation-neutral:
+      - `upsert-nested-only-update 1149/1883`
+      - `update-set-nested 1061/1807`
+      - `update-set-nested-empty 704/1306`
+      - `update-set-nested-prisma#27650 819/1680`
+      - `create-nested-connectOrCreate-mixed 1474/2412`
+      - `create-nested-connectOrCreate-one2m 1321/2133`
+      - `create-nested-connect 732/1336`
+      - `query-m2o 308/549`
+      - `query-many-m2m 406/714`
+      - `aggregate 242/607`
+  - Criterion evidence:
+    - Adjacent control on the real engines checkout before applying:
+      - `nested-upsert-nested-only 366.05 us`.
+    - Patched side worktree:
+      - `nested-upsert-nested-only 335.44 us`.
+    - Patched rerun after the `shift_remove()` order-preservation tweak:
+      - `nested-upsert-nested-only 336.04 us`.
+    - This is about 8.2-8.4% faster on the target row. Sampled controls were noisy but recovered on repeat and had no allocation movement: rerun medians included `aggregate 62.650 us`, `create-m2m 188.74`, `create-nested-connectOrCreate-mixed 295.60`, and `update-set-nested 225.66`.
+  - Verification:
+    - Side worktree:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `git diff --check`: passed.
+    - Real engines checkout after applying:
+      - `git diff --check`: passed.
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - Focused allocation profile with `ALLOC_PROFILE_QUERIES='nested-upsert-nested-only,create-nested-connectOrCreate-mixed,update-set-nested,aggregate'`: matched the side-worktree allocation result.
+  - Decision:
+    - Keep. This removes duplicated branch-local reads/connects for the exact shared many-to-many nested-upsert shape, gives a large target-row allocation win plus a clear Criterion win, and leaves sampled controls allocation-neutral.
 
 ## Useful Commands
 
