@@ -15891,6 +15891,15 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
     - `pnpm --filter @prisma/client test deserializeRawParameters.test.ts --runInBand`: passed, 15 tests.
     - `pnpm --filter @prisma/client build`: passed after the fix.
 
+- Documentation refresh: intermediate performance report after latest runtime rejects and compact raw arg fix.
+  - Timestamp: 2026-06-19.
+  - File:
+    - `wip/client-performance-intermediate-report.md`.
+  - Change:
+    - Added a second June 19 addendum covering the rejected inline final-owner scalar conversion, rejected strict non-unique final-owner runtime branch over the existing program, generated-prepared CPU profile, rejected nested-upsert child-filter clone, rejected prepared-read `.then(success, error)` change, and accepted raw SQL compact scalar arg-type build fix.
+    - Kept the headline magnitude unchanged: cache hits are still orders of magnitude faster than recompilation, current product nested feed wins are about 2x on the fresh by-author baseline, several simple/cache-hit rows are past 3x, and the remaining nested-feed step likely needs a whole-phase final-owner schedule or a larger generated/JS-owned cache-hit design.
+    - Reiterated the lockstep internal-format rule: internal plan producer and consumer shapes move together with no old-format compatibility reader unless a real external boundary exists.
+
 ## Useful Commands
 
 ```sh
