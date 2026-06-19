@@ -59,7 +59,6 @@ export type ResultNode =
     }
   | CompactResultObjectNode
   | {
-      type?: 'field'
       dbName?: string
       fieldType: FieldType
     }

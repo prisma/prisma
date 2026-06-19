@@ -18,8 +18,8 @@ test('maps result sets directly like serialized SQL rows', () => {
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
-      name: { type: 'field', dbName: 'name', fieldType: { type: 's', arity: 'scalar' } },
+      id: 'i',
+      name: 's',
     },
   ] satisfies ResultNode
 
@@ -92,7 +92,7 @@ test('direct result-set mapping uses the last duplicate column name', () => {
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
+      id: 'i',
     },
   ] satisfies ResultNode
 
@@ -105,8 +105,8 @@ test('direct result-set mapping caches independently for different column orders
   const structure = [
     null,
     {
-      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
-      name: { type: 'field', dbName: 'name', fieldType: { type: 's', arity: 'scalar' } },
+      id: 'i',
+      name: 's',
     },
   ] satisfies ResultNode
 
@@ -150,11 +150,11 @@ test('direct result-set mapping can return native JavaScript values', () => {
   const structure = [
     null,
     {
-      bigint: { type: 'field', dbName: 'bigint', fieldType: { type: 'I', arity: 'scalar' } },
-      decimal: { type: 'field', dbName: 'decimal', fieldType: { type: 'd', arity: 'scalar' } },
-      createdAt: { type: 'field', dbName: 'createdAt', fieldType: { type: 'D', arity: 'scalar' } },
-      bytes: { type: 'field', dbName: 'bytes', fieldType: { type: 'bytes', encoding: 'base64', arity: 'scalar' } },
-      json: { type: 'field', dbName: 'json', fieldType: { type: 'j', arity: 'scalar' } },
+      bigint: 'I',
+      decimal: 'd',
+      createdAt: 'D',
+      bytes: { fieldType: { type: 'bytes', encoding: 'base64' } },
+      json: 'j',
     },
   ] satisfies ResultNode
 
@@ -165,4 +165,15 @@ test('direct result-set mapping can return native JavaScript values', () => {
   expect(row.createdAt).toEqual(new Date('2024-01-15T12:00:00Z'))
   expect(row.bytes).toEqual(new Uint8Array([104, 101, 108, 108, 111]))
   expect(row.json).toEqual({ nested: true })
+})
+
+test('rejects legacy field result nodes with a type discriminator', () => {
+  const structure = [
+    null,
+    {
+      id: { type: 'field', dbName: 'id', fieldType: { type: 'i', arity: 'scalar' } },
+    },
+  ] as unknown as ResultNode
+
+  expect(() => applyDataMap([{ id: 1 }], structure, {})).toThrow(/Invalid data mapping node type/)
 })

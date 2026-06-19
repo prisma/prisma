@@ -15609,6 +15609,22 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Reverted before Criterion. The identifier construction path is not moving allocation counts on the sampled nested-update rows, so do not churn these call sites without a broader graph-builder change or a CPU profile pointing at this lookup.
 
+- Accepted cleanup: remove legacy `type: 'field'` result-node support.
+  - Timestamp: 2026-06-19.
+  - Patch:
+    - Removed `type?: 'field'` from `packages/client-engine-runtime/src/query-plan.ts::ResultNode`.
+    - Changed `data-mapper.ts::isFieldNode()` so an object carrying a `type` discriminator is no longer treated as a field node. This makes the old internal field-object shape fail instead of being silently accepted.
+    - Updated runtime tests and benchmark fixtures to use the current lockstep shapes: compact scalar field strings such as `'i'` / `'s'` / `'D'`, or `{ fieldType: ... }` for non-compact field types such as bytes.
+    - Added focused negative coverage proving `type: 'field'` is rejected.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/data-mapper.test.ts`: passed, 8 tests.
+    - `pnpm --filter @prisma/client-engine-runtime test`: passed, 23 files / 257 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed outside the sandbox after the known sandbox `tsx` IPC `listen EPERM`.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`: passed outside the sandbox; rows were `simple select 808,539 ops/sec`, `findUnique 1,083,802`, `join (1:N) 607,223`, `sequence 879,644`, `deep nested join 59,399`.
+    - `git diff --check`: passed.
+  - Decision:
+    - Keep. This is not a standalone speed win; it removes old-format support for an internal result-node shape now that Rust producers and TS consumers are version-lockstep. If a future result-node shape changes, update producers, consumers, tests, and fixtures together instead of adding dual readers.
+
 ## Useful Commands
 
 ```sh
