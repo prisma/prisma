@@ -15625,6 +15625,25 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is not a standalone speed win; it removes old-format support for an internal result-node shape now that Rust producers and TS consumers are version-lockstep. If a future result-node shape changes, update producers, consumers, tests, and fixtures together instead of adding dual readers.
 
+- Accepted cleanup: remove legacy scalar object query-plan arg types.
+  - Timestamp: 2026-06-19.
+  - Producer check:
+    - `query-compiler/query-builders/query-builder/src/lib.rs::ArgType::serialize()` serializes scalar/no-native args as compact strings (`'i'`, `'s'`, etc.) and scalar/native args as compact two-tuples (`['i', dbType]`). Structured objects remain canonical only for list args and tuple dynamic arg wrappers.
+  - Patch:
+    - Narrowed `packages/client-engine-runtime/src/query-plan.ts::QueryPlanArgType` from `CompactArgScalarType | CompactNativeArgType | ArgType` to compact scalar strings, compact native tuples, or `{ arity: 'list', scalarType, dbType? }`.
+    - Updated raw SQL query plans to carry `QueryPlanArgType[]` because raw scalar arg types are compact after Rust serialization too.
+    - Changed `render-query.ts::toArgType()` to reject old scalar `{ arity: 'scalar', scalarType: ... }` objects instead of passing them through as driver arg types.
+    - Updated renderer tests and interpreter benchmark query-plan fixtures to use canonical compact scalar inputs; list arg inputs still use the current list object shape.
+    - Added focused negative coverage for legacy scalar object arg types in both raw SQL and template SQL query plans.
+  - Verification:
+    - `pnpm --filter @prisma/client-engine-runtime test src/interpreter/render-query.test.ts`: passed, 26 tests.
+    - `pnpm --filter @prisma/client-engine-runtime test`: passed, 23 files / 259 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed outside the sandbox.
+    - `pnpm exec tsx packages/client-engine-runtime/bench/interpreter.bench.ts`: passed outside the sandbox; rows were `simple select 783,768 ops/sec`, `findUnique 1,054,956`, `join (1:N) 602,311`, `sequence 877,064`, `deep nested join 59,292`.
+    - `git diff --check`: passed.
+  - Decision:
+    - Keep. This removes another old internal query-plan shape from the runtime hot path while preserving the current list-object format that the Rust producer still emits.
+
 ## Useful Commands
 
 ```sh

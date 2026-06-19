@@ -14,7 +14,7 @@ test('no template', () => {
         type: 'rawSql',
         sql: 'SELECT * FROM users WHERE id = $1',
         args: [1],
-        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+        argTypes: ['i'],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -35,10 +35,7 @@ test('no template and scalar list parameter', () => {
         ['SELECT * FROM users WHERE id = ', null, ' AND numbers = ', null],
         ['$', true],
         [1, [1, 2, 3]],
-        [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'list', scalarType: 'int' },
-        ],
+        ['i', { arity: 'list', scalarType: 'int' }],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -217,7 +214,7 @@ test('converts compact DateTime placeholders to dates', () => {
         type: 'rawSql',
         sql: 'SELECT * FROM users WHERE created_at = $1',
         args: [{ $p: ['%1', 'DateTime'] }],
-        argTypes: [{ arity: 'scalar', scalarType: 'datetime' }],
+        argTypes: ['D'],
       } satisfies QueryPlanDbQuery,
       { '%1': date } as ScopeBindings,
       {},
@@ -229,6 +226,37 @@ test('converts compact DateTime placeholders to dates', () => {
       argTypes: [{ arity: 'scalar', scalarType: 'datetime' }],
     },
   ])
+})
+
+test('rejects legacy scalar object arg types in raw SQL query plans', () => {
+  expect(() =>
+    renderQuery(
+      {
+        type: 'rawSql',
+        sql: 'SELECT * FROM users WHERE id = $1',
+        args: [1],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+      } as unknown as QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toThrow(/Invalid query argument type: 'scalar'/)
+})
+
+test('rejects legacy scalar object arg types in template SQL query plans', () => {
+  expect(() =>
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null],
+        ['$', true],
+        [1],
+        [{ arity: 'scalar', scalarType: 'int' }],
+        false,
+      ] as unknown as QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toThrow(/Invalid query argument type: 'scalar'/)
 })
 
 test('accepts compact parameter tuple fragments', () => {
@@ -298,7 +326,7 @@ test('accepts compact parameter tuple list fragments', () => {
             [3, 4],
           ],
         ],
-        Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        Array.from({ length: 2 }, () => 'i' as const),
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -320,10 +348,7 @@ test('transforms IN template', () => {
         ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
         ['$', true],
         [[1, 2, 3], 0],
-        [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
+        ['i', 'i'],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -345,10 +370,7 @@ test('transforms IN template with empty list', () => {
         ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
         ['$', true],
         [[], 0],
-        [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
+        ['i', 'i'],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -370,7 +392,7 @@ test('handles singleton list in IN template', () => {
         ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
         ['$', true],
         [[1], 0],
-        Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        Array.from({ length: 2 }, () => 'i' as const),
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -392,7 +414,7 @@ test('treats non-array element as a singleton list in IN template', () => {
         ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
         ['$', true],
         [1, 0],
-        Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        Array.from({ length: 2 }, () => 'i' as const),
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -414,11 +436,7 @@ test("transforms IN template, doesn't touch scalar list", () => {
         ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' AND numbers = ', null, ' OFFSET ', null],
         ['$', true],
         [[1, 2, 3], [1, 2, 3], 0],
-        [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'list', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
+        ['i', { arity: 'list', scalarType: 'int' }, 'i'],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -449,7 +467,7 @@ test('transforms INSERT VALUES template', () => {
             [3, 4],
           ],
         ],
-        Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        Array.from({ length: 2 }, () => 'i' as const),
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -479,7 +497,7 @@ test('chunking an INSERT with a large parameterTupleList', () => {
             Array.from({ length: 5 }, (_, i) => i + 21),
           ],
         ],
-        Array.from({ length: 5 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        Array.from({ length: 5 }, () => 'i' as const),
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -522,12 +540,7 @@ test('chunking a UNION ALL with a large parameterTupleList', () => {
         ],
         ['$', true],
         [false, Array.from({ length: 5 }, (_, i) => [i + 1, i + 2]), 'John Doe', 'Jane Doe'],
-        [
-          { arity: 'scalar', scalarType: 'boolean' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'string' },
-          { arity: 'scalar', scalarType: 'string' },
-        ],
+        ['b', 'i', 's', 's'],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -576,11 +589,7 @@ test('chunking a SELECT..IN with a large parameterTuple', () => {
         ],
         ['$', true],
         [false, Array.from({ length: 10 }, (_, i) => i + 1), 'John Doe'],
-        [
-          { arity: 'scalar', scalarType: 'boolean' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'string' },
-        ],
+        ['b', 'i', 's'],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -620,11 +629,7 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
         ['SELECT FROM "public"."User" WHERE "id" IN ', ['T', '', ',', ''], ' AND "age" IN ', ['T', '', ',', '']],
         ['$', true],
         [Array.from({ length: 10 }, (_, i) => i + 1), Array.from({ length: 4 }, (_, i) => i + 1)],
-        [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
+        ['i', 'i', 'i'],
         true,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -663,11 +668,7 @@ test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
         ],
         ['$', true],
         [false, Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
-        [
-          { arity: 'scalar', scalarType: 'boolean' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'string' },
-        ],
+        ['b', 'i', 's'],
         false,
       ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -687,10 +688,7 @@ test('executes a generator', () => {
         type: 'rawSql',
         sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
         args: [{ $g: ['uuid', [4]] }, { $g: ['now', []] }],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'datetime' },
-          { arity: 'scalar', scalarType: 'datetime' },
-        ],
+        argTypes: ['D', 'D'],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       generators.snapshot(),
