@@ -15539,6 +15539,55 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Decision:
     - Keep. This is the larger phase-owner shape the rejected `DiffBoth` spike was pointing toward: it removes a real graph/translation phase for the required-child set target, keeps controls allocation-neutral, and keeps internal shapes lockstep with no compatibility readers.
 
+- Accepted change: skip create-branch return forwarding for inlined-parent connect-or-create.
+  - Timestamp: 2026-06-19.
+  - Engines commit:
+    - `/home/aqrln.guest/prisma-engines` `0f03048514c` (`perf(query-compiler): skip create branch return forwarding`).
+  - Worktree:
+    - `/home/aqrln.guest/prisma/wip/prisma-engines-coc-return-spike` on branch `coc-return-spike`.
+  - Patch:
+    - Removed create-side `Flow::Return` forwarding nodes in `one_to_many_inlined_parent()` and `one_to_one_inlined_parent()` connect-or-create graph builders.
+    - The create branch already returns the selected child link from `CreateRecord`; the enclosing `if` can consume that branch result directly, just like the previously accepted many-to-many create-branch cleanup.
+    - The only snapshot change is deterministic binding-number renumbering in `create-nested-connectOrCreate-mixed`.
+    - No internal protocol/query-plan format changed and no old/new compatibility branch was added.
+  - Allocation evidence:
+    - Clean baseline after `102c8fb35ae`:
+      - `create-nested-connectOrCreate-mixed`: `translate_ir 1474`, `full_compile 2357`, full allocated `278.9 KiB`.
+      - `create-nested-connectOrCreate-m2one`: `graph_build 394`, `translate_ir 798`, `full_compile 1309`, full allocated `158.4 KiB`.
+    - Patched side-worktree and real-checkout profile:
+      - `create-nested-connectOrCreate-mixed`: `translate_ir 1463`, `full_compile 2346`, full allocated `277.6 KiB`.
+      - `create-nested-connectOrCreate-m2one`: `graph_build 393`, `translate_ir 787`, `full_compile 1297`, full allocated `155.1 KiB`.
+    - Sampled controls stayed allocation-neutral:
+      - `create-nested-connectOrCreate-one2m 1321/2103`
+      - `nested-upsert-nested-only 1458/2679`
+      - `update-set-nested 1024/1737`
+      - `query-m2o 308/548`
+      - `aggregate 242/599`
+  - Criterion evidence:
+    - First side/control pass:
+      - patched `m2one 134.06 us`, clean control `134.22 us`.
+      - patched `mixed 246.89 us`, clean control `244.29 us`; not enough by itself.
+      - unchanged rows stayed in band (`one2m` about `221-222 us`, `query-m2o` noisy but healthy).
+    - Narrow repeat:
+      - patched `m2one 129.95 us`, clean control `135.22 us`.
+      - patched `mixed 247.32 us`, clean control `250.74 us`.
+    - Treat this as a small target-positive/neutral timing result with deterministic allocation savings, not a headline Criterion win.
+  - Verification:
+    - Side worktree:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed after accepting the binding-number snapshot update.
+      - `rustfmt --check query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs`: passed.
+      - `git diff --check`: passed.
+      - Focused allocation profile and Criterion commands above.
+    - Real engines checkout after applying:
+      - `cargo check -p query-core -p query-compiler`: passed.
+      - `cargo test -p query-compiler --test queries`: passed.
+      - `rustfmt --check query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs`: passed.
+      - `git diff --check`: passed.
+      - Focused allocation profile matched the side-worktree result.
+  - Decision:
+    - Keep. This is the narrow inlined-parent version of create-branch return removal, with stable allocation wins and neutral-to-positive focused timing. Do not generalize it back into the older broad scalar connect-or-create return-removal shape without fresh close evidence.
+
 ## Useful Commands
 
 ```sh
