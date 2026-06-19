@@ -16408,7 +16408,45 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - A first patched timing pass regressed nested pagination controls by about 3-4% because a new result-field preflight ran on non-M:N candidates. That was fixed before acceptance by calling the preflight only for M:N candidates and by rejecting unsupported non-M:N in-memory ops before building child SQL.
 - Decision:
   - Keep. This removes the generic `dataMap -> join -> process` fallback for the M:N cursor/distinct pagination fixture, saves 147 full-compile allocations and about 14.8 KiB/op, and improves focused Criterion by about 12% while sampled controls stay flat.
-  - Keep the guards narrow. Mapped cursor/distinct fields stay generic until the internal plan carries an explicit operation-field mapping, and row-only final-owner paths must not accept cursor/distinct/linking ops without a separate row-level semantics proof.
+  - Keep the guards narrow. At this commit, mapped cursor/distinct fields stayed generic until the follow-up internal operation-field mapping landed, and row-only final-owner paths must not accept cursor/distinct/linking ops without a separate row-level semantics proof.
+
+## Accepted Query-Compiler Optimization: Raw-Nested M:N Mapped Operation Fields (2026-06-19)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `0d2d3ad1547` (`perf(query-compiler): remap raw nested m2m op fields`).
+- Context:
+  - The previous raw-nested M:N cursor/distinct slice intentionally left mapped scalar fields on the generic fallback because relation operation names arrived as DB column names such as `cat_id`, while raw-nested records expose Prisma field names such as `id`.
+  - The safe fix is producer-side and lockstep: remap operation field names before serializing the internal plan. The runtime does not learn old/new operation field formats.
+- Patch:
+  - Added `Pagination::remap_cursor_field_names()` and `InMemoryOps::remap_operation_field_names()` for producer-side operation remapping.
+  - `build_raw_read_related_records()` now remaps M:N `distinct` and cursor keys from DB names to raw-record field names only when relation ops need record-field matching.
+  - The mapped fixture `query-m2m-pagination-mapped-distinct` now emits `rawNestedRead` instead of `dataMap -> join -> process`.
+  - Unsupported or unselected operation fields still fall back before raw-nested emission.
+- Verification:
+  - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-perf-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated only `query-m2m-pagination-mapped-distinct`.
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-perf-target cargo test -p query-compiler --test queries`: passed.
+  - `cargo fmt -p query-compiler`: passed after rerunning outside the Prisma workspace sandbox.
+  - `git diff --check`: passed.
+  - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`: passed and rebuilt the local query-compiler Wasm package.
+- Allocation evidence:
+  - Control from the scout on engines `a018a977265`:
+    - `query-m2m-pagination-mapped-distinct`: `translate_ir 1168`, `full_compile 1519`, full allocated bytes about `151.7 KiB`.
+  - Patched allocation run used `ALLOC_PROFILE_QUERIES=query-m2m-pagination-mapped-distinct,query-one2m-pagination,query-m2m,query-many-m2m,nested-distinct-pagination-query,query-m2o`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`, and `CARGO_TARGET_DIR=/tmp/prisma-engines-perf-target`.
+  - Target row:
+    - `query-m2m-pagination-mapped-distinct`: `translate_ir/full_compile 1168/1519 -> 591/942`, full allocated bytes `151.7 -> 102.3 KiB`.
+  - Sampled controls:
+    - `query-one2m-pagination` stayed in the accepted raw-nested band at `637/1012` translate/full-compile allocations.
+    - `query-m2m 432/714`, `query-many-m2m 406/713`, `nested-distinct-pagination-query 392/726`, and `query-m2o 308/548` matched the current control band.
+- Criterion evidence:
+  - Scout control median:
+    - `query-m2m-pagination-mapped-distinct 134.37 us`.
+  - Patched focused Criterion medians:
+    - `query-m2m-pagination-mapped-distinct 83.23 us`, about 36% faster.
+    - `query-m2m 71.83 us`, `query-many-m2m 71.58 us`, `query-m2o 63.96 us`, `query-m2o-lateral 64.76 us`, and `query-one2m-pagination 93.36 us` stayed neutral/in band.
+    - `nested-distinct-pagination-query 75.20 us` reported a small +1.6% movement against Criterion's stored prior, but allocation counts were unchanged and the patch only exercises the new remap path for M:N relation ops needing record fields.
+- Decision:
+  - Keep. This extends the accepted raw-nested M:N cursor/distinct path to mapped scalar fields, saves 577 full-compile allocations and about 49.4 KiB/op on the mapped fixture, and improves focused Criterion by about 36%.
+  - Preserve the lockstep shape: operation field names are remapped before serialization, and unsupported mappings fall back. Do not add runtime compatibility readers for DB-name operation keys.
 
 ## Rejected Experiment: Direct-Push Relation Count Virtual Selections (2026-06-19)
 
