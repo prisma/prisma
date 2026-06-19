@@ -16261,6 +16261,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Decision:
   - Treat this as harness health evidence, not a new headline A/B. The current build keeps the expected ordering: generated prepared remains below exact-helper, and prepared direct/request-surface remains the lower-bound direction for the generated-owned prepared operation work.
 
+## Rejected Experiment: Suppress Redundant Create Final-Read Validation (2026-06-19)
+
+- Hypothesis:
+  - Non-atomic top-level create with nested work often validates the inserted parent row once for nested child dependencies with `MISSING_RELATED_RECORD`, then validates the same in-memory create result again with `MISSING_RECORD` before the final follow-up read.
+  - If a direct non-result child edge from the same create node already has an unconditional `rowCountNeq 0` expectation, the later final-read `MISSING_RECORD` validation should be redundant while the final-read dependency itself must stay to inject the parent identifier and preserve result-read ordering.
+- Patch tried:
+  - Side worktree: `/home/aqrln.guest/prisma/wip/prisma-engines-create-final-read-expectation`.
+  - Added a no-allocation `QueryGraph` scan for an outgoing unique projected dependency with `DataRule::RowCountNeq(0)`, excluding marked parent/child swap shapes.
+  - In `create_record()`, omitted the final-read `MissingRecord(Query)` expectation only when that prior direct dependency was present.
+  - Snapshots changed only by replacing the second `unique(validate(get 0) ... MISSING_RECORD)` with `unique(get 0)` on `create-m2m`, `create-nested-connect`, `create-nested-create`, and `create-nested-create-with-composite-id`.
+- Verification:
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-create-final-read-target cargo check -p query-core -p query-compiler`: passed.
+  - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-create-final-read-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated the four expected snapshots in the side worktree.
+- Allocation evidence:
+  - Clean control: `/home/aqrln.guest/prisma-engines` at `d49c30d27b1`, target `/tmp/prisma-engines-next-profile-target`.
+  - Patched side target: `/tmp/prisma-engines-create-final-read-target`.
+  - Both used `ALLOC_PROFILE_QUERIES=create-m2m,create-nested-create,create-nested-create-with-composite-id,create-nested-connect,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,upsert-nested-only-update,update-set-nested,update-set-nested-prisma#27650`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`.
+  - Moved rows saved exactly one `translate_ir` / `full_compile` allocation and about `0.2 KiB/op`: `create-m2m 876/1519 -> 875/1518`, `create-nested-create 654/1173 -> 653/1172`, `create-nested-create-with-composite-id 907/1322 -> 906/1321`, `create-nested-connect 701/1277 -> 700/1276`.
+  - `create-nested-connectOrCreate-mixed`, `create-nested-connectOrCreate-one2m`, `upsert-nested-only-update`, `update-set-nested`, and `update-set-nested-prisma#27650` stayed allocation-neutral.
+- Criterion evidence:
+  - Same pattern on clean control and patched side worktree: `cargo bench -p query-compiler --bench compilation_bench -- 'create-m2m|create-nested-create|create-nested-create-with-composite-id|create-nested-connect'`.
+  - Control / patched medians: `create-m2m 140.51 / 144.64 us`, `create-nested-connect 123.17 / 127.21`, `create-nested-connectOrCreate-m2one 126.16 / 132.30`, `create-nested-connectOrCreate-mixed 229.87 / 236.43`, `create-nested-connectOrCreate-one2m 204.08 / 211.49`, `create-nested-create-with-composite-id 133.04 / 137.17`, `create-nested-create 116.27 / 120.45`.
+- Decision:
+  - Rejected and reverted. The semantics can be made narrow, but suppressing one validation wrapper saves only one allocation and makes adjacent compile rows consistently slower in Criterion. Do not retry create final-read validation suppression as a standalone cleanup; any future create final-read work needs to remove a larger phase, not just a validation expression.
+
 ## Useful Commands
 
 ```sh
