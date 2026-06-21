@@ -15,6 +15,7 @@ overrides:
   '@azure/msal-node>uuid': '>=14.0.0'
   fast-uri@<=3.1.1: '>=3.1.2'
   ws@>=8.0.0 <8.20.1: '>=8.20.1'
+  hono: '4.12.25'
 
 importers:
 
@@ -1817,10 +1818,10 @@ importers:
     devDependencies:
       '@hono/node-server':
         specifier: ^1.19.14
-        version: 1.19.14(hono@4.12.23)
+        version: 1.19.14(hono@4.12.25)
       '@hono/zod-validator':
         specifier: 0.7.2
-        version: 0.7.2(hono@4.12.23)(zod@4.1.3)
+        version: 0.7.2(hono@4.12.25)(zod@4.1.3)
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
@@ -1847,7 +1848,7 @@ importers:
         version: link:../driver-adapter-utils
       hono:
         specifier: ^4.12.23
-        version: 4.12.23
+        version: 4.12.25
       temporal-polyfill:
         specifier: 0.3.0
         version: 0.3.0
@@ -9690,17 +9691,13 @@ snapshots:
   '@gar/promisify@1.1.3':
     optional: true
 
-  '@hono/node-server@1.19.14(hono@4.12.23)':
-    dependencies:
-      hono: 4.12.23
-
   '@hono/node-server@1.19.14(hono@4.12.25)':
     dependencies:
       hono: 4.12.25
 
-  '@hono/zod-validator@0.7.2(hono@4.12.23)(zod@4.1.3)':
+  '@hono/zod-validator@0.7.2(hono@4.12.25)(zod@4.1.3)':
     dependencies:
-      hono: 4.12.23
+      hono: 4.12.25
       zod: 4.1.3
 
   '@humanfs/core@0.19.1': {}
@@ -10596,7 +10593,7 @@ snapshots:
       '@electric-sql/pglite': 0.4.3
       '@electric-sql/pglite-socket': 0.1.3(@electric-sql/pglite@0.4.3)
       '@electric-sql/pglite-tools': 0.3.3(@electric-sql/pglite@0.4.3)
-      '@hono/node-server': 1.19.14(hono@4.12.23)
+      '@hono/node-server': 1.19.14(hono@4.12.25)
       '@prisma/get-platform': 7.2.0
       '@prisma/query-plan-executor': 7.2.0
       '@prisma/streams-local': 0.1.9
@@ -13087,8 +13084,6 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
-
-  hono@4.12.23: {}
 
   hono@4.12.25: {}
 
