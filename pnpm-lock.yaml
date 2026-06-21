@@ -19,10 +19,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      hono:
-        specifier: 4.12.25
-        version: 4.12.25
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: 4.4.1
