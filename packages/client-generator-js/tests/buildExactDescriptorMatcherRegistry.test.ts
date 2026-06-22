@@ -465,6 +465,71 @@ describe('buildExactDescriptorMatcherRegistry', () => {
     await prepared(44)
     expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
   })
+
+  test('emits a prepared operation for flat findFirst string exact specs', async () => {
+    const oracle = await createBlogPageOracle('findFirst', 'user.findFirst', 'User')
+    const { config } = createRegistryFromDatamodel(oracle.datamodel, ['User.findFirst:email:id,email,name'])
+    const sentinel = oracle.fromArgs(userEmailArgs('__prisma_prepared_string_sentinel__'))
+    const next = oracle.fromArgs(userEmailArgs('eve@example.test'))
+    const requestPreparedReadPrecomputedCachedResult = vi.fn().mockResolvedValue({ id: 1 })
+    const fallbackFindFirst = vi.fn()
+    const getPrecomputedQueryPlanCacheHit = vi.fn(() => ({
+      cacheKey: sentinel.cacheKey,
+      placeholderValues: sentinel.placeholderValues,
+      parameterizedQuery: sentinel.parameterizedQuery,
+    }))
+    const client = {
+      _engineConfig: {
+        adapter: {},
+        sqlCommenters: undefined,
+      },
+      _extensions: {
+        isEmpty: () => true,
+      },
+      _globalOmit: undefined,
+      _tracingHelper: {
+        isEnabled: () => false,
+      },
+      _isClientDebugEnabled: () => false,
+      _engine: {
+        getPrecomputedQueryPlanCacheHit,
+        requestPrecomputedCachedResult: vi.fn(),
+      },
+      _requestHandler: {
+        requestPreparedReadPrecomputedCachedResult,
+      },
+      _createPrismaPromise: vi.fn((callback) => callback()),
+      user: {
+        findFirst: fallbackFindFirst,
+      },
+    }
+
+    const prepared = config.preparedOperationRegistry.create(client).findFirstUserByEmailV1_0
+
+    await expect(prepared('eve@example.test')).resolves.toEqual({ id: 1 })
+    expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+    expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledWith(sentinel.query)
+    expect(requestPreparedReadPrecomputedCachedResult).toHaveBeenCalledWith(
+      sentinel.query,
+      {
+        cacheKey: sentinel.cacheKey,
+        placeholderValues: next.placeholderValues,
+        parameterizedQuery: sentinel.parameterizedQuery,
+      },
+      { email: 'eve@example.test' },
+      'findFirst',
+      'User',
+      'user.findFirst.preparedExact',
+    )
+    expect(Object.keys(requestPreparedReadPrecomputedCachedResult.mock.calls[0][1].placeholderValues)).toEqual(
+      Object.keys(next.placeholderValues),
+    )
+    expect(fallbackFindFirst).not.toHaveBeenCalled()
+    expect(() => prepared(43)).toThrow('Expected prepared email to be a string')
+
+    await prepared('frank@example.test')
+    expect(getPrecomputedQueryPlanCacheHit).toHaveBeenCalledTimes(1)
+  })
 })
 
 function createRegistry(configValue: string[]) {

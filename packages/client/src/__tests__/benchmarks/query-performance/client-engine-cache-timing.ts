@@ -884,14 +884,22 @@ function createGeneratedFindManyUsersArgs(): Record<string, unknown> {
 }
 
 function createGeneratedFindFirstUserArgs(iteration: number): Record<string, unknown> {
+  return createGeneratedFindFirstUserArgsForEmail(getBenchmarkUserEmail(iteration))
+}
+
+function createGeneratedFindFirstUserArgsForEmail(email: string): Record<string, unknown> {
   return {
-    where: { email: `user${(iteration % 10) + 1}@example.test` },
+    where: { email },
     select: {
       id: true,
       email: true,
       name: true,
     },
   }
+}
+
+function getBenchmarkUserEmail(iteration: number): string {
+  return `user${(iteration % 10) + 1}@example.test`
 }
 
 function createGeneratedBlogPostPageArgs(iteration: number): Record<string, unknown> {
@@ -1099,14 +1107,46 @@ function getOnlyPlaceholderName(placeholderValues: Record<string, unknown>): str
   return entries.length === 1 ? entries[0] : undefined
 }
 
+function getPreparedScenarioPlaceholderValue(scenario: GeneratedClientSerializeScenario, iteration: number): unknown {
+  if (scenario.modelName === 'Post' && scenario.action === 'findMany' && scenario.clientMethod === 'post.findMany') {
+    return iteration + 42
+  }
+
+  if (scenario.modelName === 'User' && scenario.action === 'findFirst' && scenario.clientMethod === 'user.findFirst') {
+    return getBenchmarkUserEmail(iteration)
+  }
+
+  throw new Error(`Unsupported prepared benchmark scenario: ${scenario.name}`)
+}
+
+function getPreparedScenarioArgs(
+  scenario: GeneratedClientSerializeScenario,
+  placeholderValue: unknown,
+): Record<string, unknown> {
+  if (scenario.modelName === 'Post' && scenario.action === 'findMany' && scenario.clientMethod === 'post.findMany') {
+    return { authorId: placeholderValue }
+  }
+
+  if (scenario.modelName === 'User' && scenario.action === 'findFirst' && scenario.clientMethod === 'user.findFirst') {
+    return { email: placeholderValue }
+  }
+
+  throw new Error(`Unsupported prepared benchmark scenario: ${scenario.name}`)
+}
+
 function createBenchmarkPreparedOperationRegistry(): PreparedOperationRegistry {
   return {
     create(client: any) {
-      const protocolQuery = createBlogPostFeedByAuthorQuery(0, 10)
-      let cachedHit:
+      const blogFeedProtocolQuery = createBlogPostFeedByAuthorQuery(0, 10)
+      const findFirstUserProtocolQuery = createFindFirstUserQuery(getBenchmarkUserEmail(0))
+      let blogFeedCachedHit:
         | { cacheKey: string; parameterizedQuery: JsonQuery; placeholderValues: Record<string, unknown> }
         | undefined
-      let valuePlaceholder: string | undefined
+      let blogFeedValuePlaceholder: string | undefined
+      let findFirstUserCachedHit:
+        | { cacheKey: string; parameterizedQuery: JsonQuery; placeholderValues: Record<string, unknown> }
+        | undefined
+      let findFirstUserValuePlaceholder: string | undefined
 
       return {
         blogFeedByAuthorPostListV1_0(authorId: unknown) {
@@ -1127,8 +1167,8 @@ function createBenchmarkPreparedOperationRegistry(): PreparedOperationRegistry {
             return client.post.findMany(createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId))
           }
 
-          if (cachedHit === undefined) {
-            const hit = client._engine.getPrecomputedQueryPlanCacheHit(protocolQuery)
+          if (blogFeedCachedHit === undefined) {
+            const hit = client._engine.getPrecomputedQueryPlanCacheHit(blogFeedProtocolQuery)
             if (hit === undefined) {
               return client.post.findMany(createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId))
             }
@@ -1138,19 +1178,19 @@ function createBenchmarkPreparedOperationRegistry(): PreparedOperationRegistry {
               return client.post.findMany(createGeneratedBlogPostFeedByAuthorArgsForAuthorId(authorId))
             }
 
-            cachedHit = hit
-            valuePlaceholder = entries[0][0]
+            blogFeedCachedHit = hit
+            blogFeedValuePlaceholder = entries[0][0]
           }
 
           const args = { authorId }
           return client._createPrismaPromise(
             () =>
               client._requestHandler.requestPreparedReadPrecomputedCachedResult(
-                protocolQuery,
+                blogFeedProtocolQuery,
                 {
-                  cacheKey: cachedHit.cacheKey,
-                  placeholderValues: { [valuePlaceholder!]: authorId },
-                  parameterizedQuery: cachedHit.parameterizedQuery,
+                  cacheKey: blogFeedCachedHit.cacheKey,
+                  placeholderValues: { [blogFeedValuePlaceholder!]: authorId },
+                  parameterizedQuery: blogFeedCachedHit.parameterizedQuery,
                 },
                 args,
                 'findMany',
@@ -1161,6 +1201,61 @@ function createBenchmarkPreparedOperationRegistry(): PreparedOperationRegistry {
               action: 'findMany',
               args,
               model: 'Post',
+            },
+          )
+        },
+        findFirstUserByEmailV1_0(email: unknown) {
+          if (typeof email !== 'string') {
+            throw new Error('Expected prepared email to be a string')
+          }
+
+          if (
+            client._engineConfig.adapter === undefined ||
+            client._engineConfig.sqlCommenters !== undefined ||
+            !client._extensions.isEmpty() ||
+            client._globalOmit !== undefined ||
+            client._tracingHelper.isEnabled() ||
+            client._isClientDebugEnabled() ||
+            typeof client._engine.getPrecomputedQueryPlanCacheHit !== 'function' ||
+            typeof client._engine.requestPrecomputedCachedResult !== 'function'
+          ) {
+            return client.user.findFirst(createGeneratedFindFirstUserArgsForEmail(email))
+          }
+
+          if (findFirstUserCachedHit === undefined) {
+            const hit = client._engine.getPrecomputedQueryPlanCacheHit(findFirstUserProtocolQuery)
+            if (hit === undefined) {
+              return client.user.findFirst(createGeneratedFindFirstUserArgsForEmail(email))
+            }
+
+            const entries = Object.entries(hit.placeholderValues)
+            if (entries.length !== 1 || entries[0][1] !== getBenchmarkUserEmail(0)) {
+              return client.user.findFirst(createGeneratedFindFirstUserArgsForEmail(email))
+            }
+
+            findFirstUserCachedHit = hit
+            findFirstUserValuePlaceholder = entries[0][0]
+          }
+
+          const args = { email }
+          return client._createPrismaPromise(
+            () =>
+              client._requestHandler.requestPreparedReadPrecomputedCachedResult(
+                findFirstUserProtocolQuery,
+                {
+                  cacheKey: findFirstUserCachedHit.cacheKey,
+                  placeholderValues: { [findFirstUserValuePlaceholder!]: email },
+                  parameterizedQuery: findFirstUserCachedHit.parameterizedQuery,
+                },
+                args,
+                'findFirst',
+                'User',
+                'user.findFirst.preparedExact',
+              ),
+            {
+              action: 'findFirst',
+              args,
+              model: 'User',
             },
           )
         },
@@ -3402,28 +3497,23 @@ async function measurePreparedExactOperationScenario(
     paramGraph,
     scenario,
   )
-  const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
-  if (authorIdPlaceholder === undefined) {
-    throw new Error('Expected one generated blog-feed-by-author placeholder')
+  const valuePlaceholder = getOnlyPlaceholderName(placeholderValues)
+  if (valuePlaceholder === undefined) {
+    throw new Error(`Expected one generated prepared placeholder for ${scenario.name}`)
   }
 
   const protocolQuery = scenario.query(0)
   const requestOptions = { isWrite: false }
-  const preparedOperation = (authorId: number) => {
-    if (!isInt32(authorId)) {
-      throw new Error('Expected prepared authorId to be an int32')
-    }
-
-    return client._engine.requestPrecomputedCachedResult(
+  const preparedOperation = (placeholderValue: unknown) =>
+    client._engine.requestPrecomputedCachedResult(
       protocolQuery,
       {
         cacheKey,
-        placeholderValues: { [authorIdPlaceholder]: authorId },
+        placeholderValues: { [valuePlaceholder]: placeholderValue },
         parameterizedQuery,
       },
       requestOptions,
     )
-  }
 
   try {
     await client.$connect()
@@ -3441,7 +3531,7 @@ async function measurePreparedExactOperationScenario(
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
-      const result = await preparedOperation(i + 42)
+      const result = await preparedOperation(getPreparedScenarioPlaceholderValue(scenario, i))
       checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
     }
     const elapsedMs = performance.now() - started
@@ -3499,9 +3589,9 @@ async function measurePreparedExactRequestSurfaceScenario(
     paramGraph,
     scenario,
   )
-  const authorIdPlaceholder = getOnlyPlaceholderName(placeholderValues)
-  if (authorIdPlaceholder === undefined) {
-    throw new Error('Expected one generated blog-feed-by-author placeholder')
+  const valuePlaceholder = getOnlyPlaceholderName(placeholderValues)
+  if (valuePlaceholder === undefined) {
+    throw new Error(`Expected one generated prepared placeholder for ${scenario.name}`)
   }
 
   const protocolQuery = scenario.query(0)
@@ -3513,12 +3603,8 @@ async function measurePreparedExactRequestSurfaceScenario(
     clientMethod: `${scenario.clientMethod}.preparedExact`,
     extensions: client._extensions,
   }
-  const preparedOperation = (authorId: number) => {
-    if (!isInt32(authorId)) {
-      throw new Error('Expected prepared authorId to be an int32')
-    }
-
-    const args = { authorId }
+  const preparedOperation = (placeholderValue: unknown) => {
+    const args = getPreparedScenarioArgs(scenario, placeholderValue)
     return client._createPrismaPromise(
       () =>
         client._requestHandler.requestPrecomputedCachedResult({
@@ -3526,7 +3612,7 @@ async function measurePreparedExactRequestSurfaceScenario(
           args,
           precomputedQueryPlanCacheHit: {
             cacheKey,
-            placeholderValues: { [authorIdPlaceholder]: authorId },
+            placeholderValues: { [valuePlaceholder]: placeholderValue },
             parameterizedQuery,
           },
         }),
@@ -3554,7 +3640,7 @@ async function measurePreparedExactRequestSurfaceScenario(
     const beforeHeap = heapUsed()
     const started = performance.now()
     for (let i = 0; i < scenario.iterations; i++) {
-      const result = await preparedOperation(i + 42)
+      const result = await preparedOperation(getPreparedScenarioPlaceholderValue(scenario, i))
       checksum += scenario.adapterFactory === undefined ? (result === null ? 0 : 1) : checksumNestedBlogResult(result)
     }
     const elapsedMs = performance.now() - started
@@ -8105,6 +8191,21 @@ async function main(): Promise<void> {
   }
 
   for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.name !== 'generated client serialize findFirst users / warmed cache') {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: 'prepared exact operation findFirst users / warmed cache',
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(await measurePreparedExactOperationScenario(baseConfig, paramGraph, measuredScenario))
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
     if (scenario.name !== 'generated client serialize blog feed by author / nested rows warmed cache') {
       continue
     }
@@ -8112,6 +8213,23 @@ async function main(): Promise<void> {
     const measuredScenario = {
       ...scenario,
       name: 'prepared exact request surface blog feed by author / nested rows warmed cache',
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measurePreparedExactRequestSurfaceScenario(baseConfig, paramGraph, measuredScenario),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.name !== 'generated client serialize findFirst users / warmed cache') {
+      continue
+    }
+
+    const measuredScenario = {
+      ...scenario,
+      name: 'prepared exact request surface findFirst users / warmed cache',
     }
     if (!shouldRunMeasurement(measuredScenario.name)) {
       continue
@@ -8151,6 +8269,34 @@ async function main(): Promise<void> {
       resultSet: scenario.resultSet,
       adapterFactory: scenario.adapterFactory,
       operation: (client, iteration) => client._preparedOperations.blogFeedByAuthorPostListV1_0(iteration + 42),
+    }
+    if (!shouldRunMeasurement(measuredScenario.name)) {
+      continue
+    }
+    printDirectPlanMeasurement(
+      await measureGeneratedClientScenario(
+        baseConfig,
+        measuredScenario,
+        'request',
+        undefined,
+        createBenchmarkPreparedOperationRegistry(),
+      ),
+    )
+  }
+
+  for (const scenario of generatedClientSerializeScenarios) {
+    if (scenario.name !== 'generated client serialize findFirst users / warmed cache') {
+      continue
+    }
+
+    const measuredScenario: GeneratedClientScenario = {
+      name: 'generated client prepared operation findFirst users / warmed cache',
+      iterations: scenario.iterations,
+      query: scenario.query(0),
+      resultSet: scenario.resultSet,
+      adapterFactory: scenario.adapterFactory,
+      operation: (client, iteration) =>
+        client._preparedOperations.findFirstUserByEmailV1_0(getBenchmarkUserEmail(iteration)),
     }
     if (!shouldRunMeasurement(measuredScenario.name)) {
       continue

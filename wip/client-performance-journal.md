@@ -16992,7 +16992,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - On the Cloudflare-target runtime, generated prepared operation overhead is already close to the prepared request-surface lower bound. More prepared-wrapper micro-edits are low ceiling.
   - The next Worker-relevant win should move more hot generated shapes from default/exact-helper rows toward prepared-operation or JS-owned cache-hit rows, or change raw-nested execution ownership with a truly static/generated schedule. Do not spend another standalone patch on prepared-operation stable checks, Promise continuation shape, placeholder object construction, or a generic final-owner branch without fresh profile evidence.
 
-## Measurement: Flat FindFirst Prepared-Operation Lower Bound (2026-06-22)
+## Measurement: Flat FindFirst Prepared-Operation Lower Bound, Superseded By Semantic Probe (2026-06-22)
 
 - Context:
   - After the prepared-path recheck showed the by-author feed generated prepared helper is already close to its request-surface lower bound on Workerd, I looked for a shape where expanding prepared-operation coverage might have a larger ceiling.
@@ -17005,19 +17005,40 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Command:
   - `CLIENT_ENGINE_CACHE_TIMING_FILTER='findFirst users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
 - Result:
-  - generated client serialize: `0.43 us/op`.
-  - serialize cache key: `1.60 us/op`.
-  - lazy descriptor extract: `0.35 us/op`.
-  - request precomputed fast path: `2.25 us/op`.
-  - generated exact descriptor helper: `2.10 us/op`.
-  - runtime exact descriptor helper: `2.15 us/op`.
-  - prepared exact operation: `0.92 us/op`.
-  - prepared exact request surface: `1.28 us/op`.
-  - generated client default: `2.22 us/op`.
-  - engine precomputed fast path: `2.32 us/op`.
+  - This first lower-bound run is superseded because the benchmark helper reused the by-author numeric `i + 42` placeholder value even for the email placeholder. The fake adapter made the row execute, but it was not the correct semantic shape.
+  - The corrected semantic run is recorded in the accepted section below.
 - Readout:
-  - This is a much larger relative gap than the current by-author feed prepared helper wrapper gap: prepared exact/request-surface are roughly `39-56%` below the exact-helper/default generated rows on Node for this flat shape.
-  - The likely next productization candidate is a generated prepared operation for strict flat `findFirst` / `findFirstOrThrow` one-field scalar/enum equality plus exact select, reusing the existing exact-helper self-test/oracle discipline.
-  - Keep this narrow. It should not become a broad runtime `findFirst` filter matcher, and it should still fall back for extensions, global omit, SQL commenters, tracing/debug, transactions, unsupported special values, shape mismatches, and any unproved placeholder/cache-key behavior.
-- Next step:
-  - Prototype the generated-style prepared registry path for this flat `findFirst users` shape in the benchmark harness first, then productize in both TS and JS generators only if generated-client rows stay close to the request-surface lower bound and focused generator/runtime tests pass.
+  - Keep the lesson: validate placeholder value semantics in benchmark-only prepared rows, even when the fake adapter does not care about SQL argument types.
+
+## Accepted: Flat String FindFirst Generated Prepared Helpers (2026-06-22)
+
+- Prisma patch:
+  - `packages/client-generator-ts/src/utils/buildExactDescriptorMatcherRegistry.ts`
+  - `packages/client-generator-js/src/utils/buildExactDescriptorMatcherRegistry.ts`
+  - `packages/client-generator-{ts,js}/tests/buildExactDescriptorMatcherRegistry.test.ts`
+  - Benchmark rows in `client-engine-cache-timing.ts` and `workerd-query-compiler-memory.ts`.
+- Product shape:
+  - `buildPreparedOperationRegistry()` now also emits generated prepared helpers for flat string `findFirst` / `findFirstOrThrow` exact specs from `internalExactDescriptorHelpers`.
+  - Operation names are internal, for example `findFirstUserByEmailV1_0` when the configured flat spec list contains only `User.findFirst:email:id,email,name`.
+  - The helper learns a precomputed cache hit from a sentinel string protocol query, verifies exactly one string placeholder, then calls `RequestHandler.requestPreparedReadPrecomputedCachedResult()` with the dynamic string placeholder.
+  - The generated fallback preserves normal delegate execution if the adapter/precomputed/cached-result/exclusion guards fail.
+  - Scope is intentionally string-only for this slice. Non-string scalars, enum db-name mappings, BigInt/Date/Decimal/Bytes/Json, and other special-value classes still require separate oracle proof before prepared-helper support.
+- Corrected Node benchmark:
+  - Command: `CLIENT_ENGINE_CACHE_TIMING_FILTER='findFirst users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`.
+  - generated default / request-precomputed / descriptor-bound / exact-helper / runtime exact: `2.49 / 2.42 / 2.24 / 2.37 / 2.52 us/op`.
+  - prepared exact operation / prepared request surface / generated prepared operation: `1.09 / 1.40 / 1.39 us/op`.
+  - All product/generated prepared rows hit `300000/0` precomputed-cache hits where applicable.
+- Workerd benchmark:
+  - Command: `WORKERD_QUERY_COMPILER_MEMORY_FILTER='findFirst users warmed cache' WORKERD_GENERATED_FIND_UNIQUE_ITERATIONS=20000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/workerd-query-compiler-memory.ts` rerun outside the sandbox after localhost `listen EPERM`.
+  - Request loop generated default / request-precomputed / descriptor-bound / exact-helper / runtime exact: `2.95 / 2.15 / 2.20 / 1.90 / 1.95 us/op`.
+  - Request loop prepared exact / prepared request surface / generated prepared: `1.15 / 2.00 / 1.45 us/op`.
+  - Host dispatch generated prepared was `2.42 us/op`; all focused rows hit `20000/0`.
+- Verification:
+  - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 17 tests.
+  - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 17 tests.
+  - `pnpm --filter @prisma/client-generator-ts build`: passed outside sandbox after the known `tsx` IPC `listen EPERM`.
+  - `pnpm --filter @prisma/client-generator-js build`: passed outside sandbox after the known `tsx` IPC `listen EPERM`.
+  - `git diff --check`: passed.
+- Decision:
+  - Keep. This moves one simple generated-client cache-hit shape materially on both Node and Workerd and gives a concrete pattern for future generated prepared coverage.
+  - Do not broaden this into a generic `findFirst` matcher or non-string prepared operation without explicit serializer/parameterizer/cache-key oracle coverage for that value class.

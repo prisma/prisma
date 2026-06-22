@@ -67,7 +67,10 @@ export function buildExactDescriptorMatcherRegistry(
   }
 
   if (specs.templates.length === 0) {
-    return `config.descriptorMatcherRegistry = ${factoryExpression}(${JSON.stringify(specs.flat, null, 2)})`
+    const preparedOperationRegistry = buildPreparedOperationRegistry(specs.flat, specs.templates)
+    return `config.descriptorMatcherRegistry = ${factoryExpression}(${JSON.stringify(specs.flat, null, 2)})${
+      preparedOperationRegistry === '' ? '' : `\n\n${preparedOperationRegistry}`
+    }`
   }
 
   return buildTemplateDescriptorMatcherRegistry(specs.flat, specs.templates, factoryExpression)
@@ -343,7 +346,7 @@ function buildTemplateDescriptorMatcherRegistry(
     .join('\n\n')
 
   const templateBinders = templates.map(buildTemplateBinder).join('\n')
-  const preparedOperationRegistry = buildPreparedOperationRegistry(templates)
+  const preparedOperationRegistry = buildPreparedOperationRegistry(flatSpecs, templates)
 
   return `const __internalExactDescriptorFlatRegistry = ${factoryExpression}(${JSON.stringify(flatSpecs, null, 2)})
 config.descriptorMatcherRegistry = {
@@ -359,7 +362,19 @@ ${templateBinders}
 ${blogPagePostV1TemplateSupportCode}`
 }
 
-function buildPreparedOperationRegistry(templates: ExactDescriptorMatcherTemplateSpec[]): string {
+function buildPreparedOperationRegistry(
+  flatSpecs: ExactDescriptorMatcherSpec[],
+  templates: ExactDescriptorMatcherTemplateSpec[],
+): string {
+  const preparedFlatSpecs = flatSpecs
+    .map((spec, index) => ({ spec, index }))
+    .filter(
+      (
+        entry,
+      ): entry is { spec: ExactDescriptorMatcherSpec & { action: 'findFirst' | 'findFirstOrThrow' }; index: number } =>
+        (entry.spec.action === 'findFirst' || entry.spec.action === 'findFirstOrThrow') &&
+        entry.spec.valueType === 'string',
+    )
   const preparedTemplates = templates
     .map((template, index) => ({ template, index }))
     .filter(
@@ -367,19 +382,24 @@ function buildPreparedOperationRegistry(templates: ExactDescriptorMatcherTemplat
         entry.template.templateName === 'blogFeedByAuthorPostListV1',
     )
 
-  if (preparedTemplates.length === 0) {
+  if (preparedFlatSpecs.length === 0 && preparedTemplates.length === 0) {
     return ''
   }
 
-  const entries = preparedTemplates
-    .map(({ index }) => {
-      const operationName = JSON.stringify(`blogFeedByAuthorPostListV1_${index}`)
-      return `      ${operationName}: __internalPreparedOperationBlogFeedByAuthorPostListV1_${index}(client)`
-    })
-    .join(',\n')
-  const factories = preparedTemplates
-    .map(({ template, index }) => buildBlogFeedByAuthorPostListV1PreparedOperation(template, index))
-    .join('\n')
+  const flatEntries = preparedFlatSpecs.map(({ spec, index }) => {
+    const operationName = JSON.stringify(getFlatFindPreparedOperationName(spec, index))
+    return `      ${operationName}: __internalPreparedOperationFlatFind_${index}(client)`
+  })
+  const templateEntries = preparedTemplates.map(({ index }) => {
+    const operationName = JSON.stringify(`blogFeedByAuthorPostListV1_${index}`)
+    return `      ${operationName}: __internalPreparedOperationBlogFeedByAuthorPostListV1_${index}(client)`
+  })
+  const entries = [...flatEntries, ...templateEntries].join(',\n')
+  const flatFactories = preparedFlatSpecs.map(({ spec, index }) => buildFlatFindPreparedOperation(spec, index))
+  const templateFactories = preparedTemplates.map(({ template, index }) =>
+    buildBlogFeedByAuthorPostListV1PreparedOperation(template, index),
+  )
+  const factories = [...flatFactories, ...templateFactories].join('\n')
 
   return `config.preparedOperationRegistry = {
   create(client) {
@@ -390,6 +410,125 @@ ${entries}
 }
 
 ${factories}`
+}
+
+function getFlatFindPreparedOperationName(
+  spec: ExactDescriptorMatcherSpec & { action: 'findFirst' | 'findFirstOrThrow' },
+  index: number,
+): string {
+  return `${spec.action}${spec.model}By${capitalize(spec.field)}V1_${index}`
+}
+
+function capitalize(value: string): string {
+  return value.length === 0 ? value : value[0].toUpperCase() + value.slice(1)
+}
+
+function buildFlatFindPreparedOperation(
+  spec: ExactDescriptorMatcherSpec & { action: 'findFirst' | 'findFirstOrThrow' },
+  index: number,
+): string {
+  const model = JSON.stringify(spec.model)
+  const modelDelegate = JSON.stringify(dmmfToJSModelName(spec.model))
+  const action = JSON.stringify(spec.action)
+  const clientMethod = JSON.stringify(`${dmmfToJSModelName(spec.model)}.${spec.action}.preparedExact`)
+  const field = JSON.stringify(spec.field)
+  const sentinelValue = JSON.stringify('__prisma_prepared_string_sentinel__')
+  const protocolQuery = JSON.stringify(
+    createFlatFindPreparedOperationProtocolQuery(spec, '__prisma_prepared_string_sentinel__'),
+    null,
+    2,
+  )
+  const select = JSON.stringify(createFlatFindPreparedOperationSelect(spec), null, 2)
+
+  return `function __internalPreparedOperationFlatFind_${index}(client) {
+  const protocolQuery = ${protocolQuery}
+  let cachedHit
+  let valuePlaceholder
+
+  return (value) => {
+    if (typeof value !== 'string') {
+      throw new Error('Expected prepared ${spec.field} to be a string')
+    }
+
+    if (
+      client._engineConfig.adapter === undefined ||
+      client._engineConfig.sqlCommenters !== undefined ||
+      !client._extensions.isEmpty() ||
+      client._globalOmit !== undefined ||
+      client._tracingHelper.isEnabled() ||
+      client._isClientDebugEnabled() ||
+      typeof client._engine.getPrecomputedQueryPlanCacheHit !== 'function' ||
+      typeof client._engine.requestPrecomputedCachedResult !== 'function'
+    ) {
+      return client[${modelDelegate}][${action}](__internalPreparedOperationFlatFindArgs_${index}(value))
+    }
+
+    if (cachedHit === undefined) {
+      const hit = client._engine.getPrecomputedQueryPlanCacheHit(protocolQuery)
+      if (hit === undefined) {
+        return client[${modelDelegate}][${action}](__internalPreparedOperationFlatFindArgs_${index}(value))
+      }
+
+      const entries = Object.entries(hit.placeholderValues)
+      if (entries.length !== 1 || entries[0][1] !== ${sentinelValue}) {
+        return client[${modelDelegate}][${action}](__internalPreparedOperationFlatFindArgs_${index}(value))
+      }
+
+      cachedHit = hit
+      valuePlaceholder = entries[0][0]
+    }
+
+    const args = { [${field}]: value }
+    return client._createPrismaPromise(
+      () =>
+        client._requestHandler.requestPreparedReadPrecomputedCachedResult(
+          protocolQuery,
+          {
+            cacheKey: cachedHit.cacheKey,
+            placeholderValues: { [valuePlaceholder]: value },
+            parameterizedQuery: cachedHit.parameterizedQuery,
+          },
+          args,
+          ${action},
+          ${model},
+          ${clientMethod},
+        ),
+      {
+        action: ${action},
+        args,
+        model: ${model},
+      },
+    )
+  }
+}
+
+function __internalPreparedOperationFlatFindArgs_${index}(value) {
+  return {
+    where: { [${field}]: value },
+    select: ${select},
+  }
+}
+`
+}
+
+function createFlatFindPreparedOperationProtocolQuery(
+  spec: ExactDescriptorMatcherSpec & { action: 'findFirst' | 'findFirstOrThrow' },
+  value: string,
+): Record<string, unknown> {
+  return {
+    modelName: spec.model,
+    action: spec.action,
+    query: {
+      arguments: {
+        where: { [spec.field]: value },
+      },
+      selection: createFlatFindPreparedOperationSelect(spec),
+    },
+  }
+}
+
+function createFlatFindPreparedOperationSelect(spec: ExactDescriptorMatcherSpec): Record<string, true> {
+  return Object.fromEntries(spec.select.map((field) => [field, true]))
 }
 
 function buildBlogFeedByAuthorPostListV1PreparedOperation(
