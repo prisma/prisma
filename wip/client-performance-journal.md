@@ -16991,3 +16991,33 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Decision:
   - On the Cloudflare-target runtime, generated prepared operation overhead is already close to the prepared request-surface lower bound. More prepared-wrapper micro-edits are low ceiling.
   - The next Worker-relevant win should move more hot generated shapes from default/exact-helper rows toward prepared-operation or JS-owned cache-hit rows, or change raw-nested execution ownership with a truly static/generated schedule. Do not spend another standalone patch on prepared-operation stable checks, Promise continuation shape, placeholder object construction, or a generic final-owner branch without fresh profile evidence.
+
+## Measurement: Flat FindFirst Prepared-Operation Lower Bound (2026-06-22)
+
+- Context:
+  - After the prepared-path recheck showed the by-author feed generated prepared helper is already close to its request-surface lower bound on Workerd, I looked for a shape where expanding prepared-operation coverage might have a larger ceiling.
+  - Flat `User.findFirst({ where: { email }, select: { id, email, name } })` already has strict exact-helper support and oracle coverage, making it a good candidate for a generated prepared helper rather than a generic filter matcher.
+- Benchmark-only harness change:
+  - Added two temporary rows in `client-engine-cache-timing.ts` for the existing `generated client serialize findFirst users / warmed cache` scenario:
+    - `prepared exact operation findFirst users / warmed cache`.
+    - `prepared exact request surface findFirst users / warmed cache`.
+  - These rows are lower-bound measurements only. They do not yet install a generated prepared operation in product generator output.
+- Command:
+  - `CLIENT_ENGINE_CACHE_TIMING_FILTER='findFirst users / warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+- Result:
+  - generated client serialize: `0.43 us/op`.
+  - serialize cache key: `1.60 us/op`.
+  - lazy descriptor extract: `0.35 us/op`.
+  - request precomputed fast path: `2.25 us/op`.
+  - generated exact descriptor helper: `2.10 us/op`.
+  - runtime exact descriptor helper: `2.15 us/op`.
+  - prepared exact operation: `0.92 us/op`.
+  - prepared exact request surface: `1.28 us/op`.
+  - generated client default: `2.22 us/op`.
+  - engine precomputed fast path: `2.32 us/op`.
+- Readout:
+  - This is a much larger relative gap than the current by-author feed prepared helper wrapper gap: prepared exact/request-surface are roughly `39-56%` below the exact-helper/default generated rows on Node for this flat shape.
+  - The likely next productization candidate is a generated prepared operation for strict flat `findFirst` / `findFirstOrThrow` one-field scalar/enum equality plus exact select, reusing the existing exact-helper self-test/oracle discipline.
+  - Keep this narrow. It should not become a broad runtime `findFirst` filter matcher, and it should still fall back for extensions, global omit, SQL commenters, tracing/debug, transactions, unsupported special values, shape mismatches, and any unproved placeholder/cache-key behavior.
+- Next step:
+  - Prototype the generated-style prepared registry path for this flat `findFirst users` shape in the benchmark harness first, then productize in both TS and JS generators only if generated-client rows stay close to the request-surface lower bound and focused generator/runtime tests pass.
