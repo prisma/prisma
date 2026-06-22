@@ -16647,6 +16647,26 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Do not retry request-owned child-id injection for M:N nested `connect` as a standalone cleanup. The child read is still present for validation, and the added primary-id extraction/graph shape shifts cost from translation into graph build.
   - A practical future M:N connect shortcut needs a larger phase-owned operation that validates matched child rows while doing the relation-table insert, probably a connector-specific insert-select/count shape. It must preserve already-connected idempotent `ON CONFLICT DO NOTHING` behavior and missing-child `INCOMPLETE_CONNECT_INPUT` semantics.
 
+## Accepted Test Fixture: Direct M:N Connect Baseline (2026-06-22)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `9f535158223` (`test(query-compiler): add M2M connect fixture`).
+- Purpose:
+  - Future M:N connect phase-owner work needed a direct `Post.updateOne({ categories: { connect } })` fixture instead of inferring from `update-m2m-set` or `nested-upsert-nested-only`.
+  - The fixture isolates the current parent read -> child-id read/validation -> `ConnectRecords` relation insert shape without a preceding relation-table wipe.
+- Snapshot baseline:
+  - `query-compiler/query-compiler/tests/data/update-m2m-connect.json`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@update-m2m-connect.json.snap`
+  - The snapshot reads `Post.id`, reads `Category.id` for `{ id: 1 } OR { id: 2 }`, validates child `rowCountEq 2` with `INCOMPLETE_CONNECT_INPUT`, then inserts into `_CategoryToPost` with `product(var(0$id as Int[]), var(1$id as Int[]))`.
+- Verification:
+  - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-next-profile-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo test -p query-compiler --test queries -- --nocapture`: passed and created only the intended new snapshot.
+- Allocation baseline:
+  - `ALLOC_PROFILE_QUERIES=update-m2m-connect,update-m2m-set,update-m2m-disconnect,nested-upsert-nested-only,create-nested-connectOrCreate-mixed,query-m2m,aggregate`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`.
+  - `update-m2m-connect`: `graph_build/translate_ir/compile_ir/full_compile 502/841/1343/1442`, full allocated bytes about `158.7 KiB`.
+  - Neighbor rows in the same run: `update-m2m-set` full_compile `1544`, `update-m2m-disconnect` `857`, `nested-upsert-nested-only` `2555`, `create-nested-connectOrCreate-mixed` `2304`.
+- Decision:
+  - Keep. This is test/measurement scaffolding, not a product performance change, but it gives the next M:N connect insert-select/count spike a focused target and avoids measuring through `set` or nested-upsert side effects.
+
 ## Useful Commands
 
 ```sh
