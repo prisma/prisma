@@ -16692,6 +16692,28 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - A future useful spike should be explicitly Postgres-gated through a new connector capability or equivalent schema-level proof, add structured data-modifying CTE support in Quaint or a typed template builder, introduce a new phase-owned M:N connect write/query expression that returns matched child rows, and benchmark against `update-m2m-connect`.
   - Correctness gates must cover missing child errors, already-connected children, multiple children, duplicate connect inputs after existing `unique()` coercion, parent validation ordering, and fallback behavior for non-Postgres connectors.
 
+## Measurement: Direct M:N Connect Profile Baseline (2026-06-22)
+
+- Purpose:
+  - Establish a CPU and allocation reference for the new `update-m2m-connect` fixture before attempting any further M:N connect graph/translation work.
+- Allocation profile:
+  - Command used `ALLOC_PROFILE_QUERIES=update-m2m-connect`, `ALLOC_PROFILE_BUCKETS=1`, `ALLOC_PROFILE_ITERATIONS=5`, `ALLOC_PROFILE_WARMUP=1`, and `CARGO_TARGET_DIR=/tmp/prisma-engines-next-profile-target`.
+  - `update-m2m-connect` stayed at the fixture baseline: `graph_build/translate_ir/compile_ir/full_compile 502/841/1343/1442`, full allocated bytes about `158.7 KiB`.
+  - Largest buckets are mid-sized graph/translation allocations, not JSON parsing:
+    - `graph_build` allocated about `77.9 KiB/op`; largest buckets were `257..384 B` at `54 allocs/op`, `513..768 B` at `19`, `1.0..1.5 KiB` at `9`, and `2.0..4.0 KiB` at `4`.
+    - `translate_ir` allocated about `69.4 KiB/op`; largest buckets were `257..384 B` at `49 allocs/op`, `513..768 B` at `23`, `385..512 B` at `20`, and `1.0..1.5 KiB` at `6`.
+- Neighbor allocation comparison:
+  - Same target run over `update-m2m-connect,update-m2m-set,update-m2m-disconnect,create-nested-connect,create-m2m,update-connect,update-set-nested,nested-upsert-nested-only` used `ALLOC_PROFILE_ITERATIONS=20`, `ALLOC_PROFILE_WARMUP=3`.
+  - Full-compile allocation counts: `update-m2m-disconnect 857`, `update-connect 1272`, `create-nested-connect 1277`, `update-m2m-connect 1442`, `create-m2m 1519`, `update-m2m-set 1544`, `update-set-nested 1666`, `nested-upsert-nested-only 2555`.
+- Criterion baseline:
+  - Command used `cargo bench -p query-compiler --bench compilation_bench -- "^compile/(update-m2m-connect|update-m2m-set|update-m2m-disconnect|create-nested-connect|create-m2m)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`.
+  - Medians: `update-m2m-disconnect 95.311 us`, `create-nested-connect 150.87 us`, `update-m2m-connect 167.95 us`, `create-m2m 175.53 us`, `update-m2m-set 175.97 us`.
+- Duplicate validation note:
+  - The current snapshot validates/maps the parent read once for `ConnectRecords` (`MISSING_RELATED_RECORD`) and again for the final result read (`MISSING_RECORD`).
+  - The connect-side validation is not removable: for a missing parent in nested `connect`, current behavior raises `MISSING_RELATED_RECORD` before `ConnectRecords` and before the final read. Deferring to the result read would change the error to `MISSING_RECORD` or let child validation win in a reordered shape.
+  - Suppressing only the final `MISSING_RECORD` wrapper is semantically plausible for this exact graph after connect parent validation, but it is effectively the earlier rejected final-read validation suppression class. The final read still needs `unique(get 0)` and `mapField id`; the likely win is just one validation expression allocation.
+  - A reusable parent binding would require a new graph owner/return-preserving flow that validates parent once, runs child/connect, and returns the preserved parent id to the final read. Do not spend a standalone patch here unless it removes that larger phase and proves error ordering.
+
 ## Useful Commands
 
 ```sh
