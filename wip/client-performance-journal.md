@@ -16578,6 +16578,40 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Rejected and fully reverted. The patch removed `process`, but replacing it with extra SQL/query-AST layers made compile allocations and focused Criterion worse on both target rows.
   - Do not retry a simple windowed SQL relation-join distinct/pagination subquery as a standalone compile-path optimization. Future relation-join distinct work needs a different CPU/runtime hypothesis, such as product execution evidence that the runtime `process` phase dominates enough to justify a deeper SQL planner rewrite.
 
+## Accepted Query-Compiler Optimization: FK-Backed Nested Update Child-Read Shortcut (2026-06-22)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `f23bb7406c7` (`perf(query-compiler): skip FK-backed nested update child read`).
+- Context:
+  - After the earlier nested-only update pass-through, `update-set-nested-prisma#27650` still read the related `User.id` from the parent `Patient.userId` before running nested work below `User`.
+  - In non-Prisma relation mode, for a required to-one relation inlined on the parent, a selected parent FK already proves the related child primary id under the database FK constraint.
+- Patch:
+  - Added a narrow `RowSink::ProjectedFieldPlaceholder` internal graph sink so a `Flow::Return` node can use the source edge's projected scalar field directly as its placeholder.
+  - In `nested_update()`, when an update has no scalar writes and only nested operations, the graph now skips `insert_find_children_by_parent_node()` only if all guards hold: non-Prisma relation mode, to-one, required, inlined on the parent, no nested `where` filter, exactly one parent scalar FK, and the child link equals the child's shard-aware primary identifier.
+  - The target snapshot now reads `Patient.id,userId`, returns `get 0$userId`, and relabels that value as the related child `id` for the existing nested update machinery. No old/new internal compatibility path was added.
+- Verification:
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-fk-final-target CARGO_INCREMENTAL=0 RUSTFLAGS=-Cdebuginfo=0 cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-fk-final-target CARGO_INCREMENTAL=0 RUSTFLAGS=-Cdebuginfo=0 cargo test -p query-compiler --test queries -- --nocapture`: passed after rerunning with graph/snapshot filesystem access.
+  - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`: passed and rebuilt the local query-compiler Wasm package consumed by Prisma.
+  - `pnpm --filter @prisma/client build`: passed after rerunning outside the sandbox for the known `tsx` IPC `listen EPERM` issue.
+  - `git diff --check`: passed.
+- Allocation evidence:
+  - Same-session control worktree at engines `241f2cb67b3` versus patched checkout used `ALLOC_PROFILE_QUERIES=update-set-nested-prisma#27650,update-set-nested,upsert-nested-only-update,query-m2o,aggregate`, `ALLOC_PROFILE_ITERATIONS=50`, and `ALLOC_PROFILE_WARMUP=5`.
+  - Target row:
+    - `update-set-nested-prisma#27650`: `graph_build/translate_ir/full_compile 775/785/1621 -> 764/628/1453`, full allocated bytes `180.9 -> 161.7 KiB`.
+  - Sampled controls stayed allocation-neutral:
+    - `update-set-nested 592/958/1666`, `upsert-nested-only-update 579/779/1475`, `query-m2o 161/308/548`, and `aggregate 279/242/599`.
+- Criterion evidence:
+  - Same-session control worktree target median:
+    - `compile/update-set-nested-prisma#27650`: `153.20 us`.
+  - Patched target medians:
+    - first pass `133.72 us`;
+    - fresh-target confirmation `135.75 us`.
+  - Sampled controls were in the expected noisy band; the target improvement is about 11-13% on the focused row.
+- Decision:
+  - Keep. This removes a whole child-read phase for the FK-backed required to-one nested-only update shape, saving 168 full-compile allocations and about 19.2 KiB/op on the target fixture.
+  - Do not broaden to Prisma relation mode, optional relations, compound links, alternate unique selectors, or filtered nested updates without fresh semantic proof plus allocation and Criterion evidence.
+
 ## Useful Commands
 
 ```sh
