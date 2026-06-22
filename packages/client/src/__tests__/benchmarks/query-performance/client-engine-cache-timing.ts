@@ -4959,6 +4959,46 @@ function mapCategoryRow(row: unknown[] | undefined): Record<string, unknown> | n
   }
 }
 
+function mapBenchmarkInt(value: unknown): unknown {
+  return typeof value === 'number' ? Math.trunc(value) : value
+}
+
+function mapBenchmarkDate(value: unknown): unknown {
+  return value instanceof Date ? new Date(value) : value
+}
+
+function mapUserRowWithProductScalars(row: unknown[] | undefined): Record<string, unknown> | null {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: mapBenchmarkInt(row[0]),
+    name: row[1],
+    avatar: row[2],
+  }
+}
+
+function mapCategoryRowWithProductScalars(row: unknown[] | undefined): Record<string, unknown> | null {
+  if (row === undefined) {
+    return null
+  }
+
+  return {
+    id: mapBenchmarkInt(row[0]),
+    name: row[1],
+    slug: row[2],
+  }
+}
+
+function mapTagRowWithProductScalars(row: unknown[]): Record<string, unknown> {
+  return {
+    id: mapBenchmarkInt(row[0]),
+    name: row[1],
+    slug: row[2],
+  }
+}
+
 function mapTagRow(row: unknown[]): Record<string, unknown> {
   return {
     id: row[0],
@@ -5184,6 +5224,10 @@ function findRowByColumn(rows: readonly unknown[][], columnIndex: number, key: u
 
 function mapTagRowOrNull(row: unknown[] | undefined): Record<string, unknown> | null {
   return row === undefined ? null : mapTagRow(row)
+}
+
+function mapTagRowOrNullWithProductScalars(row: unknown[] | undefined): Record<string, unknown> | null {
+  return row === undefined ? null : mapTagRowWithProductScalars(row)
 }
 
 function renderSingleBlogPageQuery(
@@ -5449,6 +5493,111 @@ async function executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule(
         content: commentRow[1],
         createdAt: commentRow[2],
         author: mapUserRow(findRowByColumn(commentAuthorRows, 0, commentRow[3])),
+      })
+      commentCount++
+    }
+  }
+
+  return roots
+}
+
+async function executeRawResultSetBlogFeedByAuthorSemanticFinalOwnerSchedule(
+  dbQueries: readonly QueryPlanDbQuery[],
+  placeholderValues: Record<string, unknown>,
+  adapter: BlogPageSqliteAdapter,
+  generators: GeneratorRegistrySnapshot,
+): Promise<Record<string, unknown>[]> {
+  const postResultSet = await adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[0], placeholderValues, generators))
+  const postRows = postResultSet.rows
+  if (postRows.length === 0) {
+    return []
+  }
+
+  const postIds = uniqueColumnValues(postRows, 0)
+  const [authorResultSet, categoryResultSet, postTagResultSet, commentResultSet] = await Promise.all([
+    adapter.queryRaw(
+      renderSingleBlogPageQuery(dbQueries[1], { '@parent$authorId': rawNestedScopeValue(postRows, 7) }, generators),
+    ),
+    adapter.queryRaw(
+      renderSingleBlogPageQuery(dbQueries[2], { '@parent$categoryId': rawNestedScopeValue(postRows, 8) }, generators),
+    ),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[3], { '@parent$id': postIds }, generators)),
+    adapter.queryRaw(renderSingleBlogPageQuery(dbQueries[5], { '@parent$id': postIds }, generators)),
+  ])
+
+  const roots = new Array<Record<string, unknown>>(postRows.length)
+  for (let rowIndex = 0; rowIndex < postRows.length; rowIndex++) {
+    const postRow = postRows[rowIndex]
+    roots[rowIndex] = {
+      id: mapBenchmarkInt(postRow[0]),
+      title: postRow[1],
+      slug: postRow[2],
+      content: postRow[3],
+      published: postRow[4],
+      viewCount: mapBenchmarkInt(postRow[5]),
+      createdAt: mapBenchmarkDate(postRow[6]),
+      author: mapUserRowWithProductScalars(findRowByColumn(authorResultSet.rows, 0, postRow[7])),
+      category: mapCategoryRowWithProductScalars(findRowByColumn(categoryResultSet.rows, 0, postRow[8])),
+      tags: [],
+      comments: [],
+      _count: {
+        likes: mapBenchmarkInt(postRow[9]),
+        comments: mapBenchmarkInt(postRow[10]),
+      },
+    }
+  }
+
+  const postTagRows = postTagResultSet.rows
+  const commentRows = commentResultSet.rows
+  const [tagResultSet, commentAuthorResultSet] = await Promise.all([
+    postTagRows.length === 0
+      ? Promise.resolve(EMPTY_RESULT)
+      : adapter.queryRaw(
+          renderSingleBlogPageQuery(dbQueries[4], { '@parent$tagId': rawNestedScopeValue(postTagRows, 1) }, generators),
+        ),
+    commentRows.length === 0
+      ? Promise.resolve(EMPTY_RESULT)
+      : adapter.queryRaw(
+          renderSingleBlogPageQuery(
+            dbQueries[6],
+            { '@parent$authorId': rawNestedScopeValue(commentRows, 3) },
+            generators,
+          ),
+        ),
+  ])
+
+  const tagRows = tagResultSet.rows
+  const commentAuthorRows = commentAuthorResultSet.rows
+  for (let rootIndex = 0; rootIndex < postRows.length; rootIndex++) {
+    const postRow = postRows[rootIndex]
+    const root = roots[rootIndex]
+    const postId = postRow[0]
+    const tags = root.tags as Record<string, unknown>[]
+    const comments = root.comments as Record<string, unknown>[]
+    let commentCount = 0
+
+    for (let tagIndex = 0; tagIndex < postTagRows.length; tagIndex++) {
+      const postTagRow = postTagRows[tagIndex]
+      if (postTagRow[0] === postId) {
+        tags.push({ tag: mapTagRowOrNullWithProductScalars(findRowByColumn(tagRows, 0, postTagRow[1])) })
+      }
+    }
+
+    for (let commentIndex = 0; commentIndex < commentRows.length; commentIndex++) {
+      if (commentCount >= 10) {
+        break
+      }
+
+      const commentRow = commentRows[commentIndex]
+      if (commentRow[4] !== postId) {
+        continue
+      }
+
+      comments.push({
+        id: mapBenchmarkInt(commentRow[0]),
+        content: commentRow[1],
+        createdAt: mapBenchmarkDate(commentRow[2]),
+        author: mapUserRowWithProductScalars(findRowByColumn(commentAuthorRows, 0, commentRow[3])),
       })
       commentCount++
     }
@@ -5809,6 +5958,7 @@ async function measureRawResultSetBlogFeedByAuthorFinalOwnerScheduleScenario(
   compiler: QueryCompiler,
   paramGraph: ParamGraph,
   scenario: DirectPlanScenario,
+  semanticScalars = false,
 ): Promise<DirectPlanMeasurement> {
   const counts: Counts = {
     compile: 0,
@@ -5824,18 +5974,17 @@ async function measureRawResultSetBlogFeedByAuthorFinalOwnerScheduleScenario(
   }
 
   const generators = Object.create(null) as GeneratorRegistrySnapshot
-  checksumNestedBlogExactOutput(
-    await executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule(dbQueries, placeholderValues, adapter, generators),
-  )
+  const executeSchedule = semanticScalars
+    ? executeRawResultSetBlogFeedByAuthorSemanticFinalOwnerSchedule
+    : executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule
+  checksumNestedBlogExactOutput(await executeSchedule(dbQueries, placeholderValues, adapter, generators))
   resetCounts(counts)
 
   let checksum = 0
   const beforeHeap = heapUsed()
   const started = performance.now()
   for (let i = 0; i < scenario.iterations; i++) {
-    checksum += checksumNestedBlogExactOutput(
-      await executeRawResultSetBlogFeedByAuthorFinalOwnerSchedule(dbQueries, placeholderValues, adapter, generators),
-    )
+    checksum += checksumNestedBlogExactOutput(await executeSchedule(dbQueries, placeholderValues, adapter, generators))
   }
   const elapsedMs = performance.now() - started
   const afterHeap = heapUsed()
@@ -8556,6 +8705,29 @@ async function main(): Promise<void> {
       }
       printDirectPlanMeasurement(
         await measureRawResultSetBlogFeedByAuthorFinalOwnerScheduleScenario(compiler, paramGraph, measuredScenario),
+      )
+    }
+
+    for (const scenario of directPlanScenarios.filter(
+      (scenario) =>
+        scenario.adapterFactory !== undefined &&
+        scenario.rawNestedUnique === false &&
+        scenario.name === 'direct plan blog feed by author / nested rows',
+    )) {
+      const measuredScenario = {
+        ...scenario,
+        name: scenario.name.replace('direct plan', 'raw result-set semantic final-owner schedule'),
+      }
+      if (!shouldRunMeasurement(measuredScenario.name)) {
+        continue
+      }
+      printDirectPlanMeasurement(
+        await measureRawResultSetBlogFeedByAuthorFinalOwnerScheduleScenario(
+          compiler,
+          paramGraph,
+          measuredScenario,
+          true,
+        ),
       )
     }
 

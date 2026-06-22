@@ -16714,6 +16714,37 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Suppressing only the final `MISSING_RECORD` wrapper is semantically plausible for this exact graph after connect parent validation, but it is effectively the earlier rejected final-read validation suppression class. The final read still needs `unique(get 0)` and `mapField id`; the likely win is just one validation expression allocation.
   - A reusable parent binding would require a new graph owner/return-preserving flow that validates parent once, runs child/connect, and returns the preserved parent id to the final read. Do not spend a standalone patch here unless it removes that larger phase and proves error ordering.
 
+## Accepted Benchmark Row: Semantic Final-Owner Schedule Lower Bound (2026-06-22)
+
+- Prisma change:
+  - Adds benchmark-only semantics-aware schedule measurement to `client-engine-cache-timing.ts`.
+- Context:
+  - The existing benchmark-only `raw result-set direct final-owner schedule blog feed by author / nested rows` row is useful but intentionally hardcoded. While inspecting it, I noticed it directly assigned scalar values from fake result-set rows.
+  - Product raw-nested JS output still performs scalar semantics such as integer normalization and cloning `Date` values for `js` result format through `mapRawNestedFieldValue()`.
+  - The old direct-assignment schedule is still a valid aspirational lower bound, but it was not a fair product-semantics comparator.
+- Patch:
+  - Added `raw result-set semantic final-owner schedule blog feed by author / nested rows`.
+  - The new row keeps the same strict hardcoded two-wave schedule, but maps the known blog fixture scalars with product-equivalent work for this fixture: `Math.trunc()` for integer columns and `new Date(value)` for `Date` columns.
+  - The existing direct-assignment schedule row was left intact so future runs can compare aspirational and semantics-aware lower bounds.
+- Verification:
+  - `git diff --check`: passed before docs.
+  - `CLIENT_ENGINE_CACHE_TIMING_FILTER='final-owner schedule' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - direct-assignment schedule: `6.66 us/op`
+    - semantic schedule: `6.59 us/op`
+  - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`
+    - generated prepared / generated default / exact-helper: `8.11 / 10.50 / 9.17 us/op`
+    - direct / direct-assignment schedule / semantic schedule / compact / exact compact / local: `7.34 / 6.48 / 6.57 / 7.20 / 7.18 / 7.28 us/op`
+- Scout:
+  - Explorer `Carson` (`019eeed0-8437-7a62-9305-4f8f8eb6b6cf`) inspected the Rust producer and TS consumer read-only.
+  - The smallest lockstep protocol slice is a producer-emitted schedule marker on `RawNestedReadQuery`, not a standalone runtime helper:
+    - TS shape: add a fourth schedule slot such as `['f', rootKeyColumn, uniqueRelations, wrapperList, childList]`.
+    - Current by-author order would be effectively `['f', 0, [0, 1], [2, 0], [3, 0]]`.
+    - Rust would emit it only when it proves the exact non-unique final-owner topology; TS would build the program from schedule roles instead of rediscovering them.
+  - This first marker slice is correctness/protocol groundwork, not expected to reach the benchmark-only schedule lower bound by itself. The performance slice still needs a dedicated executor that owns wave scopes, relation-op filtering, relation-specific row writing, and final attachment together.
+- Decision:
+  - Keep the new benchmark row. It corrects the evidence base for the next schedule productization attempt and keeps the schedule lead alive with product scalar semantics represented.
+  - Do not spend another patch on small final-owner helper rewrites. The accepted/rejected evidence still points to a full producer-owned schedule descriptor plus dedicated executor, with no old/new internal-format compatibility readers.
+
 ## Useful Commands
 
 ```sh
