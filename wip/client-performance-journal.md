@@ -16527,10 +16527,10 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Rejected and reverted. The patch saves only 7-10 allocations on target rows, and close timing is neutral/noisy rather than target-positive.
   - Do not retry create-node M:N connect validation suppression as a standalone cleanup. This is the same weak class as the earlier trusted connect validation experiments; future M:N connect work needs to delete or share a larger semantic phase.
 
-## New Lead: Windowed SQL Distinct Pagination For Relation Joins (2026-06-19)
+## Rejected Experiment: Windowed SQL Distinct Pagination For Relation Joins (2026-06-22)
 
-- Scout:
-  - Subagent `Arendt` (`019ee18f-73b2-7763-8ac3-48bdff903502`) found this as the best next query-compiler lead after engines `241f2cb67b3`.
+- Origin:
+  - The 2026-06-19 scout identified this as the best next query-compiler lead after engines `241f2cb67b3`, because raw-nested one-to-many relation ops had consumed the query-strategy distinct/pagination row while SQL relation-load join plans still used `process`.
 - Target:
   - Relation-join rows where `distinct` plus pagination or incompatible ordering still falls back to `Expression::Process`.
   - Primary fixtures:
@@ -16544,6 +16544,11 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Hypothesis:
   - Current SQL join builders can push simple compatible distinct into `DISTINCT ON`, but `distinct + pagination` and incompatible `orderBy` still become `dataMap -> process(query)`.
   - A guarded SQL subquery using `ROW_NUMBER() OVER (PARTITION BY distinct_fields ORDER BY original_order)` could keep the first row per distinct key and then apply skip/take before JSON aggregation, deleting the `process` layer for SQL-capable relation-join shapes.
+- Patch tried:
+  - Added a `QueryArguments::can_window_distinct_in_db_with_joins()` guard for scalar distinct fields, scalar path-empty ordering, no filter/cursor, non-reversed take, and join-only in-memory distinct/pagination cases.
+  - Skipped extracting nested join `distinct`/pagination into `Process` for eligible non-M2M relation queries.
+  - Changed `build_to_many_select()` to wrap the inner JSON row select in a ranked subquery, add `ROW_NUMBER() OVER(PARTITION BY ...) AS "__prisma_row_num__"`, filter to row number `1`, then apply the original ordering and skip/take before JSON aggregation.
+  - Updated the two target snapshots to remove `process` and show the ranked SQL subquery.
 - Relevant paths:
   - `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read.rs`
   - `/home/aqrln.guest/prisma-engines/query-compiler/query-compiler/src/translate/query/read/in_memory_processing.rs`
@@ -16554,13 +16559,24 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - `nested-distinct-pagination-join`: `750` full-compile allocations, about `78.13 us` Criterion median.
   - `nested-distinct-incompatible-orderby-join`: `831` full-compile allocations, about `82.41 us` Criterion median.
   - `nested-distinct-pagination-query`: `627` full-compile allocations, about `66.34 us` after `241f2cb67b3`.
-- Starting commands:
-  - Allocation:
-    - `CARGO_TARGET_DIR=/tmp/prisma-engines-window-distinct-target ALLOC_PROFILE_QUERIES=nested-distinct-pagination-join,nested-distinct-incompatible-orderby-join,nested-distinct-join,nested-pagination-join,nested-distinct-pagination-query,in-mem-distinct-mapped-field-join,in-mem-distinct-mapped-field-query ALLOC_PROFILE_ITERATIONS=50 ALLOC_PROFILE_WARMUP=5 cargo run -p query-compiler --example allocation_profile --release`
-  - Criterion:
-    - `CARGO_TARGET_DIR=/tmp/prisma-engines-window-distinct-target cargo bench -p query-compiler --bench compilation_bench -- "^compile/(nested-distinct-pagination-join|nested-distinct-incompatible-orderby-join|nested-distinct-join|nested-pagination-join|nested-distinct-pagination-query|in-mem-distinct-mapped-field-join|in-mem-distinct-mapped-field-query)$" --sample-size 10 --warm-up-time 1 --measurement-time 2`
-- Caveat:
-  - This is not the previously rejected `ColumnIterator` / relation-column helper work. It is a semantic SQL-plan change that should be judged by deleting `process` and preserving relation-join pagination/distinct semantics.
+- Verification:
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-one2m-distinct-target cargo check -p query-compiler`: passed.
+  - `INSTA_UPDATE=always CARGO_TARGET_DIR=/tmp/prisma-engines-one2m-distinct-target cargo test -p query-compiler --test queries -- --nocapture`: passed and updated only `nested-distinct-pagination-join` and `nested-distinct-incompatible-orderby-join`.
+  - `cargo fmt -p query-compiler -p query-structure -p sql-query-builder`: passed after rerunning with filesystem access outside the Prisma workspace sandbox; unrelated formatter-only churn was removed before measuring.
+- Allocation evidence:
+  - Patched allocation run used `ALLOC_PROFILE_QUERIES=nested-distinct-pagination-join,nested-distinct-incompatible-orderby-join,nested-distinct-join,nested-pagination-join,nested-distinct-pagination-query,in-mem-distinct-mapped-field-join,in-mem-distinct-mapped-field-query`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`, and `CARGO_TARGET_DIR=/tmp/prisma-engines-one2m-distinct-target`.
+  - Target rows worsened:
+    - `nested-distinct-pagination-join`: full-compile allocations `750 -> 836`.
+    - `nested-distinct-incompatible-orderby-join`: full-compile allocations `831 -> 906`.
+  - Patched controls printed in the expected current band, including `nested-distinct-pagination-query` at `627` full-compile allocations after the accepted raw-nested one-to-many relation-op change, but the target regression was enough to reject before looking for a noisy win elsewhere.
+- Criterion evidence:
+  - Patched focused Criterion medians:
+    - `nested-distinct-pagination-join 80.020 us`, versus the scout baseline about `78.13 us`.
+    - `nested-distinct-incompatible-orderby-join 84.197 us`, versus the scout baseline about `82.41 us`.
+    - Sampled controls stayed plausible/in band: `nested-distinct-pagination-query 64.205 us`, `nested-distinct-join 69.314 us`, `nested-pagination-join 69.044 us`, `in-mem-distinct-mapped-field-join 31.721 us`, and `in-mem-distinct-mapped-field-query 31.790 us`.
+- Decision:
+  - Rejected and fully reverted. The patch removed `process`, but replacing it with extra SQL/query-AST layers made compile allocations and focused Criterion worse on both target rows.
+  - Do not retry a simple windowed SQL relation-join distinct/pagination subquery as a standalone compile-path optimization. Future relation-join distinct work needs a different CPU/runtime hypothesis, such as product execution evidence that the runtime `process` phase dominates enough to justify a deeper SQL planner rewrite.
 
 ## Useful Commands
 
