@@ -16667,6 +16667,31 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
 - Decision:
   - Keep. This is test/measurement scaffolding, not a product performance change, but it gives the next M:N connect insert-select/count spike a focused target and avoids measuring through `set` or nested-upsert side effects.
 
+## Architecture Scout: M:N Connect Insert-Select/Count Feasibility (2026-06-22)
+
+- Context:
+  - Follow-up to the rejected primary-id M:N connect child-id injection spike and the new `update-m2m-connect` fixture.
+  - Goal was to determine whether a larger phase-owned relation-table insert could remove the child-read/child-id projection work while preserving current connect semantics.
+- Findings:
+  - The existing M:N nested connect graph reads child IDs first, validates `rowCountEq expected` for `INCOMPLETE_CONNECT_INPUT`, then runs `ConnectRecords`.
+  - `ConnectRecords` translates to `build_m2m_connect(parent, child)`, which emits an `INSERT ... product(parent, child) ... ON CONFLICT DO NOTHING` relation-table write.
+  - A safe one-statement phase owner must both perform the relation insert and return the matched child rows so existing `Validate(RowCountEq expected)` semantics can still throw on missing children.
+  - A Postgres-safe shape is conceptually:
+    - `WITH child AS (SELECT id FROM Child WHERE ...), ins AS (INSERT INTO _Relation(parent, child) SELECT parent_id, child.id FROM child WHERE (SELECT COUNT(*) FROM child) = expected ON CONFLICT DO NOTHING RETURNING 1) SELECT id FROM child`
+  - That shape preserves already-connected idempotence because the insert keeps `ON CONFLICT DO NOTHING`, and it prevents partial inserts because the insert is gated by matched child count.
+- Current infrastructure gaps:
+  - Quaint `Insert::expression_into(...)` accepts arbitrary expressions, but current insert visitors do not render the target column list for generic `Select` expressions; the existing path is specialized for `Row`, `Values`, and `Parameterized`.
+  - Quaint CTE bodies are `SelectQuery` only; data-modifying CTE bodies such as `INSERT ... RETURNING` are not represented.
+  - `QuerySchema` has connector capabilities, but there is no capability for "Postgres-style data-modifying CTE returning validation rows." `InsertReturning` is too broad because SQLite/Cockroach support sets are not the same semantic contract for this shape.
+  - A raw SQL prototype would need structured parameter/template splicing from the child filter; handwritten SQL strings would be an unsafe production direction.
+- Rejected shallow alternative:
+  - Keeping the child read as validation and re-running the same child filter inside an insert-select would preserve semantics, but it adds a second child scan and new insert-select renderer work while only removing the child-id projection into `ConnectRecords`.
+  - Given the previous child-id injection spike was noise-level and graph-build-negative, this two-statement compromise is not a good standalone target.
+- Decision:
+  - Do not prototype or keep a mainline patch for the shallow variants.
+  - A future useful spike should be explicitly Postgres-gated through a new connector capability or equivalent schema-level proof, add structured data-modifying CTE support in Quaint or a typed template builder, introduce a new phase-owned M:N connect write/query expression that returns matched child rows, and benchmark against `update-m2m-connect`.
+  - Correctness gates must cover missing child errors, already-connected children, multiple children, duplicate connect inputs after existing `unique()` coercion, parent validation ordering, and fallback behavior for non-Postgres connectors.
+
 ## Useful Commands
 
 ```sh
