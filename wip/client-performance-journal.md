@@ -16789,3 +16789,35 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Keep this journal updated after each accepted change, rejected experiment, and new measurement.
 - For internal data structures, assume producer/consumer version lockstep and replace formats outright. Do not add old/new compatibility branches unless the boundary is genuinely external.
 - If Rust Wasm changes are kept, build the relevant Wasm package in `/home/aqrln.guest/prisma-engines`, then update Prisma with `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`, and inspect any lockfile churn before keeping it.
+
+## Accepted Protocol Slice: Rust-Emitted Raw-Nested Final-Owner Schedule Marker (2026-06-22)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `c700d8ffb68` (`perf(query-compiler): emit raw nested final-owner schedule`).
+- Prisma change:
+  - `RawNestedReadQuery` has an optional fourth schedule slot: `['f', rootKeyColumn, uniqueRelations, wrapperList, childList]`.
+  - The current by-author blog-feed topology emits `['f', 0, [0, 1], [2, 0], [3, 0]]`.
+  - `tryCompileRawNestedFinalOwnerProgram()` now consumes that marker instead of rediscovering the four final-owner roles by scanning relation tuples.
+  - Manual compact benchmark builders include the schedule slot so they still measure the same final-owner fast path after runtime discovery was removed.
+- Producer guards:
+  - Emits only when the raw-nested query has exactly two unique direct relations, one wrapper-list relation with one unique child, one child-list relation with one unique child, matching numeric parent-key columns, no enums, and only the supported no-cursor row operations on the child-list relation.
+  - The first marker covers both unique and non-unique proved final-owner topologies. Restricting it to non-unique would have made the existing unique blog-page final-owner fast path fall back after the TS runtime stopped rediscovering roles.
+- Verification:
+  - Engines:
+    - `cargo fmt -p query-compiler`: passed.
+    - `cargo check -p query-compiler`: passed.
+    - `INSTA_UPDATE=always cargo test -p query-compiler --test queries -- --nocapture`: passed, with no snapshot changes because the current fixture corpus has no exact four-relation blog-feed final-owner topology.
+    - `PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm`: passed.
+    - `git diff --check`: passed.
+  - Prisma:
+    - `pnpm upgrade -r @prisma/query-compiler-wasm@file:/home/aqrln.guest/prisma-engines/query-compiler/query-compiler-wasm/pkg`: passed.
+    - `pnpm --filter @prisma/client build`: passed after rerunning outside the sandbox for the known `tsx` IPC `listen EPERM` issue.
+    - `pnpm --filter @prisma/client-engine-runtime test query-interpreter.test.ts`: passed, 28 tests.
+    - `pnpm --filter @prisma/client-engine-runtime build`: passed after rerunning outside the sandbox for the same `tsx` IPC issue.
+    - Plan dump after rebuild showed `rawLen: 4` and `schedule: ['f', 0, [0, 1], [2, 0], [3, 0]]`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: `7.26 us/op`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='compact node blog feed by author' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: compact / exact compact `7.52 / 7.00 us/op`.
+    - `CLIENT_ENGINE_CACHE_TIMING_FILTER='blog feed by author / nested rows warmed cache' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=100000 pnpm exec node --expose-gc --import tsx packages/client/src/__tests__/benchmarks/query-performance/client-engine-cache-timing.ts`: generated prepared / generated default / exact-helper `8.70 / 11.09 / 9.89 us/op`.
+- Decision:
+  - Keep as lockstep protocol groundwork. It removes runtime topology discovery from the final-owner compiler and gives the next executor slice a producer-proved role descriptor.
+  - Do not count this as the final schedule performance win. The next patch still needs a dedicated schedule executor that owns wave scopes, relation-op filtering, relation-specific row writing, and final attachment. Reusing the current generic final-owner helpers under a stricter branch was already rejected.

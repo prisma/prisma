@@ -6130,6 +6130,7 @@ function buildRawNestedBlogPageQuery(
         commentOps,
       ],
     ],
+    ['f', 0, [0, 1], [2, 0], [3, 0]],
   ]
 }
 
@@ -6170,6 +6171,7 @@ function buildRawNestedBlogPageExactQuery(
         commentOps,
       ],
     ],
+    ['f', 0, [0, 1], [2, 0], [3, 0]],
   ]
 }
 

@@ -1810,51 +1810,41 @@ function toRawNestedFinalOwnerArgType(argType: DynamicArgType): ArgType | undefi
 }
 
 function tryCompileRawNestedFinalOwnerProgram(query: RawNestedReadQuery): RawNestedFinalOwnerProgram | undefined {
-  const writeRoot = tryCompileRawNestedFinalOwnerRowWriter(query[1])
-  const relations = query[2]
-  if (writeRoot === undefined || relations?.length !== 4) {
+  const schedule = query[3]
+  if (schedule?.[0] !== 'f') {
     return undefined
   }
 
-  const uniqueRelations: RawNestedFinalOwnerUniqueRelation[] = []
-  let wrapperListRelation: RawNestedFinalOwnerWrapperListRelation | undefined
-  let childListRelation: RawNestedFinalOwnerChildListRelation | undefined
-
-  for (let i = 0; i < relations.length; i++) {
-    const relation = relations[i]
-    if (relation[0] !== 'r') {
-      return undefined
-    }
-
-    if (relation[6]) {
-      const uniqueRelation = tryCompileRawNestedFinalOwnerUniqueRelation(relation)
-      if (uniqueRelation === undefined) {
-        return undefined
-      }
-      uniqueRelations.push(uniqueRelation)
-      continue
-    }
-
-    const wrapperRelation = tryCompileRawNestedFinalOwnerWrapperListRelation(relation)
-    if (wrapperRelation !== undefined) {
-      if (wrapperListRelation !== undefined) {
-        return undefined
-      }
-      wrapperListRelation = wrapperRelation
-      continue
-    }
-
-    const listRelation = tryCompileRawNestedFinalOwnerChildListRelation(relation)
-    if (listRelation === undefined || childListRelation !== undefined) {
-      return undefined
-    }
-    childListRelation = listRelation
+  const writeRoot = tryCompileRawNestedFinalOwnerRowWriter(query[1])
+  const relations = query[2]
+  if (writeRoot === undefined || relations === undefined) {
+    return undefined
   }
 
+  const uniqueRelation0 = tryCompileRawNestedFinalOwnerUniqueRelation(
+    getRawNestedFinalOwnerScheduledRelation(relations, schedule[2][0]),
+  )
+  const uniqueRelation1 = tryCompileRawNestedFinalOwnerUniqueRelation(
+    getRawNestedFinalOwnerScheduledRelation(relations, schedule[2][1]),
+  )
+  const wrapperListRelation = tryCompileRawNestedFinalOwnerWrapperListRelation(
+    getRawNestedFinalOwnerScheduledRelation(relations, schedule[3][0]),
+    schedule[3][1],
+  )
+  const childListRelation = tryCompileRawNestedFinalOwnerChildListRelation(
+    getRawNestedFinalOwnerScheduledRelation(relations, schedule[4][0]),
+    schedule[4][1],
+  )
+
+  if (uniqueRelation0 === undefined || uniqueRelation1 === undefined) {
+    return undefined
+  }
+  if (wrapperListRelation === undefined || childListRelation === undefined) {
+    return undefined
+  }
   if (
-    uniqueRelations.length !== 2 ||
-    wrapperListRelation === undefined ||
-    childListRelation === undefined ||
+    wrapperListRelation.sourceParentColumnIndex !== schedule[1] ||
+    childListRelation.parentColumnIndex !== schedule[1] ||
     wrapperListRelation.sourceParentColumnIndex !== childListRelation.parentColumnIndex
   ) {
     return undefined
@@ -1862,18 +1852,26 @@ function tryCompileRawNestedFinalOwnerProgram(query: RawNestedReadQuery): RawNes
 
   return {
     rootQuery: query[0],
-    rootKeyColumnIndex: wrapperListRelation.sourceParentColumnIndex,
+    rootKeyColumnIndex: schedule[1],
     writeRoot,
-    uniqueRelations: [uniqueRelations[0], uniqueRelations[1]],
+    uniqueRelations: [uniqueRelation0, uniqueRelation1],
     wrapperListRelation,
     childListRelation,
   }
 }
 
+function getRawNestedFinalOwnerScheduledRelation(
+  relations: readonly RawNestedReadRelation[],
+  relationIndex: number,
+): RawNestedReadDirectRelation | undefined {
+  const relation = relations[relationIndex]
+  return relation?.[0] === 'r' ? relation : undefined
+}
+
 function tryCompileRawNestedFinalOwnerUniqueRelation(
-  relation: RawNestedReadDirectRelation,
+  relation: RawNestedReadDirectRelation | undefined,
 ): RawNestedFinalOwnerUniqueRelation | undefined {
-  if (!inMemoryOpsAreEmpty(relation[7])) {
+  if (relation === undefined || !inMemoryOpsAreEmpty(relation[7])) {
     return undefined
   }
 
@@ -1900,9 +1898,10 @@ function tryCompileRawNestedFinalOwnerUniqueRelation(
 }
 
 function tryCompileRawNestedFinalOwnerWrapperListRelation(
-  relation: RawNestedReadDirectRelation,
+  relation: RawNestedReadDirectRelation | undefined,
+  childRelationIndex: number,
 ): RawNestedFinalOwnerWrapperListRelation | undefined {
-  if (!inMemoryOpsAreEmpty(relation[7])) {
+  if (relation === undefined || !inMemoryOpsAreEmpty(relation[7])) {
     return undefined
   }
 
@@ -1916,9 +1915,10 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
     return undefined
   }
 
-  const childRelation = nestedRelations[0]
+  const childRelation = nestedRelations[childRelationIndex]
   if (
-    childRelation[0] !== 'r' ||
+    nestedRelations.length !== 1 ||
+    childRelation?.[0] !== 'r' ||
     !childRelation[6] ||
     !inMemoryOpsAreEmpty(childRelation[7]) ||
     childRelation[2][2] !== undefined ||
@@ -1952,9 +1952,10 @@ function tryCompileRawNestedFinalOwnerWrapperListRelation(
 }
 
 function tryCompileRawNestedFinalOwnerChildListRelation(
-  relation: RawNestedReadDirectRelation,
+  relation: RawNestedReadDirectRelation | undefined,
+  uniqueRelationIndex: number,
 ): RawNestedFinalOwnerChildListRelation | undefined {
-  if (!rawNestedRowRelationOperationsAreSupported(relation[7])) {
+  if (relation === undefined || !rawNestedRowRelationOperationsAreSupported(relation[7])) {
     return undefined
   }
 
@@ -1969,9 +1970,10 @@ function tryCompileRawNestedFinalOwnerChildListRelation(
     return undefined
   }
 
-  const uniqueRelation = nestedRelations[0]
+  const uniqueRelation = nestedRelations[uniqueRelationIndex]
   if (
-    uniqueRelation[0] !== 'r' ||
+    nestedRelations.length !== 1 ||
+    uniqueRelation?.[0] !== 'r' ||
     !uniqueRelation[6] ||
     !inMemoryOpsAreEmpty(uniqueRelation[7]) ||
     uniqueRelation[2][2] !== undefined ||

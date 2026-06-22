@@ -162,6 +162,7 @@ export type RawNestedReadQuery = readonly [
   query: QueryPlanDbQuery,
   fields: readonly RawResultColumnMapping[],
   relations?: readonly RawNestedReadRelation[],
+  schedule?: RawNestedFinalOwnerSchedule,
 ]
 
 export type RawNestedReadRelation = RawNestedReadDirectRelation
@@ -176,6 +177,16 @@ export type RawNestedReadDirectRelation = readonly [
   isRelationUnique: boolean,
   operations: InMemoryOps,
 ]
+
+export type RawNestedFinalOwnerSchedule = readonly [
+  type: 'f',
+  rootKeyColumn: RawResultColumnRef,
+  uniqueRelations: readonly [number, number],
+  wrapperList: RawNestedFinalOwnerNestedRelation,
+  childList: RawNestedFinalOwnerNestedRelation,
+]
+
+export type RawNestedFinalOwnerNestedRelation = readonly [relationIndex: number, childRelationIndex: number]
 
 export type QueryPlanNode = QueryPlanCompactNode
 

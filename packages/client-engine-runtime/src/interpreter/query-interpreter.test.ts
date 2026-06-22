@@ -934,6 +934,7 @@ test('interprets compact raw nested read final-owner relations with scalar metad
           { pagination: { take: 1 } },
         ],
       ],
+      ['f', 0, [0, 1], [2, 0], [3, 0]],
     ],
     true,
   ] satisfies QueryPlanNode
@@ -1080,6 +1081,7 @@ test('rejects legacy scalar object arg types in compact raw nested final-owner r
           {},
         ],
       ],
+      ['f', 0, [0, 1], [2, 0], [3, 0]],
     ],
     true,
   ] as unknown as QueryPlanNode
@@ -1207,6 +1209,7 @@ test('interprets non-unique compact raw nested final-owner relation pagination',
           { pagination: { take: 1 } },
         ],
       ],
+      ['f', 0, [0, 1], [2, 0], [3, 0]],
     ],
     false,
   ] satisfies QueryPlanNode
