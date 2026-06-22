@@ -16885,3 +16885,29 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Readout:
   - These numbers match the existing journal direction: the largest remaining write rows are still broad graph-build/translate-IR phase costs, not one obvious small allocation site.
   - Do not take another local M:N connect/set/container cleanup from this profile alone. The next accepted Rust work should be a semantic phase owner such as the Postgres-gated M:N connect insert-select/count design, or a separately named graph/translation structure with both allocation and Criterion evidence.
+
+## Accepted Prerequisite: Postgres Insert-From-Selection Rendering In Quaint (2026-06-22)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `d59deb11278` (`perf(quaint): support postgres insert from selection`).
+- Context:
+  - The M:N connect insert-select/count design needs a structured `INSERT INTO relation (parent, child) SELECT ... ON CONFLICT DO NOTHING RETURNING ...` statement.
+  - `Insert::expression_into()` already accepted expression values and current M:N connect uses it for the opaque `product(parent, child)` placeholder path.
+  - Postgres visitor rendering for a generic insert expression did not emit the target column list; a selection expression would render as `INSERT INTO "table" ((SELECT ...))`, which is not enough for relation-table insert-select.
+- Patch:
+  - Added a Postgres visitor branch for `ExpressionKind::Selection` inside `visit_insert()`.
+  - It now renders the target column list before the subselect, producing the structured form:
+    - `INSERT INTO "relations" ("parent_id","child_id") SELECT "parent_id", "child_id" FROM "children" WHERE "child_id" = $1 ON CONFLICT DO NOTHING RETURNING "child_id"`
+  - Added a focused Postgres visitor unit test for this shape.
+  - Other generic insert expressions keep their previous rendering; existing opaque-product M:N connect behavior is unchanged.
+- Verification:
+  - `cargo fmt -p quaint`: passed.
+  - `cargo check -p quaint --no-default-features --features postgresql --lib`: passed.
+  - `cargo check -p query-compiler`: passed.
+  - Focused unit test attempts:
+    - `cargo test -p quaint --features postgresql visitor::postgres::tests::test_insert_from_selection -- --nocapture`: blocked before compiling the patch because this harness lacks system OpenSSL development files for a dev/native dependency.
+    - `cargo test -p quaint --lib --no-default-features --features postgresql visitor::postgres::tests::test_insert_from_selection -- --nocapture`: same `openssl-sys` failure.
+    - `cargo test -p quaint --lib --no-default-features --features 'postgresql vendored-openssl' ...`: same `openssl-sys` failure in this workspace.
+- Decision:
+  - Keep. This is not a direct speed win, but it removes a concrete structured-SQL blocker for the Postgres-gated M:N connect phase owner.
+  - The larger M:N connect implementation still needs a data-modifying CTE or equivalent typed SQL-builder shape that can return matched child rows while performing the relation insert; this patch only makes the eventual insert-select body renderable once the phase owner exists.
