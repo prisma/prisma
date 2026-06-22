@@ -16821,3 +16821,36 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Decision:
   - Keep as lockstep protocol groundwork. It removes runtime topology discovery from the final-owner compiler and gives the next executor slice a producer-proved role descriptor.
   - Do not count this as the final schedule performance win. The next patch still needs a dedicated schedule executor that owns wave scopes, relation-op filtering, relation-specific row writing, and final attachment. Reusing the current generic final-owner helpers under a stricter branch was already rejected.
+
+## Rejected Experiment: One-Pass M:N Connect Filter Dedupe (2026-06-22)
+
+- Context:
+  - After the direct `update-m2m-connect` fixture and insert-select/count scout, I checked whether the nested M:N connect selector path had a cheap graph-build allocation win.
+  - The current code builds filters with `collect::<QueryGraphBuilderResult<Vec<Filter>>>()?` and then dedupes with `itertools::unique()`.
+- Patch tried:
+  - Replaced the collect/unique chain in `query_graph_builder/write/nested/connect_nested.rs` with a one-pass `Vec<Filter>` builder that calls `filters.contains(&filter)` before pushing.
+  - Removed the now-unused `itertools::Itertools` import.
+- Verification while patched:
+  - `cargo fmt -p query-core`: passed.
+  - `cargo check -p query-core`: passed.
+  - Allocation profile command:
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='update-m2m-connect,update-m2m-set,create-m2m,create-nested-connect,nested-upsert-nested-only,update-m2m-disconnect' ALLOC_PROFILE_ITERATIONS=10 ALLOC_PROFILE_WARMUP=2 cargo run -p query-compiler --example allocation_profile --release`
+  - Allocation results:
+    - `update-m2m-connect`: graph_build/full_compile `500/1440` vs baseline `502/1442`; translate unchanged `841`, compile_ir `1341` vs baseline `1343`.
+    - `create-nested-connect`: full_compile `1275` vs recent baseline `1277`.
+    - `nested-upsert-nested-only`: full_compile `2553` vs baseline `2555`.
+    - `update-m2m-set`, `update-m2m-disconnect`, and `create-m2m`: unchanged.
+  - Focused Criterion command:
+    - `cargo bench -p query-compiler --bench compilation_bench -- "update-m2m-connect|create-nested-connect|nested-upsert-nested-only|update-m2m-set"`
+  - Criterion results were mixed:
+    - `compile/create-nested-connect`: `[125.36,125.73,126.19] us` against a stale baseline that Criterion reported as improved.
+    - `create-nested-connectOrCreate-m2one`: regressed about `+2.6..3.5%`.
+    - `create-nested-connectOrCreate-mixed`: regressed about `+1.2..2.1%`.
+    - `create-nested-connectOrCreate-one2m`: regressed about `+4.9..6.1%`.
+    - `nested-upsert-nested-only`: `[269.23,270.37,271.76] us`, within noise.
+    - `update-m2m-connect`: `[145.66,146.05,146.46] us`.
+    - `update-m2m-set`: `[155.32,158.74,165.20] us`.
+- Decision:
+  - Reverted fully; `/home/aqrln.guest/prisma-engines` is clean after restoring the patch and formatter-only churn.
+  - Do not retry one-pass M:N connect filter dedupe as a standalone cleanup. The allocation win is only two allocations on the target/adjacent rows, and the timing signal is mixed with softened connect-or-create rows.
+  - The real M:N connect lead remains a larger insert-select/count phase owner that validates matched children and inserts relation rows together without materializing child id rows into later graph phases.
