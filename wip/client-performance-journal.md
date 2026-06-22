@@ -16934,3 +16934,29 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Decision:
   - Keep as a second structured-SQL prerequisite for the future Postgres-gated M:N connect insert-select/count phase owner.
   - This is not a direct performance win and does not change the headline report numbers. It makes the eventual phase-owner query expressible without raw SQL strings once connector capability/proof and graph/query ownership are implemented.
+
+## Rejected Experiment: M:N Connect CTE Phase Owner (2026-06-22)
+
+- Context:
+  - Follow-up to the direct `update-m2m-connect` fixture, the insert-select/count scout, and the two kept Quaint prerequisites in engines `d59deb11278` and `29000399a8a`.
+  - Goal was to test the real high-ceiling shape instead of another child-id/validation micro-cleanup: validate matched child rows and insert relation rows in one Postgres-shaped data-modifying CTE, without materializing child id rows into a later graph `ConnectRecords` phase.
+- Patch tried:
+  - Added an internal `WriteQuery::ConnectRecordsByFilter` with only a parent dependency.
+  - Routed M:N nested `connect` through it for small inputs (`<= 32`) behind a temporary Postgres-shaped capability proof (`DistinctOn && InsertReturning && LateralJoin`).
+  - Built one query shaped like `WITH children AS (SELECT child ids by filter), inserted AS (INSERT INTO relation SELECT parent_id, child_id FROM children WHERE (SELECT COUNT(*) FROM children) = expected ON CONFLICT DO NOTHING RETURNING child_id) SELECT child_id FROM children`.
+  - Wrapped that query in the existing `Validate(RowCountEq(expected), INCOMPLETE_CONNECT_INPUT)` expression so already-connected rows remain idempotent while missing children still fail.
+  - Tried adding a dedicated `ConnectorCapability` first, but the enum/bitflag storage is already at the `u64` flag limit (`Not enough bits for 65 flags`). Future capability work needs a capability-storage change or a different schema-level proof, not another casual flag.
+- Verification while patched:
+  - `cargo check -p query-compiler`: passed.
+  - `INSTA_UPDATE=always cargo test -p query-compiler --test queries -- --nocapture`: passed and changed only `update-m2m-connect` and `nested-upsert-nested-only` snapshots.
+  - Allocation profile with `ALLOC_PROFILE_BUCKETS=1`, `ALLOC_PROFILE_ITERATIONS=20`, `ALLOC_PROFILE_WARMUP=3` over `update-m2m-connect,nested-upsert-nested-only,update-m2m-set,create-m2m,create-nested-connect,create-nested-connectOrCreate-mixed,query-m2m,aggregate`:
+    - `update-m2m-connect`: graph_build improved `502 -> 493`, but translate/full_compile worsened `841/1442 -> 917/1509`, full allocated bytes about `161.5 -> 167.4 KiB`.
+    - `nested-upsert-nested-only`: graph_build improved `1029 -> 1020`, but translate/full_compile worsened `1348/2555 -> 1423/2621`, full allocated bytes `312.0 -> 317.7 KiB`.
+    - Sampled controls stayed in band.
+  - Focused Criterion after harness restart:
+    - `nested-upsert-nested-only`: `[254.62,255.41,256.61] us`, reported about `-2.4%` against Criterion's stored baseline.
+    - `update-m2m-connect`: `[139.60,140.10,140.44] us`, reported within the noise threshold.
+- Decision:
+  - Reverted fully; `/home/aqrln.guest/prisma-engines` is clean after the experiment.
+  - Do not keep this direct graph/query-builder CTE composition as the product M:N connect owner. It removes a logical phase and may have a small CPU signal in one row, but it increases full-compile allocation count and bytes on the target M:N connect rows, which cuts against the Worker memory goal.
+  - Future M:N connect phase-owner work needs either a lower-allocation typed representation for this CTE shape, a product runtime/DB roundtrip benchmark showing the extra compile allocations are worth paying, or a different owner that avoids building the heavier SQL AST. The two Quaint prerequisites remain useful; the rejected part is the current `ConnectRecordsByFilter` owner shape.
