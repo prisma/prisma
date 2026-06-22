@@ -16911,3 +16911,26 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Decision:
   - Keep. This is not a direct speed win, but it removes a concrete structured-SQL blocker for the Postgres-gated M:N connect phase owner.
   - The larger M:N connect implementation still needs a data-modifying CTE or equivalent typed SQL-builder shape that can return matched child rows while performing the relation insert; this patch only makes the eventual insert-select body renderable once the phase owner exists.
+
+## Accepted Prerequisite: Insert-Bodied CTEs In Quaint (2026-06-22)
+
+- Engines commit:
+  - `/home/aqrln.guest/prisma-engines` `29000399a8a` (`perf(quaint): support insert common table expressions`).
+- Context:
+  - The M:N connect insert-select/count design needs to both perform the relation-table insert and return matched child rows for the existing `RowCountEq(expected)` / `INCOMPLETE_CONNECT_INPUT` validation.
+  - A Postgres-shaped structured query can express this as a data-modifying CTE, for example `WITH inserted AS (INSERT ... SELECT ... ON CONFLICT DO NOTHING RETURNING child_id) SELECT child_id FROM inserted`.
+  - After `d59deb11278`, the insert-select body itself was renderable, but Quaint CTE bodies were still limited to `SelectQuery`.
+- Patch:
+  - Replaced the select-only `CommonTableExpression.selection` field with a small lockstep-only `CommonTableExpressionBody` enum.
+  - Kept existing `Select`, `Union`, and `SelectQuery` CTE callers on selection bodies.
+  - Added `Insert` as a CTE body and taught the generic visitor to render insert-bodied CTEs through `visit_insert()`.
+  - Added a focused Postgres visitor test for `WITH "inserted" AS (INSERT INTO ... SELECT ... ON CONFLICT DO NOTHING RETURNING ...) SELECT ... FROM "inserted"`.
+- Verification:
+  - `cargo fmt -p quaint`: passed.
+  - `cargo check -p quaint --no-default-features --features postgresql --lib`: passed.
+  - `cargo check -p query-compiler`: passed.
+  - `git diff --check`: passed.
+  - `cargo test -p quaint --lib --no-default-features --features postgresql test_insert_common_table_expression -- --nocapture`: blocked before compiling the test target because this harness lacks system OpenSSL development files for `openssl-sys`.
+- Decision:
+  - Keep as a second structured-SQL prerequisite for the future Postgres-gated M:N connect insert-select/count phase owner.
+  - This is not a direct performance win and does not change the headline report numbers. It makes the eventual phase-owner query expressible without raw SQL strings once connector capability/proof and graph/query ownership are implemented.
