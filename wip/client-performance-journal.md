@@ -16612,6 +16612,41 @@ Objective: make Prisma Client materially faster and lower-memory, especially on 
   - Keep. This removes a whole child-read phase for the FK-backed required to-one nested-only update shape, saving 168 full-compile allocations and about 19.2 KiB/op on the target fixture.
   - Do not broaden to Prisma relation mode, optional relations, compound links, alternate unique selectors, or filtered nested updates without fresh semantic proof plus allocation and Criterion evidence.
 
+## Rejected Experiment: Primary-ID M:N Connect Child-ID Injection (2026-06-22)
+
+- Hypothesis:
+  - For nested many-to-many `connect` where every child selector is exactly the related model's single primary-id scalar, the graph already has the child ids in the request.
+  - Keeping the child read only as an existence-count validator while injecting those known child ids directly into `ConnectRecords` might remove child `mapField` bindings and reduce translation work without weakening missing-child semantics.
+- Patch tried:
+  - Moved the primary-id selector extractor used by nested M:N disconnect into shared write utils.
+  - Added `connect_records_node_with_child_ids()` to build `ConnectRecords` with request-owned child ids while keeping a child-read `rowCountEq expected` validation through `RowSink::Discard`.
+  - Routed only M:N nested `connect` with exact single-scalar child-primary-id selectors through the new helper.
+  - Tried both a packed one-element child-id list and a scalar child constant; the scalar variant produced the intended snapshot shape:
+    - child read still validates `rowCountEq 1`;
+    - relation insert changes from `product(var(3$id as Int[]), var(4$id as Int[]))` to `product(var(3$id as Int[]), const(Int(10)))`.
+- Verification:
+  - `CARGO_TARGET_DIR=/tmp/prisma-engines-next-profile-target CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo check -p query-compiler`: passed.
+  - `cargo test -p query-compiler --test queries -- --nocapture`: passed for the first packed-list variant after accepting the single target snapshot; the later scalar variant produced the same isolated one-line snapshot diff before the experiment was reverted.
+- Allocation evidence:
+  - Same-target control versus tightened scalar patch used `ALLOC_PROFILE_QUERIES=nested-upsert-nested-only,create-nested-connectOrCreate-mixed,create-nested-connectOrCreate-one2m,create-nested-connect,update-m2m-set,update-m2m-set-empty,query-m2m,aggregate`, `ALLOC_PROFILE_ITERATIONS=50`, `ALLOC_PROFILE_WARMUP=5`.
+  - Target row was effectively neutral and not worth the extra graph shape:
+    - `nested-upsert-nested-only` `graph_build/translate_ir/compile_ir/full_compile` moved `1029/1348/2377/2555 -> 1035/1341/2376/2554`.
+    - Full allocated bytes slightly worsened, about `307.0 -> 307.1 KiB`.
+  - Sampled controls stayed allocation-neutral; this patch did not touch `update-m2m-set` because M:N `set` still uses the existing child-read + connect path.
+- Criterion evidence:
+  - Patched medians versus close reverted-control medians:
+    - `nested-upsert-nested-only`: `310.60 us` patched vs `302.68 us` control.
+    - `create-nested-connect`: `156.37 us` vs `148.83 us`.
+    - `create-nested-connectOrCreate-mixed`: `280.87 us` vs `275.93 us`.
+    - `create-nested-connectOrCreate-one2m`: `252.97 us` vs `249.06 us`.
+    - `query-m2m`: `87.337 us` vs `85.627 us`.
+    - `update-m2m-set`: `176.55 us` vs `173.31 us`.
+    - `aggregate`: `62.226 us` vs `60.724 us`.
+- Decision:
+  - Rejected and fully reverted. The one-allocation full-compile win on the target row is noise-level and close Criterion favored the reverted control across the target and controls.
+  - Do not retry request-owned child-id injection for M:N nested `connect` as a standalone cleanup. The child read is still present for validation, and the added primary-id extraction/graph shape shifts cost from translation into graph build.
+  - A practical future M:N connect shortcut needs a larger phase-owned operation that validates matched child rows while doing the relation-table insert, probably a connector-specific insert-select/count shape. It must preserve already-connected idempotent `ON CONFLICT DO NOTHING` behavior and missing-child `INCOMPLETE_CONNECT_INPUT` semantics.
+
 ## Useful Commands
 
 ```sh
