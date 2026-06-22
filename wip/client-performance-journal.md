@@ -16854,3 +16854,34 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Reverted fully; `/home/aqrln.guest/prisma-engines` is clean after restoring the patch and formatter-only churn.
   - Do not retry one-pass M:N connect filter dedupe as a standalone cleanup. The allocation win is only two allocations on the target/adjacent rows, and the timing signal is mixed with softened connect-or-create rows.
   - The real M:N connect lead remains a larger insert-select/count phase owner that validates matched children and inserts relation rows together without materializing child id rows into later graph phases.
+
+## Restarted-Harness Measurement: Final-Owner And Rust Compile-Path Boundaries (2026-06-22)
+
+- Context:
+  - Continued after the harness restart with the Rust-emitted raw-nested final-owner schedule marker already landed in engines and consumed by the TS runtime.
+  - Goal was to decide whether to implement a marker-backed non-unique executor immediately or pivot to a fresh compile-path target.
+- Final-owner executor scout:
+  - Explorer `Wegener` (`019eeefa-e760-7f12-b12e-472807863c5c`) confirmed the only plausible runtime direction is a non-unique schedule executor that owns the whole phase: root/list initialization, first-wave scopes, child-list relation-op filtering, second-wave scopes, relation-specific row writing, and final attachment.
+  - The proposed local implementation points were `#tryCompileRawNestedFinalOwnerRead()`, `#executeRawNestedFinalOwnerDbQuery()`, `tryCompileRawNestedFinalOwnerProgram()`, and the final-owner relation compilers.
+  - Correctness gates remain: apply child-list pagination before collecting nested unique author IDs, preserve first-match unique semantics, keep numeric/string/null keys distinct, skip child queries for empty root/wrapper rows, preserve product scalar conversion, and keep SQL commenter/instrumentation fallback.
+- Decision:
+  - Do not implement another fused non-unique branch over the existing `RawNestedFinalOwnerProgram` plus current row writers/helpers. The explorer's concrete sketch materially overlaps the 2026-06-19 strict runtime-branch experiment unless it becomes a genuinely compiled/static schedule or lockstep protocol shape.
+  - The next runtime implementation must replace more of the current generic final-owner machinery than a local branch: either generated/static writer waves or a new internal schedule shape that owns wave state, field writes, relation-op filtering, and attachment together.
+- Fresh Rust allocation profile:
+  - Command:
+    - `ALLOC_PROFILE_BUCKETS=1 ALLOC_PROFILE_QUERIES='update-m2m-connect,update-m2m-set,update-m2m-disconnect,create-nested-connect,create-m2m,nested-upsert-nested-only,update-set-nested,query-m2o,query-many-m2m,aggregate' ALLOC_PROFILE_ITERATIONS=20 ALLOC_PROFILE_WARMUP=3 cargo run -p query-compiler --example allocation_profile --release`
+  - The first sandboxed attempt failed opening `/home/aqrln.guest/prisma-engines/target/release/.cargo-lock` because that target directory is outside the Prisma writable root; reran outside the sandbox using the existing engines target cache.
+  - Baselines from the restarted harness:
+    - `update-m2m-connect`: graph_build/translate_ir/compile_ir/full_compile `502/841/1343/1442`, full allocated `161.5 KiB`.
+    - `update-m2m-set`: `509/936/1445/1544`, full allocated `175.3 KiB`.
+    - `update-m2m-disconnect`: `386/405/791/857`, full allocated `100.8 KiB`.
+    - `create-nested-connect`: `460/701/1161/1277`, full allocated `145.8 KiB`.
+    - `create-m2m`: `522/876/1398/1519`, full allocated `180.1 KiB`.
+    - `nested-upsert-nested-only`: `1029/1348/2377/2555`, full allocated `312.0 KiB`.
+    - `update-set-nested`: `592/958/1550/1666`, full allocated `199.0 KiB`.
+    - `query-m2o`: `161/308/469/548`, full allocated `70.8 KiB`.
+    - `query-many-m2m`: `236/406/642/713`, full allocated `78.8 KiB`.
+    - `aggregate`: `279/242/521/599`, full allocated `67.5 KiB`.
+- Readout:
+  - These numbers match the existing journal direction: the largest remaining write rows are still broad graph-build/translate-IR phase costs, not one obvious small allocation site.
+  - Do not take another local M:N connect/set/container cleanup from this profile alone. The next accepted Rust work should be a semantic phase owner such as the Postgres-gated M:N connect insert-select/count design, or a separately named graph/translation structure with both allocation and Criterion evidence.
