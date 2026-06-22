@@ -16960,3 +16960,34 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Reverted fully; `/home/aqrln.guest/prisma-engines` is clean after the experiment.
   - Do not keep this direct graph/query-builder CTE composition as the product M:N connect owner. It removes a logical phase and may have a small CPU signal in one row, but it increases full-compile allocation count and bytes on the target M:N connect rows, which cuts against the Worker memory goal.
   - Future M:N connect phase-owner work needs either a lower-allocation typed representation for this CTE shape, a product runtime/DB roundtrip benchmark showing the extra compile allocations are worth paying, or a different owner that avoids building the heavier SQL AST. The two Quaint prerequisites remain useful; the rejected part is the current `ConnectRecordsByFilter` owner shape.
+
+## Measurement And Rejection: Final-Owner / Prepared-Path Post-Report Recheck (2026-06-22)
+
+- Context:
+  - After refreshing the intermediate report, I rechecked the highest-priority runtime leads against the current harness instead of relying on older smoke numbers.
+  - The two candidates were: productizing more of the raw-nested final-owner schedule lower bound, and trimming generated prepared-operation request plumbing.
+- Node final-owner rows:
+  - `CLIENT_ENGINE_CACHE_TIMING_FILTER='direct plan blog feed by author / nested rows' CLIENT_ENGINE_CACHE_TIMING_ITERATIONS=300000 ... client-engine-cache-timing.ts`: current product direct row `6.91 us/op`.
+  - `raw result-set direct final-owner schedule blog feed by author / nested rows`: hardcoded unsafe/direct lower bound `6.58 us/op`.
+  - `raw result-set semantic final-owner schedule blog feed by author / nested rows`: product-scalar lower bound `7.25 us/op`.
+  - Decision: do not take another generic final-owner executor patch now. The fair semantic lower bound is slower than the product direct row in this run, and the unsafe hardcoded gap is only about `0.33 us/op`. A useful final-owner patch still needs a true generated/static writer or a new lockstep schedule shape, not another generic branch.
+- Node generated/prepared rows:
+  - Focused 100k `blog feed by author / nested rows warmed cache` run measured: generated default `10.93`, exact descriptor helper `9.34`, generated prepared operation `8.39`, prepared exact operation `7.73`, and product direct execution `6.91 us/op`.
+  - Benchmark-only stable-check hoist tried in `createBenchmarkPreparedOperationRegistry()`: prebound `engine`, `requestHandler`, and stable adapter/extensions/global-omit/method-existence checks while keeping dynamic tracing/debug checks.
+  - First patched run: generated prepared `8.07 us/op`.
+  - Close reverted control: generated prepared `7.97 us/op`.
+  - Decision: rejected and left reverted. Do not mirror this stable-check hoist into the generators as a standalone prepared-operation cleanup.
+- Workerd focused rows:
+  - Command used `WORKERD_QUERY_COMPILER_MEMORY_FILTER='blog-feed-by-author warmed cache' WORKERD_GENERATED_BLOG_PAGE_ITERATIONS=5000 WORKERD_PRECOMPUTED_ITERATIONS=5000`.
+  - Request-loop timings:
+    - generated default: `9.80 us/op`.
+    - request precomputed fast path: `8.00 us/op`, hoisted action `7.60`.
+    - descriptor-bound static matcher: `7.80 us/op`.
+    - exact descriptor helper: `7.20 us/op`, hoisted action `6.80`.
+    - prepared exact operation: `5.60 us/op`.
+    - prepared exact request surface: `5.80 us/op`.
+    - generated prepared operation: `5.80 us/op`.
+  - Host dispatch timings in the same run put prepared exact / generated prepared close as well (`10.39` / `10.69 us/op`), while generated default was skewed by first-instance init (`84.11 us/op` host dispatch, `9.80 us/op` request loop).
+- Decision:
+  - On the Cloudflare-target runtime, generated prepared operation overhead is already close to the prepared request-surface lower bound. More prepared-wrapper micro-edits are low ceiling.
+  - The next Worker-relevant win should move more hot generated shapes from default/exact-helper rows toward prepared-operation or JS-owned cache-hit rows, or change raw-nested execution ownership with a truly static/generated schedule. Do not spend another standalone patch on prepared-operation stable checks, Promise continuation shape, placeholder object construction, or a generic final-owner branch without fresh profile evidence.
