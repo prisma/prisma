@@ -17171,3 +17171,33 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Skipped `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`) from this branch. On fresh `origin/main`, it conflicts because it expects an earlier unique-filter fast path that is not in this split. Extract it separately with its real prerequisite chain instead of smuggling that dependency into a selection/aggregate PR.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Filter Extraction Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the deferred compound-selector cleanup with its real prerequisite chain rather than mixing it into the selection/aggregate PR.
+- Branch:
+  - Pushed `prisma-client-perf-filter-extraction-cleanups` to `prisma/prisma-engines`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-filter-extraction-cleanups.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope:
+  - `query-compiler/core/src/query_document/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/extractors/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/extractors/utils.rs`
+  - `query-compiler/core/src/query_graph_builder/write/upsert.rs`
+  - query-compiler query fixtures/snapshots for the changed filter extraction shape.
+- Split commits:
+  - `426e0e126ab`, from original `9b42bd6e3d9`: optimize unique filter extraction.
+  - `c595dc05dc4`, from original `395aad1e7d3`: pre-size search filter folding output.
+  - `ee55ba2071f`, from original `69faaa96948`: skip search merge for no-search groups.
+  - `ad9dd1158f0`, from original `f84cdb2c3c8`: avoid compound selector materialization.
+- Validation:
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/filter-extraction-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/filter-extraction-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/filter-extraction-target cargo test -p query-compiler --test queries`: passed.
+- Packaging notes:
+  - This branch is the correct home for `f84cdb2c3c8`; on fresh `origin/main` it expects the unique-filter extraction shape introduced by `9b42bd6e3d9`.
+  - The whole chain cherry-picked cleanly onto current `origin/main` and does not require a Prisma runtime companion.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`

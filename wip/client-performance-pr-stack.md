@@ -13,6 +13,7 @@ This document tracks how the large performance branches are being exposed and sp
 - Pushed engines split branches awaiting PR creation:
   - `prisma-client-perf-graph-translation-cleanups`
   - `prisma-client-perf-selection-aggregate-cleanups`
+  - `prisma-client-perf-filter-extraction-cleanups`
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -36,7 +37,7 @@ The engines query-compiler test workflow uses that Prisma branch when building P
 
 Engines integration publishing is separate. It is triggered by an `integration/` branch or a commit message containing `[integration]`.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups` and `prisma-client-perf-selection-aggregate-cleanups` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
+Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, and `prisma-client-perf-filter-extraction-cleanups` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
 
 ## Current Split Status
 
@@ -173,6 +174,49 @@ Suggested PR body linkage:
 
 This branch is safe to review independently. It deliberately excludes `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`) because on fresh `origin/main` that commit depends on an earlier unique-filter fast path not present in this split. Extract that compound-selector cleanup separately with the real prerequisite chain.
 
+### Ready To Open: Engines Filter Extraction Cleanups
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-filter-extraction-cleanups
+
+Branch: `prisma-client-perf-filter-extraction-cleanups`
+
+Original commits:
+
+- `9b42bd6e3d9`: `Optimize unique filter extraction`
+- `395aad1e7d3`: `Pre-size search filter folding output`
+- `69faaa96948`: `perf(query-compiler): skip search merge for no-search groups`
+- `f84cdb2c3c8`: `perf(query-compiler): avoid compound selector materialization`
+
+Fresh-base split commits:
+
+- `426e0e126ab`: `Optimize unique filter extraction`
+- `c595dc05dc4`: `Pre-size search filter folding output`
+- `ee55ba2071f`: `perf(query-compiler): skip search merge for no-search groups`
+- `ad9dd1158f0`: `perf(query-compiler): avoid compound selector materialization`
+
+Scope:
+
+- `query-compiler/core/src/query_document/mod.rs`
+- `query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs`
+- `query-compiler/core/src/query_graph_builder/extractors/mod.rs`
+- `query-compiler/core/src/query_graph_builder/extractors/utils.rs`
+- `query-compiler/core/src/query_graph_builder/write/upsert.rs`
+- query-compiler query fixtures/snapshots for the changed filter extraction shape
+
+Validation:
+
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/filter-extraction-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/filter-extraction-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/filter-extraction-target cargo test -p query-compiler --test queries`: passed
+
+Suggested PR body linkage:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch is safe to review independently from the parser/request and selection/aggregate splits. It contains the real prerequisite chain for the compound-selector cleanup instead of smuggling `f84cdb2c3c8` into the selection/aggregate PR.
+
 ## Proposed Prisma Stack
 
 1. `perf-stack/01-compact-query-plan-format`
@@ -219,6 +263,7 @@ This branch is safe to review independently. It deliberately excludes `f84cdb2c3
    - Keep direct projected placeholder storage with downstream users.
    - Current extracted subset: `prisma-client-perf-graph-translation-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current extracted subset: `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
+   - Current extracted subset: `prisma-client-perf-filter-extraction-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.
