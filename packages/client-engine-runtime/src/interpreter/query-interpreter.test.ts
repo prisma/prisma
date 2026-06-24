@@ -32,13 +32,7 @@ test('uses a per-run generator snapshot for now calls', async () => {
 
 test('uses a per-run generator snapshot for compact now calls', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
-  const plan = [
-    'v',
-    [
-      { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
-      { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
-    ],
-  ] satisfies QueryPlanNode
+  const plan = ['v', [{ $g: ['now', []] }, { $g: ['now', []] }]] satisfies QueryPlanNode
 
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
@@ -53,7 +47,7 @@ test('uses built-in generators without a snapshot when now is absent', async () 
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = {
     type: 'value',
-    args: { prisma__type: 'generatorCall', prisma__value: { name: 'product', args: [1, [2, 3]] } },
+    args: { $g: ['product', [1, [2, 3]]] },
   } satisfies QueryPlanNode
 
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
