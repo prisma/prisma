@@ -601,6 +601,7 @@ export class ClientEngine implements Engine {
 
           const results: BatchQueryEngineResult<unknown>[] = []
           let rollback = false
+          let canContinueOnError: boolean | undefined
           for (const [batchIndex, plan] of batchResponse.plans.entries()) {
             try {
               const rows = await executor.execute({
@@ -620,9 +621,15 @@ export class ClientEngine implements Engine {
               })
               results.push({ data: { [queries[batchIndex].action]: rows } })
             } catch (err) {
+              canContinueOnError ??=
+                transaction?.kind !== 'batch' &&
+                queries.every((query) => query.action === 'findUnique' || query.action === 'findUniqueOrThrow')
+
               results.push(err as Error)
               rollback = true
-              break
+              if (!canContinueOnError) {
+                break
+              }
             }
           }
 
