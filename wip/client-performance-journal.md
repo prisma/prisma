@@ -17477,3 +17477,42 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - PR creation attempt:
   - `gh auth status` still reports the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
   - GitHub connector `create_pull_request` for this branch failed with HTTP 401 `token_expired`.
+
+## Packaging: Upsert Result Sharing Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the accepted update/upsert result-sharing cluster as a focused follow-up on top of update/upsert pruning.
+- Branch:
+  - Pushed `prisma-client-perf-upsert-result-sharing` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-update-upsert-pruning`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-upsert-result-sharing.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-update-upsert-pruning`:
+  - `query-compiler/core/src/query_graph/formatters.rs`
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/inputs.rs`
+  - `query-compiler/core/src/query_graph_builder/write/nested/upsert_nested.rs`
+  - `query-compiler/core/src/query_graph_builder/write/update.rs`
+  - `query-compiler/core/src/query_graph_builder/write/upsert.rs`
+  - `query-compiler/query-compiler/src/translate.rs`
+  - nested-upsert, update carrier, and upsert shared-read snapshots.
+- Split commits:
+  - `d1fc6e9fb6a`, from original `6ad7f3a9b1c`: narrow empty update carrier projection.
+  - `edc04839bb5`, from original `09374a92e87`: join shared nested upsert M:N connect.
+  - `b9c9b81191e`, from original `bd002ef8ac0`: return nested upsert shared connect condition.
+  - `7d03e6550d2`, from original `d49c30d27b1`: share empty upsert result read.
+  - `dcb9d62da7b`, from original `d89ebbdb461`: share nested-only upsert result read.
+  - `d19e56f3084`: refresh snapshots for this stack's current pre-raw-nested branch shape.
+- Fresh-base/stack adaptation:
+  - The originally planned follow-up commits depended on `09374a92e87` (`join shared nested upsert m2m connect`). Added that accepted prerequisite explicitly to this branch instead of folding its logic into conflict resolutions.
+  - Adapted `6ad7f3a9b1c` to the current base's `read::utils::collect_selection_order(&nested_fields)` helper, rather than introducing the older `collect_selection_order_owned()` helper.
+  - Deferred every snapshot conflict to a final full `INSTA_UPDATE=always` query snapshot refresh. The refreshed snapshots reflect this stack's current join-shaped final reads before the raw-nested read-plan branches.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-compiler --test queries`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-core --lib`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`

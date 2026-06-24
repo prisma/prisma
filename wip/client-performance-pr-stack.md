@@ -22,6 +22,7 @@ This document tracks how the large performance branches are being exposed and sp
   - `prisma-client-perf-empty-required-set-pruning` stacked on `prisma-client-perf-required-set-pruning`
   - `prisma-client-perf-coc-branch-pruning` stacked on `prisma-client-perf-empty-required-set-pruning`
   - `prisma-client-perf-update-upsert-pruning` stacked on `prisma-client-perf-coc-branch-pruning`
+  - `prisma-client-perf-upsert-result-sharing` stacked on `prisma-client-perf-update-upsert-pruning`
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -53,7 +54,7 @@ Workflow sources checked:
 - `prisma-engines/.github/workflows/test-query-compiler-template.yml` consumes the selected Prisma branch for query-compiler Wasm tests.
 - `prisma-engines/.github/workflows/build-engines.yml` gates integration publishing on `integration/*` branches or `[integration]` commit messages.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, `prisma-client-perf-empty-required-set-pruning`, `prisma-client-perf-coc-branch-pruning`, and `prisma-client-perf-update-upsert-pruning` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
+Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, `prisma-client-perf-empty-required-set-pruning`, `prisma-client-perf-coc-branch-pruning`, `prisma-client-perf-update-upsert-pruning`, and `prisma-client-perf-upsert-result-sharing` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
 
 Fresh auth check after pushing `prisma-client-perf-update-upsert-pruning`: `gh auth status` still reports the local token as invalid, and the GitHub connector `create_pull_request` call for that branch failed with HTTP 401 `token_expired`.
 
@@ -472,6 +473,59 @@ Suggested PR body linkage:
 
 This branch removes connector update nodes when the update payload only exists to drive nested writes, for nested update, nested upsert, and top-level upsert. The extra refresh commit adapts the original commits to the current direct-placeholder `Flow::Return(None)` representation and refreshes the new fixture snapshots against this stack's pre-raw-nested final-read shape.
 
+### Ready To Open: Engines Upsert Result Sharing
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-upsert-result-sharing
+
+Branch: `prisma-client-perf-upsert-result-sharing`
+
+Intended base branch: `prisma-client-perf-update-upsert-pruning`
+
+Original commits:
+
+- `6ad7f3a9b1c`: `perf(query-compiler): narrow empty update carrier projection`
+- `09374a92e87`: `perf(query-compiler): join shared nested upsert m2m connect`
+- `bd002ef8ac0`: `perf(query-compiler): return nested upsert shared connect condition`
+- `d49c30d27b1`: `perf(query-compiler): share empty upsert result read`
+- `d89ebbdb461`: `perf(query-compiler): share nested-only upsert result read`
+
+Fresh-base split commits:
+
+- `d1fc6e9fb6a`: `perf(query-compiler): narrow empty update carrier projection`
+- `edc04839bb5`: `perf(query-compiler): join shared nested upsert m2m connect`
+- `b9c9b81191e`: `perf(query-compiler): return nested upsert shared connect condition`
+- `7d03e6550d2`: `perf(query-compiler): share empty upsert result read`
+- `dcb9d62da7b`: `perf(query-compiler): share nested-only upsert result read`
+- `d19e56f3084`: `test(query-compiler): refresh upsert result sharing snapshots`
+
+Scope relative to `prisma-client-perf-update-upsert-pruning`:
+
+- `query-compiler/core/src/query_graph/formatters.rs`
+- `query-compiler/core/src/query_graph/mod.rs`
+- `query-compiler/core/src/query_graph_builder/inputs.rs`
+- `query-compiler/core/src/query_graph_builder/write/nested/upsert_nested.rs`
+- `query-compiler/core/src/query_graph_builder/write/update.rs`
+- `query-compiler/core/src/query_graph_builder/write/upsert.rs`
+- `query-compiler/query-compiler/src/translate.rs`
+- snapshots for nested upsert, update carrier, and upsert shared-read fixtures
+
+Validation:
+
+- `cargo fmt --check`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-compiler --test queries`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-core --lib`: passed
+
+Suggested PR body linkage:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch is intentionally stacked after update/upsert pruning. It adds the shared nested-upsert M:N connect prerequisite that the result-sharing commits depend on, narrows empty update carriers to id-only projections, returns shared-connect-only nested-upsert conditions directly, and shares top-level upsert final reads for the proved empty/nested-only shapes. It keeps the guard narrow for nested-only upsert result sharing: create branches must stay non-nested, and update branches with multiple nested operations still need separate proof.
+
 ### Ready To Open: Engines Selection/Aggregate Cleanups
 
 PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-selection-aggregate-cleanups
@@ -651,6 +705,7 @@ This branch is safe to review independently from the parser/request and selectio
    - Current stacked subset: `prisma-client-perf-empty-required-set-pruning` on `prisma-client-perf-required-set-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current stacked subset: `prisma-client-perf-coc-branch-pruning` on `prisma-client-perf-empty-required-set-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current stacked subset: `prisma-client-perf-update-upsert-pruning` on `prisma-client-perf-coc-branch-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
+   - Current stacked subset: `prisma-client-perf-upsert-result-sharing` on `prisma-client-perf-update-upsert-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.
