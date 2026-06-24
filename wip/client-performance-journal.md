@@ -17078,3 +17078,18 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Focused local `cargo test -p quaint ...` commands failed before running tests because this local environment cannot resolve system OpenSSL for `openssl-sys` through Quaint dev/native dependencies. The draft PR body records this limitation.
 - Added `wip/client-performance-pr-stack.md` with the current PR links, CI slash-command syntax, the first extracted PR, and the proposed Prisma/engines stack order.
 - Two independent split scouts agreed on the main packaging rule: internal query-plan/protocol/runtime/generator format changes should be reviewed as final lockstep shapes. Do not preserve temporary old/new compatibility history as PR boundaries.
+
+## Packaging: Parser/Request Allocation Split PR (2026-06-24)
+
+- Opened second extracted engines draft PR:
+  - https://github.com/prisma/prisma-engines/pull/5822.
+  - Split branch: `prisma-client-perf-parser-request-allocs`.
+  - Scope is four files: `query_document/parse_ast.rs`, `query_document/parser.rs`, JSON protocol `body.rs`, and JSON protocol `protocol_adapter.rs`.
+  - The split contains only parser/request allocation reductions and excludes compact query-plan format changes, raw-nested read plans, and write-graph pruning.
+- Verification:
+  - `cargo check -p query-core`: passed.
+  - `cargo check -p request-handlers`: passed.
+  - `cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/parser-request-target cargo test -p query-compiler --test queries`: passed.
+- Operational note:
+  - A first query snapshot test attempt exhausted `/tmp` while compiling test artifacts. I removed only temporary Cargo target directories from old `/tmp` worktrees/profile targets, reran with `CARGO_TARGET_DIR` on the larger workspace filesystem, and then removed the temporary workspace target directory.

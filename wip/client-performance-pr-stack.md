@@ -8,7 +8,8 @@ This document tracks how the large performance branches are being exposed and sp
 
 - Prisma status PR: https://github.com/prisma/prisma/pull/29655
 - Engines status PR: https://github.com/prisma/prisma-engines/pull/5820
-- First extracted engines PR: https://github.com/prisma/prisma-engines/pull/5821
+- Extracted engines PR 1: https://github.com/prisma/prisma-engines/pull/5821
+- Extracted engines PR 2: https://github.com/prisma/prisma-engines/pull/5822
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -59,6 +60,40 @@ Validation:
 - Focused `cargo test -p quaint ... test_insert_from_selection` and `test_insert_common_table_expression` failed before running tests because this local environment cannot resolve system OpenSSL for `openssl-sys` through Quaint dev/native dependencies.
 
 This PR is safe to review independently. It is SQL-builder groundwork for future insert-select/count M:N connect work, but no current query-compiler commit in the large branch consumes it.
+
+### Extracted: Engines Parser/Request Allocations
+
+Draft PR: https://github.com/prisma/prisma-engines/pull/5822
+
+Branch: `prisma-client-perf-parser-request-allocs`
+
+Original commits:
+
+- `aa0c044176d`: `Reduce query parser argument cloning`
+- `8939dc3b333`: `Avoid input object schema map allocation`
+- `b135e3d34b9`: `Avoid parsed argument value clone`
+- `cc50b6120df`: `Avoid eager argument conversion errors`
+- `ba4aa725900`: `Avoid empty exclusion vector allocation`
+- `4352448ee00`: `Use mutable query parser paths`
+- `a62504a80bd`: `Use SmallVec for parser validation paths`
+- `e761557fa45`: `perf(request-handlers): collect selection exclusions inline`
+- `a38dbd892f7`: `perf(query-compiler): consume singleton parsed values`
+
+Scope:
+
+- `query-compiler/core/src/query_document/parse_ast.rs`
+- `query-compiler/core/src/query_document/parser.rs`
+- `query-compiler/request-handlers/src/protocols/json/body.rs`
+- `query-compiler/request-handlers/src/protocols/json/protocol_adapter.rs`
+
+Validation:
+
+- `cargo check -p query-core`: passed
+- `cargo check -p request-handlers`: passed
+- `cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/parser-request-target cargo test -p query-compiler --test queries`: passed
+
+This PR is safe to review independently. It intentionally excludes compact query-plan format changes, raw-nested read plans, and write-graph pruning.
 
 ## Proposed Prisma Stack
 
