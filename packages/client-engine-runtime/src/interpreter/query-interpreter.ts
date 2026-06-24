@@ -7,6 +7,12 @@ import {
   type CompactResultObjectNode,
   FieldInitializer,
   FieldOperation,
+  getJoinExpressionChild,
+  getJoinExpressionIsRelationUnique,
+  getJoinExpressionOn,
+  getJoinExpressionParentField,
+  getQueryPlanBindingExpr,
+  getQueryPlanBindingName,
   InMemoryOps,
   JoinExpression,
   type QueryPlanCompactNode,
@@ -163,8 +169,11 @@ export class QueryInterpreter {
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node.args.bindings) {
-          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
-          nestedScope[binding.name] = value
+          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
+            ...context,
+            scope: nestedScope,
+          })
+          nestedScope[getQueryPlanBindingName(binding)] = value
         }
         return this.interpretNode(node.args.expr, { ...context, scope: nestedScope })
       }
@@ -287,7 +296,7 @@ export class QueryInterpreter {
         const children = await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
+            childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
           })),
         )
 
@@ -427,8 +436,11 @@ export class QueryInterpreter {
       case 'l': {
         const nestedScope: ScopeBindings = Object.create(context.scope)
         for (const binding of node[1]) {
-          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
-          nestedScope[binding.name] = value
+          const { value } = await this.interpretNode(getQueryPlanBindingExpr(binding), {
+            ...context,
+            scope: nestedScope,
+          })
+          nestedScope[getQueryPlanBindingName(binding)] = value
         }
         return this.interpretNode(node[2], { ...context, scope: nestedScope })
       }
@@ -549,7 +561,7 @@ export class QueryInterpreter {
         const children = await Promise.all(
           node[2].map(async (joinExpr) => ({
             joinExpr,
-            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
+            childRecords: (await this.interpretNode(getJoinExpressionChild(joinExpr), context)).value,
           })),
         )
 
@@ -795,38 +807,60 @@ function attachChildrenToParents(
   canAssumeStrictEquality: boolean,
 ) {
   for (const { joinExpr, childRecords } of children) {
-    const parentKeys = joinExpr.on.map(([k]) => k)
-    const childKeys = joinExpr.on.map(([, k]) => k)
-    const parentMap = {}
+    const on = getJoinExpressionOn(joinExpr)
+    const parentField = getJoinExpressionParentField(joinExpr)
+    const isRelationUnique = getJoinExpressionIsRelationUnique(joinExpr)
+    const parentKeys = new Array<string>(on.length)
+    const childKeys = new Array<string>(on.length)
+    for (let i = 0; i < on.length; i++) {
+      parentKeys[i] = on[i][0]
+      childKeys[i] = on[i][1]
+    }
+    const parentKey = parentKeys[0]
+    const childKey = childKeys[0]
 
     const parentArray = Array.isArray(parentRecords) ? parentRecords : [parentRecords]
+    const childArray = Array.isArray(childRecords) ? childRecords : [childRecords]
+    const useSingleStrictKey =
+      canAssumeStrictEquality && parentKeys.length === 1 && parentArray.length + childArray.length >= 8
+    const parentMap = useSingleStrictKey ? (Object.create(null) as Record<string, PrismaObject[]>) : {}
+
     for (const parent of parentArray) {
       const parentRecord = asRecord(parent)
-      const key = getRecordKey(parentRecord, parentKeys)
+      const key = useSingleStrictKey ? getScalarRecordKey(parentRecord[parentKey]) : getRecordKey(parentRecord, parentKeys)
       if (!parentMap[key]) {
         parentMap[key] = []
       }
       parentMap[key].push(parentRecord)
 
-      if (joinExpr.isRelationUnique) {
-        parentRecord[joinExpr.parentField] = null
+      if (isRelationUnique) {
+        parentRecord[parentField] = null
       } else {
-        parentRecord[joinExpr.parentField] = []
+        parentRecord[parentField] = []
       }
     }
 
     const mappers = canAssumeStrictEquality ? undefined : inferKeyCasts(parentArray, parentKeys)
-    for (const childRecord of Array.isArray(childRecords) ? childRecords : [childRecords]) {
+    for (const childRecord of childArray) {
       if (childRecord === null) {
         continue
       }
 
-      const key = getRecordKey(asRecord(childRecord), childKeys, mappers)
-      for (const parentRecord of parentMap[key] ?? []) {
-        if (joinExpr.isRelationUnique) {
-          parentRecord[joinExpr.parentField] = childRecord
+      const childRecordObject = asRecord(childRecord)
+      const key = useSingleStrictKey
+        ? getScalarRecordKey(childRecordObject[childKey])
+        : getRecordKey(childRecordObject, childKeys, mappers)
+      const matchingParents = parentMap[key]
+      if (matchingParents === undefined) {
+        continue
+      }
+
+      for (const parentRecord of matchingParents) {
+        if (isRelationUnique) {
+          parentRecord[parentField] = childRecord
         } else {
-          parentRecord[joinExpr.parentField].push(childRecord)
+          const childList = parentRecord[parentField] as Value[]
+          childList.push(childRecord)
         }
       }
     }
@@ -835,7 +869,26 @@ function attachChildrenToParents(
   return parentRecords
 }
 
-function inferKeyCasts(rows: unknown[], keys: string[]): KeyCast[] {
+function getScalarRecordKey(value: Value): string {
+  switch (typeof value) {
+    case 'string':
+      return `s:${value.length}:${value}`
+    case 'number':
+      return `n:${value}`
+    case 'boolean':
+      return value ? 'b:1' : 'b:0'
+    case 'bigint':
+      return `i:${value}`
+    case 'undefined':
+      return 'u:'
+    case 'object':
+      return value === null ? '0:' : `o:${JSON.stringify(value)}`
+    default:
+      return JSON.stringify([value])
+  }
+}
+
+function inferKeyCasts(rows: unknown[], keys: readonly string[]): KeyCast[] {
   function getKeyCast(type: string): KeyCast | undefined {
     switch (type) {
       case 'number':
