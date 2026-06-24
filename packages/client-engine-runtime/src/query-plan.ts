@@ -285,17 +285,17 @@ export type FieldOperation =
   | { type: 'divide'; value: PrismaValue }
 
 export type Pagination = {
-  cursor: Record<string, unknown> | null
-  take: number | null
-  skip: number | null
+  cursor?: Record<string, unknown> | null
+  take?: number | null
+  skip?: number | null
 }
 
 export type InMemoryOps = {
-  pagination: Pagination | null
-  distinct: string[] | null
-  reverse: boolean
-  linkingFields: string[] | null
-  nested: Record<string, InMemoryOps>
+  pagination?: Pagination | null
+  distinct?: string[] | null
+  reverse?: boolean
+  linkingFields?: string[] | null
+  nested?: Record<string, InMemoryOps>
 }
 
 export type DataRule =
