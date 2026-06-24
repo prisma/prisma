@@ -10,6 +10,7 @@ This document tracks how the large performance branches are being exposed and sp
 - Engines status PR: https://github.com/prisma/prisma-engines/pull/5820
 - Extracted engines PR 1: https://github.com/prisma/prisma-engines/pull/5821
 - Extracted engines PR 2: https://github.com/prisma/prisma-engines/pull/5822
+- Pushed engines split branch awaiting PR creation: `prisma-client-perf-graph-translation-cleanups`
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -32,6 +33,8 @@ Engines PR bodies can use:
 The engines query-compiler test workflow uses that Prisma branch when building Prisma adapters/client code.
 
 Engines integration publishing is separate. It is triggered by an `integration/` branch or a commit message containing `[integration]`.
+
+Current auth note: `prisma-client-perf-graph-translation-cleanups` is pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create it from https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-graph-translation-cleanups or rerun `gh auth refresh -h github.com -s repo`, then use the PR body from this section's status entry.
 
 ## Current Split Status
 
@@ -95,6 +98,44 @@ Validation:
 
 This PR is safe to review independently. It intentionally excludes compact query-plan format changes, raw-nested read plans, and write-graph pruning.
 
+### Ready To Open: Engines Graph/Translation Cleanups
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-graph-translation-cleanups
+
+Branch: `prisma-client-perf-graph-translation-cleanups`
+
+Original commits:
+
+- `c3fe406576f`: `Reuse incoming query graph edges during translation`
+- `5d015d902b2`: `Avoid root node vector for single-root translation`
+- `af75c51ccd6`: `Avoid redundant single result scope binding`
+- `63ac52cb5bf`: `perf(query-compiler): cache result reachability during translation`
+- `fd443cdf449`: `perf(query-compiler): avoid synthetic read query names`
+- `202f7b09aaa`: `perf(query-compiler): reuse dependency reload candidates`
+- `a30ce85177f`: `perf(query-compiler): avoid cloning incoming if edges`
+- `ada2906dea3`: `Avoid intermediate dependency node id strings`
+
+Scope:
+
+- `query-compiler/core/src/query_graph/mod.rs`
+- `query-compiler/core/src/query_graph_builder/write/utils.rs`
+- `query-compiler/query-compiler/src/binding.rs`
+- `query-compiler/query-compiler/src/translate.rs`
+
+Validation:
+
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo test -p query-compiler --test queries`: passed
+
+Suggested PR body linkage:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch is safe to review independently from the compact query-plan stack. It deliberately skips `FieldSelection::into_virtuals_last()` and projected dependency edge-iteration follow-ups that conflicted with other larger graph/data-mapper history and should be extracted in a later compiler-local PR if still desired.
+
 ## Proposed Prisma Stack
 
 1. `perf-stack/01-compact-query-plan-format`
@@ -139,6 +180,7 @@ This PR is safe to review independently. It intentionally excludes compact query
 4. `pcperf/03-compiler-local-cleanups`
    - Areas: translation, data mapper, query graph, read graph builder, query structure.
    - Keep direct projected placeholder storage with downstream users.
+   - Current extracted subset: `prisma-client-perf-graph-translation-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.

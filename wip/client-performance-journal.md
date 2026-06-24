@@ -17111,3 +17111,36 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Decision:
   - Do not open a paired compact-format PR yet. Opening only the engines producer side would expose an internal lockstep format without the matching Prisma consumer. Opening the Prisma side by blindly adding all render-query prerequisites would blur the intended review boundary.
   - Next compact-format attempt should first decide whether the compact consumer PR owns the render-query prerequisite chain or whether we hand-apply the final reader shape.
+
+## Packaging: Graph/Translation Split Branch (2026-06-24)
+
+- Goal:
+  - Extract a reviewable engines-only subset after the compact-format pair proved too entangled for a clean first split.
+- Branch:
+  - Pushed `prisma-client-perf-graph-translation-cleanups` to `prisma/prisma-engines`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-graph-translation-cleanups.
+  - Local PR creation is blocked until GitHub auth is refreshed; after the harness restart both `gh auth status` and the GitHub connector report expired tokens.
+- Scope:
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/write/utils.rs`
+  - `query-compiler/query-compiler/src/binding.rs`
+  - `query-compiler/query-compiler/src/translate.rs`
+- Split commits:
+  - `c3fe406576f`: reuse incoming query graph edges during translation.
+  - `5d015d902b2`: avoid root node vector for single-root translation.
+  - `af75c51ccd6`: avoid redundant single result scope binding.
+  - `63ac52cb5bf`: cache result reachability during translation.
+  - `fd443cdf449`: avoid synthetic read query names.
+  - `202f7b09aaa`: reuse dependency reload candidates.
+  - `a30ce85177f`: avoid cloning incoming if edges.
+  - `ada2906dea3`: avoid intermediate dependency node id strings.
+- Validation:
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
+- Packaging notes:
+  - `63ac52cb5bf` needed prerequisite graph/translation cleanups (`c3fe406576f`, `5d015d902b2`, `af75c51ccd6`).
+  - `ada2906dea3` was needed for the `NodeRef::index()` API used by the reachability/binding-name cleanup on fresh `origin/main`.
+  - Skipped `FieldSelection::into_virtuals_last()` and projected dependency edge-iteration follow-ups in this slice because they conflicted with broader graph/data-mapper history. Extract them later only if their own fresh-base branch has close allocation plus timing evidence.
