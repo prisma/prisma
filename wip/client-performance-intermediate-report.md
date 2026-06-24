@@ -1,12 +1,12 @@
 # Prisma Client performance intermediate report
 
-Date: 2026-06-22.
+Date: 2026-06-24.
 
 This report summarizes the current magnitude of the performance and memory gains from the ongoing Prisma Client performance branch. The numbers are from the persistent journal and focused probes in this branch; many rows are microbenchmarks over fake adapters or Miniflare/workerd harnesses, so they should be read as directional product-path evidence rather than final customer benchmarks.
 
 ## Executive Snapshot
 
-Current as of 2026-06-22, after the latest Prisma docs commits, engines `29000399a8a`, and the strict flat string `findFirst` generated prepared helper slice.
+Current as of 2026-06-24, after the latest Prisma docs commits, engines `29000399a8a`, the strict flat string `findFirst` generated prepared helper slice, and the post-harness-restart generator verification refresh.
 
 The largest proven gain is still avoiding query compilation on hot requests. Local `ClientEngine` timing moved `findUnique` from cache-disabled to warmed cache at `752.61 -> 16.49 us/op` and the nested blog-page shape at `3122.43 -> 37.16 us/op`, roughly `46x` and `84x` faster than recompiling every request.
 
@@ -77,6 +77,8 @@ Latest refresh: includes the June 12 Workerd `findFirst users` exact-helper cove
 Post-restart checkpoint: `@prisma/client-engine-runtime` and `@prisma/client` both rebuilt cleanly after rerunning outside the sandbox for the known `tsx` IPC `listen EPERM` issue. The latest 100k Node smoke over `blog feed by author / nested rows warmed cache` measured generated default / generated prepared / exact-helper at `11.09 / 8.70 / 9.89 us/op`; use the earlier close 300k A/B rows for headline claims, but this confirms the rebuilt harness still has the same ordering. The same refresh revalidated the architecture conclusion that `serde_wasm_bindgen::from_value()` is not a sufficient win by itself because it still lands in Rust-owned `JsonBody` / map materialization and does not remove JS cache-key stringification.
 
 Current preparation checkpoint: this report is prepared from Prisma main after the raw-nested relation-op runtime support and engines main `29000399a8a`, plus the 2026-06-22 rejected/reverted windowed relation-join SQL spike, the accepted FK-backed nested update child-read shortcut, the rejected primary-id M:N connect child-id injection spike, the direct M:N connect fixture/profile baseline, the M:N connect phase-owner feasibility scout, the raw-nested final-owner schedule-marker protocol slice, the two accepted Quaint prerequisites for a future M:N connect insert-select/count owner, the rejected direct M:N connect CTE phase-owner prototype, the post-report final-owner/prepared-path recheck, and the accepted flat string `findFirst` generated prepared helper slice. The local query-compiler Wasm package and `@prisma/client` build were refreshed for the schedule marker because this branch consumes `@prisma/query-compiler-wasm` through a local file dependency; the later Quaint-only prerequisites and reverted CTE prototype did not require a Prisma Wasm refresh. The latest accepted generated cache-hit delta is the flat string `findFirst` prepared helper; the latest accepted compile-path delta after the raw-nested one-to-many relation-op path remains the phase deletion on `update-set-nested-prisma#27650`. The warmed nested-feed headline magnitude is unchanged by the schedule marker, by the SQL-builder prerequisites, by the reverted M:N prototype, and by the rejected prepared-path hoist. The highest-value open work remains expanding prepared/exact generated cache-hit coverage, a JS-owned cache-hit/query-input design, a truly static/generated final-owner schedule executor, or fresh profile-backed Rust graph/translation ownership work.
+
+2026-06-24 harness-restart checkpoint: reran the focused generated prepared-helper verification after the interrupted harness session. `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts` and `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts` both passed with 17 tests. `pnpm --filter @prisma/client-generator-ts build` and `pnpm --filter @prisma/client-generator-js build` also passed outside the sandbox for the known `tsx` IPC restrictions. This is a verification refresh only; it does not change the headline magnitude above.
 
 ## Current Rollup
 

@@ -17042,3 +17042,24 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Decision:
   - Keep. This moves one simple generated-client cache-hit shape materially on both Node and Workerd and gives a concrete pattern for future generated prepared coverage.
   - Do not broaden this into a generic `findFirst` matcher or non-string prepared operation without explicit serializer/parameterizer/cache-key oracle coverage for that value class.
+
+## Packaging: Draft PR Preparation And Harness Restart (2026-06-24)
+
+- Context:
+  - After the harness restart, reran the focused generated prepared-helper verification before publishing branches.
+  - The current visible state is large: Prisma is one commit behind and 749 commits ahead of fresh `origin/main`; engines is one commit behind and 113 commits ahead of fresh `origin/main`.
+  - This means the immediate PRs should be draft/status PRs unless or until the current history is sliced into smaller stacked review branches.
+- CI linking commands confirmed from workflows:
+  - Prisma PR bodies can use `/engine-branch <branch>`; `.github/workflows/build-engine-branch.yml` checks out that branch from `prisma/prisma-engines`, builds native engines plus Wasm packages, and intentionally blocks merge until the command is removed.
+  - Engines PR bodies can use `/prisma-branch <branch>`; `.github/workflows/select-prisma-branch.yml` feeds that branch into query-engine test setup so adapter/client code is built from the sibling Prisma branch.
+  - Engines integration release builds are triggered by an `integration/` branch or a commit message containing `[integration]`; this is separate from `/prisma-branch`.
+- Verification rerun:
+  - `pnpm --filter @prisma/client-generator-ts test buildExactDescriptorMatcherRegistry.test.ts`: passed, 17 tests.
+  - `pnpm --filter @prisma/client-generator-js test buildExactDescriptorMatcherRegistry.test.ts`: passed, 17 tests.
+  - `pnpm --filter @prisma/client-generator-ts build`: passed outside sandbox for the known `tsx` IPC restrictions.
+  - `pnpm --filter @prisma/client-generator-js build`: passed outside sandbox for the known `tsx` IPC restrictions.
+- Draft PR packaging plan:
+  - Push the engines head as `prisma-client-performance-2026-06-08-engines` rather than pushing local `main`.
+  - Push the Prisma head as `prisma-client-performance-2026-06-08`.
+  - Open linked draft PRs with `/prisma-branch prisma-client-performance-2026-06-08` in the engines body and `/engine-branch prisma-client-performance-2026-06-08-engines` in the Prisma body.
+  - Mark both PRs as not merge-ready because the branches are large and slightly behind fresh `origin/main`; use them to expose status and CI, then slice the history into smaller stacked branches if review requires it.
