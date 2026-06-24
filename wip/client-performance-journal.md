@@ -17296,3 +17296,46 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: M:N Set/Disconnect Pruning Split Branch (2026-06-24)
+
+- Goal:
+  - Extract a reviewable engines write-graph pruning slice for M:N `disconnect`, `set: []`, and non-empty `set`, while avoiding unrelated raw-nested read-plan history and broader nested update/upsert pruning.
+- Branch:
+  - Pushed `prisma-client-perf-m2m-set-disconnect-pruning` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-direct-placeholder-storage`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-m2m-set-disconnect-pruning.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-direct-placeholder-storage`:
+  - `query-compiler/core/src/query_ast/write.rs`
+  - `query-compiler/core/src/query_graph_builder/inputs.rs`
+  - `query-compiler/core/src/query_graph_builder/write/disconnect.rs`
+  - `query-compiler/core/src/query_graph_builder/write/nested/disconnect_nested.rs`
+  - `query-compiler/core/src/query_graph_builder/write/nested/set_nested.rs`
+  - `query-compiler/query-builders/query-builder/src/lib.rs`
+  - `query-compiler/query-builders/sql-query-builder/src/lib.rs`
+  - `query-compiler/query-builders/sql-query-builder/src/write.rs`
+  - `query-compiler/query-structure/src/model.rs`
+  - `query-compiler/query-compiler/src/data_mapper.rs`
+  - `query-compiler/query-compiler/src/translate/query/write.rs`
+  - query fixtures/snapshots for `update-m2m-disconnect`, `update-m2m-set-empty`, and `update-m2m-set`.
+- Split commits:
+  - `0216f7e0e96`, from original `d2fa2a3bf53`: skip M:N disconnect child read.
+  - `dfcf320477d`, from original `45947adb1f5`: skip M:N empty set child read.
+  - `be5b268b039`, from original `6a92e4ddeeb`: skip M:N non-empty set child read.
+  - `096a111c583`: add the minimal `Model::single_primary_identifier_scalar()` helper and remove stale `DependentOperation::DisconnectRecords` scaffolding instead of pulling in broader raw-nested helper or validation-compaction commits.
+  - `745b8606b50`: refresh `update-m2m-set*` snapshots for this branch's actual stack base.
+- Fresh-base/stack adaptation:
+  - The `d2fa2a3bf53` snapshot conflicted with the separate filter-extraction split; resolved it to current-base filter rendering plus the new direct relation-table delete.
+  - The `6a92e4ddeeb` import conflict came from the required one-to-many set-phase branch (`102c8fb35ae`), which is not part of this M:N slice. Kept the existing M:N-specific imports and excluded that required-set machinery.
+  - The new set snapshots originally came from the monolithic branch after raw-nested read-plan commits. On this stack base, final reads still use the join-based shape, so the generated branch-local snapshots are intentionally different from the monolithic raw-nested snapshots.
+  - A standalone `cargo check -p sql-query-builder` is not a valid validation gate here because the crate does not enable a Quaint SQL-family feature by default; `cargo check -p query-compiler` compiles `sql-query-builder` through the workspace feature path and passed.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo check -p query-structure`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo check -p query-builder`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
