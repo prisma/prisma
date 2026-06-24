@@ -1,4 +1,4 @@
-import { ArgType, Arity } from '@prisma/driver-adapter-utils'
+import type { ArgScalarType, ArgType, Arity } from '@prisma/driver-adapter-utils'
 
 export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
 
@@ -26,6 +26,7 @@ export type PrismaValue =
   | PrismaValueGenerator
 
 export type ResultNode =
+  | FieldScalarTypeName
   | {
       type: 'affectedRows'
     }
@@ -62,7 +63,9 @@ export type QueryPlanDbQuery =
       chunkable: boolean
     }
 
-export type DynamicArgType = ArgType | { arity: 'tuple'; elements: ArgType[] }
+export type QueryPlanArgType = ArgScalarType | ArgType
+
+export type DynamicArgType = QueryPlanArgType | { arity: 'tuple'; elements: QueryPlanArgType[] }
 
 export type Fragment =
   | string
@@ -316,21 +319,23 @@ export type ValidationError =
 
 export type FieldArity = Arity | 'required' | 'optional'
 
-export type FieldType = { arity?: FieldArity } & FieldScalarType
+export type FieldType = FieldScalarTypeName | ({ arity?: FieldArity } & FieldScalarType)
+
+export type FieldScalarTypeName =
+  | 'string'
+  | 'int'
+  | 'bigint'
+  | 'float'
+  | 'boolean'
+  | 'json'
+  | 'object'
+  | 'datetime'
+  | 'decimal'
+  | 'unsupported'
 
 export type FieldScalarType =
   | {
-      type:
-        | 'string'
-        | 'int'
-        | 'bigint'
-        | 'float'
-        | 'boolean'
-        | 'json'
-        | 'object'
-        | 'datetime'
-        | 'decimal'
-        | 'unsupported'
+      type: FieldScalarTypeName
     }
   | { type: 'enum'; name: string }
   | { type: 'bytes'; encoding: 'array' | 'base64' | 'hex' }

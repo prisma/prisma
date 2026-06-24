@@ -10,6 +10,7 @@ import {
   JoinExpression,
   QueryPlanDbQuery,
   QueryPlanNode,
+  type ResultNode,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
@@ -54,6 +55,12 @@ type QueryRuntimeContext = {
 export type QueryInterpreterSqlCommenter = {
   plugins: SqlCommenterPlugin[]
   queryInfo: SqlCommenterQueryInfo
+}
+
+function isObjectResultNode(
+  structure: DeepReadonly<ResultNode>,
+): structure is DeepReadonly<Extract<ResultNode, { type: 'object' }>> {
+  return typeof structure === 'object' && structure.type === 'object'
 }
 
 export class QueryInterpreter {
@@ -279,13 +286,13 @@ export class QueryInterpreter {
         const expr = node.args.expr
         if (expr.type === 'query' && expr.args.type !== 'rawSql') {
           const { structure, enums } = node.args
-          if (structure.type === 'object') {
+          if (isObjectResultNode(structure)) {
             const results = await this.#executeQuery(expr.args, context)
             return { value: applyDataMapToResultSet(results, structure, enums), lastInsertId: results.lastInsertId }
           }
         } else if (expr.type === 'unique' && expr.args.type === 'query' && expr.args.args.type !== 'rawSql') {
           const { structure, enums } = node.args
-          if (structure.type === 'object') {
+          if (isObjectResultNode(structure)) {
             const results = await this.#executeQuery(expr.args.args, context)
             const value = applyDataMapToResultSet(results, structure, enums)
 
