@@ -17620,3 +17620,40 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
     - hand-build the final compact-only consumer shape against current `origin/main`, explicitly excluding direct result-set mapping performance work until its own branch.
 - Cleanup:
   - `/tmp/prisma-compact-plan-format` is clean at `origin/main`; no partial consumer branch was pushed.
+
+## Packaging: Prisma Render/Data-Mapper Prerequisite Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the prerequisite Prisma runtime/render/data-mapper series needed before a clean compact-only query-plan consumer branch can be stacked.
+- Branch:
+  - Reused `/tmp/prisma-compact-plan-format`, switched it to `prisma-client-perf-render-datamapper-prereqs` from refreshed `origin/main`.
+  - Pushed `prisma-client-perf-render-datamapper-prereqs` to `prisma/prisma`.
+  - PR creation URL: https://github.com/prisma/prisma/pull/new/prisma-client-perf-render-datamapper-prereqs.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope:
+  - `packages/client-engine-runtime/src/interpreter/render-query.ts`
+  - `packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+  - `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+  - `packages/client-engine-runtime/src/interpreter/data-mapper.test.ts`
+  - `AGENTS.md`
+- Split commits:
+  - `6c907d3f5`, from original `912149063`: fast path static template SQL rendering, adapted with only the small `evaluateArgs()` helper instead of broad `cc5452bb4`.
+  - `9f37bd8f8`, from original `c6b31b6a8`: cache flat template SQL rendering.
+  - `d4e3be402`, from original `783ee5b2b`: render tuple placeholders without map joins.
+  - `440092960`, from original `fefa8a47b`: inline non-flat SQL template rendering; old `AGENTS.md` benchmark note dropped from this branch.
+  - `7b8fb9c84`, from original `cc7f692dd`: inline SQL template chunk planning.
+  - `2ba22d317`, from original `48e0b6fbd`: skip chunk rebuild within parameter limit.
+  - `6178d400b`, from original `e95ad9753`: map simple query results directly, adapted to current main's `cloneObject()` semantics instead of the later `asMutable()` helper.
+  - `e9971e29f`, from original `ec3857e9d`: reuse direct mapper field entries.
+  - `355892f37`, from original `157c537fc`: cache direct result field mappings.
+  - `33c51d6f4`, from original `035eb8685`: cache result mappings by column shape.
+- Validation:
+  - `pnpm install --offline --ignore-scripts`: passed. Plain `pnpm install --offline` first failed because local `better-sqlite3` rebuild needs `g++`, which is absent in this container.
+  - `pnpm --filter @prisma/client-engine-runtime... build`: passed under unsandboxed execution. The first sandboxed run failed with `tsx` IPC `listen EPERM` under `/tmp`.
+  - `pnpm --filter @prisma/client-engine-runtime exec vitest run src/interpreter/data-mapper.test.ts src/interpreter/render-query.test.ts`: passed, 17 tests.
+  - `pnpm --filter @prisma/client-engine-runtime test`: passed, 205 tests.
+  - `git diff --check`: passed.
+- PR body linkage:
+  - No `/engine-branch` command required; this is Prisma-only and targets current `main`.
+- Decision:
+  - This is the right base for the compact Prisma consumer branch. The next compact consumer attempt should start from `prisma-client-perf-render-datamapper-prereqs`, then apply the compact-only query-plan reader changes without carrying old-format compatibility as the final review shape.

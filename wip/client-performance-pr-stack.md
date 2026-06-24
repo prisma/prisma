@@ -10,6 +10,8 @@ This document tracks how the large performance branches are being exposed and sp
 - Engines status PR: https://github.com/prisma/prisma-engines/pull/5820
 - Extracted engines PR 1: https://github.com/prisma/prisma-engines/pull/5821
 - Extracted engines PR 2: https://github.com/prisma/prisma-engines/pull/5822
+- Pushed Prisma split branches awaiting PR creation:
+  - `prisma-client-perf-render-datamapper-prereqs`
 - Pushed engines split branches awaiting PR creation:
   - `prisma-client-perf-compact-plan-format-engines`
   - `prisma-client-perf-graph-translation-cleanups`
@@ -159,6 +161,48 @@ Suggested temporary PR body linkage, until the matching compact Prisma consumer 
 ```
 
 This branch is the producer half of the lockstep compact internal format. It should not be merged without a matching Prisma consumer PR that reads the same compact-only shape. It deliberately excludes `b64c854d6e2` (`perf(query-compiler): compact validation expectations`), because that is a broader validation-storage rewrite and is not required for the serialized compact plan producer shape.
+
+### Ready To Open: Prisma Render/Data-Mapper Prerequisites
+
+PR creation URL: https://github.com/prisma/prisma/pull/new/prisma-client-perf-render-datamapper-prereqs
+
+Branch: `prisma-client-perf-render-datamapper-prereqs`
+
+Base branch: `main`
+
+Original commits:
+
+- `912149063`: fast path static template SQL rendering, adapted with only the needed `evaluateArgs()` helper instead of broad `cc5452bb4`.
+- `c6b31b6a8`: cache flat template SQL rendering.
+- `783ee5b2b`: render tuple placeholders without map joins.
+- `fefa8a47b`: inline non-flat SQL template rendering; old `AGENTS.md` note dropped from the split branch.
+- `cc7f692dd`: inline SQL template chunk planning.
+- `48e0b6fbd`: skip chunk rebuild within parameter limit.
+- `e95ad9753`: map simple query results directly, adapted to current main's `cloneObject()` semantics instead of the later no-clone `asMutable()` helper.
+- `ec3857e9d`: reuse direct mapper field entries.
+- `157c537fc`: cache direct result field mappings.
+- `035eb8685`: cache result mappings by column shape.
+
+Scope:
+
+- `packages/client-engine-runtime/src/interpreter/render-query.ts`
+- `packages/client-engine-runtime/src/interpreter/data-mapper.ts`
+- `packages/client-engine-runtime/src/interpreter/query-interpreter.ts`
+- `packages/client-engine-runtime/src/interpreter/data-mapper.test.ts`
+- `AGENTS.md`
+
+Validation:
+
+- `pnpm install --offline --ignore-scripts`: passed after plain `pnpm install --offline` failed on local `better-sqlite3` rebuild because the container lacks `g++`.
+- `pnpm --filter @prisma/client-engine-runtime... build`: passed under unsandboxed execution; sandboxed run failed because `tsx` could not create IPC pipes under `/tmp`.
+- `pnpm --filter @prisma/client-engine-runtime exec vitest run src/interpreter/data-mapper.test.ts src/interpreter/render-query.test.ts`: passed, 17 tests.
+- `pnpm --filter @prisma/client-engine-runtime test`: passed, 205 tests.
+
+PR body linkage:
+
+- No `/engine-branch` command required. This branch is Prisma-only and is intended as the base for the compact consumer split.
+
+This branch should be reviewed before the compact Prisma consumer branch. It isolates render-query and direct result-set data-mapper prerequisites so the compact-format PR does not hide unrelated runtime scaffolding inside conflict resolutions.
 
 ### Ready To Open: Engines Graph/Translation Cleanups
 
@@ -695,6 +739,7 @@ This branch is safe to review independently from the parser/request and selectio
 1. `perf-stack/01-compact-query-plan-format`
    - Areas: `packages/client-engine-runtime/src/query-plan.ts`, interpreter/render/validation/data-mapper fixtures, `deserializeRawParameters`, `packages/query-plan-executor`.
    - Cut rule: squash to the final compact-only internal format. Do not expose temporary "accept compact plus retain legacy" history as a review boundary.
+   - Current prerequisite split: `prisma-client-perf-render-datamapper-prereqs`, pushed and validated, pending PR creation after GitHub auth refresh. Stack the compact consumer branch on this instead of hiding render/data-mapper prerequisites in compact-format conflict resolutions.
 
 2. `perf-stack/02-clientengine-cache-and-precomputed-results`
    - Areas: `ClientEngine`, query-plan cache, `RequestHandler`, `applyModel`, engine interfaces, batch/precomputed cache-key tests.
