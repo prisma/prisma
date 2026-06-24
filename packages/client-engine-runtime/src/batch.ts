@@ -1,5 +1,5 @@
 import { deserializeJsonObject } from './json-protocol'
-import type { PrismaValuePlaceholder, QueryPlanNode } from './query-plan'
+import type { QueryPlanNode } from './query-plan'
 import { getPrismaValuePlaceholderName, isPrismaValuePlaceholder } from './query-plan'
 import { UserFacingError } from './user-facing-error'
 import { doKeysMatch } from './utils'
@@ -20,37 +20,6 @@ export type CompactedBatchResponse = {
   expectNonEmpty: boolean
 }
 
-type QueryProtocolPlaceholder = { $type: 'Param'; value: { name: string } }
-type Placeholder = QueryProtocolPlaceholder | PrismaValuePlaceholder
-
-/**
- * Checks if a value is a placeholder.
- * Handles both query-protocol `{ $type: 'Param', value: { name: '...' } }`
- * and query-plan placeholder formats.
- */
-function isPlaceholder(value: unknown): value is Placeholder {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-  const obj = value as Record<string, unknown>
-  if ('$type' in obj && obj.$type === 'Param') {
-    const placeholderValue = obj.value
-    return (
-      typeof placeholderValue === 'object' &&
-      placeholderValue !== null &&
-      typeof (placeholderValue as Record<string, unknown>).name === 'string'
-    )
-  }
-  return isPrismaValuePlaceholder(value)
-}
-
-function getPlaceholderName(value: Placeholder): string {
-  if (isPrismaValuePlaceholder(value)) {
-    return getPrismaValuePlaceholderName(value)
-  }
-  return value.value.name
-}
-
 function resolveArgPlaceholders(
   args: Record<string, {}>,
   placeholderValues: Record<string, unknown>,
@@ -58,8 +27,8 @@ function resolveArgPlaceholders(
   const resolved: Record<string, {}> = {}
   for (const [key, value] of Object.entries(args)) {
     resolved[key] = value
-    if (isPlaceholder(value)) {
-      const placeholderName = getPlaceholderName(value)
+    if (isPrismaValuePlaceholder(value)) {
+      const placeholderName = getPrismaValuePlaceholderName(value)
       if (placeholderName in placeholderValues) {
         resolved[key] = placeholderValues[placeholderName] as {}
       }
