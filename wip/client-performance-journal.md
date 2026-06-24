@@ -17595,3 +17595,28 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Temporary until a compact Prisma consumer split exists: `/prisma-branch prisma-client-performance-2026-06-08`.
 - Decision:
   - This is a worthy producer-side branch for review, but it should not merge without a matching Prisma consumer PR for the same compact-only internal query-plan format.
+
+## Packaging Probe: Compact Query-Plan Consumer Prerequisites (2026-06-24)
+
+- Goal:
+  - Continue the matching Prisma consumer split for `perf-stack/01-compact-query-plan-format` after pushing the engines producer branch.
+- Probe:
+  - Created `/tmp/prisma-compact-plan-format` from refreshed Prisma `origin/main` on branch `prisma-client-perf-compact-plan-format`.
+  - Reproduced the previous direct cherry-pick conflict: `af55854c7` applies, then `dc8657d7f` (`Accept compact SQL string fragments`) conflicts in `packages/client-engine-runtime/src/interpreter/render-query.ts`.
+  - Aborted and retried with the narrow render-query prerequisite chain before the compact commits.
+  - `912149063` (`Fast path static template SQL rendering`) conflicted because it relied on the small `evaluateArgs()` helper from broader runtime commit `cc5452bb4`. Resolved narrowly by adding only that helper plus the no-arg template fast path.
+  - `c6b31b6a8` (`Cache flat template SQL rendering`) then conflicted but resolved narrowly by taking the flat-rendering helper path.
+  - `783ee5b2b`, `fefa8a47b`, `cc7f692dd`, `48e0b6fbd`, `af55854c7`, and `dc8657d7f` then replayed after dropping an old `AGENTS.md` note from `fefa8a47b`.
+  - The replay stopped at `eb652f538` (`Allow omitted result field db names`): it conflicts in `data-mapper.ts` and tries to modify deleted `data-mapper.test.ts` because the compact data-mapper commits were authored on top of the direct result-set mapping prerequisite series, not current `origin/main`.
+- Finding:
+  - The compact Prisma consumer split has two prerequisite clusters, not one:
+    - render-query template rendering prerequisites: `912149063`, `c6b31b6a8`, `783ee5b2b`, `fefa8a47b`, `cc7f692dd`, `48e0b6fbd`.
+    - direct result-set data-mapper prerequisites: `e95ad9753`, `ec3857e9d`, `157c537fc`, `035eb8685`.
+  - Do not hide the direct result-set mapping series inside an `eb652f538` conflict resolution; that would blur the compact-format review boundary and resurrect deleted tests in an odd intermediate shape.
+- Decision:
+  - Aborted the consumer attempt back to clean `origin/main`.
+  - Next Prisma packaging work should either:
+    - extract a separate render/data-mapper prerequisite branch first, then stack the compact-only consumer branch on it; or
+    - hand-build the final compact-only consumer shape against current `origin/main`, explicitly excluding direct result-set mapping performance work until its own branch.
+- Cleanup:
+  - `/tmp/prisma-compact-plan-format` is clean at `origin/main`; no partial consumer branch was pushed.
