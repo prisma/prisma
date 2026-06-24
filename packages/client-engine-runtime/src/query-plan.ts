@@ -354,26 +354,7 @@ export type InMemoryOps = {
   nested?: Record<string, InMemoryOps>
 }
 
-export type DataRule = LegacyDataRule | CompactDataRule
-
-export type LegacyDataRule =
-  | {
-      type: 'rowCountEq'
-      args: number
-    }
-  | {
-      type: 'rowCountNeq'
-      args: number
-    }
-  | {
-      type: 'affectedRowCountEq'
-      args: number
-    }
-  | {
-      type: 'never'
-    }
-
-export type CompactDataRule =
+export type DataRule =
   | readonly [type: '=', args: number]
   | readonly [type: '!', args: number]
   | readonly [type: 'a', args: number]
@@ -382,9 +363,6 @@ export type CompactDataRule =
 export function getDataRuleType(rule: DataRule): 'rowCountEq' | 'rowCountNeq' | 'affectedRowCountEq' | 'never' {
   if (rule === 'n') {
     return 'never'
-  }
-  if ('type' in rule) {
-    return rule.type
   }
   switch (rule[0]) {
     case '=':
@@ -401,21 +379,14 @@ export function getDataRuleArgs(rule: DataRule): number {
   if (rule === 'n') {
     throw new Error('Never data rule has no arguments')
   }
-  if ('type' in rule) {
-    if (rule.type !== 'never') {
-      return rule.args
-    }
-    throw new Error('Never data rule has no arguments')
-  }
   return rule[1]
 }
 
 export type CompactValidationErrorIdentifier = 'r' | 'm' | 'M' | 'i' | 'o' | 'n'
 
-export type QueryPlanValidationErrorIdentifier = ValidationError['errorIdentifier'] | CompactValidationErrorIdentifier
+export type QueryPlanValidationErrorIdentifier = CompactValidationErrorIdentifier
 
 export type QueryPlanValidationErrorContext =
-  | ValidationError['context']
   | readonly [relation: string, modelA: string, modelB: string]
   | readonly [model: string, relation: string, relationType: string, operation: string, neededFor?: string]
   | string
@@ -508,8 +479,6 @@ export function getValidationError(
       const [relation, parent, child] = context as readonly [string, string, string]
       return { errorIdentifier: 'RECORDS_NOT_CONNECTED', context: { relation, parent, child } }
     }
-    default:
-      return { errorIdentifier, context } as ValidationError
   }
 }
 

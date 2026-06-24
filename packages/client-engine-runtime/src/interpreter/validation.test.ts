@@ -10,13 +10,6 @@ test('checks compact data rules', () => {
   expect(doesSatisfyRule([1, 2], 'n')).toBe(false)
 })
 
-test('checks legacy data rules', () => {
-  expect(doesSatisfyRule([1, 2], { type: 'rowCountEq', args: 2 })).toBe(true)
-  expect(doesSatisfyRule([1, 2], { type: 'rowCountNeq', args: 1 })).toBe(true)
-  expect(doesSatisfyRule(3, { type: 'affectedRowCountEq', args: 3 })).toBe(true)
-  expect(doesSatisfyRule([1, 2], { type: 'never' })).toBe(false)
-})
-
 test('normalizes compact validation errors', () => {
   expect(getValidationError('r', ['PostToUser', 'Post', 'User'])).toEqual({
     errorIdentifier: 'RELATION_VIOLATION',
@@ -52,24 +45,5 @@ test('normalizes compact validation errors', () => {
   expect(getValidationError('n', ['PostToUser', 'Post', 'User'])).toEqual({
     errorIdentifier: 'RECORDS_NOT_CONNECTED',
     context: { relation: 'PostToUser', parent: 'Post', child: 'User' },
-  })
-})
-
-test('passes through legacy validation errors', () => {
-  expect(
-    getValidationError('MISSING_RELATED_RECORD', {
-      model: 'Post',
-      relation: 'PostToUser',
-      relationType: 'one-to-many',
-      operation: 'connect',
-    }),
-  ).toEqual({
-    errorIdentifier: 'MISSING_RELATED_RECORD',
-    context: {
-      model: 'Post',
-      relation: 'PostToUser',
-      relationType: 'one-to-many',
-      operation: 'connect',
-    },
   })
 })
