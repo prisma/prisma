@@ -94,6 +94,38 @@ test('accepts compact scalar arg types', () => {
   ])
 })
 
+test('accepts compact native scalar arg types', () => {
+  expect(
+    renderQuery(
+      {
+        type: 'templateSql',
+        fragments: ['SELECT * FROM users WHERE id = ', { type: 'parameter' }, ' AND email = ', { type: 'parameter' }],
+        placeholderFormat: {
+          prefix: '$',
+          hasNumbering: true,
+        } satisfies PlaceholderFormat,
+        args: [1, 'alice@example.com'],
+        argTypes: [
+          ['int', 'INTEGER'],
+          ['string', 'TEXT'],
+        ],
+        chunkable: false,
+      } satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND email = $2',
+      args: [1, 'alice@example.com'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int', dbType: 'INTEGER' },
+        { arity: 'scalar', scalarType: 'string', dbType: 'TEXT' },
+      ],
+    },
+  ])
+})
+
 test('accepts compact template SQL queries', () => {
   expect(
     renderQuery(
@@ -114,6 +146,34 @@ test('accepts compact template SQL queries', () => {
       argTypes: [
         { arity: 'scalar', scalarType: 'int' },
         { arity: 'scalar', scalarType: 'string' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact native scalar arg types in compact template SQL queries', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND email = ', null],
+        ['$', true],
+        [1, 'alice@example.com'],
+        [
+          ['int', 'INTEGER'],
+          ['string', 'TEXT'],
+        ],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND email = $2',
+      args: [1, 'alice@example.com'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int', dbType: 'INTEGER' },
+        { arity: 'scalar', scalarType: 'string', dbType: 'TEXT' },
       ],
     },
   ])
@@ -211,6 +271,39 @@ test('accepts compact parameter tuple fragments', () => {
       sql: 'SELECT * FROM users WHERE id IN ($1,$2,$3)',
       args: [1, 2, 3],
       argTypes: Array.from({ length: 3 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+    },
+  ])
+})
+
+test('normalizes compact arg types in tuple arguments', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE (id, email) IN ', ['T', '', ',', '']],
+        ['$', true],
+        [[1, 'alice@example.com']],
+        [
+          {
+            arity: 'tuple',
+            elements: [
+              ['int', 'INTEGER'],
+              ['string', 'TEXT'],
+            ],
+          },
+        ],
+        true,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE (id, email) IN ($1,$2)',
+      args: [1, 'alice@example.com'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int', dbType: 'INTEGER' },
+        { arity: 'scalar', scalarType: 'string', dbType: 'TEXT' },
+      ],
     },
   ])
 })
