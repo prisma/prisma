@@ -17339,3 +17339,33 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Required Set Pruning Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the required one-to-many `set` owner phase as a focused follow-up on top of the M:N set/disconnect pruning branch.
+- Branch:
+  - Pushed `prisma-client-perf-required-set-pruning` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-m2m-set-disconnect-pruning`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-required-set-pruning.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-m2m-set-disconnect-pruning`:
+  - `query-compiler/core/src/query_graph/formatters.rs`
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/inputs.rs`
+  - `query-compiler/core/src/query_graph_builder/write/nested/set_nested.rs`
+  - `query-compiler/query-compiler/src/translate.rs`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@update-set-nested.json.snap`
+- Split commit:
+  - `335dbb0b181`, from original `102c8fb35ae`: own required nested set phase.
+- Fresh-base/stack adaptation:
+  - The original commit was authored after older empty one-to-many `set` specialization. This split intentionally excludes that empty-set branch and applies only the non-empty required scalar-link owner phase.
+  - Resolved the snapshot by keeping this stack's join-based final read shape while taking the new validation-only required-set diff behavior.
+  - Deliberately deferred `d3d45546416` (`perf(query-compiler): specialize empty nested set`) and `a87f6ccff37` (`perf(query-compiler): skip required set disconnect updates`) into their own future branch if still desired.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
