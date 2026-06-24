@@ -382,7 +382,7 @@ export type QueryPlanCompactNode =
   | readonly ['m', string, QueryPlanNode]
   | readonly ['t', QueryPlanNode]
   | readonly ['d', QueryPlanNode, ResultNode, Record<string, Record<string, string>>]
-  | readonly ['V', QueryPlanNode, DataRule[], ValidationError['errorIdentifier'], ValidationError['context']]
+  | readonly ['V', QueryPlanNode, DataRule[], QueryPlanValidationErrorIdentifier, QueryPlanValidationErrorContext]
   | readonly ['?', QueryPlanNode, DataRule, QueryPlanNode, QueryPlanNode]
   | readonly ['0']
   | readonly ['-', QueryPlanNode, QueryPlanNode, string[]]
@@ -469,6 +469,19 @@ export function getDataRuleArgs(rule: DataRule): number {
   return rule[1]
 }
 
+export type CompactValidationErrorIdentifier = 'r' | 'm' | 'M' | 'i' | 'o' | 'n'
+
+export type QueryPlanValidationErrorIdentifier = ValidationError['errorIdentifier'] | CompactValidationErrorIdentifier
+
+export type QueryPlanValidationErrorContext =
+  | ValidationError['context']
+  | readonly [relation: string, modelA: string, modelB: string]
+  | readonly [model: string, relation: string, relationType: string, operation: string, neededFor?: string]
+  | string
+  | number
+  | readonly [expectedRows: number, relation: string, relationType: string]
+  | readonly [relation: string, parent: string, child: string]
+
 export type ValidationError =
   | {
       errorIdentifier: 'RELATION_VIOLATION'
@@ -516,6 +529,48 @@ export type ValidationError =
         child: string
       }
     }
+
+export function getValidationError(
+  errorIdentifier: QueryPlanValidationErrorIdentifier,
+  context: QueryPlanValidationErrorContext,
+): ValidationError {
+  switch (errorIdentifier) {
+    case 'r': {
+      const [relation, modelA, modelB] = context as readonly [string, string, string]
+      return { errorIdentifier: 'RELATION_VIOLATION', context: { relation, modelA, modelB } }
+    }
+    case 'm': {
+      const [model, relation, relationType, operation, neededFor] = context as readonly [
+        string,
+        string,
+        string,
+        string,
+        string | undefined,
+      ]
+      return {
+        errorIdentifier: 'MISSING_RELATED_RECORD',
+        context:
+          neededFor === undefined
+            ? { model, relation, relationType, operation }
+            : { model, relation, relationType, operation, neededFor },
+      }
+    }
+    case 'M':
+      return { errorIdentifier: 'MISSING_RECORD', context: { operation: context as string } }
+    case 'i':
+      return { errorIdentifier: 'INCOMPLETE_CONNECT_INPUT', context: { expectedRows: context as number } }
+    case 'o': {
+      const [expectedRows, relation, relationType] = context as readonly [number, string, string]
+      return { errorIdentifier: 'INCOMPLETE_CONNECT_OUTPUT', context: { expectedRows, relation, relationType } }
+    }
+    case 'n': {
+      const [relation, parent, child] = context as readonly [string, string, string]
+      return { errorIdentifier: 'RECORDS_NOT_CONNECTED', context: { relation, parent, child } }
+    }
+    default:
+      return { errorIdentifier, context } as ValidationError
+  }
+}
 
 export type FieldArity = Arity | 'required' | 'optional'
 
