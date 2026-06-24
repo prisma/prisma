@@ -30,17 +30,24 @@ export type ResultNode =
   | {
       type: 'affectedRows'
     }
-  | {
-      type: 'object'
-      fields: Record<string, ResultNode>
-      serializedName: string | null
-      skipNulls: boolean
-    }
+  | ResultObjectNode
+  | CompactResultObjectNode
   | {
       type?: 'field'
       dbName?: string
       fieldType: FieldType
     }
+
+export type ResultObjectNode = {
+  type: 'object'
+  fields: Record<string, ResultNode>
+  serializedName: string | null
+  skipNulls: boolean
+}
+
+export type CompactResultObjectNode =
+  | readonly [serializedName: string | null, fields: Record<string, ResultNode>]
+  | readonly [serializedName: string | null, fields: Record<string, ResultNode>, skipNulls: boolean]
 
 export type QueryPlanBinding = {
   name: string

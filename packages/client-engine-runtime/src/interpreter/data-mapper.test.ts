@@ -49,6 +49,43 @@ test('maps compact scalar field nodes', () => {
   expect(applyDataMapToResultSet(resultSet, structure, {})).toEqual([{ id: 1, name: 'Alice' }])
 })
 
+test('maps compact result object nodes', () => {
+  const resultSet = {
+    columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
+    columnNames: ['id', 'type'],
+    rows: [[1, 'admin']],
+  }
+  const structure = [
+    null,
+    {
+      id: 'int',
+      type: 'string',
+    },
+  ] satisfies ResultNode
+
+  expect(applyDataMap(serializeSql(resultSet), structure, {})).toEqual([{ id: 1, type: 'admin' }])
+  expect(applyDataMapToResultSet(resultSet, structure, {})).toEqual([{ id: 1, type: 'admin' }])
+})
+
+test('maps compact result object nodes with serialized names', () => {
+  const structure = [
+    null,
+    {
+      profile: [
+        'profile',
+        {
+          id: 'int',
+          type: 'string',
+        },
+      ],
+    },
+  ] satisfies ResultNode
+
+  expect(applyDataMap([{ profile: { id: 1, type: 'admin' } }], structure, {})).toEqual([
+    { profile: { id: 1, type: 'admin' } },
+  ])
+})
+
 test('direct result-set mapping uses the last duplicate column name', () => {
   const resultSet = {
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Int32],

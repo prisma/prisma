@@ -1,7 +1,14 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
-import { FieldScalarType, FieldScalarTypeName, FieldType, ResultNode } from '../query-plan'
+import {
+  CompactResultObjectNode,
+  FieldScalarType,
+  FieldScalarTypeName,
+  FieldType,
+  ResultNode,
+  ResultObjectNode,
+} from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
@@ -43,13 +50,39 @@ type ResultSetFieldMapping =
       type: 'valueObject'
       name: string
       columnIndex: number
-      node: Extract<ResultNode, { type: 'object' }>
+      node: ObjectResultNode
     }
 
+type ObjectResultNode = ResultObjectNode | CompactResultObjectNode
 type FieldResultNode = FieldScalarTypeName | Extract<ResultNode, { fieldType: FieldType }>
 
+function isCompactObjectNode(node: ResultNode | ObjectResultNode): node is CompactResultObjectNode {
+  return Array.isArray(node)
+}
+
 function isFieldNode(node: ResultNode): node is FieldResultNode {
-  return typeof node === 'string' || 'fieldType' in node
+  return typeof node === 'string' || (!isCompactObjectNode(node) && 'fieldType' in node)
+}
+
+function getObjectFields(node: ObjectResultNode): Record<string, ResultNode> {
+  if (isCompactObjectNode(node)) {
+    return node[1]
+  }
+  return node.fields
+}
+
+function getObjectSerializedName(node: ObjectResultNode): string | null {
+  if (isCompactObjectNode(node)) {
+    return node[0]
+  }
+  return node.serializedName
+}
+
+function getObjectSkipNulls(node: ObjectResultNode): boolean {
+  if (isCompactObjectNode(node)) {
+    return node[2] ?? false
+  }
+  return node.skipNulls
 }
 
 function getFieldType(node: FieldResultNode): FieldType {
@@ -61,7 +94,13 @@ function getDbName(name: string, node: FieldResultNode): string {
 }
 
 function getResultNodeType(node: ResultNode): string | undefined {
-  return typeof node === 'string' ? 'field' : (node.type ?? 'field')
+  if (typeof node === 'string') {
+    return 'field'
+  }
+  if (Array.isArray(node)) {
+    return 'object'
+  }
+  return 'type' in node ? (node.type ?? 'field') : 'field'
 }
 
 function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
@@ -74,6 +113,10 @@ function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNod
 }
 
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
+  if (isCompactObjectNode(structure)) {
+    return mapArrayOrObject(data, getObjectFields(structure), enums, getObjectSkipNulls(structure))
+  }
+
   if (isFieldNode(structure)) {
     return mapValue(data, '<result>', getFieldType(structure), enums)
   }
@@ -95,7 +138,7 @@ export function applyDataMap(data: Value, structure: ResultNode, enums: Record<s
 
 export function applyDataMapToResultSet(
   resultSet: SqlResultSet,
-  structure: Extract<ResultNode, { type: 'object' }>,
+  structure: ObjectResultNode,
   enums: Record<string, Record<string, string>>,
 ): PrismaObject[] {
   const rows = resultSet.rows
@@ -103,7 +146,7 @@ export function applyDataMapToResultSet(
     return []
   }
 
-  const fieldMappings = getResultSetFieldMappings(structure.fields, resultSet.columnNames)
+  const fieldMappings = getResultSetFieldMappings(getObjectFields(structure), resultSet.columnNames)
   const result = new Array<PrismaObject>(rows.length)
 
   for (let i = 0; i < rows.length; i++) {
@@ -173,6 +216,19 @@ function mapObject(
       continue
     }
 
+    if (isCompactObjectNode(node)) {
+      const serializedName = getObjectSerializedName(node)
+      if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
+        throw new DataMapperError(
+          `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
+        )
+      }
+
+      const target = serializedName !== null ? data[serializedName] : data
+      result[name] = mapArrayOrObject(target, getObjectFields(node), enums, getObjectSkipNulls(node))
+      continue
+    }
+
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
@@ -218,7 +274,12 @@ function mapResultSetRow(
 
       case 'valueObject': {
         const node = mapping.node
-        result[mapping.name] = mapArrayOrObject(row[mapping.columnIndex] as Value, node.fields, enums, node.skipNulls)
+        result[mapping.name] = mapArrayOrObject(
+          row[mapping.columnIndex] as Value,
+          getObjectFields(node),
+          enums,
+          getObjectSkipNulls(node),
+        )
         break
       }
 
@@ -299,6 +360,34 @@ function buildResultSetFieldMappings(
         dbName,
         columnIndex,
         fieldType: getFieldType(node),
+      }
+      continue
+    }
+
+    if (isCompactObjectNode(node)) {
+      const serializedName = getObjectSerializedName(node)
+      if (serializedName === null) {
+        result[i] = {
+          type: 'rowObject',
+          name,
+          fields: buildResultSetFieldMappings(getObjectFields(node), columnIndexes),
+        }
+        continue
+      }
+
+      const columnIndex = columnIndexes[serializedName]
+      if (columnIndex === undefined) {
+        throw new DataMapperError(
+          `Missing data field (Object): '${name}'; ` +
+            `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
+        )
+      }
+
+      result[i] = {
+        type: 'valueObject',
+        name,
+        columnIndex,
+        node,
       }
       continue
     }
