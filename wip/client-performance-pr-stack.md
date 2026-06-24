@@ -710,6 +710,8 @@ This branch is safe to review independently from the parser/request and selectio
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.
    - Keep raw-nested preflight guarantees with result-map skipping.
+   - 2026-06-24 packaging finding: do not try to stack this directly on `prisma-client-perf-upsert-result-sharing`. Cherry-picking `ca6d0202616` (`Emit raw nested read plans`) onto that base immediately conflicts in `query-compiler/query-compiler/src/expression.rs` because the commit assumes compact expression / tuple serialization from the compact query-plan stack. Extract `pcperf/02-compact-query-plan-format` first, then retry raw-nested read plans on that base.
+   - 2026-06-24 WIP worktree audit: `wip/prisma-engines-raw-nested-m2m-ops` is clean at old producer commit `a018a977265`, contained in `origin/prisma-client-performance-2026-06-08-engines`, and has no upstream. `wip/prisma-client-raw-nested-m2m-ops` is clean but stale at docs commit `b4fb293ac`, also contained in the pushed Prisma status branch; the matching runtime support is later at `bf8e827fc`, not at the WIP tip.
 
 6. `pcperf/05-write-graph-pruning`
    - Areas: nested write/update/upsert/set/connect graph-shape optimizations and snapshots.
@@ -718,6 +720,7 @@ This branch is safe to review independently from the parser/request and selectio
 7. `pcperf/06-raw-nested-relation-ops-final-owner`
    - Areas: raw-nested relation ops, M:N mapped operation remapping, one-to-many relation ops, final-owner schedule marker.
    - Must land with matching Prisma TS runtime support for relation ops and final-owner marker consumption.
+   - The first M:N relation-ops producer commit `a018a977265` is not a valid next branch until raw-nested read plans are extracted: direct cherry-pick onto `prisma-client-perf-upsert-result-sharing` conflicts in `translate/query/read.rs` because the raw-nested read root/protocol helpers are absent. It also leaves mapped cursor/distinct fields on fallback until follow-up `0d2d3ad1547`.
 
 ## Packaging Rules
 

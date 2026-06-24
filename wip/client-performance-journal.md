@@ -17516,3 +17516,25 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-core --lib`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging Probe: Raw-Nested Read Plan Base Dependency (2026-06-24)
+
+- Goal:
+  - Continue extracting the accepted raw-nested producer/runtime work after the pushed compiler-local and write-pruning stacks.
+- Probe:
+  - Created a temporary engines worktree at `/tmp/prisma-engines-raw-nested-m2m-ops-split` from `origin/prisma-client-perf-upsert-result-sharing`.
+  - First tried to cherry-pick `a018a977265` (`perf(query-compiler): emit raw nested m2m relation ops`).
+  - Aborted because it conflicted in `query-compiler/query-compiler/src/translate/query/read.rs` with missing raw-nested read root/protocol helpers.
+  - Retried one layer earlier by cherry-picking `ca6d0202616` (`Emit raw nested read plans`) on the same base.
+  - Aborted because it immediately conflicted in `query-compiler/query-compiler/src/expression.rs`: the commit assumes compact expression / tuple serialization from the compact query-plan format stack.
+- WIP worktree audit:
+  - `wip/prisma-engines-raw-nested-m2m-ops` is clean at old producer commit `a018a977265`, has no upstream, and is contained in `origin/prisma-client-performance-2026-06-08-engines`.
+  - `wip/prisma-client-raw-nested-m2m-ops` is clean at old docs commit `b4fb293ac`, has no upstream, and is contained in `origin/prisma-client-performance-2026-06-08`.
+  - The Prisma WIP tip predates the matching runtime support for M:N ops. The matching runtime commit is later on the pushed status branch: `bf8e827fc` (`perf(client-engine-runtime): support raw nested m2m ops`).
+- Decision:
+  - Do not extract raw-nested read plans or relation ops directly on top of `prisma-client-perf-upsert-result-sharing`.
+  - Next packaging work must extract `pcperf/02-compact-query-plan-format` first, then retry `pcperf/04-raw-nested-read-plans`, then stack raw-nested relation ops/final-owner on that base.
+  - The stale WIP dirs are useful for source commits and context only; they are not publishable review branches as-is.
+- Cleanup:
+  - Removed `/tmp/prisma-engines-raw-nested-m2m-ops-split`.
+  - Deleted the temporary local branch `prisma-client-perf-raw-nested-read-plans`, which had no unique commits.
