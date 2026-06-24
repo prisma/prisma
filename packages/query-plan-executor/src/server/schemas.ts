@@ -9,13 +9,13 @@ import { ExportableSpan } from '../tracing/span'
  *
  * POST /query
  *
- * `plan` is not typed because `@prisma/client-engine-runtime` does not provide
- * a Zod schema and it's not feasible to maintain one here currently.
+ * `plan` is not typed because compact query plans are internal runtime tuples and
+ * `@prisma/client-engine-runtime` does not provide a Zod schema for them.
  */
 export const QueryRequestBody = z.object({
   model: z.string().min(1).optional(),
   operation: z.string().min(1),
-  plan: z.record(z.string(), z.unknown()),
+  plan: z.unknown(),
   params: z.record(z.string(), z.unknown()),
   comments: z.record(z.string(), z.string()).optional(),
 })
