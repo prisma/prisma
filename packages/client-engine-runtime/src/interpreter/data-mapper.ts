@@ -46,6 +46,12 @@ type ResultSetFieldMapping =
       node: Extract<ResultNode, { type: 'object' }>
     }
 
+type FieldResultNode = Extract<ResultNode, { fieldType: FieldType }>
+
+function isFieldNode(node: ResultNode): node is FieldResultNode {
+  return 'fieldType' in node
+}
+
 function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
   let entries = fieldEntriesCache.get(fields)
   if (!entries) {
@@ -56,6 +62,10 @@ function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNod
 }
 
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
+  if (isFieldNode(structure)) {
+    return mapValue(data, '<result>', structure.fieldType, enums)
+  }
+
   switch (structure.type) {
     case 'affectedRows':
       if (typeof data !== 'number') {
@@ -65,9 +75,6 @@ export function applyDataMap(data: Value, structure: ResultNode, enums: Record<s
 
     case 'object':
       return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls)
-
-    case 'field':
-      return mapValue(data, '<result>', structure.fieldType, enums)
 
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
@@ -142,6 +149,18 @@ function mapObject(
 
   const result = {}
   for (const [name, node] of getFieldEntries(fields)) {
+    if (isFieldNode(node)) {
+      const dbName = node.dbName ?? name
+      if (Object.hasOwn(data, dbName)) {
+        result[name] = mapField(data[dbName], dbName, node.fieldType, enums)
+      } else {
+        throw new DataMapperError(
+          `Missing data field (Value): '${dbName}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
+        )
+      }
+      continue
+    }
+
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
@@ -159,20 +178,6 @@ function mapObject(
         result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls)
         break
       }
-
-      case 'field':
-        {
-          const dbName = node.dbName
-          if (Object.hasOwn(data, dbName)) {
-            result[name] = mapField(data[dbName], dbName, node.fieldType, enums)
-          } else {
-            throw new DataMapperError(
-              `Missing data field (Value): '${dbName}'; ` +
-                `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
-            )
-          }
-        }
-        break
 
       default:
         assertNever(node, `DataMapper: Invalid data mapping node type: '${(node as ResultNode).type}'`)
@@ -266,6 +271,26 @@ function buildResultSetFieldMappings(
 
   for (let i = 0; i < fieldEntries.length; i++) {
     const [name, node] = fieldEntries[i]
+    if (isFieldNode(node)) {
+      const dbName = node.dbName ?? name
+      const columnIndex = columnIndexes[dbName]
+      if (columnIndex === undefined) {
+        throw new DataMapperError(
+          `Missing data field (Value): '${dbName}'; ` +
+            `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
+        )
+      }
+
+      result[i] = {
+        type: 'field',
+        name,
+        dbName,
+        columnIndex,
+        fieldType: node.fieldType,
+      }
+      continue
+    }
+
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
@@ -295,26 +320,6 @@ function buildResultSetFieldMappings(
           name,
           columnIndex,
           node,
-        }
-        break
-      }
-
-      case 'field': {
-        const { dbName } = node
-        const columnIndex = columnIndexes[dbName]
-        if (columnIndex === undefined) {
-          throw new DataMapperError(
-            `Missing data field (Value): '${dbName}'; ` +
-              `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
-          )
-        }
-
-        result[i] = {
-          type: 'field',
-          name,
-          dbName,
-          columnIndex,
-          fieldType: node.fieldType,
         }
         break
       }

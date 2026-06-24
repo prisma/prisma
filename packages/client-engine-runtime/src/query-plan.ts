@@ -36,8 +36,8 @@ export type ResultNode =
       skipNulls: boolean
     }
   | {
-      type: 'field'
-      dbName: string
+      type?: 'field'
+      dbName?: string
       fieldType: FieldType
     }
 
@@ -65,6 +65,7 @@ export type QueryPlanDbQuery =
 export type DynamicArgType = ArgType | { arity: 'tuple'; elements: ArgType[] }
 
 export type Fragment =
+  | string
   | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
   | {
@@ -313,7 +314,9 @@ export type ValidationError =
       }
     }
 
-export type FieldType = { arity: Arity } & FieldScalarType
+export type FieldArity = Arity | 'required' | 'optional'
+
+export type FieldType = { arity?: FieldArity } & FieldScalarType
 
 export type FieldScalarType =
   | {
