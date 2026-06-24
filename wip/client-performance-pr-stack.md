@@ -15,6 +15,7 @@ This document tracks how the large performance branches are being exposed and sp
   - `prisma-client-perf-selection-aggregate-cleanups`
   - `prisma-client-perf-filter-extraction-cleanups`
   - `prisma-client-perf-read-selection-cleanups` stacked on `prisma-client-perf-selection-aggregate-cleanups`
+  - `prisma-client-perf-translation-placeholder-cleanups` stacked on `prisma-client-perf-graph-translation-cleanups`
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -38,7 +39,7 @@ The engines query-compiler test workflow uses that Prisma branch when building P
 
 Engines integration publishing is separate. It is triggered by an `integration/` branch or a commit message containing `[integration]`.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, and `prisma-client-perf-read-selection-cleanups` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
+Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, and `prisma-client-perf-translation-placeholder-cleanups` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
 
 ## Current Split Status
 
@@ -139,6 +140,51 @@ Suggested PR body linkage:
 ```
 
 This branch is safe to review independently from the compact query-plan stack. It deliberately skips `FieldSelection::into_virtuals_last()` and projected dependency edge-iteration follow-ups that conflicted with other larger graph/data-mapper history and should be extracted in a later compiler-local PR if still desired.
+
+### Ready To Open: Engines Translation/Dependency Cleanups
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-translation-placeholder-cleanups
+
+Branch: `prisma-client-perf-translation-placeholder-cleanups`
+
+Intended base branch: `prisma-client-perf-graph-translation-cleanups`
+
+Original commits:
+
+- `5651e93c3a4`: `Avoid result scope binding name allocations`
+- `b2377d67f39`: `Reserve query graph visited capacity`
+- `02404611763`: `Skip identity dependency bindings`
+- `38e7af1c9ac`: `Avoid dependency union vector allocation`
+- `179cdcbbbf1`: `perf(query-compiler): iterate projected dependency edges`
+
+Fresh-base split commits:
+
+- `8af112f14d0`: `Avoid result scope binding name allocations`
+- `29b77b127ce`: `Reserve query graph visited capacity`
+- `8c5b5520818`: `Skip identity dependency bindings`
+- `66bc1808fbf`: `Avoid dependency union vector allocation`
+- `23521a518ab`: `perf(query-compiler): iterate projected dependency edges`
+
+Scope relative to `prisma-client-perf-graph-translation-cleanups`:
+
+- `query-compiler/core/src/query_graph/mod.rs`
+- `query-compiler/query-compiler/src/translate.rs`
+- `query-compiler/query-structure/src/field_selection.rs`
+
+Validation:
+
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-structure`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo test -p query-compiler --test queries`: passed
+
+Suggested PR body linkage:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch is intentionally stacked on the graph/translation branch. It excludes `fd906df5c3d` (`Store projected placeholders directly`) because that commit changes write builders, selection plumbing, and translation together; extract it separately as a broader write/placeholder branch.
 
 ### Ready To Open: Engines Selection/Aggregate Cleanups
 
@@ -312,6 +358,7 @@ This branch is safe to review independently from the parser/request and selectio
    - Current extracted subset: `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current extracted subset: `prisma-client-perf-filter-extraction-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current stacked subset: `prisma-client-perf-read-selection-cleanups` on `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
+   - Current stacked subset: `prisma-client-perf-translation-placeholder-cleanups` on `prisma-client-perf-graph-translation-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.

@@ -17231,3 +17231,34 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Translation/Dependency Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the remaining small graph/translation dependency cleanups without mixing in broader write-builder placeholder storage.
+- Branch:
+  - Pushed `prisma-client-perf-translation-placeholder-cleanups` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-graph-translation-cleanups`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-translation-placeholder-cleanups.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-graph-translation-cleanups`:
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/query-compiler/src/translate.rs`
+  - `query-compiler/query-structure/src/field_selection.rs`
+- Split commits:
+  - `8af112f14d0`, from original `5651e93c3a4`: avoid result scope binding name allocations.
+  - `29b77b127ce`, from original `b2377d67f39`: reserve query graph visited capacity.
+  - `8c5b5520818`, from original `02404611763`: skip identity dependency bindings.
+  - `66bc1808fbf`, from original `38e7af1c9ac`: avoid dependency union vector allocation.
+  - `23521a518ab`, from original `179cdcbbbf1`: iterate projected dependency edges.
+- Fresh-base/stack adaptation:
+  - Stacked this branch on `prisma-client-perf-graph-translation-cleanups` because it touches the same `translate.rs` and `query_graph/mod.rs` areas.
+  - Resolved the `b2377d67f39` conflict by applying only `graph.reserve_visited_capacity()` to the graph/translation branch's current `translate()` shape, without pulling in later raw-nested result-map preflight logic.
+  - Skipped `fd906df5c3d` (`Store projected placeholders directly`) from this split. It changes write builders, selection plumbing, and translation together and should be extracted as a broader write/placeholder branch rather than hidden inside this focused translation cleanup.
+- Validation:
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-structure`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
