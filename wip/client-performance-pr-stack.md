@@ -55,7 +55,7 @@ Workflow sources checked:
 
 Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, `prisma-client-perf-empty-required-set-pruning`, `prisma-client-perf-coc-branch-pruning`, and `prisma-client-perf-update-upsert-pruning` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
 
-Fresh auth check after pushing `prisma-client-perf-required-set-pruning`: `gh auth status` still reports the local token as invalid, and the GitHub connector `create_pull_request` call failed with HTTP 401 `token_expired`.
+Fresh auth check after pushing `prisma-client-perf-update-upsert-pruning`: `gh auth status` still reports the local token as invalid, and the GitHub connector `create_pull_request` call for that branch failed with HTTP 401 `token_expired`.
 
 ## Current Split Status
 
