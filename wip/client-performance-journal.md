@@ -17063,3 +17063,18 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Push the Prisma head as `prisma-client-performance-2026-06-08`.
   - Open linked draft PRs with `/prisma-branch prisma-client-performance-2026-06-08` in the engines body and `/engine-branch prisma-client-performance-2026-06-08-engines` in the Prisma body.
   - Mark both PRs as not merge-ready because the branches are large and slightly behind fresh `origin/main`; use them to expose status and CI, then slice the history into smaller stacked branches if review requires it.
+
+## Packaging: First Split PR And Stack Plan (2026-06-24)
+
+- Opened draft status PRs:
+  - Prisma: https://github.com/prisma/prisma/pull/29655.
+  - Engines: https://github.com/prisma/prisma-engines/pull/5820.
+- Confirmed both status PRs are large exposure PRs, not final review units.
+- Opened first extracted engines PR:
+  - https://github.com/prisma/prisma-engines/pull/5821 for the Quaint insert-select/insert-CTE groundwork.
+  - Split branch: `prisma-client-perf-quaint-insert-select`.
+  - Split commits: `9b25ed3bd6c` and `f08af3d225e`, cherry-picked from `d59deb11278` and `29000399a8a` onto fresh engines `origin/main`.
+  - `cargo check -p quaint --no-default-features --features postgresql` passed.
+  - Focused local `cargo test -p quaint ...` commands failed before running tests because this local environment cannot resolve system OpenSSL for `openssl-sys` through Quaint dev/native dependencies. The draft PR body records this limitation.
+- Added `wip/client-performance-pr-stack.md` with the current PR links, CI slash-command syntax, the first extracted PR, and the proposed Prisma/engines stack order.
+- Two independent split scouts agreed on the main packaging rule: internal query-plan/protocol/runtime/generator format changes should be reviewed as final lockstep shapes. Do not preserve temporary old/new compatibility history as PR boundaries.
