@@ -17093,3 +17093,21 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/parser-request-target cargo test -p query-compiler --test queries`: passed.
 - Operational note:
   - A first query snapshot test attempt exhausted `/tmp` while compiling test artifacts. I removed only temporary Cargo target directories from old `/tmp` worktrees/profile targets, reran with `CARGO_TARGET_DIR` on the larger workspace filesystem, and then removed the temporary workspace target directory.
+
+## Packaging: Compact Plan Split Attempt (2026-06-24)
+
+- Goal:
+  - Start extracting the lockstep compact query-plan format stack after the independent engines parser/request PR.
+- Engines producer attempt:
+  - Created `/tmp/prisma-engines-compact-plan-format` from fresh engines `origin/main` on branch `prisma-client-perf-compact-plan-format-engines`.
+  - The main compact producer commits cherry-picked cleanly until `21a8db27dfd` (`store result object fields in vectors`).
+  - Retried with data-mapper prerequisites `babed274835` and `30a32a2c9f6` inserted before `21a8db27dfd`; this made the producer side viable through the result-object vector storage commit.
+  - `b64c854d6e2` (`compact validation expectations`) then conflicted in `query_graph/mod.rs`. That change is broader graph validation storage and is not required for the serialized compact plan producer shape, so it should move to a later compiler-local/write-graph split unless the compact PR is deliberately broadened.
+- Prisma consumer attempt:
+  - Created local branch `prisma-client-perf-compact-plan-format` from fresh Prisma `origin/main`.
+  - `af55854c7` applied, but `dc8657d7f` (`Accept compact SQL string fragments`) conflicted immediately in `packages/client-engine-runtime/src/interpreter/render-query.ts`.
+  - Cause: the compact SQL-fragment reader commit was authored on top of earlier render-query hot-path refactors. A clean Prisma compact consumer split therefore needs either the minimal render-query prerequisite chain or a manually constructed final compact-only reader patch against current `origin/main`.
+  - Aborted the Prisma split branch back to clean `origin/main` and switched the checkout back to `prisma-client-performance-2026-06-08`.
+- Decision:
+  - Do not open a paired compact-format PR yet. Opening only the engines producer side would expose an internal lockstep format without the matching Prisma consumer. Opening the Prisma side by blindly adding all render-query prerequisites would blur the intended review boundary.
+  - Next compact-format attempt should first decide whether the compact consumer PR owns the render-query prerequisite chain or whether we hand-apply the final reader shape.

@@ -133,6 +133,8 @@ This PR is safe to review independently. It intentionally excludes compact query
 3. `pcperf/02-compact-query-plan-format`
    - Areas: query builder serialized plan shapes, query-compiler expression/result/data mapper, `libs/prisma-value`, validation errors.
    - Must be coordinated with the matching Prisma runtime stack. These are lockstep internal formats, not compatibility additions.
+   - 2026-06-24 packaging finding: the engines producer side mostly cherry-picks cleanly from fresh `origin/main` when the data-mapper prerequisites `babed274835` and `30a32a2c9f6` are inserted before `21a8db27dfd`. The broader validation-storage optimization `b64c854d6e2` conflicts with graph changes and should move to a later compiler-local/write-graph split unless a reviewer explicitly wants it in this PR.
+   - 2026-06-24 packaging blocker: the matching Prisma consumer side is not a clean cherry-pick from `origin/main`. `dc8657d7f` (`Accept compact SQL string fragments`) conflicts in `render-query.ts` because it was authored on top of earlier render-query hot-path commits. The next attempt should either include the minimal render-query prerequisite chain in the compact consumer PR, or manually construct the final compact-only reader shape against current `origin/main` without carrying temporary compatibility history.
 
 4. `pcperf/03-compiler-local-cleanups`
    - Areas: translation, data mapper, query graph, read graph builder, query structure.
