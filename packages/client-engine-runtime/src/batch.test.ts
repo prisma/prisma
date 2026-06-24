@@ -6,7 +6,7 @@ import { convertCompactedRows } from './batch'
 test('resolves compact query-plan placeholders when matching compacted rows', () => {
   const compiledBatch = {
     type: 'compacted',
-    plan: { type: 'unit' },
+    plan: ['0'],
     arguments: [{ id: { $p: ['%1', 'Int'] } }, { id: { $type: 'Param', value: { name: '%2' } } }, { id: 100 }],
     nestedSelection: ['name'],
     keys: ['id'],

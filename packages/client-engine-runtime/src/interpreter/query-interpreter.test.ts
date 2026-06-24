@@ -13,10 +13,7 @@ const runtimeOptions = {
 
 test('uses a per-run generator snapshot for now calls', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
-  const plan = {
-    type: 'value',
-    args: [{ $g: ['now', []] }, { $g: ['now', []] }],
-  } satisfies QueryPlanNode
+  const plan = ['v', [{ $g: ['now', []] }, { $g: ['now', []] }]] satisfies QueryPlanNode
   const first = (await interpreter.run(plan, runtimeOptions)) as string[]
   await new Promise((resolve) => setTimeout(resolve, 10))
   const second = (await interpreter.run(plan, runtimeOptions)) as string[]
@@ -38,10 +35,7 @@ test('uses a per-run generator snapshot for compact now calls', async () => {
 
 test('uses built-in generators without a snapshot when now is absent', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
-  const plan = {
-    type: 'value',
-    args: { $g: ['product', [1, [2, 3]]] },
-  } satisfies QueryPlanNode
+  const plan = ['v', { $g: ['product', [1, [2, 3]]] }] satisfies QueryPlanNode
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     [1, 2],
     [1, 3],
@@ -50,10 +44,7 @@ test('uses built-in generators without a snapshot when now is absent', async () 
 
 test('applies SQL comments without query instrumentation', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
-  const plan = {
-    type: 'query',
-    args: [['SELECT 1'], ['?', false], [], [], false],
-  } satisfies QueryPlanNode
+  const plan = ['q', [['SELECT 1'], ['?', false], [], [], false]] satisfies QueryPlanNode
   let observedQuery: SqlQuery | undefined
   const queryable: SqlQueryable = {
     provider: 'sqlite',
@@ -123,32 +114,27 @@ test('interprets compact binding tuples', async () => {
 
 test('joins single strict keys without scalar key collisions', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
-  const plan = {
-    type: 'join',
-    args: {
-      parent: {
-        type: 'value',
-        args: [{ id: '1' }, { id: 1 }, { id: null }, { id: 'null' }],
-      },
-      children: [
+  const plan = [
+    'j',
+    ['v', [{ id: '1' }, { id: 1 }, { id: null }, { id: 'null' }]],
+    [
+      [
         [
-          {
-            type: 'value',
-            args: [
-              { parentId: '1', value: 'string-one' },
-              { parentId: 1, value: 'number-one' },
-              { parentId: null, value: 'null-value' },
-              { parentId: 'null', value: 'string-null' },
-            ],
-          },
-          [['id', 'parentId']],
-          'children',
-          false,
+          'v',
+          [
+            { parentId: '1', value: 'string-one' },
+            { parentId: 1, value: 'number-one' },
+            { parentId: null, value: 'null-value' },
+            { parentId: 'null', value: 'string-null' },
+          ],
         ],
+        [['id', 'parentId']],
+        'children',
+        false,
       ],
-      canAssumeStrictEquality: true,
-    },
-  } satisfies QueryPlanNode
+    ],
+    true,
+  ] satisfies QueryPlanNode
   await expect(interpreter.run(plan, runtimeOptions)).resolves.toEqual([
     { id: '1', children: [{ parentId: '1', value: 'string-one' }] },
     { id: 1, children: [{ parentId: 1, value: 'number-one' }] },
