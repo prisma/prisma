@@ -17538,3 +17538,60 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Cleanup:
   - Removed `/tmp/prisma-engines-raw-nested-m2m-ops-split`.
   - Deleted the temporary local branch `prisma-client-perf-raw-nested-read-plans`, which had no unique commits.
+
+## Packaging: Compact Query-Plan Producer Split Branch (2026-06-24)
+
+- Goal:
+  - Turn the engines producer half of `pcperf/02-compact-query-plan-format` into a reviewable branch, because raw-nested read-plan extraction depends on compact expression/result/tuple serialization.
+- Branch:
+  - Created `/tmp/prisma-engines-compact-plan-format` from refreshed engines `origin/main`.
+  - Pushed `prisma-client-perf-compact-plan-format-engines` to `prisma/prisma-engines`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-compact-plan-format-engines.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope:
+  - `libs/prisma-value/src/lib.rs`
+  - `query-compiler/query-builders/query-builder/src/lib.rs`
+  - `query-compiler/query-compiler/src/expression.rs`
+  - `query-compiler/query-compiler/src/result_node.rs`
+  - `query-compiler/query-compiler/src/data_mapper.rs`
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/query-structure/src/field_selection.rs`
+- Split commits:
+  - `44655912599`, from original `78dfd45e838`: omit empty query arg db types.
+  - `d62fc9868ce`, from original `1fe6a7c341b`: omit non-list result field arity.
+  - `b459bd123ad`, from original `dd03ee258c9`: serialize SQL string fragments compactly.
+  - `033a41b9161`, from original `af7c591f3c6`: omit default result field db names.
+  - `d84c638b409`, from original `04fdc54214a`: omit result field type tags.
+  - `339f934a071`, from original `95d2ee44e6c`: compact scalar result field types.
+  - `253dc57c536`, from original `6fcc107bb5c`: compact scalar query arg types.
+  - `71e7fb971c5`, from original `ccaea7b4735`: compact scalar result field nodes.
+  - `dc983ed8ad0`, from original `fe2a4796eaf`: compact template SQL queries.
+  - `e71b423fe58`, from original `8da0a53dd83`: compact result object nodes.
+  - `8a84e8770b5`, from original `16f5dc6901d`: compact expression nodes.
+  - `4413e053b8b`, from original `96eac0718c7`: compact in-memory ops serialization.
+  - `f1d6b0f377f`, from original `b021a14b2c4`: compact parameter fragments.
+  - `c6b921f0b16`, from original `4dc9111d4cd`: compact tuple parameter fragments.
+  - `42880aa30d0`, from original `4debcd05b97`: compact Prisma value placeholders.
+  - `e8597f6ff1b`, from original `9c98a943d71`: compact query-plan support structures.
+  - `9bf6262ffbe`, from original `da6c7014b90`: compact query-plan data rules.
+  - `ef857a75509`, from original `ba182dbb290`: compact native scalar query arg types.
+  - `4a0eaddc055`, from original `ed7f1d14680`: compact Prisma value generator calls.
+  - `70ba8827aa1`, from original `1725c633cab`: compact query-plan validation errors.
+  - `43d00c585b2`, from original `432c9db6c0b`: compact scalar type names in query plans.
+  - `3a128e0527d`, from original `13276664d8e`: omit empty data map enums.
+  - `98b3414aa90`, from original `580547bbd28`: compact result field type scalars.
+  - `c939f7e1859`, from original `babed274835`: avoid result mapper lookup maps.
+  - `1cd08fd360c`, from original `30a32a2c9f6`: avoid cloning result mapper selections.
+  - `aa48ae3ade2`, from original `21a8db27dfd`: store result object fields in vectors.
+- Fresh-base adaptation:
+  - The producer branch applied cleanly on refreshed `origin/main` when the documented data-mapper prerequisites `babed274835` and `30a32a2c9f6` were inserted before `21a8db27dfd`.
+  - Deliberately left out `b64c854d6e2` (`perf(query-compiler): compact validation expectations`), because it is a broader validation-storage rewrite and not required for the serialized compact producer shape.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - Temporary until a compact Prisma consumer split exists: `/prisma-branch prisma-client-performance-2026-06-08`.
+- Decision:
+  - This is a worthy producer-side branch for review, but it should not merge without a matching Prisma consumer PR for the same compact-only internal query-plan format.

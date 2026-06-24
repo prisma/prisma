@@ -11,6 +11,7 @@ This document tracks how the large performance branches are being exposed and sp
 - Extracted engines PR 1: https://github.com/prisma/prisma-engines/pull/5821
 - Extracted engines PR 2: https://github.com/prisma/prisma-engines/pull/5822
 - Pushed engines split branches awaiting PR creation:
+  - `prisma-client-perf-compact-plan-format-engines`
   - `prisma-client-perf-graph-translation-cleanups`
   - `prisma-client-perf-selection-aggregate-cleanups`
   - `prisma-client-perf-filter-extraction-cleanups`
@@ -119,6 +120,45 @@ Validation:
 - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/parser-request-target cargo test -p query-compiler --test queries`: passed
 
 This PR is safe to review independently. It intentionally excludes compact query-plan format changes, raw-nested read plans, and write-graph pruning.
+
+### Ready To Open: Engines Compact Query-Plan Producer Format
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-compact-plan-format-engines
+
+Branch: `prisma-client-perf-compact-plan-format-engines`
+
+Base branch: `main`
+
+Original commit families:
+
+- compact query arg/result field omissions: `78dfd45e838`, `1fe6a7c341b`, `af7c591f3c6`, `04fdc54214a`
+- compact query-plan producer shapes: `dd03ee258c9`, `95d2ee44e6c`, `6fcc107bb5c`, `ccaea7b4735`, `fe2a4796eaf`, `8da0a53dd83`, `16f5dc6901d`, `96eac0718c7`, `b021a14b2c4`, `4dc9111d4cd`, `4debcd05b97`, `9c98a943d71`, `da6c7014b90`, `ba182dbb290`, `ed7f1d14680`, `1725c633cab`, `432c9db6c0b`, `13276664d8e`, `580547bbd28`
+- result object vector-storage prerequisites/final shape: `babed274835`, `30a32a2c9f6`, `21a8db27dfd`
+
+Scope:
+
+- `libs/prisma-value/src/lib.rs`
+- `query-compiler/query-builders/query-builder/src/lib.rs`
+- `query-compiler/query-compiler/src/expression.rs`
+- `query-compiler/query-compiler/src/result_node.rs`
+- `query-compiler/query-compiler/src/data_mapper.rs`
+- `query-compiler/core/src/query_graph/mod.rs`
+- `query-compiler/query-structure/src/field_selection.rs`
+
+Validation:
+
+- `cargo fmt --check`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo test -p query-compiler --test queries`: passed
+
+Suggested temporary PR body linkage, until the matching compact Prisma consumer split exists:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch is the producer half of the lockstep compact internal format. It should not be merged without a matching Prisma consumer PR that reads the same compact-only shape. It deliberately excludes `b64c854d6e2` (`perf(query-compiler): compact validation expectations`), because that is a broader validation-storage rewrite and is not required for the serialized compact plan producer shape.
 
 ### Ready To Open: Engines Graph/Translation Cleanups
 
@@ -688,6 +728,7 @@ This branch is safe to review independently from the parser/request and selectio
 3. `pcperf/02-compact-query-plan-format`
    - Areas: query builder serialized plan shapes, query-compiler expression/result/data mapper, `libs/prisma-value`, validation errors.
    - Must be coordinated with the matching Prisma runtime stack. These are lockstep internal formats, not compatibility additions.
+   - Current producer-side split: `prisma-client-perf-compact-plan-format-engines`, pushed and validated, pending PR creation after GitHub auth refresh. It excludes `b64c854d6e2` by design.
    - 2026-06-24 packaging finding: the engines producer side mostly cherry-picks cleanly from fresh `origin/main` when the data-mapper prerequisites `babed274835` and `30a32a2c9f6` are inserted before `21a8db27dfd`. The broader validation-storage optimization `b64c854d6e2` conflicts with graph changes and should move to a later compiler-local/write-graph split unless a reviewer explicitly wants it in this PR.
    - 2026-06-24 packaging blocker: the matching Prisma consumer side is not a clean cherry-pick from `origin/main`. `dc8657d7f` (`Accept compact SQL string fragments`) conflicts in `render-query.ts` because it was authored on top of earlier render-query hot-path commits. The next attempt should either include the minimal render-query prerequisite chain in the compact consumer PR, or manually construct the final compact-only reader shape against current `origin/main` without carrying temporary compatibility history.
 
