@@ -72,7 +72,7 @@ test('interprets compact expression nodes', async () => {
   const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
   const plan = [
     'd',
-    ['u', ['q', [['SELECT id, type FROM users WHERE id = ', null], ['?', false], [1], ['int'], false]]],
+    ['u', ['q', [['SELECT id, type FROM users WHERE id = ', null], ['?', false], [1], ['i'], false]]],
     [
       null,
       {
