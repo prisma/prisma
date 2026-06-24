@@ -14,6 +14,7 @@ This document tracks how the large performance branches are being exposed and sp
   - `prisma-client-perf-graph-translation-cleanups`
   - `prisma-client-perf-selection-aggregate-cleanups`
   - `prisma-client-perf-filter-extraction-cleanups`
+  - `prisma-client-perf-read-selection-cleanups` stacked on `prisma-client-perf-selection-aggregate-cleanups`
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -37,7 +38,7 @@ The engines query-compiler test workflow uses that Prisma branch when building P
 
 Engines integration publishing is separate. It is triggered by an `integration/` branch or a commit message containing `[integration]`.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, and `prisma-client-perf-filter-extraction-cleanups` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
+Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, and `prisma-client-perf-read-selection-cleanups` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
 
 ## Current Split Status
 
@@ -174,6 +175,52 @@ Suggested PR body linkage:
 
 This branch is safe to review independently. It deliberately excludes `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`) because on fresh `origin/main` that commit depends on an earlier unique-filter fast path not present in this split. Extract that compound-selector cleanup separately with the real prerequisite chain.
 
+### Ready To Open: Engines Read Selection Cleanups
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-read-selection-cleanups
+
+Branch: `prisma-client-perf-read-selection-cleanups`
+
+Intended base branch: `prisma-client-perf-selection-aggregate-cleanups`
+
+Original commits:
+
+- `cc32799cdf5`: `Skip empty nested relation selection merge`
+- `b7d4eecbca1`: `Avoid extra linking field iterator allocation`
+- `176fd2515b8`: `Pre-size selected field extraction`
+- `d87e1ef9d8a`: `Avoid read field selection reallocations`
+- `677a3d44b68`: `Avoid single filter wrapper in read translation`
+- `87c6a6f6df0`: `Fast-path contained field selection merges`
+
+Fresh-base split commits:
+
+- `2b2e92f1b38`: `Skip empty nested relation selection merge`
+- `11e7d22fe8a`: `Avoid extra linking field iterator allocation`
+- `a7053b8eb09`: `Pre-size selected field extraction`
+- `2b01a86b3e2`: `Avoid read field selection reallocations`
+- `71675a32c87`: `Avoid single filter wrapper in read translation`
+- `6aa2088797c`: `Fast-path contained field selection merges`
+
+Scope relative to `prisma-client-perf-selection-aggregate-cleanups`:
+
+- `query-compiler/core/src/query_graph_builder/read/utils.rs`
+- `query-compiler/query-compiler/src/translate/query/read.rs`
+- `query-compiler/query-structure/src/field_selection.rs`
+
+Validation:
+
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo test -p query-compiler --test queries`: passed
+
+Suggested PR body linkage:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch is intentionally stacked on the selection/aggregate branch because both touch `FieldSelection::into_virtuals_last()`. The conflict resolution keeps the newer count-based virtual-field ordering implementation from the base and adds the consuming `into_without_relations()` read-path optimization.
+
 ### Ready To Open: Engines Filter Extraction Cleanups
 
 PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-filter-extraction-cleanups
@@ -264,6 +311,7 @@ This branch is safe to review independently from the parser/request and selectio
    - Current extracted subset: `prisma-client-perf-graph-translation-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current extracted subset: `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current extracted subset: `prisma-client-perf-filter-extraction-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
+   - Current stacked subset: `prisma-client-perf-read-selection-cleanups` on `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.

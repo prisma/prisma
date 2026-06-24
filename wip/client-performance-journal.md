@@ -17201,3 +17201,33 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - The whole chain cherry-picked cleanly onto current `origin/main` and does not require a Prisma runtime companion.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Read Selection Split Branch (2026-06-24)
+
+- Goal:
+  - Extract a small read/field-selection allocation cleanup slice without pulling in raw-nested or compact-format protocol changes.
+- Branch:
+  - Pushed `prisma-client-perf-read-selection-cleanups` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-selection-aggregate-cleanups`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-read-selection-cleanups.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-selection-aggregate-cleanups`:
+  - `query-compiler/core/src/query_graph_builder/read/utils.rs`
+  - `query-compiler/query-compiler/src/translate/query/read.rs`
+  - `query-compiler/query-structure/src/field_selection.rs`
+- Split commits:
+  - `2b2e92f1b38`, from original `cc32799cdf5`: skip empty nested relation selection merge.
+  - `11e7d22fe8a`, from original `b7d4eecbca1`: avoid extra linking field iterator allocation.
+  - `a7053b8eb09`, from original `176fd2515b8`: pre-size selected field extraction.
+  - `2b01a86b3e2`, from original `d87e1ef9d8a`: avoid read field selection reallocations.
+  - `71675a32c87`, from original `677a3d44b68`: avoid single filter wrapper in read translation.
+  - `6aa2088797c`, from original `87c6a6f6df0`: fast-path contained field selection merges.
+- Fresh-base/stack adaptation:
+  - Stacked this branch on `prisma-client-perf-selection-aggregate-cleanups` because both touch `FieldSelection::into_virtuals_last()`.
+  - Resolved the `d87e1ef9d8a` conflict by keeping the count-based virtual-field ordering implementation from the base branch and adding the consuming `into_without_relations()` API plus read-path call sites.
+- Validation:
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
