@@ -1,9 +1,9 @@
-import type { PrismaValue } from '@prisma/client-engine-runtime'
-import type { ArgScalarType, ArgType } from '@prisma/driver-adapter-utils'
+import type { PrismaValue, QueryPlanArgScalarType, QueryPlanArgType } from '@prisma/client-engine-runtime'
+import type { ArgScalarType } from '@prisma/driver-adapter-utils'
 
 type RawParameters = {
   args: PrismaValue[]
-  argTypes: ArgType[]
+  argTypes: QueryPlanArgType[]
 }
 
 const tagToArgScalarType: Record<string, ArgScalarType> = {
@@ -12,6 +12,21 @@ const tagToArgScalarType: Record<string, ArgScalarType> = {
   decimal: 'decimal',
   bytes: 'bytes',
 }
+
+const scalarTypeToQueryPlanArgType = {
+  string: 's',
+  int: 'i',
+  bigint: 'I',
+  float: 'f',
+  decimal: 'd',
+  boolean: 'b',
+  enum: 'e',
+  uuid: 'u',
+  json: 'j',
+  datetime: 'D',
+  bytes: 'B',
+  unknown: '?',
+} satisfies Record<ArgScalarType, QueryPlanArgScalarType>
 
 export function deserializeRawParameters(serializedParameters: string): RawParameters {
   let parsed: unknown
@@ -47,12 +62,12 @@ function decodeParameter(parameter: unknown): PrismaValue {
   return parameter as PrismaValue
 }
 
-function getArgType(parameter: unknown): ArgType {
+function getArgType(parameter: unknown): QueryPlanArgType {
   if (Array.isArray(parameter)) {
     return { scalarType: parameter.length > 0 ? getScalarType(parameter[0]) : 'unknown', arity: 'list' }
   }
 
-  return { scalarType: getScalarType(parameter), arity: 'scalar' }
+  return scalarTypeToQueryPlanArgType[getScalarType(parameter)]
 }
 
 function getScalarType(parameter: unknown): ArgScalarType {

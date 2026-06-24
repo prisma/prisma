@@ -18,46 +18,37 @@ describe('deserializeRawParameters', () => {
       name: 'primitives',
       input: [0, 1, true, false, '', 'hi', null, undefined],
       expectedArgs: [0, 1, true, false, '', 'hi', null, null],
-      expectedTypes: [
-        { scalarType: 'decimal', arity: 'scalar' },
-        { scalarType: 'decimal', arity: 'scalar' },
-        { scalarType: 'unknown', arity: 'scalar' },
-        { scalarType: 'unknown', arity: 'scalar' },
-        { scalarType: 'string', arity: 'scalar' },
-        { scalarType: 'string', arity: 'scalar' },
-        { scalarType: 'unknown', arity: 'scalar' },
-        { scalarType: 'unknown', arity: 'scalar' },
-      ],
+      expectedTypes: ['d', 'd', '?', '?', 's', 's', '?', '?'],
     },
     {
       name: 'BigInt',
       input: [BigInt('321804719213721')],
       expectedArgs: ['321804719213721'],
-      expectedTypes: [{ scalarType: 'bigint', arity: 'scalar' }],
+      expectedTypes: ['I'],
     },
     {
       name: 'Date',
       input: [new Date('2020-06-22T17:07:16.348Z')],
       expectedArgs: ['2020-06-22T17:07:16.348Z'],
-      expectedTypes: [{ scalarType: 'datetime', arity: 'scalar' }],
+      expectedTypes: ['D'],
     },
     {
       name: 'Decimal',
       input: [new Decimal('1.1')],
       expectedArgs: ['1.1'],
-      expectedTypes: [{ scalarType: 'decimal', arity: 'scalar' }],
+      expectedTypes: ['d'],
     },
     {
       name: 'Buffer',
       input: [Buffer.from('hello')],
       expectedArgs: ['aGVsbG8='],
-      expectedTypes: [{ scalarType: 'bytes', arity: 'scalar' }],
+      expectedTypes: ['B'],
     },
     {
       name: 'Uint8Array',
       input: [Uint8Array.of(0x75, 0x69, 0x6e, 0x74, 0x38)],
       expectedArgs: ['dWludDg='],
-      expectedTypes: [{ scalarType: 'bytes', arity: 'scalar' }],
+      expectedTypes: ['B'],
     },
     {
       name: 'ArrayBuffer',
@@ -68,7 +59,7 @@ describe('deserializeRawParameters', () => {
         return [arrayBuffer]
       })(),
       expectedArgs: ['YnVmZmVy'],
-      expectedTypes: [{ scalarType: 'bytes', arity: 'scalar' }],
+      expectedTypes: ['B'],
     },
     {
       name: 'homogeneous BigInt array',
@@ -89,10 +80,7 @@ describe('deserializeRawParameters', () => {
         { items: ['a', 'b', 'c'], count: 3 },
       ],
       expectedArgs: ['{"name":"John","age":30,"active":true}', '{"items":["a","b","c"],"count":3}'],
-      expectedTypes: [
-        { scalarType: 'unknown', arity: 'scalar' },
-        { scalarType: 'unknown', arity: 'scalar' },
-      ],
+      expectedTypes: ['?', '?'],
     },
   ])('$name - fast serialization roundtrip', ({ input, expectedArgs, expectedTypes }) => {
     const result = roundTrip(input)
@@ -105,10 +93,7 @@ describe('deserializeRawParameters', () => {
       name: 'BigInt',
       input: [BigInt('999'), [BigInt('123'), 'text']],
       expectedArgs: ['999', ['123', 'text']],
-      expectedTypes: [
-        { scalarType: 'bigint', arity: 'scalar' },
-        { scalarType: 'bigint', arity: 'list' },
-      ],
+      expectedTypes: ['I', { scalarType: 'bigint', arity: 'list' }],
     },
   ])('$name - slow serialization roundtrip', ({ input, expectedArgs, expectedTypes }) => {
     const result = roundTrip(input)
