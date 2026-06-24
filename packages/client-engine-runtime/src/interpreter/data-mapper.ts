@@ -2,6 +2,8 @@ import { Decimal } from '@prisma/client-runtime-utils'
 import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import {
+  CanonicalFieldScalarTypeName,
+  CompactFieldScalarTypeName,
   CompactResultObjectNode,
   FieldScalarType,
   FieldScalarTypeName,
@@ -40,6 +42,8 @@ type ResultSetFieldMapping =
       dbName: string
       columnIndex: number
       fieldType: FieldType
+      scalarTypeName: CanonicalScalarTypeName
+      isList: boolean
     }
   | {
       type: 'rowObject'
@@ -55,6 +59,19 @@ type ResultSetFieldMapping =
 
 type ObjectResultNode = ResultObjectNode | CompactResultObjectNode
 type FieldResultNode = FieldScalarTypeName | Extract<ResultNode, { fieldType: FieldType }>
+type CanonicalScalarTypeName = CanonicalFieldScalarTypeName | 'enum' | 'bytes'
+const FIELD_SCALAR_TYPE_NAMES: Record<CompactFieldScalarTypeName, CanonicalFieldScalarTypeName> = Object.freeze({
+  s: 'string',
+  i: 'int',
+  I: 'bigint',
+  f: 'float',
+  b: 'boolean',
+  j: 'json',
+  o: 'object',
+  D: 'datetime',
+  d: 'decimal',
+  x: 'unsupported',
+})
 
 function isCompactObjectNode(node: ResultNode | ObjectResultNode): node is CompactResultObjectNode {
   return Array.isArray(node)
@@ -87,6 +104,17 @@ function getObjectSkipNulls(node: ObjectResultNode): boolean {
 
 function getFieldType(node: FieldResultNode): FieldType {
   return typeof node === 'string' ? node : node.fieldType
+}
+
+function getScalarTypeName(fieldType: FieldType): CanonicalScalarTypeName {
+  const scalarTypeName = typeof fieldType === 'string' ? fieldType : fieldType.type
+  return (
+    FIELD_SCALAR_TYPE_NAMES[scalarTypeName as CompactFieldScalarTypeName] ?? (scalarTypeName as CanonicalScalarTypeName)
+  )
+}
+
+function isListField(fieldType: FieldType): boolean {
+  return typeof fieldType !== 'string' && fieldType.arity === 'list'
 }
 
 function getDbName(name: string, node: FieldResultNode): string {
@@ -263,7 +291,7 @@ function mapResultSetRow(
   for (const mapping of fieldMappings) {
     switch (mapping.type) {
       case 'field': {
-        result[mapping.name] = mapField(row[mapping.columnIndex], mapping.dbName, mapping.fieldType, enums)
+        result[mapping.name] = mapResultSetField(row[mapping.columnIndex], mapping, enums)
         break
       }
 
@@ -354,12 +382,15 @@ function buildResultSetFieldMappings(
         )
       }
 
+      const fieldType = getFieldType(node)
       result[i] = {
         type: 'field',
         name,
         dbName,
         columnIndex,
-        fieldType: getFieldType(node),
+        fieldType,
+        scalarTypeName: getScalarTypeName(fieldType),
+        isList: isListField(fieldType),
       }
       continue
     }
@@ -454,15 +485,46 @@ function mapField(
   enums: Record<string, Record<string, string>>,
 ): unknown {
   if (value === null) {
-    return typeof fieldType !== 'string' && fieldType.arity === 'list' ? [] : null
+    return isListField(fieldType) ? [] : null
   }
 
-  if (typeof fieldType !== 'string' && fieldType.arity === 'list') {
+  if (isListField(fieldType)) {
     const values = value as unknown[]
-    return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, fieldType, enums))
+    const result = new Array<unknown>(values.length)
+    for (let i = 0; i < values.length; i++) {
+      result[i] = mapScalarValue(values[i], `${columnName}[${i}]`, getScalarTypeName(fieldType), fieldType, enums)
+    }
+    return result
   }
 
-  return mapValue(value, columnName, fieldType, enums)
+  return mapScalarValue(value, columnName, getScalarTypeName(fieldType), fieldType, enums)
+}
+
+function mapResultSetField(
+  value: unknown,
+  mapping: Extract<ResultSetFieldMapping, { type: 'field' }>,
+  enums: Record<string, Record<string, string>>,
+): unknown {
+  if (value === null) {
+    return mapping.isList ? [] : null
+  }
+
+  if (mapping.isList) {
+    const values = value as unknown[]
+    const result = new Array<unknown>(values.length)
+    for (let i = 0; i < values.length; i++) {
+      result[i] = mapScalarValue(
+        values[i],
+        `${mapping.dbName}[${i}]`,
+        mapping.scalarTypeName,
+        mapping.fieldType,
+        enums,
+      )
+    }
+    return result
+  }
+
+  return mapScalarValue(value, mapping.dbName, mapping.scalarTypeName, mapping.fieldType, enums)
 }
 
 function mapValue(
@@ -471,8 +533,16 @@ function mapValue(
   scalarType: FieldType,
   enums: Record<string, Record<string, string>>,
 ): unknown {
-  const scalarTypeName = typeof scalarType === 'string' ? scalarType : scalarType.type
+  return mapScalarValue(value, columnName, getScalarTypeName(scalarType), scalarType, enums)
+}
 
+function mapScalarValue(
+  value: unknown,
+  columnName: string,
+  scalarTypeName: CanonicalScalarTypeName,
+  scalarType: FieldType,
+  enums: Record<string, Record<string, string>>,
+): unknown {
   switch (scalarTypeName) {
     case 'unsupported':
       return value
