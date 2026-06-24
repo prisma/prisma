@@ -87,6 +87,8 @@ export type DynamicArgType = QueryPlanArgType | { arity: 'tuple'; elements: Quer
 export type Fragment =
   | string
   | null
+  | CompactParameterTupleFragment
+  | CompactParameterTupleListFragment
   | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
   | {
@@ -102,6 +104,21 @@ export type Fragment =
       itemSuffix: string
       groupSeparator: string
     }
+
+export type CompactParameterTupleFragment = readonly [
+  type: 'T',
+  itemPrefix: string,
+  itemSeparator: string,
+  itemSuffix: string,
+]
+
+export type CompactParameterTupleListFragment = readonly [
+  type: 'L',
+  itemPrefix: string,
+  itemSeparator: string,
+  itemSuffix: string,
+  groupSeparator: string,
+]
 
 export interface PlaceholderFormat {
   prefix: string
