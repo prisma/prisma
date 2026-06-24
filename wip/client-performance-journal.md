@@ -17403,3 +17403,35 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Connect-Or-Create Branch Pruning Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the M:N connect-or-create branch-joining cleanup and follow-up condition-return simplification as a focused compiler-only write-pruning branch.
+- Branch:
+  - Pushed `prisma-client-perf-coc-branch-pruning` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-empty-required-set-pruning`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-coc-branch-pruning.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-empty-required-set-pruning`:
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs`
+  - `query-compiler/query-compiler/src/translate.rs`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@create-nested-connectOrCreate-mixed.json.snap`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@create-nested-connectOrCreate-one2m.json.snap`
+- Split commits:
+  - `15b27b88668`, from original `9b870cf327e`: join M:N connect-or-create branches.
+  - `fd3c93d0ede`, from original `0f03048514c`: skip create branch return forwarding.
+  - `9a426d2ac1e`, from original `e14835e605e`: return if condition rows directly.
+- Fresh-base/stack adaptation:
+  - The branch-joining commit conflicted in `connect_or_create_nested.rs` because the original was authored before direct projected-placeholder storage. Resolved by preserving the new `Flow::Return(None)` representation and `RowSink::ProjectedPlaceholder(&IfInput/ReturnInput)` sinks, instead of reintroducing the older vector-return shape.
+  - The create-return-forwarding cleanup applied cleanly after that adaptation.
+  - The direct condition-return commit conflicted only in the M:N connect-or-create block. Resolved to the final `Flow::if_non_empty_returning_condition()` shape with no then-return node, while preserving the current direct-placeholder `IfInput` edge.
+  - The new `Flow::If { then_returns_condition, .. }` field was checked against existing pattern matches; current matches already use `..` or were updated by the split.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
