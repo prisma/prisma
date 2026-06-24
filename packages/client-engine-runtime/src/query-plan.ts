@@ -1,8 +1,6 @@
 import type { ArgScalarType, ArgType, Arity } from '@prisma/driver-adapter-utils'
 
-export type PrismaValuePlaceholder = LegacyPrismaValuePlaceholder | CompactPrismaValuePlaceholder
-export type LegacyPrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
-export type CompactPrismaValuePlaceholder = { $p: readonly [name: string, type: string] }
+export type PrismaValuePlaceholder = { $p: readonly [name: string, type: string] }
 
 export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -10,17 +8,6 @@ export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePl
   }
 
   const obj = value as Record<string, unknown>
-
-  if (obj.prisma__type === 'param') {
-    const prismaValue = obj.prisma__value
-    return (
-      typeof prismaValue === 'object' &&
-      prismaValue !== null &&
-      typeof (prismaValue as Record<string, unknown>).name === 'string' &&
-      typeof (prismaValue as Record<string, unknown>).type === 'string'
-    )
-  }
-
   const compact = obj.$p
   return (
     Array.isArray(compact) && compact.length === 2 && typeof compact[0] === 'string' && typeof compact[1] === 'string'
@@ -28,21 +15,14 @@ export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePl
 }
 
 export function getPrismaValuePlaceholderName(value: PrismaValuePlaceholder): string {
-  return '$p' in value ? value.$p[0] : value.prisma__value.name
+  return value.$p[0]
 }
 
 export function getPrismaValuePlaceholderType(value: PrismaValuePlaceholder): string {
-  return '$p' in value ? value.$p[1] : value.prisma__value.type
+  return value.$p[1]
 }
 
-export type PrismaValueGenerator = LegacyPrismaValueGenerator | CompactPrismaValueGenerator
-
-export type LegacyPrismaValueGenerator = {
-  prisma__type: 'generatorCall'
-  prisma__value: { name: string; args: PrismaValue[] }
-}
-
-export type CompactPrismaValueGenerator = { $g: readonly [name: string, args: PrismaValue[]] }
+export type PrismaValueGenerator = { $g: readonly [name: string, args: PrismaValue[]] }
 
 export function isPrismaValueGenerator(value: unknown): value is PrismaValueGenerator {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -50,27 +30,16 @@ export function isPrismaValueGenerator(value: unknown): value is PrismaValueGene
   }
 
   const obj = value as Record<string, unknown>
-
-  if (obj.prisma__type === 'generatorCall') {
-    const prismaValue = obj.prisma__value
-    return (
-      typeof prismaValue === 'object' &&
-      prismaValue !== null &&
-      typeof (prismaValue as Record<string, unknown>).name === 'string' &&
-      Array.isArray((prismaValue as Record<string, unknown>).args)
-    )
-  }
-
   const compact = obj.$g
   return Array.isArray(compact) && compact.length === 2 && typeof compact[0] === 'string' && Array.isArray(compact[1])
 }
 
 export function getPrismaValueGeneratorName(value: PrismaValueGenerator): string {
-  return '$g' in value ? value.$g[0] : value.prisma__value.name
+  return value.$g[0]
 }
 
 export function getPrismaValueGeneratorArgs(value: PrismaValueGenerator): PrismaValue[] {
-  return '$g' in value ? value.$g[1] : value.prisma__value.args
+  return value.$g[1]
 }
 
 export type PrismaValue =
