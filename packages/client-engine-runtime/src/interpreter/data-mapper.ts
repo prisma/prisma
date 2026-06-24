@@ -9,7 +9,6 @@ import {
   FieldScalarTypeName,
   FieldType,
   ResultNode,
-  ResultObjectNode,
 } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
 import { assertNever, safeJsonStringify } from '../utils'
@@ -57,7 +56,7 @@ type ResultSetFieldMapping =
       node: ObjectResultNode
     }
 
-type ObjectResultNode = ResultObjectNode | CompactResultObjectNode
+type ObjectResultNode = CompactResultObjectNode
 type FieldResultNode = FieldScalarTypeName | Extract<ResultNode, { fieldType: FieldType }>
 type CanonicalScalarTypeName = CanonicalFieldScalarTypeName | 'enum' | 'bytes'
 const FIELD_SCALAR_TYPE_NAMES: Record<CompactFieldScalarTypeName, CanonicalFieldScalarTypeName> = Object.freeze({
@@ -73,33 +72,24 @@ const FIELD_SCALAR_TYPE_NAMES: Record<CompactFieldScalarTypeName, CanonicalField
   x: 'unsupported',
 })
 
-function isCompactObjectNode(node: ResultNode | ObjectResultNode): node is CompactResultObjectNode {
+function isObjectNode(node: ResultNode | ObjectResultNode): node is ObjectResultNode {
   return Array.isArray(node)
 }
 
 function isFieldNode(node: ResultNode): node is FieldResultNode {
-  return typeof node === 'string' || (!isCompactObjectNode(node) && 'fieldType' in node)
+  return typeof node === 'string' || (!isObjectNode(node) && 'fieldType' in node)
 }
 
 function getObjectFields(node: ObjectResultNode): Record<string, ResultNode> {
-  if (isCompactObjectNode(node)) {
-    return node[1]
-  }
-  return node.fields
+  return node[1]
 }
 
 function getObjectSerializedName(node: ObjectResultNode): string | null {
-  if (isCompactObjectNode(node)) {
-    return node[0]
-  }
-  return node.serializedName
+  return node[0]
 }
 
 function getObjectSkipNulls(node: ObjectResultNode): boolean {
-  if (isCompactObjectNode(node)) {
-    return node[2] ?? false
-  }
-  return node.skipNulls
+  return node[2] ?? false
 }
 
 function getFieldType(node: FieldResultNode): FieldType {
@@ -141,7 +131,7 @@ function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNod
 }
 
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
-  if (isCompactObjectNode(structure)) {
+  if (isObjectNode(structure)) {
     return mapArrayOrObject(data, getObjectFields(structure), enums, getObjectSkipNulls(structure))
   }
 
@@ -155,9 +145,6 @@ export function applyDataMap(data: Value, structure: ResultNode, enums: Record<s
         throw new DataMapperError(`Expected an affected rows count, got: ${typeof data} (${data})`)
       }
       return { count: data }
-
-    case 'object':
-      return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls)
 
     default:
       assertNever(structure as never, `Invalid data mapping type: '${getResultNodeType(structure)}'`)
@@ -244,7 +231,7 @@ function mapObject(
       continue
     }
 
-    if (isCompactObjectNode(node)) {
+    if (isObjectNode(node)) {
       const serializedName = getObjectSerializedName(node)
       if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
         throw new DataMapperError(
@@ -260,19 +247,6 @@ function mapObject(
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
-      }
-
-      case 'object': {
-        const { serializedName, fields: nodeFields, skipNulls } = node
-        if (serializedName !== null && !Object.hasOwn(data, serializedName)) {
-          throw new DataMapperError(
-            `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
-          )
-        }
-
-        const target = serializedName !== null ? data[serializedName] : data
-        result[name] = mapArrayOrObject(target, nodeFields, enums, skipNulls)
-        break
       }
 
       default:
@@ -395,7 +369,7 @@ function buildResultSetFieldMappings(
       continue
     }
 
-    if (isCompactObjectNode(node)) {
+    if (isObjectNode(node)) {
       const serializedName = getObjectSerializedName(node)
       if (serializedName === null) {
         result[i] = {
@@ -426,34 +400,6 @@ function buildResultSetFieldMappings(
     switch (node.type) {
       case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
-      }
-
-      case 'object': {
-        const { serializedName } = node
-        if (serializedName === null) {
-          result[i] = {
-            type: 'rowObject',
-            name,
-            fields: buildResultSetFieldMappings(node.fields, columnIndexes),
-          }
-          break
-        }
-
-        const columnIndex = columnIndexes[serializedName]
-        if (columnIndex === undefined) {
-          throw new DataMapperError(
-            `Missing data field (Object): '${name}'; ` +
-              `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
-          )
-        }
-
-        result[i] = {
-          type: 'valueObject',
-          name,
-          columnIndex,
-          node,
-        }
-        break
       }
 
       default:

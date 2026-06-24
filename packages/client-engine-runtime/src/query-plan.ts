@@ -57,20 +57,12 @@ export type ResultNode =
   | {
       type: 'affectedRows'
     }
-  | ResultObjectNode
   | CompactResultObjectNode
   | {
       type?: 'field'
       dbName?: string
       fieldType: FieldType
     }
-
-export type ResultObjectNode = {
-  type: 'object'
-  fields: Record<string, ResultNode>
-  serializedName: string | null
-  skipNulls: boolean
-}
 
 export type CompactResultObjectNode =
   | readonly [serializedName: string | null, fields: Record<string, ResultNode>]
