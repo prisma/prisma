@@ -17262,3 +17262,37 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Direct Placeholder Storage Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the broader write/placeholder branch that was intentionally excluded from the translation/dependency split, without pulling in unrelated write-pruning and branch-joining optimizations.
+- Branch:
+  - Pushed `prisma-client-perf-direct-placeholder-storage` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-translation-placeholder-cleanups`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-direct-placeholder-storage.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed. The GitHub connector returned `HTTP 401 token_expired`, and `gh auth status` reports the local token as invalid.
+- Scope relative to `prisma-client-perf-translation-placeholder-cleanups`:
+  - `query-compiler/core/src/query_graph/mod.rs`
+  - `query-compiler/core/src/query_graph_builder/inputs.rs`
+  - `query-compiler/core/src/query_graph_builder/write/create.rs`
+  - nested write builder carrier sites under `query-compiler/core/src/query_graph_builder/write/nested/`
+  - `query-compiler/core/src/query_graph_builder/write/utils.rs`
+  - `query-compiler/query-compiler/src/selection.rs`
+  - `query-compiler/query-compiler/src/translate.rs`
+- Split commits:
+  - `660f6c10d3a`, from original `ffe098e7dbc`: avoid singleton parsed input vec allocation.
+  - `305bd75a4f8`, from original `dd196d58292`: reuse child link for connect-or-create existence checks.
+  - `7a4036be871`, from original `fd906df5c3d`: store projected placeholders directly.
+- Fresh-base/stack adaptation:
+  - Added the parsed-input singleton and child-link projection commits as explicit prerequisites. Applying `fd906df5c3d` alone exposed those as hidden dependencies.
+  - Resolved `fd906df5c3d` by keeping the current branch's write-builder graph shapes and applying only the carrier/storage conversion: `Flow::If`, `Flow::Return`, and `DiffNode` now store `Option<Placeholder>` for projected dependency inputs, and translation consumes those placeholders directly.
+  - Deliberately excluded separate write-pruning and branch-joining history from this branch, including nested-only update/upsert shortcuts, no-op upsert updates, empty nested set specialization, and M:N connect-or-create branch joining.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo check -p query-structure`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
