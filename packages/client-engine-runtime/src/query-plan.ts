@@ -47,21 +47,31 @@ export type QueryPlanBinding = {
   expr: QueryPlanNode
 }
 
-export type QueryPlanDbQuery =
-  | {
-      type: 'rawSql'
-      sql: string
-      args: PrismaValue[]
-      argTypes: ArgType[]
-    }
-  | {
-      type: 'templateSql'
-      fragments: Fragment[]
-      placeholderFormat: PlaceholderFormat
-      args: PrismaValue[]
-      argTypes: DynamicArgType[]
-      chunkable: boolean
-    }
+export type QueryPlanDbQuery = QueryPlanRawSql | QueryPlanTemplateSql | QueryPlanCompactTemplateSql
+
+export type QueryPlanRawSql = {
+  type: 'rawSql'
+  sql: string
+  args: PrismaValue[]
+  argTypes: ArgType[]
+}
+
+export type QueryPlanTemplateSql = {
+  type: 'templateSql'
+  fragments: Fragment[]
+  placeholderFormat: PlaceholderFormat
+  args: PrismaValue[]
+  argTypes: DynamicArgType[]
+  chunkable: boolean
+}
+
+export type QueryPlanCompactTemplateSql = readonly [
+  fragments: Fragment[],
+  placeholderFormat: CompactPlaceholderFormat,
+  args: PrismaValue[],
+  argTypes: DynamicArgType[],
+  chunkable: boolean,
+]
 
 export type QueryPlanArgType = ArgScalarType | ArgType
 
@@ -89,6 +99,8 @@ export interface PlaceholderFormat {
   prefix: string
   hasNumbering: boolean
 }
+
+export type CompactPlaceholderFormat = readonly [prefix: string, hasNumbering: boolean]
 
 export type JoinExpression = {
   child: QueryPlanNode

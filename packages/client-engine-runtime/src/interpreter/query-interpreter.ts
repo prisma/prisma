@@ -10,6 +10,7 @@ import {
   JoinExpression,
   QueryPlanDbQuery,
   QueryPlanNode,
+  type QueryPlanRawSql,
   type ResultNode,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
@@ -61,6 +62,10 @@ function isObjectResultNode(
   structure: DeepReadonly<ResultNode>,
 ): structure is DeepReadonly<Extract<ResultNode, { type: 'object' }>> {
   return typeof structure === 'object' && structure.type === 'object'
+}
+
+function isRawSqlQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>): dbQuery is DeepReadonly<QueryPlanRawSql> {
+  return (dbQuery as DeepReadonly<QueryPlanRawSql>).type === 'rawSql'
 }
 
 export class QueryInterpreter {
@@ -175,17 +180,21 @@ export class QueryInterpreter {
 
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+        const isRaw = isRawSqlQuery(node.args)
+        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let sum = 0
         for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .executeRaw(cloneObject(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
+          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+          if (usesQueryInstrumentation) {
+            sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+              context.queryable.executeRaw(cloneObject(queryToExecute)).catch(handleError),
+            )
+          } else {
+            sum += await context.queryable.executeRaw(cloneObject(queryToExecute)).catch(handleError)
+          }
         }
 
         return { value: sum }
@@ -193,17 +202,19 @@ export class QueryInterpreter {
 
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+        const isRaw = isRawSqlQuery(node.args)
+        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .queryRaw(cloneObject(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
+          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+          const result = usesQueryInstrumentation
+            ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+                context.queryable.queryRaw(cloneObject(queryToExecute)).catch(handleError),
+              )
+            : await context.queryable.queryRaw(cloneObject(queryToExecute)).catch(handleError)
           if (results === undefined) {
             results = result
           } else {
@@ -213,7 +224,7 @@ export class QueryInterpreter {
         }
 
         return {
-          value: node.args.type === 'rawSql' ? this.#rawSerializer(results!) : this.#serializer(results!),
+          value: isRaw ? this.#rawSerializer(results!) : this.#serializer(results!),
           lastInsertId: results?.lastInsertId,
         }
       }
@@ -284,13 +295,13 @@ export class QueryInterpreter {
 
       case 'dataMap': {
         const expr = node.args.expr
-        if (expr.type === 'query' && expr.args.type !== 'rawSql') {
+        if (expr.type === 'query' && !isRawSqlQuery(expr.args)) {
           const { structure, enums } = node.args
           if (isObjectResultNode(structure)) {
             const results = await this.#executeQuery(expr.args, context)
             return { value: applyDataMapToResultSet(results, structure, enums), lastInsertId: results.lastInsertId }
           }
-        } else if (expr.type === 'unique' && expr.args.type === 'query' && expr.args.args.type !== 'rawSql') {
+        } else if (expr.type === 'unique' && expr.args.type === 'query' && !isRawSqlQuery(expr.args.args)) {
           const { structure, enums } = node.args
           if (isObjectResultNode(structure)) {
             const results = await this.#executeQuery(expr.args.args, context)
@@ -421,7 +432,7 @@ export class QueryInterpreter {
     const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
     const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
     const usesQueryInstrumentation = this.#usesQueryInstrumentation()
-    const handleError = dbQuery.type === 'rawSql' ? rethrowAsUserFacingRawError : rethrowAsUserFacing
+    const handleError = isRawSqlQuery(dbQuery) ? rethrowAsUserFacingRawError : rethrowAsUserFacing
 
     let results: SqlResultSet | undefined
     for (const query of queries) {

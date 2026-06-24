@@ -5,11 +5,13 @@ import {
   type Fragment,
   isPrismaValueGenerator,
   isPrismaValuePlaceholder,
-  type PlaceholderFormat,
   type PrismaValueGenerator,
   type PrismaValuePlaceholder,
   type QueryPlanArgType,
+  type QueryPlanCompactTemplateSql,
   type QueryPlanDbQuery,
+  type QueryPlanRawSql,
+  type QueryPlanTemplateSql,
 } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
 import { assertNever, DeepReadonly } from '../utils'
@@ -33,13 +35,16 @@ const SCALAR_ARG_TYPES: Record<ArgScalarType, ArgType> = Object.freeze({
   unknown: Object.freeze({ arity: 'scalar', scalarType: 'unknown' }),
 })
 
+type TemplateSqlQuery = QueryPlanTemplateSql
+type CompactTemplateSqlQuery = QueryPlanCompactTemplateSql
+
 type FlatTemplateSqlRendering = {
   sql: string
   paramCount: number
   argTypes: ArgType[]
 }
 
-const flatTemplateSqlCache = new WeakMap<DeepReadonly<QueryPlanDbQuery>, FlatTemplateSqlRendering | null>()
+const flatTemplateSqlCache = new WeakMap<object, FlatTemplateSqlRendering | null>()
 
 export function renderQuery(
   dbQuery: DeepReadonly<QueryPlanDbQuery>,
@@ -47,7 +52,31 @@ export function renderQuery(
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
 ): DeepReadonly<SqlQuery>[] {
-  if (dbQuery.type === 'templateSql' && dbQuery.args.length === 0) {
+  const rawQuery = dbQuery as DeepReadonly<QueryPlanRawSql>
+  if (rawQuery.type === 'rawSql') {
+    const args = evaluateArgs(rawQuery.args, scope, generators)
+    return [renderRawSql(rawQuery.sql, args, rawQuery.argTypes)]
+  }
+
+  if (Array.isArray(dbQuery)) {
+    return renderCompactTemplateSqlQuery(
+      dbQuery as DeepReadonly<CompactTemplateSqlQuery>,
+      scope,
+      generators,
+      maxChunkSize,
+    )
+  }
+
+  return renderLegacyTemplateSqlQuery(dbQuery as DeepReadonly<TemplateSqlQuery>, scope, generators, maxChunkSize)
+}
+
+function renderLegacyTemplateSqlQuery(
+  dbQuery: DeepReadonly<TemplateSqlQuery>,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+  maxChunkSize?: number,
+): DeepReadonly<SqlQuery>[] {
+  if (dbQuery.args.length === 0) {
     const fragment = dbQuery.fragments.length === 1 ? dbQuery.fragments[0] : undefined
     if (typeof fragment === 'string') {
       return [
@@ -69,76 +98,166 @@ export function renderQuery(
     }
   }
 
-  switch (dbQuery.type) {
-    case 'rawSql': {
-      const args = evaluateArgs(dbQuery.args, scope, generators)
-      return [renderRawSql(dbQuery.sql, args, dbQuery.argTypes)]
+  const placeholderFormat = dbQuery.placeholderFormat
+  const flatRendering = getFlatTemplateSqlRenderingFromParts(
+    dbQuery,
+    dbQuery.fragments,
+    placeholderFormat.prefix,
+    placeholderFormat.hasNumbering,
+    dbQuery.argTypes,
+  )
+  if (flatRendering !== undefined) {
+    if (maxChunkSize !== undefined && flatRendering.paramCount > maxChunkSize) {
+      throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
     }
 
-    case 'templateSql': {
-      const flatRendering = getFlatTemplateSqlRendering(dbQuery)
-      if (flatRendering !== undefined) {
-        if (maxChunkSize !== undefined && flatRendering.paramCount > maxChunkSize) {
-          throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
-        }
-
-        if (flatRendering.paramCount === 0) {
-          return [
-            {
-              sql: flatRendering.sql,
-              args: EMPTY_ARGS,
-              argTypes: EMPTY_ARG_TYPES,
-            },
-          ]
-        }
-
-        const args = evaluateArgs(dbQuery.args, scope, generators)
-        if (flatRendering.paramCount > args.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${args.length} parameters.`)
-        }
-        const queryArgs = flatRendering.paramCount === args.length ? args : args.slice(0, flatRendering.paramCount)
-
-        return [
-          {
-            sql: flatRendering.sql,
-            args: queryArgs,
-            argTypes: flatRendering.argTypes,
-          },
-        ]
-      }
-
-      const args = evaluateArgs(dbQuery.args, scope, generators)
-      const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
-      return chunks.map((params) => {
-        const rendered = renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
-        if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
-          throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
-        }
-        return rendered
-      })
+    if (flatRendering.paramCount === 0) {
+      return [
+        {
+          sql: flatRendering.sql,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
     }
 
-    default:
-      assertNever(dbQuery['type'], `Invalid query type`)
+    const args = evaluateArgs(dbQuery.args, scope, generators)
+    if (flatRendering.paramCount > args.length) {
+      throw new Error(`Malformed query template. Fragments attempt to read over ${args.length} parameters.`)
+    }
+    const renderedArgs = flatRendering.paramCount === args.length ? args : args.slice(0, flatRendering.paramCount)
+
+    return [
+      {
+        sql: flatRendering.sql,
+        args: renderedArgs,
+        argTypes: flatRendering.argTypes,
+      },
+    ]
   }
+
+  const args = evaluateArgs(dbQuery.args, scope, generators)
+  const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
+  const result = new Array<DeepReadonly<SqlQuery>>(chunks.length)
+  for (let i = 0; i < chunks.length; i++) {
+    const rendered = renderTemplateSql(
+      dbQuery.fragments,
+      placeholderFormat.prefix,
+      placeholderFormat.hasNumbering,
+      chunks[i],
+      dbQuery.argTypes,
+    )
+    if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
+      throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
+    }
+    result[i] = rendered
+  }
+  return result
 }
 
-function getFlatTemplateSqlRendering(dbQuery: DeepReadonly<QueryPlanDbQuery>): FlatTemplateSqlRendering | undefined {
-  const cached = flatTemplateSqlCache.get(dbQuery)
-  if (cached !== undefined) {
-    return cached ?? undefined
+function renderCompactTemplateSqlQuery(
+  dbQuery: DeepReadonly<CompactTemplateSqlQuery>,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+  maxChunkSize?: number,
+): DeepReadonly<SqlQuery>[] {
+  const fragments = dbQuery[0]
+  const placeholderFormat = dbQuery[1]
+  const queryArgs = dbQuery[2]
+  const argTypes = dbQuery[3]
+  const chunkable = dbQuery[4]
+  const placeholderPrefix = placeholderFormat[0]
+  const placeholderHasNumbering = placeholderFormat[1]
+
+  if (queryArgs.length === 0) {
+    const fragment = fragments.length === 1 ? fragments[0] : undefined
+    if (typeof fragment === 'string') {
+      return [
+        {
+          sql: fragment,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
+    }
+    if (fragment?.type === 'stringChunk') {
+      return [
+        {
+          sql: fragment.chunk,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
+    }
   }
 
-  if (dbQuery.type !== 'templateSql') {
-    flatTemplateSqlCache.set(dbQuery, null)
-    return undefined
+  const flatRendering = getFlatTemplateSqlRenderingFromParts(
+    dbQuery,
+    fragments,
+    placeholderPrefix,
+    placeholderHasNumbering,
+    argTypes,
+  )
+  if (flatRendering !== undefined) {
+    if (maxChunkSize !== undefined && flatRendering.paramCount > maxChunkSize) {
+      throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
+    }
+
+    if (flatRendering.paramCount === 0) {
+      return [
+        {
+          sql: flatRendering.sql,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
+    }
+
+    const args = evaluateArgs(queryArgs, scope, generators)
+    if (flatRendering.paramCount > args.length) {
+      throw new Error(`Malformed query template. Fragments attempt to read over ${args.length} parameters.`)
+    }
+    const renderedArgs = flatRendering.paramCount === args.length ? args : args.slice(0, flatRendering.paramCount)
+
+    return [
+      {
+        sql: flatRendering.sql,
+        args: renderedArgs,
+        argTypes: flatRendering.argTypes,
+      },
+    ]
+  }
+
+  const args = evaluateArgs(queryArgs, scope, generators)
+  const chunks = chunkable ? chunkParams(fragments, args, maxChunkSize) : [args]
+  const result = new Array<DeepReadonly<SqlQuery>>(chunks.length)
+  for (let i = 0; i < chunks.length; i++) {
+    const rendered = renderTemplateSql(fragments, placeholderPrefix, placeholderHasNumbering, chunks[i], argTypes)
+    if (maxChunkSize !== undefined && rendered.args.length > maxChunkSize) {
+      throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
+    }
+    result[i] = rendered
+  }
+  return result
+}
+
+function getFlatTemplateSqlRenderingFromParts(
+  cacheKey: object,
+  fragments: DeepReadonly<Fragment[]>,
+  placeholderPrefix: string,
+  placeholderHasNumbering: boolean,
+  argTypes: DeepReadonly<DynamicArgType[]>,
+): FlatTemplateSqlRendering | undefined {
+  const cached = flatTemplateSqlCache.get(cacheKey)
+  if (cached !== undefined) {
+    return cached ?? undefined
   }
 
   let sql = ''
   let placeholderNumber = 1
   let paramCount = 0
 
-  for (const fragment of dbQuery.fragments) {
+  for (const fragment of fragments) {
     if (typeof fragment === 'string') {
       sql += fragment
       continue
@@ -150,13 +269,17 @@ function getFlatTemplateSqlRendering(dbQuery: DeepReadonly<QueryPlanDbQuery>): F
         break
 
       case 'parameter':
-        sql += formatPlaceholder(dbQuery.placeholderFormat, placeholderNumber++)
+        if (placeholderHasNumbering) {
+          sql += `${placeholderPrefix}${placeholderNumber++}`
+        } else {
+          sql += placeholderPrefix
+        }
         paramCount++
         break
 
       case 'parameterTuple':
       case 'parameterTupleList':
-        flatTemplateSqlCache.set(dbQuery, null)
+        flatTemplateSqlCache.set(cacheKey, null)
         return undefined
 
       default:
@@ -167,9 +290,9 @@ function getFlatTemplateSqlRendering(dbQuery: DeepReadonly<QueryPlanDbQuery>): F
   const rendering: FlatTemplateSqlRendering = {
     sql,
     paramCount,
-    argTypes: copyArgTypes(dbQuery.argTypes, paramCount),
+    argTypes: copyArgTypes(argTypes, paramCount),
   }
-  flatTemplateSqlCache.set(dbQuery, rendering)
+  flatTemplateSqlCache.set(cacheKey, rendering)
   return rendering
 }
 
@@ -238,7 +361,8 @@ function copyArgTypes(argTypes: DeepReadonly<DynamicArgType[]>, length: number):
 
 function renderTemplateSql(
   fragments: DeepReadonly<Fragment[]>,
-  placeholderFormat: PlaceholderFormat,
+  placeholderPrefix: string,
+  placeholderHasNumbering: boolean,
   params: unknown[],
   argTypes: DeepReadonly<DynamicArgType[]>,
 ): SqlQuery {
@@ -265,7 +389,11 @@ function renderTemplateSql(
           throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
         }
 
-        sql += formatPlaceholder(placeholderFormat, placeholderNumber++)
+        if (placeholderHasNumbering) {
+          sql += `${placeholderPrefix}${placeholderNumber++}`
+        } else {
+          sql += placeholderPrefix
+        }
         flattenedParams.push(params[paramIndex])
         appendArgTypes(flattenedArgTypes, argTypes[paramIndex], 1)
         paramIndex++
@@ -279,7 +407,13 @@ function renderTemplateSql(
 
         const value = params[paramIndex]
         const tuple = Array.isArray(value) ? value : [value]
-        sql += renderTuplePlaceholders(fragment, tuple.length, placeholderFormat, placeholderNumber)
+        sql += renderTuplePlaceholders(
+          fragment,
+          tuple.length,
+          placeholderPrefix,
+          placeholderHasNumbering,
+          placeholderNumber,
+        )
         placeholderNumber += tuple.length
         pushAll(flattenedParams, tuple)
         appendArgTypes(flattenedArgTypes, argTypes[paramIndex], tuple.length)
@@ -311,7 +445,13 @@ function renderTemplateSql(
             sql += fragment.groupSeparator
           }
 
-          sql += renderTuplePlaceholders(fragment, tuple.length, placeholderFormat, placeholderNumber)
+          sql += renderTuplePlaceholders(
+            fragment,
+            tuple.length,
+            placeholderPrefix,
+            placeholderHasNumbering,
+            placeholderNumber,
+          )
           placeholderNumber += tuple.length
           pushAll(flattenedParams, tuple)
           added += tuple.length
@@ -337,7 +477,8 @@ function renderTemplateSql(
 function renderTuplePlaceholders(
   fragment: Extract<Fragment, { type: 'parameterTuple' | 'parameterTupleList' }>,
   length: number,
-  placeholderFormat: PlaceholderFormat,
+  placeholderPrefix: string,
+  placeholderHasNumbering: boolean,
   placeholderNumber: number,
 ): string {
   if (length === 0) {
@@ -351,7 +492,11 @@ function renderTuplePlaceholders(
         result += fragment.itemSeparator
       }
       result += fragment.itemPrefix
-      result += formatPlaceholder(placeholderFormat, placeholderNumber++)
+      if (placeholderHasNumbering) {
+        result += `${placeholderPrefix}${placeholderNumber++}`
+      } else {
+        result += placeholderPrefix
+      }
       result += fragment.itemSuffix
     }
     return `(${result})`
@@ -362,7 +507,11 @@ function renderTuplePlaceholders(
     if (i > 0) {
       result += fragment.itemSeparator
     }
-    result += formatPlaceholder(placeholderFormat, placeholderNumber++)
+    if (placeholderHasNumbering) {
+      result += `${placeholderPrefix}${placeholderNumber++}`
+    } else {
+      result += placeholderPrefix
+    }
   }
   result += fragment.itemSuffix
 
@@ -402,10 +551,6 @@ function pushAll<T>(target: T[], values: readonly T[]): void {
   for (let i = 0; i < values.length; i++) {
     target.push(values[i])
   }
-}
-
-function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumber: number): string {
-  return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
 function renderRawSql(sql: string, params: unknown[], argTypes: DeepReadonly<DynamicArgType[]>): SqlQuery {
