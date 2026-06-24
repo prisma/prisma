@@ -24,7 +24,7 @@ export const FIND_UNIQUE_PLAN: QueryPlanNode = [
         ['SELECT id, email, name, bio, avatar, isActive, role, createdAt FROM User WHERE id = ', null],
         ['?', false],
         [1],
-        [{ scalarType: 'int', arity: 'scalar' }],
+        ['i'],
         false,
       ],
     ],
@@ -49,27 +49,12 @@ export const JOIN_PLAN: QueryPlanNode = [
   'd',
   [
     'j',
-    [
-      'q',
-      [
-        ['SELECT id, email, name FROM User WHERE id = ', null],
-        ['?', false],
-        [1],
-        [{ scalarType: 'int', arity: 'scalar' }],
-        false,
-      ],
-    ],
+    ['q', [['SELECT id, email, name FROM User WHERE id = ', null], ['?', false], [1], ['i'], false]],
     [
       [
         [
           'q',
-          [
-            ['SELECT id, title, content, authorId FROM Post WHERE authorId = ', null],
-            ['?', false],
-            [1],
-            [{ scalarType: 'int', arity: 'scalar' }],
-            false,
-          ],
+          [['SELECT id, title, content, authorId FROM Post WHERE authorId = ', null], ['?', false], [1], ['i'], false],
         ],
         [['id', 'authorId']],
         'posts',
@@ -102,29 +87,11 @@ export const SEQUENCE_PLAN: QueryPlanNode = [
   [
     [
       'x',
-      [
-        ['UPDATE User SET name = ', null, ' WHERE id = ', null],
-        ['?', false],
-        ['Updated Name', 1],
-        [
-          { scalarType: 'string', arity: 'scalar' },
-          { scalarType: 'int', arity: 'scalar' },
-        ],
-        false,
-      ],
+      [['UPDATE User SET name = ', null, ' WHERE id = ', null], ['?', false], ['Updated Name', 1], ['s', 'i'], false],
     ],
     [
       'd',
-      [
-        'q',
-        [
-          ['SELECT id, name FROM User WHERE id = ', null],
-          ['?', false],
-          [1],
-          [{ scalarType: 'int', arity: 'scalar' }],
-          false,
-        ],
-      ],
+      ['q', [['SELECT id, name FROM User WHERE id = ', null], ['?', false], [1], ['i'], false]],
       [
         null,
         {

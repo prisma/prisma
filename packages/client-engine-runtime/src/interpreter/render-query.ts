@@ -496,6 +496,13 @@ function toArgType(argType: DeepReadonly<QueryPlanArgType>): ArgType {
   if (typeof argType === 'string') {
     return SCALAR_ARG_TYPES[argType]
   }
+  if (typeof argType === 'object' && argType !== null && !Array.isArray(argType)) {
+    const objectArgType = argType as { arity?: unknown }
+    if (objectArgType.arity === 'list') {
+      return argType as ArgType
+    }
+    throw new Error(`Invalid query argument type: '${getArgTypeKind(argType)}'`)
+  }
   if (Array.isArray(argType)) {
     return {
       arity: 'scalar',
@@ -503,7 +510,7 @@ function toArgType(argType: DeepReadonly<QueryPlanArgType>): ArgType {
       dbType: argType[1],
     }
   }
-  return argType as ArgType
+  throw new Error(`Invalid query argument type: '${getArgTypeKind(argType)}'`)
 }
 
 function pushAll<T>(target: T[], values: readonly T[]): void {
@@ -518,6 +525,14 @@ function renderRawSql(sql: string, params: unknown[], argTypes: DeepReadonly<Dyn
     args: params,
     argTypes: copyArgTypes(argTypes, argTypes.length),
   }
+}
+
+function getArgTypeKind(argType: unknown): string | undefined {
+  if (typeof argType === 'object' && argType !== null && !Array.isArray(argType)) {
+    const arity = (argType as { arity?: unknown }).arity
+    return typeof arity === 'string' ? arity : undefined
+  }
+  return typeof argType
 }
 
 function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder | PrismaValueGenerator {
