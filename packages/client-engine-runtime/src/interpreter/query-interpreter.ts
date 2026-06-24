@@ -69,6 +69,7 @@ export type QueryInterpreterSqlCommenter = {
   queryInfo: SqlCommenterQueryInfo
 }
 
+const EMPTY_ENUMS: Record<string, Record<string, string>> = Object.freeze({})
 function isObjectResultNode(structure: ResultNode): structure is ResultObjectNode | CompactResultObjectNode {
   if (Array.isArray(structure)) {
     return true
@@ -589,7 +590,7 @@ export class QueryInterpreter {
       case 'd': {
         const expr = node[1]
         const structure = node[2]
-        const enums = node[3]
+        const enums = node[3] ?? EMPTY_ENUMS
         if (isCompactQueryNode(expr) && !isRawSqlQuery(expr[1])) {
           if (isObjectResultNode(structure)) {
             const results = await this.#executeQuery(expr[1], context)
