@@ -17144,3 +17144,30 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `63ac52cb5bf` needed prerequisite graph/translation cleanups (`c3fe406576f`, `5d015d902b2`, `af75c51ccd6`).
   - `ada2906dea3` was needed for the `NodeRef::index()` API used by the reachability/binding-name cleanup on fresh `origin/main`.
   - Skipped `FieldSelection::into_virtuals_last()` and projected dependency edge-iteration follow-ups in this slice because they conflicted with broader graph/data-mapper history. Extract them later only if their own fresh-base branch has close allocation plus timing evidence.
+
+## Packaging: Selection/Aggregate Split Branch (2026-06-24)
+
+- Goal:
+  - Extract another small engines-only compiler-local review branch while GitHub auth blocks creating the already-pushed PRs.
+- Branch:
+  - Pushed `prisma-client-perf-selection-aggregate-cleanups` to `prisma/prisma-engines`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-selection-aggregate-cleanups.
+  - As with the graph/translation branch, PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope:
+  - `query-compiler/query-structure/src/field_selection.rs`
+  - `query-compiler/query-compiler/src/data_mapper.rs`
+- Split commits:
+  - `a4a408bff94`, from original `6b97cbc7d5f`: reduce virtual field selection allocations.
+  - `0e0c93fb233`, from original `37b0b015f9c`: stream aggregate result mappings.
+- Fresh-base adaptations:
+  - Resolved the `FieldSelection::into_virtuals_last()` conflict against current `origin/main` by keeping the accepted early no-virtual return plus one non-virtual output vector and virtual tail.
+  - Resolved the aggregate mapper conflict by keeping current main's `FieldSelection` / `HashMap` shape and applying only the streaming `selection_order` / `selector.identifiers()` traversal.
+  - Kept current main's existing `ResultNodeBuilder::new_object()` API instead of adding an implicit `new_object_with_capacity()` prerequisite to this split.
+- Validation:
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/selection-aggregate-target cargo check -p query-structure`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/selection-aggregate-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/selection-aggregate-target cargo test -p query-compiler --test queries`: passed.
+- Deferred:
+  - Skipped `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`) from this branch. On fresh `origin/main`, it conflicts because it expects an earlier unique-filter fast path that is not in this split. Extract it separately with its real prerequisite chain instead of smuggling that dependency into a selection/aggregate PR.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
