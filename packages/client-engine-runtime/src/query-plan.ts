@@ -116,7 +116,9 @@ export type JoinExpression = {
   isRelationUnique: boolean
 }
 
-export type QueryPlanNode =
+export type QueryPlanNode = QueryPlanLegacyNode | QueryPlanCompactNode
+
+export type QueryPlanLegacyNode =
   | {
       type: 'value'
       args: PrismaValue
@@ -247,6 +249,31 @@ export type QueryPlanNode =
         operations: InMemoryOps
       }
     }
+
+export type QueryPlanCompactNode =
+  | readonly ['v', PrismaValue]
+  | readonly ['s', QueryPlanNode[]]
+  | readonly ['g', string]
+  | readonly ['l', QueryPlanBinding[], QueryPlanNode]
+  | readonly ['e', string[]]
+  | readonly ['q', QueryPlanDbQuery]
+  | readonly ['x', QueryPlanDbQuery]
+  | readonly ['R', QueryPlanNode]
+  | readonly ['+', QueryPlanNode[]]
+  | readonly ['c', QueryPlanNode[]]
+  | readonly ['u', QueryPlanNode]
+  | readonly ['r', QueryPlanNode]
+  | readonly ['j', QueryPlanNode, JoinExpression[], boolean]
+  | readonly ['m', string, QueryPlanNode]
+  | readonly ['t', QueryPlanNode]
+  | readonly ['d', QueryPlanNode, ResultNode, Record<string, Record<string, string>>]
+  | readonly ['V', QueryPlanNode, DataRule[], ValidationError['errorIdentifier'], ValidationError['context']]
+  | readonly ['?', QueryPlanNode, DataRule, QueryPlanNode, QueryPlanNode]
+  | readonly ['0']
+  | readonly ['-', QueryPlanNode, QueryPlanNode, string[]]
+  | readonly ['i', QueryPlanNode, Record<string, FieldInitializer>]
+  | readonly ['M', QueryPlanNode, Record<string, FieldOperation>]
+  | readonly ['p', QueryPlanNode, InMemoryOps]
 
 export type FieldInitializer = { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }
 

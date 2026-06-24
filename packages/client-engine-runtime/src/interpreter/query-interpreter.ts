@@ -9,11 +9,14 @@ import {
   FieldOperation,
   InMemoryOps,
   JoinExpression,
+  type QueryPlanCompactNode,
   QueryPlanDbQuery,
+  type QueryPlanLegacyNode,
   QueryPlanNode,
   type QueryPlanRawSql,
   type ResultNode,
   type ResultObjectNode,
+  type ValidationError,
 } from '../query-plan'
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
@@ -60,9 +63,7 @@ export type QueryInterpreterSqlCommenter = {
   queryInfo: SqlCommenterQueryInfo
 }
 
-function isObjectResultNode(
-  structure: DeepReadonly<ResultNode>,
-): structure is DeepReadonly<ResultObjectNode | CompactResultObjectNode> {
+function isObjectResultNode(structure: ResultNode): structure is ResultObjectNode | CompactResultObjectNode {
   if (Array.isArray(structure)) {
     return true
   }
@@ -71,6 +72,17 @@ function isObjectResultNode(
 
 function isRawSqlQuery(dbQuery: DeepReadonly<QueryPlanDbQuery>): dbQuery is DeepReadonly<QueryPlanRawSql> {
   return (dbQuery as DeepReadonly<QueryPlanRawSql>).type === 'rawSql'
+}
+
+type CompactQueryNodeForRuntime = readonly ['q', DeepReadonly<QueryPlanDbQuery>]
+type CompactUniqueQueryNodeForRuntime = readonly ['u', CompactQueryNodeForRuntime]
+
+function isCompactQueryNode(node: unknown): node is CompactQueryNodeForRuntime {
+  return Array.isArray(node) && node[0] === 'q'
+}
+
+function isCompactUniqueQueryNode(node: unknown): node is CompactUniqueQueryNodeForRuntime {
+  return Array.isArray(node) && node[0] === 'u' && isCompactQueryNode(node[1])
 }
 
 export class QueryInterpreter {
@@ -114,7 +126,7 @@ export class QueryInterpreter {
     })
   }
 
-  async run(queryPlan: DeepReadonly<QueryPlanNode>, options: QueryRuntimeOptions): Promise<unknown> {
+  async run(queryPlan: QueryPlanNode, options: QueryRuntimeOptions): Promise<unknown> {
     const { value } = await this.interpretNode(queryPlan, {
       ...options,
       generators: this.#generators.snapshot(),
@@ -123,10 +135,12 @@ export class QueryInterpreter {
     return value
   }
 
-  private async interpretNode(
-    node: DeepReadonly<QueryPlanNode>,
-    context: QueryRuntimeContext,
-  ): Promise<IntermediateValue> {
+  private async interpretNode(queryNode: QueryPlanNode, context: QueryRuntimeContext): Promise<IntermediateValue> {
+    if (Array.isArray(queryNode)) {
+      return this.#interpretCompactNode(queryNode as QueryPlanCompactNode, context)
+    }
+
+    const node = queryNode as QueryPlanLegacyNode
     switch (node.type) {
       case 'value': {
         return {
@@ -300,16 +314,18 @@ export class QueryInterpreter {
 
       case 'dataMap': {
         const expr = node.args.expr
-        if (expr.type === 'query' && !isRawSqlQuery(expr.args)) {
+        const legacyExpr = Array.isArray(expr) ? undefined : (expr as QueryPlanLegacyNode)
+        if (legacyExpr?.type === 'query' && !isRawSqlQuery(legacyExpr.args)) {
           const { structure, enums } = node.args
           if (isObjectResultNode(structure)) {
-            const results = await this.#executeQuery(expr.args, context)
+            const results = await this.#executeQuery(legacyExpr.args, context)
             return { value: applyDataMapToResultSet(results, structure, enums), lastInsertId: results.lastInsertId }
           }
-        } else if (expr.type === 'unique' && expr.args.type === 'query' && !isRawSqlQuery(expr.args.args)) {
+        } else if (legacyExpr?.type === 'unique') {
+          const uniqueExpr = Array.isArray(legacyExpr.args) ? undefined : (legacyExpr.args as QueryPlanLegacyNode)
           const { structure, enums } = node.args
-          if (isObjectResultNode(structure)) {
-            const results = await this.#executeQuery(expr.args.args, context)
+          if (uniqueExpr?.type === 'query' && !isRawSqlQuery(uniqueExpr.args) && isObjectResultNode(structure)) {
+            const results = await this.#executeQuery(uniqueExpr.args, context)
             const value = applyDataMapToResultSet(results, structure, enums)
 
             if (value.length > 1) {
@@ -364,7 +380,10 @@ export class QueryInterpreter {
         const { lastInsertId } = await this.interpretNode(node.args.expr, context)
 
         const record = {}
-        for (const [key, initializer] of Object.entries(node.args.fields)) {
+        for (const [key, initializer] of Object.entries(node.args.fields) as [
+          string,
+          DeepReadonly<FieldInitializer>,
+        ][]) {
           record[key] = evalFieldInitializer(initializer, lastInsertId, context.scope, context.generators)
         }
         return { value: record, lastInsertId }
@@ -374,14 +393,274 @@ export class QueryInterpreter {
         const { value, lastInsertId } = await this.interpretNode(node.args.expr, context)
 
         const record = value === null ? {} : asRecord(value)
-        for (const [key, entry] of Object.entries(node.args.fields)) {
+        for (const [key, entry] of Object.entries(node.args.fields) as [string, DeepReadonly<FieldOperation>][]) {
           record[key] = evalFieldOperation(entry, record[key], context.scope, context.generators)
         }
         return { value: record, lastInsertId }
       }
 
       default:
-        assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
+        throw new Error(`Unexpected node type: ${(node as { type: unknown }).type}`)
+    }
+  }
+
+  async #interpretCompactNode(node: QueryPlanCompactNode, context: QueryRuntimeContext): Promise<IntermediateValue> {
+    switch (node[0]) {
+      case 'v': {
+        return {
+          value: evaluateArg(node[1], context.scope, context.generators),
+        }
+      }
+
+      case 's': {
+        let result: IntermediateValue | undefined
+        for (const arg of node[1]) {
+          result = await this.interpretNode(arg, context)
+        }
+        return result ?? { value: undefined }
+      }
+
+      case 'g': {
+        return { value: context.scope[node[1]] }
+      }
+
+      case 'l': {
+        const nestedScope: ScopeBindings = Object.create(context.scope)
+        for (const binding of node[1]) {
+          const { value } = await this.interpretNode(binding.expr, { ...context, scope: nestedScope })
+          nestedScope[binding.name] = value
+        }
+        return this.interpretNode(node[2], { ...context, scope: nestedScope })
+      }
+
+      case 'e': {
+        for (const name of node[1]) {
+          const value = context.scope[name]
+          if (!isEmpty(value)) {
+            return { value }
+          }
+        }
+        return { value: [] }
+      }
+
+      case 'c': {
+        const parts = await Promise.all(node[1].map((arg) => this.interpretNode(arg, context).then((res) => res.value)))
+        return {
+          value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
+        }
+      }
+
+      case '+': {
+        const parts = await Promise.all(node[1].map((arg) => this.interpretNode(arg, context).then((res) => res.value)))
+        return {
+          value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
+        }
+      }
+
+      case 'x': {
+        const dbQuery = node[1]
+        const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
+        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+        const isRaw = isRawSqlQuery(dbQuery)
+        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
+
+        let sum = 0
+        for (const query of queries) {
+          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+          if (usesQueryInstrumentation) {
+            sum += await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+              context.queryable.executeRaw(cloneObject(queryToExecute)).catch(handleError),
+            )
+          } else {
+            sum += await context.queryable.executeRaw(cloneObject(queryToExecute)).catch(handleError)
+          }
+        }
+
+        return { value: sum }
+      }
+
+      case 'q': {
+        const dbQuery = node[1]
+        const queries = renderQuery(dbQuery, context.scope, context.generators, this.#maxChunkSize())
+        const hasSqlCommenter = context.sqlCommenter !== undefined && context.sqlCommenter.plugins.length > 0
+        const usesQueryInstrumentation = this.#usesQueryInstrumentation()
+        const isRaw = isRawSqlQuery(dbQuery)
+        const handleError = isRaw ? rethrowAsUserFacingRawError : rethrowAsUserFacing
+
+        let results: SqlResultSet | undefined
+        for (const query of queries) {
+          const queryToExecute = hasSqlCommenter ? applyComments(query, context.sqlCommenter) : query
+          const result = usesQueryInstrumentation
+            ? await this.#withQuerySpanAndEvent(queryToExecute, context.queryable, () =>
+                context.queryable.queryRaw(cloneObject(queryToExecute)).catch(handleError),
+              )
+            : await context.queryable.queryRaw(cloneObject(queryToExecute)).catch(handleError)
+          if (results === undefined) {
+            results = result
+          } else {
+            results.rows.push(...result.rows)
+            results.lastInsertId = result.lastInsertId
+          }
+        }
+
+        return {
+          value: isRaw ? this.#rawSerializer(results!) : this.#serializer(results!),
+          lastInsertId: results?.lastInsertId,
+        }
+      }
+
+      case 'R': {
+        const { value, lastInsertId } = await this.interpretNode(node[1], context)
+        return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
+      }
+
+      case 'u': {
+        const { value, lastInsertId } = await this.interpretNode(node[1], context)
+        if (!Array.isArray(value)) {
+          return { value, lastInsertId }
+        }
+        if (value.length > 1) {
+          throw new Error(`Expected zero or one element, got ${value.length}`)
+        }
+        return { value: value[0] ?? null, lastInsertId }
+      }
+
+      case 'r': {
+        const { value, lastInsertId } = await this.interpretNode(node[1], context)
+        if (isEmpty(value)) {
+          throw new Error('Required value is empty')
+        }
+        return { value, lastInsertId }
+      }
+
+      case 'm': {
+        const { value, lastInsertId } = await this.interpretNode(node[2], context)
+        return { value: mapField(value, node[1]), lastInsertId }
+      }
+
+      case 'j': {
+        const { value: parent, lastInsertId } = await this.interpretNode(node[1], context)
+
+        if (parent === null) {
+          return { value: null, lastInsertId }
+        }
+
+        const children = await Promise.all(
+          node[2].map(async (joinExpr) => ({
+            joinExpr,
+            childRecords: (await this.interpretNode(joinExpr.child, context)).value,
+          })),
+        )
+
+        return { value: attachChildrenToParents(parent, children, node[3]), lastInsertId }
+      }
+
+      case 't': {
+        if (!context.transactionManager.enabled) {
+          return this.interpretNode(node[1], context)
+        }
+
+        const transactionManager = context.transactionManager.manager
+        const transactionInfo = await transactionManager.startInternalTransaction()
+        const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
+        try {
+          const value = await this.interpretNode(node[1], { ...context, queryable: transaction })
+          await transactionManager.commitTransaction(transactionInfo.id)
+          return value
+        } catch (e) {
+          await transactionManager.rollbackTransaction(transactionInfo.id)
+          throw e
+        }
+      }
+
+      case 'd': {
+        const expr = node[1]
+        const structure = node[2]
+        const enums = node[3]
+        if (isCompactQueryNode(expr) && !isRawSqlQuery(expr[1])) {
+          if (isObjectResultNode(structure)) {
+            const results = await this.#executeQuery(expr[1], context)
+            return {
+              value: applyDataMapToResultSet(results, structure, enums),
+              lastInsertId: results.lastInsertId,
+            }
+          }
+        } else if (isCompactUniqueQueryNode(expr) && !isRawSqlQuery(expr[1][1])) {
+          if (isObjectResultNode(structure)) {
+            const results = await this.#executeQuery(expr[1][1], context)
+            const value = applyDataMapToResultSet(results, structure, enums)
+
+            if (value.length > 1) {
+              throw new Error(`Expected zero or one element, got ${value.length}`)
+            }
+            return { value: value[0] ?? null, lastInsertId: results.lastInsertId }
+          }
+        }
+
+        const { value, lastInsertId } = await this.interpretNode(expr, context)
+        return { value: applyDataMap(value, structure, enums), lastInsertId }
+      }
+
+      case 'V': {
+        const { value, lastInsertId } = await this.interpretNode(node[1], context)
+        performValidation(value, node[2], { errorIdentifier: node[3], context: node[4] } as ValidationError)
+
+        return { value, lastInsertId }
+      }
+
+      case '?': {
+        const { value } = await this.interpretNode(node[1], context)
+        if (doesSatisfyRule(value, node[2])) {
+          return await this.interpretNode(node[3], context)
+        } else {
+          return await this.interpretNode(node[4], context)
+        }
+      }
+
+      case '0': {
+        return { value: undefined }
+      }
+
+      case '-': {
+        const { value: from } = await this.interpretNode(node[1], context)
+        const { value: to } = await this.interpretNode(node[2], context)
+
+        const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node[3]) : null)
+
+        const toSet = new Set(asList(to).map(keyGetter))
+        return { value: asList(from).filter((item) => !toSet.has(keyGetter(item))) }
+      }
+
+      case 'p': {
+        const { value, lastInsertId } = await this.interpretNode(node[1], context)
+        const ops = cloneObject(node[2])
+        evaluateProcessingParameters(ops, context.scope, context.generators)
+        return { value: processRecords(value, ops), lastInsertId }
+      }
+
+      case 'i': {
+        const { lastInsertId } = await this.interpretNode(node[1], context)
+
+        const record = {}
+        for (const [key, initializer] of Object.entries(node[2]) as [string, DeepReadonly<FieldInitializer>][]) {
+          record[key] = evalFieldInitializer(initializer, lastInsertId, context.scope, context.generators)
+        }
+        return { value: record, lastInsertId }
+      }
+
+      case 'M': {
+        const { value, lastInsertId } = await this.interpretNode(node[1], context)
+
+        const record = value === null ? {} : asRecord(value)
+        for (const [key, entry] of Object.entries(node[2]) as [string, DeepReadonly<FieldOperation>][]) {
+          record[key] = evalFieldOperation(entry, record[key], context.scope, context.generators)
+        }
+        return { value: record, lastInsertId }
+      }
+
+      default:
+        throw new Error(`Unexpected compact node type: ${node[0]}`)
     }
   }
 
@@ -512,7 +791,7 @@ type KeyCast = (value: Value) => Value
 
 function attachChildrenToParents(
   parentRecords: unknown,
-  children: DeepReadonly<JoinExpressionWithRecords[]>,
+  children: JoinExpressionWithRecords[],
   canAssumeStrictEquality: boolean,
 ) {
   for (const { joinExpr, childRecords } of children) {
