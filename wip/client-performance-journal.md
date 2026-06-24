@@ -17140,6 +17140,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+
 - Packaging notes:
   - `63ac52cb5bf` needed prerequisite graph/translation cleanups (`c3fe406576f`, `5d015d902b2`, `af75c51ccd6`).
   - `ada2906dea3` was needed for the `NodeRef::index()` API used by the reachability/binding-name cleanup on fresh `origin/main`.
@@ -17433,5 +17434,43 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`
+
+## Packaging: Update/Upsert Pruning Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the nested update, nested upsert, and top-level upsert no-op update-node pruning work as a focused compiler-only write-pruning branch.
+- Branch:
+  - Pushed `prisma-client-perf-update-upsert-pruning` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-coc-branch-pruning`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-update-upsert-pruning.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-coc-branch-pruning`:
+  - `query-compiler/core/src/query_graph_builder/write/nested/update_nested.rs`
+  - `query-compiler/core/src/query_graph_builder/write/nested/upsert_nested.rs`
+  - `query-compiler/core/src/query_graph_builder/write/update.rs`
+  - `query-compiler/core/src/query_graph_builder/write/upsert.rs`
+  - `query-compiler/query-compiler/tests/data/nested-upsert-nested-only.json`
+  - `query-compiler/query-compiler/tests/data/upsert-empty-update.json`
+  - `query-compiler/query-compiler/tests/data/upsert-nested-only-update.json`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@nested-upsert-nested-only.json.snap`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@update-set-nested-prisma#27650.json.snap`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@upsert-empty-update.json.snap`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@upsert-nested-only-update.json.snap`
+- Split commits:
+  - `23d89d56c15`, from original `6f256b26dfd`: skip nested-only update nodes.
+  - `b99ebaa5bbd`, from original `34bde27cfb5`: skip nested-only upsert update nodes.
+  - `50ba2fd334f`, from original `a3ee45d7d44`: skip noop upsert updates.
+  - `768be77a38e`: refresh snapshots and adapt branch-local return nodes to direct projected placeholders.
+- Fresh-base/stack adaptation:
+  - The three original commits cherry-picked cleanly, but `cargo check -p query-core` caught the same old return-carrier format in the new nested-only branches: `Flow::Return(Vec::new())` plus `RowSink::All(&ReturnInput)`.
+  - Updated the new return nodes in nested update, nested upsert, and top-level upsert to the current `Flow::Return(None)` plus `RowSink::ProjectedPlaceholder(&ReturnInput)` internal format.
+  - Ran the full query snapshot test with updates. The new fixture snapshots were refreshed against this stack's current join-shaped final-read path, not the monolithic branch's later raw-nested read-plan output.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/update-upsert-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/update-upsert-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/update-upsert-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
