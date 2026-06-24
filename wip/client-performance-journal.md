@@ -17369,3 +17369,6 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo test -p query-compiler --test queries`: passed.
 - PR body linkage to use once opened:
   - `/prisma-branch prisma-client-performance-2026-06-08`
+- PR creation attempt:
+  - `gh auth status` still reports the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
+  - GitHub connector `create_pull_request` for this branch failed with HTTP 401 `token_expired`.
