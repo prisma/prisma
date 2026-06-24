@@ -10,6 +10,28 @@ export async function getInstalledPrismaClientVersion(cwd: string = process.cwd(
 }
 
 /**
+ * Read the version field of the local `prisma` package from `node_modules`.
+ * Resolved relative to `cwd` so the result reflects what is actually installed
+ * in the project, not the specifier declared in `package.json`.
+ */
+export async function getInstalledPrismaCliVersion(cwd: string = process.cwd()): Promise<string | null> {
+  try {
+    const pkgJsonPath = requireResolveFrom('prisma/package.json', cwd)
+
+    if (!pkgJsonPath) {
+      return null
+    }
+
+    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+    const pkgJson = JSON.parse(pkgJsonString) as { version?: string }
+
+    return pkgJson.version ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Try reading the Prisma Client version from its package.json
  */
 async function getPrismaClientVersionFromNodeModules(cwd: string = process.cwd()): Promise<string | null> {
