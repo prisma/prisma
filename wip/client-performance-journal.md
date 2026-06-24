@@ -17372,3 +17372,34 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - PR creation attempt:
   - `gh auth status` still reports the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
   - GitHub connector `create_pull_request` for this branch failed with HTTP 401 `token_expired`.
+
+## Packaging: Empty/Required Set Pruning Split Branch (2026-06-24)
+
+- Goal:
+  - Extract the empty one-to-many `set` fast path and required-child disconnect validation cleanup as the next focused follow-up on top of required set pruning.
+- Branch:
+  - Pushed `prisma-client-perf-empty-required-set-pruning` to `prisma/prisma-engines`.
+  - Intended base branch: `prisma-client-perf-required-set-pruning`.
+  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-empty-required-set-pruning.
+  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+- Scope relative to `prisma-client-perf-required-set-pruning`:
+  - `query-compiler/core/src/query_graph_builder/write/nested/set_nested.rs`
+  - `query-compiler/query-compiler/tests/data/update-set-nested-empty.json`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@update-set-nested-empty.json.snap`
+  - `query-compiler/query-compiler/tests/snapshots/queries__queries@update-set-nested.json.snap`
+- Split commits:
+  - `8e8b898b9c0`, from original `d3d45546416`: specialize empty nested set.
+  - `cb760e921b8`, from original `a87f6ccff37`: skip required set disconnect updates.
+- Fresh-base/stack adaptation:
+  - The empty-set commit applied cleanly on top of `prisma-client-perf-required-set-pruning`.
+  - The required-disconnect commit conflicted with the already-extracted required set owner computation. Resolved by keeping the required-owner computation for non-empty narrow scalar-link `set`, adding an early empty-filter branch before reading new children, and routing required-side disconnects to an empty validation node instead of update nodes.
+  - Updated `IfInput` edges in this slice to use the current `RowSink::ProjectedPlaceholder(&IfInput)` shape from the direct-placeholder branch.
+  - `cargo check -p query-core` initially caught a moved `child_link` in the optional fallback path after the conflict resolution. Fixed by precomputing the optional child-side null write args before `child_link` is moved into `ExactlyOneWriteArgs`, while still avoiding that allocation on required child sides.
+  - Snapshot refresh intentionally keeps the join-shaped final read for `update-set-nested-empty` because this branch is still before the raw-nested read-plan stack.
+- Validation:
+  - `cargo fmt --check`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target cargo check -p query-core`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target cargo check -p query-compiler`: passed.
+  - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
+- PR body linkage to use once opened:
+  - `/prisma-branch prisma-client-performance-2026-06-08`

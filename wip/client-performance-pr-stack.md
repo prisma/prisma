@@ -19,6 +19,7 @@ This document tracks how the large performance branches are being exposed and sp
   - `prisma-client-perf-direct-placeholder-storage` stacked on `prisma-client-perf-translation-placeholder-cleanups`
   - `prisma-client-perf-m2m-set-disconnect-pruning` stacked on `prisma-client-perf-direct-placeholder-storage`
   - `prisma-client-perf-required-set-pruning` stacked on `prisma-client-perf-m2m-set-disconnect-pruning`
+  - `prisma-client-perf-empty-required-set-pruning` stacked on `prisma-client-perf-required-set-pruning`
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -50,7 +51,7 @@ Workflow sources checked:
 - `prisma-engines/.github/workflows/test-query-compiler-template.yml` consumes the selected Prisma branch for query-compiler Wasm tests.
 - `prisma-engines/.github/workflows/build-engines.yml` gates integration publishing on `integration/*` branches or `[integration]` commit messages.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, and `prisma-client-perf-required-set-pruning` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
+Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, and `prisma-client-perf-empty-required-set-pruning` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
 
 Fresh auth check after pushing `prisma-client-perf-required-set-pruning`: `gh auth status` still reports the local token as invalid, and the GitHub connector `create_pull_request` call failed with HTTP 401 `token_expired`.
 
@@ -339,6 +340,46 @@ Suggested PR body linkage:
 
 This branch adds the specialized required one-to-many set computation for the non-empty narrow scalar-link shape. It deliberately excludes the older empty one-to-many `set` specialization from `d3d45546416` and the later required-set empty-disconnect validation branch from `a87f6ccff37`; those should be extracted separately if still desired.
 
+### Ready To Open: Engines Empty/Required Set Pruning
+
+PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-empty-required-set-pruning
+
+Branch: `prisma-client-perf-empty-required-set-pruning`
+
+Intended base branch: `prisma-client-perf-required-set-pruning`
+
+Original commits:
+
+- `d3d45546416`: `perf(query-compiler): specialize empty nested set`
+- `a87f6ccff37`: `perf(query-compiler): skip required set disconnect updates`
+
+Fresh-base split commits:
+
+- `8e8b898b9c0`: `perf(query-compiler): specialize empty nested set`
+- `cb760e921b8`: `perf(query-compiler): skip required set disconnect updates`
+
+Scope relative to `prisma-client-perf-required-set-pruning`:
+
+- `query-compiler/core/src/query_graph_builder/write/nested/set_nested.rs`
+- `query-compiler/query-compiler/tests/data/update-set-nested-empty.json`
+- `query-compiler/query-compiler/tests/snapshots/queries__queries@update-set-nested-empty.json.snap`
+- `query-compiler/query-compiler/tests/snapshots/queries__queries@update-set-nested.json.snap`
+
+Validation:
+
+- `cargo fmt --check`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target cargo check -p query-core`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target cargo check -p query-compiler`: passed
+- `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed
+
+Suggested PR body linkage:
+
+```text
+/prisma-branch prisma-client-performance-2026-06-08
+```
+
+This branch adds the empty one-to-many `set` fast path and skips pointless disconnect updates for required child sides by validating the would-be disconnected rows instead. The snapshot refresh is intentionally based on the current stacked branch before raw-nested read-plan work, so `update-set-nested-empty` uses the join-shaped final read rather than the monolithic branch's later raw-nested final read.
+
 ### Ready To Open: Engines Selection/Aggregate Cleanups
 
 PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-selection-aggregate-cleanups
@@ -515,6 +556,7 @@ This branch is safe to review independently from the parser/request and selectio
    - Current stacked subset: `prisma-client-perf-direct-placeholder-storage` on `prisma-client-perf-translation-placeholder-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current stacked subset: `prisma-client-perf-m2m-set-disconnect-pruning` on `prisma-client-perf-direct-placeholder-storage`, pushed and validated, pending PR creation after GitHub auth refresh.
    - Current stacked subset: `prisma-client-perf-required-set-pruning` on `prisma-client-perf-m2m-set-disconnect-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
+   - Current stacked subset: `prisma-client-perf-empty-required-set-pruning` on `prisma-client-perf-required-set-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.
