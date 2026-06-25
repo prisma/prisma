@@ -10,24 +10,21 @@ This document tracks how the large performance branches are being exposed and sp
 - Engines status PR: https://github.com/prisma/prisma-engines/pull/5820
 - Extracted engines PR 1: https://github.com/prisma/prisma-engines/pull/5821
 - Extracted engines PR 2: https://github.com/prisma/prisma-engines/pull/5822
-- Pushed Prisma split branches awaiting PR creation:
-  - `prisma-client-perf-render-datamapper-prereqs`
-- Local validated Prisma split branches awaiting push/PR creation:
-  - `prisma-client-perf-compact-plan-format`, stacked on `prisma-client-perf-render-datamapper-prereqs`
-- Pushed engines split branches awaiting PR creation:
-  - `prisma-client-perf-compact-plan-format-engines`
-  - `prisma-client-perf-graph-translation-cleanups`
-  - `prisma-client-perf-selection-aggregate-cleanups`
-  - `prisma-client-perf-filter-extraction-cleanups`
-  - `prisma-client-perf-read-selection-cleanups` stacked on `prisma-client-perf-selection-aggregate-cleanups`
-  - `prisma-client-perf-translation-placeholder-cleanups` stacked on `prisma-client-perf-graph-translation-cleanups`
-  - `prisma-client-perf-direct-placeholder-storage` stacked on `prisma-client-perf-translation-placeholder-cleanups`
-  - `prisma-client-perf-m2m-set-disconnect-pruning` stacked on `prisma-client-perf-direct-placeholder-storage`
-  - `prisma-client-perf-required-set-pruning` stacked on `prisma-client-perf-m2m-set-disconnect-pruning`
-  - `prisma-client-perf-empty-required-set-pruning` stacked on `prisma-client-perf-required-set-pruning`
-  - `prisma-client-perf-coc-branch-pruning` stacked on `prisma-client-perf-empty-required-set-pruning`
-  - `prisma-client-perf-update-upsert-pruning` stacked on `prisma-client-perf-coc-branch-pruning`
-  - `prisma-client-perf-upsert-result-sharing` stacked on `prisma-client-perf-update-upsert-pruning`
+- Prisma render/data-mapper prerequisite PR: https://github.com/prisma/prisma/pull/29658
+- Engines compact query-plan producer PR: https://github.com/prisma/prisma-engines/pull/5823
+- Prisma compact query-plan consumer PR: https://github.com/prisma/prisma/pull/29659
+- Engines graph/translation cleanup PR: https://github.com/prisma/prisma-engines/pull/5824
+- Engines translation/dependency cleanup PR: https://github.com/prisma/prisma-engines/pull/5825
+- Engines direct placeholder storage PR: https://github.com/prisma/prisma-engines/pull/5826
+- Engines M:N set/disconnect pruning PR: https://github.com/prisma/prisma-engines/pull/5827
+- Engines required set pruning PR: https://github.com/prisma/prisma-engines/pull/5828
+- Engines empty/required set pruning PR: https://github.com/prisma/prisma-engines/pull/5829
+- Engines connect-or-create pruning PR: https://github.com/prisma/prisma-engines/pull/5830
+- Engines update/upsert pruning PR: https://github.com/prisma/prisma-engines/pull/5831
+- Engines upsert result sharing PR: https://github.com/prisma/prisma-engines/pull/5832
+- Engines selection/aggregate cleanup PR: https://github.com/prisma/prisma-engines/pull/5833
+- Engines read selection cleanup PR: https://github.com/prisma/prisma-engines/pull/5834
+- Engines filter extraction cleanup PR: https://github.com/prisma/prisma-engines/pull/5835
 
 The status PRs are intentionally not merge-ready as final review units. They expose the full current state and CI wiring while smaller review branches are extracted.
 
@@ -59,9 +56,7 @@ Workflow sources checked:
 - `prisma-engines/.github/workflows/test-query-compiler-template.yml` consumes the selected Prisma branch for query-compiler Wasm tests.
 - `prisma-engines/.github/workflows/build-engines.yml` gates integration publishing on `integration/*` branches or `[integration]` commit messages.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, `prisma-client-perf-empty-required-set-pruning`, `prisma-client-perf-coc-branch-pruning`, `prisma-client-perf-update-upsert-pruning`, and `prisma-client-perf-upsert-result-sharing` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. `prisma-client-perf-compact-plan-format` is locally complete but not pushed because sandboxed `git push` cannot resolve `github.com` and the required unsandboxed retry is currently rejected by the usage/approval limit. Create pushed PRs from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry. After the approval/network block clears, push `prisma-client-perf-compact-plan-format` from `/tmp/prisma-compact-plan-format`.
-
-Fresh auth check after pushing `prisma-client-perf-upsert-result-sharing`: `gh auth status` still reports the local token as invalid. The latest GitHub connector `create_pull_request` attempt, for `prisma-client-perf-update-upsert-pruning`, failed with HTTP 401 `token_expired`.
+Current auth note: `gh auth status` is valid again for account `tensordreams`, and PR creation worked for the compact stack plus all previously blocked engines split branches. The GitHub connector can search but still cannot create PRs for these repositories (`Resource not accessible by integration`), so use `gh` for further PR creation in this session if needed. Historical stale-token attempts after the harness restart failed with `HTTP 401 token_expired`.
 
 ## Current Split Status
 
@@ -125,9 +120,9 @@ Validation:
 
 This PR is safe to review independently. It intentionally excludes compact query-plan format changes, raw-nested read plans, and write-graph pruning.
 
-### Ready To Open: Engines Compact Query-Plan Producer Format
+### Open Draft: Engines Compact Query-Plan Producer Format
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-compact-plan-format-engines
+Draft PR: https://github.com/prisma/prisma-engines/pull/5823
 
 Branch: `prisma-client-perf-compact-plan-format-engines`
 
@@ -164,9 +159,9 @@ Suggested PR body linkage after pushing the matching compact Prisma consumer spl
 
 This branch is the producer half of the lockstep compact internal format. It should not be merged without a matching Prisma consumer PR that reads the same compact-only shape. It deliberately excludes `b64c854d6e2` (`perf(query-compiler): compact validation expectations`), because that is a broader validation-storage rewrite and is not required for the serialized compact plan producer shape.
 
-### Ready To Open: Prisma Render/Data-Mapper Prerequisites
+### Open Draft: Prisma Render/Data-Mapper Prerequisites
 
-PR creation URL: https://github.com/prisma/prisma/pull/new/prisma-client-perf-render-datamapper-prereqs
+Draft PR: https://github.com/prisma/prisma/pull/29658
 
 Branch: `prisma-client-perf-render-datamapper-prereqs`
 
@@ -206,9 +201,11 @@ PR body linkage:
 
 This branch should be reviewed before the compact Prisma consumer branch. It isolates render-query and direct result-set data-mapper prerequisites so the compact-format PR does not hide unrelated runtime scaffolding inside conflict resolutions.
 
-### Local Complete: Prisma Compact Query-Plan Consumer Format
+### Open Draft: Prisma Compact Query-Plan Consumer Format
 
-Local branch: `prisma-client-perf-compact-plan-format`
+Draft PR: https://github.com/prisma/prisma/pull/29659
+
+Branch: `prisma-client-perf-compact-plan-format`
 
 Local worktree: `/tmp/prisma-compact-plan-format`
 
@@ -220,10 +217,8 @@ Head commit: `b3e680818` (`perf(client-engine): drop legacy field result nodes`)
 
 Push/PR status:
 
-- Local branch is complete and clean.
-- Push is currently blocked: sandboxed `git push -u origin prisma-client-perf-compact-plan-format` failed DNS lookup for `github.com`, and the required unsandboxed retry was rejected by the current usage/approval limit.
-- GitHub connector PR creation is also blocked: connector calls return HTTP 401 `token_expired`.
-- After auth/network is restored, push from `/tmp/prisma-compact-plan-format`, then open `https://github.com/prisma/prisma/pull/new/prisma-client-perf-compact-plan-format` targeting `prisma-client-perf-render-datamapper-prereqs`.
+- Branch is pushed to `prisma/prisma`.
+- Draft PR is open and targets `prisma-client-perf-render-datamapper-prereqs`.
 
 Original commit families:
 
@@ -254,7 +249,7 @@ Validation:
 - `pnpm --filter @prisma/query-plan-executor... build`: passed under unsandboxed execution after sandboxed `tsx` failed with `listen EPERM`.
 - `pnpm --filter @prisma/query-plan-executor test`: passed, 115 tests.
 - `pnpm --filter @prisma/client-engine-runtime... build`: passed under unsandboxed execution after sandboxed `tsx` failed with `listen EPERM`.
-- `pnpm --filter @prisma/client... build`: dependency-inclusive build ran through all dependencies and reached final `packages/client build`, but the exec session dropped before the final exit packet. No build process remained afterward and the worktree was clean. A direct rerun of `pnpm --filter @prisma/client build` was blocked by the current usage/approval limit, so treat final client build as not conclusively re-verified in this session.
+- `pnpm --filter @prisma/client build`: passed under unsandboxed execution.
 
 PR body linkage:
 
@@ -264,9 +259,9 @@ PR body linkage:
 
 This is the matching Prisma consumer for the engines compact producer branch. It should be reviewed after `prisma-client-perf-render-datamapper-prereqs` and alongside the engines producer PR. It is intentionally stacked to keep render/data-mapper prerequisite work out of the compact-format review.
 
-### Ready To Open: Engines Graph/Translation Cleanups
+### Open Draft: Engines Graph/Translation Cleanups
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-graph-translation-cleanups
+Draft PR: https://github.com/prisma/prisma-engines/pull/5824
 
 Branch: `prisma-client-perf-graph-translation-cleanups`
 
@@ -302,9 +297,9 @@ Suggested PR body linkage:
 
 This branch is safe to review independently from the compact query-plan stack. It deliberately skips `FieldSelection::into_virtuals_last()` and projected dependency edge-iteration follow-ups that conflicted with other larger graph/data-mapper history and should be extracted in a later compiler-local PR if still desired.
 
-### Ready To Open: Engines Translation/Dependency Cleanups
+### Open Draft: Engines Translation/Dependency Cleanups
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-translation-placeholder-cleanups
+Draft PR: https://github.com/prisma/prisma-engines/pull/5825
 
 Branch: `prisma-client-perf-translation-placeholder-cleanups`
 
@@ -347,9 +342,9 @@ Suggested PR body linkage:
 
 This branch is intentionally stacked on the graph/translation branch. It excludes `fd906df5c3d` (`Store projected placeholders directly`) because that commit changes write builders, selection plumbing, and translation together; extract it separately as a broader write/placeholder branch.
 
-### Ready To Open: Engines Direct Placeholder Storage
+### Open Draft: Engines Direct Placeholder Storage
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-direct-placeholder-storage
+Draft PR: https://github.com/prisma/prisma-engines/pull/5826
 
 Branch: `prisma-client-perf-direct-placeholder-storage`
 
@@ -393,9 +388,9 @@ Suggested PR body linkage:
 
 This branch is intentionally stacked on the translation/dependency cleanup branch. It keeps `fd906df5c3d` focused on storing projected `Placeholder`s directly in `Flow` and `Diff` nodes, while splitting two real prerequisites into explicit review commits. It deliberately excludes separate write-pruning and branch-joining history such as nested-only update/upsert shortcuts, no-op upsert updates, empty nested set specialization, and M:N connect-or-create branch joining.
 
-### Ready To Open: Engines M:N Set/Disconnect Pruning
+### Open Draft: Engines M:N Set/Disconnect Pruning
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-m2m-set-disconnect-pruning
+Draft PR: https://github.com/prisma/prisma-engines/pull/5827
 
 Branch: `prisma-client-perf-m2m-set-disconnect-pruning`
 
@@ -447,9 +442,9 @@ Suggested PR body linkage:
 
 This branch removes child-read phases for narrow M:N disconnect and set shapes, using direct relation-table deletes plus existing connect validation for non-empty set. It is intentionally stacked before the raw-nested read-plan split, so the new `update-m2m-set*` snapshots use the current join-based final read shape rather than the monolithic branch's later raw-nested final read.
 
-### Ready To Open: Engines Required Set Pruning
+### Open Draft: Engines Required Set Pruning
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-required-set-pruning
+Draft PR: https://github.com/prisma/prisma-engines/pull/5828
 
 Branch: `prisma-client-perf-required-set-pruning`
 
@@ -487,9 +482,9 @@ Suggested PR body linkage:
 
 This branch adds the specialized required one-to-many set computation for the non-empty narrow scalar-link shape. It deliberately excludes the older empty one-to-many `set` specialization from `d3d45546416` and the later required-set empty-disconnect validation branch from `a87f6ccff37`; those should be extracted separately if still desired.
 
-### Ready To Open: Engines Empty/Required Set Pruning
+### Open Draft: Engines Empty/Required Set Pruning
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-empty-required-set-pruning
+Draft PR: https://github.com/prisma/prisma-engines/pull/5829
 
 Branch: `prisma-client-perf-empty-required-set-pruning`
 
@@ -527,9 +522,9 @@ Suggested PR body linkage:
 
 This branch adds the empty one-to-many `set` fast path and skips pointless disconnect updates for required child sides by validating the would-be disconnected rows instead. The snapshot refresh is intentionally based on the current stacked branch before raw-nested read-plan work, so `update-set-nested-empty` uses the join-shaped final read rather than the monolithic branch's later raw-nested final read.
 
-### Ready To Open: Engines Connect-Or-Create Branch Pruning
+### Open Draft: Engines Connect-Or-Create Branch Pruning
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-coc-branch-pruning
+Draft PR: https://github.com/prisma/prisma-engines/pull/5830
 
 Branch: `prisma-client-perf-coc-branch-pruning`
 
@@ -570,9 +565,9 @@ Suggested PR body linkage:
 
 This branch collapses the duplicated M:N connect-or-create connect branches and removes intermediate return-forwarding nodes where the condition result can be returned directly. During fresh-base adaptation, the first commit was updated to the current direct-placeholder internal format (`Flow::Return(None)` plus `RowSink::ProjectedPlaceholder`) rather than reintroducing the older vector-return shape.
 
-### Ready To Open: Engines Update/Upsert Pruning
+### Open Draft: Engines Update/Upsert Pruning
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-update-upsert-pruning
+Draft PR: https://github.com/prisma/prisma-engines/pull/5831
 
 Branch: `prisma-client-perf-update-upsert-pruning`
 
@@ -617,9 +612,9 @@ Suggested PR body linkage:
 
 This branch removes connector update nodes when the update payload only exists to drive nested writes, for nested update, nested upsert, and top-level upsert. The extra refresh commit adapts the original commits to the current direct-placeholder `Flow::Return(None)` representation and refreshes the new fixture snapshots against this stack's pre-raw-nested final-read shape.
 
-### Ready To Open: Engines Upsert Result Sharing
+### Open Draft: Engines Upsert Result Sharing
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-upsert-result-sharing
+Draft PR: https://github.com/prisma/prisma-engines/pull/5832
 
 Branch: `prisma-client-perf-upsert-result-sharing`
 
@@ -670,9 +665,9 @@ Suggested PR body linkage:
 
 This branch is intentionally stacked after update/upsert pruning. It adds the shared nested-upsert M:N connect prerequisite that the result-sharing commits depend on, narrows empty update carriers to id-only projections, returns shared-connect-only nested-upsert conditions directly, and shares top-level upsert final reads for the proved empty/nested-only shapes. It keeps the guard narrow for nested-only upsert result sharing: create branches must stay non-nested, and update branches with multiple nested operations still need separate proof.
 
-### Ready To Open: Engines Selection/Aggregate Cleanups
+### Open Draft: Engines Selection/Aggregate Cleanups
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-selection-aggregate-cleanups
+Draft PR: https://github.com/prisma/prisma-engines/pull/5833
 
 Branch: `prisma-client-perf-selection-aggregate-cleanups`
 
@@ -705,9 +700,9 @@ Suggested PR body linkage:
 
 This branch is safe to review independently. It deliberately excludes `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`) because on fresh `origin/main` that commit depends on an earlier unique-filter fast path not present in this split. Extract that compound-selector cleanup separately with the real prerequisite chain.
 
-### Ready To Open: Engines Read Selection Cleanups
+### Open Draft: Engines Read Selection Cleanups
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-read-selection-cleanups
+Draft PR: https://github.com/prisma/prisma-engines/pull/5834
 
 Branch: `prisma-client-perf-read-selection-cleanups`
 
@@ -751,9 +746,9 @@ Suggested PR body linkage:
 
 This branch is intentionally stacked on the selection/aggregate branch because both touch `FieldSelection::into_virtuals_last()`. The conflict resolution keeps the newer count-based virtual-field ordering implementation from the base and adds the consuming `into_without_relations()` read-path optimization.
 
-### Ready To Open: Engines Filter Extraction Cleanups
+### Open Draft: Engines Filter Extraction Cleanups
 
-PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-filter-extraction-cleanups
+Draft PR: https://github.com/prisma/prisma-engines/pull/5835
 
 Branch: `prisma-client-perf-filter-extraction-cleanups`
 
@@ -799,7 +794,8 @@ This branch is safe to review independently from the parser/request and selectio
 1. `perf-stack/01-compact-query-plan-format`
    - Areas: `packages/client-engine-runtime/src/query-plan.ts`, interpreter/render/validation/data-mapper fixtures, `deserializeRawParameters`, `packages/query-plan-executor`.
    - Cut rule: squash to the final compact-only internal format. Do not expose temporary "accept compact plus retain legacy" history as a review boundary.
-   - Current prerequisite split: `prisma-client-perf-render-datamapper-prereqs`, pushed and validated, pending PR creation after GitHub auth refresh. Stack the compact consumer branch on this instead of hiding render/data-mapper prerequisites in compact-format conflict resolutions.
+   - Current prerequisite split: `prisma-client-perf-render-datamapper-prereqs`, pushed and opened as https://github.com/prisma/prisma/pull/29658. The compact consumer branch is stacked on this instead of hiding render/data-mapper prerequisites in compact-format conflict resolutions.
+   - Current consumer split: `prisma-client-perf-compact-plan-format`, pushed and opened as https://github.com/prisma/prisma/pull/29659.
 
 2. `perf-stack/02-clientengine-cache-and-precomputed-results`
    - Areas: `ClientEngine`, query-plan cache, `RequestHandler`, `applyModel`, engine interfaces, batch/precomputed cache-key tests.
@@ -833,7 +829,9 @@ This branch is safe to review independently from the parser/request and selectio
 3. `pcperf/02-compact-query-plan-format`
    - Areas: query builder serialized plan shapes, query-compiler expression/result/data mapper, `libs/prisma-value`, validation errors.
    - Must be coordinated with the matching Prisma runtime stack. These are lockstep internal formats, not compatibility additions.
-   - Current producer-side split: `prisma-client-perf-compact-plan-format-engines`, pushed and validated, pending PR creation after GitHub auth refresh. It excludes `b64c854d6e2` by design.
+   - Current producer-side split: `prisma-client-perf-compact-plan-format-engines`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5823. It excludes `b64c854d6e2` by design and links to the Prisma compact consumer with `/prisma-branch prisma-client-perf-compact-plan-format`.
+   - Current Prisma prerequisite split: `prisma-client-perf-render-datamapper-prereqs`, pushed and opened as https://github.com/prisma/prisma/pull/29658.
+   - Current Prisma consumer split: `prisma-client-perf-compact-plan-format`, pushed and opened as https://github.com/prisma/prisma/pull/29659, stacked on `prisma-client-perf-render-datamapper-prereqs` and linked to the engines producer with `/engine-branch prisma-client-perf-compact-plan-format-engines`.
    - 2026-06-24 packaging finding: the engines producer side mostly cherry-picks cleanly from fresh `origin/main` when the data-mapper prerequisites `babed274835` and `30a32a2c9f6` are inserted before `21a8db27dfd`. The broader validation-storage optimization `b64c854d6e2` conflicts with graph changes and should move to a later compiler-local/write-graph split unless a reviewer explicitly wants it in this PR.
    - 2026-06-24 packaging blocker: the matching Prisma consumer side is not a clean cherry-pick from `origin/main`. `dc8657d7f` (`Accept compact SQL string fragments`) conflicts in `render-query.ts` because it was authored on top of earlier render-query hot-path commits. The next attempt should either include the minimal render-query prerequisite chain in the compact consumer PR, or manually construct the final compact-only reader shape against current `origin/main` without carrying temporary compatibility history.
    - 2026-06-24 follow-up consumer attempt: the minimal render-query prerequisite chain can be replayed through `dc8657d7f` with narrow conflict resolutions, but `eb652f538` (`Allow omitted result field db names`) then conflicts because the compact data-mapper commits were authored on top of the direct result-set mapping prerequisite series (`e95ad9753`, `ec3857e9d`, `157c537fc`, `035eb8685`). Do not smuggle that series into a compact-format conflict resolution. Either extract those render/data-mapper prerequisites as a separate Prisma branch first, or hand-build the final compact-only consumer shape against current `origin/main`.
@@ -841,18 +839,18 @@ This branch is safe to review independently from the parser/request and selectio
 4. `pcperf/03-compiler-local-cleanups`
    - Areas: translation, data mapper, query graph, read graph builder, query structure.
    - Keep direct projected placeholder storage with downstream users.
-   - Current extracted subset: `prisma-client-perf-graph-translation-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current extracted subset: `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current extracted subset: `prisma-client-perf-filter-extraction-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-read-selection-cleanups` on `prisma-client-perf-selection-aggregate-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-translation-placeholder-cleanups` on `prisma-client-perf-graph-translation-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-direct-placeholder-storage` on `prisma-client-perf-translation-placeholder-cleanups`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-m2m-set-disconnect-pruning` on `prisma-client-perf-direct-placeholder-storage`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-required-set-pruning` on `prisma-client-perf-m2m-set-disconnect-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-empty-required-set-pruning` on `prisma-client-perf-required-set-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-coc-branch-pruning` on `prisma-client-perf-empty-required-set-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-update-upsert-pruning` on `prisma-client-perf-coc-branch-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
-   - Current stacked subset: `prisma-client-perf-upsert-result-sharing` on `prisma-client-perf-update-upsert-pruning`, pushed and validated, pending PR creation after GitHub auth refresh.
+   - Current extracted subset: `prisma-client-perf-graph-translation-cleanups`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5824.
+   - Current extracted subset: `prisma-client-perf-selection-aggregate-cleanups`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5833.
+   - Current extracted subset: `prisma-client-perf-filter-extraction-cleanups`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5835.
+   - Current stacked subset: `prisma-client-perf-read-selection-cleanups` on `prisma-client-perf-selection-aggregate-cleanups`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5834.
+   - Current stacked subset: `prisma-client-perf-translation-placeholder-cleanups` on `prisma-client-perf-graph-translation-cleanups`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5825.
+   - Current stacked subset: `prisma-client-perf-direct-placeholder-storage` on `prisma-client-perf-translation-placeholder-cleanups`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5826.
+   - Current stacked subset: `prisma-client-perf-m2m-set-disconnect-pruning` on `prisma-client-perf-direct-placeholder-storage`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5827.
+   - Current stacked subset: `prisma-client-perf-required-set-pruning` on `prisma-client-perf-m2m-set-disconnect-pruning`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5828.
+   - Current stacked subset: `prisma-client-perf-empty-required-set-pruning` on `prisma-client-perf-required-set-pruning`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5829.
+   - Current stacked subset: `prisma-client-perf-coc-branch-pruning` on `prisma-client-perf-empty-required-set-pruning`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5830.
+   - Current stacked subset: `prisma-client-perf-update-upsert-pruning` on `prisma-client-perf-coc-branch-pruning`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5831.
+   - Current stacked subset: `prisma-client-perf-upsert-result-sharing` on `prisma-client-perf-update-upsert-pruning`, pushed and opened as https://github.com/prisma/prisma-engines/pull/5832.
 
 5. `pcperf/04-raw-nested-read-plans`
    - Areas: raw-nested read expression/format/translation and snapshots.

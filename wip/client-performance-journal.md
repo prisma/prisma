@@ -17118,8 +17118,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Extract a reviewable engines-only subset after the compact-format pair proved too entangled for a clean first split.
 - Branch:
   - Pushed `prisma-client-perf-graph-translation-cleanups` to `prisma/prisma-engines`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-graph-translation-cleanups.
-  - Local PR creation is blocked until GitHub auth is refreshed; after the harness restart both `gh auth status` and the GitHub connector report expired tokens.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5824.
 - Scope:
   - `query-compiler/core/src/query_graph/mod.rs`
   - `query-compiler/core/src/query_graph_builder/write/utils.rs`
@@ -17138,7 +17137,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/graph-translation-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 - Packaging notes:
@@ -17152,8 +17151,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Extract another small engines-only compiler-local review branch while GitHub auth blocks creating the already-pushed PRs.
 - Branch:
   - Pushed `prisma-client-perf-selection-aggregate-cleanups` to `prisma/prisma-engines`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-selection-aggregate-cleanups.
-  - As with the graph/translation branch, PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5833.
 - Scope:
   - `query-compiler/query-structure/src/field_selection.rs`
   - `query-compiler/query-compiler/src/data_mapper.rs`
@@ -17170,7 +17168,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/selection-aggregate-target cargo test -p query-compiler --test queries`: passed.
 - Deferred:
   - Skipped `f84cdb2c3c8` (`perf(query-compiler): avoid compound selector materialization`) from this branch. On fresh `origin/main`, it conflicts because it expects an earlier unique-filter fast path that is not in this split. Extract it separately with its real prerequisite chain instead of smuggling that dependency into a selection/aggregate PR.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Filter Extraction Split Branch (2026-06-24)
@@ -17179,8 +17177,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Extract the deferred compound-selector cleanup with its real prerequisite chain rather than mixing it into the selection/aggregate PR.
 - Branch:
   - Pushed `prisma-client-perf-filter-extraction-cleanups` to `prisma/prisma-engines`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-filter-extraction-cleanups.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5835.
 - Scope:
   - `query-compiler/core/src/query_document/mod.rs`
   - `query-compiler/core/src/query_graph_builder/extractors/filters/mod.rs`
@@ -17200,7 +17197,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Packaging notes:
   - This branch is the correct home for `f84cdb2c3c8`; on fresh `origin/main` it expects the unique-filter extraction shape introduced by `9b42bd6e3d9`.
   - The whole chain cherry-picked cleanly onto current `origin/main` and does not require a Prisma runtime companion.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Read Selection Split Branch (2026-06-24)
@@ -17210,8 +17207,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-read-selection-cleanups` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-selection-aggregate-cleanups`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-read-selection-cleanups.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5834.
 - Scope relative to `prisma-client-perf-selection-aggregate-cleanups`:
   - `query-compiler/core/src/query_graph_builder/read/utils.rs`
   - `query-compiler/query-compiler/src/translate/query/read.rs`
@@ -17230,7 +17226,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/read-selection-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Translation/Dependency Split Branch (2026-06-24)
@@ -17240,8 +17236,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-translation-placeholder-cleanups` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-graph-translation-cleanups`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-translation-placeholder-cleanups.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5825.
 - Scope relative to `prisma-client-perf-graph-translation-cleanups`:
   - `query-compiler/core/src/query_graph/mod.rs`
   - `query-compiler/query-compiler/src/translate.rs`
@@ -17261,7 +17256,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-structure`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/translation-placeholder-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Direct Placeholder Storage Split Branch (2026-06-24)
@@ -17271,8 +17266,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-direct-placeholder-storage` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-translation-placeholder-cleanups`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-direct-placeholder-storage.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed. The GitHub connector returned `HTTP 401 token_expired`, and `gh auth status` reports the local token as invalid.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5826.
 - Scope relative to `prisma-client-perf-translation-placeholder-cleanups`:
   - `query-compiler/core/src/query_graph/mod.rs`
   - `query-compiler/core/src/query_graph_builder/inputs.rs`
@@ -17295,7 +17289,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo check -p query-structure`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/direct-placeholder-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: M:N Set/Disconnect Pruning Split Branch (2026-06-24)
@@ -17305,8 +17299,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-m2m-set-disconnect-pruning` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-direct-placeholder-storage`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-m2m-set-disconnect-pruning.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5827.
 - Scope relative to `prisma-client-perf-direct-placeholder-storage`:
   - `query-compiler/core/src/query_ast/write.rs`
   - `query-compiler/core/src/query_graph_builder/inputs.rs`
@@ -17338,7 +17331,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo check -p query-builder`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/m2m-set-disconnect-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Required Set Pruning Split Branch (2026-06-24)
@@ -17348,8 +17341,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-required-set-pruning` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-m2m-set-disconnect-pruning`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-required-set-pruning.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5828.
 - Scope relative to `prisma-client-perf-m2m-set-disconnect-pruning`:
   - `query-compiler/core/src/query_graph/formatters.rs`
   - `query-compiler/core/src/query_graph/mod.rs`
@@ -17368,10 +17360,10 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/required-set-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
-- PR creation attempt:
-  - `gh auth status` still reports the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
+- Historical PR creation attempt before auth recovered:
+  - `gh auth status` reported the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
   - GitHub connector `create_pull_request` for this branch failed with HTTP 401 `token_expired`.
 
 ## Packaging: Empty/Required Set Pruning Split Branch (2026-06-24)
@@ -17381,8 +17373,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-empty-required-set-pruning` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-required-set-pruning`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-empty-required-set-pruning.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5829.
 - Scope relative to `prisma-client-perf-required-set-pruning`:
   - `query-compiler/core/src/query_graph_builder/write/nested/set_nested.rs`
   - `query-compiler/query-compiler/tests/data/update-set-nested-empty.json`
@@ -17402,7 +17393,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/empty-required-set-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Connect-Or-Create Branch Pruning Split Branch (2026-06-24)
@@ -17412,8 +17403,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-coc-branch-pruning` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-empty-required-set-pruning`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-coc-branch-pruning.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5830.
 - Scope relative to `prisma-client-perf-empty-required-set-pruning`:
   - `query-compiler/core/src/query_graph/mod.rs`
   - `query-compiler/core/src/query_graph_builder/write/nested/connect_or_create_nested.rs`
@@ -17434,7 +17424,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/coc-branch-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging: Update/Upsert Pruning Split Branch (2026-06-24)
@@ -17444,8 +17434,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-update-upsert-pruning` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-coc-branch-pruning`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-update-upsert-pruning.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5831.
 - Scope relative to `prisma-client-perf-coc-branch-pruning`:
   - `query-compiler/core/src/query_graph_builder/write/nested/update_nested.rs`
   - `query-compiler/core/src/query_graph_builder/write/nested/upsert_nested.rs`
@@ -17472,10 +17461,10 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/update-upsert-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/update-upsert-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/update-upsert-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
-- PR creation attempt:
-  - `gh auth status` still reports the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
+- Historical PR creation attempt before auth recovered:
+  - `gh auth status` reported the `tensordreams` token in `/home/aqrln.guest/.config/gh/hosts.yml` as invalid.
   - GitHub connector `create_pull_request` for this branch failed with HTTP 401 `token_expired`.
 
 ## Packaging: Upsert Result Sharing Split Branch (2026-06-24)
@@ -17485,8 +17474,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Pushed `prisma-client-perf-upsert-result-sharing` to `prisma/prisma-engines`.
   - Intended base branch: `prisma-client-perf-update-upsert-pruning`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-upsert-result-sharing.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5832.
 - Scope relative to `prisma-client-perf-update-upsert-pruning`:
   - `query-compiler/core/src/query_graph/formatters.rs`
   - `query-compiler/core/src/query_graph/mod.rs`
@@ -17514,7 +17502,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target INSTA_UPDATE=always cargo test -p query-compiler --test queries`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-compiler --test queries`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/upsert-result-target cargo test -p query-core --lib`: passed.
-- PR body linkage to use once opened:
+- PR body linkage:
   - `/prisma-branch prisma-client-performance-2026-06-08`
 
 ## Packaging Probe: Raw-Nested Read Plan Base Dependency (2026-06-24)
@@ -17546,8 +17534,8 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Created `/tmp/prisma-engines-compact-plan-format` from refreshed engines `origin/main`.
   - Pushed `prisma-client-perf-compact-plan-format-engines` to `prisma/prisma-engines`.
-  - PR creation URL: https://github.com/prisma/prisma-engines/pull/new/prisma-client-perf-compact-plan-format-engines.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma-engines/pull/5823.
+  - PR body links to the matching Prisma consumer branch with `/prisma-branch prisma-client-perf-compact-plan-format`.
 - Scope:
   - `libs/prisma-value/src/lib.rs`
   - `query-compiler/query-builders/query-builder/src/lib.rs`
@@ -17591,8 +17579,8 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-core`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-compiler`: passed.
   - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo test -p query-compiler --test queries`: passed.
-- PR body linkage to use once opened:
-  - Temporary until a compact Prisma consumer split exists: `/prisma-branch prisma-client-performance-2026-06-08`.
+- PR body linkage:
+  - `/prisma-branch prisma-client-perf-compact-plan-format`.
 - Decision:
   - This is a worthy producer-side branch for review, but it should not merge without a matching Prisma consumer PR for the same compact-only internal query-plan format.
 
@@ -17628,8 +17616,7 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
 - Branch:
   - Reused `/tmp/prisma-compact-plan-format`, switched it to `prisma-client-perf-render-datamapper-prereqs` from refreshed `origin/main`.
   - Pushed `prisma-client-perf-render-datamapper-prereqs` to `prisma/prisma`.
-  - PR creation URL: https://github.com/prisma/prisma/pull/new/prisma-client-perf-render-datamapper-prereqs.
-  - PR creation remains blocked locally until `gh` / connector auth is refreshed.
+  - Draft PR opened: https://github.com/prisma/prisma/pull/29658.
 - Scope:
   - `packages/client-engine-runtime/src/interpreter/render-query.ts`
   - `packages/client-engine-runtime/src/interpreter/data-mapper.ts`
@@ -17664,8 +17651,9 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - Finish the matching Prisma consumer branch for the compact query-plan producer split and keep internal formats lockstep-only, without old/new compatibility branches.
 - Branch:
   - Continued `/tmp/prisma-compact-plan-format` on `prisma-client-perf-compact-plan-format`, stacked on `prisma-client-perf-render-datamapper-prereqs`.
-  - Local branch head: `b3e680818` (`perf(client-engine): drop legacy field result nodes`).
-  - The branch is locally clean and validated, but not pushed.
+  - Branch head: `b3e680818` (`perf(client-engine): drop legacy field result nodes`).
+  - Pushed `prisma-client-perf-compact-plan-format` to `prisma/prisma`.
+  - Draft PR opened: https://github.com/prisma/prisma/pull/29659, targeting `prisma-client-perf-render-datamapper-prereqs`.
 - Scope:
   - `packages/client-engine-runtime/src/query-plan.ts`, `batch.ts`, interpreter modules, tests, and benchmark fixtures.
   - `packages/client/src/runtime/utils/deserializeRawParameters.ts` and `ClientEngine.ts` for raw-query compact arg-type emission.
@@ -17684,10 +17672,10 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - `pnpm --filter @prisma/query-plan-executor... build`: passed unsandboxed; sandboxed `tsx` first failed with `listen EPERM`.
   - `pnpm --filter @prisma/query-plan-executor test`: passed, 115 tests.
   - `pnpm --filter @prisma/client-engine-runtime... build`: passed unsandboxed; sandboxed `tsx` first failed with `listen EPERM`.
-  - `pnpm --filter @prisma/client... build` ran through dependencies and reached final `packages/client build`, but the exec session dropped before the final exit packet. No build process remained afterward and `git status --short` was clean. A direct rerun of `pnpm --filter @prisma/client build` was rejected by the current usage/approval limit, so final client build is the only not-conclusively-reverified gate.
+  - `pnpm --filter @prisma/client build`: passed under unsandboxed execution after retrying the dropped dependency-inclusive session.
 - PR status:
-  - Pushing is blocked in this session: sandboxed `git push -u origin prisma-client-perf-compact-plan-format` failed DNS lookup for `github.com`; the required unsandboxed retry was rejected by the current usage/approval limit.
-  - GitHub connector PR creation is also blocked with HTTP 401 `token_expired`.
-  - After auth/network is restored, push from `/tmp/prisma-compact-plan-format` and open a Prisma PR with base `prisma-client-perf-render-datamapper-prereqs`, head `prisma-client-perf-compact-plan-format`, and PR body command `/engine-branch prisma-client-perf-compact-plan-format-engines`.
+  - Branch is pushed and the draft PR is open.
+  - PR body command: `/engine-branch prisma-client-perf-compact-plan-format-engines`.
+  - The GitHub connector can search but still cannot create PRs (`Resource not accessible by integration`); `gh` worked after auth was valid again.
 - Decision:
   - This is the correct compact consumer branch to review after the render/data-mapper prerequisite PR and alongside the engines compact producer PR. Do not merge it without the matching engines producer branch.
