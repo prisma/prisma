@@ -12,6 +12,8 @@ This document tracks how the large performance branches are being exposed and sp
 - Extracted engines PR 2: https://github.com/prisma/prisma-engines/pull/5822
 - Pushed Prisma split branches awaiting PR creation:
   - `prisma-client-perf-render-datamapper-prereqs`
+- Local validated Prisma split branches awaiting push/PR creation:
+  - `prisma-client-perf-compact-plan-format`, stacked on `prisma-client-perf-render-datamapper-prereqs`
 - Pushed engines split branches awaiting PR creation:
   - `prisma-client-perf-compact-plan-format-engines`
   - `prisma-client-perf-graph-translation-cleanups`
@@ -57,7 +59,7 @@ Workflow sources checked:
 - `prisma-engines/.github/workflows/test-query-compiler-template.yml` consumes the selected Prisma branch for query-compiler Wasm tests.
 - `prisma-engines/.github/workflows/build-engines.yml` gates integration publishing on `integration/*` branches or `[integration]` commit messages.
 
-Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, `prisma-client-perf-empty-required-set-pruning`, `prisma-client-perf-coc-branch-pruning`, `prisma-client-perf-update-upsert-pruning`, and `prisma-client-perf-upsert-result-sharing` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. Create them from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry.
+Current auth note: `prisma-client-perf-graph-translation-cleanups`, `prisma-client-perf-selection-aggregate-cleanups`, `prisma-client-perf-filter-extraction-cleanups`, `prisma-client-perf-read-selection-cleanups`, `prisma-client-perf-translation-placeholder-cleanups`, `prisma-client-perf-direct-placeholder-storage`, `prisma-client-perf-m2m-set-disconnect-pruning`, `prisma-client-perf-required-set-pruning`, `prisma-client-perf-empty-required-set-pruning`, `prisma-client-perf-coc-branch-pruning`, `prisma-client-perf-update-upsert-pruning`, and `prisma-client-perf-upsert-result-sharing` are pushed to `prisma/prisma-engines`, but PR creation is blocked locally because both `gh` and the GitHub connector have expired tokens after the harness restart. `prisma-client-perf-compact-plan-format` is locally complete but not pushed because sandboxed `git push` cannot resolve `github.com` and the required unsandboxed retry is currently rejected by the usage/approval limit. Create pushed PRs from the URLs in this section or rerun `gh auth refresh -h github.com -s repo`, then use the PR body linkage from each status entry. After the approval/network block clears, push `prisma-client-perf-compact-plan-format` from `/tmp/prisma-compact-plan-format`.
 
 Fresh auth check after pushing `prisma-client-perf-upsert-result-sharing`: `gh auth status` still reports the local token as invalid. The latest GitHub connector `create_pull_request` attempt, for `prisma-client-perf-update-upsert-pruning`, failed with HTTP 401 `token_expired`.
 
@@ -154,10 +156,10 @@ Validation:
 - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo check -p query-compiler`: passed
 - `CARGO_TARGET_DIR=/home/aqrln.guest/prisma/.tmp/compact-plan-engines-target cargo test -p query-compiler --test queries`: passed
 
-Suggested temporary PR body linkage, until the matching compact Prisma consumer split exists:
+Suggested PR body linkage after pushing the matching compact Prisma consumer split:
 
 ```text
-/prisma-branch prisma-client-performance-2026-06-08
+/prisma-branch prisma-client-perf-compact-plan-format
 ```
 
 This branch is the producer half of the lockstep compact internal format. It should not be merged without a matching Prisma consumer PR that reads the same compact-only shape. It deliberately excludes `b64c854d6e2` (`perf(query-compiler): compact validation expectations`), because that is a broader validation-storage rewrite and is not required for the serialized compact plan producer shape.
@@ -203,6 +205,64 @@ PR body linkage:
 - No `/engine-branch` command required. This branch is Prisma-only and is intended as the base for the compact consumer split.
 
 This branch should be reviewed before the compact Prisma consumer branch. It isolates render-query and direct result-set data-mapper prerequisites so the compact-format PR does not hide unrelated runtime scaffolding inside conflict resolutions.
+
+### Local Complete: Prisma Compact Query-Plan Consumer Format
+
+Local branch: `prisma-client-perf-compact-plan-format`
+
+Local worktree: `/tmp/prisma-compact-plan-format`
+
+Base branch: `prisma-client-perf-render-datamapper-prereqs`
+
+Target base when opening PR: `prisma-client-perf-render-datamapper-prereqs`
+
+Head commit: `b3e680818` (`perf(client-engine): drop legacy field result nodes`)
+
+Push/PR status:
+
+- Local branch is complete and clean.
+- Push is currently blocked: sandboxed `git push -u origin prisma-client-perf-compact-plan-format` failed DNS lookup for `github.com`, and the required unsandboxed retry was rejected by the current usage/approval limit.
+- GitHub connector PR creation is also blocked: connector calls return HTTP 401 `token_expired`.
+- After auth/network is restored, push from `/tmp/prisma-compact-plan-format`, then open `https://github.com/prisma/prisma/pull/new/prisma-client-perf-compact-plan-format` targeting `prisma-client-perf-render-datamapper-prereqs`.
+
+Original commit families:
+
+- compact runtime readers: `077e52f5f`, `3540335be`, `2490a5480`, `241d25b4f`, `ca1f7d0a1`, `531910ef5`, `6fa7e2b83`, `13bd6648f`, `b9414aaa5`, `6b2038c16`, `0241055b9`, `36a9d5129`, `4bebac447`, `a1a39e027`, `383a0dafb`, `4656aa7f4`
+- old internal format removal: `f3a0d65b9`, `d9d883d66`, `6dcda7d83`, `49a66dc0e`, `745b33762`, `6d9408bbe`, `d5b4f1644`, `0c642a06c`, `76dcf2995`, `fed02d4de`, `b3e680818`
+- cross-package consumers/producers: `b74bd184d` for query-plan-executor tuple plans, `46dd1375e` for raw-query compact arg-type emission
+
+Scope:
+
+- `packages/client-engine-runtime/src/query-plan.ts`
+- `packages/client-engine-runtime/src/batch.ts`
+- `packages/client-engine-runtime/src/interpreter/{data-mapper,in-memory-processing,query-interpreter,render-query,validation}.ts`
+- matching client-engine-runtime tests and benchmark fixtures
+- `packages/client/src/runtime/utils/deserializeRawParameters.ts`
+- `packages/client/src/runtime/core/engines/client/ClientEngine.ts`
+- `packages/client/src/runtime/core/engines/client/query-plan-cache.test.ts`
+- `packages/query-plan-executor/src/server/schemas.ts`
+
+Format policy:
+
+- This branch intentionally removes old/new internal compatibility readers. Compact internal structures are lockstep with the engines producer branch; stale object-shaped template SQL, expression, validation, result-object, PrismaValue, batch-param, canonical compact SQL arg scalar, canonical result field scalar, and `type: "field"` result-node forms are not accepted on hot internal paths.
+
+Validation:
+
+- `pnpm --filter @prisma/client-engine-runtime exec vitest run src/interpreter/data-mapper.test.ts src/interpreter/render-query.test.ts src/interpreter/query-interpreter.test.ts src/batch.test.ts`: passed, 42 tests.
+- `pnpm --filter @prisma/client test -- deserializeRawParameters.test.ts`: passed, 15 tests. Jest printed existing haste-map package-name collision warnings from integration fixtures.
+- `pnpm --filter @prisma/client-engine-runtime test`: passed, 235 tests.
+- `pnpm --filter @prisma/query-plan-executor... build`: passed under unsandboxed execution after sandboxed `tsx` failed with `listen EPERM`.
+- `pnpm --filter @prisma/query-plan-executor test`: passed, 115 tests.
+- `pnpm --filter @prisma/client-engine-runtime... build`: passed under unsandboxed execution after sandboxed `tsx` failed with `listen EPERM`.
+- `pnpm --filter @prisma/client... build`: dependency-inclusive build ran through all dependencies and reached final `packages/client build`, but the exec session dropped before the final exit packet. No build process remained afterward and the worktree was clean. A direct rerun of `pnpm --filter @prisma/client build` was blocked by the current usage/approval limit, so treat final client build as not conclusively re-verified in this session.
+
+PR body linkage:
+
+```text
+/engine-branch prisma-client-perf-compact-plan-format-engines
+```
+
+This is the matching Prisma consumer for the engines compact producer branch. It should be reviewed after `prisma-client-perf-render-datamapper-prereqs` and alongside the engines producer PR. It is intentionally stacked to keep render/data-mapper prerequisite work out of the compact-format review.
 
 ### Ready To Open: Engines Graph/Translation Cleanups
 

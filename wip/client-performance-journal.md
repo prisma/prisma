@@ -17657,3 +17657,37 @@ PATH="/tmp/prisma-build-tools:$PATH" make build-qc-wasm
   - No `/engine-branch` command required; this is Prisma-only and targets current `main`.
 - Decision:
   - This is the right base for the compact Prisma consumer branch. The next compact consumer attempt should start from `prisma-client-perf-render-datamapper-prereqs`, then apply the compact-only query-plan reader changes without carrying old-format compatibility as the final review shape.
+
+## Packaging: Prisma Compact Query-Plan Consumer Split Branch (2026-06-24)
+
+- Goal:
+  - Finish the matching Prisma consumer branch for the compact query-plan producer split and keep internal formats lockstep-only, without old/new compatibility branches.
+- Branch:
+  - Continued `/tmp/prisma-compact-plan-format` on `prisma-client-perf-compact-plan-format`, stacked on `prisma-client-perf-render-datamapper-prereqs`.
+  - Local branch head: `b3e680818` (`perf(client-engine): drop legacy field result nodes`).
+  - The branch is locally clean and validated, but not pushed.
+- Scope:
+  - `packages/client-engine-runtime/src/query-plan.ts`, `batch.ts`, interpreter modules, tests, and benchmark fixtures.
+  - `packages/client/src/runtime/utils/deserializeRawParameters.ts` and `ClientEngine.ts` for raw-query compact arg-type emission.
+  - `packages/query-plan-executor/src/server/schemas.ts` so tuple-shaped compact plans pass request validation.
+- Split commits:
+  - Accepted compact readers and aliases: `077e52f5f`, `3540335be`, `2490a5480`, `241d25b4f`, `ca1f7d0a1`, `531910ef5`, `6fa7e2b83`, `13bd6648f`, `b9414aaa5`, `6b2038c16`, `0241055b9`, `36a9d5129`, `4bebac447`, `a1a39e027`, `383a0dafb`, `4656aa7f4`.
+  - Removed old internal compatibility: `f3a0d65b9`, `d9d883d66`, `6dcda7d83`, `49a66dc0e`, `745b33762`, `6d9408bbe`, `d5b4f1644`, `0c642a06c`, `76dcf2995`, `fed02d4de`, `b3e680818`.
+  - Cross-package fixes: `b74bd184d`, `46dd1375e`.
+- Format outcome:
+  - Compact internal structures now replace the older object/canonical shapes in this split. Runtime hot paths no longer accept stale object-shaped template SQL, expression, validation, result-object, PrismaValue, compacted batch param, canonical compact SQL arg scalar, canonical result field scalar, or `type: "field"` result-node formats.
+  - The native-result/raw-nested lanes from later source commits were deliberately not pulled into this split while resolving conflicts; they belong in later stacked PRs.
+- Validation:
+  - `pnpm --filter @prisma/client-engine-runtime exec vitest run src/interpreter/data-mapper.test.ts src/interpreter/render-query.test.ts src/interpreter/query-interpreter.test.ts src/batch.test.ts`: passed, 42 tests.
+  - `pnpm --filter @prisma/client test -- deserializeRawParameters.test.ts`: passed, 15 tests, with existing Jest haste-map package-name collision warnings from integration fixtures.
+  - `pnpm --filter @prisma/client-engine-runtime test`: passed, 235 tests.
+  - `pnpm --filter @prisma/query-plan-executor... build`: passed unsandboxed; sandboxed `tsx` first failed with `listen EPERM`.
+  - `pnpm --filter @prisma/query-plan-executor test`: passed, 115 tests.
+  - `pnpm --filter @prisma/client-engine-runtime... build`: passed unsandboxed; sandboxed `tsx` first failed with `listen EPERM`.
+  - `pnpm --filter @prisma/client... build` ran through dependencies and reached final `packages/client build`, but the exec session dropped before the final exit packet. No build process remained afterward and `git status --short` was clean. A direct rerun of `pnpm --filter @prisma/client build` was rejected by the current usage/approval limit, so final client build is the only not-conclusively-reverified gate.
+- PR status:
+  - Pushing is blocked in this session: sandboxed `git push -u origin prisma-client-perf-compact-plan-format` failed DNS lookup for `github.com`; the required unsandboxed retry was rejected by the current usage/approval limit.
+  - GitHub connector PR creation is also blocked with HTTP 401 `token_expired`.
+  - After auth/network is restored, push from `/tmp/prisma-compact-plan-format` and open a Prisma PR with base `prisma-client-perf-render-datamapper-prereqs`, head `prisma-client-perf-compact-plan-format`, and PR body command `/engine-branch prisma-client-perf-compact-plan-format-engines`.
+- Decision:
+  - This is the correct compact consumer branch to review after the render/data-mapper prerequisite PR and alongside the engines compact producer PR. Do not merge it without the matching engines producer branch.
