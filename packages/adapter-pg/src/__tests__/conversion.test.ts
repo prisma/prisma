@@ -58,4 +58,12 @@ describe('mapArg', () => {
     })
     expect(result).toBe('2026-06-26 18:20:07+00:00')
   })
+  it('converts a TIMESTAMPTZ string input to a datetime string with UTC offset', () => {
+    const result = mapArg('2026-06-26T18:20:07.000Z', {
+      dbType: 'TIMESTAMPTZ',
+      scalarType: 'datetime',
+      arity: 'scalar',
+    })
+    expect(result).toBe('2026-06-26 18:20:07+00:00')
+  })
 })
