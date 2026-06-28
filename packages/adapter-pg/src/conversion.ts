@@ -426,6 +426,8 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
         return formatTime(arg)
       case 'DATE':
         return formatDate(arg)
+      case 'TIMESTAMPTZ':
+        return formatDateTimeTz(arg)
       default:
         return formatDateTime(arg)
     }
@@ -462,6 +464,12 @@ function formatDateTime(date: Date): string {
   )
 }
 
+/*
+ * TIMESTAMPTZ - formats a Date to 'YYYY-MM-DD HH:mm:ss[.mmm]+00:00'
+ */
+function formatDateTimeTz(date: Date): string {
+  return formatDateTime(date) + '+00:00'
+}
 function formatDate(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
   return pad(date.getUTCFullYear(), 4) + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
