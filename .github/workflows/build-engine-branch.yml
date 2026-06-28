@@ -50,7 +50,7 @@ jobs:
     outputs:
       engineHash: ${{ steps.engine-hash.outputs.engineHash }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           repository: prisma/prisma-engines
           ref: ${{ needs.parseCommand.outputs.branchName }}
@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: echo "engineHash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         name: Artifacts cache
         id: artifacts-cache
         with:
@@ -75,7 +75,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         name: Dependencies cache
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         with:
@@ -93,7 +93,7 @@ jobs:
         run: |
           cargo build --release -p schema-engine-cli
 
-      - uses: cargo-bins/cargo-binstall@main
+      - uses: cargo-bins/cargo-binstall@910d9e4456ce4b039662d2a02a34ef1d23c3c50c # main
 
       - name: Extract wasm-bindgen version and install matching CLI
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
@@ -120,7 +120,7 @@ jobs:
           fi
 
       - name: Install Binaryen (includes wasm-opt)
-        uses: jaxxstorm/action-install-gh-release@v2.1.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: WebAssembly/binaryen
           tag: version_122

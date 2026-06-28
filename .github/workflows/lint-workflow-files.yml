@@ -8,7 +8,7 @@ jobs:
   actionlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       # see https://github.com/rhysd/actionlint/blob/main/docs/usage.md
       - name: Check workflow files
