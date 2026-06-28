@@ -8,7 +8,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: pantharshit00/stale@v3.1
+      - uses: pantharshit00/stale@d8f5f16c524d29fdc37f67da93ecb7ecdd4c2a77 # v3.1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: 'DUMMY, FOR ENABLING'

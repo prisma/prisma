@@ -53,7 +53,7 @@ jobs:
     # This avoids notifications to be sent to `alert-comment-cc-users`, see below
     if: github.repository == 'prisma/prisma'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -66,7 +66,7 @@ jobs:
 
       - name: Store benchmark result
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: rhysd/github-action-benchmark@v1
+        uses: rhysd/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1
         with:
           name: Benchmark.js Benchmark
           tool: 'benchmarkjs'
@@ -81,7 +81,7 @@ jobs:
           alert-comment-cc-users: '@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: Run benchmarks for Codspeed
-        uses: CodSpeedHQ/action@v4
+        uses: CodSpeedHQ/action@a4a36bb07c0638b0b4ca52bf1f3dad1b4289e52f # v4
         with:
           mode: simulation
           run: pnpm run bench-stdout-only
