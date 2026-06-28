@@ -50,7 +50,7 @@ describe('mapArg', () => {
     expect(result).toBe('1999-12-31 23:59:59.999+00:00')
   })
 
-  it('converts a TIMESTAMPTZ string input with UTC offset to a datetime string', () => {
+  it('converts a TIMESTAMPTZ string input with Z suffix to a datetime string with UTC offset', () => {
     const result = mapArg('2026-06-26T18:20:07.000Z', {
       dbType: 'TIMESTAMPTZ',
       scalarType: 'datetime',
@@ -58,8 +58,8 @@ describe('mapArg', () => {
     })
     expect(result).toBe('2026-06-26 18:20:07+00:00')
   })
-  it('converts a TIMESTAMPTZ string input to a datetime string with UTC offset', () => {
-    const result = mapArg('2026-06-26T18:20:07.000Z', {
+  it('converts a TIMESTAMPTZ string input with +00:00 offset to a datetime string with UTC offset', () => {
+    const result = mapArg('2026-06-26T18:20:07.000+00:00', {
       dbType: 'TIMESTAMPTZ',
       scalarType: 'datetime',
       arity: 'scalar',
