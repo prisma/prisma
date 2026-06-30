@@ -38,7 +38,7 @@ export function drawBox({ title, width, height, str, horizontalPadding }: BoxOpt
       ' ' +
       reset(bold(title)) +
       ' ' +
-      grey(chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight) +
+      grey(chars.horizontal.repeat(Math.max(width - stringWidth(title) - 2 - 3, 0)) + chars.topRight) +
       reset()
     : grey(chars.topLeft + chars.horizontal) + grey(chars.horizontal.repeat(width - 3) + chars.topRight)
 
