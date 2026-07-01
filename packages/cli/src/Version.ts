@@ -22,6 +22,7 @@ import path from 'path'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json')
+
 const prismaCliPath = path.dirname(require.resolve('../package.json'))
 
 /**
