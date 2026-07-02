@@ -56,17 +56,20 @@ export function aiAgentConfirmationCheckpoint(): void {
 
 /**
  * A single link in the agent detection chain. `envVars` lists every
- * environment variable `detect` inspects, so tests can clear inherited
- * markers without maintaining a separate list.
+ * environment variable, and `files` every filesystem path, that `detect`
+ * inspects, so tests can clear inherited markers without maintaining a
+ * separate list.
  */
 export interface AgentMatcher {
   readonly envVars: readonly string[]
+  readonly files: readonly string[]
   readonly detect: (env: NodeJS.ProcessEnv) => string | undefined
 }
 
 function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
   return {
     envVars,
+    files: [],
     detect: (env) => (envVars.some((name) => env[name]) ? agentName : undefined),
   }
 }
@@ -74,7 +77,16 @@ function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
 function envValue(agentName: string, envVar: string, value: string): AgentMatcher {
   return {
     envVars: [envVar],
+    files: [],
     detect: (env) => (env[envVar] === value ? agentName : undefined),
+  }
+}
+
+function fileMarker(agentName: string, path: string): AgentMatcher {
+  return {
+    envVars: [],
+    files: [path],
+    detect: () => (existsSync(path) ? agentName : undefined),
   }
 }
 
@@ -113,17 +125,16 @@ export const agentMatchers: AgentMatcher[] = [
   // while in an agent session it looks like `agent-<numeric id>-<random suffix>`.
   {
     envVars: ['REPLIT_SESSION'],
+    files: [],
     detect: (env) => (env.REPLIT_SESSION?.startsWith('agent-') ? 'Replit Agent' : undefined),
   },
   // Devin does not set an environment variable; its VM is marked by a file.
-  {
-    envVars: [],
-    detect: () => (existsSync('/opt/.devin') ? 'Devin' : undefined),
-  },
+  fileMarker('Devin', '/opt/.devin'),
   // Generic conventions: `AI_AGENT=<name>` (promoted by @vercel/detect-agent)
   // and `AGENT=<name or 1>` (set by e.g. Goose, Amp, Crush, OpenCode).
   {
     envVars: ['AI_AGENT', 'AGENT'],
+    files: [],
     detect: (env) => {
       const generic = env.AI_AGENT || env.AGENT
       if (!generic) {
