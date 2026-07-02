@@ -351,7 +351,7 @@ function normalize_timestamp(time: string | null): string | null {
 
 function normalize_timestamptz(time: string | null): string | null {
   if (time === null) return null
-  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
+  return time.replace(' ', 'T')
 }
 
 /*

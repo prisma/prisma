@@ -310,7 +310,7 @@ function normalize_timestamp(time: string): string {
 }
 
 function normalize_timestamptz(time: string): string {
-  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
+  return time.replace(' ', 'T')
 }
 
 /*
