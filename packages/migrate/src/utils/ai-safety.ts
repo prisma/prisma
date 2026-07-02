@@ -55,18 +55,20 @@ export function aiAgentConfirmationCheckpoint(): void {
 }
 
 /**
- * A single link in the agent detection chain. `envVars` lists every
- * environment variable `detect` inspects, so tests can clear inherited
- * markers without maintaining a separate list.
+ * A single link in the agent detection chain. `envVars` and `files` list
+ * every environment variable and filesystem path `detect` inspects, so tests
+ * can neutralize inherited markers without maintaining separate lists.
  */
 export interface AgentMatcher {
   readonly envVars: readonly string[]
+  readonly files: readonly string[]
   readonly detect: (env: NodeJS.ProcessEnv) => string | undefined
 }
 
 function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
   return {
     envVars,
+    files: [],
     detect: (env) => (envVars.some((name) => env[name]) ? agentName : undefined),
   }
 }
@@ -74,9 +76,12 @@ function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
 function envValue(agentName: string, envVar: string, value: string): AgentMatcher {
   return {
     envVars: [envVar],
+    files: [],
     detect: (env) => (env[envVar] === value ? agentName : undefined),
   }
 }
+
+const devinMarkerFile = '/opt/.devin'
 
 // Markers come from each agent's official docs or source code. Specific
 // agents are checked before the generic cross-agent conventions so the
@@ -113,23 +118,39 @@ export const agentMatchers: AgentMatcher[] = [
   // while in an agent session it looks like `agent-<numeric id>-<random suffix>`.
   {
     envVars: ['REPLIT_SESSION'],
+    files: [],
     detect: (env) => (env.REPLIT_SESSION?.startsWith('agent-') ? 'Replit Agent' : undefined),
   },
   // Devin does not set an environment variable; its VM is marked by a file.
   {
     envVars: [],
-    detect: () => (existsSync('/opt/.devin') ? 'Devin' : undefined),
+    files: [devinMarkerFile],
+    detect: () => (existsSync(devinMarkerFile) ? 'Devin' : undefined),
   },
   // Generic conventions: `AI_AGENT=<name>` (promoted by @vercel/detect-agent)
   // and `AGENT=<name or 1>` (set by e.g. Goose, Amp, Crush, OpenCode).
   {
     envVars: ['AI_AGENT', 'AGENT'],
+    files: [],
     detect: (env) => {
       const generic = env.AI_AGENT || env.AGENT
       if (!generic) {
         return undefined
       }
-      return generic === '1' ? 'an unidentified AI agent' : `an AI agent identifying itself as "${generic}"`
+      if (generic === '1') {
+        return 'an unidentified AI agent'
+      }
+      // The value is ambient free-form text interpolated into instructions
+      // addressed to the agent, so it must not be able to reshape them:
+      // non-printable characters collapse to spaces and the length is capped.
+      const sanitized = generic
+        .replace(/[^\x20-\x7e]+/g, ' ')
+        .trim()
+        .slice(0, 64)
+      if (!sanitized) {
+        return 'an unidentified AI agent'
+      }
+      return `an AI agent identifying itself as ${JSON.stringify(sanitized)}`
     },
   },
 ]
