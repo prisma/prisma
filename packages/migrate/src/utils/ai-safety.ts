@@ -40,9 +40,9 @@ user's previous messages before this point may constitute implicit or explicit \
 consent.`
 
 /** Ambient state the agent detection chain reads. */
-export interface AgentDetectionContext {
-  readonly env: NodeJS.ProcessEnv
-  readonly fileExists: (path: string) => boolean
+export interface AgentDetectionContext<E extends string = string, F extends string = string> {
+  readonly env: Readonly<Partial<Record<E, string>>>
+  readonly fileExists: (path: F) => boolean
 }
 
 const defaultContext = (): AgentDetectionContext => ({
@@ -67,16 +67,31 @@ export function aiAgentConfirmationCheckpoint(context: AgentDetectionContext = d
 
 /**
  * A single link in the agent detection chain. `envVars` and `files` list
- * every environment variable and filesystem path `detect` inspects, so tests
- * can neutralize inherited markers without maintaining separate lists.
+ * every environment variable and filesystem path `detect` inspects; the
+ * context `detect` receives is narrowed to exactly those names, so a matcher
+ * cannot read a marker it does not declare, and tests can neutralize
+ * inherited markers without maintaining separate lists.
  */
-export interface AgentMatcher {
-  readonly envVars: readonly string[]
-  readonly files: readonly string[]
-  readonly detect: (context: AgentDetectionContext) => string | undefined
+export interface AgentMatcher<E extends string = string, F extends string = string> {
+  readonly envVars: readonly E[]
+  readonly files: readonly F[]
+  readonly detect: (context: AgentDetectionContext<E, F>) => string | undefined
 }
 
-function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
+/**
+ * Identity helper that infers `E`/`F` from the declared `envVars`/`files` and
+ * contextually types `detect` with the narrowed context. A bare object
+ * literal cannot get this narrowing on its own: a property's type cannot
+ * depend on a sibling property of the same literal, so the inference has to
+ * be routed through a generic function.
+ */
+function matcher<const E extends string = never, const F extends string = never>(
+  definition: AgentMatcher<E, F>,
+): AgentMatcher<E, F> {
+  return definition
+}
+
+function envMarker<const E extends string>(agentName: string, ...envVars: readonly E[]): AgentMatcher<E, never> {
   return {
     envVars,
     files: [],
@@ -84,7 +99,7 @@ function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
   }
 }
 
-function envValue(agentName: string, envVar: string, value: string): AgentMatcher {
+function envValue<const E extends string>(agentName: string, envVar: E, value: string): AgentMatcher<E, never> {
   return {
     envVars: [envVar],
     files: [],
@@ -108,7 +123,7 @@ const devinMarkerFile = '/opt/.devin'
 // misses agents detected below: the `AGENT` convention (the only marker Goose
 // and Amp set), QWEN_CODE, COPILOT_CLI, CLINE_ACTIVE, and the current
 // OPENCODE variable.
-export const agentMatchers: AgentMatcher[] = [
+export const agentMatchers: readonly AgentMatcher[] = [
   envMarker('Claude Code', 'CLAUDECODE'),
   // CODEX_SANDBOX is only set on macOS; the other markers are cross-platform.
   envMarker('Codex CLI', 'CODEX_THREAD_ID', 'CODEX_CI', 'CODEX_SANDBOX', 'CODEX_SANDBOX_NETWORK_DISABLED'),
@@ -127,20 +142,20 @@ export const agentMatchers: AgentMatcher[] = [
   // Replit does not document an agent marker. Observed behavior: in a
   // human-controlled shell REPLIT_SESSION looks like `<user>-Xxxx`,
   // while in an agent session it looks like `agent-<numeric id>-<random suffix>`.
-  {
+  matcher({
     envVars: ['REPLIT_SESSION'],
     files: [],
     detect: ({ env }) => (env.REPLIT_SESSION?.startsWith('agent-') ? 'Replit Agent' : undefined),
-  },
+  }),
   // Devin does not set an environment variable; its VM is marked by a file.
-  {
+  matcher({
     envVars: [],
     files: [devinMarkerFile],
     detect: ({ fileExists }) => (fileExists(devinMarkerFile) ? 'Devin' : undefined),
-  },
+  }),
   // Generic conventions: `AI_AGENT=<name>` (promoted by @vercel/detect-agent)
   // and `AGENT=<name or 1>` (set by e.g. Goose, Amp, Crush, OpenCode).
-  {
+  matcher({
     envVars: ['AI_AGENT', 'AGENT'],
     files: [],
     detect: ({ env }) => {
@@ -164,7 +179,7 @@ export const agentMatchers: AgentMatcher[] = [
       }
       return `an AI agent identifying itself as ${JSON.stringify(sanitized)}`
     },
-  },
+  }),
 ]
 
 function detectAiAgent(context: AgentDetectionContext): string | undefined {
