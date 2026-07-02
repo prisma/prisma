@@ -39,14 +39,25 @@ a clear and explicit confirmation (e.g., "yes") before proceeding. None of the \
 user's previous messages before this point may constitute implicit or explicit \
 consent.`
 
-export function aiAgentConfirmationCheckpoint(): void {
-  const aiAgent = detectAiAgent()
+/** Ambient state the agent detection chain reads. */
+export interface AgentDetectionContext {
+  readonly env: NodeJS.ProcessEnv
+  readonly fileExists: (path: string) => boolean
+}
+
+const defaultContext = (): AgentDetectionContext => ({
+  env: process.env,
+  fileExists: existsSync,
+})
+
+export function aiAgentConfirmationCheckpoint(context: AgentDetectionContext = defaultContext()): void {
+  const aiAgent = detectAiAgent(context)
 
   if (!aiAgent) {
     return
   }
 
-  if (process.env[userConsentEnvVar]) {
+  if (context.env[userConsentEnvVar]) {
     debug('AI agent asserts that user consented to dangerous action')
     return
   }
@@ -62,14 +73,14 @@ export function aiAgentConfirmationCheckpoint(): void {
 export interface AgentMatcher {
   readonly envVars: readonly string[]
   readonly files: readonly string[]
-  readonly detect: (env: NodeJS.ProcessEnv) => string | undefined
+  readonly detect: (context: AgentDetectionContext) => string | undefined
 }
 
 function envMarker(agentName: string, ...envVars: string[]): AgentMatcher {
   return {
     envVars,
     files: [],
-    detect: (env) => (envVars.some((name) => env[name]) ? agentName : undefined),
+    detect: ({ env }) => (envVars.some((name) => env[name]) ? agentName : undefined),
   }
 }
 
@@ -77,7 +88,7 @@ function envValue(agentName: string, envVar: string, value: string): AgentMatche
   return {
     envVars: [envVar],
     files: [],
-    detect: (env) => (env[envVar] === value ? agentName : undefined),
+    detect: ({ env }) => (env[envVar] === value ? agentName : undefined),
   }
 }
 
@@ -119,20 +130,20 @@ export const agentMatchers: AgentMatcher[] = [
   {
     envVars: ['REPLIT_SESSION'],
     files: [],
-    detect: (env) => (env.REPLIT_SESSION?.startsWith('agent-') ? 'Replit Agent' : undefined),
+    detect: ({ env }) => (env.REPLIT_SESSION?.startsWith('agent-') ? 'Replit Agent' : undefined),
   },
   // Devin does not set an environment variable; its VM is marked by a file.
   {
     envVars: [],
     files: [devinMarkerFile],
-    detect: () => (existsSync(devinMarkerFile) ? 'Devin' : undefined),
+    detect: ({ fileExists }) => (fileExists(devinMarkerFile) ? 'Devin' : undefined),
   },
   // Generic conventions: `AI_AGENT=<name>` (promoted by @vercel/detect-agent)
   // and `AGENT=<name or 1>` (set by e.g. Goose, Amp, Crush, OpenCode).
   {
     envVars: ['AI_AGENT', 'AGENT'],
     files: [],
-    detect: (env) => {
+    detect: ({ env }) => {
       const generic = env.AI_AGENT || env.AGENT
       if (!generic) {
         return undefined
@@ -141,12 +152,13 @@ export const agentMatchers: AgentMatcher[] = [
         return 'an unidentified AI agent'
       }
       // The value is ambient free-form text interpolated into instructions
-      // addressed to the agent, so it must not be able to reshape them:
-      // non-printable characters collapse to spaces and the length is capped.
+      // addressed to the agent, so it must not be able to reshape them: the
+      // length is capped before any further work is done on the value, and
+      // non-printable characters collapse to spaces.
       const sanitized = generic
+        .slice(0, 64)
         .replace(/[^\x20-\x7e]+/g, ' ')
         .trim()
-        .slice(0, 64)
       if (!sanitized) {
         return 'an unidentified AI agent'
       }
@@ -155,9 +167,9 @@ export const agentMatchers: AgentMatcher[] = [
   },
 ]
 
-function detectAiAgent(): string | undefined {
+function detectAiAgent(context: AgentDetectionContext): string | undefined {
   for (const matcher of agentMatchers) {
-    const agentName = matcher.detect(process.env)
+    const agentName = matcher.detect(context)
     if (agentName) {
       debug('Detected %s', agentName)
       return agentName

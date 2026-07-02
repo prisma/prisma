@@ -1,34 +1,25 @@
-import { existsSync } from 'node:fs'
-
 import { agentMatchers, aiAgentConfirmationCheckpoint } from '../../utils/ai-safety'
-
-jest.mock('node:fs', () => ({
-  ...jest.requireActual('node:fs'),
-  existsSync: jest.fn(),
-}))
-
-const mockedExistsSync = jest.mocked(existsSync)
-const actualFs = jest.requireActual<typeof import('node:fs')>('node:fs')
 
 const agentEnvVars = [
   ...new Set(agentMatchers.flatMap((matcher) => matcher.envVars)),
   'PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION',
 ]
 
-const agentFiles = new Set(agentMatchers.flatMap((matcher) => matcher.files))
+// File-based markers read as absent by default so the suite is stable even
+// when it runs inside an agent VM that has them (e.g. Devin).
+const checkpoint = (fileExists: (path: string) => boolean = () => false) =>
+  aiAgentConfirmationCheckpoint({ env: process.env, fileExists })
 
 beforeEach(() => {
   // The tests themselves may be running under an AI agent, so the inherited
-  // markers must be cleared before each test, and file-based markers must
-  // read as absent (the suite could be running inside e.g. a Devin VM).
+  // markers must be cleared before each test.
   for (const name of agentEnvVars) {
     delete process.env[name]
   }
-  mockedExistsSync.mockImplementation((path) => !agentFiles.has(path.toString()) && actualFs.existsSync(path))
 })
 
 test('passes when no AI agent is detected', () => {
-  expect(() => aiAgentConfirmationCheckpoint()).not.toThrow()
+  expect(() => checkpoint()).not.toThrow()
 })
 
 test.each([
@@ -53,58 +44,55 @@ test.each([
   ['REPLIT_SESSION', 'agent-12345678-aBcDeFgHiJkLmNoPq-X01', 'Replit Agent'],
 ])('detects %s=%s as %s', (envVar, value, agentName) => {
   process.env[envVar] = value
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow(`invoked by ${agentName}`)
+  expect(() => checkpoint()).toThrow(`invoked by ${agentName}`)
 })
 
 test('reports the agent name from the generic AI_AGENT convention', () => {
   process.env.AI_AGENT = 'v0'
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow('invoked by an AI agent identifying itself as "v0"')
+  expect(() => checkpoint()).toThrow('invoked by an AI agent identifying itself as "v0"')
 })
 
 test('reports the agent name from the generic AGENT convention', () => {
   process.env.AGENT = 'some-new-agent'
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow('invoked by an AI agent identifying itself as "some-new-agent"')
+  expect(() => checkpoint()).toThrow('invoked by an AI agent identifying itself as "some-new-agent"')
 })
 
 test('detects Devin via its marker file', () => {
-  mockedExistsSync.mockImplementation((path) => path.toString() === '/opt/.devin')
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow('invoked by Devin')
+  expect(() => checkpoint((path) => path === '/opt/.devin')).toThrow('invoked by Devin')
 })
 
 test('sanitizes non-printable characters in generic agent names', () => {
   process.env.AI_AGENT = 'some\nagent\u0000name'
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow(
-    'invoked by an AI agent identifying itself as "some agent name"',
-  )
+  expect(() => checkpoint()).toThrow('invoked by an AI agent identifying itself as "some agent name"')
 })
 
 test('caps the length of generic agent names', () => {
   process.env.AI_AGENT = 'a'.repeat(200)
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow(`identifying itself as "${'a'.repeat(64)}"`)
+  expect(() => checkpoint()).toThrow(`identifying itself as "${'a'.repeat(64)}"`)
 })
 
 test('reports an unidentified agent for a generic marker with no printable characters', () => {
   process.env.AI_AGENT = '\u0001\u0002'
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow('invoked by an unidentified AI agent')
+  expect(() => checkpoint()).toThrow('invoked by an unidentified AI agent')
 })
 
 test('reports an unidentified agent for AGENT=1', () => {
   process.env.AGENT = '1'
-  expect(() => aiAgentConfirmationCheckpoint()).toThrow('invoked by an unidentified AI agent')
+  expect(() => checkpoint()).toThrow('invoked by an unidentified AI agent')
 })
 
 test('does not treat a human-controlled Replit shell as an agent', () => {
   process.env.REPLIT_SESSION = 'prisma-Abcd'
-  expect(() => aiAgentConfirmationCheckpoint()).not.toThrow()
+  expect(() => checkpoint()).not.toThrow()
 })
 
 test('does not treat other OR_APP_NAME values as Aider', () => {
   process.env.OR_APP_NAME = 'SomeOtherApp'
-  expect(() => aiAgentConfirmationCheckpoint()).not.toThrow()
+  expect(() => checkpoint()).not.toThrow()
 })
 
 test('passes when the user consent environment variable is set', () => {
   process.env.CLAUDECODE = '1'
   process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION = 'yes, reset my dev database'
-  expect(() => aiAgentConfirmationCheckpoint()).not.toThrow()
+  expect(() => checkpoint()).not.toThrow()
 })
