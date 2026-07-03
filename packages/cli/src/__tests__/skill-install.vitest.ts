@@ -76,7 +76,7 @@ describe('command assembly', () => {
     expect(calls).toEqual([{ command: 'pnpm', args: ['dlx', ...skillsCliArgs], cwd }])
   })
 
-  test('yarn', async () => {
+  test('yarn 2+', async () => {
     const cwd = makeTmpDir()
     const { calls, exec } = recordingExec()
 
@@ -89,6 +89,21 @@ describe('command assembly', () => {
 
     expect(result).toEqual({ ok: true })
     expect(calls).toEqual([{ command: 'yarn', args: ['dlx', ...skillsCliArgs], cwd }])
+  })
+
+  test('yarn 1 routes through npx', async () => {
+    const cwd = makeTmpDir()
+    const { calls, exec } = recordingExec()
+
+    const result = await installSkills({
+      cwd,
+      env: { npm_config_user_agent: 'yarn/1.22.22 npm/? node/v22.12.0 linux x64' },
+      isBunRuntime: false,
+      exec,
+    })
+
+    expect(result).toEqual({ ok: true })
+    expect(calls).toEqual([{ command: 'npx', args: ['--yes', ...skillsCliArgs], cwd }])
   })
 
   test('bun via runtime check', async () => {
@@ -136,6 +151,17 @@ describe('runner detection', () => {
     expect(runner.packageManager).toBe('yarn')
   })
 
+  test('routes a yarn 1 user agent to npm because classic yarn has no dlx', () => {
+    const cwd = makeTmpDir(['package.json', 'yarn.lock'])
+
+    const runner = detectRunner(cwd, {
+      env: { npm_config_user_agent: 'yarn/1.22.22 npm/? node/v22.12.0 linux x64' },
+      isBunRuntime: false,
+    })
+
+    expect(runner.packageManager).toBe('npm')
+  })
+
   test('ignores unrecognized npm_config_user_agent', () => {
     const cwd = makeTmpDir(['package.json', 'pnpm-lock.yaml'])
 
@@ -175,6 +201,23 @@ describe('failure handling', () => {
     expect(result).toEqual({
       ok: false,
       manualCommand: `pnpm dlx skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
+    })
+  })
+
+  test('manual command for a yarn 1 user agent uses npx', async () => {
+    const cwd = makeTmpDir()
+    const { exec } = recordingExec(() => Promise.reject(new Error('exit code 1')))
+
+    const result = await installSkills({
+      cwd,
+      env: { npm_config_user_agent: 'yarn/1.22.22 npm/? node/v22.12.0 linux x64' },
+      isBunRuntime: false,
+      exec,
+    })
+
+    expect(result).toEqual({
+      ok: false,
+      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
     })
   })
 })

@@ -86,13 +86,16 @@ export function detectRunner(
 }
 
 function packageManagerFromUserAgent(userAgent: string | undefined): PackageManager | undefined {
-  const name = userAgent?.split('/')[0]
+  const [name, version] = userAgent?.split(' ')[0]?.split('/') ?? []
   switch (name) {
     case 'npm':
     case 'pnpm':
-    case 'yarn':
     case 'bun':
       return name
+    case 'yarn':
+      // Yarn 1 (classic) has no `dlx` command, so one-off binaries run
+      // through npx instead.
+      return Number(version?.split('.')[0]) === 1 ? 'npm' : 'yarn'
     default:
       return undefined
   }
