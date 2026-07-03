@@ -67,7 +67,57 @@ ORM minor that the CLI can bake into a release.
 
 ### 2. Upstream symlink bug — file on vercel-labs/skills
 
-Prepared by the implementer in D3 R2 (see `## Upstream bug report` appended there once R2
-completes); substance: with multiple `--agent` values on skills@1.5.14, the plan output
-promises per-agent symlinks ("symlink → Claude Code, Windsurf") but only `.agents/skills/`
-is written; single-agent and `--copy` invocations behave as documented.
+**Title:** `add`: multi-agent installs never create the promised per-agent symlinks
+
+**Body:**
+
+## Summary
+
+With skills@1.5.14, `skills add <source> --agent <a> <b> ... -y` plans "symlink → Claude
+Code, Windsurf" for agents that don't read the universal directory, but no symlinks are ever
+created. The final "Installed" summary silently drops the symlink line, leaving those agents
+without the skill files.
+
+## Repro
+
+```
+mkdir /tmp/repro && cd /tmp/repro
+npx --yes skills@1.5.14 add prisma/skills --agent cursor claude-code codex windsurf --skill '*' -y
+find . -type l   # -> empty
+ls .claude       # -> No such file or directory
+```
+
+The plan output shows, per skill: `universal: Cursor, Codex` / `symlink → Claude Code,
+Windsurf`. On disk afterwards there is only `.agents/skills/*` and `skills-lock.json` — no
+`.claude/`, no `.windsurf/`, zero symlinks anywhere (also not in `$HOME`).
+
+## Observed matrix (skills@1.5.14, Linux, non-interactive `-y`)
+
+| Invocation | Result on disk |
+| --- | --- |
+| `--agent cursor claude-code codex windsurf` | `.agents/skills/*` + `skills-lock.json` only; promised symlinks absent |
+| `--agent claude-code windsurf` (no universal-dir agent) | still `.agents/skills/*` only |
+| `--agent claude-code` (single agent) | `.claude/skills/*` (copied) — works |
+| `--agent cursor claude-code codex windsurf --copy` | `.agents/skills/*` + `.claude/skills/*` + `.windsurf/skills/*` — works |
+
+Reproduced identically in a scrubbed environment (`env -i`), so agent-session detection
+("Agent detected — installing non-interactively") is not the trigger.
+
+## Expected
+
+Either the symlinks the plan promises are created, or the plan/summary should not claim them.
+
+## Impact
+
+Downstream tooling invoking multi-agent installs non-interactively (e.g. `prisma init`,
+which now installs this way) has to pass `--copy` to get working files for Claude Code and
+Windsurf, at the cost of duplicated content.
+
+## Final captures (D3 R2, post-`--copy`, commit ca261b483)
+
+- Default `prisma init`: exit 0; summary lists `.claude/skills/`, `.windsurf/skills/`,
+  `.agents/skills/`, `skills-lock.json`; on disk, all 8 skills present in each of the three
+  directories (24 `SKILL.md` files), `find . -type l` → 0 (real copies).
+- Failure path (unreachable registry): exit 0; warning with manual command including
+  `--copy`.
+- `--no-skills`: exit 0; no agent artifacts (path untouched by the amendment).

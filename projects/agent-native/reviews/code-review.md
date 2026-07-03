@@ -4,11 +4,11 @@
 
 ## Summary
 
-- **Current verdict:** D2 R1 — SATISFIED
-- **Dispatches SATISFIED:** D1, D2
-- **AC scoreboard totals:** 1 PASS (AC-2 test half; live capture pending D3) / 0 FAIL / 2 NOT VERIFIED
+- **Current verdict:** D3 R2 — SATISFIED (slice-final)
+- **Dispatches SATISFIED:** D1, D2, D3
+- **AC scoreboard totals:** 2 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
 - **Open findings:** 0
-- **Open escalations:** 0
+- **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
 ## Acceptance criteria scoreboard
 
@@ -16,9 +16,9 @@
 
 | AC ID | Description (short) | Dispatch | Status | Evidence |
 | ----- | ------------------- | -------- | ------ | -------- |
-| AC-1 | Real `prisma init` run produces `.claude/skills/prisma-*` and `.agents/skills/prisma-*`; evidence captured | D3 | NOT VERIFIED — round 1 pending | — |
-| AC-2 | Simulated install failure leaves init exit 0 with manual-command hint | D2 (tests) + D3 (live) | PASS (tests) — live capture pending D3 | D2 half verified on disk: mocked failure leaves `Init.parse` resolving normally with `console.warn` carrying the manual command (`packages/cli/src/__tests__/Init.vitest.ts`, commit `1f5058f5e`); runner failure shape unit-verified in `skill-install.vitest.ts` (commit `a84a3e46a`) |
-| AC-3 | Per-ORM-minor tagging ask filed on prisma/skills, URL recorded | D3 | NOT VERIFIED — round 1 pending | — |
+| AC-1 | Real `prisma init` run produces `.claude/skills/prisma-*`, `.windsurf/skills/prisma-*`, `.agents/skills/prisma-*`, `skills-lock.json`; evidence captured | D3 | PASS | Live capture in `slices/init-skill-install/verification.md § Final captures` (exit 0; 8 skills × 3 dirs = 24 `SKILL.md`; `find -type l` = 0); code claims verified on disk at commit `ca261b483` (`--copy` in `installArgs`, four-line summary in `Init.ts:730`, asserted in `Init.vitest.ts` + 18 snapshots) |
+| AC-2 | Simulated install failure leaves init exit 0 with manual-command hint | D2 (tests) + D3 (live) | PASS | Tests: mocked failure leaves `Init.parse` resolving normally with `console.warn` carrying the manual command (`packages/cli/src/__tests__/Init.vitest.ts`, commit `1f5058f5e`); runner failure shape unit-verified in `skill-install.vitest.ts` (commits `a84a3e46a`, `ca261b483`). Live: unreachable-registry run exit 0 with `--copy`-bearing manual command (`verification.md § Final captures`) |
+| AC-3 | Per-ORM-minor tagging ask filed on prisma/skills, URL recorded | D3 | ACCEPTED DEFERRAL — `unattended-decisions.md` D14 | Sandbox correctly refused external issue creation under the operator's identity; prepared title + body preserved in `verification.md § Operator to-do` for the operator to file |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -58,6 +58,18 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan: zero hits (snapshot delta checked: 18 hunks, each exactly the three summary lines). Yarn-1-via-lockfile residual treated as OUT OF SCOPE per orchestrator decision D12.
 
 **For orchestrator:** none.
+
+### D3 R1+R2 — SATISFIED (slice-final)
+
+**Scope:** D3 (end-to-end evidence + externalities); R1 I12 halt (skills@1.5.14 symlink no-op falsified the spec's layout assumption; resolved by decision D13) and R2 resolution. Commit `ca261b483`.
+
+**Tasks:** D3 clean against the amended spec — `--copy` inserted before `-y` in `installArgs` with a why-comment naming the upstream symlink no-op; four-artifact `skillsSummary` (`Init.ts:730`); `skillsCliArgs` fixture and all three failure-shape `manualCommand` assertions updated; Init summary test asserts all four artifacts; live captures (default success, failure path, `--no-skills`) recorded in `verification.md`. Gates trusted green (tsc, vitest 43/43, eslint).
+
+**AC delta:** AC-1 NOT VERIFIED → PASS (commit `ca261b483` + `verification.md § Final captures`). AC-2 PASS (tests) → PASS in full (live failure capture added). AC-3 NOT VERIFIED → ACCEPTED DEFERRAL (`unattended-decisions.md` D14; prepared body in `verification.md`).
+
+**Findings:** none. Transient-ID scan on `ca261b483`: zero hits. Snapshot delta verified: exactly 18 × `+  .windsurf/skills/`, zero removals. Untouched mock `manualCommand` literal in the Init failure test accepted — an opaque injected value testing pass-through printing, not command assembly.
+
+**For orchestrator:** Operator Monday to-do stands — file the tagging ask and the upstream symlink bug from `verification.md § Operator to-do`, then record the URLs.
 
 ## Orchestrator notes
 
