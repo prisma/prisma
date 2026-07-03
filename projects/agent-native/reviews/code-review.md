@@ -4,9 +4,9 @@
 
 ## Summary
 
-- **Current verdict:** S3-D1 R1 — SATISFIED
-- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1
-- **AC scoreboard totals:** 6 PASS / 0 FAIL / 1 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
+- **Current verdict:** S3-D2 R1 — SATISFIED (slice-final; slice 3 at DoD)
+- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1, D2 (slice-final)
+- **AC scoreboard totals:** 7 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
 - **Open findings:** 0
 - **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
@@ -23,7 +23,7 @@
 | AC-5 | Accept path demonstrated live: skills land via S1 runner | S2-D3 | PASS | Live capture: accept → 24 `SKILL.md` (8 × `.agents`/`.claude`/`.windsurf`) + `skills-lock.json`, ack `outcome: "accepted"` (`verification.md`); matches S1 `--copy` behavior and the ack→install ordering verified at `9966964c1` |
 | AC-6 | Non-TTY / CI-env run shows no prompt (capture) | S2-D3 | PASS | Live non-TTY capture: no prompt, generate normal, no acknowledgement written (`verification.md`); matches code — gate short-circuits precede any `writeAcknowledgement`, per the spec's after-prompt-only persistence |
 | AC-7 | Both-directions MCP safety test (marker → consent text, no success; no marker → no consent text), DB-free, CI-runnable | S3-D1 (authored + green) | PASS | `packages/cli/src/__tests__/mcp-safety.vitest.ts` (commit `e05f5a66c`): real server over stdio, curated allowlist env, sqlite scratch project (offline, no generator); marker case demands the consent var name + stop-and-respond wording and forbids the success line; CI-runnability rests on the established built-CLI precondition, made fail-clear by a module-level throw (precedent: `dependent-generator.test.ts`) |
-| AC-8 | `migrate-reset` tool description mentions the AI-agent gate + consent protocol | S3-D2 | NOT VERIFIED — S3-D2 pending | — |
+| AC-8 | `migrate-reset` tool description mentions the AI-agent gate + consent protocol | S3-D2 | PASS | Description paragraph verified on disk in `packages/cli/src/mcp/MCP.ts` (commit `bb4435f42`): names the gate, states the database is NOT reset when blocked, pre-frames the `Command failed with exit code 1: ...` error report, instructs stop → relay consent instructions → proceed only as the user directs; matches the pinned behavior from `e05f5a66c`; `tools/list` capture in `slices/safety-mcp-audit/verification.md` |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -123,6 +123,18 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan on `e05f5a66c`: zero hits.
 
 **For orchestrator:** Residual environmental caveat, no action: Devin's marker is a file (`/opt/.devin`) outside the env allowlist's control, so the no-marker case would fail on a Devin VM — inherent to real-subprocess testing and vanishingly unlikely in CI.
+
+### S3-D2 R1 — SATISFIED (slice-final)
+
+**Scope:** S3-D2 (migrate-reset description). Commit `bb4435f42` (worktree clean; `e05f5a66c` → `bb4435f42`).
+
+**Tasks:** S3-D2 clean — the diff is exactly one description paragraph in `MCP.ts` (Zod schema, `runCommand`, behavior untouched); the paragraph matches the pinned behavior verbatim in its claims: blocked invocation → no reset, error report framed `Command failed with exit code 1: ...` carrying the consent protocol, stop → relay → proceed-as-directed instruction is agent-actionable. Untouched-other-descriptions verified against the checkpoint's consumer set: `aiAgentConfirmationCheckpoint` is reached only by `MigrateReset`, `DbPush` (`--force-reset`), `DbDrop`; the other three MCP tools shell out to `migrate status`, `migrate dev`, `studio` — none gated. `tools/list` capture recorded in `slices/safety-mcp-audit/verification.md`. Gates trusted green (mcp-safety 3/3 against the rebuilt bundle, tsc, eslint).
+
+**AC delta:** AC-8 NOT VERIFIED → PASS (commit `bb4435f42` + `verification.md`). Slice 3 at DoD.
+
+**Findings:** none. Transient-ID scan on `bb4435f42`: zero hits.
+
+**For orchestrator:** none. (The update-message-in-tool-output observation is already recorded in `verification.md` / `learnings.md` as a follow-up-ticket candidate.)
 
 ## Orchestrator notes
 
