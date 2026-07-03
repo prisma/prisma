@@ -26,17 +26,29 @@ import { ParamGraph } from '@prisma/param-graph'
 
 import { version as clientVersion } from '../../../../../package.json'
 import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
-import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
+import type {
+  BatchQueryEngineResult,
+  EngineConfig,
+  PrecomputedQueryPlanCacheHit,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
-import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
+import {
+  type QueryEngineResultData,
+  queryEngineResultDataWasDeserialized,
+  RustRequestError,
+  SyncRustError,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { Executor } from './Executor'
 import { LocalExecutor } from './LocalExecutor'
-import { QueryPlanCache } from './query-plan-cache'
+import { type IndividualQueryPlanCacheEntry, QueryPlanCache } from './query-plan-cache'
+import { getQueryPlanCacheMaxSize } from './query-plan-cache-size'
 import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
@@ -47,7 +59,8 @@ import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
  */
 const CLIENT_ENGINE_ERROR = 'P2038'
 
-const debug = Debug('prisma:client:clientEngine')
+const DEBUG_NAMESPACE = 'prisma:client:clientEngine'
+const debug = Debug(DEBUG_NAMESPACE)
 
 type GlobalWithPanicHandler = typeof globalThis & {
   PRISMA_WASM_PANIC_REGISTRY: {
@@ -66,6 +79,265 @@ globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY = {
     throw new PrismaClientRustPanicError(message, clientVersion)
   },
 }
+
+function getStringCacheKeyPart(value: string | null | undefined): string {
+  if (value == null) {
+    return '-1:'
+  }
+
+  return `${value.length}:${value}`
+}
+
+function getSingleQueryCacheKey(query: JsonQuery, queryPart: string): string {
+  return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
+}
+
+function getSingleQueryRequest(query: JsonQuery, queryPart: string): string {
+  const actionPart = JSON.stringify(query.action)
+
+  if (query.modelName === undefined) {
+    return `{"action":${actionPart},"query":${queryPart}}`
+  }
+
+  return `{"modelName":${JSON.stringify(query.modelName)},"action":${actionPart},"query":${queryPart}}`
+}
+
+function isDebugEnabled(): boolean {
+  const globalDebug = (globalThis as { DEBUG?: string }).DEBUG
+  return debug.enabled || (globalDebug !== undefined && globalDebug !== '' && Debug.enabled(DEBUG_NAMESPACE))
+}
+
+function getBatchQueryCacheKey(batch: JsonBatchQuery): string {
+  const queries = new Array(batch.batch.length)
+  for (let i = 0; i < batch.batch.length; i++) {
+    const query = batch.batch[i]
+    queries[i] = [query.modelName ?? null, query.action, query.query]
+  }
+  return JSON.stringify([queries, batch.transaction ?? null])
+}
+
+function getIndividualBatchPlanCacheEntries(
+  batch: JsonBatchQuery,
+  response: BatchResponse,
+  cache: QueryPlanCache,
+): IndividualQueryPlanCacheEntry[] | undefined {
+  if (
+    response.type !== 'multi' ||
+    response.plans.length !== batch.batch.length ||
+    response.plans.length + 1 > cache.maxSize
+  ) {
+    return undefined
+  }
+
+  const entries = new Array<IndividualQueryPlanCacheEntry>(batch.batch.length)
+  for (let i = 0; i < batch.batch.length; i++) {
+    const query = batch.batch[i]
+    const queryPart = JSON.stringify(query.query)
+    entries[i] = {
+      key: getSingleQueryCacheKey(query, queryPart),
+      plan: response.plans[i] as QueryPlanNode,
+    }
+  }
+  return entries
+}
+
+type PrecomputedBatch = {
+  parameterizedBatch: JsonBatchQuery
+  placeholderValues: Record<string, unknown>
+  queryInfoQueries?: JsonQuery['query'][]
+}
+
+type PrecomputedBatchCacheHit = {
+  cacheKey: string
+  placeholderValues: Record<string, unknown>
+  queryInfoQueries?: JsonQuery['query'][]
+}
+
+function tryBuildPrecomputedBatchCacheHit(
+  batch: JsonBatchQuery,
+  hits: PrecomputedQueryPlanCacheHit[] | undefined,
+  hasSqlCommenters: boolean,
+): PrecomputedBatchCacheHit | undefined {
+  if (hits === undefined || hits.length !== batch.batch.length) {
+    return undefined
+  }
+
+  const cacheKeys = new Array<string>(hits.length)
+  const placeholderValues: Record<string, unknown> = {}
+  const queryInfoQueries = hasSqlCommenters ? new Array<JsonQuery['query']>(hits.length) : undefined
+  let nextPlaceholderId = 1
+
+  for (let i = 0; i < hits.length; i++) {
+    const hit = hits[i]
+    const parameterizedQuery = hit.parameterizedQuery
+    const originalQuery = batch.batch[i]
+    if (
+      parameterizedQuery === undefined ||
+      parameterizedQuery.modelName !== originalQuery.modelName ||
+      parameterizedQuery.action !== originalQuery.action ||
+      (hasSqlCommenters && hit.queryInfoQuery === undefined)
+    ) {
+      return undefined
+    }
+
+    cacheKeys[i] = hit.cacheKey
+    for (const oldName of Object.keys(hit.placeholderValues)) {
+      placeholderValues[`%${nextPlaceholderId++}`] = hit.placeholderValues[oldName]
+    }
+    if (queryInfoQueries !== undefined) {
+      queryInfoQueries[i] = hit.queryInfoQuery!
+    }
+  }
+
+  return {
+    cacheKey: `p:${JSON.stringify([cacheKeys, batch.transaction ?? null])}`,
+    placeholderValues,
+    queryInfoQueries,
+  }
+}
+
+function tryBuildPrecomputedBatch(
+  batch: JsonBatchQuery,
+  hits: PrecomputedQueryPlanCacheHit[] | undefined,
+  hasSqlCommenters: boolean,
+): PrecomputedBatch | undefined {
+  if (hits === undefined || hits.length !== batch.batch.length) {
+    return undefined
+  }
+
+  const parameterizedQueries = new Array<JsonQuery>(batch.batch.length)
+  const placeholderValues: Record<string, unknown> = {}
+  const queryInfoQueries = hasSqlCommenters ? new Array<JsonQuery['query']>(batch.batch.length) : undefined
+  let nextPlaceholderId = 1
+
+  for (let i = 0; i < batch.batch.length; i++) {
+    const hit = hits[i]
+    const parameterizedQuery = hit.parameterizedQuery
+    const originalQuery = batch.batch[i]
+    if (
+      parameterizedQuery === undefined ||
+      parameterizedQuery.modelName !== originalQuery.modelName ||
+      parameterizedQuery.action !== originalQuery.action ||
+      (hasSqlCommenters && hit.queryInfoQuery === undefined)
+    ) {
+      return undefined
+    }
+
+    const renamed = renamePrecomputedPlaceholders(parameterizedQuery, hit.placeholderValues, nextPlaceholderId)
+    parameterizedQueries[i] = renamed.query
+    nextPlaceholderId = renamed.nextPlaceholderId
+    Object.assign(placeholderValues, renamed.placeholderValues)
+    if (queryInfoQueries !== undefined) {
+      queryInfoQueries[i] = hit.queryInfoQuery!
+    }
+  }
+
+  return {
+    parameterizedBatch: { ...batch, batch: parameterizedQueries },
+    placeholderValues,
+    queryInfoQueries,
+  }
+}
+
+function renamePrecomputedPlaceholders(
+  query: JsonQuery,
+  values: Record<string, unknown>,
+  firstPlaceholderId: number,
+): { query: JsonQuery; placeholderValues: Record<string, unknown>; nextPlaceholderId: number } {
+  const oldNames = Object.keys(values)
+  let nextPlaceholderId = firstPlaceholderId
+  let isIdentityMapping = true
+
+  for (const oldName of oldNames) {
+    const newName = `%${nextPlaceholderId++}`
+    if (newName !== oldName) {
+      isIdentityMapping = false
+    }
+  }
+
+  if (isIdentityMapping) {
+    return {
+      query,
+      placeholderValues: values,
+      nextPlaceholderId,
+    }
+  }
+
+  const placeholderNameMap = new Map<string, string>()
+  const placeholderValues: Record<string, unknown> = {}
+  nextPlaceholderId = firstPlaceholderId
+
+  for (const oldName of oldNames) {
+    const newName = `%${nextPlaceholderId++}`
+    placeholderNameMap.set(oldName, newName)
+    placeholderValues[newName] = values[oldName]
+  }
+
+  return {
+    query: {
+      ...query,
+      query: renamePlaceholderValue(query.query, placeholderNameMap) as JsonQuery['query'],
+    },
+    placeholderValues,
+    nextPlaceholderId,
+  }
+}
+
+function renamePlaceholderValue(value: unknown, placeholderNameMap: Map<string, string>): unknown {
+  if (Array.isArray(value)) {
+    let renamed: unknown[] | undefined
+    for (let i = 0; i < value.length; i++) {
+      const nextValue = renamePlaceholderValue(value[i], placeholderNameMap)
+      if (nextValue !== value[i] && renamed === undefined) {
+        renamed = value.slice(0, i)
+      }
+      if (renamed !== undefined) {
+        renamed[i] = nextValue
+      }
+    }
+    return renamed ?? value
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return value
+  }
+
+  const record = value as Record<string, unknown>
+  if (record.$type === 'Param') {
+    const taggedValue = record.value
+    if (typeof taggedValue === 'object' && taggedValue !== null) {
+      const placeholder = taggedValue as Record<string, unknown>
+      const name = placeholder.name
+      if (typeof name === 'string') {
+        const mappedName = placeholderNameMap.get(name)
+        if (mappedName !== undefined) {
+          return {
+            ...record,
+            value: {
+              ...placeholder,
+              name: mappedName,
+            },
+          }
+        }
+      }
+    }
+  }
+
+  let renamed: Record<string, unknown> | undefined
+  for (const key of Object.keys(record)) {
+    const nextValue = renamePlaceholderValue(record[key], placeholderNameMap)
+    if (nextValue !== record[key] && renamed === undefined) {
+      renamed = { ...record }
+    }
+    if (renamed !== undefined) {
+      renamed[key] = nextValue
+    }
+  }
+
+  return renamed ?? value
+}
+
+const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
 
 interface ConnectedEngine {
   executor: Executor
@@ -145,8 +417,8 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
-    this.#queryPlanCache =
-      config.queryPlanCacheMaxSize === 0 ? undefined : new QueryPlanCache(config.queryPlanCacheMaxSize)
+    const queryPlanCacheMaxSize = getQueryPlanCacheMaxSize(config.queryPlanCacheMaxSize)
+    this.#queryPlanCache = queryPlanCacheMaxSize === undefined ? undefined : new QueryPlanCache(queryPlanCacheMaxSize)
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
@@ -226,6 +498,10 @@ export class ClientEngine implements Engine {
         await this.#state.promise
         return await this.#ensureStarted()
     }
+  }
+
+  #getConnectedEngine(): ConnectedEngine | undefined {
+    return this.#state.type === 'connected' ? this.#state.engine : undefined
   }
 
   async #connectExecutor(): Promise<Executor> {
@@ -467,45 +743,86 @@ export class ClientEngine implements Engine {
 
   async request<T>(
     query: JsonQuery,
-    { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
+    { interactiveTransaction, precomputedQueryPlanCacheHit, customDataProxyFetch }: RequestOptions<unknown>,
   ): Promise<{ data: T }> {
-    debug(`sending request`)
+    const debugEnabled = isDebugEnabled()
+    if (debugEnabled) {
+      debug(`sending request`)
+    }
 
-    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, JSON.stringify(query))
-    })
+    const { executor, queryCompiler } =
+      this.#getConnectedEngine() ??
+      (await this.#ensureStarted().catch((err) => {
+        throw this.#transformRequestError(err, JSON.stringify(query))
+      }))
 
     let plan: QueryPlanNode
-    let placeholderValues: Record<string, unknown> = {}
-    let queryInfoQuery = query.query
+    let placeholderValues = EMPTY_PLACEHOLDER_VALUES
+    const hasSqlCommenters = this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+    let queryInfoQuery = hasSqlCommenters ? query.query : undefined
 
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
     } else {
-      const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
-      const cacheKey = JSON.stringify(parameterizedQuery)
-      placeholderValues = extractedValues
-      queryInfoQuery = parameterizedQuery.query
-
       // We do not cache `createMany` and `createManyAndReturn` queries as they are very unlikely
       // to benefit from caching due to their high variability in parameters, which leads to a very
       // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
-      const cached = isCacheable ? this.#queryPlanCache?.getSingle(cacheKey) : undefined
-      if (cached) {
-        debug('query plan cache hit')
-        plan = cached
+
+      const queryPlanCache = this.#queryPlanCache
+      const precomputed = precomputedQueryPlanCacheHit
+      const cachedPrecomputedPlan =
+        isCacheable &&
+        queryPlanCache !== undefined &&
+        precomputed !== undefined &&
+        (!hasSqlCommenters || precomputed.queryInfoQuery !== undefined)
+          ? queryPlanCache.getSingle(precomputed.cacheKey)
+          : undefined
+
+      if (cachedPrecomputedPlan !== undefined && precomputed !== undefined) {
+        if (debugEnabled) {
+          debug('query plan cache hit')
+        }
+        plan = cachedPrecomputedPlan
+        placeholderValues = precomputed.placeholderValues
+        if (hasSqlCommenters) {
+          queryInfoQuery = precomputed.queryInfoQuery
+        }
       } else {
-        debug('query plan cache miss')
-        plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
-        if (isCacheable) {
-          this.#queryPlanCache?.setSingle(cacheKey, plan)
+        const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
+        placeholderValues = extractedValues
+        if (hasSqlCommenters) {
+          queryInfoQuery = parameterizedQuery.query
+        }
+
+        if (isCacheable && queryPlanCache !== undefined) {
+          const queryPart = JSON.stringify(parameterizedQuery.query)
+          const cacheKey = getSingleQueryCacheKey(parameterizedQuery, queryPart)
+          const cached = queryPlanCache.getSingle(cacheKey)
+          if (cached) {
+            if (debugEnabled) {
+              debug('query plan cache hit')
+            }
+            plan = cached
+          } else {
+            if (debugEnabled) {
+              debug('query plan cache miss')
+            }
+            const request = getSingleQueryRequest(parameterizedQuery, queryPart)
+            plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
+            queryPlanCache.setSingle(cacheKey, plan)
+          }
+        } else {
+          const request = JSON.stringify(parameterizedQuery)
+          plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
         }
       }
     }
 
     try {
-      debug(`query plan created`, plan)
+      if (debugEnabled) {
+        debug(`query plan created`, plan)
+      }
 
       const result = await executor.execute({
         plan,
@@ -515,69 +832,261 @@ export class ClientEngine implements Engine {
         transaction: interactiveTransaction,
         batchIndex: undefined,
         customFetch: customDataProxyFetch?.(globalThis.fetch),
-        queryInfo: {
-          type: 'single',
-          modelName: query.modelName,
-          action: query.action,
-          query: queryInfoQuery,
-        },
+        queryInfo: hasSqlCommenters
+          ? {
+              type: 'single',
+              modelName: query.modelName,
+              action: query.action,
+              query: queryInfoQuery!,
+            }
+          : undefined,
       })
 
-      debug(`query plan executed`)
+      if (debugEnabled) {
+        debug(`query plan executed`)
+      }
 
-      return { data: { [query.action]: result } as T }
+      const response: QueryEngineResultData<T> = { data: { [query.action]: result } as T }
+      if (executor.resultFormat === 'js' && !isRawQuery(query)) {
+        response[queryEngineResultDataWasDeserialized] = true
+      }
+      return response
     } catch (e: any) {
       throw this.#transformRequestError(e, JSON.stringify(query))
     }
   }
 
+  async requestWithPrecomputedQueryPlanCacheHit<T>(
+    query: JsonQuery,
+    options: RequestOptions<unknown>,
+  ): Promise<{
+    response: { data: T }
+    precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
+  }> {
+    const response = await this.request<T>(query, options)
+
+    return {
+      response,
+      precomputedQueryPlanCacheHit: this.getPrecomputedQueryPlanCacheHit(query),
+    }
+  }
+
+  async requestPrecomputedCachedResult<T>(
+    query: JsonQuery,
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    { interactiveTransaction, isWrite, customDataProxyFetch }: RequestOptions<unknown>,
+  ): Promise<T> {
+    if (interactiveTransaction !== undefined || this.config.sqlCommenters !== undefined || isRawQuery(query)) {
+      const response = await this.request<Record<string, T>>(query, {
+        interactiveTransaction,
+        isWrite,
+        precomputedQueryPlanCacheHit,
+        customDataProxyFetch,
+      })
+      return response.data[query.action]
+    }
+
+    const queryPlanCache = this.#queryPlanCache
+    const cachedPlan = queryPlanCache?.getSingle(precomputedQueryPlanCacheHit.cacheKey)
+    if (cachedPlan === undefined) {
+      const parameterizedQuery = precomputedQueryPlanCacheHit.parameterizedQuery
+      if (parameterizedQuery.modelName !== query.modelName || parameterizedQuery.action !== query.action) {
+        throw new Error('Precomputed query plan cache hit does not match the request query')
+      }
+
+      const { executor, queryCompiler } =
+        this.#getConnectedEngine() ??
+        (await this.#ensureStarted().catch((err) => {
+          throw this.#transformRequestError(err, JSON.stringify(query))
+        }))
+
+      let plan = queryPlanCache?.getSingle(precomputedQueryPlanCacheHit.cacheKey)
+      if (plan === undefined) {
+        try {
+          const queryPart = JSON.stringify(parameterizedQuery.query)
+          const request = getSingleQueryRequest(parameterizedQuery, queryPart)
+          plan = this.#compileQuery(parameterizedQuery, request, queryCompiler)
+          queryPlanCache?.setSingle(precomputedQueryPlanCacheHit.cacheKey, plan)
+        } catch (error) {
+          throw this.#transformCompileError(error)
+        }
+      }
+
+      try {
+        return (await executor.execute({
+          plan,
+          model: parameterizedQuery.modelName,
+          operation: parameterizedQuery.action,
+          placeholderValues: precomputedQueryPlanCacheHit.placeholderValues,
+          transaction: undefined,
+          batchIndex: undefined,
+          customFetch: customDataProxyFetch?.(globalThis.fetch),
+        })) as T
+      } catch (e: any) {
+        throw this.#transformRequestError(e, JSON.stringify(query))
+      }
+    }
+
+    const { executor } =
+      this.#getConnectedEngine() ??
+      (await this.#ensureStarted().catch((err) => {
+        throw this.#transformRequestError(err, JSON.stringify(query))
+      }))
+
+    try {
+      return (await executor.execute({
+        plan: cachedPlan,
+        model: query.modelName,
+        operation: query.action,
+        placeholderValues: precomputedQueryPlanCacheHit.placeholderValues,
+        transaction: undefined,
+        batchIndex: undefined,
+        customFetch: customDataProxyFetch?.(globalThis.fetch),
+      })) as T
+    } catch (e: any) {
+      throw this.#transformRequestError(e, JSON.stringify(query))
+    }
+  }
+
+  getPrecomputedQueryPlanCacheHit(query: JsonQuery): PrecomputedQueryPlanCacheHit | undefined {
+    if (isRawQuery(query) || query.action === 'createMany' || query.action === 'createManyAndReturn') {
+      return undefined
+    }
+
+    const { parameterizedQuery, placeholderValues } = parameterizeQuery(query, this.#paramGraph)
+    const queryPart = JSON.stringify(parameterizedQuery.query)
+
+    return {
+      cacheKey: getSingleQueryCacheKey(parameterizedQuery, queryPart),
+      placeholderValues,
+      parameterizedQuery,
+      queryInfoQuery:
+        this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+          ? parameterizedQuery.query
+          : undefined,
+    }
+  }
+
   async requestBatch<T>(
     queries: JsonQuery[],
-    { transaction, customDataProxyFetch }: RequestBatchOptions<unknown>,
+    { transaction, customDataProxyFetch, precomputedQueryPlanCacheHits }: RequestBatchOptions<unknown>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     if (queries.length === 0) {
       return []
     }
 
+    const debugEnabled = isDebugEnabled()
     const firstAction = queries[0].action
     const firstModelName = queries[0].modelName
 
     const batchPayload = getBatchRequestPayload(queries, transaction)
-    const request = JSON.stringify(batchPayload)
+    let request: string | undefined
+    const stringifyBatchRequest = () => (request ??= JSON.stringify(batchPayload))
 
-    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
-      throw this.#transformRequestError(err, request)
-    })
+    const { executor, queryCompiler } =
+      this.#getConnectedEngine() ??
+      (await this.#ensureStarted().catch((err) => {
+        throw this.#transformRequestError(err, stringifyBatchRequest())
+      }))
 
     const hasRawQueries = firstModelName === undefined
-    let batchResponse: BatchResponse
-    let placeholderValues: Record<string, unknown> = {}
-    let queryInfoQueries = queries.map((query) => query.query)
+    let batchResponse: BatchResponse | undefined
+    let placeholderValues = EMPTY_PLACEHOLDER_VALUES
+    const hasSqlCommenters = this.config.sqlCommenters !== undefined && this.config.sqlCommenters.length > 0
+    let queryInfoQueries: JsonQuery['query'][] | undefined
 
     if (!hasRawQueries) {
-      const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
-        batchPayload as JsonBatchQuery,
-        this.#paramGraph,
+      const queryPlanCache = this.#queryPlanCache
+      const jsonBatchPayload = batchPayload as JsonBatchQuery
+      const precomputedBatchCacheHit = tryBuildPrecomputedBatchCacheHit(
+        jsonBatchPayload,
+        precomputedQueryPlanCacheHits,
+        hasSqlCommenters,
       )
-      const cacheKeyStr = JSON.stringify(parameterizedBatch)
-      placeholderValues = extractedValues
-      queryInfoQueries = parameterizedBatch.batch.map((query) => query.query)
+      if (queryPlanCache !== undefined && precomputedBatchCacheHit !== undefined) {
+        const cached = queryPlanCache.getBatch(precomputedBatchCacheHit.cacheKey)
+        if (cached) {
+          if (debugEnabled) {
+            debug('batch query plan cache hit')
+          }
+          batchResponse = cached
+          placeholderValues = precomputedBatchCacheHit.placeholderValues
+          queryInfoQueries = precomputedBatchCacheHit.queryInfoQueries
+        }
+      }
 
-      const cached = this.#queryPlanCache?.getBatch(cacheKeyStr)
-      if (cached) {
-        debug('batch query plan cache hit')
-        batchResponse = cached
-      } else {
-        debug('batch query plan cache miss')
-        try {
-          batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
-          this.#queryPlanCache?.setBatch(cacheKeyStr, batchResponse)
-        } catch (error) {
-          throw this.#transformCompileError(error)
+      if (batchResponse === undefined) {
+        const precomputedBatch = tryBuildPrecomputedBatch(
+          jsonBatchPayload,
+          precomputedQueryPlanCacheHits,
+          hasSqlCommenters,
+        )
+        let parameterizedBatch: JsonBatchQuery
+        if (precomputedBatch !== undefined) {
+          parameterizedBatch = precomputedBatch.parameterizedBatch
+          placeholderValues = precomputedBatch.placeholderValues
+          queryInfoQueries = precomputedBatch.queryInfoQueries
+        } else {
+          const parameterized = parameterizeBatch(jsonBatchPayload, this.#paramGraph)
+          parameterizedBatch = parameterized.parameterizedBatch
+          placeholderValues = parameterized.placeholderValues
+        }
+        if (hasSqlCommenters && queryInfoQueries === undefined) {
+          queryInfoQueries = new Array(parameterizedBatch.batch.length)
+          for (let i = 0; i < parameterizedBatch.batch.length; i++) {
+            queryInfoQueries[i] = parameterizedBatch.batch[i].query
+          }
+        }
+
+        if (queryPlanCache !== undefined) {
+          const cacheKey = precomputedBatchCacheHit?.cacheKey ?? getBatchQueryCacheKey(parameterizedBatch)
+          const cached = queryPlanCache.getBatch(cacheKey)
+          if (cached) {
+            if (debugEnabled) {
+              debug('batch query plan cache hit')
+            }
+            batchResponse = cached
+          } else {
+            if (debugEnabled) {
+              debug('batch query plan cache miss')
+            }
+            try {
+              const request = JSON.stringify(parameterizedBatch)
+              batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
+              queryPlanCache.setBatch(
+                cacheKey,
+                batchResponse,
+                getIndividualBatchPlanCacheEntries(parameterizedBatch, batchResponse, queryPlanCache),
+              )
+            } catch (error) {
+              throw this.#transformCompileError(error)
+            }
+          }
+        } else {
+          if (debugEnabled) {
+            debug('batch query plan cache miss')
+          }
+          try {
+            const request = JSON.stringify(parameterizedBatch)
+            batchResponse = this.#compileBatch(parameterizedBatch.batch, request, queryCompiler)
+          } catch (error) {
+            throw this.#transformCompileError(error)
+          }
         }
       }
     } else {
-      batchResponse = this.#compileBatch(queries, request, queryCompiler)
+      if (hasSqlCommenters) {
+        queryInfoQueries = new Array(queries.length)
+        for (let i = 0; i < queries.length; i++) {
+          queryInfoQueries[i] = queries[i].query
+        }
+      }
+
+      batchResponse = this.#compileBatch(queries, stringifyBatchRequest(), queryCompiler)
+    }
+
+    if (batchResponse === undefined) {
+      throw new Error('Internal error: batch response was not initialized.')
     }
 
     try {
@@ -611,14 +1120,20 @@ export class ClientEngine implements Engine {
                 batchIndex,
                 transaction: txInfo,
                 customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
-                queryInfo: {
-                  type: 'single',
-                  modelName: queries[batchIndex].modelName,
-                  action: queries[batchIndex].action,
-                  query: queryInfoQueries[batchIndex],
-                },
+                queryInfo: hasSqlCommenters
+                  ? {
+                      type: 'single',
+                      modelName: queries[batchIndex].modelName,
+                      action: queries[batchIndex].action,
+                      query: queryInfoQueries![batchIndex],
+                    }
+                  : undefined,
               })
-              results.push({ data: { [queries[batchIndex].action]: rows } })
+              const response: QueryEngineResultData<unknown> = { data: { [queries[batchIndex].action]: rows } }
+              if (executor.resultFormat === 'js' && !isRawQuery(queries[batchIndex])) {
+                response[queryEngineResultDataWasDeserialized] = true
+              }
+              results.push(response)
             } catch (err) {
               results.push(err as Error)
               rollback = true
@@ -660,20 +1175,28 @@ export class ClientEngine implements Engine {
             batchIndex: undefined,
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
-            queryInfo: {
-              type: 'compacted',
-              action: firstAction,
-              modelName: firstModelName,
-              queries: queryInfoQueries,
-            },
+            queryInfo: hasSqlCommenters
+              ? {
+                  type: 'compacted',
+                  action: firstAction,
+                  modelName: firstModelName,
+                  queries: queryInfoQueries!,
+                }
+              : undefined,
           })
 
           const results = convertCompactedRows(rows as {}[], batchResponse, placeholderValues)
-          return results.map((result) => ({ data: { [firstAction]: result } }) as BatchQueryEngineResult<T>)
+          return results.map((result) => {
+            const response: QueryEngineResultData<T> = { data: { [firstAction]: result } as T }
+            if (executor.resultFormat === 'js') {
+              response[queryEngineResultDataWasDeserialized] = true
+            }
+            return response as BatchQueryEngineResult<T>
+          })
         }
       }
     } catch (e: any) {
-      throw this.#transformRequestError(e, request)
+      throw this.#transformRequestError(e, stringifyBatchRequest())
     }
   }
 
@@ -780,8 +1303,6 @@ function isRawQuery(query: JsonQuery): query is RawJsonQuery {
 function compileRawQuery(query: RawJsonQuery): QueryPlanNode {
   const sql = query.query.arguments.query
   const { args, argTypes } = deserializeRawParameters(query.query.arguments.parameters)
-  return {
-    type: query.action === 'queryRaw' ? 'query' : 'execute',
-    args: { type: 'rawSql', sql, args, argTypes },
-  }
+  const rawSql = { type: 'rawSql', sql, args, argTypes } as const
+  return query.action === 'queryRaw' ? ['q', rawSql] : ['x', rawSql]
 }

@@ -18,8 +18,8 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
-import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
+import { AccelerateExtensionFetchDecorator, PrecomputedQueryPlanCacheHit } from './core/engines/common/Engine'
+import { QueryEngineResultData, queryEngineResultDataWasDeserialized } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
@@ -36,6 +36,18 @@ import { deepGet } from './utils/deep-set'
 import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
 
 const debug = Debug('prisma:client:request_handler')
+const clientGetTime = typeof process !== 'undefined' && Boolean(process.env.PRISMA_CLIENT_GET_TIME)
+
+type EngineWithPrecomputedCachedResult = Client['_engine'] & {
+  requestPrecomputedCachedResult?: <T>(
+    query: JsonQuery,
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    options: {
+      isWrite: boolean
+      customDataProxyFetch?: AccelerateExtensionFetchDecorator
+    },
+  ) => Promise<T>
+}
 
 export type RequestParams = {
   modelName?: string
@@ -52,6 +64,8 @@ export type RequestParams = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
+  precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
+  precomputedBatchId?: string
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
@@ -77,20 +91,56 @@ export class RequestHandler {
     this.dataloader = new DataLoader({
       batchLoader: createApplyBatchExtensionsFunction(async ({ requests, customDataProxyFetch }) => {
         const { transaction, otelParentCtx } = requests[0]
-        const queries = requests.map((r) => r.protocolQuery)
+        let queries: JsonQuery[]
+        let precomputedQueryPlanCacheHits: PrecomputedQueryPlanCacheHit[] | undefined
+        let containsWrite: boolean
+
+        if (requests.length === 2) {
+          const firstRequest = requests[0]
+          const secondRequest = requests[1]
+          queries = [firstRequest.protocolQuery, secondRequest.protocolQuery]
+          precomputedQueryPlanCacheHits =
+            firstRequest.precomputedQueryPlanCacheHit !== undefined &&
+            secondRequest.precomputedQueryPlanCacheHit !== undefined
+              ? [firstRequest.precomputedQueryPlanCacheHit, secondRequest.precomputedQueryPlanCacheHit]
+              : undefined
+          containsWrite = isWrite(firstRequest.protocolQuery.action) || isWrite(secondRequest.protocolQuery.action)
+        } else {
+          queries = requests.map((r) => r.protocolQuery)
+          precomputedQueryPlanCacheHits = requests.every((r) => r.precomputedQueryPlanCacheHit !== undefined)
+            ? requests.map((r) => r.precomputedQueryPlanCacheHit!)
+            : undefined
+          containsWrite = requests.some((r) => isWrite(r.protocolQuery.action))
+        }
         const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        const containsWrite = requests.some((r) => isWrite(r.protocolQuery.action))
-
         const results = await this.client._engine.requestBatch(queries, {
           traceparent,
           transaction: getTransactionOptions(transaction),
           containsWrite,
+          precomputedQueryPlanCacheHits,
           customDataProxyFetch,
         })
+
+        if (requests.length === 2) {
+          const mappedResults = new Array(results.length)
+          for (let i = 0; i < results.length; i++) {
+            const result = results[i]
+            if (result instanceof Error) {
+              mappedResults[i] = result
+            } else {
+              try {
+                mappedResults[i] = this.mapQueryEngineResult(requests[i], result)
+              } catch (error) {
+                mappedResults[i] = error
+              }
+            }
+          }
+          return mappedResults
+        }
 
         return results.map((result, i) => {
           if (result instanceof Error) {
@@ -105,17 +155,40 @@ export class RequestHandler {
         })
       }),
 
-      singleLoader: async (request) => {
+      singleLoader: (request) => {
+        const precomputedCachedResult = this.trySingleLoaderPrecomputedCachedResult(request)
+        if (precomputedCachedResult !== undefined) {
+          return precomputedCachedResult
+        }
+
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        const response = await this.client._engine.request(request.protocolQuery, {
-          traceparent: this.client._tracingHelper.getTraceParent(),
-          interactiveTransaction,
-          isWrite: isWrite(request.protocolQuery.action),
-          customDataProxyFetch: request.customDataProxyFetch,
-        })
-        return this.mapQueryEngineResult(request, response)
+        try {
+          return this.client._engine
+            .request(request.protocolQuery, {
+              traceparent: this.client._tracingHelper.getTraceParent(),
+              interactiveTransaction,
+              isWrite: isWrite(request.protocolQuery.action),
+              precomputedQueryPlanCacheHit: request.precomputedQueryPlanCacheHit,
+              customDataProxyFetch: request.customDataProxyFetch,
+            })
+            .then((response) => this.mapQueryEngineResult(request, response))
+        } catch (error) {
+          return Promise.reject(error)
+        }
+      },
+
+      canBatch: (request) => {
+        if (request.transaction?.kind === 'itx') {
+          return true
+        }
+
+        if (request.transaction?.id) {
+          return true
+        }
+
+        return request.protocolQuery.action === 'findUnique' || request.protocolQuery.action === 'findUniqueOrThrow'
       },
 
       batchBy: (request) => {
@@ -124,7 +197,7 @@ export class RequestHandler {
         // Note that we only do this for interactive transactions, not for batch transactions, as it can lead to queries
         // being executed out of order in batch transactions.
         if (request.transaction?.kind === 'itx') {
-          const batchId = getBatchId(request.protocolQuery)
+          const batchId = request.precomputedBatchId ?? getBatchId(request.protocolQuery)
           return `itx-${request.transaction.id}${batchId ? `-${batchId}` : ''}`
         }
 
@@ -132,7 +205,7 @@ export class RequestHandler {
           return `transaction-${request.transaction.id}`
         }
 
-        return getBatchId(request.protocolQuery)
+        return request.precomputedBatchId ?? getBatchId(request.protocolQuery)
       },
 
       batchOrder(requestA, requestB) {
@@ -144,21 +217,137 @@ export class RequestHandler {
     })
   }
 
-  async request(params: RequestParams) {
+  request(params: RequestParams): Promise<any> {
+    let requestPromise: Promise<any>
+
     try {
-      return await this.dataloader.request(params)
+      requestPromise = this.dataloader.request(params)
     } catch (error) {
-      const { clientMethod, callsite, transaction, args, modelName } = params
-      this.handleAndLogRequestError({
-        error,
-        clientMethod,
-        callsite,
-        transaction,
-        args,
+      try {
+        this.handleRequestErrorForParams(params, error)
+      } catch (handledError) {
+        return Promise.reject(handledError)
+      }
+    }
+
+    return requestPromise.then(undefined, (error) => this.handleRequestErrorForParams(params, error))
+  }
+
+  requestPrecomputedCachedResult(params: RequestParams): Promise<any> {
+    const engine = this.client._engine as EngineWithPrecomputedCachedResult
+    if (engine.requestPrecomputedCachedResult === undefined || params.precomputedQueryPlanCacheHit === undefined) {
+      return this.request(params)
+    }
+
+    try {
+      return engine
+        .requestPrecomputedCachedResult(params.protocolQuery, params.precomputedQueryPlanCacheHit, {
+          isWrite: isWrite(params.protocolQuery.action),
+          customDataProxyFetch: params.customDataProxyFetch,
+        })
+        .then((result) => (clientGetTime ? { data: result } : result))
+        .catch((error) => this.handleRequestErrorForParams(params, error))
+    } catch (error) {
+      this.handleRequestErrorForParams(params, error)
+    }
+  }
+
+  requestPreparedReadPrecomputedCachedResult(
+    protocolQuery: JsonQuery,
+    precomputedQueryPlanCacheHit: PrecomputedQueryPlanCacheHit,
+    args: JsArgs,
+    action: Action,
+    modelName: string,
+    clientMethod: string,
+  ): Promise<any> {
+    const engine = this.client._engine as EngineWithPrecomputedCachedResult
+    if (engine.requestPrecomputedCachedResult === undefined) {
+      return this.request({
+        protocolQuery,
+        dataPath: [],
+        action,
         modelName,
-        globalOmit: params.globalOmit,
+        clientMethod,
+        extensions: this.client._extensions,
+        args,
+        precomputedQueryPlanCacheHit,
       })
     }
+
+    try {
+      return engine
+        .requestPrecomputedCachedResult(protocolQuery, precomputedQueryPlanCacheHit, {
+          isWrite: false,
+        })
+        .then((result) => (clientGetTime ? { data: result } : result))
+        .catch((error) =>
+          this.handleRequestErrorForParams(
+            {
+              protocolQuery,
+              dataPath: [],
+              action,
+              modelName,
+              clientMethod,
+              extensions: this.client._extensions,
+              args,
+              precomputedQueryPlanCacheHit,
+            },
+            error,
+          ),
+        )
+    } catch (error) {
+      this.handleRequestErrorForParams(
+        {
+          protocolQuery,
+          dataPath: [],
+          action,
+          modelName,
+          clientMethod,
+          extensions: this.client._extensions,
+          args,
+          precomputedQueryPlanCacheHit,
+        },
+        error,
+      )
+    }
+  }
+
+  private trySingleLoaderPrecomputedCachedResult(params: RequestParams): Promise<any> | undefined {
+    const engine = this.client._engine as EngineWithPrecomputedCachedResult
+    if (
+      engine.requestPrecomputedCachedResult === undefined ||
+      params.precomputedQueryPlanCacheHit === undefined ||
+      params.transaction !== undefined ||
+      params.dataPath.length !== 0 ||
+      params.unpacker !== undefined
+    ) {
+      return undefined
+    }
+
+    try {
+      return engine
+        .requestPrecomputedCachedResult(params.protocolQuery, params.precomputedQueryPlanCacheHit, {
+          isWrite: isWrite(params.protocolQuery.action),
+          customDataProxyFetch: params.customDataProxyFetch,
+        })
+        .then((result) => (clientGetTime ? { data: result } : result))
+        .catch((error) => this.handleRequestErrorForParams(params, error))
+    } catch (error) {
+      this.handleRequestErrorForParams(params, error)
+    }
+  }
+
+  private handleRequestErrorForParams(params: RequestParams, error: unknown): never {
+    const { clientMethod, callsite, transaction, args, modelName } = params
+    this.handleAndLogRequestError({
+      error,
+      clientMethod,
+      callsite,
+      transaction,
+      args,
+      modelName,
+      globalOmit: params.globalOmit,
+    })
   }
 
   mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResultData<any>) {
@@ -167,8 +356,8 @@ export class RequestHandler {
     /**
      * Unpack
      */
-    const result = this.unpack(data, dataPath, unpacker)
-    if (process.env.PRISMA_CLIENT_GET_TIME) {
+    const result = this.unpack(data, dataPath, unpacker, response?.[queryEngineResultDataWasDeserialized] === true)
+    if (clientGetTime) {
       return { data: result }
     }
     return result
@@ -265,7 +454,7 @@ export class RequestHandler {
     return message
   }
 
-  unpack(data: unknown, dataPath: string[], unpacker?: Unpacker) {
+  unpack(data: unknown, dataPath: string[], unpacker?: Unpacker, alreadyDeserialized = false) {
     if (!data) {
       return data
     }
@@ -280,8 +469,9 @@ export class RequestHandler {
     const response = Object.values(data)[0]
     const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
     const extractedResponse = deepGet(response, pathForGet)
-    const deserializedResponse =
-      operation === 'queryRaw'
+    const deserializedResponse = alreadyDeserialized
+      ? extractedResponse
+      : operation === 'queryRaw'
         ? deserializeRawResult(extractedResponse as RawResponse)
         : (deserializeJsonObject(extractedResponse) as unknown)
 

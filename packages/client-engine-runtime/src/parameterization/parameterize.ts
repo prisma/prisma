@@ -16,12 +16,32 @@ import type {
   PlaceholderTaggedValue,
 } from '@prisma/json-protocol'
 import { PlaceholderType } from '@prisma/json-protocol'
-import type { InputEdge, InputNode } from '@prisma/param-graph'
-import { EdgeFlag, getScalarMask, hasFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
+import type { InputEdgeData } from '@prisma/param-graph'
+import { EdgeFlag, ParamGraph, ScalarMask } from '@prisma/param-graph'
 
 import { deserializeJsonObject } from '../json-protocol'
 import { safeJsonStringify } from '../utils'
-import { classifyValue, isPlainObject, isTaggedValue, ValueClass } from './classify'
+import { isPlainObject } from './classify'
+
+const SCALAR_TAGS = new Set(['DateTime', 'Decimal', 'BigInt', 'Bytes', 'Json', 'Raw'])
+const ANY_PLACEHOLDER: PlaceholderType = { type: 'Any' }
+const BIGINT_PLACEHOLDER: PlaceholderType = { type: 'BigInt' }
+const BOOLEAN_PLACEHOLDER: PlaceholderType = { type: 'Boolean' }
+const BYTES_PLACEHOLDER: PlaceholderType = { type: 'Bytes' }
+const DATETIME_PLACEHOLDER: PlaceholderType = { type: 'DateTime' }
+const ENUM_PLACEHOLDER: PlaceholderType = { type: 'Enum' }
+const FLOAT_PLACEHOLDER: PlaceholderType = { type: 'Float' }
+const INT_PLACEHOLDER: PlaceholderType = { type: 'Int' }
+const JSON_PLACEHOLDER: PlaceholderType = { type: 'Json' }
+const STRING_PLACEHOLDER: PlaceholderType = { type: 'String' }
+const EMPTY_PLACEHOLDER_VALUES: Record<string, unknown> = Object.freeze({})
+
+interface FirstPlaceholder {
+  key?: string
+  name: string
+  type: PlaceholderType
+  value: unknown
+}
 
 /**
  * Result of parameterizing a single query.
@@ -53,13 +73,15 @@ export interface ParameterizeBatchResult {
 export function parameterizeQuery(query: JsonQuery, view: ParamGraph): ParameterizeResult {
   const parameterizer = new Parameterizer(view)
 
-  const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
-  const root = view.root(rootKey)
+  const root = view.rootDataFor(query.modelName, query.action)
 
-  const parameterizedQuery: JsonQuery = {
-    ...query,
-    query: parameterizer.parameterizeFieldSelection(query.query, root?.argsNodeId, root?.outputNodeId),
-  }
+  const parameterizedFieldSelection = parameterizer.parameterizeFieldSelection(
+    query.query,
+    root?.argsNodeId,
+    root?.outputNodeId,
+  )
+  const parameterizedQuery: JsonQuery =
+    parameterizedFieldSelection === query.query ? query : { ...query, query: parameterizedFieldSelection }
 
   return {
     parameterizedQuery,
@@ -76,22 +98,30 @@ export function parameterizeQuery(query: JsonQuery, view: ParamGraph): Parameter
  */
 export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraph): ParameterizeBatchResult {
   const parameterizer = new Parameterizer(view)
-  const parameterizedQueries: JsonQuery[] = []
+  let parameterizedQueries: JsonQuery[] | undefined
 
   for (let i = 0; i < batch.batch.length; i++) {
     const query = batch.batch[i]
 
-    const rootKey = query.modelName ? `${query.modelName}.${query.action}` : query.action
-    const root = view.root(rootKey)
+    const root = view.rootDataFor(query.modelName, query.action)
+    const parameterizedFieldSelection = parameterizer.parameterizeFieldSelection(
+      query.query,
+      root?.argsNodeId,
+      root?.outputNodeId,
+    )
+    const parameterizedQuery =
+      parameterizedFieldSelection === query.query ? query : { ...query, query: parameterizedFieldSelection }
 
-    parameterizedQueries.push({
-      ...query,
-      query: parameterizer.parameterizeFieldSelection(query.query, root?.argsNodeId, root?.outputNodeId),
-    })
+    if (parameterizedQuery !== query && parameterizedQueries === undefined) {
+      parameterizedQueries = batch.batch.slice(0, i)
+    }
+    if (parameterizedQueries !== undefined) {
+      parameterizedQueries[i] = parameterizedQuery
+    }
   }
 
   return {
-    parameterizedBatch: { ...batch, batch: parameterizedQueries },
+    parameterizedBatch: parameterizedQueries === undefined ? batch : { ...batch, batch: parameterizedQueries },
     placeholderValues: parameterizer.getPlaceholderValues(),
   }
 }
@@ -101,8 +131,9 @@ export function parameterizeBatch(batch: JsonBatchQuery, view: ParamGraph): Para
  */
 class Parameterizer {
   readonly #view: ParamGraph
-  readonly #placeholders = new Map<string, unknown>()
-  readonly #valueToPlaceholder = new Map<string, string>()
+  #placeholderValues: Record<string, unknown> | undefined
+  #valueToPlaceholder: Map<string, string> | undefined
+  #firstPlaceholder: FirstPlaceholder | undefined
   #nextPlaceholderId = 1
 
   constructor(view: ParamGraph) {
@@ -113,7 +144,7 @@ class Parameterizer {
    * Returns the collected placeholder values as a plain object.
    */
   getPlaceholderValues(): Record<string, unknown> {
-    return Object.fromEntries(this.#placeholders)
+    return this.#placeholderValues ?? EMPTY_PLACEHOLDER_VALUES
   }
 
   /**
@@ -125,16 +156,45 @@ class Parameterizer {
    * only for deciding whether to use native or emulated upserts).
    */
   #getOrCreatePlaceholder(value: unknown, type: PlaceholderType): PlaceholderTaggedValue {
-    const valueKey = createValueKey(value, type)
-    const existingName = this.#valueToPlaceholder.get(valueKey)
+    const valueToPlaceholder = this.#valueToPlaceholder
 
-    if (existingName !== undefined) {
-      return createPlaceholder(existingName, type)
+    if (valueToPlaceholder !== undefined) {
+      const valueKey = createValueKey(value, type)
+      const existingName = valueToPlaceholder.get(valueKey)
+
+      if (existingName !== undefined) {
+        return createPlaceholder(existingName, type)
+      }
+
+      const name = `%${this.#nextPlaceholderId++}`
+      const placeholderValues = (this.#placeholderValues ??= {})
+      valueToPlaceholder.set(valueKey, name)
+      placeholderValues[name] = value
+      return createPlaceholder(name, type)
+    }
+
+    const firstPlaceholder = this.#firstPlaceholder
+    if (firstPlaceholder !== undefined) {
+      const firstKey = (firstPlaceholder.key ??= createValueKey(firstPlaceholder.value, firstPlaceholder.type))
+      const valueKey = createValueKey(value, type)
+
+      if (valueKey === firstKey) {
+        return createPlaceholder(firstPlaceholder.name, type)
+      }
+
+      const name = `%${this.#nextPlaceholderId++}`
+      const placeholderValues = (this.#placeholderValues ??= {})
+      const newValueToPlaceholder = (this.#valueToPlaceholder = new Map())
+      newValueToPlaceholder.set(firstKey, firstPlaceholder.name)
+      newValueToPlaceholder.set(valueKey, name)
+      placeholderValues[name] = value
+      return createPlaceholder(name, type)
     }
 
     const name = `%${this.#nextPlaceholderId++}`
-    this.#valueToPlaceholder.set(valueKey, name)
-    this.#placeholders.set(name, value)
+    const placeholderValues = (this.#placeholderValues ??= {})
+    this.#firstPlaceholder = { name, type, value }
+    placeholderValues[name] = value
     return createPlaceholder(name, type)
   }
 
@@ -146,86 +206,104 @@ class Parameterizer {
     argsNodeId: number | undefined,
     outNodeId: number | undefined,
   ): JsonFieldSelection {
-    const argsNode = this.#view.inputNode(argsNodeId)
-    const outNode = this.#view.outputNode(outNodeId)
-
-    const result: JsonFieldSelection = { ...sel }
+    let result: JsonFieldSelection | undefined
 
     if (sel.arguments && sel.arguments.$type !== 'Raw') {
-      result.arguments = this.#parameterizeObject(sel.arguments as Record<string, unknown>, argsNode)
+      const argumentsResult = this.#parameterizeObject(sel.arguments as Record<string, unknown>, argsNodeId)
+      if (argumentsResult !== sel.arguments) {
+        result = { ...sel, arguments: argumentsResult }
+      }
     }
 
     if (sel.selection) {
-      result.selection = this.#parameterizeSelection(sel.selection, outNode)
+      const selection = this.#parameterizeSelection(sel.selection, outNodeId)
+      if (selection !== sel.selection) {
+        result = { ...(result ?? sel), selection }
+      }
     }
 
-    return result
+    return result ?? sel
   }
 
   /**
    * Parameterizes an object by traversing its fields with the input node.
    */
-  #parameterizeObject(obj: Record<string, unknown>, node: InputNode | undefined): Record<string, JsonArgumentValue> {
-    if (!node) {
+  #parameterizeObject(obj: Record<string, unknown>, nodeId: number | undefined): Record<string, JsonArgumentValue> {
+    if (nodeId === undefined) {
       // No parameterizable fields in this subtree - return as-is
       return obj as Record<string, JsonArgumentValue>
     }
 
-    const result: Record<string, JsonArgumentValue> = {}
+    let result: Record<string, JsonArgumentValue> | undefined
+    const keys = Object.keys(obj)
 
-    for (const [key, value] of Object.entries(obj)) {
-      const edge = this.#view.inputEdge(node, key)
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      const edge = this.#view.inputEdgeData(nodeId, key)
+      const value = obj[key]
+      const nextValue = edge ? this.#parameterizeValue(value, edge) : value
 
-      if (edge) {
-        result[key] = this.#parameterizeValue(value, edge) as JsonArgumentValue
-      } else {
-        result[key] = value as JsonArgumentValue
+      if (nextValue !== value && result === undefined) {
+        result = {}
+        for (let previous = 0; previous < i; previous++) {
+          const previousKey = keys[previous]
+          result[previousKey] = obj[previousKey] as JsonArgumentValue
+        }
+      }
+
+      if (result !== undefined) {
+        result[key] = nextValue as JsonArgumentValue
       }
     }
 
-    return result
+    return result ?? (obj as Record<string, JsonArgumentValue>)
   }
 
   /**
    * Core parameterization logic for a single value.
    */
-  #parameterizeValue(value: unknown, edge: InputEdge): unknown {
-    const classified = classifyValue(value)
-
-    switch (classified.kind) {
-      case 'null':
-        // Null values are never parameterized - they affect query semantics
-        return value
-
-      case 'structural':
-        return value
-
-      case 'primitive':
-        return this.#handlePrimitive(classified.value, edge)
-
-      case 'taggedScalar':
-        return this.#handleTaggedScalar(value as JsonInputTaggedValue, classified.tag, edge)
-
-      case 'array':
-        return this.#handleArray(classified.items, value, edge)
-
-      case 'object':
-        return this.#handleObject(classified.entries, edge)
-
-      default:
-        throw new Error(`Unknown value kind ${(classified satisfies never as ValueClass).kind}`)
+  #parameterizeValue(value: unknown, edge: Readonly<InputEdgeData>): unknown {
+    if (value === null || value === undefined) {
+      // Null values are never parameterized - they affect query semantics
+      return value
     }
+
+    switch (typeof value) {
+      case 'string':
+      case 'number':
+      case 'boolean':
+        return this.#handlePrimitive(value, edge)
+      case 'object':
+        break
+      default:
+        return value
+    }
+
+    if (Array.isArray(value)) {
+      return this.#handleArray(value, value, edge)
+    }
+
+    const obj = value as Record<string, unknown>
+    const tag = scalarTag(obj)
+    if (tag !== undefined) {
+      return this.#handleTaggedScalar(value as JsonInputTaggedValue, tag, edge)
+    }
+
+    if ('$type' in obj && typeof obj.$type === 'string') {
+      return value
+    }
+
+    return this.#handleObject(obj, edge)
   }
 
   /**
    * Handles parameterization of primitive values (string, number, boolean).
    */
-  #handlePrimitive(value: string | number | boolean, edge: InputEdge): JsonArgumentValue {
+  #handlePrimitive(value: string | number | boolean, edge: Readonly<InputEdgeData>): JsonArgumentValue {
     if (hasFlag(edge, EdgeFlag.ParamEnum) && edge.enumNameIndex !== undefined && typeof value === 'string') {
-      const enumValues = this.#view.enumValues(edge)
+      const enumValues = this.#view.enumValuesByIndex(edge.enumNameIndex)
       if (enumValues && Object.hasOwn(enumValues, value)) {
-        const type: PlaceholderType = { type: 'Enum' }
-        return this.#getOrCreatePlaceholder(enumValues[value], type)
+        return this.#getOrCreatePlaceholder(enumValues[value], ENUM_PLACEHOLDER)
       }
     }
 
@@ -238,22 +316,48 @@ class Parameterizer {
       return value
     }
 
-    const type = getPrimitivePlaceholderType(value)
-    if (!matchesPrimitiveMask(type, mask)) {
-      return value
+    if (mask === ScalarMask.Json) {
+      return this.#getOrCreatePlaceholder(JSON.stringify(value), JSON_PLACEHOLDER)
     }
 
-    if (mask & ScalarMask.Json) {
-      value = JSON.stringify(value)
-    }
+    const shouldJsonEncode = (mask & ScalarMask.Json) !== 0
 
-    return this.#getOrCreatePlaceholder(value, type)
+    switch (typeof value) {
+      case 'boolean':
+        return (mask & ScalarMask.Boolean) !== 0
+          ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, BOOLEAN_PLACEHOLDER)
+          : value
+
+      case 'number':
+        if (!Number.isInteger(value)) {
+          return (mask & ScalarMask.Float) !== 0
+            ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, FLOAT_PLACEHOLDER)
+            : value
+        }
+        if (MIN_INT <= value && value <= MAX_INT) {
+          return (mask & (ScalarMask.Int | ScalarMask.BigInt | ScalarMask.Float)) !== 0
+            ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, INT_PLACEHOLDER)
+            : value
+        }
+        return (mask & ScalarMask.BigInt) !== 0
+          ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, BIGINT_PLACEHOLDER)
+          : value
+
+      case 'string':
+        return (mask & ScalarMask.String) !== 0
+          ? this.#getOrCreatePlaceholder(shouldJsonEncode ? JSON.stringify(value) : value, STRING_PLACEHOLDER)
+          : value
+    }
   }
 
   /**
    * Handles parameterization of tagged scalar values (DateTime, Decimal, etc.).
    */
-  #handleTaggedScalar(tagged: JsonInputTaggedValue, tag: JsonInputTaggedValue['$type'], edge: InputEdge): unknown {
+  #handleTaggedScalar(
+    tagged: JsonInputTaggedValue,
+    tag: JsonInputTaggedValue['$type'],
+    edge: Readonly<InputEdgeData>,
+  ): unknown {
     if (!hasFlag(edge, EdgeFlag.ParamScalar)) {
       return tagged
     }
@@ -272,40 +376,55 @@ class Parameterizer {
   /**
    * Handles parameterization of array values.
    */
-  #handleArray(items: unknown[], originalValue: unknown, edge: InputEdge): unknown {
+  #handleArray(items: unknown[], originalValue: unknown, edge: Readonly<InputEdgeData>): unknown {
     if (hasFlag(edge, EdgeFlag.ParamScalar) && getScalarMask(edge) & ScalarMask.Json) {
       const jsonValue = safeJsonStringify(deserializeJsonObject(items))
-      const type: PlaceholderType = { type: 'Json' }
-      return this.#getOrCreatePlaceholder(jsonValue, type)
+      return this.#getOrCreatePlaceholder(jsonValue, JSON_PLACEHOLDER)
     }
 
     if (hasFlag(edge, EdgeFlag.ParamEnum)) {
-      const enumValues = this.#view.enumValues(edge)
-      if (enumValues && items.every((item) => typeof item === 'string' && Object.hasOwn(enumValues, item))) {
-        const type: PlaceholderType = { type: 'List', inner: { type: 'Enum' } }
-        return this.#getOrCreatePlaceholder(items, type)
+      const enumValues = this.#view.enumValuesByIndex(edge.enumNameIndex)
+      if (enumValues) {
+        let allEnumValues = true
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i]
+          if (typeof item !== 'string' || !Object.hasOwn(enumValues, item)) {
+            allEnumValues = false
+            break
+          }
+        }
+
+        if (allEnumValues) {
+          const type: PlaceholderType = { type: 'List', inner: ENUM_PLACEHOLDER }
+          return this.#getOrCreatePlaceholder(items, type)
+        }
       }
     }
 
     if (hasFlag(edge, EdgeFlag.ParamListScalar)) {
-      const allValid = items.every((item) => validateListElement(item, edge))
-      if (allValid && items.length > 0) {
-        const decodedItems = items.map((item) => decodeIfTagged(item))
-        const innerType = inferListElementType(items)
-        const type: PlaceholderType = { type: 'List', inner: innerType }
-        return this.#getOrCreatePlaceholder(decodedItems, type)
+      const scalarList = getScalarListParameterization(items, edge)
+      if (scalarList !== undefined) {
+        const type: PlaceholderType = { type: 'List', inner: scalarList.innerType }
+        return this.#getOrCreatePlaceholder(scalarList.items, type)
       }
     }
 
     if (hasFlag(edge, EdgeFlag.ListObject)) {
-      const childNode = this.#view.inputNode(edge.childNodeId)
-      if (childNode) {
-        return items.map((item) => {
-          if (isPlainObject(item)) {
-            return this.#parameterizeObject(item, childNode)
+      const childNodeId = edge.childNodeId
+      if (childNodeId !== undefined) {
+        let result: unknown[] | undefined
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i]
+          const nextItem = isPlainObject(item) ? this.#parameterizeObject(item, childNodeId) : item
+
+          if (nextItem !== item && result === undefined) {
+            result = items.slice(0, i)
           }
-          return item
-        })
+          if (result !== undefined) {
+            result[i] = nextItem
+          }
+        }
+        return result ?? originalValue
       }
     }
 
@@ -315,19 +434,18 @@ class Parameterizer {
   /**
    * Handles parameterization of object values.
    */
-  #handleObject(obj: Record<string, unknown>, edge: InputEdge): unknown {
+  #handleObject(obj: Record<string, unknown>, edge: Readonly<InputEdgeData>): unknown {
     if (hasFlag(edge, EdgeFlag.Object)) {
-      const childNode = this.#view.inputNode(edge.childNodeId)
-      if (childNode) {
-        return this.#parameterizeObject(obj, childNode)
+      const childNodeId = edge.childNodeId
+      if (childNodeId !== undefined) {
+        return this.#parameterizeObject(obj, childNodeId)
       }
     }
 
     const mask = getScalarMask(edge)
     if (mask & ScalarMask.Json) {
       const jsonValue = safeJsonStringify(deserializeJsonObject(obj))
-      const type: PlaceholderType = { type: 'Json' }
-      return this.#getOrCreatePlaceholder(jsonValue, type)
+      return this.#getOrCreatePlaceholder(jsonValue, JSON_PLACEHOLDER)
     }
 
     return obj
@@ -336,51 +454,79 @@ class Parameterizer {
   /**
    * Parameterizes a selection set using output nodes.
    */
-  #parameterizeSelection(selection: JsonSelectionSet, node: ReturnType<ParamGraph['outputNode']>): JsonSelectionSet {
-    if (!selection || !node) {
+  #parameterizeSelection(selection: JsonSelectionSet, nodeId: number | undefined): JsonSelectionSet {
+    if (!selection || nodeId === undefined) {
       return selection
     }
 
-    const result: JsonSelectionSet = {}
+    let result: JsonSelectionSet | undefined
+    const keys = Object.keys(selection)
 
-    for (const [key, value] of Object.entries(selection)) {
-      if (key === '$scalars' || key === '$composites' || typeof value === 'boolean') {
-        result[key] = value
-        continue
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      const value = selection[key]
+      let nextValue = value
+
+      if (key !== '$scalars' && key !== '$composites' && typeof value !== 'boolean') {
+        const edge = this.#view.outputEdgeData(nodeId, key)
+
+        if (edge) {
+          const nested = value as { arguments?: Record<string, unknown>; selection?: JsonSelectionSet }
+
+          const processedSelection = nested.selection
+            ? this.#parameterizeSelection(nested.selection, edge.outputNodeId)
+            : {}
+          const processedArguments = nested.arguments
+            ? this.#parameterizeObject(nested.arguments, edge.argsNodeId)
+            : undefined
+
+          if (processedSelection !== nested.selection || processedArguments !== nested.arguments) {
+            const processedValue: JsonFieldSelection = {
+              selection: processedSelection,
+            }
+
+            if (processedArguments !== undefined) {
+              processedValue.arguments = processedArguments
+            }
+
+            nextValue = processedValue
+          }
+        }
       }
 
-      const edge = this.#view.outputEdge(node, key)
-
-      if (edge) {
-        // Nested selection with possible args
-        const nested = value as { arguments?: Record<string, unknown>; selection?: JsonSelectionSet }
-
-        const argsNode = this.#view.inputNode(edge.argsNodeId)
-        const childOutNode = this.#view.outputNode(edge.outputNodeId)
-
-        const processedValue: JsonFieldSelection = {
-          selection: nested.selection ? this.#parameterizeSelection(nested.selection, childOutNode) : {},
+      if (nextValue !== value && result === undefined) {
+        result = {}
+        for (let previous = 0; previous < i; previous++) {
+          const previousKey = keys[previous]
+          result[previousKey] = selection[previousKey]
         }
+      }
 
-        if (nested.arguments) {
-          processedValue.arguments = this.#parameterizeObject(nested.arguments, argsNode)
-        }
-
-        result[key] = processedValue
-      } else {
-        result[key] = value
+      if (result !== undefined) {
+        result[key] = nextValue
       }
     }
 
-    return result
+    return result ?? selection
   }
+}
+
+function hasFlag(edge: Readonly<InputEdgeData>, flag: number): boolean {
+  return (edge.flags & flag) !== 0
+}
+
+function getScalarMask(edge: Readonly<InputEdgeData>): number {
+  return edge.scalarMask ?? 0
 }
 
 /**
  * Creates a placeholder object with the given name.
  */
 function createPlaceholder(name: string, type: PlaceholderType): PlaceholderTaggedValue {
-  return { $type: 'Param', value: { name, ...type } }
+  if (type.type === 'List') {
+    return { $type: 'Param', value: { name, type: 'List', inner: type.inner } }
+  }
+  return { $type: 'Param', value: { name, type: type.type } }
 }
 
 /**
@@ -397,6 +543,15 @@ function serializePlaceholderType(type: PlaceholderType): string {
  * Serializes a value to a string for use as part of a value key.
  */
 function serializeValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return value
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false'
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : 'null'
+  }
   if (ArrayBuffer.isView(value)) {
     const bufView = Buffer.from(value.buffer, value.byteOffset, value.byteLength)
     return bufView.toString('base64')
@@ -420,19 +575,19 @@ const MIN_INT = -(2 ** 31)
 function getPrimitivePlaceholderType(value: string | number | boolean): PlaceholderType {
   switch (typeof value) {
     case 'boolean':
-      return { type: 'Boolean' }
+      return BOOLEAN_PLACEHOLDER
 
     case 'number':
       if (!Number.isInteger(value)) {
-        return { type: 'Float' }
+        return FLOAT_PLACEHOLDER
       }
       if (MIN_INT <= value && value <= MAX_INT) {
-        return { type: 'Int' }
+        return INT_PLACEHOLDER
       }
-      return { type: 'BigInt' }
+      return BIGINT_PLACEHOLDER
 
     case 'string':
-      return { type: 'String' }
+      return STRING_PLACEHOLDER
 
     default:
       throw new Error('unreachable')
@@ -462,45 +617,91 @@ function matchesPrimitiveMask({ type }: PlaceholderType, mask: number): boolean 
 function getTaggedPlaceholderType(tag: JsonInputTaggedValue['$type']): PlaceholderType | undefined {
   switch (tag) {
     case 'BigInt':
+      return BIGINT_PLACEHOLDER
     case 'Bytes':
+      return BYTES_PLACEHOLDER
     case 'DateTime':
+      return DATETIME_PLACEHOLDER
     case 'Json':
-      return { type: tag }
+      return JSON_PLACEHOLDER
     case 'Decimal':
       // PrismaValueType doesn't have a Decimal variant and treats both Floats
       // and Decimal as decimals
-      return { type: 'Float' }
+      return FLOAT_PLACEHOLDER
     default:
       return undefined
   }
 }
 
-/**
- * Infers the widest placeholder type that accommodates all elements in a list.
- * For example, a list containing both Int and Float values infers Float.
- */
-function inferListElementType(items: unknown[]): PlaceholderType {
-  let widest: PlaceholderType = { type: 'Any' }
+interface ScalarListParameterization {
+  items: unknown[]
+  innerType: PlaceholderType
+}
 
-  for (const item of items) {
-    const classified = classifyValue(item)
+function getScalarListParameterization(
+  items: unknown[],
+  edge: Readonly<InputEdgeData>,
+): ScalarListParameterization | undefined {
+  if (items.length === 0) {
+    return undefined
+  }
+
+  const mask = getScalarMask(edge)
+  if (mask === 0) {
+    return undefined
+  }
+
+  let widest: PlaceholderType = ANY_PLACEHOLDER
+  let decodedItems: unknown[] | undefined
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
     let itemType: PlaceholderType
+    let decoded = item
 
-    switch (classified.kind) {
-      case 'primitive':
-        itemType = getPrimitivePlaceholderType(classified.value)
+    switch (typeof item) {
+      case 'string':
+      case 'number':
+      case 'boolean': {
+        itemType = getPrimitivePlaceholderType(item)
+        if (!matchesPrimitiveMask(itemType, mask)) {
+          return undefined
+        }
         break
-      case 'taggedScalar':
-        itemType = getTaggedPlaceholderType(classified.tag) ?? { type: 'Any' }
+      }
+      case 'object': {
+        if (item === null) {
+          return undefined
+        }
+        const tag = scalarTag(item as Record<string, unknown>)
+        if (tag === undefined) {
+          return undefined
+        }
+        if (!matchesTaggedMask(tag, mask)) {
+          return undefined
+        }
+        itemType = getTaggedPlaceholderType(tag) ?? ANY_PLACEHOLDER
+        decoded = decodeTaggedValue(item as JsonInputTaggedValue)
         break
+      }
       default:
-        return { type: 'Any' }
+        return undefined
     }
 
     widest = widenType(widest, itemType)
+
+    if (decoded !== item && decodedItems === undefined) {
+      decodedItems = items.slice(0, i)
+    }
+    if (decodedItems !== undefined) {
+      decodedItems[i] = decoded
+    }
   }
 
-  return widest
+  return {
+    items: decodedItems ?? items,
+    innerType: widest,
+  }
 }
 
 /**
@@ -520,7 +721,7 @@ function widenType(a: PlaceholderType, b: PlaceholderType): PlaceholderType {
     return aWidth >= bWidth ? a : b
   }
 
-  return { type: 'Any' }
+  return ANY_PLACEHOLDER
 }
 
 /**
@@ -543,43 +744,12 @@ function matchesTaggedMask(tag: JsonInputTaggedValue['$type'], mask: number): bo
   }
 }
 
-/**
- * Validates that a list element can be parameterized.
- */
-function validateListElement(item: unknown, edge: InputEdge): boolean {
-  const classified = classifyValue(item)
-
-  switch (classified.kind) {
-    case 'structural':
-      return false
-
-    case 'null':
-      return false
-
-    case 'primitive': {
-      const type = getPrimitivePlaceholderType(classified.value)
-      const mask = getScalarMask(edge)
-      return mask !== 0 && matchesPrimitiveMask(type, mask)
-    }
-
-    case 'taggedScalar': {
-      const mask = getScalarMask(edge)
-      return mask !== 0 && matchesTaggedMask(classified.tag, mask)
-    }
-
-    default:
-      return false
+function scalarTag(value: Record<string, unknown>): JsonInputTaggedValue['$type'] | undefined {
+  const tag = value.$type
+  if (typeof tag !== 'string' || !SCALAR_TAGS.has(tag)) {
+    return undefined
   }
-}
-
-/**
- * Decodes a value if it's a tagged scalar, otherwise returns as-is.
- */
-function decodeIfTagged(value: unknown): unknown {
-  if (isTaggedValue(value)) {
-    return decodeTaggedValue(value)
-  }
-  return value
+  return tag as JsonInputTaggedValue['$type']
 }
 
 /**

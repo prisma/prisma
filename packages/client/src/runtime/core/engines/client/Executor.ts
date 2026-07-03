@@ -13,7 +13,7 @@ export interface ExecutePlanParams {
   transaction: InteractiveTransactionInfo | undefined
   batchIndex: number | undefined
   customFetch?: AccelerateExtensionFetch
-  queryInfo: SqlCommenterQueryInfo
+  queryInfo?: SqlCommenterQueryInfo
 }
 
 export interface ProviderAndConnectionInfo {
@@ -22,6 +22,8 @@ export interface ProviderAndConnectionInfo {
 }
 
 export interface Executor {
+  readonly resultFormat: 'jsonProtocol' | 'js'
+
   getConnectionInfo(): Promise<ProviderAndConnectionInfo>
 
   execute(params: ExecutePlanParams): Promise<unknown>

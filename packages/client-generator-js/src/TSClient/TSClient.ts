@@ -10,6 +10,7 @@ import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildExactDescriptorMatcherRegistry } from '../utils/buildExactDescriptorMatcherRegistry'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { commonCodeJS, commonCodeTS } from './common'
@@ -97,6 +98,11 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
 ${this.buildParamGraphConfig()}
 ${buildQueryCompilerWasmModule(wasm, runtimeName, compilerBuild)}
+${buildExactDescriptorMatcherRegistry(
+  this.dmmf.datamodel,
+  generator.config.internalExactDescriptorHelpers,
+  'createExactDescriptorMatcherRegistry',
+)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient

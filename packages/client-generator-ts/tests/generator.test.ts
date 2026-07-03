@@ -142,6 +142,58 @@ describe('generator', () => {
     generator.stop()
   })
 
+  test('emits internal exact descriptor helpers', async () => {
+    const outputDir = path.join(__dirname, 'generated-exact-descriptor')
+    await fs.promises.rm(outputDir, { recursive: true, force: true })
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'internal-exact-descriptor-helpers.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    const classFile = await fs.promises.readFile(path.join(outputDir, 'internal/class.ts'), 'utf8')
+    generator.stop()
+
+    expect(classFile).toContain('runtime.createExactDescriptorMatcherRegistry')
+    expect(classFile).toContain(
+      'const __internalExactDescriptorFlatRegistry = runtime.createExactDescriptorMatcherRegistry',
+    )
+    expect(classFile).toContain('config.descriptorMatcherRegistry = {')
+    expect(classFile).toContain('function __internalExactDescriptorBindBlogPagePostV1_0')
+    expect(classFile).toContain('function __internalExactDescriptorBindBlogPagePostV1_1')
+    expect(classFile).toContain('"model": "User"')
+    expect(classFile).toContain('context.model === "Post"')
+    expect(classFile).toContain('"action": "findUnique"')
+    expect(classFile).toContain('"action": "findMany"')
+    expect(classFile).toContain('"action": "findFirst"')
+    expect(classFile).toContain('"action": "findFirstOrThrow"')
+    expect(classFile).toContain('"field": "id"')
+    expect(classFile).toContain('"field": "email"')
+    expect(classFile).toContain('"field": "score"')
+    expect(classFile).toContain('"field": "externalId"')
+    expect(classFile).toContain('"field": "enabled"')
+    expect(classFile).toContain('"field": "fingerprint"')
+    expect(classFile).toContain('"field": "createdAt"')
+    expect(classFile).toContain('"field": "balance"')
+    expect(classFile).toContain('"field": "metadata"')
+    expect(classFile).toContain('"field": "take"')
+    expect(classFile).toContain('"valueType": "bigint"')
+    expect(classFile).toContain('"valueType": "boolean"')
+    expect(classFile).toContain('"valueType": "bytes"')
+    expect(classFile).toContain('"valueType": "date"')
+    expect(classFile).toContain('"valueType": "decimal"')
+    expect(classFile).toContain('"valueType": "float"')
+    expect(classFile).toContain('"valueType": "json"')
+    expect(classFile).toContain('"select": [')
+    expect(classFile).toContain('where.fields["slug"]')
+    expect(classFile).toContain('placeholder.valueType !== "string"')
+    expect(classFile).toContain('typeof value === "string"')
+    expect(classFile).toContain('__internalExactDescriptorBlogPagePostV1SelectShape')
+  })
+
   test('denylist from engine validation', async () => {
     expect.assertions(1)
     await expect(async () => {

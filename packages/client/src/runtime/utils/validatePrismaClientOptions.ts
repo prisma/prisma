@@ -217,7 +217,7 @@ const validators: {
     if (!value) {
       return
     }
-    const knownKeys = ['debug', 'engine', 'configOverride']
+    const knownKeys = ['debug', 'engine', 'enginePrecomputedFastPath', 'requestPrecomputedFastPath', 'configOverride']
     if (typeof value !== 'object') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(value)} for "__internal" to PrismaClient constructor`,

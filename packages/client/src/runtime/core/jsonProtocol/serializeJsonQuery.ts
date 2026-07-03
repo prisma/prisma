@@ -79,6 +79,8 @@ export type SerializeParams = {
 }
 
 const STRICT_UNDEFINED_ERROR_MESSAGE = 'explicitly `undefined` values are not allowed'
+const EMPTY_ARGS: JsArgs = {}
+const fieldsByModel = new WeakMap<RuntimeModel, Record<string, RuntimeModel['fields'][number]>>()
 
 export function serializeJsonQuery({
   modelName,
@@ -101,8 +103,6 @@ export function serializeJsonQuery({
     rootArgs: args,
     callsite,
     extensions,
-    selectionPath: [],
-    argumentPath: [],
     originalMethod: clientMethod,
     errorFormat,
     clientVersion,
@@ -117,14 +117,37 @@ export function serializeJsonQuery({
   }
 }
 
-function serializeFieldSelection(
-  { select, include, ...args }: JsArgs = {},
-  context: SerializeContext,
-): JsonFieldSelection {
+function serializeFieldSelection(args: JsArgs = EMPTY_ARGS, context: SerializeContext): JsonFieldSelection {
+  const select = args.select
+  const include = args.include
   const omit = args.omit
-  delete args.omit
+  let argumentArgs: JsArgs | undefined
+  const keys = Object.keys(args)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    if (key === 'select' || key === 'include' || key === 'omit') {
+      continue
+    }
+
+    argumentArgs ??= {}
+    argumentArgs[key] = args[key]
+  }
+
+  if (argumentArgs === undefined) {
+    return {
+      selection: serializeSelectionSet(select, include, omit, context),
+    }
+  }
+
+  const serializedArguments = serializeArgumentsObject(argumentArgs, context)
+  if (serializedArguments.$type === 'Raw' || Object.keys(serializedArguments).length > 0) {
+    return {
+      arguments: serializedArguments,
+      selection: serializeSelectionSet(select, include, omit, context),
+    }
+  }
+
   return {
-    arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, omit, context),
   }
 }
@@ -179,13 +202,19 @@ function createImplicitSelection(
 }
 
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
-  for (const [key, value] of Object.entries(include)) {
+  const keys = Object.keys(include)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = include[key]
     if (isSkip(value)) {
       continue
     }
-    const nestedContext = context.nestSelection(key)
-    validateSelectionForUndefined(value, nestedContext)
-    if (value === false || value === undefined) {
+    if (value === undefined) {
+      validateSelectionForUndefined(value, context.nestSelection(key))
+      selectionSet[key] = false
+      continue
+    }
+    if (value === false) {
       selectionSet[key] = false
       continue
     }
@@ -199,6 +228,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
+      const nestedContext = context.nestSelection(key)
       selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
       continue
     }
@@ -212,6 +242,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     // this can either be user error (in that case, qe will respond with an error)
     // or virtual field not present on datamodel (like `_count`).
     // Since we don't know which one cast is, we still attempt to serialize selection
+    const nestedContext = context.nestSelection(key)
     selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
 }
@@ -220,7 +251,10 @@ function omitFields(selectionSet: JsonSelectionSet, localOmit: Omission | undefi
   const computedFields = context.getComputedFields()
   const combinedOmits = { ...context.getGlobalOmit(), ...localOmit }
   const omitWithComputedFields = computeEngineSideOmissions(combinedOmits, computedFields)
-  for (const [key, value] of Object.entries(omitWithComputedFields)) {
+  const keys = Object.keys(omitWithComputedFields)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = omitWithComputedFields[key]
     if (isSkip(value)) {
       continue
     }
@@ -238,28 +272,41 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
   const computedFields = context.getComputedFields()
   const selectWithComputedFields = computeEngineSideSelection(select, computedFields)
 
-  for (const [key, value] of Object.entries(selectWithComputedFields)) {
+  const keys = Object.keys(selectWithComputedFields)
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const value = selectWithComputedFields[key]
     if (isSkip(value)) {
       continue
     }
-    const nestedContext = context.nestSelection(key)
-    validateSelectionForUndefined(value, nestedContext)
-    const field = context.findField(key)
-    if (computedFields?.[key] && !field) {
-      continue
+    if (value === undefined) {
+      validateSelectionForUndefined(value, context.nestSelection(key))
     }
-    if (value === false || value === undefined || isSkip(value)) {
+    const computedField = computedFields?.[key]
+    if (value === false || value === undefined) {
+      if (computedField && !context.findField(key)) {
+        continue
+      }
       selectionSet[key] = false
       continue
     }
     if (value === true) {
+      const field = context.findField(key)
+      if (computedField && !field) {
+        continue
+      }
       if (field?.kind === 'object') {
+        const nestedContext = context.nestSelection(key)
         selectionSet[key] = serializeFieldSelection({}, nestedContext)
       } else {
         selectionSet[key] = true
       }
       continue
     }
+    if (computedField && !context.findField(key)) {
+      continue
+    }
+    const nestedContext = context.nestSelection(key)
     selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
   return selectionSet
@@ -366,13 +413,28 @@ function serializeArgumentsObject(
   const result: Record<string, JsonArgumentValue> = {}
   for (const key in object) {
     const value = object[key]
-    const nestedContext = context.nestArgument(key)
     if (isSkip(value)) {
       continue
     }
     if (value !== undefined) {
+      if (value === null) {
+        result[key] = null
+        continue
+      }
+
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        result[key] = value
+        continue
+      }
+      if (typeof value === 'bigint') {
+        result[key] = { $type: 'BigInt', value: String(value) }
+        continue
+      }
+
+      const nestedContext = context.nestArgument(key)
       result[key] = serializeArgumentsValue(value, nestedContext)
     } else if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
+      const nestedContext = context.nestArgument(key)
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
         argumentPath: nestedContext.getArgumentPath(),
@@ -388,9 +450,9 @@ function serializeArgumentsObject(
 function serializeArgumentsArray(array: JsInputValue[], context: SerializeContext): JsonArgumentValue[] {
   const result: JsonArgumentValue[] = []
   for (let i = 0; i < array.length; i++) {
-    const itemContext = context.nestArgument(String(i))
     const value = array[i]
     if (value === undefined || isSkip(value)) {
+      const itemContext = context.nestArgument(String(i))
       const valueName = value === undefined ? 'undefined' : `Prisma.skip`
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
@@ -403,6 +465,22 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
         underlyingError: `Can not use \`${valueName}\` value within array. Use \`null\` or filter out \`${valueName}\` values`,
       })
     }
+
+    if (value === null) {
+      result.push(null)
+      continue
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      result.push(value)
+      continue
+    }
+    if (typeof value === 'bigint') {
+      result.push({ $type: 'BigInt', value: String(value) })
+      continue
+    }
+
+    const itemContext = context.nestArgument(String(i))
     result.push(serializeArgumentsValue(value, itemContext))
   }
   return result
@@ -431,8 +509,8 @@ type ContextParams = {
   originalMethod: string
   rootArgs: JsArgs | undefined
   extensions: MergedExtensionsList
-  selectionPath: string[]
-  argumentPath: string[]
+  selectionPath?: PathNode
+  argumentPath?: PathNode
   modelName?: string
   action: Action
   callsite?: CallSite
@@ -443,14 +521,60 @@ type ContextParams = {
   wrapRawValues?: boolean
 }
 
+type PathNode = {
+  parent: PathNode | undefined
+  value: string
+  length: number
+}
+
+function appendPath(parent: PathNode | undefined, value: string): PathNode {
+  return {
+    parent,
+    value,
+    length: (parent?.length ?? 0) + 1,
+  }
+}
+
+function pathToArray(path: PathNode | undefined): string[] {
+  if (!path) {
+    return []
+  }
+
+  const result = new Array<string>(path.length)
+  let index = path.length
+  for (let node: PathNode | undefined = path; node; node = node.parent) {
+    result[--index] = node.value
+  }
+  return result
+}
+
+function getFieldsByName(modelOrType: RuntimeModel): Record<string, RuntimeModel['fields'][number]> {
+  let fieldsByName = fieldsByModel.get(modelOrType)
+  if (fieldsByName) {
+    return fieldsByName
+  }
+
+  fieldsByName = Object.create(null) as Record<string, RuntimeModel['fields'][number]>
+  for (const field of modelOrType.fields) {
+    fieldsByName[field.name] = field
+  }
+  fieldsByModel.set(modelOrType, fieldsByName)
+  return fieldsByName
+}
+
 class SerializeContext {
   public readonly modelOrType: RuntimeModel | undefined
+  private readonly fieldsByName: Record<string, RuntimeModel['fields'][number]> | undefined
+
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
       this.modelOrType =
         this.params.runtimeDataModel.models[this.params.modelName] ??
         this.params.runtimeDataModel.types[this.params.modelName]
+      if (this.modelOrType) {
+        this.fieldsByName = getFieldsByName(this.modelOrType)
+      }
     }
   }
 
@@ -467,15 +591,15 @@ class SerializeContext {
   }
 
   getSelectionPath() {
-    return this.params.selectionPath
+    return pathToArray(this.params.selectionPath)
   }
 
   getArgumentPath() {
-    return this.params.argumentPath
+    return pathToArray(this.params.argumentPath)
   }
 
-  getArgumentName() {
-    return this.params.argumentPath[this.params.argumentPath.length - 1]
+  getArgumentName(): string {
+    return this.params.argumentPath?.value as string
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
@@ -493,7 +617,16 @@ class SerializeContext {
   }
 
   isRawAction() {
-    return ['executeRaw', 'queryRaw', 'runCommandRaw', 'findRaw', 'aggregateRaw'].includes(this.params.action)
+    switch (this.params.action) {
+      case 'executeRaw':
+      case 'queryRaw':
+      case 'runCommandRaw':
+      case 'findRaw':
+      case 'aggregateRaw':
+        return true
+      default:
+        return false
+    }
   }
 
   isPreviewFeatureOn(previewFeature: string) {
@@ -513,7 +646,7 @@ class SerializeContext {
   }
 
   findField(name: string) {
-    return this.modelOrType?.fields.find((field) => field.name === name)
+    return this.fieldsByName?.[name]
   }
 
   nestSelection(fieldName: string) {
@@ -523,7 +656,7 @@ class SerializeContext {
     return new SerializeContext({
       ...this.params,
       modelName,
-      selectionPath: this.params.selectionPath.concat(fieldName),
+      selectionPath: appendPath(this.params.selectionPath, fieldName),
     })
   }
 
@@ -568,7 +701,7 @@ class SerializeContext {
   nestArgument(fieldName: string) {
     return new SerializeContext({
       ...this.params,
-      argumentPath: this.params.argumentPath.concat(fieldName),
+      argumentPath: appendPath(this.params.argumentPath, fieldName),
     })
   }
 }

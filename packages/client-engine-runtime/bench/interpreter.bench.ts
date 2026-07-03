@@ -14,6 +14,7 @@ import { DEEP_JOIN_PLAN, FIND_UNIQUE_PLAN, JOIN_PLAN, SEQUENCE_PLAN, SIMPLE_SELE
 async function runBenchmarks(): Promise<void> {
   const mockAdapter = createConfiguredMockAdapter()
   const interpreterOptions = createInterpreterOptions()
+  const interpreter = QueryInterpreter.forSql(interpreterOptions)
   const runtimeOptions = {
     queryable: mockAdapter,
     scope: {},
@@ -25,7 +26,6 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'interpreter: simple select',
     deferredBench(async () => {
-      const interpreter = QueryInterpreter.forSql(interpreterOptions)
       await interpreter.run(SIMPLE_SELECT_PLAN, runtimeOptions)
     }),
   )
@@ -33,7 +33,6 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'interpreter: findUnique',
     deferredBench(async () => {
-      const interpreter = QueryInterpreter.forSql(interpreterOptions)
       await interpreter.run(FIND_UNIQUE_PLAN, runtimeOptions)
     }),
   )
@@ -41,7 +40,6 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'interpreter: join (1:N)',
     deferredBench(async () => {
-      const interpreter = QueryInterpreter.forSql(interpreterOptions)
       await interpreter.run(JOIN_PLAN, runtimeOptions)
     }),
   )
@@ -49,7 +47,6 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'interpreter: sequence',
     deferredBench(async () => {
-      const interpreter = QueryInterpreter.forSql(interpreterOptions)
       await interpreter.run(SEQUENCE_PLAN, runtimeOptions)
     }),
   )
@@ -57,7 +54,6 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'interpreter: deep nested join',
     deferredBench(async () => {
-      const interpreter = QueryInterpreter.forSql(interpreterOptions)
       await interpreter.run(DEEP_JOIN_PLAN, runtimeOptions)
     }),
   )

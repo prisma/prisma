@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 
-import type { PlaceholderFormat, QueryPlanDbQuery } from '../query-plan'
+import type { QueryPlanDbQuery } from '../query-plan'
 import { GeneratorRegistry } from './generators'
 import { renderQuery } from './render-query'
 import { ScopeBindings } from './scope'
@@ -14,7 +14,7 @@ test('no template', () => {
         type: 'rawSql',
         sql: 'SELECT * FROM users WHERE id = $1',
         args: [1],
-        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+        argTypes: ['i'],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -31,25 +31,13 @@ test('no template', () => {
 test('no template and scalar list parameter', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE id = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' AND numbers = ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [1, [1, 2, 3]],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'list', scalarType: 'int' },
-        ],
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND numbers = ', null],
+        ['$', true],
+        [1, [1, 2, 3]],
+        ['i', { arity: 'list', scalarType: 'int' }],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -65,28 +53,304 @@ test('no template and scalar list parameter', () => {
   ])
 })
 
-test('transforms IN template', () => {
+test('accepts compact scalar arg types', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND name = ', null],
+        ['$', true],
+        [1, 'Alice'],
+        ['i', 's'],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND name = $2',
+      args: [1, 'Alice'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact native scalar arg types', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND email = ', null],
+        ['$', true],
+        [1, 'alice@example.com'],
+        [
+          ['i', 'INTEGER'],
+          ['s', 'TEXT'],
+        ],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND email = $2',
+      args: [1, 'alice@example.com'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int', dbType: 'INTEGER' },
+        { arity: 'scalar', scalarType: 'string', dbType: 'TEXT' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact template SQL queries', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND name = ', null],
+        ['$', true],
+        [1, 'Alice'],
+        ['i', 's'],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND name = $2',
+      args: [1, 'Alice'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact native scalar arg types in compact template SQL queries', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND email = ', null],
+        ['$', true],
+        [1, 'alice@example.com'],
+        [
+          ['i', 'INTEGER'],
+          ['s', 'TEXT'],
+        ],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND email = $2',
+      args: [1, 'alice@example.com'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int', dbType: 'INTEGER' },
+        { arity: 'scalar', scalarType: 'string', dbType: 'TEXT' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact parameter fragments', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null, ' AND name = ', null],
+        ['$', true],
+        [1, 'Alice'],
+        ['i', 's'],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1 AND name = $2',
+      args: [1, 'Alice'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact Prisma value placeholders', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null],
+        ['$', true],
+        [{ $p: ['%1', 'Int'] }],
+        ['i'],
+        false,
+      ] satisfies QueryPlanDbQuery,
+      { '%1': 42 } as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id = $1',
+      args: [42],
+      argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+    },
+  ])
+})
+
+test('converts compact DateTime placeholders to dates', () => {
+  const date = '2024-01-01T00:00:00.000Z'
   expect(
     renderQuery(
       {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' OFFSET ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [[1, 2, 3], 0],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
-        chunkable: true,
+        type: 'rawSql',
+        sql: 'SELECT * FROM users WHERE created_at = $1',
+        args: [{ $p: ['%1', 'DateTime'] }],
+        argTypes: ['D'],
       } satisfies QueryPlanDbQuery,
+      { '%1': date } as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE created_at = $1',
+      args: [new Date(date)],
+      argTypes: [{ arity: 'scalar', scalarType: 'datetime' }],
+    },
+  ])
+})
+
+test('rejects legacy scalar object arg types in raw SQL query plans', () => {
+  expect(() =>
+    renderQuery(
+      {
+        type: 'rawSql',
+        sql: 'SELECT * FROM users WHERE id = $1',
+        args: [1],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
+      } as unknown as QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toThrow(/Invalid query argument type: 'scalar'/)
+})
+
+test('rejects legacy scalar object arg types in template SQL query plans', () => {
+  expect(() =>
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id = ', null],
+        ['$', true],
+        [1],
+        [{ arity: 'scalar', scalarType: 'int' }],
+        false,
+      ] as unknown as QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toThrow(/Invalid query argument type: 'scalar'/)
+})
+
+test('accepts compact parameter tuple fragments', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE id IN ', ['T', '', ',', '']],
+        ['$', true],
+        [[1, 2, 3]],
+        ['i'],
+        true,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE id IN ($1,$2,$3)',
+      args: [1, 2, 3],
+      argTypes: Array.from({ length: 3 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+    },
+  ])
+})
+
+test('normalizes compact arg types in tuple arguments', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE (id, email) IN ', ['T', '', ',', '']],
+        ['$', true],
+        [[1, 'alice@example.com']],
+        [
+          {
+            arity: 'tuple',
+            elements: [
+              ['i', 'INTEGER'],
+              ['s', 'TEXT'],
+            ],
+          },
+        ],
+        true,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'SELECT * FROM users WHERE (id, email) IN ($1,$2)',
+      args: [1, 'alice@example.com'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int', dbType: 'INTEGER' },
+        { arity: 'scalar', scalarType: 'string', dbType: 'TEXT' },
+      ],
+    },
+  ])
+})
+
+test('accepts compact parameter tuple list fragments', () => {
+  expect(
+    renderQuery(
+      [
+        ['INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ', ['L', '(', ',', ')', ',']],
+        ['$', true],
+        [
+          [
+            [1, 2],
+            [3, 4],
+          ],
+        ],
+        Array.from({ length: 2 }, () => 'i' as const),
+        true,
+      ] satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual([
+    {
+      sql: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ($1,$2),($3,$4)',
+      args: [1, 2, 3, 4],
+      argTypes: Array.from({ length: 4 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+    },
+  ])
+})
+
+test('transforms IN template', () => {
+  expect(
+    renderQuery(
+      [
+        ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
+        ['$', true],
+        [[1, 2, 3], 0],
+        ['i', 'i'],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -102,25 +366,13 @@ test('transforms IN template', () => {
 test('transforms IN template with empty list', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' OFFSET ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [[], 0],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+      [
+        ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
+        ['$', true],
+        [[], 0],
+        ['i', 'i'],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -136,22 +388,13 @@ test('transforms IN template with empty list', () => {
 test('handles singleton list in IN template', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' OFFSET ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [[1], 0],
-        argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+      [
+        ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
+        ['$', true],
+        [[1], 0],
+        Array.from({ length: 2 }, () => 'i' as const),
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -167,22 +410,13 @@ test('handles singleton list in IN template', () => {
 test('treats non-array element as a singleton list in IN template', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' OFFSET ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [1, 0],
-        argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+      [
+        ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' OFFSET ', null],
+        ['$', true],
+        [1, 0],
+        Array.from({ length: 2 }, () => 'i' as const),
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -198,28 +432,13 @@ test('treats non-array element as a singleton list in IN template', () => {
 test("transforms IN template, doesn't touch scalar list", () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' AND numbers = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' OFFSET ' },
-          { type: 'parameter' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [[1, 2, 3], [1, 2, 3], 0],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'list', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+      [
+        ['SELECT * FROM users WHERE "userId" IN ', ['T', '', ',', ''], ' AND numbers = ', null, ' OFFSET ', null],
+        ['$', true],
+        [[1, 2, 3], [1, 2, 3], 0],
+        ['i', { arity: 'list', scalarType: 'int' }, 'i'],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -239,31 +458,18 @@ test("transforms IN template, doesn't touch scalar list", () => {
 test('transforms INSERT VALUES template', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ' },
-          {
-            type: 'parameterTupleList',
-            itemPrefix: '(',
-            itemSeparator: ',',
-            itemSuffix: ')',
-            groupSeparator: ',',
-          },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [
+      [
+        ['INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ', ['L', '(', ',', ')', ',']],
+        ['$', true],
+        [
           [
             [1, 2],
             [3, 4],
           ],
         ],
-        argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+        Array.from({ length: 2 }, () => 'i' as const),
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
     ),
@@ -279,23 +485,10 @@ test('transforms INSERT VALUES template', () => {
 test('chunking an INSERT with a large parameterTupleList', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'INSERT INTO "public"."Table" VALUES ' },
-          {
-            type: 'parameterTupleList',
-            itemPrefix: '(',
-            itemSeparator: ',',
-            itemSuffix: ')',
-            groupSeparator: ',',
-          },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [
+      [
+        ['INSERT INTO "public"."Table" VALUES ', ['L', '(', ',', ')', ',']],
+        ['$', true],
+        [
           [
             Array.from({ length: 5 }, (_, i) => i + 1),
             Array.from({ length: 5 }, (_, i) => i + 6),
@@ -304,9 +497,9 @@ test('chunking an INSERT with a large parameterTupleList', () => {
             Array.from({ length: 5 }, (_, i) => i + 21),
           ],
         ],
-        argTypes: Array.from({ length: 5 }, () => ({ arity: 'scalar', scalarType: 'int' })),
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+        Array.from({ length: 5 }, () => 'i' as const),
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
       TEST_MAX_CHUNK_SIZE,
@@ -333,38 +526,23 @@ test('chunking an INSERT with a large parameterTupleList', () => {
 test('chunking a UNION ALL with a large parameterTupleList', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT * FROM [User] WHERE "banned" = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' AND "id" IN (SELECT ' },
-          {
-            type: 'parameterTupleList',
-            itemPrefix: '',
-            itemSeparator: ',',
-            itemSuffix: '',
-            groupSeparator: ' UNION ALL SELECT ',
-          },
-          { type: 'stringChunk', chunk: ') AND ("name" = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' OR "name" = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ')' },
+      [
+        [
+          'SELECT * FROM [User] WHERE "banned" = ',
+          null,
+          ' AND "id" IN (SELECT ',
+          ['L', '', ',', '', ' UNION ALL SELECT '],
+          ') AND ("name" = ',
+          null,
+          ' OR "name" = ',
+          null,
+          ')',
         ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [false, Array.from({ length: 5 }, (_, i) => [i + 1, i + 2]), 'John Doe', 'Jane Doe'],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'boolean' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'string' },
-          { arity: 'scalar', scalarType: 'string' },
-        ],
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+        ['$', true],
+        [false, Array.from({ length: 5 }, (_, i) => [i + 1, i + 2]), 'John Doe', 'Jane Doe'],
+        ['b', 'i', 's', 's'],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
       TEST_MAX_CHUNK_SIZE,
@@ -400,28 +578,20 @@ test('chunking a UNION ALL with a large parameterTupleList', () => {
 test('chunking a SELECT..IN with a large parameterTuple', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT FROM "public"."User" WHERE "banned" = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' AND "id" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' AND "name" = ' },
-          { type: 'parameter' },
+      [
+        [
+          'SELECT FROM "public"."User" WHERE "banned" = ',
+          null,
+          ' AND "id" IN ',
+          ['T', '', ',', ''],
+          ' AND "name" = ',
+          null,
         ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [false, Array.from({ length: 10 }, (_, i) => i + 1), 'John Doe'],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'boolean' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'string' },
-        ],
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+        ['$', true],
+        [false, Array.from({ length: 10 }, (_, i) => i + 1), 'John Doe'],
+        ['b', 'i', 's'],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
       TEST_MAX_CHUNK_SIZE,
@@ -455,26 +625,13 @@ test('chunking a SELECT..IN with a large parameterTuple', () => {
 test('chunking a SELECT..IN with multiple parameterTuples', () => {
   expect(
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT FROM "public"."User" WHERE "id" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' AND "age" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-        ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [Array.from({ length: 10 }, (_, i) => i + 1), Array.from({ length: 4 }, (_, i) => i + 1)],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'int' },
-        ],
-        chunkable: true,
-      } satisfies QueryPlanDbQuery,
+      [
+        ['SELECT FROM "public"."User" WHERE "id" IN ', ['T', '', ',', ''], ' AND "age" IN ', ['T', '', ',', '']],
+        ['$', true],
+        [Array.from({ length: 10 }, (_, i) => i + 1), Array.from({ length: 4 }, (_, i) => i + 1)],
+        ['i', 'i', 'i'],
+        true,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
       TEST_MAX_CHUNK_SIZE,
@@ -500,28 +657,20 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
 test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
   expect(() =>
     renderQuery(
-      {
-        type: 'templateSql',
-        fragments: [
-          { type: 'stringChunk', chunk: 'SELECT FROM "public"."User" WHERE "banned" = ' },
-          { type: 'parameter' },
-          { type: 'stringChunk', chunk: ' AND "id" IN ' },
-          { type: 'parameterTuple', itemPrefix: '', itemSeparator: ',', itemSuffix: '' },
-          { type: 'stringChunk', chunk: ' AND "name" = ' },
-          { type: 'parameter' },
+      [
+        [
+          'SELECT FROM "public"."User" WHERE "banned" = ',
+          null,
+          ' AND "id" IN ',
+          ['T', '', ',', ''],
+          ' AND "name" = ',
+          null,
         ],
-        placeholderFormat: {
-          prefix: '$',
-          hasNumbering: true,
-        } satisfies PlaceholderFormat,
-        args: [false, Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'boolean' },
-          { arity: 'scalar', scalarType: 'int' },
-          { arity: 'scalar', scalarType: 'string' },
-        ],
-        chunkable: false,
-      } satisfies QueryPlanDbQuery,
+        ['$', true],
+        [false, Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
+        ['b', 'i', 's'],
+        false,
+      ] satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
       TEST_MAX_CHUNK_SIZE,
@@ -538,14 +687,8 @@ test('executes a generator', () => {
       {
         type: 'rawSql',
         sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
-        args: [
-          { prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } },
-          { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
-        ],
-        argTypes: [
-          { arity: 'scalar', scalarType: 'datetime' },
-          { arity: 'scalar', scalarType: 'datetime' },
-        ],
+        args: [{ $g: ['uuid', [4]] }, { $g: ['now', []] }],
+        argTypes: ['D', 'D'],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       generators.snapshot(),

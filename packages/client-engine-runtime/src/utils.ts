@@ -50,30 +50,31 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
   const rhsKeys = Object.keys(rhs)
   const smallerKeyList = lhsKeys.length < rhsKeys.length ? lhsKeys : rhsKeys
 
-  return smallerKeyList.every((key) => {
-    if (typeof lhs[key] === typeof rhs[key] && typeof lhs[key] !== 'object') {
-      // fast path for primitive types
-      return lhs[key] === rhs[key]
-    }
+  return smallerKeyList.every((key) => doKeyValuesMatch(lhs[key], rhs[key]))
+}
 
-    if (Decimal.isDecimal(lhs[key]) || Decimal.isDecimal(rhs[key])) {
-      const lhsDecimal = asDecimal(lhs[key])
-      const rhsDecimal = asDecimal(rhs[key])
-      return lhsDecimal && rhsDecimal && lhsDecimal.equals(rhsDecimal)
-    } else if (lhs[key] instanceof Uint8Array || rhs[key] instanceof Uint8Array) {
-      const lhsBuffer = asBuffer(lhs[key])
-      const rhsBuffer = asBuffer(rhs[key])
-      return lhsBuffer && rhsBuffer && lhsBuffer.equals(rhsBuffer)
-    } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
-      return asDate(lhs[key])?.getTime() === asDate(rhs[key])?.getTime()
-    } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
-      return asBigInt(lhs[key]) === asBigInt(rhs[key])
-    } else if (typeof lhs[key] === 'number' || typeof rhs[key] === 'number') {
-      return asNumber(lhs[key]) === asNumber(rhs[key])
-    }
+export function doKeyValuesMatch(lhs: unknown, rhs: unknown): boolean {
+  if (typeof lhs === typeof rhs && typeof lhs !== 'object') {
+    return lhs === rhs
+  }
 
-    return isDeepStrictEqual(lhs[key], rhs[key])
-  })
+  if (Decimal.isDecimal(lhs) || Decimal.isDecimal(rhs)) {
+    const lhsDecimal = asDecimal(lhs)
+    const rhsDecimal = asDecimal(rhs)
+    return lhsDecimal !== undefined && rhsDecimal !== undefined && lhsDecimal.equals(rhsDecimal)
+  } else if (lhs instanceof Uint8Array || rhs instanceof Uint8Array) {
+    const lhsBuffer = asBuffer(lhs)
+    const rhsBuffer = asBuffer(rhs)
+    return lhsBuffer !== undefined && rhsBuffer !== undefined && lhsBuffer.equals(rhsBuffer)
+  } else if (lhs instanceof Date || rhs instanceof Date) {
+    return asDate(lhs)?.getTime() === asDate(rhs)?.getTime()
+  } else if (typeof lhs === 'bigint' || typeof rhs === 'bigint') {
+    return asBigInt(lhs) === asBigInt(rhs)
+  } else if (typeof lhs === 'number' || typeof rhs === 'number') {
+    return asNumber(lhs) === asNumber(rhs)
+  }
+
+  return isDeepStrictEqual(lhs, rhs)
 }
 
 function asDecimal(value: unknown): Decimal | undefined {

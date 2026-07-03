@@ -162,4 +162,142 @@ describe('parameterizeQuery scalar values', () => {
       }
     `)
   })
+
+  it('parameterizes direct primitive Json values as Json placeholders', () => {
+    const query: JsonQuery = {
+      modelName: 'User',
+      action: 'findUnique',
+      query: {
+        arguments: { where: { metadata: 'test' } },
+        selection: { id: true, metadata: true },
+      },
+    }
+
+    const result = parameterizeQuery(query, paramGraph)
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "parameterizedQuery": {
+          "action": "findUnique",
+          "modelName": "User",
+          "query": {
+            "arguments": {
+              "where": {
+                "metadata": {
+                  "$type": "Param",
+                  "value": {
+                    "name": "%1",
+                    "type": "Json",
+                  },
+                },
+              },
+            },
+            "selection": {
+              "id": true,
+              "metadata": true,
+            },
+          },
+        },
+        "placeholderValues": {
+          "%1": ""test"",
+        },
+      }
+    `)
+  })
+
+  it('parameterizes primitive Json filter values as Json placeholders', () => {
+    const query: JsonQuery = {
+      modelName: 'User',
+      action: 'findMany',
+      query: {
+        arguments: { where: { metadata: { equals: 42, not: true } } },
+        selection: { id: true, metadata: true },
+      },
+    }
+
+    const result = parameterizeQuery(query, paramGraph)
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "parameterizedQuery": {
+          "action": "findMany",
+          "modelName": "User",
+          "query": {
+            "arguments": {
+              "where": {
+                "metadata": {
+                  "equals": {
+                    "$type": "Param",
+                    "value": {
+                      "name": "%1",
+                      "type": "Json",
+                    },
+                  },
+                  "not": {
+                    "$type": "Param",
+                    "value": {
+                      "name": "%2",
+                      "type": "Json",
+                    },
+                  },
+                },
+              },
+            },
+            "selection": {
+              "id": true,
+              "metadata": true,
+            },
+          },
+        },
+        "placeholderValues": {
+          "%1": "42",
+          "%2": "true",
+        },
+      }
+    `)
+  })
+
+  it('keeps Json string operators on String placeholders', () => {
+    const query: JsonQuery = {
+      modelName: 'User',
+      action: 'findMany',
+      query: {
+        arguments: { where: { metadata: { string_contains: 'test' } } },
+        selection: { id: true, metadata: true },
+      },
+    }
+
+    const result = parameterizeQuery(query, paramGraph)
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "parameterizedQuery": {
+          "action": "findMany",
+          "modelName": "User",
+          "query": {
+            "arguments": {
+              "where": {
+                "metadata": {
+                  "string_contains": {
+                    "$type": "Param",
+                    "value": {
+                      "name": "%1",
+                      "type": "String",
+                    },
+                  },
+                },
+              },
+            },
+            "selection": {
+              "id": true,
+              "metadata": true,
+            },
+          },
+        },
+        "placeholderValues": {
+          "%1": "test",
+        },
+      }
+    `)
+  })
 })

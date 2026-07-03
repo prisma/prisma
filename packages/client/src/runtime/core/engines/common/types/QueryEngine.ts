@@ -57,8 +57,13 @@ type WithErrors<T> =
 
 type WithErrorsAndResultExtensions<T> = WithResultExtensions<WithErrors<T>>
 
+export const queryEngineResultDataWasDeserialized: unique symbol = Symbol.for(
+  'prisma.queryEngineResultDataWasDeserialized',
+) as any
+
 export type QueryEngineResultData<T> = {
   data: T
+  [queryEngineResultDataWasDeserialized]?: true
 }
 
 export type QueryEngineResult<T> = WithErrorsAndResultExtensions<QueryEngineResultData<T>>

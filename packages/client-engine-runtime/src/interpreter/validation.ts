@@ -1,4 +1,4 @@
-import { DataRule, ValidationError } from '../query-plan'
+import { DataRule, getDataRuleArgs, getDataRuleType, ValidationError } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
 import { assertNever, DeepReadonly } from '../utils'
 
@@ -11,33 +11,36 @@ export function performValidation(data: unknown, rules: DeepReadonly<DataRule[]>
 }
 
 export function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
-  switch (rule.type) {
+  const ruleType = getDataRuleType(rule)
+  const ruleArgs = ruleType === 'never' ? undefined : getDataRuleArgs(rule)
+
+  switch (ruleType) {
     case 'rowCountEq':
       if (Array.isArray(data)) {
-        return data.length === rule.args
+        return data.length === ruleArgs
       }
       if (data === null) {
-        return rule.args === 0
+        return ruleArgs === 0
       }
-      return rule.args === 1
+      return ruleArgs === 1
 
     case 'rowCountNeq':
       if (Array.isArray(data)) {
-        return data.length !== rule.args
+        return data.length !== ruleArgs
       }
       if (data === null) {
-        return rule.args !== 0
+        return ruleArgs !== 0
       }
-      return rule.args !== 1
+      return ruleArgs !== 1
 
     case 'affectedRowCountEq':
-      return data === rule.args
+      return data === ruleArgs
 
     case 'never':
       return false
 
     default:
-      assertNever(rule, `Unknown rule type: ${(rule as DataRule).type}`)
+      assertNever(ruleType, `Unknown rule type: ${ruleType}`)
   }
 }
 

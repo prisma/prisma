@@ -1,11 +1,5 @@
 import type { Client } from '../../getPrismaClient'
-import {
-  addObjectProperties,
-  addProperty,
-  cacheProperties,
-  CompositeProxyLayer,
-  createCompositeProxy,
-} from '../compositeProxy'
+import { addObjectProperties, addProperty, CompositeProxyLayer, createCompositeProxy } from '../compositeProxy'
 import { applyModel } from './applyModel'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
@@ -51,12 +45,12 @@ function rootLayer(client: Client): CompositeProxyLayer {
   }
 }
 
-function modelsLayer(client: Client): CompositeProxyLayer {
+function modelsLayer(client: Client): CompositeProxyLayer<string> {
   const dmmfModelKeys = Object.keys(client._runtimeDataModel.models)
   const jsModelKeys = dmmfModelKeys.map(dmmfToJSModelName)
   const allKeys = [...new Set(dmmfModelKeys.concat(jsModelKeys))]
 
-  return cacheProperties({
+  return {
     getKeys() {
       return allKeys
     },
@@ -83,7 +77,9 @@ function modelsLayer(client: Client): CompositeProxyLayer {
 
       return undefined
     },
-  })
+
+    cachePropertiesOnTarget: true,
+  }
 }
 
 export function unApplyModelsAndClientExtensions(client: Client): Client {

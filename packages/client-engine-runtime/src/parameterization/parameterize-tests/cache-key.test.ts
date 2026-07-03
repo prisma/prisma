@@ -88,6 +88,33 @@ describe('parameterizeQuery cache key consistency', () => {
     expect(result1.parameterizedQuery).toEqual(result2.parameterizedQuery)
   })
 
+  it('generates same cache key for primitive Json values', () => {
+    const query1: JsonQuery = {
+      modelName: 'User',
+      action: 'findUnique',
+      query: {
+        arguments: { where: { metadata: 'first' } },
+        selection: { id: true, metadata: true },
+      },
+    }
+
+    const query2: JsonQuery = {
+      modelName: 'User',
+      action: 'findUnique',
+      query: {
+        arguments: { where: { metadata: 'second' } },
+        selection: { id: true, metadata: true },
+      },
+    }
+
+    const result1 = parameterizeQuery(query1, paramGraph)
+    const result2 = parameterizeQuery(query2, paramGraph)
+
+    expect(result1.parameterizedQuery).toEqual(result2.parameterizedQuery)
+    expect(result1.placeholderValues).toEqual({ '%1': '"first"' })
+    expect(result2.placeholderValues).toEqual({ '%1': '"second"' })
+  })
+
   it('generates different cache key for different query structure', () => {
     const query1: JsonQuery = {
       modelName: 'User',

@@ -1,7 +1,8 @@
 import { deserializeJsonObject } from './json-protocol'
-import { QueryPlanNode } from './query-plan'
+import type { QueryPlanNode } from './query-plan'
+import { getPrismaValuePlaceholderName, isPrismaValuePlaceholder } from './query-plan'
 import { UserFacingError } from './user-facing-error'
-import { doKeysMatch } from './utils'
+import { doKeysMatch, doKeyValuesMatch } from './utils'
 
 export type BatchResponse = MultiBatchResponse | CompactedBatchResponse
 
@@ -19,35 +20,6 @@ export type CompactedBatchResponse = {
   expectNonEmpty: boolean
 }
 
-/**
- * Checks if a value is a placeholder.
- * Handles both formats: `{ $type: 'Param', value: { name: '...' } }` and `{ prisma__type: 'param', prisma__value: { name: '...' } }`
- */
-function isPlaceholder(
-  value: unknown,
-): value is { $type: 'Param'; value: { name: string } } | { prisma__type: 'param'; prisma__value: { name: string } } {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-  const obj = value as Record<string, unknown>
-  if ('$type' in obj && obj.$type === 'Param') {
-    return true
-  }
-  if ('prisma__type' in obj && obj.prisma__type === 'param') {
-    return true
-  }
-  return false
-}
-
-function getPlaceholderName(
-  value: { $type: 'Param'; value: { name: string } } | { prisma__type: 'param'; prisma__value: { name: string } },
-): string | undefined {
-  if ('prisma__type' in value) {
-    return value.prisma__value?.name
-  }
-  return (value as { value: { name: string } }).value.name
-}
-
 function resolveArgPlaceholders(
   args: Record<string, {}>,
   placeholderValues: Record<string, unknown>,
@@ -55,9 +27,9 @@ function resolveArgPlaceholders(
   const resolved: Record<string, {}> = {}
   for (const [key, value] of Object.entries(args)) {
     resolved[key] = value
-    if (isPlaceholder(value)) {
-      const placeholderName = getPlaceholderName(value)
-      if (placeholderName && placeholderName in placeholderValues) {
+    if (isPrismaValuePlaceholder(value)) {
+      const placeholderName = getPrismaValuePlaceholderName(value)
+      if (placeholderName in placeholderValues) {
         resolved[key] = placeholderValues[placeholderName] as {}
       }
     }
@@ -70,6 +42,21 @@ function resolveArgPlaceholders(
  * would return when executed individually.
  */
 export function convertCompactedRows(
+  rows: {}[],
+  compiledBatch: CompactedBatchResponse,
+  placeholderValues: Record<string, unknown> = {},
+): unknown[] {
+  if (compiledBatch.keys.length === 1) {
+    const converted = convertSingleKeyCompactedRows(rows, compiledBatch, placeholderValues)
+    if (converted !== undefined) {
+      return converted
+    }
+  }
+
+  return convertCompactedRowsGeneric(rows, compiledBatch, placeholderValues)
+}
+
+function convertCompactedRowsGeneric(
   rows: {}[],
   compiledBatch: CompactedBatchResponse,
   placeholderValues: Record<string, unknown> = {},
@@ -105,4 +92,66 @@ export function convertCompactedRows(
       return Object.fromEntries(selected)
     }
   })
+}
+
+function convertSingleKeyCompactedRows(
+  rows: {}[],
+  compiledBatch: CompactedBatchResponse,
+  placeholderValues: Record<string, unknown>,
+): unknown[] | undefined {
+  const key = compiledBatch.keys[0]
+  const selection = compiledBatch.nestedSelection
+  const expectedValues = new Array(compiledBatch.arguments.length)
+
+  for (let i = 0; i < compiledBatch.arguments.length; i++) {
+    const args = compiledBatch.arguments[i]
+    if (!Object.hasOwn(args, key)) {
+      return undefined
+    }
+    expectedValues[i] = resolveArgValue(args[key], placeholderValues)
+  }
+
+  const rowKeyValues = new Array(rows.length)
+  for (let i = 0; i < rows.length; i++) {
+    rowKeyValues[i] = deserializeJsonObject(rows[i][key])
+  }
+
+  return expectedValues.map((expectedValue) => {
+    let row: {} | undefined
+
+    for (let i = 0; i < rows.length; i++) {
+      if (doKeyValuesMatch(rowKeyValues[i], expectedValue)) {
+        row = rows[i]
+        break
+      }
+    }
+
+    if (row === undefined) {
+      if (compiledBatch.expectNonEmpty) {
+        return new UserFacingError(
+          'An operation failed because it depends on one or more records that were required but not found',
+          'P2025',
+        )
+      }
+      return null
+    }
+
+    const selected: Record<string, unknown> = {}
+    for (let i = 0; i < selection.length; i++) {
+      const field = selection[i]
+      selected[field] = row[field]
+    }
+    return selected
+  })
+}
+
+function resolveArgValue(value: {}, placeholderValues: Record<string, unknown>): unknown {
+  if (isPrismaValuePlaceholder(value)) {
+    const placeholderName = getPrismaValuePlaceholderName(value)
+    if (placeholderName in placeholderValues) {
+      return placeholderValues[placeholderName]
+    }
+  }
+
+  return value
 }

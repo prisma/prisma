@@ -1,5 +1,10 @@
 import type { Context } from '@opentelemetry/api'
-import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import type {
+  DescriptorBoundMatcherRegistry,
+  GetPrismaClientConfig,
+  PreparedOperation,
+  RuntimeDataModel,
+} from '@prisma/client-common'
 import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
@@ -11,8 +16,12 @@ import { EventEmitter } from 'events'
 
 import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
-import { AccelerateEngineConfig, AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
+import { BatchTransactionOptions, Engine, EngineConfig, type JsonQuery, Options } from './core/engines'
+import {
+  AccelerateEngineConfig,
+  AccelerateExtensionFetchDecorator,
+  PrecomputedQueryPlanCacheHit,
+} from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
@@ -55,7 +64,13 @@ import { clientVersion } from './utils/clientVersion'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
-const debug = Debug('prisma:client')
+const DEBUG_NAMESPACE = 'prisma:client'
+const debug = Debug(DEBUG_NAMESPACE)
+
+function isClientDebugEnabled(): boolean {
+  const globalDebug = (globalThis as { DEBUG?: string }).DEBUG
+  return debug.enabled || (globalDebug !== undefined && globalDebug !== '' && Debug.enabled(DEBUG_NAMESPACE))
+}
 
 declare global {
   // eslint-disable-next-line no-var
@@ -123,7 +138,8 @@ export interface PrismaClientBaseOptions {
   comments?: SqlCommenterPlugin[]
 
   /**
-   * Optional maximum size for the query plan cache. If not provided, a default size will be used.
+   * Optional maximum size for the query plan cache. If not provided, defaults to 1000 entries in
+   * Node.js builds and 100 entries in edge builds.
    * A value of `0` can be used to disable the cache entirely. A higher cache size can improve
    * performance for applications that execute a large number of unique queries, while a smaller
    * cache size can reduce memory usage.
@@ -144,6 +160,8 @@ export interface PrismaClientBaseOptions {
    */
   __internal?: {
     debug?: boolean
+    enginePrecomputedFastPath?: boolean
+    requestPrecomputedFastPath?: boolean
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
@@ -245,6 +263,9 @@ export type InternalRequestParams = {
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
+  protocolQuery?: JsonQuery
+  precomputedQueryPlanCacheHit?: PrecomputedQueryPlanCacheHit
+  precomputedBatchId?: string
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -378,6 +399,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @remarks This is used internally by Policy, do not rename or remove
      */
     _engine: Engine
+    _enginePrecomputedFastPath: boolean
+    _requestPrecomputedFastPath: boolean
+    _descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry
+    _preparedOperations?: Record<string, PreparedOperation>
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
@@ -415,6 +440,7 @@ If you use Prisma Accelerate instead of connecting to your database directly, pa
       this._previewFeatures = config.previewFeatures
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._descriptorMatcherRegistry = config.descriptorMatcherRegistry
       this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper()
 
@@ -454,6 +480,8 @@ If you use Prisma Accelerate instead of connecting to your database directly, pa
         const internal = options.__internal ?? {}
 
         const useDebug = internal.debug === true
+        this._enginePrecomputedFastPath = internal.enginePrecomputedFastPath === true
+        this._requestPrecomputedFastPath = internal.requestPrecomputedFastPath !== false
         if (useDebug) {
           Debug.enable('prisma:client')
         }
@@ -524,6 +552,7 @@ new PrismaClient({
 
         this._engine = getEngineInstance(this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
+        this._preparedOperations = config.preparedOperationRegistry?.create(this)
 
         if (options.log) {
           for (const log of options.log) {
@@ -960,6 +989,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return this._tracingHelper.runInChildSpan(spanOptions, callback)
     }
 
+    _isClientDebugEnabled(): boolean {
+      return isClientDebugEnabled()
+    }
+
     /**
      * Runs the middlewares over params before executing a request
      * @param internalParams
@@ -968,6 +1001,31 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     _request(internalParams: InternalRequestParams): Promise<any> {
       // this is the otel context that is active at the callsite
       internalParams.otelParentCtx = this._tracingHelper.getActiveContext()
+
+      // span options for opentelemetry instrumentation
+      const spanOptions = {
+        operation: {
+          name: 'operation',
+          attributes: {
+            method: internalParams.action,
+            model: internalParams.model,
+            name: internalParams.model ? `${internalParams.model}.${internalParams.action}` : internalParams.action,
+          },
+        } as ExtendedSpanOptions,
+      }
+
+      if (this._extensions.isEmpty()) {
+        return this._tracingHelper.runInChildSpan(spanOptions.operation, () => {
+          if (NODE_CLIENT) {
+            // https://github.com/prisma/prisma/issues/3148 not for edge client
+            const asyncRes = new AsyncResource('prisma-client-request')
+            return asyncRes.runInAsyncScope(() => this._executeRequest(internalParams))
+          }
+
+          return this._executeRequest(internalParams)
+        })
+      }
+
       const middlewareArgsMapper = internalParams.middlewareArgsMapper ?? noopMiddlewareArgsMapper
 
       // make sure that we don't leak extra properties to users
@@ -977,18 +1035,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         runInTransaction: Boolean(internalParams.transaction),
         action: internalParams.action,
         model: internalParams.model,
-      }
-
-      // span options for opentelemetry instrumentation
-      const spanOptions = {
-        operation: {
-          name: 'operation',
-          attributes: {
-            method: params.action,
-            model: params.model,
-            name: params.model ? `${params.model}.${params.action}` : params.action,
-          },
-        } as ExtendedSpanOptions,
       }
 
       // prepare recursive fn that will pipe params through middlewares
@@ -1056,6 +1102,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       unpacker,
       otelParentCtx,
       customDataProxyFetch,
+      protocolQuery,
+      precomputedQueryPlanCacheHit,
+      precomputedBatchId,
     }: InternalRequestParams) {
       try {
         // execute argument transformation before execution
@@ -1065,25 +1114,32 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           name: 'serialize',
         }
 
-        const message = this._tracingHelper.runInChildSpan(spanOptions, () =>
-          serializeJsonQuery({
-            modelName: model,
-            runtimeDataModel: this._runtimeDataModel,
-            action,
-            args,
-            clientMethod,
-            callsite,
-            extensions: this._extensions,
-            errorFormat: this._errorFormat,
-            clientVersion: this._clientVersion,
-            previewFeatures: this._previewFeatures,
-            globalOmit: this._globalOmit,
-          }),
-        )
+        const usePrecomputedProtocolQuery =
+          protocolQuery !== undefined &&
+          argsMapper === undefined &&
+          this._extensions.isEmpty() &&
+          this._globalOmit === undefined
+        const message = usePrecomputedProtocolQuery
+          ? protocolQuery
+          : this._tracingHelper.runInChildSpan(spanOptions, () =>
+              serializeJsonQuery({
+                modelName: model,
+                runtimeDataModel: this._runtimeDataModel,
+                action,
+                args,
+                clientMethod,
+                callsite,
+                extensions: this._extensions,
+                errorFormat: this._errorFormat,
+                clientVersion: this._clientVersion,
+                previewFeatures: this._previewFeatures,
+                globalOmit: this._globalOmit,
+              }),
+            )
 
         // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'
-        if (Debug.enabled('prisma:client')) {
+        if (isClientDebugEnabled()) {
           debug(`Prisma Client call:`)
           debug(`prisma.${clientMethod}(${prettyPrintArguments(args)})`)
           debug(`Generated request:`)
@@ -1109,6 +1165,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           otelParentCtx,
           otelChildCtx: this._tracingHelper.getActiveContext(),
           globalOmit: this._globalOmit,
+          precomputedQueryPlanCacheHit,
+          precomputedBatchId,
           customDataProxyFetch,
         })
       } catch (e) {

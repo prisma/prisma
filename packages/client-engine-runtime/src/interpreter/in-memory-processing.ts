@@ -20,17 +20,17 @@ export function processRecords(value: unknown, ops: InMemoryOps): unknown {
 function processOneRecord(record: Record<string, unknown>, ops: InMemoryOps): Record<string, unknown> | null {
   if (ops.pagination) {
     const { skip, take, cursor } = ops.pagination
-    if (skip !== null && skip > 0) {
+    if (skip != null && skip > 0) {
       return null
     }
     if (take === 0) {
       return null
     }
-    if (cursor !== null && !doKeysMatch(record, cursor)) {
+    if (cursor != null && !doKeysMatch(record, cursor)) {
       return null
     }
   }
-  return processNestedRecords(record, ops.nested)
+  return processNestedRecords(record, ops.nested ?? {})
 }
 
 function processNestedRecords(
@@ -44,24 +44,28 @@ function processNestedRecords(
 }
 
 function processManyRecords(records: Record<string, unknown>[], ops: InMemoryOps): Record<string, unknown>[] {
-  if (ops.distinct !== null) {
-    const fields = ops.linkingFields !== null ? [...ops.distinct, ...ops.linkingFields] : ops.distinct
+  if (ops.distinct != null) {
+    const fields = ops.linkingFields != null ? [...ops.distinct, ...ops.linkingFields] : ops.distinct
     records = distinctBy(records, fields)
   }
 
   if (ops.pagination) {
-    records = paginate(records, ops.pagination, ops.linkingFields)
+    const { cursor, skip, take } = ops.pagination
+    if (!(cursor == null && (skip == null || skip <= 0) && take != null && take >= records.length)) {
+      records = paginate(records, ops.pagination, ops.linkingFields ?? null)
+    }
   }
 
   if (ops.reverse) {
     records.reverse()
   }
 
-  if (Object.keys(ops.nested).length === 0) {
+  const nested = ops.nested
+  if (!nested || Object.keys(nested).length === 0) {
     return records
   }
 
-  return records.map((record) => processNestedRecords(record, ops.nested))
+  return records.map((record) => processNestedRecords(record, nested))
 }
 
 function distinctBy(records: Record<string, unknown>[], fields: string[]): Record<string, unknown>[] {
@@ -98,12 +102,12 @@ function paginate(records: {}[], pagination: Pagination, linkingFields: string[]
 }
 
 function paginateSingleList(list: {}[], { cursor, skip, take }: Pagination): {}[] {
-  const cursorIndex = cursor !== null ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
+  const cursorIndex = cursor != null ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
   if (cursorIndex === -1) {
     return []
   }
   const start = cursorIndex + (skip ?? 0)
-  const end = take !== null ? start + take : list.length
+  const end = take != null ? start + take : list.length
 
   return list.slice(start, end)
 }
@@ -112,8 +116,13 @@ function paginateSingleList(list: {}[], { cursor, skip, take }: Pagination): {}[
  * Generate a key string for a record based on the values of the specified fields.
  */
 export function getRecordKey(record: {}, fields: readonly string[], mappers?: ((value: unknown) => unknown)[]): string {
-  const array = fields.map((field, index) =>
-    mappers?.[index] ? (record[field] !== null ? mappers[index](record[field]) : null) : record[field],
-  )
-  return JSON.stringify(array)
+  const values = new Array<unknown>(fields.length)
+
+  for (let index = 0; index < fields.length; index++) {
+    const value = record[fields[index]]
+    const mapper = mappers?.[index]
+    values[index] = mapper && value !== null ? mapper(value) : value
+  }
+
+  return JSON.stringify(values)
 }

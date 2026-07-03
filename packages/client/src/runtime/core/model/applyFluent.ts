@@ -5,7 +5,10 @@ import { getCallSite } from '../../utils/CallSite'
 import { deepSet } from '../../utils/deep-set'
 import type { UserArgs } from '../request/UserArgs'
 import type { ModelAction } from './applyModel'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
+import { defaultPropertyDescriptor } from './utils/defaultProxyHandlers'
+
+const emptyDataPath: string[] = []
+const prismaPromiseOwnKeys = ['spec', 'then', 'catch', 'finally', 'requestTransaction'] as const
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
@@ -18,7 +21,7 @@ import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
  * @returns
  */
 function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
-  if (fluentPropName === undefined || prevDataPath === undefined) return []
+  if (fluentPropName === undefined || prevDataPath === undefined) return emptyDataPath
 
   return [...prevDataPath, 'select', fluentPropName]
 }
@@ -89,23 +92,46 @@ export function applyFluent(
     (acc, field) => ({ ...acc, [field.name]: field }),
     {} as { [dmmfModelFieldName: string]: DMMF.Field },
   )
+  const ownKeys = getOwnKeys(client, dmmfModelName)
+  const ownKeysSet = new Set(ownKeys)
+  const proxyOwnKeys = [...ownKeys, ...prismaPromiseOwnKeys]
+  const proxyOwnKeysSet = new Set<string | symbol>(proxyOwnKeys)
+  const proxyHandlerDefaults = {
+    getPrototypeOf: () => Object.prototype,
+    getOwnPropertyDescriptor: () => defaultPropertyDescriptor,
+    has: (target: object, prop: string | symbol) => proxyOwnKeysSet.has(prop) || Reflect.has(target, prop),
+    set: (target: object, prop: string | symbol, value: unknown) => Reflect.set(target, prop, value),
+    ownKeys: (target: object) => {
+      const targetKeys = Reflect.ownKeys(target)
+      let keys: (string | symbol)[] | undefined
+      for (const targetKey of targetKeys) {
+        if (!proxyOwnKeysSet.has(targetKey)) {
+          keys ??= proxyOwnKeys.slice()
+          keys.push(targetKey)
+        }
+      }
+      return keys ?? proxyOwnKeys
+    },
+  } as const
 
   // we return a regular model action but proxy its return
   return (userArgs?: UserArgs) => {
-    const callsite = getCallSite(client._errorFormat)
     // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
-    const prismaPromise = modelAction({ dataPath: nextDataPath, callsite })(nextUserArgs)
+    const paramOverrides =
+      client._enginePrecomputedFastPath === true
+        ? { dataPath: nextDataPath }
+        : { dataPath: nextDataPath, callsite: getCallSite(client._errorFormat) }
+    const prismaPromise = modelAction(paramOverrides)(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
     // TODO: once it's done we can deprecate the use of dataPath
-    const ownKeys = getOwnKeys(client, dmmfModelName)
 
     // we take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {
       get(target, prop: string) {
         // fluent api only works on fields that are relational
-        if (!ownKeys.includes(prop)) return target[prop]
+        if (!ownKeysSet.has(prop)) return target[prop]
 
         // here we are sure that prop is a field of type object
         const dmmfModelName = dmmfModelFieldMap[prop].type
@@ -115,7 +141,7 @@ export function applyFluent(
         // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      ...defaultProxyHandlers([...ownKeys, ...Object.getOwnPropertyNames(prismaPromise)]),
+      ...proxyHandlerDefaults,
     })
   }
 }

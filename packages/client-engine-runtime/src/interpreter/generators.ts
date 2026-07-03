@@ -5,15 +5,7 @@ import { ulid } from 'ulid'
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid'
 
 export class GeneratorRegistry {
-  #generators: GeneratorRegistrySnapshot = {}
-
-  constructor() {
-    this.register('uuid', new UuidGenerator())
-    this.register('cuid', new CuidGenerator())
-    this.register('ulid', new UlidGenerator())
-    this.register('nanoid', new NanoIdGenerator())
-    this.register('product', new ProductGenerator())
-  }
+  #generators: GeneratorRegistrySnapshot = Object.create(BUILT_IN_GENERATORS)
 
   /**
    * Returns a snapshot of the generator registry. It's 'frozen' in time at the moment of this
@@ -26,6 +18,10 @@ export class GeneratorRegistry {
         value: new NowGenerator(),
       },
     })
+  }
+
+  current(): Readonly<GeneratorRegistrySnapshot> {
+    return this.#generators
   }
 
   /**
@@ -114,3 +110,11 @@ class ProductGenerator implements ValueGenerator {
     }
   }
 }
+
+const BUILT_IN_GENERATORS: Readonly<GeneratorRegistrySnapshot> = Object.freeze({
+  uuid: new UuidGenerator(),
+  cuid: new CuidGenerator(),
+  ulid: new UlidGenerator(),
+  nanoid: new NanoIdGenerator(),
+  product: new ProductGenerator(),
+})

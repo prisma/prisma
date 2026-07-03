@@ -19,5 +19,5 @@ export class Skip {
 export const skip = new Skip(secret)
 
 export function isSkip(value: unknown): value is Skip {
-  return value instanceof Skip
+  return value === skip
 }

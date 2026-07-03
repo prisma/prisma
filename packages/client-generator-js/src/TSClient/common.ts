@@ -53,6 +53,7 @@ const {
   Public,
   getRuntime,
   createParam,
+  ${generator.config.internalExactDescriptorHelpers === undefined ? '' : 'createExactDescriptorMatcherRegistry,'}
 } = require('${runtimeBase}/${runtimeName}.js')
 `
 }

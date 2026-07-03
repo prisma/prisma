@@ -4,6 +4,31 @@ import type { SerializedParamGraph } from '@prisma/param-graph'
 import { CompilerWasmLoadingConfig } from './QueryCompiler'
 import { RuntimeDataModel } from './runtimeDataModel'
 
+export type DescriptorBoundMatcher = (args: unknown) => Record<string, unknown> | undefined
+
+export type DescriptorBoundMatcherContext = {
+  model: string
+  action: unknown
+  clientMethod: string
+  args: unknown
+  protocolQuery: unknown
+  descriptor: unknown
+  precomputedQueryPlanCacheHit: {
+    cacheKey: string
+    placeholderValues: Record<string, unknown>
+  }
+}
+
+export type DescriptorBoundMatcherRegistry = {
+  getMatcher(context: DescriptorBoundMatcherContext): DescriptorBoundMatcher | undefined
+}
+
+export type PreparedOperation = (...args: unknown[]) => unknown
+
+export type PreparedOperationRegistry = {
+  create(client: unknown): Record<string, PreparedOperation>
+}
+
 /**
  * Config that is stored into the generated client. When the generated client is
  * loaded, this same config is passed to {@link getPrismaClient} which creates a
@@ -31,4 +56,7 @@ export type GetPrismaClientConfig = {
    * Enables precise parameterization based on DMMF metadata.
    */
   parameterizationSchema: SerializedParamGraph
+
+  descriptorMatcherRegistry?: DescriptorBoundMatcherRegistry
+  preparedOperationRegistry?: PreparedOperationRegistry
 }

@@ -6,6 +6,7 @@ export {
   type EngineConfig,
   type GraphQLQuery,
   type InteractiveTransactionOptions,
+  type PrecomputedQueryPlanCacheHit,
   type TransactionOptions,
 } from './common/Engine'
 export * from './common/types/EngineValidationError'

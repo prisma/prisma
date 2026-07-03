@@ -222,6 +222,63 @@ describe('generator', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
+  test('emits internal exact descriptor helpers', async () => {
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
+    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+    await fsPromises.cp(path.join(__dirname, '../../client/runtime'), path.join(prismaClientTarget, 'runtime'), {
+      recursive: true,
+    })
+
+    const outputDir = path.join(__dirname, 'generated-exact-descriptor')
+    await fsPromises.rm(outputDir, { recursive: true, force: true })
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'internal-exact-descriptor-helpers.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    const index = await fsPromises.readFile(path.join(outputDir, 'index.js'), 'utf8')
+    generator.stop()
+
+    expect(index).toContain('createExactDescriptorMatcherRegistry')
+    expect(index).toContain('const __internalExactDescriptorFlatRegistry = createExactDescriptorMatcherRegistry')
+    expect(index).toContain('config.descriptorMatcherRegistry = {')
+    expect(index).toContain('function __internalExactDescriptorBindBlogPagePostV1_0')
+    expect(index).toContain('function __internalExactDescriptorBindBlogPagePostV1_1')
+    expect(index).toContain('"model": "User"')
+    expect(index).toContain('context.model === "Post"')
+    expect(index).toContain('"action": "findUnique"')
+    expect(index).toContain('"action": "findMany"')
+    expect(index).toContain('"action": "findFirst"')
+    expect(index).toContain('"action": "findFirstOrThrow"')
+    expect(index).toContain('"field": "id"')
+    expect(index).toContain('"field": "email"')
+    expect(index).toContain('"field": "score"')
+    expect(index).toContain('"field": "externalId"')
+    expect(index).toContain('"field": "enabled"')
+    expect(index).toContain('"field": "fingerprint"')
+    expect(index).toContain('"field": "createdAt"')
+    expect(index).toContain('"field": "balance"')
+    expect(index).toContain('"field": "metadata"')
+    expect(index).toContain('"field": "take"')
+    expect(index).toContain('"valueType": "bigint"')
+    expect(index).toContain('"valueType": "boolean"')
+    expect(index).toContain('"valueType": "bytes"')
+    expect(index).toContain('"valueType": "date"')
+    expect(index).toContain('"valueType": "decimal"')
+    expect(index).toContain('"valueType": "float"')
+    expect(index).toContain('"valueType": "json"')
+    expect(index).toContain('"select": [')
+    expect(index).toContain('where.fields["slug"]')
+    expect(index).toContain('placeholder.valueType !== "string"')
+    expect(index).toContain('typeof value === "string"')
+    expect(index).toContain('__internalExactDescriptorBlogPagePostV1SelectShape')
+  })
+
   test('denylist from engine validation', async () => {
     expect.assertions(1)
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')

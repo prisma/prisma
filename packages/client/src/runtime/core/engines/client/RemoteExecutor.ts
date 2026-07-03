@@ -28,6 +28,8 @@ export interface RemoteExecutorOptions {
 }
 
 export class RemoteExecutor implements Executor {
+  readonly resultFormat = 'jsonProtocol'
+
   readonly #clientVersion: string
   readonly #headerBuilder: HeaderBuilder
   readonly #httpClient: HttpClient

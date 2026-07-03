@@ -52,6 +52,21 @@ function createFindManyQuery(): JsonQuery {
   }
 }
 
+function createFindManyInFilterQuery(ids: Parameterizable<number>[]): JsonQuery {
+  return {
+    modelName: 'User',
+    action: 'findMany',
+    query: {
+      arguments: {
+        where: { id: { in: ids } },
+      },
+      selection: {
+        $scalars: true,
+      },
+    },
+  }
+}
+
 function createBlogPostPageQuery(id: Parameterizable<number>): JsonQuery {
   return {
     modelName: 'Post',
@@ -135,14 +150,36 @@ async function setup(): Promise<void> {
   })
 }
 
-function syncBench(fn: () => void): Benchmark.Options {
+function syncBench(fn: () => unknown): Benchmark.Options {
   return { fn }
+}
+
+function getStringCacheKeyPart(value: string | null | undefined): string {
+  if (value == null) {
+    return '-1:'
+  }
+
+  return `${value.length}:${value}`
+}
+
+function getSingleQueryCacheKey(query: JsonQuery, queryPart: string): string {
+  return `s:${getStringCacheKeyPart(query.modelName)}${getStringCacheKeyPart(query.action)}${queryPart.length}:${queryPart}`
+}
+
+function createCacheHitKey(query: JsonQuery): string {
+  const { parameterizedQuery } = parameterizeQuery(query, paramGraph)
+  const queryPart = JSON.stringify(parameterizedQuery.query)
+  return getSingleQueryCacheKey(parameterizedQuery, queryPart)
 }
 
 async function runBenchmarks(): Promise<void> {
   await setup()
 
   const suite = withCodSpeed(new Benchmark.Suite('query-caching'))
+  const findUniqueQuery = createFindUniqueQuery(1)
+  const findManyQuery = createFindManyQuery()
+  const findManyInFilterQuery = createFindManyInFilterQuery([1, 2, 3, 4, 5])
+  const blogPostPageQuery = createBlogPostPageQuery(1)
 
   suite.add(
     'compile findUnique (uncached baseline)',
@@ -168,21 +205,56 @@ async function runBenchmarks(): Promise<void> {
   suite.add(
     'parameterize findUnique',
     syncBench(() => {
-      parameterizeQuery(createFindUniqueQuery(1), paramGraph)
+      parameterizeQuery(findUniqueQuery, paramGraph)
     }),
   )
 
   suite.add(
     'parameterize findMany',
     syncBench(() => {
-      parameterizeQuery(createFindManyQuery(), paramGraph)
+      parameterizeQuery(findManyQuery, paramGraph)
+    }),
+  )
+
+  suite.add(
+    'parameterize findMany in filter',
+    syncBench(() => {
+      parameterizeQuery(findManyInFilterQuery, paramGraph)
     }),
   )
 
   suite.add(
     'parameterize blog post page query',
     syncBench(() => {
-      parameterizeQuery(createBlogPostPageQuery(1), paramGraph)
+      parameterizeQuery(blogPostPageQuery, paramGraph)
+    }),
+  )
+
+  suite.add(
+    'cache hit key findUnique',
+    syncBench(() => {
+      return createCacheHitKey(findUniqueQuery)
+    }),
+  )
+
+  suite.add(
+    'cache hit key findMany',
+    syncBench(() => {
+      return createCacheHitKey(findManyQuery)
+    }),
+  )
+
+  suite.add(
+    'cache hit key findMany in filter',
+    syncBench(() => {
+      return createCacheHitKey(findManyInFilterQuery)
+    }),
+  )
+
+  suite.add(
+    'cache hit key blog post page query',
+    syncBench(() => {
+      return createCacheHitKey(blogPostPageQuery)
     }),
   )
 
