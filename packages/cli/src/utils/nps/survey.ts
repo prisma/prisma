@@ -7,6 +7,7 @@ import path from 'path'
 import readline from 'readline'
 
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
+import { timeout } from '../prompt-timeout'
 import { EventCapture, PosthogEventCapture, PUBLIC_POSTHOG_NPS_PROJECT_KEY } from './capture'
 import { NpsStatusLookup, ProdNpsStatusLookup, Timeframe } from './status'
 
@@ -190,23 +191,6 @@ async function writeConfig(config: NpsConfig) {
 async function submitSurveyEvent(event: NpsSurveyEvent, eventCapture: EventCapture) {
   const signature = await checkpoint.getSignature()
   await eventCapture.capture(signature, 'NPS feedback', event)
-}
-
-/**
- * Wraps a promise with a timeout. If the provided promise does not resolve within the given
- * time, the returned promise resolves to `undefined`.
- */
-function timeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
-  return new Promise((resolve) => {
-    const timeoutId = setTimeout(() => {
-      resolve(undefined)
-    }, ms)
-
-    return promise.then((result) => {
-      clearTimeout(timeoutId)
-      resolve(result)
-    })
-  })
 }
 
 function isWithinTimeframe(date: Date, timeframe: Timeframe): boolean {
