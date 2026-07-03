@@ -4,9 +4,9 @@
 
 ## Summary
 
-- **Current verdict:** S2-D3 R1 — SATISFIED (slice-final; slice 2 at DoD)
-- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final)
-- **AC scoreboard totals:** 5 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
+- **Current verdict:** S3-D1 R1 — SATISFIED
+- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1
+- **AC scoreboard totals:** 6 PASS / 0 FAIL / 1 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
 - **Open findings:** 0
 - **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
@@ -22,6 +22,8 @@
 | AC-4 | Live TTY once-ever demo: first `prisma generate` shows the offer, declining writes `skills-offer.json`, second run silent; captured | S2-D3 | PASS | Live pty capture in `slices/generate-skill-offer/verification.md` (decline → `outcome: "declined"` ack; second run silent, exit 0); prompt text and persistence shape match code verified at `9966964c1` (`skills-offer.vitest.ts`) |
 | AC-5 | Accept path demonstrated live: skills land via S1 runner | S2-D3 | PASS | Live capture: accept → 24 `SKILL.md` (8 × `.agents`/`.claude`/`.windsurf`) + `skills-lock.json`, ack `outcome: "accepted"` (`verification.md`); matches S1 `--copy` behavior and the ack→install ordering verified at `9966964c1` |
 | AC-6 | Non-TTY / CI-env run shows no prompt (capture) | S2-D3 | PASS | Live non-TTY capture: no prompt, generate normal, no acknowledgement written (`verification.md`); matches code — gate short-circuits precede any `writeAcknowledgement`, per the spec's after-prompt-only persistence |
+| AC-7 | Both-directions MCP safety test (marker → consent text, no success; no marker → no consent text), DB-free, CI-runnable | S3-D1 (authored + green) | PASS | `packages/cli/src/__tests__/mcp-safety.vitest.ts` (commit `e05f5a66c`): real server over stdio, curated allowlist env, sqlite scratch project (offline, no generator); marker case demands the consent var name + stop-and-respond wording and forbids the success line; CI-runnability rests on the established built-CLI precondition, made fail-clear by a module-level throw (precedent: `dependent-generator.test.ts`) |
+| AC-8 | `migrate-reset` tool description mentions the AI-agent gate + consent protocol | S3-D2 | NOT VERIFIED — S3-D2 pending | — |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -109,6 +111,18 @@ _(no findings yet)_
 **Findings:** none. No new commits — worktree/branch check performed in lieu of the transient-ID scan.
 
 **For orchestrator:** The captures' NPS silence is partly environmental (no active NPS timeframe remotely); mutual exclusion rests on the S2-D2 unit tests, which I judge adequate — no live NPS-collision capture needed.
+
+### S3-D1 R1 — SATISFIED
+
+**Scope:** S3-D1 (probe + pin), new worktree `agent-native-s3`, branch `tml-2969-s3-ai-safety-checkpoint-through-prisma-mcp-audit-pin` from `origin/main` (`9b2e72a04`). Commit `e05f5a66c` (test file only; worktree clean).
+
+**Tasks:** S3-D1 clean — probe verdict ("consent text surfaces today via execa v5's error.message") is empirically confirmed by the green marker-case test against the real server over stdio; the three cases verify on disk: marker case demands the consent var name and the contiguous stop-and-respond wording from `ai-safety.ts` and forbids the success line; control case demands actual success; bypass case pins the documented consent-var loop. Curated allowlist env cross-checked against `agentMatchers` — no allowlisted var (incl. Windows spawn vars, `TERM`, `PRISMA_HIDE_UPDATE_MESSAGE`) is a marker or the consent var. Scratch project is offline sqlite with no generator block; no `MCP.ts` changes; `projectCWD` arg name matches the tool schema. Gates trusted green (vitest 3/3 twice, tsc, eslint).
+
+**AC delta:** AC-7 NOT VERIFIED → PASS (commit `e05f5a66c`, `mcp-safety.vitest.ts`); CI-runnability reading: DB-free by construction, resting on the suite's established built-CLI precondition made fail-clear by the module-level throw. AC-8 row added (S3-D2-owned).
+
+**Findings:** none. Transient-ID scan on `e05f5a66c`: zero hits.
+
+**For orchestrator:** Residual environmental caveat, no action: Devin's marker is a file (`/opt/.devin`) outside the env allowlist's control, so the no-marker case would fail on a Devin VM — inherent to real-subprocess testing and vanishingly unlikely in CI.
 
 ## Orchestrator notes
 

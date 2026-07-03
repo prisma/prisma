@@ -17,3 +17,9 @@ lessons migrate to durable docs, project-local ones drop with the project folder
   "Cannot resolve environment variable: TEST_MYSQL_URI" — invoke via
   `pnpm exec dotenv -e ../../.db.env -- jest <file>` (what the package `test` script does).
   Candidate for `drive/plan/README.md` validation-gate overlay at close-out.
+- **2026-07-03 (S3-D1):** `prisma mcp` tool output includes the CLI's version-update box
+  (the shelled-out child runs its update check inside the tool result; suppressible with
+  `PRISMA_HIDE_UPDATE_MESSAGE=1`). Out of scope for the safety audit — candidate follow-up
+  ticket at close-out (MCP output hygiene). Also: execa v5's error message prefixes child
+  stderr with "Command failed with exit code 1: <command>", which is what an MCP client
+  sees before the consent text.
