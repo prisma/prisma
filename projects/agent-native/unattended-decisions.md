@@ -38,3 +38,53 @@ logged here, newest last.
   check would always take the fallback while adding a network probe to init. S1 ships
   default-branch installs and files the tagging ask; pinning activates in a follow-up once
   tags exist. Recorded in the slice spec's Chosen design.
+- **D9 — PR-open is treated as pre-authorized.** `drive-build-workflow` unattended default is
+  "hold the branch local at slice DoD" unless PR-open was granted. The operator invoked
+  `/drive-deliver-workflow` — whose slice step explicitly auto-opens the PR at DoD with no
+  extra operator gate — and then said "work unattended". Reading both together as a standing
+  grant; slice PRs will be opened at DoD (see D6). If this reading is wrong, closing the PRs
+  on Monday is cheap and nothing merges without review regardless.
+- **D10 — Validation gates inferred without operator confirmation.** No gates were declared in
+  the plan and none can be confirmed unattended. Inferred: D1 — packages/cli typecheck +
+  the new `skill-install.vitest.ts` green; D2 — packages/cli typecheck + `Init.vitest.ts`
+  (incl. new cases) green; D3 — evidence-based (real init run, failure simulation), no code
+  gates beyond re-running D1+D2 gates if code changed; slice-final — packages/cli lint +
+  the package's test suite for touched files. Exact script names discovered by the
+  implementer from `packages/cli/package.json` and recorded in their report.
+- **D11 — Yarn 1 routed to npx (slice spec amended in place).** The D1 reviewer surfaced
+  that Yarn 1 (classic) has no `dlx`, so the spec's runner mapping would assemble a broken
+  `yarn dlx` command (and an equally broken manual-command hint) for `yarn/1.x` user agents.
+  Interactively this would be a `drive-discussion` stop; unattended, the defensible fix is
+  narrow and conventional: parse the yarn major from the user agent and route yarn 1 to the
+  existing `npx --yes` path (yarn-1 setups ship npm). Slice spec amended (edge-case table +
+  chosen design), fix carried into dispatch D2 as an explicitly framed separate commit.
+  Verify by: the yarn-1 unit test added in D2 and the amended spec section.
+- **D12 — Yarn-1-via-lockfile left as accepted residual.** After D2, one gap remains: a yarn
+  classic project detected through `yarn.lock` (no user agent — e.g. a globally installed
+  CLI run directly) still assembles `yarn dlx`, which fails on classic. A lockfile cannot
+  distinguish classic from berry; routing all lockfile-yarn to npx would degrade berry users
+  whose `yarn dlx` works, and sniffing `.yarnrc.yml` is scope growth for a shrinking cohort.
+  The failure path is non-fatal with a printed manual command, so the cost of being wrong is
+  one failed optional step. Recorded in the slice spec's edge-case table; revisit only if
+  real-world reports surface.
+- **D13 — I12 halt resolved: `--copy` added to the skills install (option b).** The D3 live
+  run falsified a spec assumption: skills@1.5.14 with multiple `--agent` values writes only
+  the universal `.agents/skills/` tree — the per-agent symlinks its own output promises are
+  never created (upstream bug), so our init summary advertised a `.claude/skills/` that did
+  not exist. Interactively this was a drive-discussion stop; unattended, intent decides:
+  the project spec names `.claude/skills/` as a place agents look, and prisma-next
+  deliberately materializes both locations — so listing `.agents/` only (option a) would
+  risk non-functioning skills for Claude Code users, defeating the slice's purpose. Chose
+  `--copy` (option b): verifiably produces `.claude/skills/`, `.windsurf/skills/`, and
+  `.agents/skills/` as real copies; costs harmless duplication. Slice spec amended; D3
+  continues in round 2 with the fix + re-captured evidence. An upstream bug report for the
+  symlink no-op is being prepared for the operator to file on vercel-labs/skills.
+  Verify by: R2's live-run capture and the amended spec §§ Chosen design / edge cases.
+- **D14 — AC-3 (tagging ask) accepted as a deferral: external filing is permission-gated.**
+  The sandbox correctly refused `gh issue create` on prisma/skills under the operator's
+  identity without the operator's own approval. The prepared title + body are preserved
+  verbatim in `projects/agent-native/slices/init-skill-install/verification.md` — filing it
+  on Monday is one paste. The slice proceeds to DoD with AC-3 recorded as ACCEPTED DEFERRAL
+  rather than stalling three finished dispatches on an external write only the operator can
+  authorize. Needs your attention Monday: file the tagging ask (and the upstream symlink
+  bug, same file).
