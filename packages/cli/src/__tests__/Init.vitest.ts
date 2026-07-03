@@ -5,8 +5,22 @@ import { join } from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { defaultEnv, defaultSchema, Init } from '../Init'
+import type { InstallSkillsResult } from '../init/skill-install'
+import { installSkills } from '../init/skill-install'
+
+vi.mock('../init/skill-install', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../init/skill-install')>()
+  return {
+    ...original,
+    installSkills: vi.fn(() => Promise.resolve<InstallSkillsResult>({ ok: true })),
+  }
+})
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+beforeEach(() => {
+  vi.mocked(installSkills).mockClear()
+})
 
 test('is schema and env written on disk replace', async () => {
   const recordedStdout = (await Init.new().parse([], defaultTestConfig())).toString()
@@ -522,4 +536,42 @@ test('uses determineClientOutputPath when no output is specified', async () => {
   const config = fs.readFileSync(join(ctx.tmpDir, 'prisma.config.ts'), 'utf-8')
   expect(config).toContain('defineConfig')
   expect(config).toMatchSnapshot()
+})
+
+test('installs agent skills and lists them in the summary', async () => {
+  const recordedStdout = stripAnsi((await Init.new().parse([], defaultTestConfig())).toString())
+
+  expect(installSkills).toHaveBeenCalledTimes(1)
+  expect(installSkills).toHaveBeenCalledWith({ cwd: ctx.tmpDir })
+  expect(recordedStdout).toContain('.claude/skills/')
+  expect(recordedStdout).toContain('.agents/skills/')
+  expect(recordedStdout).toContain('skills-lock.json')
+})
+
+test('--no-skills skips the skills install', async () => {
+  const recordedStdout = stripAnsi((await Init.new().parse(['--no-skills'], defaultTestConfig())).toString())
+
+  expect(installSkills).not.toHaveBeenCalled()
+  expect(recordedStdout).toContain('Initialized Prisma in your project')
+  expect(recordedStdout).not.toContain('skills-lock.json')
+})
+
+test('failed skills install is non-fatal and prints the manual command', async () => {
+  const manualCommand = "npx --yes skills add prisma/skills --skill '*' -y"
+  vi.mocked(installSkills).mockResolvedValueOnce({ ok: false, manualCommand })
+
+  const recordedStdout = stripAnsi((await Init.new().parse([], defaultTestConfig())).toString())
+
+  expect(recordedStdout).toContain('Initialized Prisma in your project')
+  expect(recordedStdout).not.toContain('skills-lock.json')
+
+  const warnings = stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))
+  expect(warnings).toContain('Failed to install Prisma agent skills')
+  expect(warnings).toContain(manualCommand)
+})
+
+test('--help lists the --no-skills flag', async () => {
+  const help = (await Init.new().parse(['--help'], defaultTestConfig())).toString()
+
+  expect(stripAnsi(help)).toContain('--no-skills')
 })

@@ -8,6 +8,9 @@ Initialized Prisma in your project
     schema.prisma
   prisma.config.ts
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -93,6 +96,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -153,6 +159,9 @@ Initialized Prisma in your project
     schema.prisma
   prisma.config.ts
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 warn Prisma would have added DATABASE_URL but it already exists in .env.
 
@@ -216,6 +225,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -277,6 +289,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -338,6 +353,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -405,6 +423,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -466,6 +487,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -527,6 +551,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -589,6 +616,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -651,6 +681,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -706,6 +739,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -761,6 +797,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -816,6 +855,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -871,6 +913,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -926,6 +971,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
@@ -981,6 +1029,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, choose how you want to set up your database:
 
@@ -1024,6 +1075,9 @@ Initialized Prisma in your project
   prisma.config.ts
   .env
   .gitignore
+  .claude/skills/
+  .agents/skills/
+  skills-lock.json
 
 Next, set up your database:
   1. Configure your DATABASE_URL in prisma.config.ts
