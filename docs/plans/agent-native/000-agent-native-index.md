@@ -80,6 +80,7 @@ succeeds by default:
 | 008 | [Move `typedSql` out of hidden preview](./008-unhide-typed-sql.md)                           | prisma-engines + prisma/prisma | Medium   | Planned               | None         |
 | 009 | [Skill: performance investigation](./009-skill-performance.md)                               | prisma/skills                  | Medium   | Planned               | None         |
 | 010 | [Skill: ORM CLI vs platform CLI routing](./010-skill-platform-cli-routing.md)                | prisma/skills                  | Low      | Planned               | None         |
+| 011 | [Skill: MongoDB upgrade path (v6 → Prisma Next)](./011-skill-mongodb-upgrade.md)             | prisma/skills                  | Medium   | Planned               | None         |
 
 ## Execution phases
 
@@ -89,7 +90,7 @@ succeeds by default:
 
 ### Phase 1: Content (parallel, no ORM release required)
 
-- Tasks 004, 005, 006, 007, 009, 010 land in prisma/skills and are immediately useful via
+- Tasks 004, 005, 006, 007, 009, 010, 011 land in prisma/skills and are immediately useful via
   `npx skills add prisma/skills`. They can be authored in parallel by different people.
 - Content quality gates distribution: the generate-time offer (002) should not ship before the
   catalog covers at least tasks 004 and 007.
