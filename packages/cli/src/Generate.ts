@@ -32,6 +32,7 @@ import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
+import { handleSkillsOffer } from './utils/skills/skills-offer'
 
 const pkg = eval(`require('../package.json')`)
 
@@ -40,9 +41,14 @@ const pkg = eval(`require('../package.json')`)
  */
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
+  skillsOfferHandler: () => Promise<{ prompted: boolean }>
 
-  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+  constructor(
+    surveyHandler: () => Promise<void> = handleNpsSurvey,
+    skillsOfferHandler: () => Promise<{ prompted: boolean }> = handleSkillsOffer,
+  ) {
     this.surveyHandler = surveyHandler
+    this.skillsOfferHandler = skillsOfferHandler
   }
 
   public static new(): Generate {
@@ -268,7 +274,11 @@ ${breakingChangesStr}${versionsWarning}`
         throw new Error(message)
       } else {
         if (!hideHints) {
-          await this.surveyHandler()
+          // at most one prompt per generate run: the offer preempts the survey
+          const { prompted } = await this.skillsOfferHandler()
+          if (!prompted) {
+            await this.surveyHandler()
+          }
         }
 
         return message
