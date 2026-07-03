@@ -4,9 +4,9 @@
 
 ## Summary
 
-- **Current verdict:** S3-D2 R1 — SATISFIED (slice-final; slice 3 at DoD)
-- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1, D2 (slice-final)
-- **AC scoreboard totals:** 7 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
+- **Current verdict:** S4-D1 R1 — SATISFIED (Half A; slice 4 paused at the publish boundary by design)
+- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1, D2 (slice-final) — S4: D1 (Half A)
+- **AC scoreboard totals:** 8 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3) / 1 OUT OF SCOPE (AC-10, deferred by design)
 - **Open findings:** 0
 - **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
@@ -24,6 +24,8 @@
 | AC-6 | Non-TTY / CI-env run shows no prompt (capture) | S2-D3 | PASS | Live non-TTY capture: no prompt, generate normal, no acknowledgement written (`verification.md`); matches code — gate short-circuits precede any `writeAcknowledgement`, per the spec's after-prompt-only persistence |
 | AC-7 | Both-directions MCP safety test (marker → consent text, no success; no marker → no consent text), DB-free, CI-runnable | S3-D1 (authored + green) | PASS | `packages/cli/src/__tests__/mcp-safety.vitest.ts` (commit `e05f5a66c`): real server over stdio, curated allowlist env, sqlite scratch project (offline, no generator); marker case demands the consent var name + stop-and-respond wording and forbids the success line; CI-runnability rests on the established built-CLI precondition, made fail-clear by a module-level throw (precedent: `dependent-generator.test.ts`) |
 | AC-8 | `migrate-reset` tool description mentions the AI-agent gate + consent protocol | S3-D2 | PASS | Description paragraph verified on disk in `packages/cli/src/mcp/MCP.ts` (commit `bb4435f42`): names the gate, states the database is NOT reset when blocked, pre-frames the `Command failed with exit code 1: ...` error report, instructs stop → relay consent instructions → proceed only as the user directs; matches the pinned behavior from `e05f5a66c`; `tools/list` capture in `slices/safety-mcp-audit/verification.md` |
+| AC-9 | Engines PR open: `TypedSql` active, hidden loses it, list-pinning tests updated | S4-D1 | PASS | prisma-engines PR [#5836](https://github.com/prisma/prisma-engines/pull/5836) OPEN, commit `94c2c1f09a1` verified on disk at `/tmp/prisma-engines-compact-plan-format`: `\| TypedSql` in `active` (declaration-order position between `StrictUndefinedChecks` and `Views`), `hidden` now `{ReactNative}`, exactly the two list-embedding tests updated (one line each, ANSI escapes untouched); no other `TypedSql` reference in `psl/` outside `preview_features.rs`; PR body accurate for a cold reviewer (visibility-only, CLICOLOR_FORCE note, CI as remaining surface) |
+| AC-10 | Half B: `typedSql` visible in prisma/prisma via bumped `@prisma/prisma-schema-wasm`; no behavior change for schemas already enabling it | post-weekend | OUT OF SCOPE — deferred by design past the wasm-publish boundary | Prep note with bump steps and expected snapshot fallout recorded in `slices/typed-sql-unhide/verification.md § Half B`; tracked on TML-2970 |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -135,6 +137,18 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan on `bb4435f42`: zero hits.
 
 **For orchestrator:** none. (The update-message-in-tool-output observation is already recorded in `verification.md` / `learnings.md` as a follow-up-ticket candidate.)
+
+### S4-D1 R1 — SATISFIED (Half A)
+
+**Scope:** S4-D1 (typedSql unhide, Half A — cross-repo). prisma-engines checkout `/tmp/prisma-engines-compact-plan-format`, branch `chore/unhide-typed-sql-preview-feature` (clean, pushed, in sync with origin), commit `94c2c1f09a1`, PR [#5836](https://github.com/prisma/prisma-engines/pull/5836) (OPEN).
+
+**Tasks:** S4-D1 clean — `| TypedSql` added to `active` and removed from `hidden` (now `{ReactNative}`) in `preview_features.rs`; the diff touches exactly the two tests embedding the rendered visible-features list, one line each, with pre-existing ANSI escapes identical on both sides (no color-incident churn leaked); `typedSql`'s rendered position between `strictUndefinedChecks` and `views` matches enum declaration order; `rg` confirms no other `TypedSql` reference in `psl/` outside the classification file. PR body verified via `gh pr view`: accurate cold-reviewer story (visibility-only, reactNative stays hidden, GA out of scope, `CLICOLOR_FORCE=1` validation note, CI as the remaining surface). Half B prep note recorded in `slices/typed-sql-unhide/verification.md`. Gates trusted green (1,297 psl tests with `CLICOLOR_FORCE=1`, psl-core all-features, `cargo fmt --check`).
+
+**AC delta:** AC-9 added → PASS (PR #5836 + commit `94c2c1f09a1`). AC-10 added → OUT OF SCOPE (deferred by design past the wasm-publish boundary; prep note in `verification.md § Half B`).
+
+**Findings:** none. Transient-ID scan on `94c2c1f09a1`: zero hits (PR-body project provenance is deliberate, per protocol).
+
+**For orchestrator:** Half B's re-entry trigger is external (engines merge + `@prisma/prisma-schema-wasm` dev publish) — worth a tracked reminder alongside the Monday filings so the slice does not silently stall at the boundary.
 
 ## Orchestrator notes
 

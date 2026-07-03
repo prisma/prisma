@@ -23,3 +23,7 @@ lessons migrate to durable docs, project-local ones drop with the project folder
   ticket at close-out (MCP output hygiene). Also: execa v5's error message prefixes child
   stderr with "Command failed with exit code 1: <command>", which is what an MCP client
   sees before the consent text.
+- **2026-07-04 (S4-D1):** prisma-engines' psl expect-tests embed ANSI color codes in their
+  snapshots; a non-TTY `cargo test -p psl` run fails hundreds of them spuriously. CI sets
+  `CLICOLOR_FORCE=1` (only documented in the workflow YAML) — set it for local runs.
+  Candidate for the engines-side notes in `drive/plan/README.md` at close-out.
