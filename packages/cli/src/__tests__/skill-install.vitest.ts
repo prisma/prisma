@@ -42,6 +42,7 @@ const skillsCliArgs = [
   ...SKILL_AGENTS,
   '--skill',
   '*',
+  '--copy',
   '-y',
 ]
 
@@ -183,7 +184,7 @@ describe('failure handling', () => {
 
     expect(result).toEqual({
       ok: false,
-      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
+      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' --copy -y`,
     })
   })
 
@@ -200,7 +201,7 @@ describe('failure handling', () => {
 
     expect(result).toEqual({
       ok: false,
-      manualCommand: `pnpm dlx skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
+      manualCommand: `pnpm dlx skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' --copy -y`,
     })
   })
 
@@ -217,7 +218,7 @@ describe('failure handling', () => {
 
     expect(result).toEqual({
       ok: false,
-      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
+      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' --copy -y`,
     })
   })
 })

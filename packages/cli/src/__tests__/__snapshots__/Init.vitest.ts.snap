@@ -9,6 +9,7 @@ Initialized Prisma in your project
   prisma.config.ts
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -97,6 +98,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -160,6 +162,7 @@ Initialized Prisma in your project
   prisma.config.ts
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -226,6 +229,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -290,6 +294,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -354,6 +359,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -424,6 +430,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -488,6 +495,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -552,6 +560,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -617,6 +626,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -682,6 +692,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -740,6 +751,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -798,6 +810,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -856,6 +869,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -914,6 +928,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -972,6 +987,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -1030,6 +1046,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 
@@ -1076,6 +1093,7 @@ Initialized Prisma in your project
   .env
   .gitignore
   .claude/skills/
+  .windsurf/skills/
   .agents/skills/
   skills-lock.json
 

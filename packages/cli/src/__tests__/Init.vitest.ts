@@ -544,6 +544,7 @@ test('installs agent skills and lists them in the summary', async () => {
   expect(installSkills).toHaveBeenCalledTimes(1)
   expect(installSkills).toHaveBeenCalledWith({ cwd: ctx.tmpDir })
   expect(recordedStdout).toContain('.claude/skills/')
+  expect(recordedStdout).toContain('.windsurf/skills/')
   expect(recordedStdout).toContain('.agents/skills/')
   expect(recordedStdout).toContain('skills-lock.json')
 })

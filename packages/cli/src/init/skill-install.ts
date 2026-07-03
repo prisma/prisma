@@ -111,6 +111,11 @@ function installArgs(runner: Runner): string[] {
     ...SKILL_AGENTS,
     '--skill',
     '*',
+    // Copies skills into each agent's own directory. The default layout
+    // (universal directory + symlinks for agents that need their own) does
+    // not create the promised symlinks in multi-agent installs as of
+    // skills@1.5.14, leaving Claude Code and Windsurf without the files.
+    '--copy',
     '-y',
   ]
 }

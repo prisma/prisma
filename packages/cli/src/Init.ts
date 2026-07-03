@@ -726,7 +726,9 @@ Next, set up your database:
 ${connectExistingDatabaseSteps}`
     }
 
-    const skillsSummary = skillsInstalled ? '\n  .claude/skills/\n  .agents/skills/\n  skills-lock.json' : ''
+    const skillsSummary = skillsInstalled
+      ? '\n  .claude/skills/\n  .windsurf/skills/\n  .agents/skills/\n  skills-lock.json'
+      : ''
 
     const defaultOutput = `
 Initialized Prisma in your project
