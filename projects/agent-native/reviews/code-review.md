@@ -4,9 +4,9 @@
 
 ## Summary
 
-- **Current verdict:** D3 R2 — SATISFIED (slice-final)
-- **Dispatches SATISFIED:** D1, D2, D3
-- **AC scoreboard totals:** 2 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
+- **Current verdict:** S2-D1 R1 — SATISFIED
+- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1
+- **AC scoreboard totals:** 2 PASS / 0 FAIL / 3 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
 - **Open findings:** 0
 - **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
@@ -19,6 +19,9 @@
 | AC-1 | Real `prisma init` run produces `.claude/skills/prisma-*`, `.windsurf/skills/prisma-*`, `.agents/skills/prisma-*`, `skills-lock.json`; evidence captured | D3 | PASS | Live capture in `slices/init-skill-install/verification.md § Final captures` (exit 0; 8 skills × 3 dirs = 24 `SKILL.md`; `find -type l` = 0); code claims verified on disk at commit `ca261b483` (`--copy` in `installArgs`, four-line summary in `Init.ts:730`, asserted in `Init.vitest.ts` + 18 snapshots) |
 | AC-2 | Simulated install failure leaves init exit 0 with manual-command hint | D2 (tests) + D3 (live) | PASS | Tests: mocked failure leaves `Init.parse` resolving normally with `console.warn` carrying the manual command (`packages/cli/src/__tests__/Init.vitest.ts`, commit `1f5058f5e`); runner failure shape unit-verified in `skill-install.vitest.ts` (commits `a84a3e46a`, `ca261b483`). Live: unreachable-registry run exit 0 with `--copy`-bearing manual command (`verification.md § Final captures`) |
 | AC-3 | Per-ORM-minor tagging ask filed on prisma/skills, URL recorded | D3 | ACCEPTED DEFERRAL — `unattended-decisions.md` D14 | Sandbox correctly refused external issue creation under the operator's identity; prepared title + body preserved in `verification.md § Operator to-do` for the operator to file |
+| AC-4 | Live TTY once-ever demo: first `prisma generate` shows the offer, declining writes `skills-offer.json`, second run silent; captured | S2-D3 | NOT VERIFIED — S2-D2/D3 pending | Substrate verified S2-D1: gates, prompt, four-outcome persistence unit-tested (`packages/cli/src/__tests__/skills-offer.vitest.ts`, commit `9966964c1`) |
+| AC-5 | Accept path demonstrated live: skills land via S1 runner | S2-D3 | NOT VERIFIED — S2-D2/D3 pending | Substrate verified S2-D1: accept invokes injected runner with `{ cwd }`; failure prints init-style manual-command warning (commit `9966964c1`) |
+| AC-6 | Non-TTY / CI-env run shows no prompt (capture) | S2-D3 | NOT VERIFIED — S2-D2/D3 pending | Substrate verified S2-D1: every environment gate short-circuits without prompting, ack, or telemetry (commit `9966964c1`) |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -70,6 +73,18 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan on `ca261b483`: zero hits. Snapshot delta verified: exactly 18 × `+  .windsurf/skills/`, zero removals. Untouched mock `manualCommand` literal in the Init failure test accepted — an opaque injected value testing pass-through printing, not command assembly.
 
 **For orchestrator:** Operator Monday to-do stands — file the tagging ask and the upstream symlink bug from `verification.md § Operator to-do`, then record the URLs.
+
+### S2-D1 R1 — SATISFIED
+
+**Scope:** S2-D1 (offer module + shared timeout helper), branch `tml-2971-s2-one-time-skill-offer-on-prisma-generate` stacked on `ca261b483`. Commit `9966964c1`.
+
+**Tasks:** S2-D1 clean — gate chain matches the spec order exactly (ack file → already-installed with `already-installed` ack write → interactive → Deno → CI → git hook → npm hook → container → `daysSinceFirstCommand >= 1`); prompt text, 30s timeout-to-No, and four-outcome `skills-offer.json` persistence as specced; accept path calls S1 `installSkills({ cwd })` with init's warning pattern; `skills_offer_resolved { outcome, cliVersion }` fires only when prompted; `timeout()` extracted verbatim to `utils/prompt-timeout.ts` with `survey.ts` touched for the import swap only (`createSafeReadlineProxy` was already exported). 27 tests verified on disk, non-tautological (real fs, injected prompt/capture/runner, fake-timer timeout with timer-count guard). Gates trusted green (vitest 27/27, jest nps 14/14, tsc, eslint).
+
+**AC delta:** none promoted (AC-4..6 are S2-D3-owned; rows added with substrate evidence).
+
+**Findings:** none. Transient-ID scan on `9966964c1`: zero hits.
+
+**For orchestrator:** For S2-D3 planning, the implementer's observation matters: `loadOrInitializeCommandState` writes `commands.json` without creating the config dir, so the isolated `env-paths` dir used for live captures must be pre-created — otherwise the state loader rejects and the days gate silently suppresses the demo prompt.
 
 ## Orchestrator notes
 
