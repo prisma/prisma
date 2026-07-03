@@ -12,3 +12,8 @@ lessons migrate to durable docs, project-local ones drop with the project folder
 - **2026-07-03 (D1):** The upstream `skills` CLI is `skills` on npm (vercel-labs/skills),
   v1.5.14 at pin time — the version literal lives in
   `packages/cli/src/init/skill-install.ts` as `SKILLS_CLI_VERSION`.
+- **2026-07-03 (S2-D2):** `packages/cli` Jest suites with DB-touching subprocess tests
+  (e.g. `commands/Generate.test.ts`) fail on bare `pnpm exec jest <file>` with
+  "Cannot resolve environment variable: TEST_MYSQL_URI" — invoke via
+  `pnpm exec dotenv -e ../../.db.env -- jest <file>` (what the package `test` script does).
+  Candidate for `drive/plan/README.md` validation-gate overlay at close-out.

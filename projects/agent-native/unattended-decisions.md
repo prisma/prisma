@@ -88,3 +88,9 @@ logged here, newest last.
   rather than stalling three finished dispatches on an external write only the operator can
   authorize. Needs your attention Monday: file the tagging ask (and the upstream symlink
   bug, same file).
+- **D15 — Session-limit stall handling.** The first S2-D3 invocation was cut short by an
+  account session limit (reset 20:50 Berlin) before any work started. Policy adopted: retry
+  the identical dispatch once (the persistent implementer reconciles any partial work from
+  its transcript and scratch dirs); if the retry also bounces on the limit, pause the loop
+  and resume after the reset rather than burning invocations. No trace events re-emitted —
+  the S2-D3 round was already open and no work occurred.

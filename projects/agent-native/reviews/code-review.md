@@ -4,9 +4,9 @@
 
 ## Summary
 
-- **Current verdict:** S2-D1 R1 — SATISFIED
-- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1
-- **AC scoreboard totals:** 2 PASS / 0 FAIL / 3 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
+- **Current verdict:** S2-D3 R1 — SATISFIED (slice-final; slice 2 at DoD)
+- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final)
+- **AC scoreboard totals:** 5 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3)
 - **Open findings:** 0
 - **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
@@ -19,9 +19,9 @@
 | AC-1 | Real `prisma init` run produces `.claude/skills/prisma-*`, `.windsurf/skills/prisma-*`, `.agents/skills/prisma-*`, `skills-lock.json`; evidence captured | D3 | PASS | Live capture in `slices/init-skill-install/verification.md § Final captures` (exit 0; 8 skills × 3 dirs = 24 `SKILL.md`; `find -type l` = 0); code claims verified on disk at commit `ca261b483` (`--copy` in `installArgs`, four-line summary in `Init.ts:730`, asserted in `Init.vitest.ts` + 18 snapshots) |
 | AC-2 | Simulated install failure leaves init exit 0 with manual-command hint | D2 (tests) + D3 (live) | PASS | Tests: mocked failure leaves `Init.parse` resolving normally with `console.warn` carrying the manual command (`packages/cli/src/__tests__/Init.vitest.ts`, commit `1f5058f5e`); runner failure shape unit-verified in `skill-install.vitest.ts` (commits `a84a3e46a`, `ca261b483`). Live: unreachable-registry run exit 0 with `--copy`-bearing manual command (`verification.md § Final captures`) |
 | AC-3 | Per-ORM-minor tagging ask filed on prisma/skills, URL recorded | D3 | ACCEPTED DEFERRAL — `unattended-decisions.md` D14 | Sandbox correctly refused external issue creation under the operator's identity; prepared title + body preserved in `verification.md § Operator to-do` for the operator to file |
-| AC-4 | Live TTY once-ever demo: first `prisma generate` shows the offer, declining writes `skills-offer.json`, second run silent; captured | S2-D3 | NOT VERIFIED — S2-D2/D3 pending | Substrate verified S2-D1: gates, prompt, four-outcome persistence unit-tested (`packages/cli/src/__tests__/skills-offer.vitest.ts`, commit `9966964c1`) |
-| AC-5 | Accept path demonstrated live: skills land via S1 runner | S2-D3 | NOT VERIFIED — S2-D2/D3 pending | Substrate verified S2-D1: accept invokes injected runner with `{ cwd }`; failure prints init-style manual-command warning (commit `9966964c1`) |
-| AC-6 | Non-TTY / CI-env run shows no prompt (capture) | S2-D3 | NOT VERIFIED — S2-D2/D3 pending | Substrate verified S2-D1: every environment gate short-circuits without prompting, ack, or telemetry (commit `9966964c1`) |
+| AC-4 | Live TTY once-ever demo: first `prisma generate` shows the offer, declining writes `skills-offer.json`, second run silent; captured | S2-D3 | PASS | Live pty capture in `slices/generate-skill-offer/verification.md` (decline → `outcome: "declined"` ack; second run silent, exit 0); prompt text and persistence shape match code verified at `9966964c1` (`skills-offer.vitest.ts`) |
+| AC-5 | Accept path demonstrated live: skills land via S1 runner | S2-D3 | PASS | Live capture: accept → 24 `SKILL.md` (8 × `.agents`/`.claude`/`.windsurf`) + `skills-lock.json`, ack `outcome: "accepted"` (`verification.md`); matches S1 `--copy` behavior and the ack→install ordering verified at `9966964c1` |
+| AC-6 | Non-TTY / CI-env run shows no prompt (capture) | S2-D3 | PASS | Live non-TTY capture: no prompt, generate normal, no acknowledgement written (`verification.md`); matches code — gate short-circuits precede any `writeAcknowledgement`, per the spec's after-prompt-only persistence |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -85,6 +85,30 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan on `9966964c1`: zero hits.
 
 **For orchestrator:** For S2-D3 planning, the implementer's observation matters: `loadOrInitializeCommandState` writes `commands.json` without creating the config dir, so the isolated `env-paths` dir used for live captures must be pre-created — otherwise the state loader rejects and the days gate silently suppresses the demo prompt.
+
+### S2-D2 R1 — SATISFIED
+
+**Scope:** S2-D2 (Generate wiring + mutual exclusion). Commit `744539ec0`.
+
+**Tasks:** S2-D2 clean — `skillsOfferHandler` constructor param defaults to `handleSkillsOffer`, mirroring the adjacent `surveyHandler` seam; sole call site sits inside the existing `!hideHints` guard in the non-watch success path, offer first, survey only when `prompted === false` (`Generate.ts:274-281`); watch branch structurally never reaches the block and the new watch test pins it. Four tests replace the two survey tests with no coverage loss (survey-called-when-hints-enabled is subsumed by the ordering assertion `['offer', 'survey']`; not-called-with-`--no-hints` is extended to both handlers) plus two new behaviors (prompted → survey skipped; watch → neither). All four inject both handlers; the module-wide `Watcher` mock is exercised only by the watch test — no other test in the file constructs a `Watcher`. Gates trusted green (jest Generate 42/42, jest nps 14/14, tsc, eslint).
+
+**AC delta:** none promoted (AC-4..6 are S2-D3-owned; reasons updated to "S2-D3 pending").
+
+**Findings:** none. Transient-ID scan on `744539ec0`: zero hits.
+
+**For orchestrator:** none.
+
+### S2-D3 R1 — SATISFIED (slice-final)
+
+**Scope:** S2-D3 (live TTY evidence; no code changes). Worktree verified clean, branch `tml-2971-s2-one-time-skill-offer-on-prisma-generate` unchanged at `744539ec0` (`9966964c1` → `744539ec0` atop S1's `ca261b483`).
+
+**Tasks:** Evidence in `slices/generate-skill-offer/verification.md` cross-checks against the code verified in S2-D1/D2 with no inconsistency: prompt text verbatim from `promptForInstall`; decline/accept acks match the persistence shape and ack→install ordering; second-run silence matches the ack-file gate; accept lands 24 `SKILL.md` + `skills-lock.json` per S1's `--copy`; both environment traps (pre-created `prisma-nodejs` config dir, aged `commands.json`) applied; container/CI gates verified against real implementations. The no-ack-on-gated-out nuance is blessed: the spec ties persistence to prompt resolution (or already-installed), so gated-out runs correctly leave the offer available. The cosmetic install-output-before-summary ordering is expected from `Generate.parse` returning the message for the caller to print.
+
+**AC delta:** AC-4, AC-5, AC-6 NOT VERIFIED → PASS (`verification.md` + commits `9966964c1`/`744539ec0`). Slice 2 at DoD.
+
+**Findings:** none. No new commits — worktree/branch check performed in lieu of the transient-ID scan.
+
+**For orchestrator:** The captures' NPS silence is partly environmental (no active NPS timeframe remotely); mutual exclusion rests on the S2-D2 unit tests, which I judge adequate — no live NPS-collision capture needed.
 
 ## Orchestrator notes
 
