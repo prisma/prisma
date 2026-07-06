@@ -14,7 +14,7 @@ distribution, adapted to the stable CLI's constraints.
 
 - Shells out to the upstream `skills` CLI, once per skill source, fully non-interactive:
 
-  ```
+  ```bash
   pnpm dlx skills@latest add prisma/prisma-next/skills#v<cliVersion> \
     --agent cursor claude-code codex windsurf --skill '*' -y
   ```

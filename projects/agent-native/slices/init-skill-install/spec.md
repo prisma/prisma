@@ -48,7 +48,7 @@ New module `packages/cli/src/init/skill-install.ts`:
   still succeeds.
 
 Install source is the prisma/skills default branch for now; `#v<tag>` pinning activates once
-the skills repo tags releases (ask filed as part of this slice — a GitHub issue on
+the skills repo tags releases (ask prepared as part of this slice — a GitHub issue on
 prisma/skills requesting per-ORM-minor tags).
 
 ## Coherence rationale
@@ -89,7 +89,10 @@ committed).
       output) attached to the PR description.
 - [ ] A simulated install failure (runner pointed at an unreachable version) leaves init
       exit-code 0 with the manual-command hint printed.
-- [ ] The tagging ask is filed on prisma/skills and linked from the PR.
+- [ ] The tagging ask is prepared verbatim and filed on prisma/skills — filing was
+      permission-gated unattended, so it stands as an accepted deferral
+      (`unattended-decisions.md` D14; body in `verification.md § Operator to-do`) until the
+      operator files it and records the URL.
 
 ## Open Questions
 

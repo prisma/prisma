@@ -37,10 +37,13 @@ and `drive/` files).
 ### Dispatch 3: end-to-end evidence and externalities
 
 - **Outcome:** The three slice-DoD conditions hold with evidence: (a) a real `prisma init`
-  run in a scratch directory (built CLI, live network) produces `.claude/skills/prisma-*/`
-  and `.agents/skills/prisma-*/` — command + output captured; (b) a simulated failure
+  run in a scratch directory (built CLI, live network) produces `.claude/skills/prisma-*/`,
+  `.windsurf/skills/prisma-*/`, `.agents/skills/prisma-*/`, and `skills-lock.json` —
+  command + output captured; (b) a simulated failure
   (unreachable `skills` version) leaves exit code 0 with the hint printed — output captured;
-  (c) the per-ORM-minor tagging ask is filed on prisma/skills via `gh` and its URL recorded.
+  (c) the per-ORM-minor tagging ask is filed on prisma/skills via `gh` and its URL recorded
+  (as executed: filing was permission-gated → accepted deferral D14, body preserved for the
+  operator).
   Evidence lands in a `## Verification` block appended to this plan file.
 - **Builds on:** Dispatch 2's feature-complete behavior (and Dispatch 1's `manualCommand`
   shape for the failure capture).

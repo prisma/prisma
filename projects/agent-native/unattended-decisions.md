@@ -94,3 +94,15 @@ logged here, newest last.
   its transcript and scratch dirs); if the retry also bounces on the limit, pause the loop
   and resume after the reset rather than burning invocations. No trace events re-emitted —
   the S2-D3 round was already open and no work occurred.
+- **D16 — CodeRabbit response round (operator-directed, 2026-07-06).** Nine inline comments
+  triaged across the open PRs. Accepted and fixed: execa timeout in the S1 runner; two
+  test-robustness fixes on S3 (config-dist precondition, connect-inside-try); `.windsurf`
+  added to S2's already-installed markers (code + spec — CodeRabbit flagged the spec, the
+  code had to follow); living-document consistency fixes in the S1 plan/spec (windsurf
+  layout, tagging-ask deferral wording) and one markdown language tag in
+  `docs/plans/agent-native/001-*.md` (a one-line docs/ edit made directly under the
+  orchestrator escape hatch rather than dispatching — logged here as the boundary
+  exception). Declined with replies: two suggestions to rewrite issued dispatch briefs —
+  briefs are point-in-time records whose sha256 content hashes are recorded in
+  `trace.jsonl` (`brief-issued` events); rewriting them would falsify the trace, and the
+  living artifacts already carry the corrected content.

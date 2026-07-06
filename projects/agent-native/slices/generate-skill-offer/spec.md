@@ -22,7 +22,8 @@ an offer failure must never fail `generate`.
 1. No acknowledgement: `skills-offer.json` absent from `env-paths('prisma').config` (the
    directory `nps.json` lives in).
 2. Skills not already present in the project: no `skills-lock.json` and no
-   `.claude/skills/prisma-*` / `.agents/skills/prisma-*` under `process.cwd()`. If present,
+   `.claude/skills/prisma-*` / `.windsurf/skills/prisma-*` / `.agents/skills/prisma-*`
+   under `process.cwd()`. If present,
    write the acknowledgement with outcome `already-installed` and return (never scan again).
 3. `isInteractive()` (from `@prisma/internals`), not Deno (same guard/rationale as
    `survey.ts` — readline on Deno blocks generate), `!isCi()`, `!maybeInGitHook()`,
