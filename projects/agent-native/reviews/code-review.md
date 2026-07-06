@@ -4,7 +4,7 @@
 
 ## Summary
 
-- **Current verdict:** S5-D2 R1 — SATISFIED (slice-final; slice 5 at DoD pending human merge of PR #20)
+- **Current verdict:** CodeRabbit R1 — SATISFIED (cross-slice hardening fixes on the three open ORM PRs; no AC changes)
 - **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1, D2 (slice-final) — S4: D1 (Half A) — S5: D2 (slice-final; D1 was the probe, no code)
 - **AC scoreboard totals:** 9 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3) / 1 OUT OF SCOPE (AC-10, deferred by design)
 - **Open findings:** 0
@@ -162,6 +162,18 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan on `8932c0e`: zero hits — no plan IDs, tickets, or project paths in the skill content.
 
 **For orchestrator:** none new. (The skills-CLI agent-roster growth observation and the AGENTS.md nesting divergence are already recorded in the slice `verification.md`.)
+
+### CodeRabbit R1 — SATISFIED
+
+**Scope:** Cross-slice fix round per `unattended-decisions.md` D16. Commits `65eac77df` (S1 branch), `b7edbaa26` (S2 branch), `20821317a` (S3 branch) — each verified at its branch tip, all pushed.
+
+**Tasks:** All three diffs match their stated fixes exactly, nothing else touched. (1) `defaultExec` gains `timeout: 60_000` + why-comment; a killed child rejects into the existing failure shape. (2) `.windsurf/skills` added as the third already-installed marker with a matching `test.each` case and a non-prisma windsurf entry in the negative test; code + tests now agree with the amended S2 spec § gate 2 (four markers). (3) `@prisma/config` dist precondition in the established fail-clear style; `connect()` moved inside try/finally with a why-comment — SDK `close()` verified at source as `await this._transport?.close()`, a resolved no-op on an unconnected client, so the three passing cases are unaffected. Stacking property confirmed: the S2 branch's copy of `skill-install.ts` deliberately lacks the timeout (S2 stacks on `ca261b483`; it inherits the fix when retargeted after S1 merges) — correctly flagged, not a defect. Gates trusted green (17/17, 28/28, 3/3 ×2; tsc + eslint per branch).
+
+**AC delta:** none (hardening only; existing evidence commits remain valid).
+
+**Findings:** none. Transient-ID scan across all three commits: zero hits.
+
+**For orchestrator:** none.
 
 ## Orchestrator notes
 
