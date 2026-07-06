@@ -106,3 +106,14 @@ logged here, newest last.
   briefs are point-in-time records whose sha256 content hashes are recorded in
   `trace.jsonl` (`brief-issued` events); rewriting them would falsify the trace, and the
   living artifacts already carry the corrected content.
+- **D17 — Operator review round on skills#20 + engines#5836 (2026-07-06, operator present).**
+  Operator ground truth supersedes the S5 probe's roadmap reading: MongoDB in Prisma Next is
+  **Early Access, past POC**, GA planned after Postgres, and the product intent is to
+  encourage migration/early feedback. S5 slice spec amended (Chosen design § Operator
+  correction); skill reframed accordingly (plus: agent self-checks instead of user
+  questions, internal filenames removed from user-facing prose, driver accessibility stated
+  affirmatively). Engines style suggestion applied. Retro-note: the S1 retro's "probe
+  empirically" rule worked, but a probe of *documents* (ROADMAP.md) is still a document
+  read — staleness of the source is part of the probe. Pending: the operator-requested
+  Linear ticket (update the skill when Mongo transactions merge) is blocked on Linear
+  connector re-authorization.

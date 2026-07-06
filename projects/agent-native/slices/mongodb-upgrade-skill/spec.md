@@ -23,6 +23,18 @@ prisma/skills `main` (WRITE access verified 2026-07-03).
   Next path framed as emerging. **If the probe finds no MongoDB support in Next at all, that
   is an I12 halt** — the slice's premise (operator-stated: "only v8/Next does") would be
   falsified and the operator decides.
+- **Operator correction (2026-07-06, PR review):** the probe's POC verdict over-trusted a
+  stale `ROADMAP.md` (~4 months old). Ground truth from the operator: **MongoDB in Prisma
+  Next is Early Access, past POC, and planned for GA after Postgres** — and the product
+  intent is to **encourage** MongoDB users to migrate and gather their feedback early, not
+  to counsel waiting. The skill's lead is therefore: migrating to Next (EA) is the
+  encouraged path; staying on v6 remains a legitimate choice where hard blockers apply
+  (e.g. façade transactions), stated honestly without EA scare-framing. Decision questions
+  the agent can answer from the codebase (e.g. `$transaction` usage) are phrased as agent
+  checks, not questions to the user. Internal prisma-next file paths stay out of the
+  user-facing skill body (they live in this project's verification record); the skill also
+  notes that the underlying `mongodb` driver is directly accessible in Next (peer dep), so
+  driver-level capabilities are available even where the façade lacks a wrapper.
 - **Skill layout** (per the repo's AGENTS.md conventions — kebab-case dir prefixed
   `prisma-`, exact `SKILL.md` filename, frontmatter `name`/`description`/`license: MIT`/
   `metadata: {author: prisma, version}`, `references/{category}-{rule}.md`):
