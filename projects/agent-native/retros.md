@@ -11,8 +11,8 @@ created (upstream bug). The slice spec — and the D2 summary lines built on it 
 layout that did not exist on disk. Resolved by amending the spec to pass `--copy` (decision
 D13); one extra round.
 
-**Root cause:** the slice-spec grounding step covered *our* codebase thoroughly but took
-the *external* CLI's behavior on faith (its README, its own progress output, and prisma-next's
+**Root cause:** the slice-spec grounding step covered _our_ codebase thoroughly but took
+the _external_ CLI's behavior on faith (its README, its own progress output, and prisma-next's
 described outcome). No empirical probe of `skills add` was run until the final verification
 dispatch — the slice's only contact with external reality was scheduled last, so a wrong
 assumption could not surface any earlier. The proximate reading ("upstream bug") is true but

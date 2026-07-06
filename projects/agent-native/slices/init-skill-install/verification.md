@@ -7,12 +7,12 @@ spec amendment (D13) and the upstream bug report.
 
 ## skills@1.5.14 layout characterization (D3 R1 probes)
 
-| Invocation | Result on disk |
-| --- | --- |
-| `--agent cursor claude-code codex windsurf` | `.agents/skills/*` + `skills-lock.json` only; promised Claude Code/Windsurf symlinks absent |
-| `--agent claude-code windsurf` | still `.agents/skills/*` only |
-| `--agent claude-code` (single) | `.claude/skills/*` (copied) |
-| `--agent cursor claude-code codex windsurf --copy` | `.agents/skills/*` + `.claude/skills/*` + `.windsurf/skills/*` |
+| Invocation                                         | Result on disk                                                                              |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `--agent cursor claude-code codex windsurf`        | `.agents/skills/*` + `skills-lock.json` only; promised Claude Code/Windsurf symlinks absent |
+| `--agent claude-code windsurf`                     | still `.agents/skills/*` only                                                               |
+| `--agent claude-code` (single)                     | `.claude/skills/*` (copied)                                                                 |
+| `--agent cursor claude-code codex windsurf --copy` | `.agents/skills/*` + `.claude/skills/*` + `.windsurf/skills/*`                              |
 
 Also verified: failure path (unreachable registry) leaves init exit 0 with the manual-command
 warning; `--no-skills` produces no agent artifacts; `owner/repo#ref` sources work
@@ -93,12 +93,12 @@ Windsurf`. On disk afterwards there is only `.agents/skills/*` and `skills-lock.
 
 ## Observed matrix (skills@1.5.14, Linux, non-interactive `-y`)
 
-| Invocation | Result on disk |
-| --- | --- |
-| `--agent cursor claude-code codex windsurf` | `.agents/skills/*` + `skills-lock.json` only; promised symlinks absent |
-| `--agent claude-code windsurf` (no universal-dir agent) | still `.agents/skills/*` only |
-| `--agent claude-code` (single agent) | `.claude/skills/*` (copied) — works |
-| `--agent cursor claude-code codex windsurf --copy` | `.agents/skills/*` + `.claude/skills/*` + `.windsurf/skills/*` — works |
+| Invocation                                              | Result on disk                                                         |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `--agent cursor claude-code codex windsurf`             | `.agents/skills/*` + `skills-lock.json` only; promised symlinks absent |
+| `--agent claude-code windsurf` (no universal-dir agent) | still `.agents/skills/*` only                                          |
+| `--agent claude-code` (single agent)                    | `.claude/skills/*` (copied) — works                                    |
+| `--agent cursor claude-code codex windsurf --copy`      | `.agents/skills/*` + `.claude/skills/*` + `.windsurf/skills/*` — works |
 
 Reproduced identically in a scrubbed environment (`env -i`), so agent-session detection
 ("Agent detected — installing non-interactively") is not the trigger.

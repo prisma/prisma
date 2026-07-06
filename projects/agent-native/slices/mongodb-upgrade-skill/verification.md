@@ -1,5 +1,16 @@
 # Verification record — mongodb-upgrade-skill
 
+## Pending Linear ticket (blocked on connector re-auth; file on restoration)
+
+Target project: [SQLite and MongoDB transactions](https://linear.app/prisma-company/project/sqlite-and-mongodb-transactions-860f63d3d786/overview)
+(operator-provided, PR #20 thread). Title: **Update prisma-mongodb-upgrade skill once
+MongoDB transactions land**. Body: when façade transactions (`db.transaction(...)`) merge
+for MongoDB, refresh prisma/skills `prisma-mongodb-upgrade`: the SKILL.md decision-table
+transactions row + "expected to change soon" note, the blocker-check in
+`references/decision-stay-or-migrate.md`, the transactions row/example in
+`references/client-api-mapping.md` (raw-driver session workaround → façade API), and
+cutover-checklist item 7. Origin: skills#20 review (aqrln), agent-native project TML-2973.
+
 ## Probe verdict (S5-D1, 2026-07-06)
 
 **Prisma Next MongoDB support: present but partial** (option b — no I12 halt; the slice
@@ -8,7 +19,7 @@ v6 docs URLs fetched live with anchors verified.
 
 - **Deeply implemented:** 18-package mongo family + mongo target + `@prisma-next/mongo`
   façade; full ORM CRUD; typed aggregation-pipeline builder; raw lane; **first-class
-  contract-driven migrations** (plan → migrate → verify → sign — *not* push-only, unlike
+  contract-driven migrations** (plan → migrate → verify → sign — _not_ push-only, unlike
   v6 Mongo); ~144 unit + ~26 integration test files against real in-memory MongoDB
   (incl. replica sets); two worked examples; dedicated Mongo coverage in Next's own skills.
 - **The gaps that set the skill's lead:** no `db.transaction(...)` on the Mongo façade
@@ -21,7 +32,7 @@ v6 docs URLs fetched live with anchors verified.
 - **Naming trap for the API-mapping reference:** v6's `$runCommandRaw`/`findRaw`/
   `aggregateRaw` have no same-name equivalents — Next's raw lane is `mongoRaw(...)` →
   `RawMongoCollection`. Map names; never assume parity. Also: Mongo ORM keys are collection
-  *storage names* (`db.orm.users`); no schema-layer polymorphism on Mongo.
+  _storage names_ (`db.orm.users`); no schema-layer polymorphism on Mongo.
 
 **Lead recommendation adopted:** stay-on-v6-first (deliberate, supported choice for
 production MongoDB today), with a mechanically-detailed migrate-now branch for greenfield /
@@ -37,7 +48,7 @@ report (authoring input).
   `migrations-mapping`, `verify-cutover-checklist`), cross-link blocks in
   `prisma-upgrade-v7` and `prisma-database-setup`, README section + install line.
 - **Branch-ref install capture:** `npx --yes skills@1.5.14 add
-  'prisma/skills#prisma-mongodb-upgrade-skill' --skill prisma-mongodb-upgrade -y` in a clean
+'prisma/skills#prisma-mongodb-upgrade-skill' --skill prisma-mongodb-upgrade -y` in a clean
   scratch dir → exit 0; lands at `./.agents/skills/prisma-mongodb-upgrade/` with SKILL.md +
   all five references, frontmatter intact.
 - Repo-convention note: skills live at the repo root in practice; the repo's AGENTS.md

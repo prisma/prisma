@@ -30,10 +30,10 @@
 
 ## Sizing
 
-| Dispatch | Size | dispatch-INVEST note |
-| -------- | ---- | -------------------- |
-| 1 | S–M | One outcome: engines PR open. Mechanical change; probing is environmental. |
-| 2 | S | Orchestrator-direct documentation. |
+| Dispatch | Size | dispatch-INVEST note                                                       |
+| -------- | ---- | -------------------------------------------------------------------------- |
+| 1        | S–M  | One outcome: engines PR open. Mechanical change; probing is environmental. |
+| 2        | S    | Orchestrator-direct documentation.                                         |
 
 ## Handoff completeness
 

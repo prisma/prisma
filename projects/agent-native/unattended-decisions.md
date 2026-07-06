@@ -113,7 +113,7 @@ logged here, newest last.
   correction); skill reframed accordingly (plus: agent self-checks instead of user
   questions, internal filenames removed from user-facing prose, driver accessibility stated
   affirmatively). Engines style suggestion applied. Retro-note: the S1 retro's "probe
-  empirically" rule worked, but a probe of *documents* (ROADMAP.md) is still a document
+  empirically" rule worked, but a probe of _documents_ (ROADMAP.md) is still a document
   read — staleness of the source is part of the probe. Pending: the operator-requested
   Linear ticket (update the skill when Mongo transactions merge) is blocked on Linear
   connector re-authorization.

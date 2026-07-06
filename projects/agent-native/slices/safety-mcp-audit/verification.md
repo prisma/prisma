@@ -7,7 +7,7 @@ curated env, offline sqlite scratch project):
 
 - **Agent marker set (`CLAUDECODE=1`), no consent var:** the `migrate-reset` tool result is
   a single text item: execa's `Command failed with exit code 1: <node> <cli> migrate reset
-  --force` line followed by the checkpoint prompt **verbatim** — agent named ("Claude
+--force` line followed by the checkpoint prompt **verbatim** — agent named ("Claude
   Code"), the stop-and-respond instruction, and the full
   `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` protocol. No success text; database not
   reset. **Nothing is swallowed — no `runCommand` fix required.**

@@ -75,10 +75,10 @@ prisma-next code; v6 docs corrections.
 
 ## Pre-investigated edge cases
 
-| Edge case | Disposition | Notes |
-| --------- | ----------- | ----- |
+| Edge case                                                                                                                    | Disposition                                                                                                                                    | Notes                                                       |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | Skill `metadata.version` semantics: ORM skills carry the targeted ORM version (e.g. "7.6.0"), but this skill spans v6 → Next | Probe the repo's conventions; working position: version the skill itself (start `0.1.0`) and name the verified prisma-next version in the body | Maintainers may override in review — flag it in the PR body |
-| v6 MongoDB facts must be verified, not recalled (e.g. transactions require replica sets; `db push` only) | Authoring dispatch cites v6 docs for each behavioral claim, mirroring the project's citation discipline | Same rule as the pitfalls task (007) |
+| v6 MongoDB facts must be verified, not recalled (e.g. transactions require replica sets; `db push` only)                     | Authoring dispatch cites v6 docs for each behavioral claim, mirroring the project's citation discipline                                        | Same rule as the pitfalls task (007)                        |
 
 ## Slice-specific done conditions
 

@@ -70,11 +70,11 @@ consent flows; watch mode and `--no-hints` paths (both stay fully suppressed).
 
 ## Pre-investigated edge cases
 
-| Edge case | Disposition | Notes |
-| --------- | ----------- | ----- |
-| Readline on Deno blocks `generate` | Deno guard identical to `survey.ts` | Known from the NPS implementation's own comment |
+| Edge case                                            | Disposition                                                                                                                        | Notes                                                 |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Readline on Deno blocks `generate`                   | Deno guard identical to `survey.ts`                                                                                                | Known from the NPS implementation's own comment       |
 | Config-dir write failure (read-only HOME, sandboxes) | Whole offer is never-throws; a failed acknowledgement write means the offer may repeat next run — acceptable over failing generate | NPS `writeConfig` has no such guard; do not copy that |
-| Two prompts in one run (offer + NPS) | Offer runs first; `prompted === true` skips NPS this run | Designed-in mutual exclusion |
+| Two prompts in one run (offer + NPS)                 | Offer runs first; `prompted === true` skips NPS this run                                                                           | Designed-in mutual exclusion                          |
 
 ## Slice-specific done conditions
 

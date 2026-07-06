@@ -31,10 +31,10 @@ PR against its `main`.
 
 ## Sizing
 
-| Dispatch | Size | dispatch-INVEST note |
-| -------- | ---- | -------------------- |
-| 1 | M | One outcome: evidenced verdict. Research-shaped, bounded surface. |
-| 2 | M | One outcome: the PR. Authoring against a fixed fact table. |
+| Dispatch | Size | dispatch-INVEST note                                              |
+| -------- | ---- | ----------------------------------------------------------------- |
+| 1        | M    | One outcome: evidenced verdict. Research-shaped, bounded surface. |
+| 2        | M    | One outcome: the PR. Authoring against a fixed fact table.        |
 
 ## Handoff completeness
 

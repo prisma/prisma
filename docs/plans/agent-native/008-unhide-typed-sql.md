@@ -15,7 +15,7 @@ separate, later decision.
   `hidden` set alongside `ReactNative`.
 - The TS side gates on it: `packages/client/src/runtime/getPrismaClient.ts` throws
   "`typedSql` preview feature must be enabled in order to access $queryRawTyped API"; both
-  generators gate `$queryRawTyped` emission on `isPreviewFeatureOn('typedSql')`.
+  generators gate `$queryRawTyped`emission on`isPreviewFeatureOn('typedSql')`.
 
 ## Steps
 

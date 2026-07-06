@@ -54,11 +54,11 @@ and `drive/` files).
 
 ## Sizing
 
-| Dispatch | Size | dispatch-INVEST note |
-| -------- | ---- | -------------------- |
-| 1 | M | One outcome: tested runner. Mechanical scope, no design judgment left (spec fixed it). |
-| 2 | M | One outcome: wired init. Consumer-side only; substrate untouched. |
-| 3 | S | Verification + two external filings; binary evidence checklist. |
+| Dispatch | Size | dispatch-INVEST note                                                                   |
+| -------- | ---- | -------------------------------------------------------------------------------------- |
+| 1        | M    | One outcome: tested runner. Mechanical scope, no design judgment left (spec fixed it). |
+| 2        | M    | One outcome: wired init. Consumer-side only; substrate untouched.                      |
+| 3        | S    | Verification + two external filings; binary evidence checklist.                        |
 
 ## Handoff completeness
 

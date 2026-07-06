@@ -80,6 +80,6 @@ stable release.
 The stack order is forced by the shared runner (S2 consumes S1's module). Everything else is
 parallel by design: the safety audit and the typedSql unhide touch disjoint surfaces and
 neither reads nor writes the distribution code. The only cross-cutting ordering is a
-*release* gate, not a merge gate: `generate-skill-offer` may merge dark behind its gating
+_release_ gate, not a merge gate: `generate-skill-offer` may merge dark behind its gating
 logic, but must not reach a stable release before the sibling content project covers the
 top failure modes (spec § Transitional-shape constraints).

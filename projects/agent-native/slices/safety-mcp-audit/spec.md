@@ -56,10 +56,10 @@ description consistency; MCP feature expansion (project non-goal); S1/S2 surface
 
 ## Pre-investigated edge cases
 
-| Edge case | Disposition | Notes |
-| --------- | ----------- | ----- |
-| The test process itself may run under an agent, leaking markers into the spawned server | Curated env for the subprocess: pass an explicit allowlist env, never inherit | Same discipline as ai-safety's own tests (AGENTS.md notes they clear inherited markers) |
-| `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` present in the curated env would bypass the checkpoint | Ensure it is absent in the agent-marker case; a third case may assert the bypass works with it set (optional) | The env var is the documented consent mechanism |
+| Edge case                                                                                            | Disposition                                                                                                   | Notes                                                                                   |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| The test process itself may run under an agent, leaking markers into the spawned server              | Curated env for the subprocess: pass an explicit allowlist env, never inherit                                 | Same discipline as ai-safety's own tests (AGENTS.md notes they clear inherited markers) |
+| `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` present in the curated env would bypass the checkpoint | Ensure it is absent in the agent-marker case; a third case may assert the bypass works with it set (optional) | The env var is the documented consent mechanism                                         |
 
 ## Slice-specific done conditions
 

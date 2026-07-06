@@ -49,11 +49,11 @@ after S1 merges.
 
 ## Sizing
 
-| Dispatch | Size | dispatch-INVEST note |
-| -------- | ---- | -------------------- |
-| 1 | M | One outcome: tested offer machinery. Extraction is mechanical and consumed here. |
-| 2 | M | One outcome: wired generate. Consumer-side only. |
-| 3 | S | Evidence checklist, binary; worktree already built. |
+| Dispatch | Size | dispatch-INVEST note                                                             |
+| -------- | ---- | -------------------------------------------------------------------------------- |
+| 1        | M    | One outcome: tested offer machinery. Extraction is mechanical and consumed here. |
+| 2        | M    | One outcome: wired generate. Consumer-side only.                                 |
+| 3        | S    | Evidence checklist, binary; worktree already built.                              |
 
 ## Handoff completeness
 

@@ -50,10 +50,10 @@ unchanged, only its visibility.
 
 ## Pre-investigated edge cases
 
-| Edge case | Disposition | Notes |
-| --------- | ----------- | ----- |
-| The engines repo may enforce commit conventions/CI gates unknown to this project (e.g. rustfmt, commit lint) | Probe the repo's CONTRIBUTING/CI config before pushing; follow what it declares | Cross-repo work; conventions not derivable from prisma/prisma |
-| `/tmp` checkout provenance is unknown (created by an earlier research session) | Fetch latest `main`, verify cleanliness, branch fresh; clone anew if anything is off | Stale-base PRs invite conflicts |
+| Edge case                                                                                                    | Disposition                                                                          | Notes                                                         |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| The engines repo may enforce commit conventions/CI gates unknown to this project (e.g. rustfmt, commit lint) | Probe the repo's CONTRIBUTING/CI config before pushing; follow what it declares      | Cross-repo work; conventions not derivable from prisma/prisma |
+| `/tmp` checkout provenance is unknown (created by an earlier research session)                               | Fetch latest `main`, verify cleanliness, branch fresh; clone anew if anything is off | Stale-base PRs invite conflicts                               |
 
 ## Slice-specific done conditions
 

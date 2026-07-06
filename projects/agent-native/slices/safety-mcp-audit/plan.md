@@ -35,10 +35,10 @@
 
 ## Sizing
 
-| Dispatch | Size | dispatch-INVEST note |
-| -------- | ---- | -------------------- |
-| 1 | M | One outcome: probed + pinned contract. Setup cost is environmental, not scope. |
-| 2 | S | One outcome: contract closed and documented. |
+| Dispatch | Size | dispatch-INVEST note                                                           |
+| -------- | ---- | ------------------------------------------------------------------------------ |
+| 1        | M    | One outcome: probed + pinned contract. Setup cost is environmental, not scope. |
+| 2        | S    | One outcome: contract closed and documented.                                   |
 
 ## Handoff completeness
 
