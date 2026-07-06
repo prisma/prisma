@@ -4,9 +4,9 @@
 
 ## Summary
 
-- **Current verdict:** S4-D1 R1 — SATISFIED (Half A; slice 4 paused at the publish boundary by design)
-- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1, D2 (slice-final) — S4: D1 (Half A)
-- **AC scoreboard totals:** 8 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3) / 1 OUT OF SCOPE (AC-10, deferred by design)
+- **Current verdict:** S5-D2 R1 — SATISFIED (slice-final; slice 5 at DoD pending human merge of PR #20)
+- **Dispatches SATISFIED:** S1: D1, D2, D3 (slice-final) — S2: D1, D2, D3 (slice-final) — S3: D1, D2 (slice-final) — S4: D1 (Half A) — S5: D2 (slice-final; D1 was the probe, no code)
+- **AC scoreboard totals:** 9 PASS / 0 FAIL / 0 NOT VERIFIED / 1 ACCEPTED DEFERRAL (AC-3) / 1 OUT OF SCOPE (AC-10, deferred by design)
 - **Open findings:** 0
 - **Open escalations:** 0 (operator to-do Monday: file the two prepared issues — see `unattended-decisions.md` D14)
 
@@ -26,6 +26,7 @@
 | AC-8 | `migrate-reset` tool description mentions the AI-agent gate + consent protocol | S3-D2 | PASS | Description paragraph verified on disk in `packages/cli/src/mcp/MCP.ts` (commit `bb4435f42`): names the gate, states the database is NOT reset when blocked, pre-frames the `Command failed with exit code 1: ...` error report, instructs stop → relay consent instructions → proceed only as the user directs; matches the pinned behavior from `e05f5a66c`; `tools/list` capture in `slices/safety-mcp-audit/verification.md` |
 | AC-9 | Engines PR open: `TypedSql` active, hidden loses it, list-pinning tests updated | S4-D1 | PASS | prisma-engines PR [#5836](https://github.com/prisma/prisma-engines/pull/5836) OPEN, commit `94c2c1f09a1` verified on disk at `/tmp/prisma-engines-compact-plan-format`: `\| TypedSql` in `active` (declaration-order position between `StrictUndefinedChecks` and `Views`), `hidden` now `{ReactNative}`, exactly the two list-embedding tests updated (one line each, ANSI escapes untouched); no other `TypedSql` reference in `psl/` outside `preview_features.rs`; PR body accurate for a cold reviewer (visibility-only, CLICOLOR_FORCE note, CI as remaining surface) |
 | AC-10 | Half B: `typedSql` visible in prisma/prisma via bumped `@prisma/prisma-schema-wasm`; no behavior change for schemas already enabling it | post-weekend | OUT OF SCOPE — deferred by design past the wasm-publish boundary | Prep note with bump steps and expected snapshot fallout recorded in `slices/typed-sql-unhide/verification.md § Half B`; tracked on TML-2970 |
+| AC-11 | Skill PR open on prisma/skills: SKILL.md + 5 references, cross-links in `prisma-upgrade-v7` and `prisma-database-setup`, README entry, per-claim citations, branch-ref install capture | S5-D2 | PASS | prisma/skills PR [#20](https://github.com/prisma/skills/pull/20) OPEN, commit `8932c0e` verified on disk at `/tmp/prisma-skills`: router table matches the five reference files exactly; both cross-links name `prisma-mongodb-upgrade`; README entry format-consistent + install line; highest-stakes claims (transactions gap ×4 sites, raw-API name mapping, migrations contrast) all cite pinned sources (`a2791c5dd59d…` / v6 docs anchors) and match the D1 fact table; install capture in `slices/mongodb-upgrade-skill/verification.md § Delivery` |
 
 Status values: `PASS` / `FAIL` / `NOT VERIFIED — <reason>` / `ACCEPTED DEFERRAL — <link>` / `OUT OF SCOPE`.
 
@@ -149,6 +150,18 @@ _(no findings yet)_
 **Findings:** none. Transient-ID scan on `94c2c1f09a1`: zero hits (PR-body project provenance is deliberate, per protocol).
 
 **For orchestrator:** Half B's re-entry trigger is external (engines merge + `@prisma/prisma-schema-wasm` dev publish) — worth a tracked reminder alongside the Monday filings so the slice does not silently stall at the boundary.
+
+### S5-D2 R1 — SATISFIED (slice-final)
+
+**Scope:** S5-D2 (mongodb-upgrade skill authoring — content review, third repo). prisma/skills checkout `/tmp/prisma-skills`, branch `prisma-mongodb-upgrade-skill` (clean, in sync), commit `8932c0e`, PR [#20](https://github.com/prisma/skills/pull/20) (OPEN). S5-D1 was the probe (no code); its fact table in `slices/mongodb-upgrade-skill/verification.md` served as the claims baseline.
+
+**Tasks:** S5-D2 clean — claims-vs-citations spot-check of the highest-stakes content passes: the transactions gap appears in four sites (SKILL.md decision table, `decision-stay-or-migrate`, `client-api-mapping`, cutover checklist item 7) with identical semantics (no façade `db.transaction(...)`, raw driver sessions the only workaround, v6 works on replica sets — each cited); the raw-API mapping matches the fact table (no same-name equivalents; `mongoRaw(...)` lane; "check the installed version" hedge present); the migrations contrast (v6 `db push`-only, cited to the docs anchor, vs Next plan/migrate/verify/sign) matches. Lead is genuinely stay-first (default named and bolded up front, both no-go signals, stay-hygiene in SKILL.md and the reference). Router integrity verified (table ↔ five files on disk; both cross-links; README format-consistent). No overreach: exactly 9 files, `prisma-postgres-setup` omission untouched. Root-level placement matches repo practice. Gates: tree clean; no code to typecheck.
+
+**AC delta:** AC-11 added → PASS (PR #20 + commit `8932c0e` + `verification.md § Delivery` install capture). Slice 5 at DoD pending human merge.
+
+**Findings:** none. Transient-ID scan on `8932c0e`: zero hits — no plan IDs, tickets, or project paths in the skill content.
+
+**For orchestrator:** none new. (The skills-CLI agent-roster growth observation and the AGENTS.md nesting divergence are already recorded in the slice `verification.md`.)
 
 ## Orchestrator notes
 
