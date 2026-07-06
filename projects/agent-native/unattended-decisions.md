@@ -114,6 +114,6 @@ logged here, newest last.
   questions, internal filenames removed from user-facing prose, driver accessibility stated
   affirmatively). Engines style suggestion applied. Retro-note: the S1 retro's "probe
   empirically" rule worked, but a probe of _documents_ (ROADMAP.md) is still a document
-  read — staleness of the source is part of the probe. Pending: the operator-requested
-  Linear ticket (update the skill when Mongo transactions merge) is blocked on Linear
-  connector re-authorization.
+  read — staleness of the source is part of the probe. Resolved 2026-07-06: after connector
+  re-authorization, the ticket was filed as TML-2975 in the SQLite & MongoDB transactions
+  project and linked from the PR thread.

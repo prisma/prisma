@@ -1,6 +1,6 @@
 # Verification record — mongodb-upgrade-skill
 
-## Pending Linear ticket (blocked on connector re-auth; file on restoration)
+## Linear ticket — FILED 2026-07-06: [TML-2975](https://linear.app/prisma-company/issue/TML-2975/update-prisma-mongodb-upgrade-skill-once-mongodb-transactions-land)
 
 Target project: [SQLite and MongoDB transactions](https://linear.app/prisma-company/project/sqlite-and-mongodb-transactions-860f63d3d786/overview)
 (operator-provided, PR #20 thread). Title: **Update prisma-mongodb-upgrade skill once
