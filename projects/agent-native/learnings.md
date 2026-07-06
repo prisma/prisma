@@ -27,3 +27,10 @@ lessons migrate to durable docs, project-local ones drop with the project folder
   snapshots; a non-TTY `cargo test -p psl` run fails hundreds of them spuriously. CI sets
   `CLICOLOR_FORCE=1` (only documented in the workflow YAML) — set it for local runs.
   Candidate for the engines-side notes in `drive/plan/README.md` at close-out.
+- **2026-07-06 (S3 Windows fix):** the MCP SDK's `StdioClientTransport.close()` aborts the
+  child and returns without awaiting its exit (and clears its process reference before the
+  `close` event fires). Tests that spawn stdio servers and then remove their temp dirs must
+  chain `transport.onclose` (bounded by an unref'd grace timer) before cleanup, plus
+  `rmSync(..., { maxRetries, retryDelay })` — Windows locks in-use files where POSIX
+  unlinks them. Any future test needing the child's exit code requires the same
+  `onclose`-chaining trick.
