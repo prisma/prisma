@@ -28,7 +28,7 @@
   - For error assertions, use `result.name === 'PrismaClientKnownRequestError'` and `result.code` (not `instanceof`).
   - Use `idForProvider(provider)` from `_utils/idForProvider` for portable ID field definitions.
 
-- **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer.
+- **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer. Planning documents live under `docs/plans/<topic>/` as a numbered index (`000-<topic>-index.md`) plus per-task files.
 
 - **Client architecture (Prisma 7)**:
   - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using Wasm query compiler.
@@ -118,6 +118,8 @@
   - `@prisma/client-engine-runtime` exports query interpreter, transaction manager, and related utilities.
   - `@prisma/client-common` provides shared client utilities used by both generators and runtime.
   - `@prisma/client-runtime-utils` provides utility types and singletons for Prisma Client.
+  - NPS survey infrastructure lives in `packages/cli/src/utils/nps/` (`survey.ts` orchestrates: TTY check via `isInteractive` from `@prisma/internals`, 30s prompt timeout, gating on `isCi`/`maybeInGitHook`/`isInNpmLifecycleHook`/`isInContainer`, once-per-timeframe persistence in `env-paths('prisma').config` as `nps.json`). Triggered only from `prisma generate` (suppressed by `--no-hints` and watch mode). Reuse this machinery for any new one-time interactive CLI prompt.
+  - `prisma mcp` (`packages/cli/src/mcp/MCP.ts`) is a stdio MCP server exposing `migrate-status`, `migrate-dev`, `migrate-reset`, and `Prisma-Studio` tools by shelling back into the CLI binary.
 
 - **Coding conventions**:
   - Use **kebab-case** for new file names (e.g., `query-utils.ts`, `filter-operators.test.ts`).
