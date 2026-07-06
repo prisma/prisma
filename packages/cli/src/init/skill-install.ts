@@ -130,7 +130,10 @@ function buildManualCommand(runner: Runner): string {
 
 export type ExecFn = (command: string, args: string[], options: { cwd: string }) => Promise<unknown>
 
-const defaultExec: ExecFn = (command, args, { cwd }) => execa(command, args, { cwd, stdio: 'inherit' })
+// A hung installer (e.g. a stalled network call) must not hang `prisma init`
+// itself: the killed process rejects, which resolves into the non-fatal
+// failure shape with the manual command.
+const defaultExec: ExecFn = (command, args, { cwd }) => execa(command, args, { cwd, stdio: 'inherit', timeout: 60_000 })
 
 export type InstallSkillsOptions = DetectRunnerOptions & {
   cwd: string
