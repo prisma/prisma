@@ -35,7 +35,14 @@ function makeTmpDir(): string {
 
 afterEach(() => {
   for (const dir of tmpDirs.splice(0)) {
-    fs.rmSync(dir, { recursive: true, force: true })
+    try {
+      // Retries cover Windows, where the server child's file handles can
+      // still be released asynchronously after the process exits.
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
+    } catch (error) {
+      // A leaked CI temp dir is not worth failing the safety pin over.
+      console.warn(`mcp-safety: failed to remove temp dir ${dir}: ${error}`)
+    }
   }
 })
 
@@ -123,13 +130,29 @@ async function callMigrateReset(projectCWD: string, env: Record<string, string>)
 
   // connect() is inside the try so a connection failure still closes the
   // client and does not leak the spawned server process.
+  let transportClosed: Promise<void> | undefined
   try {
     await client.connect(transport)
+    // The transport's close() resolves before the spawned server process has
+    // actually exited, which leaves temp-dir file handles locked on Windows.
+    // The transport's onclose fires on the child's real exit; chain the
+    // client's own handler (installed during connect) and await the event.
+    transportClosed = new Promise<void>((resolve) => {
+      const clientOnClose = transport.onclose
+      transport.onclose = () => {
+        clientOnClose?.call(transport)
+        resolve()
+      }
+    })
     const result = await client.callTool({ name: 'migrate-reset', arguments: { projectCWD } })
     const content = result.content as { type: string; text?: string }[]
     return content.map((item) => item.text ?? '').join('\n')
   } finally {
     await client.close()
+    if (transportClosed) {
+      const closeGracePeriod = new Promise<void>((resolve) => setTimeout(resolve, 5_000).unref())
+      await Promise.race([transportClosed, closeGracePeriod])
+    }
   }
 }
 
