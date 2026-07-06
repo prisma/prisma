@@ -170,7 +170,7 @@ async function skillsAlreadyInstalled(cwd: string): Promise<boolean> {
     return true
   }
 
-  for (const skillsDir of ['.claude/skills', '.agents/skills']) {
+  for (const skillsDir of ['.claude/skills', '.windsurf/skills', '.agents/skills']) {
     const entries: string[] = await fs.promises.readdir(path.join(cwd, skillsDir)).catch(() => [])
     if (entries.some((entry) => entry.startsWith('prisma-'))) {
       return true

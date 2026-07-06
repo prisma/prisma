@@ -103,6 +103,10 @@ describe('gates', () => {
       (cwd: string) => fs.mkdirSync(path.join(cwd, '.claude', 'skills', 'prisma-cli'), { recursive: true }),
     ],
     [
+      '.windsurf/skills/prisma-* directory',
+      (cwd: string) => fs.mkdirSync(path.join(cwd, '.windsurf', 'skills', 'prisma-cli'), { recursive: true }),
+    ],
+    [
       '.agents/skills/prisma-* directory',
       (cwd: string) => fs.mkdirSync(path.join(cwd, '.agents', 'skills', 'prisma-cli'), { recursive: true }),
     ],
@@ -121,6 +125,7 @@ describe('gates', () => {
   test('non-prisma skills of other projects do not count as already installed', async () => {
     const { ctx, cwd, configDir } = testContext()
     fs.mkdirSync(path.join(cwd, '.claude', 'skills', 'my-own-skill'), { recursive: true })
+    fs.mkdirSync(path.join(cwd, '.windsurf', 'skills', 'another-skill'), { recursive: true })
 
     const result = await handleSkillsOffer(ctx)
 
