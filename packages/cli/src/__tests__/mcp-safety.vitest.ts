@@ -7,11 +7,19 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { afterEach, expect, test } from 'vitest'
 
 const cliPath = path.resolve(__dirname, '..', '..', 'build', 'index.js')
+const configDistPath = path.resolve(__dirname, '..', '..', '..', 'config', 'dist', 'index.js')
 
 if (!fs.existsSync(cliPath)) {
   throw new Error(
     `The MCP safety tests drive the built CLI over stdio, but ${cliPath} does not exist. ` +
       'Build the CLI first, e.g. `pnpm exec turbo build --filter=prisma` from the repository root.',
+  )
+}
+
+if (!fs.existsSync(configDistPath)) {
+  throw new Error(
+    `The MCP safety tests load a scratch prisma.config.ts through a @prisma/config symlink, but ${configDistPath} ` +
+      'does not exist. Build the workspace first, e.g. `pnpm exec turbo build --filter=prisma` from the repository root.',
   )
 }
 
@@ -112,9 +120,11 @@ async function callMigrateReset(projectCWD: string, env: Record<string, string>)
     cwd: makeTmpDir(),
   })
   const client = new Client({ name: 'mcp-safety-test', version: '0.0.0' })
-  await client.connect(transport)
 
+  // connect() is inside the try so a connection failure still closes the
+  // client and does not leak the spawned server process.
   try {
+    await client.connect(transport)
     const result = await client.callTool({ name: 'migrate-reset', arguments: { projectCWD } })
     const content = result.content as { type: string; text?: string }[]
     return content.map((item) => item.text ?? '').join('\n')
