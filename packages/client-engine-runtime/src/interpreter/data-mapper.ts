@@ -142,11 +142,65 @@ function mapField(
   }
 
   if (fieldType.arity === 'list') {
-    const values = value as unknown[]
+    // Under the `join` relation load strategy the whole relation is returned as a
+    // single JSON aggregate. Scalar list fields whose element type cannot be
+    // represented in JSON without loss of precision (`BigInt[]`, `Decimal[]`) are
+    // `::text`-cast into that aggregate by the query compiler, so they arrive here
+    // as a Postgres array literal string (e.g. `"{1,2}"`) rather than a JS array.
+    // Parse it back into an array before mapping the elements, mirroring how the
+    // scalar `bigint`/`decimal` branches already accept the `::text`-cast string.
+    const values = typeof value === 'string' ? parsePostgresArrayLiteral(value) : (value as unknown[])
     return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, fieldType, enums))
   }
 
   return mapValue(value, columnName, fieldType, enums)
+}
+
+/**
+ * Parses a one-dimensional PostgreSQL array literal, as produced by casting a
+ * scalar array to `text` (e.g. `"{1,2}"`, `"{}"`, `"{100,NULL,3}"`,
+ * `'{"a,b","x"}'`). Elements are either bare (up to the next `,`/`}`), with a
+ * bare `NULL` (case-sensitive, as emitted by Postgres) decoded to `null`, or
+ * double-quoted with `\"` and `\\` escapes. This only needs to cover the shapes
+ * the query compiler emits for `::text`-cast scalar lists, so multi-dimensional
+ * arrays are not supported.
+ */
+function parsePostgresArrayLiteral(literal: string): (string | null)[] {
+  if (literal.length < 2 || literal[0] !== '{' || literal[literal.length - 1] !== '}') {
+    throw new DataMapperError(`Expected a PostgreSQL array literal, got: ${literal}`)
+  }
+
+  const result: (string | null)[] = []
+  const end = literal.length - 1
+  let i = 1
+
+  if (i === end) return result // empty array: `{}`
+
+  while (i < end) {
+    let element: string | null
+    if (literal[i] === '"') {
+      i++ // opening quote
+      let buf = ''
+      while (i < end && literal[i] !== '"') {
+        if (literal[i] === '\\') i++
+        buf += literal[i]
+        i++
+      }
+      i++ // closing quote
+      element = buf
+    } else {
+      let buf = ''
+      while (i < end && literal[i] !== ',') {
+        buf += literal[i]
+        i++
+      }
+      element = buf === 'NULL' ? null : buf
+    }
+    result.push(element)
+    if (literal[i] === ',') i++ // element separator
+  }
+
+  return result
 }
 
 function mapValue(
