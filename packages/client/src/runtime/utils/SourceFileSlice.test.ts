@@ -32,6 +32,18 @@ test('sliced toString after slice', () => {
   expect(slice.toString()).toBe('3\n4')
 })
 
+test('slice clamps lower bound after slice', () => {
+  const slice = SourceFileSlice.fromContent('1\n2\n3\n4\n5').slice(2, 4).slice(1, 3)
+  expect(slice.firstLineNumber).toBe(2)
+  expect(slice.toString()).toBe('2\n3')
+})
+
+test('slice clamps upper bound after slice', () => {
+  const slice = SourceFileSlice.fromContent('1\n2\n3\n4\n5').slice(2, 4).slice(3, 5)
+  expect(slice.firstLineNumber).toBe(3)
+  expect(slice.toString()).toBe('3\n4')
+})
+
 test('lineAt', () => {
   const slice = SourceFileSlice.fromContent('1\n2\n3')
   expect(slice.lineAt(2)).toBe('2')
