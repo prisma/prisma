@@ -107,7 +107,7 @@
   - E2E tests for sqlcommenter plugins live in `packages/client/tests/e2e/sqlcommenter*` directories.
   - `SqlCommenterQueryInfo` distinguishes `type: 'single'` (single query) vs `type: 'compacted'` (batched queries merged into one SQL statement). For non-raw client-engine queries, the SQL commenter context should receive parameterized query payloads so plugins such as query-insights never see user data values.
 
-- **AI agent safety checkpoint**: `packages/migrate/src/utils/ai-safety.ts` blocks `db drop`, `db push --force-reset`, and `migrate reset` when an AI agent is detected, unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` is set. Do not replace the in-house detection with `@vercel/detect-agent` (rationale in the comment above `agentMatchers`). Its tests must clear inherited agent marker env vars in `beforeEach`, since the test process may itself run under an agent.
+- **AI agent safety checkpoint**: `packages/migrate/src/utils/ai-safety.ts` blocks `db drop`, `db push --force-reset`, and `migrate reset` when an AI agent is detected, unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` is set. Do not replace the in-house detection with `@vercel/detect-agent` (rationale in the comment above `agentMatchers`). Its tests must clear inherited agent marker env vars in `beforeEach`, since the test process may itself run under an agent. The `prisma mcp` server (`packages/cli/src/mcp/MCP.ts`) deliberately exposes no `migrate-reset` tool — an agent that needs a reset must run the CLI, where the checkpoint applies; `packages/cli/src/__tests__/mcp-tools.vitest.ts` pins the served tool list, so extend it when adding MCP tools.
 
 - **Codebase helpers to know**:
   - `@prisma/internals` exports CLI utilities: `arg`, `loadSchemaContext` (less used now).

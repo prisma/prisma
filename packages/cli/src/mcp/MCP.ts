@@ -94,24 +94,6 @@ export class Mcp implements Command {
     )
 
     server.tool(
-      'migrate-reset',
-      `Prisma Migrate Reset --force is used to reset the database and migration history if drift is detected. Only run this command on a development database - never on production databases! If in doubt, ask the user to confirm.
-
-                The migrate reset command performs these steps:
-
-                1. Drops the database/schema if possible, or performs a soft reset if the environment does not allow deleting databases/schemas
-                2. Creates a new database/schema with the same name if the database/schema was dropped
-                3. Applies all migrations
-                4. Runs seed scripts
-
-                This command is gated by an AI safety checkpoint. When it is invoked by an AI agent without explicit user consent, the database is NOT reset; the tool result instead contains an error report (beginning with "Command failed with exit code 1: ...") whose text carries the consent protocol. If you receive it, you must stop, relay those consent instructions to the user, and proceed only as they describe.`,
-      { projectCWD: z.string() },
-      async ({ projectCWD }) => {
-        return await runCommand({ cwd: projectCWD, args: ['migrate', 'reset', '--force'] })
-      },
-    )
-
-    server.tool(
       'Prisma-Studio',
       `Open Prisma Studio to view data in your database in a pleasing visual ui.
       Provide the current working directory of the users project. This should be the top level directory of the project.`,
