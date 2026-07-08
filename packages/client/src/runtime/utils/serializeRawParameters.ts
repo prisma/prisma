@@ -1,6 +1,6 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 
-import { isDate } from './date'
+import { isDate, isValidDate } from './date'
 
 export function serializeRawParameters(parameters: any[]): string {
   try {
@@ -28,6 +28,11 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
   }
 
   if (isDate(parameter)) {
+    if (!isValidDate(parameter)) {
+      // Invalid dates serialize to `null` via `toJSON()`, which would silently
+      // bind the string "null" as a datetime. Fail loudly like the non-raw path.
+      throw new Error('Provided Date object is invalid')
+    }
     return {
       prisma__type: 'date',
       prisma__value: parameter.toJSON(),
