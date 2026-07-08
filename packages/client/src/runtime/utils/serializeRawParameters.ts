@@ -1,10 +1,10 @@
-import { Decimal } from '@prisma/client-runtime-utils'
+import { Decimal, PrismaClientValidationError } from '@prisma/client-runtime-utils'
 
 import { isDate, isValidDate } from './date'
 
-export function serializeRawParameters(parameters: any[]): string {
+export function serializeRawParameters(parameters: any[], clientVersion: string): string {
   try {
-    return serializeRawParametersInternal(parameters, 'fast')
+    return serializeRawParametersInternal(parameters, 'fast', clientVersion)
   } catch (error) {
     if (!(error instanceof TypeError)) {
       throw error
@@ -12,17 +12,21 @@ export function serializeRawParameters(parameters: any[]): string {
 
     // Got TypeError, try replacing values unsupported by JSON (i.e., BigInts)
     // with strings inside arrays and objects.
-    return serializeRawParametersInternal(parameters, 'slow')
+    return serializeRawParametersInternal(parameters, 'slow', clientVersion)
   }
 }
 
-function serializeRawParametersInternal(parameters: any[], objectSerialization: 'fast' | 'slow'): string {
-  return JSON.stringify(parameters.map((parameter) => encodeParameter(parameter, objectSerialization)))
+function serializeRawParametersInternal(
+  parameters: any[],
+  objectSerialization: 'fast' | 'slow',
+  clientVersion: string,
+): string {
+  return JSON.stringify(parameters.map((parameter) => encodeParameter(parameter, objectSerialization, clientVersion)))
 }
 
-function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
+function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow', clientVersion: string): unknown {
   if (Array.isArray(parameter)) {
-    return parameter.map((item) => encodeParameter(item, objectSerialization))
+    return parameter.map((item) => encodeParameter(item, objectSerialization, clientVersion))
   }
   if (typeof parameter === 'bigint') {
     return {
@@ -33,9 +37,8 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
 
   if (isDate(parameter)) {
     if (!isValidDate(parameter)) {
-      throw new Error('Invalid value for argument `date`: Provided Date object is invalid.')
+      throw new PrismaClientValidationError('Provided Date object is invalid', { clientVersion })
     }
-
     return {
       prisma__type: 'date',
       prisma__value: parameter.toJSON(),
