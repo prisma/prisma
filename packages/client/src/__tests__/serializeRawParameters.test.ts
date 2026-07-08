@@ -29,7 +29,7 @@ describe('serializeRawParameters', () => {
 
   test('invalid date throws', () => {
     expect(() => serializeRawParameters([new Date('not a date')])).toThrow(
-      'Invalid value for argument `date`: Provided Date object is invalid. Expected Date.',
+      'Invalid value for argument `date`: Provided Date object is invalid.',
     )
   })
 

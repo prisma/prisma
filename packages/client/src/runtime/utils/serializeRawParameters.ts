@@ -6,6 +6,10 @@ export function serializeRawParameters(parameters: any[]): string {
   try {
     return serializeRawParametersInternal(parameters, 'fast')
   } catch (error) {
+    if (!(error instanceof TypeError)) {
+      throw error
+    }
+
     // Got TypeError, try replacing values unsupported by JSON (i.e., BigInts)
     // with strings inside arrays and objects.
     return serializeRawParametersInternal(parameters, 'slow')
@@ -29,7 +33,7 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
 
   if (isDate(parameter)) {
     if (!isValidDate(parameter)) {
-      throw new Error('Invalid value for argument `date`: Provided Date object is invalid. Expected Date.')
+      throw new Error('Invalid value for argument `date`: Provided Date object is invalid.')
     }
 
     return {
