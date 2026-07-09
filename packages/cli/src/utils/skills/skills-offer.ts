@@ -7,6 +7,7 @@ import { yellow } from 'kleur/colors'
 import path from 'path'
 import readline from 'readline'
 
+import { getCliVersion } from '../../get-cli-version'
 import type { InstallSkillsOptions, InstallSkillsResult } from '../../init/skill-install'
 import { installSkills } from '../../init/skill-install'
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
@@ -120,13 +121,17 @@ async function handleSkillsOfferImpl(ctx: SkillsOfferContext): Promise<{ prompte
   await writeAcknowledgement(ackPath, outcome)
 
   if (outcome === 'accepted') {
-    const result = await ctx.installSkills({ cwd: ctx.cwd })
-    if (!result.ok) {
-      console.warn(
-        `${yellow('warn')} Failed to install Prisma agent skills. You can install them manually by running:\n  ${
-          result.manualCommand
-        }`,
-      )
+    try {
+      const result = await ctx.installSkills({ cwd: ctx.cwd })
+      if (!result.ok) {
+        console.warn(
+          `${yellow('warn')} Failed to install Prisma agent skills. You can install them manually by running:\n  ${
+            result.manualCommand
+          }`,
+        )
+      }
+    } catch (err) {
+      debug(`Failed to install Prisma agent skills: ${err}`)
     }
   }
 
@@ -216,17 +221,6 @@ function createReadlinePrompt(): PromptIO {
     // Closes the underlying interface directly: the proxy throws once the
     // stream is closed, and close must stay callable from the finally block.
     close: () => rl.close(),
-  }
-}
-
-function getCliVersion(): string {
-  try {
-    // eval keeps esbuild from inlining the require; the path resolves
-    // relative to the built CLI bundle, next to which package.json lives.
-    return eval(`require('../package.json')`).version
-  } catch (err) {
-    debug(`Failed to read the CLI version from package.json: ${err}`)
-    return 'unknown'
   }
 }
 

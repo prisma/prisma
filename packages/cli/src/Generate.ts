@@ -29,12 +29,13 @@ import resolvePkg from 'resolve-pkg'
 import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
+import { getCliVersion } from './get-cli-version'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { handleSkillsOffer } from './utils/skills/skills-offer'
 
-const pkg = eval(`require('../package.json')`)
+const cliVersion = getCliVersion()
 
 /**
  * $ prisma generate
@@ -248,10 +249,11 @@ Please run \`prisma generate\` manually.`
 ${breakingChangesMessage}`
           : ''
 
-        const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
+        const versionsOutOfSync =
+          clientGeneratorVersion && cliVersion !== 'unknown' && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${cliVersion}`)} and ${bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.

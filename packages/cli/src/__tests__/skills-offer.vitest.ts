@@ -222,6 +222,31 @@ describe('prompt outcomes', () => {
     expect(isClosed()).toBe(true)
   })
 
+  test('prompt rejection resolves to the timeout outcome', async () => {
+    const writes: string[] = []
+    let closed = false
+    const prompt: PromptIO = {
+      question: () => Promise.reject(new Error('stdin closed')),
+      write: (message) => writes.push(message),
+      close: () => {
+        closed = true
+      },
+    }
+    const { ctx, configDir, capture, installSkills } = testContext({ createPrompt: () => prompt })
+
+    const result = await handleSkillsOffer(ctx)
+
+    expect(result).toEqual({ prompted: true })
+    expect(installSkills).not.toHaveBeenCalled()
+    expect(readAcknowledgement(configDir).outcome).toBe('timeout')
+    expect(capture.capture).toHaveBeenCalledExactlyOnceWith('test-signature', 'skills_offer_resolved', {
+      outcome: 'timeout',
+      cliVersion: '0.0.0-test',
+    })
+    expect(writes.join('')).toContain('No response received')
+    expect(closed).toBe(true)
+  })
+
   test('failed install after accepting prints the manual command and stays non-fatal', async () => {
     const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     try {
@@ -273,6 +298,22 @@ describe('failure isolation', () => {
 
     expect(result).toEqual({ prompted: true })
     expect(readAcknowledgement(configDir).outcome).toBe('declined')
+  })
+
+  test('a throwing skill install still reports the prompt as shown', async () => {
+    const { prompt } = scriptedPrompt('y')
+    const installSkills = vi.fn((): Promise<InstallSkillsResult> => Promise.reject(new Error('offline')))
+    const { ctx, configDir, capture } = testContext({ createPrompt: () => prompt, installSkills })
+
+    const result = await handleSkillsOffer(ctx)
+
+    expect(result).toEqual({ prompted: true })
+    expect(installSkills).toHaveBeenCalledExactlyOnceWith({ cwd: ctx.cwd })
+    expect(readAcknowledgement(configDir).outcome).toBe('accepted')
+    expect(capture.capture).toHaveBeenCalledExactlyOnceWith('test-signature', 'skills_offer_resolved', {
+      outcome: 'accepted',
+      cliVersion: '0.0.0-test',
+    })
   })
 
   test('an unwritable config dir still reports the prompt as shown', async () => {

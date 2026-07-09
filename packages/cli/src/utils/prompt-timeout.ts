@@ -8,9 +8,15 @@ export function timeout<T>(promise: Promise<T>, ms: number): Promise<T | undefin
       resolve(undefined)
     }, ms)
 
-    return promise.then((result) => {
-      clearTimeout(timeoutId)
-      resolve(result)
-    })
+    return promise.then(
+      (result) => {
+        clearTimeout(timeoutId)
+        resolve(result)
+      },
+      () => {
+        clearTimeout(timeoutId)
+        resolve(undefined)
+      },
+    )
   })
 }
