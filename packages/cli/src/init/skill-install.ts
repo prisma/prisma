@@ -131,11 +131,11 @@ export type ExecFn = (command: string, args: string[], options: { cwd: string })
 // A hung installer (e.g. a stalled network call) must not hang `prisma init`
 // itself: the killed process rejects, which resolves into the non-fatal
 // failure shape with the manual command.
-const defaultExec: ExecFn = (command, args, { cwd }) => execa(command, args, { cwd, stdio: 'inherit', timeout: 60_000 })
+const defaultExec: ExecFn = (command, args, { cwd }) => execa(command, args, { cwd, stdio: 'ignore', timeout: 60_000 })
 
 export type InstallSkillsOptions = DetectRunnerOptions & {
   cwd: string
-  /** Executes the runner command; defaults to execa streaming output to the parent process. */
+  /** Executes the runner command; defaults to execa with subprocess output hidden. */
   exec?: ExecFn
 }
 
@@ -143,7 +143,7 @@ export type InstallSkillsResult = { ok: true } | { ok: false; manualCommand: str
 
 /**
  * Installs the Prisma skills catalog for the supported agents via the
- * `skills` CLI, streaming the CLI's output to the parent process. Never
+ * `skills` CLI, hiding the CLI's output from the parent process. Never
  * throws: a failed install resolves to `{ ok: false, manualCommand }`, where
  * `manualCommand` is the equivalent shell command to run by hand.
  */

@@ -692,10 +692,13 @@ export class Init implements Command {
 
     let skillsInstalled = false
     if (!args['--no-skills']) {
+      const skillsSpinner = ora('Installing skills').start()
       const skillsResult = await installSkills({ cwd: outputDir })
       if (skillsResult.ok) {
+        skillsSpinner.succeed('Skills installed')
         skillsInstalled = true
       } else {
+        skillsSpinner.fail('Skills install failed')
         console.warn(
           `${yellow('warn')} Failed to install Prisma agent skills. You can install them manually by running:\n  ${
             skillsResult.manualCommand
