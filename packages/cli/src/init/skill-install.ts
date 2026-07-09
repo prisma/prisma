@@ -18,6 +18,10 @@ export const SKILL_AGENTS = ['cursor', 'claude-code', 'codex', 'windsurf'] as co
 /** Source of the Prisma skills catalog, as understood by the `skills` CLI. */
 export const SKILLS_SOURCE = 'prisma/skills'
 
+// The skills CLI only links into agent-specific project directories when their
+// root exists, so create them before running in symlink mode.
+const agentSpecificSkillsDirs = ['.claude/skills', '.windsurf/skills'] as const
+
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun'
 
 /**
@@ -109,13 +113,14 @@ export function installArgs(runner: Runner): string[] {
     ...SKILL_AGENTS,
     '--skill',
     '*',
-    // Copies skills into each agent's own directory. The default layout
-    // (universal directory + symlinks for agents that need their own) does
-    // not create the promised symlinks in multi-agent installs as of
-    // skills@1.5.14, leaving Claude Code and Windsurf without the files.
-    '--copy',
     '-y',
   ]
+}
+
+function prepareAgentSpecificSkillsDirs(cwd: string) {
+  for (const skillsDir of agentSpecificSkillsDirs) {
+    fs.mkdirSync(path.join(cwd, skillsDir), { recursive: true })
+  }
 }
 
 function shellQuote(arg: string): string {
@@ -155,6 +160,7 @@ export async function installSkills({
   let runner = runners.npm
   try {
     runner = detectRunner(cwd, detectOptions)
+    prepareAgentSpecificSkillsDirs(cwd)
     await exec(runner.command, installArgs(runner), { cwd })
     return { ok: true }
   } catch {

@@ -110,6 +110,19 @@ describe('command assembly', () => {
     expect(result).toEqual({ ok: true })
     expect(calls).toEqual([{ command: runner.command, args: installArgs(runner), cwd }])
   })
+
+  test('creates agent-specific skills directories before running the skills CLI', async () => {
+    const cwd = makeTmpDir()
+    const exec = () => {
+      expect(fs.existsSync(path.join(cwd, '.claude/skills'))).toBe(true)
+      expect(fs.existsSync(path.join(cwd, '.windsurf/skills'))).toBe(true)
+      return Promise.resolve()
+    }
+
+    const result = await installSkills({ cwd, env: {}, isBunRuntime: false, exec })
+
+    expect(result).toEqual({ ok: true })
+  })
 })
 
 describe('runner detection', () => {
@@ -178,7 +191,7 @@ describe('failure handling', () => {
 
     expect(result).toEqual({
       ok: false,
-      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' --copy -y`,
+      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
     })
   })
 
@@ -195,7 +208,7 @@ describe('failure handling', () => {
 
     expect(result).toEqual({
       ok: false,
-      manualCommand: `pnpm dlx skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' --copy -y`,
+      manualCommand: `pnpm dlx skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
     })
   })
 
@@ -212,7 +225,7 @@ describe('failure handling', () => {
 
     expect(result).toEqual({
       ok: false,
-      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' --copy -y`,
+      manualCommand: `npx --yes skills@${SKILLS_CLI_VERSION} add ${SKILLS_SOURCE} --agent cursor claude-code codex windsurf --skill '*' -y`,
     })
   })
 })
