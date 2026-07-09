@@ -4,7 +4,8 @@ import path from 'node:path'
 
 import { afterEach, describe, expect, test } from 'vitest'
 
-import { detectRunner, installSkills, SKILL_AGENTS, SKILLS_CLI_VERSION, SKILLS_SOURCE } from '../init/skill-install'
+import type { Runner } from '../init/skill-install'
+import { detectRunner, installArgs, installSkills, SKILLS_CLI_VERSION, SKILLS_SOURCE } from '../init/skill-install'
 
 const tmpDirs: string[] = []
 
@@ -34,22 +35,11 @@ function recordingExec(result: () => Promise<unknown> = () => Promise.resolve())
   return { calls, exec }
 }
 
-const skillsCliArgs = [
-  `skills@${SKILLS_CLI_VERSION}`,
-  'add',
-  SKILLS_SOURCE,
-  '--agent',
-  ...SKILL_AGENTS,
-  '--skill',
-  '*',
-  '--copy',
-  '-y',
-]
-
 describe('command assembly', () => {
   test('npm', async () => {
     const cwd = makeTmpDir()
     const { calls, exec } = recordingExec()
+    const runner: Runner = { packageManager: 'npm', command: 'npx', args: ['--yes'] }
 
     const result = await installSkills({
       cwd,
@@ -59,12 +49,13 @@ describe('command assembly', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(calls).toEqual([{ command: 'npx', args: ['--yes', ...skillsCliArgs], cwd }])
+    expect(calls).toEqual([{ command: runner.command, args: installArgs(runner), cwd }])
   })
 
   test('pnpm', async () => {
     const cwd = makeTmpDir()
     const { calls, exec } = recordingExec()
+    const runner: Runner = { packageManager: 'pnpm', command: 'pnpm', args: ['dlx'] }
 
     const result = await installSkills({
       cwd,
@@ -74,12 +65,13 @@ describe('command assembly', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(calls).toEqual([{ command: 'pnpm', args: ['dlx', ...skillsCliArgs], cwd }])
+    expect(calls).toEqual([{ command: runner.command, args: installArgs(runner), cwd }])
   })
 
   test('yarn 2+', async () => {
     const cwd = makeTmpDir()
     const { calls, exec } = recordingExec()
+    const runner: Runner = { packageManager: 'yarn', command: 'yarn', args: ['dlx'] }
 
     const result = await installSkills({
       cwd,
@@ -89,12 +81,13 @@ describe('command assembly', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(calls).toEqual([{ command: 'yarn', args: ['dlx', ...skillsCliArgs], cwd }])
+    expect(calls).toEqual([{ command: runner.command, args: installArgs(runner), cwd }])
   })
 
   test('yarn 1 routes through npx', async () => {
     const cwd = makeTmpDir()
     const { calls, exec } = recordingExec()
+    const runner: Runner = { packageManager: 'npm', command: 'npx', args: ['--yes'] }
 
     const result = await installSkills({
       cwd,
@@ -104,17 +97,18 @@ describe('command assembly', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(calls).toEqual([{ command: 'npx', args: ['--yes', ...skillsCliArgs], cwd }])
+    expect(calls).toEqual([{ command: runner.command, args: installArgs(runner), cwd }])
   })
 
   test('bun via runtime check', async () => {
     const cwd = makeTmpDir()
     const { calls, exec } = recordingExec()
+    const runner: Runner = { packageManager: 'bun', command: 'bunx', args: [] }
 
     const result = await installSkills({ cwd, env: {}, isBunRuntime: true, exec })
 
     expect(result).toEqual({ ok: true })
-    expect(calls).toEqual([{ command: 'bunx', args: skillsCliArgs, cwd }])
+    expect(calls).toEqual([{ command: runner.command, args: installArgs(runner), cwd }])
   })
 })
 

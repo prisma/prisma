@@ -3,6 +3,8 @@ import path from 'node:path'
 
 import execa from 'execa'
 
+import { isBun } from './is-bun'
+
 /**
  * Pinned version of the `skills` CLI (https://github.com/vercel-labs/skills)
  * used to install the Prisma skills catalog, so that `prisma init` behaves
@@ -45,10 +47,6 @@ const lockfiles: [filename: string, packageManager: PackageManager][] = [
   ['bun.lockb', 'bun'],
   ['package-lock.json', 'npm'],
 ]
-
-/** Indicates if the CLI runs on the Bun runtime. */
-export const isBun: boolean =
-  'Bun' in globalThis || typeof (process.versions as Record<string, string | undefined>).bun === 'string'
 
 export type DetectRunnerOptions = {
   /** Environment to read `npm_config_user_agent` from. Defaults to `process.env`. */
@@ -101,7 +99,7 @@ function packageManagerFromUserAgent(userAgent: string | undefined): PackageMana
   }
 }
 
-function installArgs(runner: Runner): string[] {
+export function installArgs(runner: Runner): string[] {
   return [
     ...runner.args,
     `skills@${SKILLS_CLI_VERSION}`,
