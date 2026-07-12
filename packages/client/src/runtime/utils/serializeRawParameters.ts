@@ -6,13 +6,12 @@ export function serializeRawParameters(parameters: any[], clientVersion: string)
   try {
     return serializeRawParametersInternal(parameters, 'fast', clientVersion)
   } catch (error) {
-    if (!(error instanceof TypeError)) {
-      throw error
+    // Got TypeError (e.g., BigInt which JSON.stringify rejects), try replacing
+    // values unsupported by JSON with strings inside arrays and objects.
+    if (error instanceof TypeError) {
+      return serializeRawParametersInternal(parameters, 'slow', clientVersion)
     }
-
-    // Got TypeError, try replacing values unsupported by JSON (i.e., BigInts)
-    // with strings inside arrays and objects.
-    return serializeRawParametersInternal(parameters, 'slow', clientVersion)
+    throw error
   }
 }
 
