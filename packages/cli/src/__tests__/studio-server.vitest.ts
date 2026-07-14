@@ -49,18 +49,27 @@ test('logs server errors and returns the error message in the response body', as
 test('does not log when the client disconnects before the response is written', async () => {
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   let resolveHandlerStarted!: () => void
+  let resolveRequestDestroyed!: () => void
+  let resolveRequestSettled!: () => void
   let resolveResponse!: () => void
   const handlerStarted = new Promise<void>((resolve) => {
     resolveHandlerStarted = resolve
   })
+  const requestDestroyed = new Promise<void>((resolve) => {
+    resolveRequestDestroyed = resolve
+  })
+  const requestSettled = new Promise<void>((resolve) => {
+    resolveRequestSettled = resolve
+  })
   const responseReady = new Promise<void>((resolve) => {
     resolveResponse = resolve
   })
-  const { port } = await startTestServer(async () => {
+  const { port } = await startTestServer(async (request) => {
     resolveHandlerStarted()
+    request.signal.addEventListener('abort', resolveRequestDestroyed, { once: true })
     await responseReady
     return new Response('late response')
-  })
+  }, resolveRequestSettled)
   const abortController = new AbortController()
   const responsePromise = fetch(`http://127.0.0.1:${port}/`, {
     signal: abortController.signal,
@@ -68,21 +77,25 @@ test('does not log when the client disconnects before the response is written', 
 
   await handlerStarted
   abortController.abort()
-  await new Promise((resolve) => setTimeout(resolve, 25))
+  await requestDestroyed
   resolveResponse()
 
   await expect(responsePromise).resolves.toMatchObject({ name: 'AbortError' })
-  await new Promise((resolve) => setTimeout(resolve, 25))
+  await requestSettled
   expect(consoleErrorSpy).not.toHaveBeenCalled()
 })
 
-async function startTestServer(handler: (request: Request) => Response | Promise<Response>): Promise<{ port: number }> {
+async function startTestServer(
+  handler: (request: Request) => Response | Promise<Response>,
+  onRequestSettled?: () => void,
+): Promise<{ port: number }> {
   const port = await getPort({ host: '127.0.0.1' })
 
   await new Promise<void>((resolve) => {
     const server = startStudioServer({
       handler,
       onListen: resolve,
+      onRequestSettled,
       port,
     })
 

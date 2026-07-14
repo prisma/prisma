@@ -13,6 +13,7 @@ export interface StudioServer {
 type StartStudioServerOptions = {
   handler: StudioRequestHandler
   onListen(): void
+  onRequestSettled?(): void
   port: number
 }
 
@@ -29,10 +30,10 @@ export function startStudioServer(options: StartStudioServerOptions): StudioServ
   }
 }
 
-function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOptions): StudioServer {
+function startNodeStudioServer({ handler, onListen, onRequestSettled, port }: StartStudioServerOptions): StudioServer {
   const server = createServer(async (nodeRequest, nodeResponse) => {
     try {
-      const request = createNodeRequest(nodeRequest, port)
+      const request = createNodeRequest(nodeRequest, nodeResponse, port)
       const response = await handler(request)
       await writeNodeResponse(nodeResponse, response, nodeRequest.method)
     } catch (error) {
@@ -50,6 +51,8 @@ function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOpt
       nodeResponse.statusCode = 500
       nodeResponse.setHeader('Access-Control-Allow-Origin', '*')
       nodeResponse.end(error instanceof Error ? error.message : 'Internal Server Error')
+    } finally {
+      onRequestSettled?.()
     }
   })
 
@@ -62,10 +65,17 @@ function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOpt
   }
 }
 
-function createNodeRequest(nodeRequest: IncomingMessage, port: number): Request {
+function createNodeRequest(nodeRequest: IncomingMessage, nodeResponse: ServerResponse, port: number): Request {
   const origin = `http://${nodeRequest.headers.host ?? `localhost:${port}`}`
   const url = new URL(nodeRequest.url ?? '/', origin)
   const headers = new Headers()
+  const abortController = new AbortController()
+
+  nodeResponse.once('close', () => {
+    if (!nodeResponse.writableEnded) {
+      abortController.abort()
+    }
+  })
 
   for (const [key, value] of Object.entries(nodeRequest.headers)) {
     if (Array.isArray(value)) {
@@ -80,6 +90,7 @@ function createNodeRequest(nodeRequest: IncomingMessage, port: number): Request 
   const requestInit: RequestInit & { duplex?: 'half' } = {
     headers,
     method: nodeRequest.method,
+    signal: abortController.signal,
   }
 
   if (methodHasRequestBody(nodeRequest.method)) {
@@ -106,7 +117,7 @@ async function writeNodeResponse(nodeResponse: ServerResponse, response: Respons
   await pipeline(Readable.fromWeb(response.body as never), nodeResponse)
 }
 
-function startBunStudioServer({ handler, onListen, port }: StartStudioServerOptions): StudioServer {
+function startBunStudioServer({ handler, onListen, onRequestSettled, port }: StartStudioServerOptions): StudioServer {
   const bun = (
     globalThis as typeof globalThis & {
       Bun?: {
@@ -120,7 +131,7 @@ function startBunStudioServer({ handler, onListen, port }: StartStudioServerOpti
   }
 
   const server = bun.serve({
-    fetch: handler,
+    fetch: (request) => handleStudioRequest(handler, request, onRequestSettled),
     port,
   })
 
@@ -133,7 +144,7 @@ function startBunStudioServer({ handler, onListen, port }: StartStudioServerOpti
   }
 }
 
-function startDenoStudioServer({ handler, onListen, port }: StartStudioServerOptions): StudioServer {
+function startDenoStudioServer({ handler, onListen, onRequestSettled, port }: StartStudioServerOptions): StudioServer {
   const abortController = new AbortController()
   const deno = (
     globalThis as typeof globalThis & {
@@ -150,13 +161,27 @@ function startDenoStudioServer({ handler, onListen, port }: StartStudioServerOpt
     throw new Error('Deno runtime is not available.')
   }
 
-  deno.serve({ port, signal: abortController.signal }, handler)
+  deno.serve({ port, signal: abortController.signal }, (request) =>
+    handleStudioRequest(handler, request, onRequestSettled),
+  )
   onListen()
 
   return {
     close() {
       abortController.abort()
     },
+  }
+}
+
+async function handleStudioRequest(
+  handler: StudioRequestHandler,
+  request: Request,
+  onRequestSettled: (() => void) | undefined,
+): Promise<Response> {
+  try {
+    return await handler(request)
+  } finally {
+    onRequestSettled?.()
   }
 }
 
