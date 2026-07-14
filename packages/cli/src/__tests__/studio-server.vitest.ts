@@ -87,7 +87,7 @@ test('does not log when the client disconnects before the response is written', 
 
 async function startTestServer(
   handler: (request: Request) => Response | Promise<Response>,
-  onRequestSettled?: () => void,
+  onNodeRequestSettled?: () => void,
 ): Promise<{ port: number }> {
   const port = await getPort({ host: '127.0.0.1' })
 
@@ -95,7 +95,7 @@ async function startTestServer(
     const server = startStudioServer({
       handler,
       onListen: resolve,
-      onRequestSettled,
+      onNodeRequestSettled,
       port,
     })
 

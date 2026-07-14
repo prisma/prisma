@@ -13,7 +13,7 @@ export interface StudioServer {
 type StartStudioServerOptions = {
   handler: StudioRequestHandler
   onListen(): void
-  onRequestSettled?(): void
+  onNodeRequestSettled?(): void
   port: number
 }
 
@@ -30,7 +30,12 @@ export function startStudioServer(options: StartStudioServerOptions): StudioServ
   }
 }
 
-function startNodeStudioServer({ handler, onListen, onRequestSettled, port }: StartStudioServerOptions): StudioServer {
+function startNodeStudioServer({
+  handler,
+  onListen,
+  onNodeRequestSettled,
+  port,
+}: StartStudioServerOptions): StudioServer {
   const server = createServer(async (nodeRequest, nodeResponse) => {
     try {
       const request = createNodeRequest(nodeRequest, nodeResponse, port)
@@ -52,7 +57,7 @@ function startNodeStudioServer({ handler, onListen, onRequestSettled, port }: St
       nodeResponse.setHeader('Access-Control-Allow-Origin', '*')
       nodeResponse.end(error instanceof Error ? error.message : 'Internal Server Error')
     } finally {
-      onRequestSettled?.()
+      onNodeRequestSettled?.()
     }
   })
 
@@ -117,7 +122,7 @@ async function writeNodeResponse(nodeResponse: ServerResponse, response: Respons
   await pipeline(Readable.fromWeb(response.body as never), nodeResponse)
 }
 
-function startBunStudioServer({ handler, onListen, onRequestSettled, port }: StartStudioServerOptions): StudioServer {
+function startBunStudioServer({ handler, onListen, port }: StartStudioServerOptions): StudioServer {
   const bun = (
     globalThis as typeof globalThis & {
       Bun?: {
@@ -131,7 +136,7 @@ function startBunStudioServer({ handler, onListen, onRequestSettled, port }: Sta
   }
 
   const server = bun.serve({
-    fetch: (request) => handleStudioRequest(handler, request, onRequestSettled),
+    fetch: handler,
     port,
   })
 
@@ -144,7 +149,7 @@ function startBunStudioServer({ handler, onListen, onRequestSettled, port }: Sta
   }
 }
 
-function startDenoStudioServer({ handler, onListen, onRequestSettled, port }: StartStudioServerOptions): StudioServer {
+function startDenoStudioServer({ handler, onListen, port }: StartStudioServerOptions): StudioServer {
   const abortController = new AbortController()
   const deno = (
     globalThis as typeof globalThis & {
@@ -161,27 +166,13 @@ function startDenoStudioServer({ handler, onListen, onRequestSettled, port }: St
     throw new Error('Deno runtime is not available.')
   }
 
-  deno.serve({ port, signal: abortController.signal }, (request) =>
-    handleStudioRequest(handler, request, onRequestSettled),
-  )
+  deno.serve({ port, signal: abortController.signal }, handler)
   onListen()
 
   return {
     close() {
       abortController.abort()
     },
-  }
-}
-
-async function handleStudioRequest(
-  handler: StudioRequestHandler,
-  request: Request,
-  onRequestSettled: (() => void) | undefined,
-): Promise<Response> {
-  try {
-    return await handler(request)
-  } finally {
-    onRequestSettled?.()
   }
 }
 
