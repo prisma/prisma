@@ -48,7 +48,7 @@ test('big query', () => {
         where: {
           age_gt: 5
           age_in: [5, 5, 5]
-          name_in: ["X"]
+          name_in: ["X", "X", "X"]
           OR: [
             {
               age_gt: 5
