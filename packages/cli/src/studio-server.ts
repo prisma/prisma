@@ -36,6 +36,10 @@ function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOpt
       const response = await handler(request)
       await writeNodeResponse(nodeResponse, response, nodeRequest.method)
     } catch (error) {
+      if (nodeResponse.destroyed) {
+        return
+      }
+
       console.error('[Prisma Studio]', error)
 
       if (nodeResponse.headersSent || nodeResponse.writableEnded) {

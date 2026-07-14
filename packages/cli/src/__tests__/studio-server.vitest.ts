@@ -46,6 +46,36 @@ test('logs server errors and returns the error message in the response body', as
   expect(consoleErrorSpy).toHaveBeenCalledWith('[Prisma Studio]', error)
 })
 
+test('does not log when the client disconnects before the response is written', async () => {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  let resolveHandlerStarted!: () => void
+  let resolveResponse!: () => void
+  const handlerStarted = new Promise<void>((resolve) => {
+    resolveHandlerStarted = resolve
+  })
+  const responseReady = new Promise<void>((resolve) => {
+    resolveResponse = resolve
+  })
+  const { port } = await startTestServer(async () => {
+    resolveHandlerStarted()
+    await responseReady
+    return new Response('late response')
+  })
+  const abortController = new AbortController()
+  const responsePromise = fetch(`http://127.0.0.1:${port}/`, {
+    signal: abortController.signal,
+  }).catch((error: unknown) => error)
+
+  await handlerStarted
+  abortController.abort()
+  await new Promise((resolve) => setTimeout(resolve, 25))
+  resolveResponse()
+
+  await expect(responsePromise).resolves.toMatchObject({ name: 'AbortError' })
+  await new Promise((resolve) => setTimeout(resolve, 25))
+  expect(consoleErrorSpy).not.toHaveBeenCalled()
+})
+
 async function startTestServer(handler: (request: Request) => Response | Promise<Response>): Promise<{ port: number }> {
   const port = await getPort({ host: '127.0.0.1' })
 
