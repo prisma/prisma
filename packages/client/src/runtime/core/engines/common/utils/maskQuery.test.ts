@@ -101,3 +101,9 @@ test('aggregate', () => {
       }"
   `)
 })
+
+test('string with an escaped quote', () => {
+  const query = `email_endsWith: "safe\\"secret", next: "other"`
+
+  expect(maskQuery(query)).toMatchInlineSnapshot(`"email_endsWith: "X", next: "X""`)
+})
