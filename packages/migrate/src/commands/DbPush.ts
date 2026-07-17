@@ -187,6 +187,10 @@ ${bold('Examples')}
     const before = Math.round(performance.now())
     let migration: EngineResults.SchemaPush
     try {
+      if (args['--accept-data-loss']) {
+        aiAgentConfirmationCheckpoint()
+      }
+
       migration = await migrate.push({
         force: args['--accept-data-loss'],
       })

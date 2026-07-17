@@ -28,7 +28,7 @@
   - For error assertions, use `result.name === 'PrismaClientKnownRequestError'` and `result.code` (not `instanceof`).
   - Use `idForProvider(provider)` from `_utils/idForProvider` for portable ID field definitions.
 
-- **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer.
+- **Docs & references**: `ARCHITECTURE.md` contains dependency graphs (requires GraphViz to regenerate), `docker/README.md` explains local DB setup, `docs/benchmarking.md` covers performance benchmarking, `examples/` provides sample apps, and `sandbox/` hosts debugging helpers like the DMMF explorer. Planning documents live under `docs/plans/<topic>/` as a numbered index (`000-<topic>-index.md`) plus per-task files.
 
 - **Client architecture (Prisma 7)**:
   - `ClientEngine` in `packages/client/src/runtime/core/engines/client/` orchestrates query execution using Wasm query compiler.
@@ -82,6 +82,7 @@
     - Some packages already use Vitest, `packages/cli` uses both for different tests as it's in the process of transition, older packages still use Jest.
   - Functional generated clients in `packages/client/tests/functional/**/.generated` import `packages/client/runtime/client.js` directly; runtime changes in `src/runtime` may need corresponding runtime bundle updates to be exercised by functional tests.
   - Client e2e `_steps.ts` files run inside `packages/client/tests/e2e/_utils/standard.dockerfile`; the startup script exports `NODE_PATH` for CommonJS and symlinks globally installed `zx` into `/test/node_modules` because ESM package resolution ignores `NODE_PATH`. Linux Docker runs may need SELinux-compatible bind mounts (`:z`) for mounted e2e files to be readable in the container.
+  - Each client e2e test is copied to `/test/<name>` in the container and `pnpm install`ed there as a standalone root (the e2e dir's `pnpm-workspace.yaml`/`.npmrc` are not copied along), so a per-test `pnpm.overrides` in the test's `package.json` takes effect. Use it to pin transitive deps that float via `^` ranges and can break tests out of the blue — e.g. the `prisma-client-imports-*` suites typecheck with `skipLibCheck: false` against pinned `@types/node@20` / TS 5.4, and a new `pg-protocol` release using generic `Buffer<T>` types broke the postgres suite that way. Note: `pnpm.overrides` in `package.json` works in pnpm 10 (what the container pins) but is ignored by pnpm 11.
   - Inline snapshots can be sensitive to formatting; prefer concise expectations unless the exact message matters.
 
 - **Environment loading**: Prisma 7 removes automatic `.env` loading.
@@ -106,6 +107,8 @@
   - E2E tests for sqlcommenter plugins live in `packages/client/tests/e2e/sqlcommenter*` directories.
   - `SqlCommenterQueryInfo` distinguishes `type: 'single'` (single query) vs `type: 'compacted'` (batched queries merged into one SQL statement). For non-raw client-engine queries, the SQL commenter context should receive parameterized query payloads so plugins such as query-insights never see user data values.
 
+- **AI agent safety checkpoint**: `packages/migrate/src/utils/ai-safety.ts` blocks `db drop`, `db push --force-reset`, `db push --accept-data-loss`, and `migrate reset` when an AI agent is detected, unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` is set. Do not replace the in-house detection with `@vercel/detect-agent` (rationale in the comment above `agentMatchers`). Its tests must clear inherited agent marker env vars in `beforeEach`, since the test process may itself run under an agent. The `prisma mcp` server (`packages/cli/src/mcp/MCP.ts`) deliberately exposes no `migrate-reset` tool — an agent that needs a reset must run the CLI, where the checkpoint applies. Do not add destructive tools to the MCP server.
+
 - **Codebase helpers to know**:
   - `@prisma/internals` exports CLI utilities: `arg`, `loadSchemaContext` (less used now).
   - `packages/migrate/src/__tests__/__helpers__/context.ts` sets up Jest helpers including config contributors.
@@ -115,6 +118,8 @@
   - `@prisma/client-engine-runtime` exports query interpreter, transaction manager, and related utilities.
   - `@prisma/client-common` provides shared client utilities used by both generators and runtime.
   - `@prisma/client-runtime-utils` provides utility types and singletons for Prisma Client.
+  - NPS survey infrastructure lives in `packages/cli/src/utils/nps/` (`survey.ts` orchestrates: TTY check via `isInteractive` from `@prisma/internals`, 30s prompt timeout, gating on `isCi`/`maybeInGitHook`/`isInNpmLifecycleHook`/`isInContainer`, once-per-timeframe persistence in `env-paths('prisma').config` as `nps.json`). Triggered only from `prisma generate` (suppressed by `--no-hints` and watch mode). Reuse this machinery for any new one-time interactive CLI prompt.
+  - `prisma mcp` (`packages/cli/src/mcp/MCP.ts`) is a stdio MCP server exposing `migrate-status`, `migrate-dev`, `migrate-reset`, and `Prisma-Studio` tools by shelling back into the CLI binary.
 
 - **Coding conventions**:
   - Use **kebab-case** for new file names (e.g., `query-utils.ts`, `filter-operators.test.ts`).
