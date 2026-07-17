@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { Command, CommandCompletion, Commands } from '@prisma/internals'
+import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 
@@ -60,10 +60,4 @@ ${bold('Examples')}
     }
     return PostgresCommand.help
   }
-}
-
-export const postgresCompletion: CommandCompletion = {
-  name: 'postgres',
-  description: 'Manage Prisma Postgres databases',
-  options: [{ name: 'help', alias: 'h', description: 'Display this help message' }],
 }

@@ -24,7 +24,6 @@ export {
   completionSqlScriptPaths,
   completionStudioBrowsers,
   completionStudioPorts,
-  templateCompletionValues,
 } from './cli/completion-values'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'

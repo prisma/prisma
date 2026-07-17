@@ -1,18 +1,7 @@
 import { access, constants, readFile } from 'node:fs/promises'
 
 import type { PrismaConfigInternal } from '@prisma/config'
-import {
-  arg,
-  type Command,
-  type CommandCompletion,
-  completionConfigPaths,
-  completionDatasourceUrls,
-  completionStudioBrowsers,
-  completionStudioPorts,
-  format,
-  HelpError,
-  isError,
-} from '@prisma/internals'
+import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
 import type { Executor, SequenceExecutor } from '@prisma/studio-core/data'
 import { type SerializedError, serializeError, type StudioBFFRequest } from '@prisma/studio-core/data/bff'
 import { createMySQL2Executor } from '@prisma/studio-core/data/mysql2'
@@ -711,20 +700,4 @@ function withCors(response: Response): Response {
     status: response.status,
     statusText: response.statusText,
   })
-}
-
-export const studioCompletion: CommandCompletion = {
-  name: 'studio',
-  description: 'Browse your data with Prisma Studio',
-  options: [
-    { name: 'help', alias: 'h', description: 'Display this help message' },
-    { name: 'config', description: 'Custom path to your Prisma config file', values: completionConfigPaths },
-    {
-      name: 'url',
-      description: 'Database connection string (overrides the one in your Prisma config file)',
-      values: completionDatasourceUrls,
-    },
-    { name: 'port', alias: 'p', description: 'Port to start Studio on', values: completionStudioPorts },
-    { name: 'browser', alias: 'b', description: 'Browser to auto-open Studio in', values: completionStudioBrowsers },
-  ],
 }

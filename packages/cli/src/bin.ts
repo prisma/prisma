@@ -5,11 +5,11 @@ import path from 'node:path'
 import { context, trace } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
-import { InjectFormatters } from '@prisma/config'
+import { defaultConfig, InjectFormatters } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { arg, handlePanic, HelpError, isRustPanic, link } from '@prisma/internals'
+import { arg, handlePanic, HelpError, isError, isRustPanic, link } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -141,7 +141,9 @@ async function main(): Promise<number> {
   const configFile = args['--config']
   const configDir = configFile ? path.resolve(configFile, '..') : process.cwd()
 
-  const configEither = await loadConfig(configFile)
+  const isCompleteCommand = !isError(args) && args._[0] === 'complete'
+
+  const configEither = isCompleteCommand ? { config: defaultConfig(), diagnostics: [] } : await loadConfig(configFile)
 
   if (configEither instanceof HelpError) {
     console.error(configEither.message)
@@ -203,10 +205,7 @@ async function main(): Promise<number> {
   }
 }
 
-/**
- * Run our program
- */
-if (eval('require.main === module')) {
+export function run(): void {
   main()
     .then((code) => {
       if (code !== 0) {
@@ -223,6 +222,13 @@ if (eval('require.main === module')) {
         handleIndividualError(err)
       }
     })
+}
+
+/**
+ * Run our program
+ */
+if (eval('require.main === module')) {
+  run()
 }
 
 function handleIndividualError(error: Error): void {

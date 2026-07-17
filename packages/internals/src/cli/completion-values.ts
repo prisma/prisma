@@ -101,7 +101,3 @@ export const completionDevDbPorts: CompletionValue[] = [{ value: '51214', descri
 export const completionDevShadowDbPorts: CompletionValue[] = [
   { value: '51215', description: 'Default shadow database port' },
 ]
-
-export function templateCompletionValues(templates: ReadonlyArray<{ name: string; label: string }>): CompletionValue[] {
-  return templates.map((t) => ({ value: t.name, description: `${t.label} starter` }))
-}
