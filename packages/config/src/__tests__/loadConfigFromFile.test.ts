@@ -60,6 +60,7 @@ describe('loadConfigFromFile', () => {
       expect(config.datasource).toMatchObject({
         url: 'postgresql://DATABASE_URL',
         shadowDatabaseUrl: 'postgresql://SHADOW_DATABASE_URL',
+        directUrl: 'postgresql://DIRECT_URL',
       })
     })
   })
@@ -351,7 +352,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-          "{ readonly experimental?: { readonly externalTables?: boolean | undefined; readonly extensions?: boolean | undefined } | undefined; readonly datasource?: { readonly url: string; readonly shadowDatabaseUrl?: string | undefined } | undefined; readonly schema?: string | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: string | undefined; readonly seed?: NonEmptyString | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly enums?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly extensions?: any | undefined; readonly loadedFromFile: string | null }
+          "{ readonly experimental?: { readonly externalTables?: boolean | undefined; readonly extensions?: boolean | undefined } | undefined; readonly datasource?: { readonly url: string; readonly shadowDatabaseUrl?: string | undefined; readonly directUrl?: string | undefined } | undefined; readonly schema?: string | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: string | undefined; readonly seed?: NonEmptyString | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly enums?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly extensions?: any | undefined; readonly loadedFromFile: string | null }
           └─ ["__esModule"]
              └─ is unexpected, expected: "experimental" | "datasource" | "schema" | "migrations" | "tables" | "enums" | "views" | "typedSql" | "extensions" | "loadedFromFile""
         `)
@@ -366,7 +367,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-          "{ readonly experimental?: { readonly externalTables?: boolean | undefined; readonly extensions?: boolean | undefined } | undefined; readonly datasource?: { readonly url: string; readonly shadowDatabaseUrl?: string | undefined } | undefined; readonly schema?: string | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: string | undefined; readonly seed?: NonEmptyString | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly enums?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly extensions?: any | undefined; readonly loadedFromFile: string | null }
+          "{ readonly experimental?: { readonly externalTables?: boolean | undefined; readonly extensions?: boolean | undefined } | undefined; readonly datasource?: { readonly url: string; readonly shadowDatabaseUrl?: string | undefined; readonly directUrl?: string | undefined } | undefined; readonly schema?: string | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: string | undefined; readonly seed?: NonEmptyString | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly enums?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly extensions?: any | undefined; readonly loadedFromFile: string | null }
           └─ ["thisShouldFail"]
              └─ is unexpected, expected: "experimental" | "datasource" | "schema" | "migrations" | "tables" | "enums" | "views" | "typedSql" | "extensions" | "loadedFromFile""
         `)

@@ -21,11 +21,13 @@ export type ExperimentalConfig = {
 const DatasourceShape = Shape.Struct({
   url: Shape.optional(Shape.String),
   shadowDatabaseUrl: Shape.optional(Shape.String),
+  directUrl: Shape.optional(Shape.String),
 })
 
 export type Datasource = {
   url?: string
   shadowDatabaseUrl?: string
+  directUrl?: string
 }
 
 export type SchemaEngineConfigInternal = {
