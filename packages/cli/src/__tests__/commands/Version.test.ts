@@ -17,6 +17,7 @@ describe('version', () => {
       Operating System     : OS
       Architecture         : ARCHITECTURE
       Node.js              : NODEJS_VERSION
+      Prisma CLI Path      : CLI_PATH
       TypeScript           : TYPESCRIPT_VERSION
       Query Compiler       : enabled
       PSL                  : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION

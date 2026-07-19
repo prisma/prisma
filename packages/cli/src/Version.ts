@@ -15,9 +15,9 @@ import {
   resolveEngine,
   wasm,
 } from '@prisma/internals'
+import fs from 'fs'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
-import fs from 'fs'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -84,7 +84,11 @@ export class Version implements Command {
     // parent node_modules), use the unresolved argv[1] rather than throwing
     let cliPath = 'unknown'
     if (process.argv[1]) {
-      try { cliPath = fs.realpathSync(process.argv[1]) } catch { cliPath = process.argv[1] }
+      try {
+        cliPath = fs.realpathSync(process.argv[1])
+      } catch {
+        cliPath = process.argv[1]
+      }
     }
 
     const rows = [
