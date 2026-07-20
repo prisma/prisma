@@ -402,6 +402,24 @@ describe('Studio BFF', () => {
     expect(await response.json()).toEqual([null, [[{ id: 1 }], [{ id: 2 }]]])
   })
 
+  test('returns an explicit error when query insights are unsupported', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getBffResponse({
+      procedure: 'query-insights',
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual([
+      {
+        message: 'Executor does not support query insights',
+        name: 'Error',
+      },
+    ])
+  })
+
   test('serves the Prisma logo as the favicon', async () => {
     await startStudioBff({
       execute: vi.fn(),
