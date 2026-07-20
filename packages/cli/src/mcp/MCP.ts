@@ -6,7 +6,7 @@ import execa from 'execa'
 import { z } from 'zod'
 
 import { version } from '../../package.json'
-import { createHelp } from '../platform/_lib/help'
+import { createHelp } from '../utils/help'
 
 // Only apply console redirection when running in MCP mode
 // This prevents stdout pollution that breaks MCP's JSON-RPC protocol
@@ -38,6 +38,7 @@ export class Mcp implements Command {
   private constructor() {}
 
   public help = createHelp({
+    usageLine: 'prisma mcp [options]',
     options: [['--early-access', '', 'Enable early access features']],
     examples: ['prisma mcp --early-access'],
     additionalContent: [
@@ -89,22 +90,6 @@ export class Mcp implements Command {
       { name: z.string(), projectCWD: z.string() },
       async ({ name, projectCWD }) => {
         return await runCommand({ cwd: projectCWD, args: ['migrate', 'dev', '--name', name] })
-      },
-    )
-
-    server.tool(
-      'migrate-reset',
-      `Prisma Migrate Reset --force is used to reset the database and migration history if drift is detected. Only run this command on a development database - never on production databases! If in doubt, ask the user to confirm.
-
-                The migrate reset command performs these steps:
-
-                1. Drops the database/schema if possible, or performs a soft reset if the environment does not allow deleting databases/schemas
-                2. Creates a new database/schema with the same name if the database/schema was dropped
-                3. Applies all migrations
-                4. Runs seed scripts`,
-      { projectCWD: z.string() },
-      async ({ projectCWD }) => {
-        return await runCommand({ cwd: projectCWD, args: ['migrate', 'reset', '--force'] })
       },
     )
 

@@ -59,6 +59,14 @@ afterAll(() => {
   context.disable()
 })
 
+beforeEach(() => {
+  prisma = newPrismaClient()
+})
+
+afterEach(async () => {
+  await prisma.$disconnect()
+})
+
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter, relationMode, clientEngineExecutor }, _suiteMeta, clientMeta) => {
     const executorSpanInfix = clientEngineExecutor === 'remote' ? 'accelerate' : 'client'
@@ -115,8 +123,9 @@ testMatrix.setupTestSuite(
     const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
     const usesSyntheticTxQueries =
-      (driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)) ||
-      (clientEngineExecutor === 'remote' && provider === Providers.SQLSERVER)
+      (driverAdapter !== undefined &&
+        ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql', 'js_mariadb'].includes(driverAdapter)) ||
+      (clientEngineExecutor === 'remote' && [Providers.SQLSERVER, Providers.MYSQL].includes(provider))
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -643,11 +652,7 @@ testMatrix.setupTestSuite(
         // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
-          operation(undefined, 'queryRaw', [
-            ...clientCompile('queryRaw'),
-            clientSerialize(),
-            ...engine([dbQuery('SELECT 1 + 1;')]),
-          ]),
+          operation(undefined, 'queryRaw', [clientSerialize(), ...engine([dbQuery('SELECT 1 + 1;')])]),
         )
       })
 
@@ -661,11 +666,7 @@ testMatrix.setupTestSuite(
         await prisma.$executeRaw`SELECT 1 + 1;`
 
         await waitForSpanTree(
-          operation(undefined, 'executeRaw', [
-            ...clientCompile('executeRaw'),
-            clientSerialize(),
-            ...engine([dbQuery('SELECT 1 + 1;')]),
-          ]),
+          operation(undefined, 'executeRaw', [clientSerialize(), ...engine([dbQuery('SELECT 1 + 1;')])]),
         )
       })
     })

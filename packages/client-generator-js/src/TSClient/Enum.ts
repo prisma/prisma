@@ -22,7 +22,7 @@ export class Enum implements Generable {
   public toJS(): string {
     const { type } = this
     const enumVariants = `{
-${indent(type.data.map((v) => `${v.key}: ${this.getValueJS(v.value)}`).join(',\n'), TAB_SIZE)}
+${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
 }`
     const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
 
@@ -39,7 +39,7 @@ ${indent(type.data.map((v) => `${v.key}: ${this.getValueJS(v.value)}`).join(',\n
     const { type } = this
 
     return `export const ${type.name}: {
-${indent(type.data.map((v) => `${v.key}: ${this.getValueTS(v.value)}`).join(',\n'), TAB_SIZE)}
+${indent(type.values.map((v) => `${v}: ${this.getValueTS(v)}`).join(',\n'), TAB_SIZE)}
 };
 
 export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`

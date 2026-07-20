@@ -91,6 +91,10 @@ export class MockTransaction implements Transaction, SqlQueryable {
 }
 
 export const mockTracingHelper: TracingHelper = {
+  isEnabled(): boolean {
+    return false
+  },
+
   runInChildSpan<R>(_nameOrOptions: string | ExtendedSpanOptions, callback: SpanCallback<R>): R {
     return callback()
   },

@@ -289,6 +289,18 @@ export interface Transaction extends AdapterInfo, SqlQueryable {
    * Roll back the transaction.
    */
   rollback(): Promise<void>
+  /**
+   * Creates a savepoint within the currently running transaction.
+   */
+  createSavepoint?(name: string): Promise<void>
+  /**
+   * Rolls back transaction state to a previously created savepoint.
+   */
+  rollbackToSavepoint?(name: string): Promise<void>
+  /**
+   * Releases a previously created savepoint. Optional because not every connector supports this operation.
+   */
+  releaseSavepoint?(name: string): Promise<void>
 }
 
 /**

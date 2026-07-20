@@ -120,8 +120,6 @@ export function createConfiguredMockAdapter(): MockDriverAdapter {
 
 export function createInterpreterOptions(): QueryInterpreterOptions {
   return {
-    transactionManager: { enabled: false },
-    placeholderValues: {},
     tracingHelper: mockTracingHelper,
     serializer: serializeSql,
     provider: 'sqlite',

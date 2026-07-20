@@ -88,7 +88,7 @@ ${bold('Examples')}
     --to-schema=next_datamodel.prisma \\
     --script
 
-  From a peisma datamodel to the configured database
+  From a Prisma datamodel to the configured database
     e.g. roll forward after a migration failed in the middle
   ${dim('$')} prisma migrate diff \\
     --from-schema=next_datamodel.prisma \\
@@ -283,7 +283,6 @@ ${bold('Examples')}
         from: from!,
         to: to!,
         script: args['--script'] || false, // default is false
-        shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
         exitCode: args['--exit-code'] ?? null,
         filters: {
           externalTables: config.tables?.external ?? [],

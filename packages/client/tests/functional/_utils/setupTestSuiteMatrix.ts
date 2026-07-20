@@ -122,6 +122,33 @@ function setupTestSuiteMatrix(
       beforeAll(async () => {
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
+        // If using D1 Driver adapter
+        // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
+        if (suiteConfig.matrixOptions.driverAdapter === 'js_d1') {
+          const { getPlatformProxy } = require('wrangler') as typeof import('wrangler')
+          const { env, dispose } = await getPlatformProxy({
+            configPath: path.join(__dirname, './wrangler.toml'),
+          })
+
+          // Expose the bindings to the test suite
+          disposeWrangler = dispose
+          cfWorkerBindings = env
+        }
+
+        const [clientModule, sqlModule] = await setupTestSuiteClient({
+          generatorType: suiteConfig.matrixOptions.generatorType || 'prisma-client-js',
+          cliMeta,
+          suiteMeta,
+          suiteConfig,
+          datasourceInfo,
+          clientMeta,
+          skipDb: options?.skipDb,
+          alterStatementCallback: options?.alterStatementCallback,
+          cfWorkerBindings,
+        })
+
+        globalThis['loaded'] = clientModule
+
         if (clientMeta.clientEngineExecutor === 'remote') {
           qpeWorker = new Worker(path.join(__dirname, 'qpe-worker-entry.cjs'))
 
@@ -158,33 +185,6 @@ function setupTestSuiteMatrix(
 
           datasourceInfo.accelerateUrl = `prisma://${hostname}:${port}/?api_key=1&use_http=1`
         }
-
-        // If using D1 Driver adapter
-        // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
-        if (suiteConfig.matrixOptions.driverAdapter === 'js_d1') {
-          const { getPlatformProxy } = require('wrangler') as typeof import('wrangler')
-          const { env, dispose } = await getPlatformProxy({
-            configPath: path.join(__dirname, './wrangler.toml'),
-          })
-
-          // Expose the bindings to the test suite
-          disposeWrangler = dispose
-          cfWorkerBindings = env
-        }
-
-        const [clientModule, sqlModule] = await setupTestSuiteClient({
-          generatorType: suiteConfig.matrixOptions.generatorType || 'prisma-client-js',
-          cliMeta,
-          suiteMeta,
-          suiteConfig,
-          datasourceInfo,
-          clientMeta,
-          skipDb: options?.skipDb,
-          alterStatementCallback: options?.alterStatementCallback,
-          cfWorkerBindings,
-        })
-
-        globalThis['loaded'] = clientModule
 
         const internalArgs = () =>
           getPrismaClientInternalArgs({

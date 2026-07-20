@@ -108,8 +108,7 @@ export class CLI implements Command {
     return CLI.help
   }
 
-  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate
-and capture real-time events from your database with Prisma Pulse.
+  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate.
 Learn more at ${link('https://pris.ly/cli/pdp')}`
 
   private static boxedTryPdpMessage = drawBox({
@@ -131,6 +130,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
     ${bold('Commands')}
 
                 init   Set up Prisma for your app
+           bootstrap   Bootstrap a Prisma Postgres project
                  dev   Start a local Prisma Postgres server for development
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
@@ -140,7 +140,10 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
               format   Format your Prisma schema
              version   Displays Prisma version info
                debug   Displays Prisma debug info
+            platform   Prisma Data Platform commands
+            postgres   Manage Prisma Postgres databases
                  mcp   Starts an MCP server to use with AI development tools
+            complete   Generate shell completion scripts
 
     ${bold('Flags')}
 

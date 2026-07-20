@@ -4,6 +4,7 @@ import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator'
 import {
   arg,
+  BuiltInProvider,
   Command,
   createSchemaPathInput,
   format,
@@ -29,7 +30,6 @@ import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -144,7 +144,6 @@ ${bold('Examples')}
       }),
       cwd,
     })
-    const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
@@ -181,7 +180,7 @@ ${bold('Examples')}
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
         const jsClient = generators.find(
-          (g) => g.options && parseEnvValue(g.options.generator.provider) === 'prisma-client-js',
+          (g) => g.options && parseEnvValue(g.options.generator.provider) === BuiltInProvider.PrismaClientJs,
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -232,7 +231,7 @@ Please run \`prisma generate\` manually.`
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
-          options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
+          options?.generator.provider && parseEnvValue(options?.generator.provider) === BuiltInProvider.PrismaClientJs,
       )
 
       let hint = ''
@@ -259,7 +258,6 @@ Please make sure they have the same version.`
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${renderPromotion(promotion)}
 ${breakingChangesStr}${versionsWarning}`
         }
       }

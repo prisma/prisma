@@ -28,11 +28,12 @@
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/engines-version": "7.3.0-8.aee8f579c2872ad0cedd6fd7e9070704fdb3610e",
+    "@prisma/engines-version": "7.9.0-1.e922089b7d7502aff4249d5da3420f6fa55fc6ad",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
+    "@prisma/param-graph-builder": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
     "fast-glob": "3.3.3",
     "get-tsconfig": "4.10.0",
@@ -43,8 +44,7 @@
     "ts-pattern": "5.6.2"
   },
   "devDependencies": {
-    "@types/pluralize": "0.0.33",
-    "vitest": "3.2.4"
+    "@types/pluralize": "0.0.33"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
