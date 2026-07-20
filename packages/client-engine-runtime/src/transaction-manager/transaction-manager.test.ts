@@ -610,6 +610,7 @@ test('transaction start timeout cleans up connection if transaction eventually s
   const REMAINING_TIME_FOR_START = SLOW_START_TRANSACTION_TIME - TIME_PAST_MAX_WAIT
 
   const rollbackMock = vi.fn().mockResolvedValue(undefined)
+  const executeRawMock = vi.fn().mockResolvedValue(1)
 
   const driverAdapter = {
     adapterName: 'slow-adapter',
@@ -628,7 +629,7 @@ test('transaction start timeout cleans up connection if transaction eventually s
                 provider: 'postgres',
                 options: { usePhantomQuery: false },
                 queryRaw: vi.fn(),
-                executeRaw: vi.fn(),
+                executeRaw: executeRawMock,
                 commit: vi.fn(),
                 rollback: rollbackMock,
               }),
@@ -660,8 +661,10 @@ test('transaction start timeout cleans up connection if transaction eventually s
   // Now advance time to let the startTransaction promise resolve
   await vi.advanceTimersByTimeAsync(REMAINING_TIME_FOR_START)
 
-  // After the background startTransaction completes, rollback should be called
-  // to release the connection and avoid pool exhaustion
+  // After the background startTransaction completes, the discarded transaction must send an
+  // explicit ROLLBACK before releasing the connection. Without it, a non-phantom-query adapter
+  // (e.g. pg/neon) returns a connection to the pool while it is still mid-transaction.
+  expect(executeRawMock).toHaveBeenCalledWith(expect.objectContaining({ sql: 'ROLLBACK' }))
   expect(rollbackMock).toHaveBeenCalled()
 })
 
