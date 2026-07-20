@@ -31,6 +31,7 @@ export function buildGetWasmModule({
   activeProvider,
   moduleFormat,
   compilerBuild,
+  target,
 }: BuildWasmModuleOptions) {
   const extension = match(moduleFormat)
     .with('esm', () => 'mjs')
@@ -94,6 +95,23 @@ config.compilerWasm = {
   }
 
   if (buildEdgeLoader) {
+    // For Cloudflare Workers (workerd), Vite 7 does not support the `?module` suffix.
+    // Use `import('#wasm-compiler-loader')` virtual module instead, which is resolved
+    // by the generated package.json `imports` field to a runtime-appropriate loader.
+    if (target === 'workerd') {
+      return `config.compilerWasm = {
+  getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
+
+  getQueryCompilerWasmModule: async () => {
+    const loader = (await import('#wasm-compiler-loader')).default
+    const compiler = (await loader).default
+    return compiler
+  },
+
+  importName: ${JSON.stringify(`./${artifactName}.js`)}
+}`
+    }
+
     return `config.compilerWasm = {
   getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
 

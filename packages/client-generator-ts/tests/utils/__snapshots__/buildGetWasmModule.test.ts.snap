@@ -191,8 +191,9 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-fast-wasm-co
   getRuntime: async () => await import("./query_compiler_fast_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_fast_bg.wasm?module")
-    return module
+    const loader = (await import('#wasm-compiler-loader')).default
+    const compiler = (await loader).default
+    return compiler
   },
 
   importName: "./query_compiler_fast_bg.js"
@@ -204,8 +205,9 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-fast-wasm-co
   getRuntime: async () => await import("./query_compiler_fast_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_fast_bg.wasm?module")
-    return module
+    const loader = (await import('#wasm-compiler-loader')).default
+    const compiler = (await loader).default
+    return compiler
   },
 
   importName: "./query_compiler_fast_bg.js"
@@ -403,8 +405,9 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-small-wasm-c
   getRuntime: async () => await import("./query_compiler_small_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_small_bg.wasm?module")
-    return module
+    const loader = (await import('#wasm-compiler-loader')).default
+    const compiler = (await loader).default
+    return compiler
   },
 
   importName: "./query_compiler_small_bg.js"
@@ -416,8 +419,9 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-small-wasm-c
   getRuntime: async () => await import("./query_compiler_small_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_small_bg.wasm?module")
-    return module
+    const loader = (await import('#wasm-compiler-loader')).default
+    const compiler = (await loader).default
+    return compiler
   },
 
   importName: "./query_compiler_small_bg.js"

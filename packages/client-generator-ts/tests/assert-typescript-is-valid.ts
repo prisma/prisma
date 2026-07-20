@@ -90,6 +90,11 @@ declare module '*.wasm?module' {
   const wasmModule: WebAssembly.Module
   export default wasmModule
 }
+
+declare module '#wasm-compiler-loader' {
+  const loader: Promise<{ default: WebAssembly.Module }>
+  export default loader
+}
   `
 
   // Create the WASM declarations file
