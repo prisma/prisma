@@ -240,7 +240,7 @@ export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.Do
     @example
     \`\`\`
     const prisma = new PrismaClient({
-      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+      adapter: new PrismaPg({ connectionString: process.env.YOUR_DATABASE_URL_ENV_VAR })
     })
     // Fetch zero or more ${capitalize(example.plural)}
     const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
