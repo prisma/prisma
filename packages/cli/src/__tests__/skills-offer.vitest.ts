@@ -54,7 +54,6 @@ function testContext(overrides: Partial<SkillsOfferContext> = {}) {
   const ctx: SkillsOfferContext = {
     cwd,
     configDir,
-    isDeno: false,
     isInteractive: () => true,
     isCi: () => false,
     maybeInGitHook: () => false,
@@ -135,7 +134,6 @@ describe('gates', () => {
 
   test.each([
     ['not interactive', { isInteractive: () => false }],
-    ['Deno runtime', { isDeno: true }],
     ['CI', { isCi: () => true }],
     ['git hook', { maybeInGitHook: () => true }],
     ['npm lifecycle hook', { isInNpmLifecycleHook: () => true }],
