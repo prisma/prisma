@@ -172,12 +172,25 @@ export class TransactionManager {
       case 'waiting':
         if (abortController.signal.aborted) {
           // The startTransaction promise may still be running in the background.
-          // If it eventually succeeds, we need to release the connection to avoid
-          // leaking it and exhausting the connection pool. We ignore any errors
-          // that happen during startup or rollback here because we will have
-          // already returned our own `TransactionStartTimeoutError` error to the user.
+          // If it eventually succeeds, we need to roll back and release the connection to
+          // avoid leaking it and exhausting the connection pool. For adapters that don't use
+          // phantom queries (e.g. pg/neon), `rollback()` only releases the connection without
+          // sending SQL, so we send an explicit ROLLBACK first; otherwise the connection returns
+          // to the pool mid-transaction because `BEGIN` already ran on the wire during startup.
+          // We ignore any errors here because we will have already returned our own
+          // `TransactionStartTimeoutError` error to the user.
           void startTransactionPromise
-            .then((tx) => tx.rollback())
+            .then(async (tx) => {
+              if (tx.options.usePhantomQuery) {
+                await tx.rollback()
+              } else {
+                try {
+                  await tx.executeRaw(ROLLBACK_QUERY())
+                } finally {
+                  await tx.rollback()
+                }
+              }
+            })
             .catch((e) => debug('error in discarded transaction:', e))
 
           // Call `#closeTransaction` to update internal state. It won't actually attempt
