@@ -8,8 +8,8 @@ describe('createFileNameToKeyMapper', () => {
   })
 
   test('uses locale-independent lowercase keys when case-insensitive', () => {
-    vi.spyOn(String.prototype, 'toLocaleLowerCase').mockImplementation(function () {
-      return String(this).replace(/I/g, 'ı').toLowerCase()
+    vi.spyOn(String.prototype, 'toLocaleLowerCase').mockImplementation(function (this: string) {
+      return this.replace(/I/g, 'ı').toLowerCase()
     })
 
     const mapFileName = createFileNameToKeyMapper({ caseSensitive: false })
