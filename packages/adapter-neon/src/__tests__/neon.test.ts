@@ -100,4 +100,25 @@ describe('PrismaNeonHttpAdapter', () => {
     // the unmapped base64 string must not be what's sent to the driver
     expect(values[0]).not.toBe(bytesBase64)
   })
+
+  it('maps a DateTime arg to a UTC timestamp string, not the process-local offset', async () => {
+    const mockClient = vi.fn().mockResolvedValue({ fields: [], rows: [], rowCount: 0 })
+    const adapter = new PrismaNeonHttpAdapter(mockClient as unknown as neon.NeonQueryFunction<any, any>)
+
+    // the query engine hands DateTime args over as ISO strings
+    const isoDate = '2023-01-01T12:00:00.000Z'
+
+    const query: SqlQuery = {
+      sql: 'INSERT INTO "Thing" ("date") VALUES ($1)',
+      args: [isoDate],
+      argTypes: [{ scalarType: 'datetime', arity: 'scalar' }],
+    }
+
+    await adapter.performIO(query)
+
+    const [, values] = mockClient.mock.calls[0]
+    // formatDateTime renders the UTC wall-clock value with no offset suffix, unlike the
+    // driver's default `Date#toISOString`/`prepareValue`-style local-offset serialization
+    expect(values[0]).toBe('2023-01-01 12:00:00')
+  })
 })
