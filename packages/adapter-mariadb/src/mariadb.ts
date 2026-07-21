@@ -290,8 +290,11 @@ function normalizeConfig(config: mariadb.PoolConfig | string): mariadb.PoolConfi
         url.searchParams.set('prepareCacheLength', '0')
       }
       return rewriteConnectionString(url).toString()
-    } catch (error) {
-      debug('Error parsing connection string: %O', error)
+    } catch {
+      // The error is deliberately not logged: `ERR_INVALID_URL` carries the rejected string in
+      // `error.input`, which would put the connection string's credentials into the debug
+      // history, and `getLogs()` surfaces that history in user-facing error reports.
+      debug('Failed to parse the connection string, passing it to the driver as-is')
       // If we can't parse the connection string, use it as-is and let the driver fail with
       // its own error.
       return config

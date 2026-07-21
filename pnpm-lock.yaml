@@ -270,6 +270,10 @@ importers:
       mariadb:
         specifier: 3.4.5
         version: 3.4.5
+    devDependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
 
   packages/adapter-mssql:
     dependencies:
