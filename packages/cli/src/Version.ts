@@ -17,10 +17,13 @@ import {
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
+import path from 'path'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json')
+
+const prismaCliPath = path.dirname(require.resolve('../package.json'))
 
 /**
  * $ prisma version
@@ -82,6 +85,7 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
+      ['Prisma CLI Path', prismaCliPath],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],

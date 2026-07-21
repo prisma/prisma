@@ -14,6 +14,7 @@ describe('version', () => {
     expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
       "prisma               : 0.0.0
       @prisma/client       : 0.0.0
+      Prisma CLI Path      : sanitized_cli_path
       Operating System     : OS
       Architecture         : ARCHITECTURE
       Node.js              : NODEJS_VERSION
@@ -28,6 +29,28 @@ describe('version', () => {
       "Loaded Prisma config from prisma.config.ts.
 
       Prisma schema loaded from schema.prisma."
+    `)
+  })
+
+  test('prints prisma cli path in json output', async () => {
+    ctx.fixture('version')
+    const data = await ctx.cli('version', '--json')
+    expect(data.exitCode).toBe(0)
+    expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
+      "{
+        \"prisma\": \"0.0.0\",
+        \"@prisma/client\": \"0.0.0\",
+        \"prisma-cli-path\": \"sanitized_cli_path\",
+        \"operating-system\": \"OS\",
+        \"architecture\": \"ARCHITECTURE\",
+        \"node.js\": \"NODEJS_VERSION\",
+        \"typescript\": \"TYPESCRIPT_VERSION\",
+        \"query-compiler\": \"enabled\",
+        \"psl\": \"@prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION\",
+        \"schema-engine\": \"schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)\",
+        \"default-engines-hash\": \"ENGINE_VERSION\",
+        \"studio\": \"STUDIO_VERSION\"
+      }"
     `)
   })
 })
@@ -61,11 +84,16 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp('(Prisma CLI Path\\s+:).*', 'g'), '$1 sanitized_cli_path')
   str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
   str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
   str = str.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')
+  str = str.replace(new RegExp('(\"prisma-cli-path\":\\s*\").*(\")', 'g'), '$1sanitized_cli_path$2')
+  str = str.replace(new RegExp('(\"operating-system\":\\s*\").*(\")', 'g'), '$1OS$2')
+  str = str.replace(new RegExp('(\"architecture\":\\s*\").*(\")', 'g'), '$1ARCHITECTURE$2')
+  str = str.replace(new RegExp('(\"typescript\":\\s*\").*(\")', 'g'), '$1TYPESCRIPT_VERSION$2')
 
   // replace studio version
   str = str.replace(packageJson.dependencies['@prisma/studio-core'], 'STUDIO_VERSION')
