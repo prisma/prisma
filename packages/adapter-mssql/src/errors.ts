@@ -73,9 +73,13 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 1505: {
+      // e.g. "The CREATE UNIQUE INDEX statement terminated because a duplicate key
+      // was found for object name 'dbo.Table' and index name 'IX_Table_Col'.
+      // The duplicate key value is (...)."
+      // The object (table) name is the first quoted segment, the index name is the second.
       const segments = error.message.split("'")
-      const table = segments.at(3)?.split('.').pop()
-      const index = segments.at(5)
+      const table = segments.at(1)?.split('.').pop()
+      const index = segments.at(3)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,

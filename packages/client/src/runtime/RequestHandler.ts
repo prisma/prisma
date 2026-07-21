@@ -273,11 +273,18 @@ export class RequestHandler {
       // the last `.`-separated segment on both sides.
       const unqualifiedTable = table.split('.').pop()
 
-      const models = this.client._runtimeDataModel.models
-      const match = Object.entries(models).find(([key, model]: [string, any]) => {
-        const dbName = model.dbName ?? key
-        return dbName === table || dbName.split('.').pop() === unqualifiedTable
-      })
+      const models = Object.entries(this.client._runtimeDataModel.models)
+
+      // Prefer an exact (schema-qualified) match first. Only fall back to matching
+      // on the unqualified table name if no exact match exists - otherwise, when two
+      // models in different schemas share the same bare table name, `find` could
+      // return the wrong model depending on iteration order, before ever reaching
+      // the correct exact match later in the list.
+      const exactMatch = models.find(([key, model]: [string, any]) => (model.dbName ?? key) === table)
+      const unqualifiedMatch = models.find(
+        ([key, model]: [string, any]) => (model.dbName ?? key).split('.').pop() === unqualifiedTable,
+      )
+      const match = exactMatch ?? unqualifiedMatch
       if (match) {
         resolvedModelName = match[0]
       }
