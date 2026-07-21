@@ -818,6 +818,46 @@ test('cancelAllTransactions rolls back once when cancelling as the driver hands 
   expect(rollbackMock).toHaveBeenCalledTimes(1)
 })
 
+test('cancelAllTransactions gives up on a driver that never settles the start', async () => {
+  // The rollback cannot run until the driver settles the promise it is holding. A driver stuck
+  // on a dead connection never will, and disconnect must not wait on it forever.
+
+  const driverAdapter = {
+    adapterName: 'hanging-adapter',
+    provider: 'postgres' as const,
+    executeRaw: vi.fn(),
+    queryRaw: vi.fn(),
+    executeScript: vi.fn(),
+    dispose: vi.fn(),
+    startTransaction: vi.fn().mockImplementation(() => new Promise(() => {})),
+  }
+
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: { timeout: TRANSACTION_EXECUTION_TIMEOUT, maxWait: START_TRANSACTION_TIME },
+    tracingHelper: noopTracingHelper,
+  })
+
+  void transactionManager.startTransaction().catch(() => {})
+  await vi.advanceTimersByTimeAsync(0)
+  expect(driverAdapter.startTransaction).toHaveBeenCalled()
+
+  let cancelled = false
+  const cancelling = transactionManager.cancelAllTransactions().then(() => {
+    cancelled = true
+  })
+
+  // Long past `maxWait`: nothing about the driver will ever change, so only the grace period
+  // can release this.
+  await vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME * 4)
+  expect(cancelled).toBe(false)
+
+  await vi.advanceTimersByTimeAsync(2_000)
+  await cancelling
+
+  expect(cancelled).toBe(true)
+})
+
 test('cancelAllTransactions abandons a start that has not reached the driver yet', async () => {
   // Starting a transaction awaits its generated id before calling the driver. A cancellation
   // landing in that window must not go on to open a transaction that nobody will close.

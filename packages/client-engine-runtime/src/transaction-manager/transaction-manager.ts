@@ -22,6 +22,18 @@ import {
 
 const MAX_CLOSED_TRANSACTIONS = 100
 
+/**
+ * How long {@link TransactionManager.cancelAllTransactions} waits for an aborted start to roll
+ * back before letting the caller carry on and dispose the driver adapter.
+ *
+ * The rollback cannot happen until the driver settles the `startTransaction` promise it is
+ * still holding, and a driver stuck on a dead connection may never do so. Waiting is worth a
+ * moment — it is what lets the transaction be closed cleanly — but not at the cost of hanging
+ * disconnect forever. This is deliberately not derived from `maxWait`: that is the caller's
+ * patience for opening a transaction, not a bound on how long shutdown may stall.
+ */
+const CANCEL_ROLLBACK_GRACE_MS = 2_000
+
 type TransactionWrapper = {
   id: string
   timer?: NodeJS.Timeout
@@ -387,8 +399,8 @@ export class TransactionManager {
 
   async cancelAllTransactions(): Promise<void> {
     // Transactions that are still starting are not in `transactions` yet. Abort them so they
-    // discard whatever the driver hands over, and wait for `settled` below, so that callers
-    // can dispose the driver adapter knowing no connection is still held.
+    // discard whatever the driver hands over, and wait below, so that callers can dispose the
+    // driver adapter without cutting an in-progress rollback short.
     const starting = [...this.#startingTransactions]
     for (const { abortController } of starting) {
       abortController.abort()
@@ -405,7 +417,7 @@ export class TransactionManager {
           }
         }),
       ),
-      ...starting.map(({ settled }) => settled),
+      ...starting.map(({ settled }) => settleWithin(settled, CANCEL_ROLLBACK_GRACE_MS)),
     ])
   }
 
@@ -589,4 +601,25 @@ export class TransactionManager {
 
 function createTimeoutIfDefined(cb: () => void, ms: number | undefined): NodeJS.Timeout | undefined {
   return ms !== undefined ? setTimeout(cb, ms) : undefined
+}
+
+/**
+ * Resolves when `promise` settles, or after `timeout` milliseconds, whichever happens first.
+ */
+function settleWithin(promise: Promise<void>, timeout: number): Promise<void> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, timeout)
+    timer?.unref?.()
+
+    void promise.then(
+      () => {
+        clearTimeout(timer)
+        resolve()
+      },
+      () => {
+        clearTimeout(timer)
+        resolve()
+      },
+    )
+  })
 }
