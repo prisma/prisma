@@ -1431,6 +1431,12 @@ importers:
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
+      '@opentelemetry/context-async-hooks':
+        specifier: 2.1.0
+        version: 2.1.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-trace-base':
+        specifier: 2.1.0
+        version: 2.1.0(@opentelemetry/api@1.9.0)
       '@prisma/instrumentation-contract':
         specifier: workspace:*
         version: link:../instrumentation-contract
