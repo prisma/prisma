@@ -27,6 +27,12 @@ describe('serializeRawParameters', () => {
     ])
   })
 
+  test('invalid date throws', () => {
+    expect(() => serializeRawParameters([new Date('not a date')])).toThrow(
+      'Invalid value for argument `date`: Provided Date object is invalid.',
+    )
+  })
+
   test('BigInt', () => {
     const data = [BigInt('321804719213721')]
 
