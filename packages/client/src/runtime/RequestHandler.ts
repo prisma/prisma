@@ -267,8 +267,17 @@ export class RequestHandler {
     let resolvedModelName = typeof rest.modelName === 'string' ? rest.modelName : topLevelModelName
 
     if (typeof table === 'string') {
+      // Some database drivers (e.g. CockroachDB's `pg`-based adapter) return
+      // the table name schema-qualified (e.g. `public.app_major_versions`)
+      // instead of bare (e.g. `app_major_versions`), so compare using only
+      // the last `.`-separated segment on both sides.
+      const unqualifiedTable = table.split('.').pop()
+
       const models = this.client._runtimeDataModel.models
-      const match = Object.entries(models).find(([key, model]: [string, any]) => (model.dbName ?? key) === table)
+      const match = Object.entries(models).find(([key, model]: [string, any]) => {
+        const dbName = model.dbName ?? key
+        return dbName === table || dbName.split('.').pop() === unqualifiedTable
+      })
       if (match) {
         resolvedModelName = match[0]
       }

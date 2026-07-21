@@ -56,10 +56,13 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 2627: {
-      const index = error.message.split('. ').at(1)?.split(' ').pop()?.split("'").at(1)
+      const parts = error.message.split('. ')
+      const index = parts.at(0)?.split(' ').pop()?.split("'").at(1)
+      const table = parts.at(1)?.split(' ').pop()?.split("'").at(1)?.split('.').pop()
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,
+        table,
       }
     }
     case 547: {
@@ -70,17 +73,23 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 1505: {
-      const index = error.message.split("'").at(3)
+      const segments = error.message.split("'")
+      const table = segments.at(3)?.split('.').pop()
+      const index = segments.at(5)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,
+        table,
       }
     }
     case 2601: {
-      const index = error.message.split(' ').at(11)?.split("'").at(1)
+      const words = error.message.split(' ')
+      const table = words.at(7)?.split("'").at(1)?.split('.').pop()
+      const index = words.at(11)?.split("'").at(1)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,
+        table,
       }
     }
     case 2628: {

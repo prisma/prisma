@@ -79,10 +79,30 @@ function mapDriverError(error: DatabaseError): MappedError {
         ?.match(/Key \(([^)]+)\)/)
         ?.at(1)
         ?.split(', ')
+
+      // CockroachDB does not populate `error.table` (unlike real Postgres),
+      // so we derive the table name from the constraint name instead.
+      // Prisma's default naming convention for unique constraints is
+      // `{table}_{field1}_{field2}_key`, so given the fields (already
+      // parsed above from `error.detail`), we can strip the known suffix
+      // (fields + trailing `_key`) off the constraint name to recover the
+      // table name.
+      let table = error.table
+      if (table === undefined && error.constraint?.endsWith('_key')) {
+        let candidate = error.constraint.slice(0, -'_key'.length)
+        if (fields && fields.length > 0) {
+          const fieldsSuffix = `_${fields.join('_')}`
+          if (candidate.endsWith(fieldsSuffix)) {
+            candidate = candidate.slice(0, -fieldsSuffix.length)
+          }
+        }
+        table = candidate
+      }
+
       return {
         kind: 'UniqueConstraintViolation',
         constraint: fields !== undefined ? { fields } : undefined,
-        table: error.table,
+        table,
       }
     }
     case '23502': {
