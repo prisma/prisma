@@ -688,6 +688,101 @@ test('transaction start failure clears the maxWait timer', async () => {
   expect(vi.getTimerCount()).toBe(0)
 })
 
+test('cancelAllTransactions waits for a transaction whose start is still in flight', async () => {
+  // A transaction is only registered once the driver hands it over, so one that is still
+  // starting is invisible to `cancelAllTransactions`. Callers dispose the driver adapter right
+  // after cancelling, so if cancellation does not cover it the connection is abandoned.
+
+  const SLOW_START_TRANSACTION_TIME = 500
+
+  const rollbackMock = vi.fn().mockResolvedValue(undefined)
+  const executeRawMock = vi.fn().mockResolvedValue(1)
+
+  const driverAdapter = {
+    adapterName: 'slow-adapter',
+    provider: 'postgres' as const,
+    executeRaw: vi.fn().mockResolvedValue(1),
+    queryRaw: vi.fn(),
+    executeScript: vi.fn(),
+    dispose: vi.fn(),
+    startTransaction: vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                adapterName: 'slow-adapter',
+                provider: 'postgres',
+                options: { usePhantomQuery: false },
+                queryRaw: vi.fn(),
+                executeRaw: executeRawMock,
+                commit: vi.fn(),
+                rollback: rollbackMock,
+              }),
+            SLOW_START_TRANSACTION_TIME,
+          ),
+        ),
+    ),
+  }
+
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    // `maxWait` is long enough that the start is still in flight, not timed out, when cancelled.
+    transactionOptions: { timeout: TRANSACTION_EXECUTION_TIMEOUT, maxWait: SLOW_START_TRANSACTION_TIME * 10 },
+    tracingHelper: noopTracingHelper,
+  })
+
+  const starting = transactionManager.startTransaction().catch((e) => e)
+
+  // Let the start reach the driver, so the transaction is genuinely in flight when cancelled
+  // rather than still waiting on its id.
+  await vi.advanceTimersByTimeAsync(SLOW_START_TRANSACTION_TIME / 2)
+  expect(driverAdapter.startTransaction).toHaveBeenCalled()
+
+  let cancelled = false
+  const cancelling = transactionManager.cancelAllTransactions().then(() => {
+    cancelled = true
+  })
+
+  // Let any already-scheduled work run. The start is still in flight, so cancellation cannot
+  // be finished yet.
+  await vi.advanceTimersByTimeAsync(0)
+  expect(cancelled).toBe(false)
+  expect(rollbackMock).not.toHaveBeenCalled()
+
+  await vi.advanceTimersByTimeAsync(SLOW_START_TRANSACTION_TIME)
+  await cancelling
+
+  expect(cancelled).toBe(true)
+  // The connection must be released before disposal, and an explicit ROLLBACK sent first,
+  // because this adapter does not use phantom queries.
+  expect(executeRawMock).toHaveBeenCalledWith(expect.objectContaining({ sql: 'ROLLBACK' }))
+  expect(rollbackMock).toHaveBeenCalled()
+
+  expect(await starting).toBeInstanceOf(TransactionStartTimeoutError)
+})
+
+test('cancelAllTransactions abandons a start that has not reached the driver yet', async () => {
+  // Starting a transaction awaits its generated id before calling the driver. A cancellation
+  // landing in that window must not go on to open a transaction that nobody will close.
+
+  const driverAdapter = new MockDriverAdapter()
+  const startTransactionSpy = vi.spyOn(driverAdapter, 'startTransaction')
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const starting = transactionManager.startTransaction().catch((e) => e)
+  await transactionManager.cancelAllTransactions()
+
+  await vi.advanceTimersByTimeAsync(START_TRANSACTION_TIME * 2)
+
+  expect(await starting).toBeInstanceOf(TransactionStartTimeoutError)
+  expect(startTransactionSpy).not.toHaveBeenCalled()
+})
+
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
