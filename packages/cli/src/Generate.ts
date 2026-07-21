@@ -27,15 +27,13 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { processSchemaResult } from '../../internals/src/cli/schemaContext'
+import { version as cliVersion } from '../package.json'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
-import { getCliVersion } from './get-cli-version'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { handleSkillsOffer } from './utils/skills/skills-offer'
-
-const cliVersion = getCliVersion()
 
 /**
  * $ prisma generate
@@ -249,8 +247,7 @@ Please run \`prisma generate\` manually.`
 ${breakingChangesMessage}`
           : ''
 
-        const versionsOutOfSync =
-          clientGeneratorVersion && cliVersion !== 'unknown' && cliVersion !== clientGeneratorVersion
+        const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
             ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${cliVersion}`)} and ${bold(
