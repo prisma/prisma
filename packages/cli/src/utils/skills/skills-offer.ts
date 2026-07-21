@@ -5,15 +5,13 @@ import paths from 'env-paths'
 import fs from 'fs'
 import { yellow } from 'kleur/colors'
 import path from 'path'
-import readline from 'readline'
 
 import { version as cliVersion } from '../../../package.json'
 import type { InstallSkillsOptions, InstallSkillsResult } from '../../init/skill-install'
 import { installSkills } from '../../init/skill-install'
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
 import { EventCapture, PosthogEventCapture, PUBLIC_POSTHOG_NPS_PROJECT_KEY } from '../nps/capture'
-import { createSafeReadlineProxy } from '../nps/survey'
-import { timeout } from '../prompt-timeout'
+import { clackPrompts, type PromptOutcome, type Prompts } from '../prompts'
 
 const debug = Debug('prisma:cli:skills-offer')
 
@@ -24,12 +22,6 @@ export type SkillsOfferOutcome = 'accepted' | 'declined' | 'timeout' | 'already-
 type SkillsOfferAcknowledgement = {
   offeredAt: string
   outcome: SkillsOfferOutcome
-}
-
-export type PromptIO = {
-  question: (query: string) => Promise<string>
-  write: (message: string) => void
-  close: () => void
 }
 
 export type SkillsOfferContext = {
@@ -43,7 +35,7 @@ export type SkillsOfferContext = {
   isInNpmLifecycleHook: () => boolean
   isInContainer: () => boolean
   loadCommandState: () => Promise<CommandState>
-  createPrompt: () => PromptIO
+  prompts: Prompts
   installSkills: (options: InstallSkillsOptions) => Promise<InstallSkillsResult>
   capture: EventCapture
   getSignature: () => Promise<string>
@@ -60,7 +52,7 @@ function defaultContext(): SkillsOfferContext {
     isInNpmLifecycleHook,
     isInContainer,
     loadCommandState: loadOrInitializeCommandState,
-    createPrompt: createReadlinePrompt,
+    prompts: clackPrompts,
     installSkills,
     capture: new PosthogEventCapture(PUBLIC_POSTHOG_NPS_PROJECT_KEY),
     getSignature: () => checkpoint.getSignature(),
@@ -138,30 +130,31 @@ async function handleSkillsOfferImpl(ctx: SkillsOfferContext): Promise<{ prompte
 }
 
 async function promptForInstall(ctx: SkillsOfferContext): Promise<'accepted' | 'declined' | 'timeout'> {
-  const prompt = ctx.createPrompt()
+  let outcome: PromptOutcome<boolean>
   try {
-    const answer = await timeout(
-      prompt.question(
-        "Install Prisma's agent skills so AI coding tools work better with this project? (y/N)\n" +
-          `This prompt closes in ${promptTimeoutSecs}s and can be suppressed with --no-hints.\n` +
-          '> ',
-      ),
-      promptTimeoutSecs * 1000,
-    ).catch((err) => {
-      // A failed read (e.g. stdin closed under us) counts as no answer, so the
-      // offer is still recorded as resolved and generate never asks twice.
-      debug(`Failed to read the answer to the skills offer prompt: ${err}`)
-      return undefined
+    outcome = await ctx.prompts.confirm({
+      message:
+        "Install Prisma's agent skills so AI coding tools work better with this project?\n" +
+        `This prompt closes in ${promptTimeoutSecs}s and can be suppressed with --no-hints.`,
+      timeoutMs: promptTimeoutSecs * 1000,
     })
+  } catch (err) {
+    // A failed read (e.g. stdin closed under us) counts as no answer, so the
+    // offer is still recorded as resolved and generate never asks twice.
+    debug(`Failed to read the answer to the skills offer prompt: ${err}`)
+    return 'timeout'
+  }
 
-    if (answer === undefined) {
-      prompt.write(`No response received within ${promptTimeoutSecs} seconds.\n`)
+  switch (outcome.status) {
+    case 'answered':
+      return outcome.value ? 'accepted' : 'declined'
+    case 'timeout':
+      ctx.prompts.message(`No response received within ${promptTimeoutSecs} seconds.`)
       return 'timeout'
-    }
-
-    return /^y(es)?$/i.test(answer.trim()) ? 'accepted' : 'declined'
-  } finally {
-    prompt.close()
+    case 'cancelled':
+      // Dismissing the prompt is an answer of sorts, and repeating the offer on
+      // the next run would be the opposite of what the user just asked for.
+      return 'declined'
   }
 }
 
@@ -201,28 +194,6 @@ async function writeAcknowledgement(ackPath: string, outcome: SkillsOfferOutcome
 async function submitOfferEvent(outcome: SkillsOfferOutcome, ctx: SkillsOfferContext): Promise<void> {
   const signature = await ctx.getSignature()
   await ctx.capture.capture(signature, 'skills_offer_resolved', { outcome, cliVersion: ctx.cliVersion })
-}
-
-function createReadlinePrompt(): PromptIO {
-  const rl = readline.promises.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-
-  rl.on('error', (err) => {
-    debug(`A readline error occurred while handling the skills offer: ${err}`)
-  })
-  rl.on('SIGINT', () => rl.close())
-
-  const proxy = createSafeReadlineProxy(rl)
-
-  return {
-    question: (query) => proxy.question(query),
-    write: (message) => proxy.write(message),
-    // Closes the underlying interface directly: the proxy throws once the
-    // stream is closed, and close must stay callable from the finally block.
-    close: () => rl.close(),
-  }
 }
 
 function fileExists(filePath: string): Promise<boolean> {

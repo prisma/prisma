@@ -5,7 +5,8 @@ import path from 'node:path'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import type { InstallSkillsResult } from '../init/skill-install'
-import type { PromptIO, SkillsOfferContext } from '../utils/skills/skills-offer'
+import type { ConfirmPromptOptions, PromptOutcome, Prompts } from '../utils/prompts'
+import type { SkillsOfferContext } from '../utils/skills/skills-offer'
 import { handleSkillsOffer } from '../utils/skills/skills-offer'
 
 const tmpDirs: string[] = []
@@ -20,28 +21,26 @@ afterEach(() => {
   for (const dir of tmpDirs.splice(0)) {
     fs.rmSync(dir, { recursive: true, force: true })
   }
-  vi.useRealTimers()
 })
 
-function scriptedPrompt(answer?: string) {
-  const questions: string[] = []
-  const writes: string[] = []
-  let closed = false
+const declined: PromptOutcome<boolean> = { status: 'answered', value: false }
+const accepted: PromptOutcome<boolean> = { status: 'answered', value: true }
 
-  const prompt: PromptIO = {
-    question: (query: string) => {
-      questions.push(query)
-      return answer === undefined ? new Promise<string>(() => {}) : Promise.resolve(answer)
-    },
-    write: (message: string) => {
-      writes.push(message)
-    },
-    close: () => {
-      closed = true
+function scriptedPrompts(outcome: PromptOutcome<boolean> | (() => Promise<PromptOutcome<boolean>>) = declined) {
+  const messages: string[] = []
+  const confirm = vi.fn((_options: ConfirmPromptOptions) =>
+    typeof outcome === 'function' ? outcome() : Promise.resolve(outcome),
+  )
+
+  const prompts: Prompts = {
+    confirm,
+    text: () => Promise.reject(new Error('the skills offer does not use text prompts')),
+    message: (message) => {
+      messages.push(message)
     },
   }
 
-  return { prompt, questions, writes, isClosed: () => closed }
+  return { prompts, confirm, messages }
 }
 
 function testContext(overrides: Partial<SkillsOfferContext> = {}) {
@@ -49,7 +48,7 @@ function testContext(overrides: Partial<SkillsOfferContext> = {}) {
   const configDir = path.join(makeTmpDir(), 'config')
   const capture = { capture: vi.fn(() => Promise.resolve()) }
   const installSkills = vi.fn((): Promise<InstallSkillsResult> => Promise.resolve({ ok: true }))
-  const createPrompt = vi.fn(() => scriptedPrompt('n').prompt)
+  const { prompts, confirm, messages } = scriptedPrompts()
 
   const ctx: SkillsOfferContext = {
     cwd,
@@ -60,7 +59,7 @@ function testContext(overrides: Partial<SkillsOfferContext> = {}) {
     isInNpmLifecycleHook: () => false,
     isInContainer: () => false,
     loadCommandState: () => Promise.resolve({ firstCommandTimestamp: '2020-01-01T00:00:00.000Z' }),
-    createPrompt,
+    prompts,
     installSkills,
     capture,
     getSignature: () => Promise.resolve('test-signature'),
@@ -68,7 +67,7 @@ function testContext(overrides: Partial<SkillsOfferContext> = {}) {
     ...overrides,
   }
 
-  return { ctx, cwd, configDir, capture, installSkills, createPrompt }
+  return { ctx, cwd, configDir, capture, installSkills, confirm, messages }
 }
 
 function readAcknowledgement(configDir: string): { offeredAt: string; outcome: string } {
@@ -81,7 +80,7 @@ function acknowledgementExists(configDir: string): boolean {
 
 describe('gates', () => {
   test('existing acknowledgement short-circuits without prompting', async () => {
-    const { ctx, configDir, capture, createPrompt } = testContext()
+    const { ctx, configDir, capture, confirm } = testContext()
     fs.mkdirSync(configDir, { recursive: true })
     fs.writeFileSync(
       path.join(configDir, 'skills-offer.json'),
@@ -91,7 +90,7 @@ describe('gates', () => {
     const result = await handleSkillsOffer(ctx)
 
     expect(result).toEqual({ prompted: false })
-    expect(createPrompt).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
     expect(capture.capture).not.toHaveBeenCalled()
   })
 
@@ -110,13 +109,13 @@ describe('gates', () => {
       (cwd: string) => fs.mkdirSync(path.join(cwd, '.agents', 'skills', 'prisma-cli'), { recursive: true }),
     ],
   ])('already-installed detection via %s writes the acknowledgement', async (_name, setup) => {
-    const { ctx, cwd, configDir, capture, createPrompt } = testContext()
+    const { ctx, cwd, configDir, capture, confirm } = testContext()
     setup(cwd)
 
     const result = await handleSkillsOffer(ctx)
 
     expect(result).toEqual({ prompted: false })
-    expect(createPrompt).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
     expect(capture.capture).not.toHaveBeenCalled()
     expect(readAcknowledgement(configDir).outcome).toBe('already-installed')
   })
@@ -143,21 +142,21 @@ describe('gates', () => {
       { loadCommandState: () => Promise.resolve({ firstCommandTimestamp: new Date().toISOString() }) },
     ],
   ] as [string, Partial<SkillsOfferContext>][])('%s short-circuits without prompting', async (_name, overrides) => {
-    const { ctx, configDir, capture, createPrompt } = testContext(overrides)
+    const { ctx, configDir, capture, confirm } = testContext(overrides)
 
     const result = await handleSkillsOffer(ctx)
 
     expect(result).toEqual({ prompted: false })
-    expect(createPrompt).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
     expect(capture.capture).not.toHaveBeenCalled()
     expect(acknowledgementExists(configDir)).toBe(false)
   })
 })
 
 describe('prompt outcomes', () => {
-  test.each([['n'], ['no'], [''], ['whatever']])('answer %j declines', async (answer) => {
-    const { prompt, isClosed } = scriptedPrompt(answer)
-    const { ctx, configDir, capture, installSkills } = testContext({ createPrompt: () => prompt })
+  test('answering No declines', async () => {
+    const { prompts } = scriptedPrompts(declined)
+    const { ctx, configDir, capture, installSkills } = testContext({ prompts })
 
     const result = await handleSkillsOffer(ctx)
 
@@ -168,12 +167,11 @@ describe('prompt outcomes', () => {
       outcome: 'declined',
       cliVersion: '0.0.0-test',
     })
-    expect(isClosed()).toBe(true)
   })
 
-  test.each([['y'], ['Y'], ['yes'], [' YES ']])('answer %j accepts and installs', async (answer) => {
-    const { prompt } = scriptedPrompt(answer)
-    const { ctx, cwd, configDir, capture, installSkills } = testContext({ createPrompt: () => prompt })
+  test('answering Yes accepts and installs', async () => {
+    const { prompts } = scriptedPrompts(accepted)
+    const { ctx, cwd, configDir, capture, installSkills } = testContext({ prompts })
 
     const result = await handleSkillsOffer(ctx)
 
@@ -186,51 +184,22 @@ describe('prompt outcomes', () => {
     })
   })
 
-  test('prompt question offers a default of No', async () => {
-    const { prompt, questions } = scriptedPrompt('n')
-    const { ctx } = testContext({ createPrompt: () => prompt })
+  test('the prompt explains itself and carries the dismissal deadline', async () => {
+    const { prompts, confirm } = scriptedPrompts(declined)
+    const { ctx } = testContext({ prompts })
 
     await handleSkillsOffer(ctx)
 
-    expect(questions).toHaveLength(1)
-    expect(questions[0]).toContain("Install Prisma's agent skills")
-    expect(questions[0]).toContain('(y/N)')
+    expect(confirm).toHaveBeenCalledTimes(1)
+    const options = confirm.mock.calls[0][0]
+    expect(options.message).toContain("Install Prisma's agent skills")
+    expect(options.message).toContain('--no-hints')
+    expect(options.timeoutMs).toBe(30_000)
   })
 
-  test('timeout resolves to No and persists the timeout outcome', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    const { prompt, writes, isClosed } = scriptedPrompt()
-    const { ctx, configDir, capture, installSkills } = testContext({ createPrompt: () => prompt })
-
-    const resultPromise = handleSkillsOffer(ctx)
-    while (vi.getTimerCount() === 0) {
-      await new Promise((resolve) => setImmediate(resolve))
-    }
-    await vi.advanceTimersByTimeAsync(30_000)
-    const result = await resultPromise
-
-    expect(result).toEqual({ prompted: true })
-    expect(installSkills).not.toHaveBeenCalled()
-    expect(readAcknowledgement(configDir).outcome).toBe('timeout')
-    expect(capture.capture).toHaveBeenCalledExactlyOnceWith('test-signature', 'skills_offer_resolved', {
-      outcome: 'timeout',
-      cliVersion: '0.0.0-test',
-    })
-    expect(writes.join('')).toContain('No response received')
-    expect(isClosed()).toBe(true)
-  })
-
-  test('prompt rejection resolves to the timeout outcome', async () => {
-    const writes: string[] = []
-    let closed = false
-    const prompt: PromptIO = {
-      question: () => Promise.reject(new Error('stdin closed')),
-      write: (message) => writes.push(message),
-      close: () => {
-        closed = true
-      },
-    }
-    const { ctx, configDir, capture, installSkills } = testContext({ createPrompt: () => prompt })
+  test('a timed out prompt says so and persists the timeout outcome', async () => {
+    const { prompts, messages } = scriptedPrompts({ status: 'timeout' })
+    const { ctx, configDir, capture, installSkills } = testContext({ prompts })
 
     const result = await handleSkillsOffer(ctx)
 
@@ -241,16 +210,47 @@ describe('prompt outcomes', () => {
       outcome: 'timeout',
       cliVersion: '0.0.0-test',
     })
-    expect(writes.join('')).toContain('No response received')
-    expect(closed).toBe(true)
+    expect(messages.join('')).toContain('No response received')
+  })
+
+  test('a dismissed prompt counts as declining and is not repeated', async () => {
+    const { prompts, messages } = scriptedPrompts({ status: 'cancelled' })
+    const { ctx, configDir, capture, installSkills } = testContext({ prompts })
+
+    const result = await handleSkillsOffer(ctx)
+
+    expect(result).toEqual({ prompted: true })
+    expect(installSkills).not.toHaveBeenCalled()
+    expect(readAcknowledgement(configDir).outcome).toBe('declined')
+    expect(capture.capture).toHaveBeenCalledExactlyOnceWith('test-signature', 'skills_offer_resolved', {
+      outcome: 'declined',
+      cliVersion: '0.0.0-test',
+    })
+    // dismissing is deliberate, so it does not deserve a "no response" notice
+    expect(messages).toEqual([])
+  })
+
+  test('a throwing prompt resolves to the timeout outcome', async () => {
+    const { prompts } = scriptedPrompts(() => Promise.reject(new Error('stdin closed')))
+    const { ctx, configDir, capture, installSkills } = testContext({ prompts })
+
+    const result = await handleSkillsOffer(ctx)
+
+    expect(result).toEqual({ prompted: true })
+    expect(installSkills).not.toHaveBeenCalled()
+    expect(readAcknowledgement(configDir).outcome).toBe('timeout')
+    expect(capture.capture).toHaveBeenCalledExactlyOnceWith('test-signature', 'skills_offer_resolved', {
+      outcome: 'timeout',
+      cliVersion: '0.0.0-test',
+    })
   })
 
   test('failed install after accepting prints the manual command and stays non-fatal', async () => {
     const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     try {
-      const { prompt } = scriptedPrompt('y')
+      const { prompts } = scriptedPrompts(accepted)
       const { ctx, configDir } = testContext({
-        createPrompt: () => prompt,
+        prompts,
         installSkills: () => Promise.resolve({ ok: false, manualCommand: 'npx --yes skills add prisma/skills' }),
       })
 
@@ -286,9 +286,9 @@ describe('failure isolation', () => {
   })
 
   test('a failing telemetry capture still reports the prompt as shown', async () => {
-    const { prompt } = scriptedPrompt('n')
+    const { prompts } = scriptedPrompts(declined)
     const { ctx, configDir } = testContext({
-      createPrompt: () => prompt,
+      prompts,
       capture: { capture: () => Promise.reject(new Error('offline')) },
     })
 
@@ -299,9 +299,9 @@ describe('failure isolation', () => {
   })
 
   test('a throwing skill install still reports the prompt as shown', async () => {
-    const { prompt } = scriptedPrompt('y')
+    const { prompts } = scriptedPrompts(accepted)
     const installSkills = vi.fn((): Promise<InstallSkillsResult> => Promise.reject(new Error('offline')))
-    const { ctx, configDir, capture } = testContext({ createPrompt: () => prompt, installSkills })
+    const { ctx, configDir, capture } = testContext({ prompts, installSkills })
 
     const result = await handleSkillsOffer(ctx)
 
@@ -317,10 +317,10 @@ describe('failure isolation', () => {
   test('an unwritable config dir still reports the prompt as shown', async () => {
     const filePath = path.join(makeTmpDir(), 'occupied')
     fs.writeFileSync(filePath, '')
-    const { prompt } = scriptedPrompt('n')
+    const { prompts } = scriptedPrompts(declined)
     // configDir points inside a regular file, so the acknowledgement write fails
     const { ctx, capture } = testContext({
-      createPrompt: () => prompt,
+      prompts,
       configDir: path.join(filePath, 'config'),
     })
 
