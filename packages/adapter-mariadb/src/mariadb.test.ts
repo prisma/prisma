@@ -1,5 +1,5 @@
 import * as mariadb from 'mariadb'
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import {
   inferCapabilities,
@@ -8,17 +8,11 @@ import {
   rewriteConnectionString,
 } from './mariadb'
 
+vi.mock('mariadb', () => ({
+  createPool: vi.fn(),
+}))
+
 describe('PrismaMariaDbAdapterFactory constructor', () => {
-  beforeAll(() => {
-    vi.mock('mariadb', () => ({
-      createPool: vi.fn(),
-    }))
-  })
-
-  afterAll(() => {
-    vi.doUnmock('mariadb')
-  })
-
   test.each([
     { config: {}, expected: expect.objectContaining({ prepareCacheLength: 0 }) },
     { config: 'mariadb://user:pass@localhost:3306/db', expected: expect.stringContaining('prepareCacheLength=0') },
@@ -116,4 +110,222 @@ describe('useTextProtocol option', () => {
       expect(mockClient[flagToMethod[String(!flag)]]).not.toHaveBeenCalled()
     },
   )
+})
+
+describe('PrismaMariaDbAdapterFactory', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test('should accept a pool instance directly', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool)
+    const adapter = await factory.connect()
+
+    expect(adapter).toBeDefined()
+    expect(mockPool.query).toHaveBeenCalledWith({
+      sql: 'SELECT VERSION()',
+      rowsAsArray: true,
+    })
+  })
+
+  test('should accept config object', () => {
+    const config = {
+      host: 'localhost',
+      port: 3306,
+      user: 'user',
+      password: 'pass',
+      database: 'db',
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(config)
+    expect(factory).toBeDefined()
+  })
+
+  test('should accept mysql:// connection string', () => {
+    const connectionString = 'mysql://user:pass@localhost:3306/db'
+    const factory = new PrismaMariaDbAdapterFactory(connectionString)
+    expect(factory).toBeDefined()
+  })
+
+  test('should accept mariadb:// connection string', () => {
+    const connectionString = 'mariadb://user:pass@localhost:3306/db'
+    const factory = new PrismaMariaDbAdapterFactory(connectionString)
+    expect(factory).toBeDefined()
+  })
+
+  test('should not dispose external pool by default', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool)
+    const adapter = await factory.connect()
+    await adapter.dispose()
+
+    expect(mockPool.end).not.toHaveBeenCalled()
+  })
+
+  test('should dispose external pool when disposeExternalPool is true', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    const adapter = await factory.connect()
+    await adapter.dispose()
+
+    expect(mockPool.end).toHaveBeenCalled()
+  })
+
+  test('should throw when calling connect() again after disposing an external pool', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    const adapter = await factory.connect()
+    await adapter.dispose()
+
+    // Should throw when trying to connect again
+    await expect(factory.connect()).rejects.toThrow(
+      'connect() can only be called once when `disposeExternalPool` is true',
+    )
+  })
+
+  test('should throw on a second connect() with disposeExternalPool before the first is disposed', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    await factory.connect()
+
+    // The pool is still live here: a second adapter would end a pool the first one is using.
+    await expect(factory.connect()).rejects.toThrow(
+      'connect() can only be called once when `disposeExternalPool` is true',
+    )
+    expect(mockPool.end).not.toHaveBeenCalled()
+  })
+
+  test('should throw on a second connect() when disposing an external pool failed', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn().mockRejectedValue(new Error('pool shutdown failed')),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    const adapter = await factory.connect()
+    await expect(adapter.dispose()).rejects.toThrow('pool shutdown failed')
+
+    // The pool is in an indeterminate state, so it must not be handed to another adapter.
+    await expect(factory.connect()).rejects.toThrow(
+      'connect() can only be called once when `disposeExternalPool` is true',
+    )
+  })
+
+  test('should allow multiple connect() calls when disposeExternalPool is false', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: false })
+
+    const adapter1 = await factory.connect()
+    await adapter1.dispose()
+
+    // Should not throw when connecting again
+    const adapter2 = await factory.connect()
+    expect(adapter2).toBeDefined()
+
+    // Both adapters should use the same pool
+    expect(adapter1.underlyingDriver()).toBe(adapter2.underlyingDriver())
+
+    // Pool should not be disposed
+    expect(mockPool.end).not.toHaveBeenCalled()
+  })
+
+  test('should allow multiple connect() calls with config', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    // Mock createPool to return our mock pool
+    vi.mocked(mariadb.createPool).mockReturnValue(mockPool as unknown as mariadb.Pool)
+
+    const config = {
+      host: 'localhost',
+      port: 3306,
+      user: 'user',
+      password: 'pass',
+      database: 'db',
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(config)
+
+    const adapter1 = await factory.connect()
+    expect(adapter1).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(1)
+    expect(mariadb.createPool).toHaveBeenCalledWith({ ...config, prepareCacheLength: 0 })
+
+    await adapter1.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(1)
+
+    // Should create a new pool for the second connect
+    const adapter2 = await factory.connect()
+    expect(adapter2).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(2)
+
+    await adapter2.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(2)
+  })
+
+  test('should allow multiple connect() calls with connection string', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    // Mock createPool to return our mock pool
+    vi.mocked(mariadb.createPool).mockReturnValue(mockPool as unknown as mariadb.Pool)
+
+    const connectionString = 'mysql://user:pass@localhost:3306/db'
+    const factory = new PrismaMariaDbAdapterFactory(connectionString)
+
+    const adapter1 = await factory.connect()
+    expect(adapter1).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(1)
+    // Should have converted mysql:// to mariadb://
+    expect(mariadb.createPool).toHaveBeenCalledWith('mariadb://user:pass@localhost:3306/db?prepareCacheLength=0')
+
+    await adapter1.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(1)
+
+    // Should create a new pool for the second connect
+    const adapter2 = await factory.connect()
+    expect(adapter2).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(2)
+
+    await adapter2.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(2)
+  })
 })
