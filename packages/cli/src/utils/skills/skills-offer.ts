@@ -7,7 +7,7 @@ import { yellow } from 'kleur/colors'
 import path from 'path'
 import readline from 'readline'
 
-import { getCliVersion } from '../../get-cli-version'
+import { version as cliVersion } from '../../../package.json'
 import type { InstallSkillsOptions, InstallSkillsResult } from '../../init/skill-install'
 import { installSkills } from '../../init/skill-install'
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
@@ -37,8 +37,6 @@ export type SkillsOfferContext = {
   cwd: string
   /** Directory the acknowledgement file is stored in. */
   configDir: string
-  /** Whether the CLI runs on Deno, where creating a readline interface blocks generate. */
-  isDeno: boolean
   isInteractive: () => boolean
   isCi: () => boolean
   maybeInGitHook: () => boolean
@@ -56,7 +54,6 @@ function defaultContext(): SkillsOfferContext {
   return {
     cwd: process.cwd(),
     configDir: paths('prisma').config,
-    isDeno: 'Deno' in globalThis,
     isInteractive,
     isCi,
     maybeInGitHook,
@@ -67,7 +64,7 @@ function defaultContext(): SkillsOfferContext {
     installSkills,
     capture: new PosthogEventCapture(PUBLIC_POSTHOG_NPS_PROJECT_KEY),
     getSignature: () => checkpoint.getSignature(),
-    cliVersion: getCliVersion(),
+    cliVersion,
   }
 }
 
@@ -102,14 +99,7 @@ async function handleSkillsOfferImpl(ctx: SkillsOfferContext): Promise<{ prompte
     return { prompted: false }
   }
 
-  if (
-    !ctx.isInteractive() ||
-    ctx.isDeno ||
-    ctx.isCi() ||
-    ctx.maybeInGitHook() ||
-    ctx.isInNpmLifecycleHook() ||
-    ctx.isInContainer()
-  ) {
+  if (!ctx.isInteractive() || ctx.isCi() || ctx.maybeInGitHook() || ctx.isInNpmLifecycleHook() || ctx.isInContainer()) {
     return { prompted: false }
   }
 
@@ -157,7 +147,12 @@ async function promptForInstall(ctx: SkillsOfferContext): Promise<'accepted' | '
           '> ',
       ),
       promptTimeoutSecs * 1000,
-    )
+    ).catch((err) => {
+      // A failed read (e.g. stdin closed under us) counts as no answer, so the
+      // offer is still recorded as resolved and generate never asks twice.
+      debug(`Failed to read the answer to the skills offer prompt: ${err}`)
+      return undefined
+    })
 
     if (answer === undefined) {
       prompt.write(`No response received within ${promptTimeoutSecs} seconds.\n`)
@@ -176,7 +171,13 @@ async function skillsAlreadyInstalled(cwd: string): Promise<boolean> {
   }
 
   for (const skillsDir of ['.claude/skills', '.windsurf/skills', '.agents/skills']) {
-    const entries: string[] = await fs.promises.readdir(path.join(cwd, skillsDir)).catch(() => [])
+    const entries = await fs.promises.readdir(path.join(cwd, skillsDir)).catch((err) => {
+      // A missing directory just means this tool's skills aren't installed.
+      if (err.code === 'ENOENT' || err.code === 'ENOTDIR') {
+        return [] as string[]
+      }
+      throw err
+    })
     if (entries.some((entry) => entry.startsWith('prisma-'))) {
       return true
     }
@@ -227,6 +228,12 @@ function createReadlinePrompt(): PromptIO {
 function fileExists(filePath: string): Promise<boolean> {
   return fs.promises.access(filePath).then(
     () => true,
-    () => false,
+    (err) => {
+      // ENOTDIR means a path segment isn't a directory, so the file can't be there either.
+      if (err.code === 'ENOENT' || err.code === 'ENOTDIR') {
+        return false
+      }
+      throw err
+    },
   )
 }
