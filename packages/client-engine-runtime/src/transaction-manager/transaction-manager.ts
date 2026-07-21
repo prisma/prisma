@@ -604,22 +604,16 @@ function createTimeoutIfDefined(cb: () => void, ms: number | undefined): NodeJS.
 }
 
 /**
- * Resolves when `promise` settles, or after `timeout` milliseconds, whichever happens first.
+ * Settles when `promise` does, or resolves after `timeout` milliseconds, whichever happens
+ * first. A rejection is passed on rather than absorbed.
  */
 function settleWithin(promise: Promise<void>, timeout: number): Promise<void> {
-  return new Promise((resolve) => {
-    const timer = setTimeout(resolve, timeout)
-    timer?.unref?.()
+  let timer: NodeJS.Timeout | undefined
 
-    void promise.then(
-      () => {
-        clearTimeout(timer)
-        resolve()
-      },
-      () => {
-        clearTimeout(timer)
-        resolve()
-      },
-    )
+  const deadline = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, timeout)
+    timer?.unref?.()
   })
+
+  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer))
 }
