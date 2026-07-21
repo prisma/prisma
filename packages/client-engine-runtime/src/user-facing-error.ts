@@ -33,10 +33,38 @@ export function rethrowAsUserFacing(error: any): never {
 
   const code = getErrorCode(error)
   const message = renderErrorMessage(error)
-  if (!code || !message) {
-    throw error
+  if (code !== undefined && message !== undefined) {
+    throw new UserFacingError(message, code, { driverAdapterError: error })
   }
-  throw new UserFacingError(message, code, { driverAdapterError: error })
+
+  // No specific mapping exists for this error kind. For database-specific
+  // kinds (`postgres`, `mysql`, `sqlite`, `mssql`) this happens when the
+  // adapter doesn't recognize the underlying database error code. Falling
+  // back to a P2039 user-facing error with the raw database code and
+  // message ensures that:
+  //
+  //   1. Locally, the error surfaces as a `PrismaClientKnownRequestError`
+  //      that users can catch and inspect, instead of an opaque
+  //      `PrismaClientUnknownRequestError`.
+  //   2. The query plan executor returns HTTP 400 with the full error
+  //      details instead of HTTP 500. This matters for Accelerate, which
+  //      strips the response body on 500 responses and would otherwise
+  //      hide the real error from the user.
+  //
+  // These cases are not necessarily bugs — they routinely occur when the
+  // database schema is out of sync with the Prisma schema (e.g. a migration
+  // hasn't been applied, or the client hasn't been regenerated after a
+  // schema change), so we need to make the underlying database error
+  // visible to the user.
+  //
+  // We use a distinct code (P2039) from the raw-query path (P2010,
+  // "Raw query failed.") so that the error message doesn't claim a
+  // non-raw query is a raw one.
+  if (isGenericDatabaseErrorKind(error.cause.kind)) {
+    throw buildUnmappedDatabaseUserFacingError(error)
+  }
+
+  throw error
 }
 
 export function rethrowAsUserFacingRawError(error: any): never {
@@ -44,13 +72,53 @@ export function rethrowAsUserFacingRawError(error: any): never {
     throw error
   }
 
-  throw new UserFacingError(
-    `Raw query failed. Code: \`${error.cause.originalCode ?? 'N/A'}\`. Message: \`${
-      error.cause.originalMessage ?? renderErrorMessage(error)
-    }\``,
-    'P2010',
-    { driverAdapterError: error },
-  )
+  throw buildRawQueryUserFacingError(error)
+}
+
+function buildRawQueryUserFacingError(error: DriverAdapterError): UserFacingError {
+  const code = error.cause.originalCode ?? 'N/A'
+  const message = pickErrorMessage(error)
+  return new UserFacingError(`Raw query failed. Code: \`${code}\`. Message: \`${message}\``, 'P2010', {
+    driverAdapterError: error,
+  })
+}
+
+function buildUnmappedDatabaseUserFacingError(error: DriverAdapterError): UserFacingError {
+  const code = error.cause.originalCode ?? 'N/A'
+  const message = pickErrorMessage(error)
+  return new UserFacingError(`Database error. Code: \`${code}\`. Message: \`${message}\``, 'P2039', {
+    driverAdapterError: error,
+  })
+}
+
+/**
+ * Picks the most informative human-readable message available for a driver
+ * adapter error, falling back through:
+ *   1. `originalMessage` set by the adapter (always present for known DB
+ *      kinds; the raw error string from the underlying driver),
+ *   2. the per-kind message rendered by `renderErrorMessage()`,
+ *   3. the `DriverAdapterError`'s own `message` (which is either the
+ *      cause's `message` field or the cause's `kind` name).
+ *
+ * Note that no member of the `MappedError` union is required to carry a
+ * `message` field, so all three steps may be missing data; the final
+ * fallback to `'N/A'` exists so we never interpolate `undefined` into a
+ * user-facing message.
+ */
+function pickErrorMessage(error: DriverAdapterError): string {
+  return error.cause.originalMessage ?? renderErrorMessage(error) ?? error.message ?? 'N/A'
+}
+
+function isGenericDatabaseErrorKind(kind: DriverAdapterError['cause']['kind']): boolean {
+  switch (kind) {
+    case 'postgres':
+    case 'mysql':
+    case 'sqlite':
+    case 'mssql':
+      return true
+    default:
+      return false
+  }
 }
 
 function getErrorCode(err: DriverAdapterError): string | undefined {

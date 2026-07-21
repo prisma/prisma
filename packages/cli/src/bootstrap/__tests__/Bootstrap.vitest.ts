@@ -50,6 +50,7 @@ vi.mock('checkpoint-client', () => ({
 }))
 
 vi.mock('../../utils/nps/capture', () => ({
+  PUBLIC_POSTHOG_BOOTSTRAP_ACTIVATION_PROJECT_KEY: 'phc_test_bootstrap_key',
   PosthogEventCapture: class {
     async capture() {}
   },

@@ -1,7 +1,6 @@
 import { select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { Command } from '@prisma/internals'
-import { arg, format, HelpError, isError } from '@prisma/internals'
+import { arg, type Command, format, HelpError, isError } from '@prisma/internals'
 import type { ManagementApiClient } from '@prisma/management-api-sdk'
 import { AuthError, createManagementApiClient } from '@prisma/management-api-sdk'
 import { bold, dim, green, red } from 'kleur/colors'
