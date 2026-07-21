@@ -608,6 +608,10 @@ async function handleStudioBffRequest(payload: unknown, executor: Executor): Pro
     return jsonResponse([null, result])
   }
 
+  if (procedure === 'query-insights') {
+    return jsonResponse([serializeError(new Error('Executor does not support query insights'))])
+  }
+
   procedure satisfies undefined
 
   return textResponse('Unknown procedure', 500)
