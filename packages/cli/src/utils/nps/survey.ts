@@ -78,8 +78,10 @@ export async function handleNpsSurveyImpl(
 
   const result = await collectFeedback(prompts)
 
-  if (result.rating) {
-    await submitSurveyEvent({ rating: result.rating, ...result }, eventCapture)
+  // A rating of 0 is the strongest signal the survey can collect, so this
+  // checks for an answer rather than for a truthy one.
+  if (result.rating !== undefined) {
+    await submitSurveyEvent({ ...result, rating: result.rating }, eventCapture)
     prompts.message('Thanks for your feedback!')
   }
 
@@ -115,6 +117,7 @@ async function collectFeedback(prompts: Prompts): Promise<NpsSurveyResult> {
 
   const feedbackAnswer = await prompts.text({
     message: 'Optional: Provide additional feedback, or leave blank to skip.',
+    timeoutMs: promptTimeoutSecs * 1000,
   })
   const feedback =
     feedbackAnswer.status === 'answered' && feedbackAnswer.value.trim() !== '' ? feedbackAnswer.value : undefined

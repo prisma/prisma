@@ -426,4 +426,56 @@ describe('nps survey', () => {
 
     expect(capture).toHaveBeenCalledWith(expect.anything(), 'NPS feedback', { rating: 9, feedback: undefined })
   })
+
+  // 0 is a valid rating and the most negative signal the survey can collect, so
+  // it must not be mistaken for the absence of an answer.
+  it('should submit a rating of 0', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+
+    const currentTimeframe = { start: earlierDate.toISOString(), end: laterDate.toISOString() }
+    const status = jest.fn().mockResolvedValue({ currentTimeframe })
+    const prompts = {
+      confirm: jest.fn(),
+      text: jest
+        .fn()
+        .mockResolvedValueOnce({ status: 'answered', value: '0' })
+        .mockResolvedValueOnce({ status: 'answered', value: 'Nothing works.' }),
+      message: jest.fn(),
+    }
+    const capture = jest.fn().mockReturnValue(Promise.resolve())
+
+    await handleNpsSurveyImpl(currentDate, { status }, prompts, { capture }, longTimeUserCommandState)
+
+    expect(capture).toHaveBeenCalledWith(expect.anything(), 'NPS feedback', {
+      rating: 0,
+      feedback: 'Nothing works.',
+    })
+    expect(prompts.message).toHaveBeenCalledWith('Thanks for your feedback!')
+  })
+
+  it('should give the feedback prompt a deadline of its own', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+
+    const currentTimeframe = { start: earlierDate.toISOString(), end: laterDate.toISOString() }
+    const status = jest.fn().mockResolvedValue({ currentTimeframe })
+    const prompts = {
+      confirm: jest.fn(),
+      text: jest
+        .fn()
+        .mockResolvedValueOnce({ status: 'answered', value: '7' })
+        .mockResolvedValueOnce({ status: 'timeout' }),
+      message: jest.fn(),
+    }
+    const capture = jest.fn().mockReturnValue(Promise.resolve())
+
+    await handleNpsSurveyImpl(currentDate, { status }, prompts, { capture }, longTimeUserCommandState)
+
+    for (const call of prompts.text.mock.calls) {
+      expect(call[0].timeoutMs).toBe(30_000)
+    }
+    // a rating already given is still worth submitting without the follow-up
+    expect(capture).toHaveBeenCalledWith(expect.anything(), 'NPS feedback', { rating: 7, feedback: undefined })
+  })
 })
