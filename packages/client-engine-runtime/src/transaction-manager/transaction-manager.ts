@@ -215,6 +215,12 @@ export class TransactionManager {
       switch (transaction.status) {
         case 'waiting':
           if (abortController.signal.aborted) {
+            // The driver may have won the race and only then been aborted, leaving a
+            // transaction here. Ownership of it passes to `#discardStartedTransaction`, which
+            // holds its own reference, so drop this one: otherwise `#closeTransaction` below
+            // rolls back and releases the same transaction a second time.
+            transaction.transaction = undefined
+
             discarding = this.#discardStartedTransaction(startTransactionPromise)
 
             // Call `#closeTransaction` to update internal state. It won't actually attempt
@@ -225,6 +231,9 @@ export class TransactionManager {
           }
 
           transaction.status = 'running'
+          // Startup is over, so the execution timeout below and the `timeTaken` diagnostic
+          // measure the transaction itself rather than the wait to open it.
+          transaction.startedAt = Date.now()
           // Start timeout to wait for transaction to be finished.
           transaction.timer = this.#startTransactionTimeout(transaction.id, options.timeout)
           return { id: transaction.id }

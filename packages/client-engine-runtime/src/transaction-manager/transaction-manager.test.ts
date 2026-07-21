@@ -488,8 +488,10 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
 
   await expect(Promise.all([vi.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
     new TransactionExecutionTimeoutError('commit', {
+      // `START_TRANSACTION_TIME` is deliberately absent: the time reported is how long the
+      // transaction itself ran, not how long it took to open.
       timeout,
-      timeTaken: START_TRANSACTION_TIME + timeout + rollbackDelay,
+      timeTaken: timeout + rollbackDelay,
     }),
   )
 
@@ -760,6 +762,60 @@ test('cancelAllTransactions waits for a transaction whose start is still in flig
   expect(rollbackMock).toHaveBeenCalled()
 
   expect(await starting).toBeInstanceOf(TransactionStartTimeoutError)
+})
+
+test('cancelAllTransactions rolls back once when cancelling as the driver hands over', async () => {
+  // Whichever of the driver and the abort wins the race, the transaction must be rolled back
+  // exactly once. Releasing a pooled connection twice is worse than not releasing it at all.
+
+  const rollbackMock = vi.fn().mockResolvedValue(undefined)
+  const executeRawMock = vi.fn().mockResolvedValue(1)
+
+  let resolveStart!: (tx: unknown) => void
+  const startPromise = new Promise((resolve) => {
+    resolveStart = resolve
+  })
+
+  const driverAdapter = {
+    adapterName: 'manual-adapter',
+    provider: 'postgres' as const,
+    executeRaw: vi.fn().mockResolvedValue(1),
+    queryRaw: vi.fn(),
+    executeScript: vi.fn(),
+    dispose: vi.fn(),
+    startTransaction: vi.fn().mockImplementation(() => startPromise),
+  }
+
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: { timeout: TRANSACTION_EXECUTION_TIMEOUT, maxWait: START_TRANSACTION_TIME * 10 },
+    tracingHelper: noopTracingHelper,
+  })
+
+  const starting = transactionManager.startTransaction().catch((e) => e)
+
+  // Let the start reach the driver.
+  await vi.advanceTimersByTimeAsync(0)
+  expect(driverAdapter.startTransaction).toHaveBeenCalled()
+
+  // Hand the transaction over, then cancel before the continuation gets to run: the abort loop
+  // in `cancelAllTransactions` is synchronous, so it lands inside that window.
+  resolveStart({
+    adapterName: 'manual-adapter',
+    provider: 'postgres',
+    options: { usePhantomQuery: false },
+    queryRaw: vi.fn(),
+    executeRaw: executeRawMock,
+    commit: vi.fn(),
+    rollback: rollbackMock,
+  })
+  const cancelling = transactionManager.cancelAllTransactions()
+
+  await vi.advanceTimersByTimeAsync(0)
+  await cancelling
+
+  expect(await starting).toBeInstanceOf(TransactionStartTimeoutError)
+  expect(rollbackMock).toHaveBeenCalledTimes(1)
 })
 
 test('cancelAllTransactions abandons a start that has not reached the driver yet', async () => {
