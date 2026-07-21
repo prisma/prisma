@@ -44,13 +44,26 @@ describe('IPv6 connection strings', () => {
 
     // The listener is not a MariaDB server, so the handshake never completes. That the driver
     // reaches it over IPv6 at all is what this asserts.
-    const connecting = factory.connect().catch(() => undefined)
+    const connecting = factory.connect()
+
+    // `connect()` swallows connection failures in its capabilities probe, so it rejects only
+    // when the driver refused the connection string outright, and resolves without the server
+    // ever seeing a socket if it dialled somewhere else. Racing both against the socket reports
+    // whichever happened instead of waiting for a connection that is never coming and failing
+    // with a bare timeout.
+    const connectedElsewhere = connecting.then(
+      () => 'connect() finished without the server seeing a connection',
+      (error: unknown) => Promise.reject(error),
+    )
 
     try {
-      await expect(remoteAddress).resolves.toBe('::1')
+      await expect(Promise.race([remoteAddress, connectedElsewhere])).resolves.toBe('::1')
     } finally {
       server.close()
-      await connecting.then((adapter) => adapter?.dispose().catch(() => {}))
+      await connecting.then(
+        (adapter) => adapter.dispose().catch(() => {}),
+        () => undefined,
+      )
     }
   })
 })
