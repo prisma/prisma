@@ -668,6 +668,26 @@ test('transaction start timeout cleans up connection if transaction eventually s
   expect(rollbackMock).toHaveBeenCalled()
 })
 
+test('transaction start failure clears the maxWait timer', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const startError = new Error('connection refused')
+  vi.spyOn(driverAdapter, 'startTransaction').mockRejectedValue(startError)
+
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  vi.clearAllTimers()
+
+  await expect(transactionManager.startTransaction()).rejects.toBe(startError)
+
+  // The maxWait timer must not outlive the failed startup attempt. No execution
+  // timeout is armed either, because startup never reached the running state.
+  expect(vi.getTimerCount()).toBe(0)
+})
+
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
