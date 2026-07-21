@@ -36,7 +36,7 @@ export function rethrowAsUserFacing(error: any): never {
   if (code !== undefined && message !== undefined) {
     const meta: Record<string, unknown> = { driverAdapterError: error }
     if (error.cause.kind === 'UniqueConstraintViolation' && error.cause.table) {
-      meta.modelName = error.cause.table
+      meta.table = error.cause.table
     }
     throw new UserFacingError(message, code, meta)
   }

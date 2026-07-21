@@ -16,6 +16,7 @@ export default testMatrix.setupSchema(({ provider }) => {
       versions AppVersion[]
 
       @@unique([appId, number])
+      @@map("app_major_versions")
     }
     model AppVersion {
       id             ${idForProvider(provider)}

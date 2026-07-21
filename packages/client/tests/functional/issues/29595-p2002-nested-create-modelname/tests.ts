@@ -7,6 +7,8 @@ declare let prisma: PrismaClient
 /**
  * Regression test for https://github.com/prisma/prisma/issues/29595
  * P2002 error should report the nested model where the violation occurred, not the top-level model.
+ * AppMajorVersion is mapped via @@map to a differently-named table, so this also covers the case
+ * where the Prisma model name and the underlying database table name differ.
  */
 testMatrix.setupTestSuite(
   () => {

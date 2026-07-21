@@ -233,7 +233,7 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
-      const meta = modelName ? { ...error.meta, modelName: error.meta?.modelName ?? modelName } : error.meta
+      const meta = this.resolveErrorMeta(error.meta, modelName)
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
@@ -256,6 +256,25 @@ export class RequestHandler {
     error.clientVersion = this.client._clientVersion
 
     throw error
+  }
+
+  private resolveErrorMeta(errorMeta: Record<string, unknown> | undefined, topLevelModelName?: string) {
+    if (!errorMeta) {
+      return topLevelModelName ? { modelName: topLevelModelName } : errorMeta
+    }
+
+    const { table, ...rest } = errorMeta as { table?: string; [key: string]: unknown }
+    let resolvedModelName = typeof rest.modelName === 'string' ? rest.modelName : topLevelModelName
+
+    if (typeof table === 'string') {
+      const models = this.client._runtimeDataModel.models
+      const match = Object.entries(models).find(([key, model]: [string, any]) => (model.dbName ?? key) === table)
+      if (match) {
+        resolvedModelName = match[0]
+      }
+    }
+
+    return resolvedModelName ? { ...rest, modelName: resolvedModelName } : rest
   }
 
   sanitizeMessage(message) {
