@@ -7,6 +7,7 @@ import { FieldInitializer, FieldOperation, InMemoryOps, JoinExpression, QueryPla
 import { type SchemaProvider } from '../schema'
 import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
+import { type TransactionInfo } from '../transaction-manager/transaction'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
 import { appendToArray, assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
@@ -16,6 +17,7 @@ import { getRecordKey, processRecords } from './in-memory-processing'
 import { evaluateArg, renderQuery } from './render-query'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serialize-sql'
+import { getMaxStatementNodeCount } from './statement-count'
 import { doesSatisfyRule, performValidation } from './validation'
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
@@ -42,6 +44,18 @@ type QueryRuntimeContext = {
   scope: Record<string, unknown>
   generators: GeneratorRegistrySnapshot
   sqlCommenter?: QueryInterpreterSqlCommenter
+  deferredTransaction?: DeferredTransaction
+}
+
+/**
+ * A transaction that is only started if the single statement node inside a `transaction` plan
+ * node turns out to be chunked into multiple SQL statements at runtime. `transactionInfo` is
+ * set as soon as the transaction has been started, so the `transaction` node handler knows
+ * whether there is anything to commit or roll back.
+ */
+type DeferredTransaction = {
+  manager: TransactionManager
+  transactionInfo?: TransactionInfo
 }
 
 export type QueryInterpreterSqlCommenter = {
@@ -161,12 +175,13 @@ export class QueryInterpreter {
 
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const queryable = await this.#queryableForStatements(context, queries.length)
 
         let sum = 0
         for (const query of queries) {
           const commentedQuery = applyComments(query, context.sqlCommenter)
-          sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
+          sum += await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
+            queryable
               .executeRaw(cloneObject(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
@@ -179,12 +194,13 @@ export class QueryInterpreter {
 
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
+        const queryable = await this.#queryableForStatements(context, queries.length)
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
           const commentedQuery = applyComments(query, context.sqlCommenter)
-          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
+          const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
+            queryable
               .queryRaw(cloneObject(commentedQuery))
               .catch((err) =>
                 node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
@@ -256,10 +272,37 @@ export class QueryInterpreter {
         }
 
         const transactionManager = context.transactionManager.manager
+
+        // A subtree with at most one statement node is atomic on its own, so we don't start a
+        // transaction upfront and only fall back to one if the statement gets chunked into
+        // multiple SQL statements at runtime. Besides avoiding pointless BEGIN/COMMIT
+        // round-trips, this keeps single-statement operations like `updateMany` and
+        // `createMany` working on driver adapters that don't support transactions at all
+        // (e.g. Neon over HTTP). See https://github.com/prisma/prisma/issues/29748.
+        if (getMaxStatementNodeCount(node.args) <= 1) {
+          const deferredTransaction: DeferredTransaction = { manager: transactionManager }
+          try {
+            const value = await this.interpretNode(node.args, { ...context, deferredTransaction })
+            if (deferredTransaction.transactionInfo !== undefined) {
+              await transactionManager.commitTransaction(deferredTransaction.transactionInfo.id)
+            }
+            return value
+          } catch (e) {
+            if (deferredTransaction.transactionInfo !== undefined) {
+              await transactionManager.rollbackTransaction(deferredTransaction.transactionInfo.id)
+            }
+            throw e
+          }
+        }
+
         const transactionInfo = await transactionManager.startInternalTransaction()
         const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
         try {
-          const value = await this.interpretNode(node.args, { ...context, queryable: transaction })
+          const value = await this.interpretNode(node.args, {
+            ...context,
+            queryable: transaction,
+            deferredTransaction: undefined,
+          })
           await transactionManager.commitTransaction(transactionInfo.id)
           return value
         } catch (e) {
@@ -333,6 +376,21 @@ export class QueryInterpreter {
       default:
         assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
     }
+  }
+
+  /**
+   * Returns the queryable that a statement node rendered into `statementCount` SQL statements
+   * must execute against. When the enclosing `transaction` plan node deferred its transaction
+   * (single-statement subtree), a transaction is only started if chunking actually produced
+   * more than one statement — a lone statement is atomic without one.
+   */
+  async #queryableForStatements(context: QueryRuntimeContext, statementCount: number): Promise<SqlQueryable> {
+    const deferredTransaction = context.deferredTransaction
+    if (deferredTransaction === undefined || statementCount <= 1) {
+      return context.queryable
+    }
+    deferredTransaction.transactionInfo = await deferredTransaction.manager.startInternalTransaction()
+    return await deferredTransaction.manager.getTransaction(deferredTransaction.transactionInfo, 'query')
   }
 
   #maxChunkSize(): number | undefined {
