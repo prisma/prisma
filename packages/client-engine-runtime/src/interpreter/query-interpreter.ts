@@ -786,9 +786,17 @@ function findUniqueUnconditionalImpureNode(
     case 'join':
     case 'diff':
     case 'if':
+    case 'transaction':
+      // unsupported nodes: plans containing these are never purified
       return null
+    case 'value':
+    case 'get':
+    case 'getFirstNonEmpty':
+    case 'unit':
+      // leaf nodes that cannot contain impure descendants
+      return undefined
     default:
-      return
+      assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
   }
 }
 
