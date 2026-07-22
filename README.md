@@ -198,7 +198,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"  // mysql, sqlite, sqlserver, mongodb or cockroachdb
+  provider = "postgresql"  // mysql (incl. mariadb), sqlite, sqlserver, mongodb or cockroachdb
 }
 ```
 
