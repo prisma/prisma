@@ -51,6 +51,7 @@ function testContext(overrides: Partial<SkillsOfferContext> = {}) {
   const { prompts, confirm, messages } = scriptedPrompts()
 
   const ctx: SkillsOfferContext = {
+    manualInstallCommand: () => 'npx skills add prisma/skills (manual command)',
     cwd,
     configDir,
     isInteractive: () => true,
@@ -154,8 +155,8 @@ describe('gates', () => {
 })
 
 describe('prompt outcomes', () => {
-  test('answering No declines', async () => {
-    const { prompts } = scriptedPrompts(declined)
+  test('answering No declines and still explains the manual install', async () => {
+    const { prompts, messages } = scriptedPrompts(declined)
     const { ctx, configDir, capture, installSkills } = testContext({ prompts })
 
     const result = await handleSkillsOffer(ctx)
@@ -167,10 +168,13 @@ describe('prompt outcomes', () => {
       outcome: 'declined',
       cliVersion: '0.0.0-test',
     })
+    // the offer is once per machine, so this is the last chance to say how
+    expect(messages.join('')).toContain("won't be asked again")
+    expect(messages.join('')).toContain('npx skills add prisma/skills (manual command)')
   })
 
-  test('answering Yes accepts and installs', async () => {
-    const { prompts } = scriptedPrompts(accepted)
+  test('answering Yes installs and explains the manual install for other projects', async () => {
+    const { prompts, messages } = scriptedPrompts(accepted)
     const { ctx, cwd, configDir, capture, installSkills } = testContext({ prompts })
 
     const result = await handleSkillsOffer(ctx)
@@ -182,6 +186,8 @@ describe('prompt outcomes', () => {
       outcome: 'accepted',
       cliVersion: '0.0.0-test',
     })
+    expect(messages.join('')).toContain('To add them to another project')
+    expect(messages.join('')).toContain('npx skills add prisma/skills (manual command)')
   })
 
   test('the prompt explains itself and carries the dismissal deadline', async () => {
@@ -211,6 +217,7 @@ describe('prompt outcomes', () => {
       cliVersion: '0.0.0-test',
     })
     expect(messages.join('')).toContain('No response received')
+    expect(messages.join('')).toContain('npx skills add prisma/skills (manual command)')
   })
 
   test('a dismissed prompt counts as declining and is not repeated', async () => {
@@ -226,8 +233,10 @@ describe('prompt outcomes', () => {
       outcome: 'declined',
       cliVersion: '0.0.0-test',
     })
-    // dismissing is deliberate, so it does not deserve a "no response" notice
-    expect(messages).toEqual([])
+    // dismissing is deliberate, so it does not deserve a "no response" notice,
+    // but the manual install hint still gets its one and only showing
+    expect(messages.join('')).not.toContain('No response received')
+    expect(messages.join('')).toContain('npx skills add prisma/skills (manual command)')
   })
 
   test('a throwing prompt resolves to the timeout outcome', async () => {
@@ -248,7 +257,7 @@ describe('prompt outcomes', () => {
   test('failed install after accepting prints the manual command and stays non-fatal', async () => {
     const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     try {
-      const { prompts } = scriptedPrompts(accepted)
+      const { prompts, messages } = scriptedPrompts(accepted)
       const { ctx, configDir } = testContext({
         prompts,
         installSkills: () => Promise.resolve({ ok: false, manualCommand: 'npx --yes skills add prisma/skills' }),
@@ -261,6 +270,8 @@ describe('prompt outcomes', () => {
       const warnings = consoleWarn.mock.calls.join('\n')
       expect(warnings).toContain('Failed to install Prisma agent skills')
       expect(warnings).toContain('npx --yes skills add prisma/skills')
+      // the warning already carries the command, so no second hint on top
+      expect(messages).toEqual([])
     } finally {
       consoleWarn.mockRestore()
     }

@@ -8,7 +8,7 @@ import path from 'path'
 
 import { version as cliVersion } from '../../../package.json'
 import type { InstallSkillsOptions, InstallSkillsResult } from '../../init/skill-install'
-import { installSkills } from '../../init/skill-install'
+import { installSkills, manualInstallCommand } from '../../init/skill-install'
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
 import { EventCapture, PosthogEventCapture, PUBLIC_POSTHOG_NPS_PROJECT_KEY } from '../nps/capture'
 import { clackPrompts, type PromptOutcome, type Prompts } from '../prompts'
@@ -37,6 +37,8 @@ export type SkillsOfferContext = {
   loadCommandState: () => Promise<CommandState>
   prompts: Prompts
   installSkills: (options: InstallSkillsOptions) => Promise<InstallSkillsResult>
+  /** The shell command that installs the skills into a project by hand. */
+  manualInstallCommand: (cwd: string) => string
   capture: EventCapture
   getSignature: () => Promise<string>
   cliVersion: string
@@ -54,6 +56,7 @@ function defaultContext(): SkillsOfferContext {
     loadCommandState: loadOrInitializeCommandState,
     prompts: clackPrompts,
     installSkills,
+    manualInstallCommand,
     capture: new PosthogEventCapture(PUBLIC_POSTHOG_NPS_PROJECT_KEY),
     getSignature: () => checkpoint.getSignature(),
     cliVersion,
@@ -102,10 +105,18 @@ async function handleSkillsOfferImpl(ctx: SkillsOfferContext): Promise<{ prompte
   const outcome = await promptForInstall(ctx)
   await writeAcknowledgement(ackPath, outcome)
 
+  // The offer is made once ever, so whatever happens next this is the one
+  // chance to tell the user how to install the skills by hand in other
+  // projects going forward.
   if (outcome === 'accepted') {
     try {
       const result = await ctx.installSkills({ cwd: ctx.cwd })
-      if (!result.ok) {
+      if (result.ok) {
+        ctx.prompts.message(
+          'Prisma agent skills installed. To add them to another project, run this in its directory:\n' +
+            `  ${ctx.manualInstallCommand(ctx.cwd)}`,
+        )
+      } else {
         console.warn(
           `${yellow('warn')} Failed to install Prisma agent skills. You can install them manually by running:\n  ${
             result.manualCommand
@@ -114,6 +125,15 @@ async function handleSkillsOfferImpl(ctx: SkillsOfferContext): Promise<{ prompte
       }
     } catch (err) {
       debug(`Failed to install Prisma agent skills: ${err}`)
+    }
+  } else {
+    try {
+      ctx.prompts.message(
+        "You won't be asked again. You can install the skills anytime by running this in a project's directory:\n" +
+          `  ${ctx.manualInstallCommand(ctx.cwd)}`,
+      )
+    } catch (err) {
+      debug(`Failed to print the manual skills install command: ${err}`)
     }
   }
 
