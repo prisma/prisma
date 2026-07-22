@@ -248,7 +248,19 @@ function validateDependentOptions(options: PrismaClientOptions) {
 
   if (!adapterProvided && !accelerateUrlProvided) {
     throw new PrismaClientConstructorValidationError(
-      `Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.`,
+      `PrismaClient requires a driver adapter to connect to your database, but none was provided.
+
+Pass a driver adapter to the PrismaClient constructor, for example:
+
+  import { PrismaPg } from '@prisma/adapter-pg'
+  import { PrismaClient } from './generated/prisma/client'
+
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+  const prisma = new PrismaClient({ adapter })
+
+Learn more about driver adapters: https://pris.ly/d/driver-adapters
+
+If you use Prisma Accelerate instead of connecting to your database directly, pass \`accelerateUrl\` to the PrismaClient constructor instead of \`adapter\`.`,
     )
   }
 }
