@@ -146,6 +146,7 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'UniqueConstraintViolation':
       return 'P2002'
     case 'ForeignKeyConstraintViolation':
+    case 'RestrictViolation':
       return 'P2003'
     case 'InvalidInputValue':
       return 'P2007'
@@ -219,6 +220,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'UniqueConstraintViolation':
       return `Unique constraint failed on the ${renderConstraint(err.cause.constraint)}`
     case 'ForeignKeyConstraintViolation':
+    case 'RestrictViolation':
       return `Foreign key constraint violated on the ${renderConstraint(err.cause.constraint)}`
     case 'UnsupportedNativeDataType':
       return `Failed to deserialize column of type '${err.cause.type}'. If you're using $queryRaw and this column is explicitly marked as \`Unsupported\` in your Prisma schema, try casting this column to any supported Prisma type such as \`String\`.`
