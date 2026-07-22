@@ -49,3 +49,11 @@ test('iterator', () => {
 test('toPrimitive', () => {
   expect(+StrictEnum).toBeNaN()
 })
+
+test('handles null as property key', () => {
+  expect(StrictEnum[null as any]).toBeUndefined()
+})
+
+test('handles undefined as property key', () => {
+  expect(StrictEnum[undefined as any]).toBeUndefined()
+})

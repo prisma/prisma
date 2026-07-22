@@ -35,6 +35,9 @@ export function makeStrictEnum<T extends Record<PropertyKey, string | number>>(d
       if (allowList.has(property)) {
         return undefined
       }
+      if (property === 'null' || property === 'undefined') {
+        return undefined
+      }
       throw new TypeError(`Invalid enum value: ${String(property)}`)
     },
   })
