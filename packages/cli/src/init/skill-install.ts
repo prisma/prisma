@@ -131,6 +131,14 @@ function buildManualCommand(runner: Runner): string {
   return [runner.command, ...installArgs(runner)].map(shellQuote).join(' ')
 }
 
+/**
+ * The shell command that installs the Prisma skills into the project at
+ * `cwd`, using the same runner detection as {@link installSkills}.
+ */
+export function manualInstallCommand(cwd: string, options: DetectRunnerOptions = {}): string {
+  return buildManualCommand(detectRunner(cwd, options))
+}
+
 export type ExecFn = (command: string, args: string[], options: { cwd: string }) => Promise<unknown>
 
 // A hung installer (e.g. a stalled network call) must not hang `prisma init`
