@@ -94,8 +94,11 @@ function renderTemplateSql(
     if (fragment.type === 'stringChunk') {
       continue
     }
-    const length = flattenedParams.length
-    const added = flattenedParams.push(...flattenedFragmentParams(fragment)) - length
+    let added = 0
+    for (const param of flattenedFragmentParams(fragment)) {
+      flattenedParams.push(param)
+      added++
+    }
 
     if (fragment.argType.arity === 'tuple') {
       if (added % fragment.argType.elements.length !== 0) {

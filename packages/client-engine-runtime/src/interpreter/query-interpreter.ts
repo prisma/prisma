@@ -193,7 +193,9 @@ export class QueryInterpreter {
           if (results === undefined) {
             results = result
           } else {
-            results.rows.push(...result.rows)
+            for (const row of result.rows) {
+              results.rows.push(row)
+            }
             results.lastInsertId = result.lastInsertId
           }
         }
