@@ -109,7 +109,7 @@ export class QueryInterpreter {
 
     if (purified) {
       try {
-        return this.interpretPureNode(await purified, context.scope, generators).value
+        return this.#interpretPureNode(await purified, context.scope, generators).value
       } catch (e) {
         rethrowAsUserFacing(e)
       }
@@ -335,11 +335,11 @@ export class QueryInterpreter {
       }
 
       default:
-        return this.interpretPureNode(node, context.scope, context.generators)
+        return this.#interpretPureNode(node, context.scope, context.generators)
     }
   }
 
-  private interpretPureNode(
+  #interpretPureNode(
     node: DeepReadonly<PureQueryPlanNode>,
     scope: ScopeBindings,
     generators: GeneratorRegistrySnapshot,
@@ -352,7 +352,7 @@ export class QueryInterpreter {
       case 'seq': {
         let result: IntermediateValue | undefined
         for (const arg of node.args) {
-          result = this.interpretPureNode(arg, scope, generators)
+          result = this.#interpretPureNode(arg, scope, generators)
         }
         return result ?? { value: undefined }
       }
@@ -364,10 +364,10 @@ export class QueryInterpreter {
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(scope)
         for (const binding of node.args.bindings) {
-          const { value } = this.interpretPureNode(binding.expr, nestedScope, generators)
+          const { value } = this.#interpretPureNode(binding.expr, nestedScope, generators)
           nestedScope[binding.name] = value
         }
-        return this.interpretPureNode(node.args.expr, nestedScope, generators)
+        return this.#interpretPureNode(node.args.expr, nestedScope, generators)
       }
 
       case 'getFirstNonEmpty': {
@@ -381,7 +381,7 @@ export class QueryInterpreter {
       }
 
       case 'concat': {
-        const parts = node.args.map((arg) => this.interpretPureNode(arg, scope, generators).value)
+        const parts = node.args.map((arg) => this.#interpretPureNode(arg, scope, generators).value)
 
         return {
           value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
@@ -389,7 +389,7 @@ export class QueryInterpreter {
       }
 
       case 'sum': {
-        const parts = node.args.map((arg) => this.interpretPureNode(arg, scope, generators).value)
+        const parts = node.args.map((arg) => this.#interpretPureNode(arg, scope, generators).value)
 
         return {
           value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
@@ -397,12 +397,12 @@ export class QueryInterpreter {
       }
 
       case 'reverse': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args, scope, generators)
         return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
       }
 
       case 'unique': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args, scope, generators)
         if (!Array.isArray(value)) {
           return { value, lastInsertId }
         }
@@ -413,7 +413,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args, scope, generators)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -421,12 +421,12 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args.records, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args.records, scope, generators)
         return { value: mapField(value, node.args.field), lastInsertId }
       }
 
       case 'join': {
-        const { value: parent, lastInsertId } = this.interpretPureNode(node.args.parent, scope, generators)
+        const { value: parent, lastInsertId } = this.#interpretPureNode(node.args.parent, scope, generators)
 
         if (parent === null) {
           return { value: null, lastInsertId }
@@ -434,30 +434,30 @@ export class QueryInterpreter {
 
         const children = node.args.children.map((joinExpr) => ({
           joinExpr,
-          childRecords: this.interpretPureNode(joinExpr.child, scope, generators).value,
+          childRecords: this.#interpretPureNode(joinExpr.child, scope, generators).value,
         }))
 
         return { value: attachChildrenToParents(parent, children, node.args.canAssumeStrictEquality), lastInsertId }
       }
 
       case 'dataMap': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args.expr, scope, generators)
         return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
       }
 
       case 'validate': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args.expr, scope, generators)
         performValidation(value, node.args.rules, node.args)
 
         return { value, lastInsertId }
       }
 
       case 'if': {
-        const { value } = this.interpretPureNode(node.args.value, scope, generators)
+        const { value } = this.#interpretPureNode(node.args.value, scope, generators)
         if (doesSatisfyRule(value, node.args.rule)) {
-          return this.interpretPureNode(node.args.then, scope, generators)
+          return this.#interpretPureNode(node.args.then, scope, generators)
         } else {
-          return this.interpretPureNode(node.args.else, scope, generators)
+          return this.#interpretPureNode(node.args.else, scope, generators)
         }
       }
 
@@ -466,8 +466,8 @@ export class QueryInterpreter {
       }
 
       case 'diff': {
-        const { value: from } = this.interpretPureNode(node.args.from, scope, generators)
-        const { value: to } = this.interpretPureNode(node.args.to, scope, generators)
+        const { value: from } = this.#interpretPureNode(node.args.from, scope, generators)
+        const { value: to } = this.#interpretPureNode(node.args.to, scope, generators)
 
         const keyGetter = (item: Value) => (item !== null ? getRecordKey(asRecord(item), node.args.fields) : null)
 
@@ -476,14 +476,14 @@ export class QueryInterpreter {
       }
 
       case 'process': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args.expr, scope, generators)
         const ops = cloneObject(node.args.operations)
         evaluateProcessingParameters(ops, scope, generators)
         return { value: processRecords(value, ops), lastInsertId }
       }
 
       case 'initializeRecord': {
-        const { lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        const { lastInsertId } = this.#interpretPureNode(node.args.expr, scope, generators)
 
         const record = {}
         for (const [key, initializer] of Object.entries(node.args.fields)) {
@@ -493,7 +493,7 @@ export class QueryInterpreter {
       }
 
       case 'mapRecord': {
-        const { value, lastInsertId } = this.interpretPureNode(node.args.expr, scope, generators)
+        const { value, lastInsertId } = this.#interpretPureNode(node.args.expr, scope, generators)
 
         const record = value === null ? {} : asRecord(value)
         for (const [key, entry] of Object.entries(node.args.fields)) {
