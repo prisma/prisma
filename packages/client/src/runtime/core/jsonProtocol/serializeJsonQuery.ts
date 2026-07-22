@@ -368,18 +368,27 @@ function serializeArgumentsObject(
     const value = object[key]
     const nestedContext = context.nestArgument(key)
     if (isSkip(value)) {
+      const field = context.findField(key)
+      if (field?.hasDefaultValue && field.default !== undefined) {
+        result[key] = serializeArgumentsValue(field.default, nestedContext)
+      }
       continue
     }
     if (value !== undefined) {
       result[key] = serializeArgumentsValue(value, nestedContext)
-    } else if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-      context.throwValidationError({
-        kind: 'InvalidArgumentValue',
-        argumentPath: nestedContext.getArgumentPath(),
-        selectionPath: context.getSelectionPath(),
-        argument: { name: context.getArgumentName(), typeNames: [] },
-        underlyingError: STRICT_UNDEFINED_ERROR_MESSAGE,
-      })
+    } else {
+      const field = context.findField(key)
+      if (field?.hasDefaultValue && field.default !== undefined) {
+        result[key] = serializeArgumentsValue(field.default, nestedContext)
+      } else if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
+        context.throwValidationError({
+          kind: 'InvalidArgumentValue',
+          argumentPath: nestedContext.getArgumentPath(),
+          selectionPath: context.getSelectionPath(),
+          argument: { name: context.getArgumentName(), typeNames: [] },
+          underlyingError: STRICT_UNDEFINED_ERROR_MESSAGE,
+        })
+      }
     }
   }
   return result

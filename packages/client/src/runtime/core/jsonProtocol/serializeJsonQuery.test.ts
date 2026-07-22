@@ -1656,3 +1656,80 @@ test(`Prisma.skip in omit`, () => {
     }"
   `)
 })
+
+const ModelWithDefaults = model('ModelWithDefaults', [
+  field('scalar', 'name', 'String'),
+  field('scalar', 'defaultedField', 'String', { hasDefaultValue: true, default: 'default-value' }),
+])
+const datamodelWithDefaults = runtimeDataModel({ models: [User, Post, Attachment, ModelWithDefaults] })
+
+function serializeWithDefaults(params: SimplifiedParams) {
+  return JSON.stringify(
+    serializeJsonQuery({
+      ...params,
+      runtimeDataModel: datamodelWithDefaults,
+      previewFeatures: params.previewFeatures ?? [],
+      extensions: params.extensions ?? MergedExtensionsList.empty(),
+      clientMethod: 'foo',
+      errorFormat: 'colorless',
+      clientVersion: '0.0.0',
+      wrapRawValues: true,
+    }),
+    null,
+    2,
+  )
+}
+
+test('injects default when Prisma.skip used on @default field in nested create', () => {
+  expect(
+    serializeWithDefaults({
+      modelName: 'ModelWithDefaults',
+      action: 'create',
+      args: { data: { name: 'test', defaultedField: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "ModelWithDefaults",
+      "action": "createOne",
+      "query": {
+        "arguments": {
+          "data": {
+            "name": "test",
+            "defaultedField": "default-value"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('injects default when undefined passed for @default field in nested create', () => {
+  expect(
+    serializeWithDefaults({
+      modelName: 'ModelWithDefaults',
+      action: 'create',
+      args: { data: { name: 'test', defaultedField: undefined } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "ModelWithDefaults",
+      "action": "createOne",
+      "query": {
+        "arguments": {
+          "data": {
+            "name": "test",
+            "defaultedField": "default-value"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
