@@ -9,6 +9,8 @@ const copySchemaEngineWasmPlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
     build.onEnd(async () => {
+      // the package's `exports` map exposes the JS bindings but not the .wasm file, so we resolve
+      // the former and derive the latter
       const schemaEngineRuntimePath = require.resolve('@prisma/schema-engine-wasm/schema_engine_bg')
       const prismaSchemaEngineWasmFile = path.join(path.dirname(schemaEngineRuntimePath), 'schema_engine_bg.wasm')
 

@@ -23,6 +23,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       // we copy the contents from xdg-open to build
       await fs.promises.copyFile(path.join(path.dirname(require.resolve('open')), 'xdg-open'), './build/xdg-open')
 
+      // the schema Wasm packages are dependencies of @prisma/internals, so we resolve them from there
       const internalsPath = path.join(__dirname, '..', '..', 'internals')
 
       const prismaWasmFile = require.resolve('@prisma/prisma-schema-wasm/src/prisma_schema_build_bg.wasm', {
@@ -30,6 +31,8 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       })
       await fs.promises.copyFile(prismaWasmFile, './build/prisma_schema_build_bg.wasm')
 
+      // the package's `exports` map exposes the JS bindings but not the .wasm file, so we resolve
+      // the former and derive the latter
       const schemaEngineRuntimePath = require.resolve('@prisma/schema-engine-wasm/schema_engine_bg', {
         paths: [internalsPath],
       })
@@ -57,6 +60,7 @@ async function copyClientWasmRuntime() {
         await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
       }
 
+      // @prisma/query-compiler-wasm is a dependency of @prisma/client, so we resolve it from there
       const wasmFilePath = require.resolve(`@prisma/query-compiler-wasm/${provider}/query_compiler_${build}_bg.wasm`, {
         paths: [clientPath],
       })
