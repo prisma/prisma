@@ -73,6 +73,26 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle RestrictViolation (23001) with column', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', column: 'bar' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
+      constraint: { fields: ['bar'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle RestrictViolation (23001) with constraint', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', constraint: 'baz' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
+      constraint: { index: 'baz' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle DatabaseDoesNotExist (3D000)', () => {
     const error = { code: '3D000', message: 'database "mydb" does not exist', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
