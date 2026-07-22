@@ -103,7 +103,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
       this.onError(err)
     } finally {
       this.cleanup?.()
-      await this.client.end()
+      await releaseConnection(this.client)
     }
   }
 
@@ -116,7 +116,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
       this.onError(err)
     } finally {
       this.cleanup?.()
-      await this.client.end()
+      await releaseConnection(this.client)
     }
   }
 
@@ -188,7 +188,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     conn.on('error', onError)
 
     const cleanup = () => {
-      conn.removeListener('error', onError)
+      conn.off('error', onError)
     }
 
     try {
@@ -204,8 +204,14 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
       await tx.conn.query({ sql: 'BEGIN' }).catch(this.onError.bind(this))
       return tx
     } catch (error) {
-      await conn.end()
-      cleanup()
+      // Detach the error listener before releasing the connection so it is not
+      // reused by the pool with our handler still attached. The release is
+      // wrapped in try/finally so the connection always returns to the pool.
+      try {
+        cleanup()
+      } finally {
+        await releaseConnection(conn)
+      }
       this.onError(error)
     }
   }
@@ -384,3 +390,19 @@ export function rewriteConnectionString(url: URL): URL {
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
+
+/**
+ * Returns a pool connection back to its pool via `PoolConnection#release()`.
+ * Using `end()` instead would permanently close a plain `mariadb.Connection`,
+ * which breaks pool reuse and the `idleTimeout` / `minimumIdle` lifecycle.
+ * Falls back to `end()` when `release` is not available (e.g. unit tests with
+ * a non-pool connection).
+ */
+async function releaseConnection(conn: mariadb.Connection): Promise<void> {
+  const poolConn = conn as mariadb.PoolConnection
+  if (typeof poolConn.release === 'function') {
+    await poolConn.release()
+  } else {
+    await conn.end()
+  }
+}

@@ -329,3 +329,106 @@ describe('PrismaMariaDbAdapterFactory', () => {
     expect(mockPool.end).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('transaction connection management', () => {
+  function makePoolConn() {
+    const listeners = new Map<string, Set<(...args: unknown[]) => void>>()
+    const conn = {
+      query: vi.fn().mockResolvedValue([]),
+      execute: vi.fn().mockResolvedValue({ meta: [], affectedRows: 1 }),
+      release: vi.fn().mockResolvedValue(undefined),
+      end: vi.fn().mockResolvedValue(undefined),
+      on(event: string, cb: (...args: unknown[]) => void) {
+        if (!listeners.has(event)) listeners.set(event, new Set())
+        listeners.get(event)!.add(cb)
+        return this
+      },
+      off(event: string, cb: (...args: unknown[]) => void) {
+        listeners.get(event)?.delete(cb)
+        return this
+      },
+      listenerCount(event: string) {
+        return listeners.get(event)?.size ?? 0
+      },
+    }
+    return conn
+  }
+
+  test('commit returns connection to the pool via release() (not end())', async () => {
+    const conn = makePoolConn()
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    await tx.commit()
+
+    expect(conn.release).toHaveBeenCalledTimes(1)
+    expect(conn.end).not.toHaveBeenCalled()
+  })
+
+  test('rollback returns connection to the pool via release() (not end())', async () => {
+    const conn = makePoolConn()
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    await tx.rollback()
+
+    expect(conn.release).toHaveBeenCalledTimes(1)
+    expect(conn.end).not.toHaveBeenCalled()
+  })
+
+  test('error listener is removed after commit so it does not leak to the next user of the pooled connection', async () => {
+    const conn = makePoolConn()
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    expect(conn.listenerCount('error')).toBe(1)
+    await tx.commit()
+    expect(conn.listenerCount('error')).toBe(0)
+  })
+
+  test('startTransaction releases the connection AND removes the listener when BEGIN fails', async () => {
+    const conn = makePoolConn()
+    conn.query.mockImplementation(({ sql }: { sql: string }) => {
+      if (sql === 'BEGIN') return Promise.reject(new Error('boom'))
+      return Promise.resolve([])
+    })
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    await expect(adapter.startTransaction()).rejects.toBeDefined()
+
+    expect(conn.release).toHaveBeenCalledTimes(1)
+    expect(conn.end).not.toHaveBeenCalled()
+    expect(conn.listenerCount('error')).toBe(0)
+  })
+
+  test('falls back to end() for non-pool connections (no release method)', async () => {
+    const conn = makePoolConn()
+    const connNoRelease = { ...conn, release: undefined as unknown as typeof conn.release }
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(connNoRelease),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    await tx.commit()
+
+    expect(connNoRelease.end).toHaveBeenCalledTimes(1)
+  })
+})
