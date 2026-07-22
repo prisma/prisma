@@ -107,7 +107,11 @@ export class QueryInterpreter {
     )
 
     if (purified) {
-      return this.interpretPureNode(await purified, context.scope, generators).value
+      try {
+        return this.interpretPureNode(await purified, context.scope, generators).value
+      } catch (e) {
+        rethrowAsUserFacing(e)
+      }
     }
 
     const { value } = await this.interpretNode(queryPlan, context).catch((e) => rethrowAsUserFacing(e))
