@@ -52,8 +52,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
-      reason: 'issue #29638 was reproduced on PostgreSQL and this regression stays focused on that path',
+      from: ['mongodb'],
+      reason: 'MongoDB does not support compound primary keys (@@id)',
     },
   },
 )
