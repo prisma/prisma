@@ -17,12 +17,11 @@
     "@types/jest": "29.5.14",
     "@types/node": "~20.19.24",
     "execa": "5.1.1",
-    "typescript": "5.4.5",
-    "vitest": "3.2.4"
+    "typescript": "5.4.5"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "7.3.0-16.9d6ad21cbbceab97458517b147a6a09ff43aa735",
+    "@prisma/engines-version": "7.9.0-1.e922089b7d7502aff4249d5da3420f6fa55fc6ad",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },

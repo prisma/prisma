@@ -8,7 +8,7 @@
   <a href="https://pris.ly/discord"><img alt="Discord" src="https://img.shields.io/discord/937751382725886062?label=Discord"></a>
   <br />
   <br />
-  <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
+  <a href="https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -37,7 +37,7 @@ Prisma ORM is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
+**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
 
 ## Getting started
 
@@ -45,14 +45,14 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 
 The fastest way to get started with Prisma is by following the quickstart guides. You can choose either of two databases:
 
-- [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres)
-- [SQLite](https://www.prisma.io/docs/getting-started/quickstart-sqlite)
+- [Prisma Postgres](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres)
+- [SQLite](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite)
 
 ### Bring your own database
 
 If you already have your own database, you can follow these guides:
 
-- [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project/relational-databases-typescript-postgresql)
+- [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/prisma-orm/add-to-existing-project/postgresql)
 - [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases-typescript-postgresql)
 
 ## How Prisma ORM works
@@ -156,7 +156,7 @@ npx create-db --interactive
 
 ### The Prisma data model
 
-On this page, the focus is on the data model. You can learn more about [Data sources](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-sources) and [Generators](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators) on the respective docs pages.
+On this page, the focus is on the data model. You can learn more about [Data sources](https://www.prisma.io/docs/orm/prisma-schema/overview/data-sources) and [Generators](https://www.prisma.io/docs/orm/prisma-schema/overview/generators) on the respective docs pages.
 
 #### Functions of Prisma models
 
@@ -198,7 +198,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"  // mysql, sqlite, sqlserver, mongodb or cockroachdb
+  provider = "postgresql"  // mysql (incl. mariadb), sqlite, sqlserver, mongodb or cockroachdb
 }
 ```
 
@@ -252,15 +252,7 @@ Once the Prisma Client is generated, you can import it in your code and send que
 
 ##### Import and instantiate Prisma Client
 
-You can import and instantiate Prisma Client from the output path specified in your generator configuration:
-
-```ts
-import { PrismaClient } from './generated/client'
-
-const prisma = new PrismaClient()
-```
-
-**Note**: As of [Prisma 7](https://www.prisma.io/docs/orm/more/upgrade-guides/upgrading-versions/upgrading-to-prisma-7#driver-adapters-and-client-instantiation), you will need to use a [driver adapter](https://www.prisma.io/docs/orm/overview/databases/database-drivers#driver-adapters). For example, when using PostgreSQL with a driver adapter:
+You can import and instantiate Prisma Client from the output path specified in your generator configuration. When instantiating the Client, you need to provide a [driver adapter](https://www.prisma.io/docs/orm/core-concepts/supported-databases/database-drivers#how-to-use-driver-adapters) to its constructor. For example, when using PostgreSQL with a driver adapter:
 
 ```ts
 import { PrismaClient } from './generated/client'
@@ -379,5 +371,5 @@ Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/mai
 
 - Prisma Tests Status:
   [![Prisma Tests Status](https://github.com/prisma/prisma/workflows/CI/badge.svg)](https://github.com/prisma/prisma/actions/workflows/test.yml?query=branch%3Amain)
-- Ecosystem Tests Status:
-  [![Ecosystem Tests Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions/workflows/test.yaml?query=branch%3Adev)
+
+Scheduled CI is currently disabled across the ORM repos; test workflows run on push, pull request, and manual `workflow_dispatch`. See the [Actions tab](https://github.com/prisma/prisma/actions) for recent runs.

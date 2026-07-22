@@ -4,6 +4,7 @@ import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator'
 import {
   arg,
+  BuiltInProvider,
   Command,
   createSchemaPathInput,
   format,
@@ -26,22 +27,27 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { processSchemaResult } from '../../internals/src/cli/schemaContext'
+import { version as cliVersion } from '../package.json'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
-
-const pkg = eval(`require('../package.json')`)
+import { handleSkillsOffer } from './utils/skills/skills-offer'
 
 /**
  * $ prisma generate
  */
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
+  skillsOfferHandler: () => Promise<{ prompted: boolean }>
 
-  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+  constructor(
+    surveyHandler: () => Promise<void> = handleNpsSurvey,
+    skillsOfferHandler: () => Promise<{ prompted: boolean }> = handleSkillsOffer,
+  ) {
     this.surveyHandler = surveyHandler
+    this.skillsOfferHandler = skillsOfferHandler
   }
 
   public static new(): Generate {
@@ -179,7 +185,7 @@ ${bold('Examples')}
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
         const jsClient = generators.find(
-          (g) => g.options && parseEnvValue(g.options.generator.provider) === 'prisma-client-js',
+          (g) => g.options && parseEnvValue(g.options.generator.provider) === BuiltInProvider.PrismaClientJs,
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -230,7 +236,7 @@ Please run \`prisma generate\` manually.`
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
-          options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
+          options?.generator.provider && parseEnvValue(options?.generator.provider) === BuiltInProvider.PrismaClientJs,
       )
 
       let hint = ''
@@ -241,10 +247,10 @@ Please run \`prisma generate\` manually.`
 ${breakingChangesMessage}`
           : ''
 
-        const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
+        const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${cliVersion}`)} and ${bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
@@ -267,7 +273,11 @@ ${breakingChangesStr}${versionsWarning}`
         throw new Error(message)
       } else {
         if (!hideHints) {
-          await this.surveyHandler()
+          // at most one prompt per generate run: the offer preempts the survey
+          const { prompted } = await this.skillsOfferHandler()
+          if (!prompted) {
+            await this.surveyHandler()
+          }
         }
 
         return message

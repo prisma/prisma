@@ -1,5 +1,21 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 
+export type DeepReadonly<T> = T extends undefined | null | boolean | string | number | symbol | Function | Date
+  ? T
+  : T extends Array<infer U>
+    ? ReadonlyArray<DeepReadonly<U>>
+    : unknown extends T
+      ? unknown
+      : { readonly [K in keyof T]: DeepReadonly<T[K]> }
+
+export type DeepUnreadonly<T> = T extends undefined | null | boolean | string | number | symbol | Function | Date
+  ? T
+  : T extends ReadonlyArray<infer U>
+    ? Array<DeepUnreadonly<U>>
+    : unknown extends T
+      ? unknown
+      : { -readonly [K in keyof T]: DeepUnreadonly<T[K]> }
+
 // Copied over to avoid the heavy dependency on `@prisma/internals` with its
 // transitive dependencies that are not needed for other query plan executor
 // implementations outside of Prisma Client (e.g. test executor for query
