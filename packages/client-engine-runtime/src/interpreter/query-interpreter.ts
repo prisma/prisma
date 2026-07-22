@@ -9,6 +9,7 @@ import {
   ImpureQueryPlanNode,
   InMemoryOps,
   JoinExpression,
+  PrismaValue,
   PureQueryPlanNode,
   QueryPlanNode,
 } from '../query-plan'
@@ -733,18 +734,91 @@ function evalFieldOperation(
   }
 }
 
+/**
+ * Attempts to convert a query plan into a pure one by finding the single impure node
+ * that is unconditionally evaluated exactly once, evaluating it eagerly via `evalNode`,
+ * and substituting its result into the plan as a constant. The remaining plan can then
+ * be interpreted synchronously.
+ *
+ * Returns `undefined` if the plan cannot be purified this way (it contains no impure
+ * nodes, more than one of them, or unsupported constructs).
+ *
+ * Query plans are cached and shared between requests, so the input plan is never
+ * modified; the returned plan shares all unaffected subtrees with the input and only
+ * copies the nodes on the path to the substituted one.
+ */
 export function purifyQueryPlan(
   node: DeepReadonly<QueryPlanNode>,
   evalNode: (node: DeepReadonly<ImpureQueryPlanNode>) => Promise<IntermediateValue>,
 ): Promise<DeepReadonly<PureQueryPlanNode>> | undefined {
-  const uniqueAsyncNode = findUniqueUnconditionalImpureNode(node)
-  if (uniqueAsyncNode) {
-    return evalNode(uniqueAsyncNode).then((result) => {
-      Object.assign(uniqueAsyncNode, { type: 'value', args: result.value, lastInsertId: result.lastInsertId })
-      return node as DeepReadonly<PureQueryPlanNode>
-    })
+  const impureNode = findUniqueUnconditionalImpureNode(node)
+  if (!impureNode) {
+    return undefined
   }
-  return
+  return evalNode(impureNode).then((result) => {
+    const evaluated: DeepReadonly<QueryPlanNode> = {
+      type: 'value',
+      args: result.value as PrismaValue,
+      lastInsertId: result.lastInsertId,
+    }
+    const purified = replaceImpureNode(node, impureNode, evaluated)
+    if (!purified) {
+      throw new Error('Could not substitute the evaluated impure node into the query plan')
+    }
+    // The replaced node was the only impure node in the plan, so the result is pure.
+    return purified as DeepReadonly<PureQueryPlanNode>
+  })
+}
+
+/**
+ * Returns a copy of the plan with `target` (identified by reference) replaced by
+ * `replacement`, sharing all subtrees that do not contain `target` with the input,
+ * or `undefined` if `target` does not occur in the plan. Only traverses the node
+ * kinds that `findUniqueUnconditionalImpureNode` can find the target through.
+ */
+function replaceImpureNode(
+  node: DeepReadonly<QueryPlanNode>,
+  target: DeepReadonly<ImpureQueryPlanNode>,
+  replacement: DeepReadonly<QueryPlanNode>,
+): DeepReadonly<QueryPlanNode> | undefined {
+  if (node === target) {
+    return replacement
+  }
+  switch (node.type) {
+    case 'seq':
+    case 'sum':
+    case 'concat': {
+      for (let i = 0; i < node.args.length; i++) {
+        const child = replaceImpureNode(node.args[i], target, replacement)
+        if (child) {
+          return { ...node, args: node.args.map((arg, j) => (j === i ? child : arg)) }
+        }
+      }
+      return undefined
+    }
+    case 'dataMap':
+    case 'validate':
+    case 'initializeRecord':
+    case 'mapRecord':
+    case 'process': {
+      const expr = replaceImpureNode(node.args.expr, target, replacement)
+      // The cast is needed because TypeScript does not narrow the type of the
+      // spread result down to the matching union member.
+      return expr && ({ ...node, args: { ...node.args, expr } } as DeepReadonly<QueryPlanNode>)
+    }
+    case 'mapField': {
+      const records = replaceImpureNode(node.args.records, target, replacement)
+      return records && { ...node, args: { ...node.args, records } }
+    }
+    case 'reverse':
+    case 'unique':
+    case 'required': {
+      const args = replaceImpureNode(node.args, target, replacement)
+      return args && { ...node, args }
+    }
+    default:
+      return undefined
+  }
 }
 
 function findUniqueUnconditionalImpureNode(
