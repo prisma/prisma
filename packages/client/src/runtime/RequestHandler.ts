@@ -278,7 +278,7 @@ export class RequestHandler {
     }
     const operation = Object.keys(data)[0]
     const response = Object.values(data)[0]
-    const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
+    const pathForGet = dataPathToGetPath(dataPath)
     const extractedResponse = deepGet(response, pathForGet)
     const deserializedResponse =
       operation === 'queryRaw'
@@ -366,4 +366,20 @@ function convertValidationError(error: EngineValidationError): EngineValidationE
   }
 
   return error
+}
+
+/**
+ * Converts a fluent-API dataPath into the path used to read the result out of
+ * the response. dataPath is a sequence of [selector, relationField] pairs where
+ * the selector is always 'select' or 'include'. The relation field names (the
+ * odd positions) form the path. Filtering by the literal values 'select' or
+ * 'include' would also drop a relation field that happens to be named that way,
+ * so the path is derived positionally instead.
+ */
+export function dataPathToGetPath(dataPath: string[]): string[] {
+  const getPath: string[] = []
+  for (let index = 1; index < dataPath.length; index += 2) {
+    getPath.push(dataPath[index])
+  }
+  return getPath
 }
