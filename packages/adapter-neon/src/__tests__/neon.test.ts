@@ -1,8 +1,9 @@
 import * as neon from '@neondatabase/serverless'
 import { getLogs } from '@prisma/debug'
+import type { SqlQuery } from '@prisma/driver-adapter-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { PrismaNeonAdapterFactory } from '../neon'
+import { PrismaNeonAdapterFactory, PrismaNeonHttpAdapter } from '../neon'
 
 describe('PrismaNeonAdapterFactory', () => {
   it('should subscribe to pool error events', async () => {
@@ -74,5 +75,50 @@ describe('PrismaNeonAdapterFactory', () => {
     expect(mockConnection.removeListener).toHaveBeenCalledWith('error', expect.any(Function))
 
     await adapter.dispose()
+  })
+})
+
+describe('PrismaNeonHttpAdapter', () => {
+  it('maps args through mapArg before passing them to the HTTP client', async () => {
+    const mockClient = vi.fn().mockResolvedValue({ fields: [], rows: [], rowCount: 0 })
+    const adapter = new PrismaNeonHttpAdapter(mockClient as unknown as neon.NeonQueryFunction<any, any>)
+
+    // a base64-encoded `Bytes` arg, as the query engine hands it to the adapter
+    const bytesBase64 = Buffer.from('hello-raw-bytes').toString('base64')
+
+    const query: SqlQuery = {
+      sql: 'INSERT INTO "Thing" ("blob") VALUES ($1)',
+      args: [bytesBase64],
+      argTypes: [{ scalarType: 'bytes', arity: 'scalar' }],
+    }
+
+    await adapter.performIO(query)
+
+    const [, values] = mockClient.mock.calls[0]
+    expect(values[0]).toBeInstanceOf(Buffer)
+    expect((values[0] as Buffer).toString('utf-8')).toBe('hello-raw-bytes')
+    // the unmapped base64 string must not be what's sent to the driver
+    expect(values[0]).not.toBe(bytesBase64)
+  })
+
+  it('maps a DateTime arg to a UTC timestamp string, not the process-local offset', async () => {
+    const mockClient = vi.fn().mockResolvedValue({ fields: [], rows: [], rowCount: 0 })
+    const adapter = new PrismaNeonHttpAdapter(mockClient as unknown as neon.NeonQueryFunction<any, any>)
+
+    // the query engine hands DateTime args over as ISO strings
+    const isoDate = '2023-01-01T12:00:00.000Z'
+
+    const query: SqlQuery = {
+      sql: 'INSERT INTO "Thing" ("date") VALUES ($1)',
+      args: [isoDate],
+      argTypes: [{ scalarType: 'datetime', arity: 'scalar' }],
+    }
+
+    await adapter.performIO(query)
+
+    const [, values] = mockClient.mock.calls[0]
+    // formatDateTime renders the UTC wall-clock value with no offset suffix, unlike the
+    // driver's default `Date#toISOString`/`prepareValue`-style local-offset serialization
+    expect(values[0]).toBe('2023-01-01 12:00:00')
   })
 })
