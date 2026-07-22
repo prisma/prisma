@@ -109,7 +109,7 @@ describe('gates', () => {
       '.agents/skills/prisma-* directory',
       (cwd: string) => fs.mkdirSync(path.join(cwd, '.agents', 'skills', 'prisma-cli'), { recursive: true }),
     ],
-  ])('already-installed detection via %s writes the acknowledgement', async (_name, setup) => {
+  ])('already-installed detection via %s stays silent without spending the offer', async (_name, setup) => {
     const { ctx, cwd, configDir, capture, confirm } = testContext()
     setup(cwd)
 
@@ -118,7 +118,25 @@ describe('gates', () => {
     expect(result).toEqual({ prompted: false })
     expect(confirm).not.toHaveBeenCalled()
     expect(capture.capture).not.toHaveBeenCalled()
-    expect(readAcknowledgement(configDir).outcome).toBe('already-installed')
+    // detection is per project, the acknowledgement per machine: writing one
+    // here would rob every other project of the prompt it never saw
+    expect(acknowledgementExists(configDir)).toBe(false)
+  })
+
+  test('a project with skills does not spend the offer for a later project without them', async () => {
+    const withSkills = testContext()
+    fs.writeFileSync(path.join(withSkills.cwd, 'skills-lock.json'), '{}')
+
+    await handleSkillsOffer(withSkills.ctx)
+
+    // same machine (shared configDir), different project
+    const withoutSkills = testContext({ configDir: withSkills.configDir })
+
+    const result = await handleSkillsOffer(withoutSkills.ctx)
+
+    expect(result).toEqual({ prompted: true })
+    expect(withoutSkills.confirm).toHaveBeenCalledTimes(1)
+    expect(readAcknowledgement(withSkills.configDir).outcome).toBe('declined')
   })
 
   test('non-prisma skills of other projects do not count as already installed', async () => {

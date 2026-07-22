@@ -17,7 +17,7 @@ const debug = Debug('prisma:cli:skills-offer')
 
 const promptTimeoutSecs = 30
 
-export type SkillsOfferOutcome = 'accepted' | 'declined' | 'timeout' | 'already-installed'
+export type SkillsOfferOutcome = 'accepted' | 'declined' | 'timeout'
 
 type SkillsOfferAcknowledgement = {
   offeredAt: string
@@ -65,7 +65,8 @@ function defaultContext(): SkillsOfferContext {
 
 /**
  * Offers to install the Prisma agent skills, once ever per machine, after a
- * successful generate run.
+ * successful generate run. Projects that already have the skills are skipped
+ * silently without counting as the machine's one offer.
  *
  * Returns whether the user was actually shown a prompt, so the caller can
  * keep the number of prompts per run down to one. Never throws: any failure
@@ -89,8 +90,10 @@ async function handleSkillsOfferImpl(ctx: SkillsOfferContext): Promise<{ prompte
     return { prompted: false }
   }
 
+  // Detection is per project while the acknowledgement is per machine, so
+  // nothing is recorded here: a project that already has the skills stays
+  // silent on every run without spending the one offer other projects get.
   if (await skillsAlreadyInstalled(ctx.cwd)) {
-    await writeAcknowledgement(ackPath, 'already-installed')
     return { prompted: false }
   }
 
