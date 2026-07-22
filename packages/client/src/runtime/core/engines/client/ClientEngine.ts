@@ -41,6 +41,10 @@ import { RemoteExecutor } from './RemoteExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
+/**
+ * Prisma error code for the `PrismaClientInitializationError` raised when
+ * `PrismaClient` is instantiated without a driver adapter.
+ */
 const CLIENT_ENGINE_ERROR = 'P2038'
 
 const debug = Debug('prisma:client:clientEngine')
@@ -102,7 +106,7 @@ export class ClientEngine implements Engine {
   #state: EngineState = { type: 'disconnected' }
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
-  #queryPlanCache: QueryPlanCache
+  #queryPlanCache?: QueryPlanCache
   #paramGraph: ParamGraph
 
   config: EngineConfig
@@ -123,7 +127,7 @@ export class ClientEngine implements Engine {
       debug('Using driver adapter: %O', config.adapter)
     } else {
       throw new PrismaClientInitializationError(
-        'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
+        'PrismaClient requires a driver adapter to connect to your database, but none was provided. Pass one to the PrismaClient constructor, e.g. `new PrismaClient({ adapter })`. Learn more: https://pris.ly/d/driver-adapters',
         config.clientVersion,
         CLIENT_ENGINE_ERROR,
       )
@@ -141,7 +145,8 @@ export class ClientEngine implements Engine {
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
     this.tracingHelper = config.tracingHelper
-    this.#queryPlanCache = new QueryPlanCache()
+    this.#queryPlanCache =
+      config.queryPlanCacheMaxSize === 0 ? undefined : new QueryPlanCache(config.queryPlanCacheMaxSize)
     this.#paramGraph = ParamGraph.deserialize(config.parameterizationSchema, (enumName) => {
       if (!Object.hasOwn(config.runtimeDataModel.enums, enumName)) {
         return undefined
@@ -472,6 +477,7 @@ export class ClientEngine implements Engine {
 
     let plan: QueryPlanNode
     let placeholderValues: Record<string, unknown> = {}
+    let queryInfoQuery = query.query
 
     if (isRawQuery(query)) {
       plan = compileRawQuery(query)
@@ -479,12 +485,13 @@ export class ClientEngine implements Engine {
       const { parameterizedQuery, placeholderValues: extractedValues } = parameterizeQuery(query, this.#paramGraph)
       const cacheKey = JSON.stringify(parameterizedQuery)
       placeholderValues = extractedValues
+      queryInfoQuery = parameterizedQuery.query
 
       // We do not cache `createMany` and `createManyAndReturn` queries as they are very unlikely
       // to benefit from caching due to their high variability in parameters, which leads to a very
       // high cache miss rate and potential cache bloat.
       const isCacheable = query.action !== 'createMany' && query.action !== 'createManyAndReturn'
-      const cached = isCacheable ? this.#queryPlanCache.getSingle(cacheKey) : undefined
+      const cached = isCacheable ? this.#queryPlanCache?.getSingle(cacheKey) : undefined
       if (cached) {
         debug('query plan cache hit')
         plan = cached
@@ -492,7 +499,7 @@ export class ClientEngine implements Engine {
         debug('query plan cache miss')
         plan = this.#compileQuery(parameterizedQuery, cacheKey, queryCompiler)
         if (isCacheable) {
-          this.#queryPlanCache.setSingle(cacheKey, plan)
+          this.#queryPlanCache?.setSingle(cacheKey, plan)
         }
       }
     }
@@ -512,7 +519,7 @@ export class ClientEngine implements Engine {
           type: 'single',
           modelName: query.modelName,
           action: query.action,
-          query: query.query,
+          query: queryInfoQuery,
         },
       })
 
@@ -545,6 +552,7 @@ export class ClientEngine implements Engine {
     const hasRawQueries = firstModelName === undefined
     let batchResponse: BatchResponse
     let placeholderValues: Record<string, unknown> = {}
+    let queryInfoQueries = queries.map((query) => query.query)
 
     if (!hasRawQueries) {
       const { parameterizedBatch, placeholderValues: extractedValues } = parameterizeBatch(
@@ -553,8 +561,9 @@ export class ClientEngine implements Engine {
       )
       const cacheKeyStr = JSON.stringify(parameterizedBatch)
       placeholderValues = extractedValues
+      queryInfoQueries = parameterizedBatch.batch.map((query) => query.query)
 
-      const cached = this.#queryPlanCache.getBatch(cacheKeyStr)
+      const cached = this.#queryPlanCache?.getBatch(cacheKeyStr)
       if (cached) {
         debug('batch query plan cache hit')
         batchResponse = cached
@@ -562,7 +571,7 @@ export class ClientEngine implements Engine {
         debug('batch query plan cache miss')
         try {
           batchResponse = this.#compileBatch(parameterizedBatch.batch, cacheKeyStr, queryCompiler)
-          this.#queryPlanCache.setBatch(cacheKeyStr, batchResponse)
+          this.#queryPlanCache?.setBatch(cacheKeyStr, batchResponse)
         } catch (error) {
           throw this.#transformCompileError(error)
         }
@@ -581,9 +590,12 @@ export class ClientEngine implements Engine {
       switch (batchResponse.type) {
         case 'multi': {
           if (transaction?.kind !== 'itx') {
-            const txOptions = transaction?.options.isolationLevel
-              ? { ...this.config.transactionOptions, isolationLevel: transaction.options.isolationLevel }
-              : this.config.transactionOptions
+            const batchOptions = transaction?.options
+            const txOptions = {
+              maxWait: batchOptions?.maxWait ?? this.config.transactionOptions.maxWait,
+              timeout: batchOptions?.timeout ?? this.config.transactionOptions.timeout,
+              isolationLevel: batchOptions?.isolationLevel ?? this.config.transactionOptions.isolationLevel,
+            }
             txInfo = await this.transaction('start', {}, txOptions)
           }
 
@@ -601,7 +613,9 @@ export class ClientEngine implements Engine {
                 customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
                 queryInfo: {
                   type: 'single',
-                  ...queries[batchIndex],
+                  modelName: queries[batchIndex].modelName,
+                  action: queries[batchIndex].action,
+                  query: queryInfoQueries[batchIndex],
                 },
               })
               results.push({ data: { [queries[batchIndex].action]: rows } })
@@ -650,7 +664,7 @@ export class ClientEngine implements Engine {
               type: 'compacted',
               action: firstAction,
               modelName: firstModelName,
-              queries,
+              queries: queryInfoQueries,
             },
           })
 

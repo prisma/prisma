@@ -59,7 +59,9 @@ export function formatBootstrapOutput(opts: {
 
   if (opts.pendingDepsInstall) {
     lines.push(bold('Next steps:'))
-    lines.push(`  1. Install ${bold('dotenv')} and ${bold('prisma')} as dev dependencies with your package manager`)
+    lines.push(
+      `  1. Install ${bold('@prisma/client')}, ${bold('dotenv')}, and ${bold('prisma')} with your package manager`,
+    )
     lines.push(`  2. Re-run ${green('npx prisma@latest bootstrap')} to finish setup`)
     lines.push('')
     return lines.join('\n')
