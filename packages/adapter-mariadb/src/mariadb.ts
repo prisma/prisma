@@ -397,8 +397,6 @@ type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?
  * which breaks pool reuse and the `idleTimeout` / `minimumIdle` lifecycle.
  * Falls back to `end()` when `release` is not available (e.g. unit tests with
  * a non-pool connection).
- *
- * See https://github.com/prisma/prisma/issues/28964
  */
 async function releaseConnection(conn: mariadb.Connection): Promise<void> {
   const poolConn = conn as mariadb.PoolConnection
