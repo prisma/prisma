@@ -28,7 +28,7 @@
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/engines-version": "7.8.0-4.8c287008617e9b12f313df99e2c821ae61ea9afa",
+    "@prisma/engines-version": "7.9.0-1.e922089b7d7502aff4249d5da3420f6fa55fc6ad",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -41,7 +41,7 @@
     "klona": "2.0.6",
     "package-up": "5.0.0",
     "pluralize": "8.0.0",
-    "ts-pattern": "5.6.2"
+    "ts-pattern": "5.9.0"
   },
   "devDependencies": {
     "@types/pluralize": "0.0.33"
