@@ -122,24 +122,21 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
 
     try {
-      const result = await this.client.query(
-        {
-          name: this.pgOptions?.statementNameGenerator?.(query),
-          text: sql,
-          values,
-          rowMode: 'array',
-          types: {
-            getTypeParser: (oid: number, format?) => {
-              if (format === 'text' && customParsers[oid]) {
-                return customParsers[oid]
-              }
+      const result = await this.client.query({
+        name: this.pgOptions?.statementNameGenerator?.(query),
+        text: sql,
+        values,
+        rowMode: 'array',
+        types: {
+          getTypeParser: (oid: number, format?) => {
+            if (format === 'text' && customParsers[oid]) {
+              return customParsers[oid]
+            }
 
-              return types.getTypeParser(oid, format)
-            },
+            return types.getTypeParser(oid, format)
           },
         },
-        values,
-      )
+      })
 
       return result
     } catch (e) {

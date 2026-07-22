@@ -19,7 +19,14 @@ inputs:
 runs:
   using: composite
   steps:
+    # `standalone: true` installs pnpm as a self-contained executable that
+    # bundles its own Node.js, so pnpm runs regardless of the Node.js version
+    # set up below. This lets the test matrix keep exercising Node.js 20 (which
+    # pnpm 11 itself does not support) while pnpm-driven scripts still run under
+    # the matrix Node.js resolved from PATH.
     - uses: pnpm/action-setup@v4.2.0
+      with:
+        standalone: true
     - name: Use Node.js ${{ inputs.node-version }}
       uses: actions/setup-node@v6
       with:
