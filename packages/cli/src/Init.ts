@@ -3,8 +3,6 @@ import path from 'node:path'
 
 import { confirm, input, select } from '@inquirer/prompts'
 import { PrismaConfigInternal } from '@prisma/config'
-import { startPrismaDevServer } from '@prisma/dev'
-import { ServerState } from '@prisma/dev/internal/state'
 import type { ConnectorType } from '@prisma/generator'
 import {
   arg,
@@ -28,7 +26,9 @@ import ora from 'ora'
 import { match, P } from 'ts-pattern'
 
 import { FileWriter } from './init/file-writer'
+import { isBun } from './init/is-bun'
 import { printPpgInitOutput, successMessage } from './init/ppg-output'
+import { installSkills } from './init/skill-install'
 import { login } from './management-api/auth'
 import { createAuthenticatedManagementAPI } from './management-api/auth-client'
 import { FileTokenStorage } from './management-api/token-storage'
@@ -36,13 +36,6 @@ import { determineClientOutputPath } from './utils/client-output-path'
 import { printError } from './utils/prompt/utils/print'
 
 type Region = NonNullable<operations['postV1Projects']['requestBody']>['content']['application/json']['region']
-
-/**
- * Indicates if running in Bun runtime.
- */
-export const isBun: boolean =
-  // @ts-ignore
-  !!globalThis.Bun || !!globalThis.process?.versions?.bun
 
 export const defaultSchema = (props?: {
   datasourceProvider?: ConnectorType
@@ -115,6 +108,12 @@ model User {
 
 export const defaultEnv = async (url: string | undefined, debug = false, comments = true) => {
   if (url === undefined) {
+    // TODO: bundle the CLI to ESM instead of CommonJS and make these module-level imports
+    const [{ startPrismaDevServer }, { ServerState }] = await Promise.all([
+      import('@prisma/dev'),
+      import('@prisma/dev/internal/state'),
+    ])
+
     let created = false
     const state =
       (await ServerState.fromServerDump({ debug })) ||
@@ -294,6 +293,7 @@ export class Init implements Command {
   ${bold('Flags')}
 
            --with-model   Add example model to created schema file
+            --no-skills   Skip installing Prisma agent skills
 
   ${bold('Examples')}
 
@@ -329,6 +329,7 @@ export class Init implements Command {
       '--preview-feature': [String],
       '--output': String,
       '--with-model': Boolean,
+      '--no-skills': Boolean,
       '--db': Boolean,
       '--region': String,
       '--name': String,
@@ -689,6 +690,23 @@ export class Init implements Command {
       console.error('Failed to append client path to .gitignore file, reason: ', e)
     }
 
+    let skillsInstalled = false
+    if (!args['--no-skills']) {
+      const skillsSpinner = ora('Installing skills').start()
+      const skillsResult = await installSkills({ cwd: outputDir })
+      if (skillsResult.ok) {
+        skillsSpinner.succeed('Skills installed')
+        skillsInstalled = true
+      } else {
+        skillsSpinner.fail('Skills install failed')
+        console.warn(
+          `${yellow('warn')} Failed to install Prisma agent skills. You can install them manually by running:\n  ${
+            skillsResult.manualCommand
+          }`,
+        )
+      }
+    }
+
     const connectExistingDatabaseSteps = `\
   1. Configure your DATABASE_URL in ${green('prisma.config.ts')}
   2. Run ${green(getCommandWithExecutor('prisma db pull'))} to introspect your database.`
@@ -712,6 +730,10 @@ Next, set up your database:
 ${connectExistingDatabaseSteps}`
     }
 
+    const skillsSummary = skillsInstalled
+      ? '\n  .claude/skills/\n  .windsurf/skills/\n  .agents/skills/\n  skills-lock.json'
+      : ''
+
     const defaultOutput = `
 Initialized Prisma in your project
 
@@ -719,7 +741,7 @@ ${writer.format({
   level: 0,
   printHeadersFromLevel: 1,
   indentSize: 2,
-})}
+})}${skillsSummary}
 ${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
 ${setupDatabaseSection}
 

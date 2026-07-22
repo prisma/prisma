@@ -12,9 +12,9 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
-    "c12": "3.1.0",
+    "c12": "3.3.4",
     "deepmerge-ts": "7.1.5",
-    "effect": "3.18.4",
+    "effect": "3.20.0",
     "empathic": "2.0.0"
   },
   "devDependencies": {

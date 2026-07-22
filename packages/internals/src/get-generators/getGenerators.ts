@@ -19,7 +19,6 @@ import { loadSchemaContext, SchemaContext } from '../cli/schemaContext'
 import { getDMMF, mergeSchemas } from '../engine-commands'
 import { Generator, InProcessGenerator, JsonRpcGenerator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
-import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
@@ -125,12 +124,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   printConfigWarnings(schemaContext.warnings)
 
-  const previewFeatures = extractPreviewFeatures(schemaContext.generators)
-
-  const dmmf = await getDMMF({
-    datamodel: schemaContext.schemaFiles,
-    previewFeatures,
-  })
+  const dmmf = await getDMMF({ datamodel: schemaContext.schemaFiles })
 
   if (dmmf.datamodel.models.length === 0 && !allowNoModels) {
     // MongoDB needs extras for @id: @map("_id") @db.ObjectId

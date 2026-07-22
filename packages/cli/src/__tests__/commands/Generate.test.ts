@@ -5,6 +5,15 @@ import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platfo
 import { Generate } from '../../Generate'
 import { configContextContributor } from '../_utils/config-context'
 
+// The real Watcher watches the filesystem forever; an immediately-ending
+// iterator lets watch-mode parse() return so tests can assert on it.
+jest.mock('../../generate/Watcher', () => ({
+  Watcher: class {
+    add() {}
+    async *[Symbol.asyncIterator]() {}
+  },
+}))
+
 const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describe('prisma.config.ts', () => {
@@ -251,20 +260,50 @@ it('should hide hints with --no-hints', async () => {
   `)
 })
 
-it('should call the survey handler when hints are not disabled', async () => {
+it('should run the skills offer before the survey handler when hints are not disabled', async () => {
   ctx.fixture('example-project')
-  const handler = jest.fn()
-  const generate = new Generate(handler)
+  const calls: string[] = []
+  const surveyHandler = jest.fn(() => {
+    calls.push('survey')
+    return Promise.resolve()
+  })
+  const offerHandler = jest.fn(() => {
+    calls.push('offer')
+    return Promise.resolve({ prompted: false })
+  })
+  const generate = new Generate(surveyHandler, offerHandler)
   await generate.parse([], await ctx.config())
-  expect(handler).toHaveBeenCalledTimes(1)
+  expect(calls).toEqual(['offer', 'survey'])
 })
 
-it('should not call the survey handler when hints are disabled', async () => {
+it('should skip the survey handler when the skills offer prompted', async () => {
   ctx.fixture('example-project')
-  const handler = jest.fn()
-  const generate = new Generate(handler)
+  const surveyHandler = jest.fn()
+  const offerHandler = jest.fn().mockResolvedValue({ prompted: true })
+  const generate = new Generate(surveyHandler, offerHandler)
+  await generate.parse([], await ctx.config())
+  expect(offerHandler).toHaveBeenCalledTimes(1)
+  expect(surveyHandler).not.toHaveBeenCalled()
+})
+
+it('should call neither the skills offer nor the survey handler when hints are disabled', async () => {
+  ctx.fixture('example-project')
+  const surveyHandler = jest.fn()
+  const offerHandler = jest.fn()
+  const generate = new Generate(surveyHandler, offerHandler)
   await generate.parse(['--no-hints'], await ctx.config())
-  expect(handler).not.toHaveBeenCalled()
+  expect(offerHandler).not.toHaveBeenCalled()
+  expect(surveyHandler).not.toHaveBeenCalled()
+})
+
+it('should call neither the skills offer nor the survey handler in watch mode', async () => {
+  ctx.fixture('example-project')
+  const surveyHandler = jest.fn()
+  const offerHandler = jest.fn()
+  const generate = new Generate(surveyHandler, offerHandler)
+  await generate.parse(['--watch'], await ctx.config())
+  expect(offerHandler).not.toHaveBeenCalled()
+  expect(surveyHandler).not.toHaveBeenCalled()
 })
 
 it('should error with exit code 1 with incorrect schema', async () => {

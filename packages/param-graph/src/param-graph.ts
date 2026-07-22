@@ -18,10 +18,15 @@ import type {
 } from './types'
 
 /**
+ * Map of enum names to their respective values.
+ */
+export type EnumNameToValueMap = Record<string, string>
+
+/**
  * Function type for looking up enum values by name.
  * This allows ParamGraph to remain decoupled from RuntimeDataModel.
  */
-export type EnumLookup = (enumName: string) => readonly string[] | undefined
+export type EnumLookup = (enumName: string) => Readonly<EnumNameToValueMap> | undefined
 
 /**
  * Readable view of root entry.
@@ -198,7 +203,7 @@ export class ParamGraph {
    * Get enum values for an edge that references a user enum.
    * Returns undefined if the edge doesn't reference an enum.
    */
-  enumValues(edge: InputEdge | undefined): readonly string[] | undefined {
+  enumValues(edge: InputEdge | undefined): Readonly<EnumNameToValueMap> | undefined {
     if (edge?.enumNameIndex === undefined) {
       return undefined
     }

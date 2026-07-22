@@ -27,22 +27,27 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { processSchemaResult } from '../../internals/src/cli/schemaContext'
+import { version as cliVersion } from '../package.json'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
-
-const pkg = eval(`require('../package.json')`)
+import { handleSkillsOffer } from './utils/skills/skills-offer'
 
 /**
  * $ prisma generate
  */
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
+  skillsOfferHandler: () => Promise<{ prompted: boolean }>
 
-  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+  constructor(
+    surveyHandler: () => Promise<void> = handleNpsSurvey,
+    skillsOfferHandler: () => Promise<{ prompted: boolean }> = handleSkillsOffer,
+  ) {
     this.surveyHandler = surveyHandler
+    this.skillsOfferHandler = skillsOfferHandler
   }
 
   public static new(): Generate {
@@ -258,10 +263,10 @@ Please run \`prisma generate\` manually.`
       if (jsClient) {
         const breakingChangesStr = printBreakingChangesMessage ? `\n\n${breakingChangesMessage}` : ''
 
-        const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
+        const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${cliVersion}`)} and ${bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
@@ -277,7 +282,11 @@ Please make sure they have the same version.`
         throw new Error(message)
       } else {
         if (!hideHints) {
-          await this.surveyHandler()
+          // at most one prompt per generate run: the offer preempts the survey
+          const { prompted } = await this.skillsOfferHandler()
+          if (!prompted) {
+            await this.surveyHandler()
+          }
         }
 
         return message
