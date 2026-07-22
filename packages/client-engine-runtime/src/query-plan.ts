@@ -93,10 +93,21 @@ export type JoinExpression = {
   isRelationUnique: boolean
 }
 
+/**
+ * Query plan nodes that are free of side effects and can be interpreted synchronously
+ * without touching the database. The `Rest` parameter controls what other nodes may
+ * appear in child positions: with the default `never` the tree is fully pure, while
+ * `PureQueryPlanNode<ImpureQueryPlanNode>` describes a tree of pure nodes that may
+ * contain impure nodes anywhere inside.
+ */
 export type PureQueryPlanNode<Rest = never> =
   | {
       type: 'value'
       args: PrismaValue
+      /**
+       * Present when this node is the result of evaluating an impure node during
+       * query plan purification. Never produced by the query compiler.
+       */
       lastInsertId?: string
     }
   | {
@@ -222,6 +233,10 @@ export type PureQueryPlanNode<Rest = never> =
       }
     }
 
+/**
+ * Query plan nodes that perform database I/O: individual queries and statements,
+ * and subtrees executed within a transaction.
+ */
 export type ImpureQueryPlanNode =
   | {
       type: 'query'
@@ -236,6 +251,10 @@ export type ImpureQueryPlanNode =
       args: QueryPlanNode
     }
 
+/**
+ * A query plan as emitted by the query compiler: a tree of pure nodes that may
+ * contain impure nodes anywhere inside.
+ */
 export type QueryPlanNode = ImpureQueryPlanNode | PureQueryPlanNode<ImpureQueryPlanNode>
 
 export type FieldInitializer = { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }
