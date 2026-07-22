@@ -9,7 +9,7 @@ import { appendSqlComment, buildSqlComment } from '../sql-commenter'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transaction-manager/transaction-manager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../user-facing-error'
-import { assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
+import { appendToArray, assertNever, DeepReadonly, DeepUnreadonly } from '../utils'
 import { applyDataMap } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
@@ -193,7 +193,7 @@ export class QueryInterpreter {
           if (results === undefined) {
             results = result
           } else {
-            results.rows.push(...result.rows)
+            appendToArray(results.rows, result.rows)
             results.lastInsertId = result.lastInsertId
           }
         }
