@@ -27,7 +27,7 @@
     "kleur": "4.1.5",
     "node-fetch": "3.3.2",
     "p-filter": "4.1.0",
-    "p-map": "4.0.0",
+    "p-map": "7.0.5",
     "p-retry": "4.6.2",
     "progress": "2.0.3",
     "temp-dir": "2.0.0",
