@@ -175,6 +175,15 @@ describe('push', () => {
     `)
   })
 
+  it.each(['--accept-data-loss', '--force-reset'])('%s triggers the AI safety checkpoint', async (flag) => {
+    ctx.fixture('existing-db-warnings')
+    process.env.CLAUDECODE = '1'
+
+    const result = DbPush.new().parse([flag], await ctx.config(), ctx.configDir())
+
+    await expect(result).rejects.toThrow('invoked by Claude Code')
+  })
+
   it('unexecutable - drop allowed (--force-reset)', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
 
