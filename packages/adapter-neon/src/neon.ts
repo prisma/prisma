@@ -288,7 +288,8 @@ export class PrismaNeonHttpAdapter extends NeonQueryable implements SqlDriverAda
   }
 
   override async performIO(query: SqlQuery): Promise<PerformIOResult> {
-    const { sql, args: values } = query
+    const { sql, args } = query
+    const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
     return await this.client(sql, values, {
       arrayMode: true,
       fullResults: true,

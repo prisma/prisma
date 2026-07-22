@@ -1,3 +1,4 @@
+export { defaultConfig } from './defaultConfig'
 export { defaultTestConfig } from './defaultTestConfig'
 export { defineConfig } from './defineConfig'
 export { env, PrismaConfigEnvError } from './env'

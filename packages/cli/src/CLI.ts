@@ -143,6 +143,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
             platform   Prisma Data Platform commands
             postgres   Manage Prisma Postgres databases
                  mcp   Starts an MCP server to use with AI development tools
+            complete   Generate shell completion scripts
 
     ${bold('Flags')}
 
