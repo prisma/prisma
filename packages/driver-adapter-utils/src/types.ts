@@ -95,6 +95,10 @@ export type MappedError =
       constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
     }
   | {
+      kind: 'RestrictViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
       kind: 'DatabaseNotReachable'
       host?: string
       port?: number

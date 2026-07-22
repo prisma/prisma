@@ -22,6 +22,18 @@ import {
 
 const MAX_CLOSED_TRANSACTIONS = 100
 
+/**
+ * How long {@link TransactionManager.cancelAllTransactions} waits for an aborted start to roll
+ * back before letting the caller carry on and dispose the driver adapter.
+ *
+ * The rollback cannot happen until the driver settles the `startTransaction` promise it is
+ * still holding, and a driver stuck on a dead connection may never do so. Waiting is worth a
+ * moment — it is what lets the transaction be closed cleanly — but not at the cost of hanging
+ * disconnect forever. This is deliberately not derived from `maxWait`: that is the caller's
+ * patience for opening a transaction, not a bound on how long shutdown may stall.
+ */
+const CANCEL_ROLLBACK_GRACE_MS = 2_000
+
 type TransactionWrapper = {
   id: string
   timer?: NodeJS.Timeout
@@ -37,6 +49,29 @@ type TransactionWrapper = {
 type TransactionState =
   | { status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out' }
   | { status: 'closing'; closing: Promise<void>; reason: 'committed' | 'rolled_back' | 'timed_out' }
+
+/**
+ * A transaction whose `startTransaction` call has not returned yet. Such a transaction is not
+ * in {@link TransactionManager.transactions} until the driver hands it over, so it is only
+ * reachable through here.
+ */
+type StartingTransaction = {
+  abortController: AbortController
+  /**
+   * Resolves once the start has been dealt with: either adopted as a running transaction, or
+   * discarded with its transaction rolled back and its connection released.
+   */
+  settled: Promise<void>
+  markSettled: () => void
+}
+
+function trackStartingTransaction(): StartingTransaction {
+  let markSettled!: () => void
+  const settled = new Promise<void>((resolve) => {
+    markSettled = resolve
+  })
+  return { abortController: new AbortController(), settled, markSettled }
+}
 
 const debug = Debug('prisma:client:transactionManager')
 
@@ -60,6 +95,9 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
+  // Transactions that are still being started. Tracked separately so that
+  // `cancelAllTransactions` can reach them: they are not in `transactions` yet.
+  readonly #startingTransactions: Set<StartingTransaction> = new Set()
   private readonly driverAdapter: SqlDriverAdapter
   private readonly transactionOptions: Options
   private readonly tracingHelper: TracingHelper
@@ -138,70 +176,128 @@ export class TransactionManager {
       })
     }
 
-    const transaction: TransactionWrapper = {
-      id: await randomUUID(),
-      status: 'waiting',
-      timer: undefined,
-      timeout: options.timeout,
-      startedAt: Date.now(),
-      transaction: undefined,
-      operationQueue: Promise.resolve(),
-      depth: 1,
-      savepoints: [],
-      savepointCounter: 0,
+    // Track the start before awaiting anything, so that a `cancelAllTransactions` arriving in
+    // the meantime can still see it. Until the driver hands the transaction over, this is the
+    // only place it is reachable from.
+    const starting = trackStartingTransaction()
+    const { abortController } = starting
+    this.#startingTransactions.add(starting)
+
+    // Set once the start is abandoned, so that `settled` waits for the rollback rather than
+    // resolving as soon as this method returns.
+    let discarding: Promise<void> | undefined
+
+    try {
+      const transaction: TransactionWrapper = {
+        id: await randomUUID(),
+        status: 'waiting',
+        timer: undefined,
+        timeout: options.timeout,
+        startedAt: Date.now(),
+        transaction: undefined,
+        operationQueue: Promise.resolve(),
+        depth: 1,
+        savepoints: [],
+        savepointCounter: 0,
+      }
+
+      // An abort that arrived while the id was being generated would be missed by the listener
+      // registered below, since the event has already fired. Nothing has been opened yet, so
+      // there is nothing to roll back.
+      if (abortController.signal.aborted) {
+        throw new TransactionStartTimeoutError()
+      }
+
+      // Start timeout to wait for transaction to be started.
+      const startTimer = createTimeoutIfDefined(() => abortController.abort(), options.maxWait)
+      startTimer?.unref?.()
+
+      // Keep a reference to the startTransaction promise so we can clean up
+      // if the timeout fires before it completes.
+      const startTransactionPromise = this.driverAdapter
+        .startTransaction(options.isolationLevel)
+        .catch(rethrowAsUserFacing)
+
+      transaction.transaction = await Promise.race([
+        startTransactionPromise.finally(() => clearTimeout(startTimer)),
+        once(abortController.signal, 'abort').then(() => undefined),
+      ])
+
+      this.transactions.set(transaction.id, transaction)
+
+      // Transaction status might have timed out while waiting for transaction to start. => Check for it!
+      switch (transaction.status) {
+        case 'waiting':
+          if (abortController.signal.aborted) {
+            // The driver may have won the race and only then been aborted, leaving a
+            // transaction here. Ownership of it passes to `#discardStartedTransaction`, which
+            // holds its own reference, so drop this one: otherwise `#closeTransaction` below
+            // rolls back and releases the same transaction a second time.
+            transaction.transaction = undefined
+
+            discarding = this.#discardStartedTransaction(startTransactionPromise)
+
+            // Call `#closeTransaction` to update internal state. It won't actually attempt
+            // to rollback the tx itself because `transaction.transaction` is undefined.
+            await this.#closeTransaction(transaction, 'timed_out')
+
+            throw new TransactionStartTimeoutError()
+          }
+
+          transaction.status = 'running'
+          // Startup is over, so the execution timeout below and the `timeTaken` diagnostic
+          // measure the transaction itself rather than the wait to open it.
+          transaction.startedAt = Date.now()
+          // Start timeout to wait for transaction to be finished.
+          transaction.timer = this.#startTransactionTimeout(transaction.id, options.timeout)
+          return { id: transaction.id }
+        case 'timed_out':
+        case 'running':
+        case 'committed':
+        case 'rolled_back':
+          throw new TransactionInternalConsistencyError(
+            `Transaction in invalid state ${transaction.status} although it just finished startup.`,
+          )
+        default:
+          return assertNever(transaction['status'], 'Unknown transaction status.')
+      }
+    } finally {
+      this.#startingTransactions.delete(starting)
+
+      if (discarding) {
+        void discarding.finally(starting.markSettled)
+      } else {
+        starting.markSettled()
+      }
     }
+  }
 
-    // Start timeout to wait for transaction to be started.
-    const abortController = new AbortController()
-    const startTimer = createTimeoutIfDefined(() => abortController.abort(), options.maxWait)
-    startTimer?.unref?.()
-
-    // Keep a reference to the startTransaction promise so we can clean up
-    // if the timeout fires before it completes.
-    const startTransactionPromise = this.driverAdapter
-      .startTransaction(options.isolationLevel)
-      .catch(rethrowAsUserFacing)
-
-    transaction.transaction = await Promise.race([
-      startTransactionPromise.finally(() => clearTimeout(startTimer)),
-      once(abortController.signal, 'abort').then(() => undefined),
-    ])
-
-    this.transactions.set(transaction.id, transaction)
-
-    // Transaction status might have timed out while waiting for transaction to start. => Check for it!
-    switch (transaction.status) {
-      case 'waiting':
-        if (abortController.signal.aborted) {
-          // The startTransaction promise may still be running in the background.
-          // If it eventually succeeds, we need to release the connection to avoid
-          // leaking it and exhausting the connection pool. We ignore any errors
-          // that happen during startup or rollback here because we will have
-          // already returned our own `TransactionStartTimeoutError` error to the user.
-          void startTransactionPromise
-            .then((tx) => tx.rollback())
-            .catch((e) => debug('error in discarded transaction:', e))
-
-          // Call `#closeTransaction` to update internal state. It won't actually attempt
-          // to rollback the tx itself because `transaction.transaction` is undefined.
-          await this.#closeTransaction(transaction, 'timed_out')
-
-          throw new TransactionStartTimeoutError()
+  /**
+   * Rolls back a transaction whose start was abandoned, and releases its connection.
+   *
+   * The `startTransaction` promise may still be running in the background. If it eventually
+   * succeeds, we need to roll back and release the connection to avoid leaking it and
+   * exhausting the connection pool. For adapters that don't use phantom queries (e.g. pg/neon),
+   * `rollback()` only releases the connection without sending SQL, so we send an explicit
+   * ROLLBACK first; otherwise the connection returns to the pool mid-transaction because
+   * `BEGIN` already ran on the wire during startup.
+   *
+   * Errors are only logged: the caller has already reported the failure that led here.
+   */
+  async #discardStartedTransaction(startTransactionPromise: Promise<Transaction>): Promise<void> {
+    try {
+      const tx = await startTransactionPromise
+      if (tx.options.usePhantomQuery) {
+        await tx.rollback()
+      } else {
+        try {
+          await tx.executeRaw(ROLLBACK_QUERY())
+        } finally {
+          await tx.rollback()
         }
-
-        transaction.status = 'running'
-        // Start timeout to wait for transaction to be finished.
-        transaction.timer = this.#startTransactionTimeout(transaction.id, options.timeout)
-        return { id: transaction.id }
-      case 'timed_out':
-      case 'running':
-      case 'committed':
-      case 'rolled_back':
-        throw new TransactionInternalConsistencyError(
-          `Transaction in invalid state ${transaction.status} although it just finished startup.`,
-        )
-      default:
-        assertNever(transaction['status'], 'Unknown transaction status.')
+      }
+    } catch (e) {
+      debug('error in discarded transaction:', e)
     }
   }
 
@@ -304,10 +400,18 @@ export class TransactionManager {
   }
 
   async cancelAllTransactions(): Promise<void> {
+    // Transactions that are still starting are not in `transactions` yet. Abort them so they
+    // discard whatever the driver hands over, and wait below, so that callers can dispose the
+    // driver adapter without cutting an in-progress rollback short.
+    const starting = [...this.#startingTransactions]
+    for (const { abortController } of starting) {
+      abortController.abort()
+    }
+
     // TODO: call `map` on the iterator directly without collecting it into an array first
     // once we drop support for Node.js 18 and 20.
-    await Promise.allSettled(
-      [...this.transactions.values()].map((tx) =>
+    await Promise.allSettled([
+      ...[...this.transactions.values()].map((tx) =>
         this.#runSerialized(tx, async () => {
           const current = this.transactions.get(tx.id)
           if (current) {
@@ -315,7 +419,8 @@ export class TransactionManager {
           }
         }),
       ),
-    )
+      ...starting.map(({ settled }) => settleWithin(settled, CANCEL_ROLLBACK_GRACE_MS)),
+    ])
   }
 
   #nextSavepointName(transaction: TransactionWrapper): string {
@@ -499,4 +604,19 @@ export class TransactionManager {
 
 function createTimeoutIfDefined(cb: () => void, ms: number | undefined): NodeJS.Timeout | undefined {
   return ms !== undefined ? setTimeout(cb, ms) : undefined
+}
+
+/**
+ * Settles when `promise` does, or resolves after `timeout` milliseconds, whichever happens
+ * first. A rejection is passed on rather than absorbed.
+ */
+function settleWithin(promise: Promise<void>, timeout: number): Promise<void> {
+  let timer: NodeJS.Timeout | undefined
+
+  const deadline = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, timeout)
+    timer?.unref?.()
+  })
+
+  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer))
 }

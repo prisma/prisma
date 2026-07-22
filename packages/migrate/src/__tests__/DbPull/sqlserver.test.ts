@@ -300,7 +300,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+  test('url with `?schema=does-not-exist` should error with P4001, empty database', async () => {
     ctx.fixture('introspection/sqlserver')
     ctx.setDatasource({
       url: `${(await ctx.datasource())?.url}schema=does-not-exist`,
