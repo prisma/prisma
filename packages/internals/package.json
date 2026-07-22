@@ -36,7 +36,7 @@
     "empathic": "2.0.0",
     "escape-string-regexp": "5.0.0",
     "execa": "8.0.1",
-    "find-up": "7.0.0",
+    "find-up": "8.0.0",
     "fp-ts": "2.16.9",
     "fs-extra": "11.3.0",
     "global-directory": "4.0.0",
