@@ -64,6 +64,20 @@ function mapDriverError(error: DatabaseError): MappedError {
         constraint,
       }
     }
+    case '23001': {
+      let constraint: { fields: string[] } | { index: string } | undefined
+
+      if (error.details.column) {
+        constraint = { fields: [error.details.column] }
+      } else if (error.details.constraint) {
+        constraint = { index: error.details.constraint }
+      }
+
+      return {
+        kind: 'RestrictViolation',
+        constraint,
+      }
+    }
     case '3D000':
       return {
         kind: 'DatabaseDoesNotExist',
