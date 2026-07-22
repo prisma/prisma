@@ -216,7 +216,7 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.queryRaw(query)
 
     expect(mockGenerator).toHaveBeenCalledWith(query)
-    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({ name: 'test-name' }), [])
+    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({ name: 'test-name' }))
 
     await adapter.dispose()
   })
@@ -235,7 +235,7 @@ describe('PrismaPgAdapterFactory', () => {
     const query: SqlQuery = { sql: 'SELECT 1', args: [], argTypes: [] }
     await adapter.queryRaw(query)
 
-    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({ name: undefined }), [])
+    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({ name: undefined }))
 
     await adapter.dispose()
   })
