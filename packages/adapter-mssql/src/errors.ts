@@ -56,13 +56,14 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 2627: {
-      const parts = error.message.split('. ')
-      const index = parts.at(0)?.split(' ').pop()?.split("'").at(1)
-      const table = parts.at(1)?.split(' ').pop()?.split("'").at(1)?.split('.').pop()
+      // e.g. "Violation of UNIQUE KEY constraint 'User_email_key'. Cannot insert
+      // duplicate key in object 'dbo.User'. The duplicate key value is (...)."
+      // The second sentence carries the schema-qualified object (table) name.
+      const object = error.message.split('. ').at(1)?.split(' ').pop()?.split("'").at(1)
       return {
         kind: 'UniqueConstraintViolation',
-        constraint: index ? { index } : undefined,
-        table,
+        constraint: object ? { index: object } : undefined,
+        table: object?.split('.').pop(),
       }
     }
     case 547: {

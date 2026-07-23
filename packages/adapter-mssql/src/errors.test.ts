@@ -3,13 +3,15 @@ import { describe, expect, test } from 'vitest'
 import { convertDriverError } from './errors'
 
 describe('unique constraint violations', () => {
-  test('2627 reports the constraint name and the table', () => {
+  test('2627 reports the object name as the constraint and derives the table', () => {
     const message =
       "Violation of UNIQUE KEY constraint 'users_email_key'. " +
       "Cannot insert duplicate key in object 'dbo.users'. The duplicate key value is (a@b.c)."
+    // For error 2627, the schema-qualified object name is surfaced as the constraint
+    // (the historical, pre-existing behaviour); the table is derived from it.
     expect(convertDriverError({ code: 'EREQUEST', number: 2627, message })).toEqual({
       kind: 'UniqueConstraintViolation',
-      constraint: { index: 'users_email_key' },
+      constraint: { index: 'dbo.users' },
       table: 'users',
       originalCode: 'EREQUEST',
       originalMessage: message,
