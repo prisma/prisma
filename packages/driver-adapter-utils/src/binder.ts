@@ -112,7 +112,10 @@ export const bindAdapter = (
 
 // *.bind(transaction) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
-const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Transaction): ErrorCapturingTransaction => {
+const bindTransaction = (
+  errorRegistry: ErrorRegistryInternal,
+  transaction: Transaction,
+): ErrorCapturingTransaction => {
   let isClosed = false
   let dispatchQueue: Promise<unknown> = Promise.resolve()
 
@@ -156,15 +159,24 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
   }
 
   if (transaction.createSavepoint) {
-    boundTransaction.createSavepoint = wrapAsync(errorRegistry, enqueueStatement(transaction.createSavepoint.bind(transaction)))
+    boundTransaction.createSavepoint = wrapAsync(
+      errorRegistry,
+      enqueueStatement(transaction.createSavepoint.bind(transaction)),
+    )
   }
 
   if (transaction.rollbackToSavepoint) {
-    boundTransaction.rollbackToSavepoint = wrapAsync(errorRegistry, enqueueStatement(transaction.rollbackToSavepoint.bind(transaction)))
+    boundTransaction.rollbackToSavepoint = wrapAsync(
+      errorRegistry,
+      enqueueStatement(transaction.rollbackToSavepoint.bind(transaction)),
+    )
   }
 
   if (transaction.releaseSavepoint) {
-    boundTransaction.releaseSavepoint = wrapAsync(errorRegistry, enqueueStatement(transaction.releaseSavepoint.bind(transaction)))
+    boundTransaction.releaseSavepoint = wrapAsync(
+      errorRegistry,
+      enqueueStatement(transaction.releaseSavepoint.bind(transaction)),
+    )
   }
 
   return boundTransaction
