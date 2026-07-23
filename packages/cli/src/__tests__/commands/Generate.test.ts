@@ -510,6 +510,8 @@ describe('--schema from parent directory', () => {
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
+
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
       "
     `)
   })

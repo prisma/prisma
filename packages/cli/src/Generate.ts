@@ -91,21 +91,9 @@ ${bold('Examples')}
   private hasGeneratorErrored = false
 
   private runGenerate = simpleDebounce(
-    async ({
-      generators,
-      jsClient,
-      showHint,
-    }: {
-      generators: Generator[]
-      jsClient?: Generator
-      showHint: boolean
-    }) => {
+    async ({ generators, showHints }: { generators: Generator[]; showHints: boolean }) => {
       const messages: string[] = []
-      const hints: Map<Generator, string> = new Map()
-
-      if (jsClient && showHint) {
-        hints.set(jsClient, '\nStart by importing your Prisma Client (See: https://pris.ly/d/importing-client)\n')
-      }
+      const hints: string[] = []
 
       for (const generator of generators) {
         const before = Math.round(performance.now())
@@ -120,14 +108,12 @@ ${bold('Examples')}
           const errorMessage = err instanceof Error ? err.message : String(err)
           messages.push(`${errorMessage}\n\n`)
         }
+        hints.push(showHints && generator.usageHint ? `\n${generator.usageHint}\n` : '')
       }
 
       if (!this.hasGeneratorErrored) {
-        for (let i = 0; i < generators.length; i++) {
-          const hint = hints.get(generators[i])
-          if (hint) {
-            messages[i] += hint
-          }
+        for (let i = 0; i < messages.length; i++) {
+          messages[i] += hints[i]
         }
       }
 
@@ -210,7 +196,7 @@ ${bold('Examples')}
       if (!generators || generators.length === 0) {
         this.logText += `${missingGeneratorMessage}\n`
       } else {
-        // Only used for CLI output, ie Go client doesn't want JS example output
+        // Only used for the version-mismatch and breaking-changes warnings below
         jsClient = generators.find(
           (g) => g.options && parseEnvValue(g.options.generator.provider) === BuiltInProvider.PrismaClientJs,
         )
@@ -220,7 +206,7 @@ ${bold('Examples')}
         hasJsClient = Boolean(jsClient)
 
         try {
-          await this.runGenerate({ generators, jsClient, showHint: !hideHints && !watchMode })
+          await this.runGenerate({ generators, showHints: !hideHints && !watchMode })
         } catch (errRunGenerate) {
           this.logText += `${errRunGenerate.message}\n\n`
         }
@@ -336,7 +322,7 @@ Please make sure they have the same version.`
             try {
               await this.runGenerate({
                 generators: generatorsWatch,
-                showHint: false,
+                showHints: false,
               })
               logUpdate(watchingText + '\n' + this.logText)
             } catch (errRunGenerate) {
