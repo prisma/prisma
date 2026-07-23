@@ -223,11 +223,12 @@ function* pairFragmentsWithParams<Types>(
           throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
         }
 
-        const rawValue = params[index]
-        const value = Array.isArray(rawValue) ? rawValue : [rawValue]
-        // Deduplicate values to avoid duplicate entries in IN clauses (#29478)
-        const deduplicated = Array.from(new Set(value))
-        yield { ...fragment, value: deduplicated, argType: argTypes?.[index] }
+        const value = params[index]
+        // The query compiler only emits `parameterTuple` fragments as the right-hand
+        // side of IN/NOT IN membership tests, where duplicates never change the result,
+        // so the values are deduplicated to shrink the placeholder list (#29478).
+        const uniqueValues = Array.isArray(value) ? [...new Set(value)] : [value]
+        yield { ...fragment, value: uniqueValues, argType: argTypes?.[index] }
         index++
         break
       }
