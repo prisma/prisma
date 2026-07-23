@@ -187,29 +187,11 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
-
-        let results: SqlResultSet | undefined
-        for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .queryRaw(cloneObject(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
-          if (results === undefined) {
-            results = result
-          } else {
-            appendToArray(results.rows, result.rows)
-            results.lastInsertId = result.lastInsertId
-          }
-        }
+        const results = await this.#executeQuery(node.args, context)
 
         return {
-          value: node.args.type === 'rawSql' ? this.#rawSerializer(results!) : this.#serializer(results!),
-          lastInsertId: results?.lastInsertId,
+          value: node.args.type === 'rawSql' ? this.#rawSerializer(results) : this.#serializer(results),
+          lastInsertId: results.lastInsertId,
         }
       }
 
