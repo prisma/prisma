@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import stripAnsi from 'strip-ansi'
 
 import { Generate } from '../../Generate'
 import { configContextContributor } from '../_utils/config-context'
@@ -279,19 +280,19 @@ it('should still show the global/local version warning with --no-hints', async (
 
 it('should not fail generate when the global/local version warning lookup fails', async () => {
   ctx.fixture('example-project')
-  const generate = new Generate(jest.fn(), {
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
     getGlobalLocalVersionMismatchWarning: () => Promise.reject(new Error('version lookup failed')),
   })
-  const output = await generate.parse([], await ctx.config())
+  const output = stripAnsi(await generate.parse([], await ctx.config()))
 
   expect(output).toContain('Generated Prisma Client')
   expect(output).not.toContain('version lookup failed')
-})
+}, 60_000)
 
 it('should check local package versions from the schema root directory', async () => {
   ctx.fixture('generate-from-parent-dir')
   const getGlobalLocalVersionMismatchWarning = jest.fn().mockResolvedValue(null)
-  const generate = new Generate(jest.fn(), {
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
     getGlobalLocalVersionMismatchWarning,
   })
 

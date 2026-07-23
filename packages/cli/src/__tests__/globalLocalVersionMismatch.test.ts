@@ -101,12 +101,14 @@ describe('getInstalledPackageVersionFromNodeModules', () => {
     await fs.promises.rm(tempDir, { force: true, recursive: true })
   })
 
-  test('reads local prisma and @prisma/client versions from node_modules', async () => {
+  test('reads local prisma and @prisma/client versions from an ancestor node_modules directory', async () => {
+    const schemaRootDir = path.join(tempDir, 'prisma')
+    await fs.promises.mkdir(schemaRootDir)
     await writePackageVersion('prisma', '7.4.0')
     await writePackageVersion('@prisma/client', '7.3.0')
 
-    await expect(getInstalledPackageVersionFromNodeModules('prisma', tempDir)).resolves.toBe('7.4.0')
-    await expect(getInstalledPackageVersionFromNodeModules('@prisma/client', tempDir)).resolves.toBe('7.3.0')
+    await expect(getInstalledPackageVersionFromNodeModules('prisma', schemaRootDir)).resolves.toBe('7.4.0')
+    await expect(getInstalledPackageVersionFromNodeModules('@prisma/client', schemaRootDir)).resolves.toBe('7.3.0')
   })
 
   test('returns null when the package cannot be resolved', async () => {
