@@ -43,6 +43,26 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle UniqueConstraintViolation (23505) with constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)', constraint: 'users_id_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_id_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with only constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', constraint: 'users_email_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_email_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle NullConstraintViolation (23502)', () => {
     const error = { code: '23502', message: 'msg', severity: 'ERROR', detail: 'Key (foo)' }
     expect(convertDriverError(error)).toEqual({
@@ -67,6 +87,26 @@ describe('convertDriverError', () => {
     const error = { code: '23503', message: 'msg', severity: 'ERROR', constraint: 'baz' }
     expect(convertDriverError(error)).toEqual({
       kind: 'ForeignKeyConstraintViolation',
+      constraint: { index: 'baz' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle RestrictViolation (23001) with column', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', column: 'bar' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
+      constraint: { fields: ['bar'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle RestrictViolation (23001) with constraint', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', constraint: 'baz' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
       constraint: { index: 'baz' },
       originalCode: error.code,
       originalMessage: error.message,

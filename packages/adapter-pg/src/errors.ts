@@ -75,13 +75,23 @@ function mapDriverError(error: DatabaseError): MappedError {
         message: error.message,
       }
     case '23505': {
-      const fields = error.detail
-        ?.match(/Key \(([^)]+)\)/)
-        ?.at(1)
-        ?.split(', ')
+      let constraint: { fields: string[] } | { index: string } | undefined
+
+      if (error.constraint) {
+        constraint = { index: error.constraint }
+      } else {
+        const fields = error.detail
+          ?.match(/Key \(([^)]+)\)/)
+          ?.at(1)
+          ?.split(', ')
+        if (fields !== undefined) {
+          constraint = { fields }
+        }
+      }
+
       return {
         kind: 'UniqueConstraintViolation',
-        constraint: fields !== undefined ? { fields } : undefined,
+        constraint,
       }
     }
     case '23502': {
@@ -105,6 +115,20 @@ function mapDriverError(error: DatabaseError): MappedError {
 
       return {
         kind: 'ForeignKeyConstraintViolation',
+        constraint,
+      }
+    }
+    case '23001': {
+      let constraint: { fields: string[] } | { index: string } | undefined
+
+      if (error.column) {
+        constraint = { fields: [error.column] }
+      } else if (error.constraint) {
+        constraint = { index: error.constraint }
+      }
+
+      return {
+        kind: 'RestrictViolation',
         constraint,
       }
     }

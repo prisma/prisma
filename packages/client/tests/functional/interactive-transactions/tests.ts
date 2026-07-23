@@ -803,6 +803,25 @@ testMatrix.setupTestSuite(
       expect(users.length).toBe(0)
     })
 
+    test('batching timeout override', async () => {
+      const isolatedPrisma = newPrismaClient({
+        transactionOptions: {
+          timeout: 1,
+        },
+      })
+
+      await isolatedPrisma.$transaction(
+        [
+          isolatedPrisma.user.create({ data: { email: 'user_1@website.com' } }),
+          isolatedPrisma.user.create({ data: { email: 'user_2@website.com' } }),
+        ],
+        { timeout: 5000 }, // fails without override
+      )
+
+      const users = await isolatedPrisma.user.findMany()
+      expect(users.length).toBe(2)
+    })
+
     /**
      * A bad batch should rollback using the interactive transaction logic
      * // TODO: skipped because output differs from binary to library
