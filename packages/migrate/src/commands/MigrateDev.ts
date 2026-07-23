@@ -121,6 +121,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 
+    const datasourceProvider = getSchemaDatasourceProvider(schemaContext)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
 
@@ -131,11 +132,7 @@ ${bold('Examples')}
 
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
     // Automatically create the database if it doesn't exist
-    const successMessage = await ensureDatabaseExists(
-      baseDir,
-      getSchemaDatasourceProvider(schemaContext),
-      validatedConfig,
-    )
+    const successMessage = await ensureDatabaseExists(baseDir, datasourceProvider, validatedConfig)
     if (successMessage) {
       process.stdout.write(successMessage + '\n\n')
     }
