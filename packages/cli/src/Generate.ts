@@ -31,9 +31,17 @@ import { version as cliVersion } from '../package.json'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import {
+  getGlobalLocalVersionMismatchWarning as getDefaultGlobalLocalVersionMismatchWarning,
+  type GlobalLocalVersionMismatchWarningOptions,
+} from './utils/global-local-version-mismatch'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { handleSkillsOffer } from './utils/skills/skills-offer'
+
+type GenerateOptions = {
+  getGlobalLocalVersionMismatchWarning?: (options: GlobalLocalVersionMismatchWarningOptions) => Promise<string | null>
+}
 
 /**
  * $ prisma generate
@@ -41,13 +49,19 @@ import { handleSkillsOffer } from './utils/skills/skills-offer'
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
   skillsOfferHandler: () => Promise<{ prompted: boolean }>
+  private readonly getGlobalLocalVersionMismatchWarning: (
+    options: GlobalLocalVersionMismatchWarningOptions,
+  ) => Promise<string | null>
 
   constructor(
     surveyHandler: () => Promise<void> = handleNpsSurvey,
     skillsOfferHandler: () => Promise<{ prompted: boolean }> = handleSkillsOffer,
+    options: GenerateOptions = {},
   ) {
     this.surveyHandler = surveyHandler
     this.skillsOfferHandler = skillsOfferHandler
+    this.getGlobalLocalVersionMismatchWarning =
+      options.getGlobalLocalVersionMismatchWarning ?? getDefaultGlobalLocalVersionMismatchWarning
   }
 
   public static new(): Generate {
@@ -245,6 +259,19 @@ Please run \`prisma generate\` manually.`
     const watchingText = `\n${green('Watching...')} ${dim(schemaContext.schemaRootDir)}\n`
 
     if (!watchMode) {
+      let globalLocalVersionWarning: string | null = null
+      if (logger.should.warn()) {
+        try {
+          globalLocalVersionWarning = await this.getGlobalLocalVersionMismatchWarning({
+            cwd: schemaContext.schemaRootDir,
+            globalVersion: cliVersion,
+          })
+        } catch {
+          globalLocalVersionWarning = null
+        }
+      }
+      const globalLocalVersionWarningStr = globalLocalVersionWarning ? `\n\n${globalLocalVersionWarning}` : ''
+
       let globalWarnings = ''
       if (jsClient) {
         const breakingChangesStr = printBreakingChangesMessage ? `\n\n${breakingChangesMessage}` : ''
@@ -262,7 +289,10 @@ Please make sure they have the same version.`
         globalWarnings = `${breakingChangesStr}${versionsWarning}`
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? globalWarnings : '')
+      globalWarnings += globalLocalVersionWarningStr
+
+      const shouldAppendWarnings = hasJsClient || Boolean(globalLocalVersionWarningStr)
+      const message = '\n' + this.logText + (shouldAppendWarnings && !this.hasGeneratorErrored ? globalWarnings : '')
 
       if (this.hasGeneratorErrored) {
         throw new Error(message)
