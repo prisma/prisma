@@ -35,13 +35,9 @@ import * as __banner_node_module from "node:module";
 import * as __banner_node_path from "node:path";
 import * as process from "node:process";
 import * as __banner_node_url from "node:url";
-// \`import.meta.url\` is only defined when this ESM build is loaded as ESM. A bundler
-// that emits this file as CommonJS (e.g. esbuild \`format: 'cjs'\`) leaves it undefined,
-// so fall back to the entrypoint path to avoid crashing at import time.
-const __banner_esm_url = import.meta.url || __banner_node_url.pathToFileURL(process.argv[1] ?? process.cwd()).href;
-const __filename = __banner_node_url.fileURLToPath(__banner_esm_url);
+const __filename = __banner_node_url.fileURLToPath(import.meta.url);
 globalThis['__dirname'] = __banner_node_path.dirname(__filename);
-const require = __banner_node_module.createRequire(__banner_esm_url);`
+const require = __banner_node_module.createRequire(import.meta.url);`
 
 // we define the config for runtime
 function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, format: ModuleFormat): BuildOptions {
