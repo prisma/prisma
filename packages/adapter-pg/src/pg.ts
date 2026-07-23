@@ -15,6 +15,7 @@ import type {
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
+import { parse as parseConnectionString } from 'pg-connection-string'
 
 import { name as packageName } from '../package.json'
 import { FIRST_NORMAL_OBJECT_ID } from './constants'
@@ -197,7 +198,7 @@ export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQu
 export type StatementNameGenerator = (query: SqlQuery) => string
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
-  #connectionInfo?: ConnectionInfo
+  readonly #connectionInfo: ConnectionInfo
 
   constructor(
     client: StdClient,
@@ -268,24 +269,41 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
       supportsRelationJoins: true,
     }
 
-    const config = this.client.options
+    const { host, port, connectionString } = this.client.options
 
-    if (config.host) {
-      info.serverAddress = config.host
+    if (host) {
+      info.serverAddress = host
     }
 
-    if (config.port) {
-      info.serverPort = config.port
+    if (port) {
+      info.serverPort = port
+    }
+
+    if (connectionString && (info.serverAddress === undefined || info.serverPort === undefined)) {
+      try {
+        const parsed = parseConnectionString(connectionString)
+
+        if (info.serverAddress === undefined && parsed.host) {
+          info.serverAddress = parsed.host
+        }
+
+        if (info.serverPort === undefined && parsed.port) {
+          const parsedPort = Number(parsed.port)
+          if (Number.isInteger(parsedPort)) {
+            info.serverPort = parsedPort
+          }
+        }
+      } catch {
+        // A malformed connection string fails later when connecting; it must
+        // not prevent the adapter from being constructed.
+      }
     }
 
     return info
   }
 
   getConnectionInfo(): ConnectionInfo {
-    return this.#connectionInfo ?? {
-      schemaName: this.pgOptions?.schema,
-      supportsRelationJoins: true,
-    }
+    return this.#connectionInfo
   }
 
   async dispose(): Promise<void> {

@@ -26,7 +26,7 @@ describe('withQuerySpanAndEvent', () => {
       query: { sql: 'SELECT 1', args: [], argTypes: [] },
       tracingHelper: mockTracingHelper,
       provider: 'postgres',
-      execute: async () => 'result',
+      execute: () => Promise.resolve('result'),
       connectionInfo,
     })
 
@@ -56,7 +56,7 @@ describe('withQuerySpanAndEvent', () => {
       query: { sql: 'SELECT 1', args: [], argTypes: [] },
       tracingHelper: mockTracingHelper,
       provider: 'postgres',
-      execute: async () => 'result',
+      execute: () => Promise.resolve('result'),
     })
 
     expect(spanOptions).toHaveBeenCalledWith({
@@ -88,7 +88,7 @@ describe('withQuerySpanAndEvent', () => {
       query: { sql: 'SELECT 1', args: [], argTypes: [] },
       tracingHelper: mockTracingHelper,
       provider: 'postgres',
-      execute: async () => 'result',
+      execute: () => Promise.resolve('result'),
       connectionInfo,
     })
 
@@ -122,7 +122,7 @@ describe('withQuerySpanAndEvent', () => {
       query: { sql: 'SELECT 1', args: [], argTypes: [] },
       tracingHelper: mockTracingHelper,
       provider: 'postgres',
-      execute: async () => 'result',
+      execute: () => Promise.resolve('result'),
       connectionInfo,
     })
 
@@ -157,7 +157,7 @@ describe('withQuerySpanAndEvent', () => {
       query: { sql: 'SELECT 1', args: [], argTypes: [] },
       tracingHelper: mockTracingHelper,
       provider: 'postgres',
-      execute: async () => 'result',
+      execute: () => Promise.resolve('result'),
       connectionInfo,
     })
 
