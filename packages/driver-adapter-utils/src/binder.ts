@@ -113,14 +113,32 @@ export const bindAdapter = (
 // *.bind(transaction) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
 const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Transaction): ErrorCapturingTransaction => {
+  let isClosed = false
+
+  const checkClosed = <A extends unknown[], R>(fn: (...args: A) => Promise<R>) => {
+    return async (...args: A): Promise<R> => {
+      if (isClosed) {
+        throw { kind: 'TransactionAlreadyClosed' }
+      }
+      return fn(...args)
+    }
+  }
+
+  const markClosed = <A extends unknown[], R>(fn: (...args: A) => Promise<R>) => {
+    return async (...args: A): Promise<R> => {
+      isClosed = true
+      return fn(...args)
+    }
+  }
+
   const boundTransaction: ErrorCapturingTransaction = {
     adapterName: transaction.adapterName,
     provider: transaction.provider,
     options: transaction.options,
-    queryRaw: wrapAsync(errorRegistry, transaction.queryRaw.bind(transaction)),
-    executeRaw: wrapAsync(errorRegistry, transaction.executeRaw.bind(transaction)),
-    commit: wrapAsync(errorRegistry, transaction.commit.bind(transaction)),
-    rollback: wrapAsync(errorRegistry, transaction.rollback.bind(transaction)),
+    queryRaw: wrapAsync(errorRegistry, checkClosed(transaction.queryRaw.bind(transaction))),
+    executeRaw: wrapAsync(errorRegistry, checkClosed(transaction.executeRaw.bind(transaction))),
+    commit: wrapAsync(errorRegistry, markClosed(transaction.commit.bind(transaction))),
+    rollback: wrapAsync(errorRegistry, markClosed(transaction.rollback.bind(transaction))),
   }
 
   if (transaction.createSavepoint) {
