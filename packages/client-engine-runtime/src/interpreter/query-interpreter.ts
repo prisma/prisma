@@ -1,3 +1,4 @@
+import { Debug } from '@prisma/debug'
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 import { klona } from 'klona'
@@ -17,6 +18,8 @@ import { evaluateArg, renderQuery } from './render-query'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serialize-sql'
 import { doesSatisfyRule, performValidation } from './validation'
+
+const debug = Debug('prisma:client:queryInterpreter')
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -367,7 +370,12 @@ export class QueryInterpreter {
       await transactionManager.commitTransaction(transactionInfo.id)
       return result
     } catch (e) {
-      await transactionManager.rollbackTransaction(transactionInfo.id)
+      try {
+        await transactionManager.rollbackTransaction(transactionInfo.id)
+      } catch (rollbackError) {
+        // Rethrow the error that caused the rollback rather than the rollback failure itself.
+        debug('failed to roll back an internal transaction', rollbackError)
+      }
       throw e
     }
   }

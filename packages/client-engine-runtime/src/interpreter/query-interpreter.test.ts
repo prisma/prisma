@@ -235,6 +235,25 @@ test('does not start a nested transaction for chunked statements inside a transa
   expect(adapter.commitMock).toHaveBeenCalledTimes(1)
 })
 
+test('rethrows the original chunk error when the rollback fails as well', async () => {
+  const adapter = new MockTransactionAdapter()
+  adapter.txExecuteRawMock.mockResolvedValueOnce(1).mockRejectedValueOnce(new Error('chunk failed'))
+  adapter.rollbackMock.mockRejectedValue(new Error('rollback failed'))
+
+  await expect(
+    chunkedInterpreter.run(statementNode('execute', [1, 2, 3, 4]), {
+      queryable: adapter,
+      transactionManager: { enabled: true, manager: makeTransactionManager(adapter) },
+      scope: {},
+    }),
+  ).rejects.toThrow('chunk failed')
+
+  expect(adapter.rollbackMock).toHaveBeenCalledTimes(1)
+})
+
+// Executors pass `transactionManager: { enabled: false }` exactly when the plan runs inside an
+// interactive transaction, with that transaction as the queryable, so the chunks are already
+// covered by it.
 test('runs chunked statements directly when already inside an interactive transaction', async () => {
   const adapter = new MockTransactionAdapter()
 
