@@ -169,7 +169,17 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 }
 
 export type PrismaPgOptions = {
-  /** The name of the schema to use in generated queries */
+  /**
+   * The name of the schema to use in generated queries and as the `search_path` of connections
+   * in pools managed by the adapter. When not set and the adapter is constructed from a
+   * connection string or a config containing one, it falls back to the `?schema=` parameter of
+   * the connection URL, if present.
+   *
+   * For externally constructed `pg.Pool` instances the pool configuration is caller-owned and
+   * left untouched: the connection URL fallback does not apply and `search_path` is not
+   * modified, but an explicit `schema` option still determines the schema used in generated
+   * queries.
+   */
   schema?: string
   /**
    * Whether to call `pool.end()` on an externally provided pool when the adapter is disposed.
@@ -285,30 +295,20 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     poolOrConfig: pg.Pool | pg.PoolConfig | string,
     private readonly options?: PrismaPgOptions,
   ) {
-    let schema = this.options?.schema ?? null
-    let connectionString: string | undefined
-
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
       this.config = poolOrConfig.options
-    } else if (typeof poolOrConfig === 'string') {
-      this.externalPool = null
-      this.config = { connectionString: poolOrConfig }
-      connectionString = poolOrConfig
-    } else {
-      this.externalPool = null
-      this.config = poolOrConfig
-      connectionString = poolOrConfig.connectionString
+      return
     }
 
-    if (!schema && connectionString) {
-      schema = new URL(connectionString).searchParams.get('schema')
-      if (schema) this.options = { ...options, schema }
-    }
+    this.externalPool = null
+    this.config = typeof poolOrConfig === 'string' ? { connectionString: poolOrConfig } : { ...poolOrConfig }
 
-    if (schema && !this.externalPool) {
-      const searchPathOption = `-csearch_path=${schema}`
-      this.config.options = [this.config.options, searchPathOption].join(' ').trim()
+    const schema = this.options?.schema ?? schemaFromConnectionUrl(this.config.connectionString)
+
+    if (schema) {
+      this.options = { ...options, schema }
+      this.config.options = [this.config.options, `-csearch_path=${schema}`].filter(Boolean).join(' ')
     }
   }
 
@@ -346,4 +346,24 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
       await client.end()
     })
   }
+}
+
+/**
+ * Extracts the `schema` search parameter from a connection URL. `pg` also accepts libpq
+ * connection strings (e.g. `host=localhost dbname=test`) that are not parseable as URLs;
+ * those carry no `schema` parameter, so parsing failures yield `undefined`.
+ */
+function schemaFromConnectionUrl(connectionString: string | undefined): string | undefined {
+  if (connectionString === undefined) {
+    return undefined
+  }
+
+  let url: URL
+  try {
+    url = new URL(connectionString)
+  } catch {
+    return undefined
+  }
+
+  return url.searchParams.get('schema') ?? undefined
 }

@@ -32,6 +32,18 @@ const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 ```
 
+### Schema selection
+
+The `schema` option determines the PostgreSQL schema used in generated queries and, for pools managed by the adapter, the `search_path` of its connections:
+
+```ts
+const adapter = new PrismaPg({ connectionString }, { schema: 'myschema' })
+```
+
+When the option is not set and the adapter is constructed from a connection string or a config containing one, the `?schema=` parameter of the connection URL is used as a fallback.
+
+When you pass a pre-constructed `pg.Pool` instance instead, its configuration is left untouched: the connection URL fallback does not apply and `search_path` is not modified, but an explicit `schema` option still determines the schema used in generated queries.
+
 ## Feedback
 
 We encourage you to create an issue if you find something missing or run into a bug.

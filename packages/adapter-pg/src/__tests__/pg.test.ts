@@ -186,12 +186,50 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
-  it('should not modify config for external pools', async () => {
+  it('should accept a libpq-style connection string without extracting a schema', async () => {
+    const factory = new PrismaPgAdapterFactory('host=localhost port=5432 dbname=test user=test password=test')
+    const adapter = await factory.connect()
+
+    expect(adapter.getConnectionInfo().schemaName).toBeUndefined()
+    expect(adapter.underlyingDriver().options.options).toBeUndefined()
+
+    await adapter.dispose()
+  })
+
+  it('should not mutate the caller-provided PoolConfig', async () => {
+    const config: pg.PoolConfig = {
+      connectionString: 'postgresql://test:test@localhost:5432/test?schema=url_schema',
+      options: '-cstatement_timeout=5000',
+    }
+    const factory = new PrismaPgAdapterFactory(config)
+    const adapter = await factory.connect()
+
+    expect(config.options).toBe('-cstatement_timeout=5000')
+    expect(adapter.underlyingDriver().options.options).toBe('-cstatement_timeout=5000 -csearch_path=url_schema')
+
+    await adapter.dispose()
+  })
+
+  it('should not modify config for external pools while honoring the explicit schema option', async () => {
     const pool = new pg.Pool({ user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' })
     pool.on('error', () => {})
     const factory = new PrismaPgAdapterFactory(pool, { schema: 'custom_schema' })
     const adapter = await factory.connect()
 
+    expect(adapter.getConnectionInfo().schemaName).toBe('custom_schema')
+    expect(adapter.underlyingDriver().options.options).toBeUndefined()
+
+    await adapter.dispose()
+    await pool.end()
+  })
+
+  it('should not extract schema from the connection string of an external pool', async () => {
+    const pool = new pg.Pool({ connectionString: 'postgresql://test:test@localhost:5432/test?schema=url_schema' })
+    pool.on('error', () => {})
+    const factory = new PrismaPgAdapterFactory(pool)
+    const adapter = await factory.connect()
+
+    expect(adapter.getConnectionInfo().schemaName).toBeUndefined()
     expect(adapter.underlyingDriver().options.options).toBeUndefined()
 
     await adapter.dispose()
