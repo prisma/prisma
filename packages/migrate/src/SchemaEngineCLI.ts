@@ -386,6 +386,9 @@ export class SchemaEngineCLI implements SchemaEngine {
           args.push(...schemaArgs)
         }
 
+        // `--datasource` is a required argument of the schema engine, so an empty object is
+        // passed even when no datasource is configured (e.g. in schema-only diff flows),
+        // see https://github.com/prisma/prisma/issues/29062.
         args.push(...['--datasource', JSON.stringify(this.datasource ?? {})])
 
         if (

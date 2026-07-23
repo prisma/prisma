@@ -254,6 +254,7 @@ describe('migrate diff', () => {
           - Blog
         "
       `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
     it('should diff --from-empty --to-schema=./prisma/schema.prisma', async () => {
