@@ -100,11 +100,9 @@ describe('Studio URL validation', () => {
       defaultTestConfig(),
     )
 
-    // sqlserver:// skips URL.canParse validation, then hits "not supported"
     expect(result).toBeInstanceOf(Error)
-    expect((result as Error).message).toBe(
-      'Prisma Studio is not supported for the "sqlserver" protocol.',
-    )
+    expect((result as Error).name).toBe('UserFacingError')
+    expect((result as Error).message).toContain('Prisma Studio is not supported for the "sqlserver" protocol.')
   })
 
   test('rejects invalid non-sqlserver URLs', async () => {
@@ -116,21 +114,15 @@ describe('Studio URL validation', () => {
     )
 
     expect(result).toBeInstanceOf(Error)
-    expect((result as Error).message).toBe('The provided database URL is not valid.')
+    expect((result as Error).name).toBe('UserFacingError')
+    expect((result as Error).message).toContain('The provided database URL is not valid.')
   })
 
   test('passes valid mysql:// URLs through unchanged', async () => {
     const { Studio } = await import('../Studio')
 
     const result = await Studio.new().parse(
-      [
-        '--browser',
-        'none',
-        '--port',
-        '5555',
-        '--url',
-        'mysql://user:password@aws.connect.psdb.cloud/db',
-      ],
+      ['--browser', 'none', '--port', '5555', '--url', 'mysql://user:password@aws.connect.psdb.cloud/db'],
       defaultTestConfig(),
     )
 
