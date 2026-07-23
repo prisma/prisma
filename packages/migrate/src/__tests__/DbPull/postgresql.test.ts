@@ -90,16 +90,9 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       ctx.fixture('empty-schema')
       const introspect = new DbPull()
       const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "There is no datasource in the schema.
+      await expect(result).rejects.toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
 
-        "
-      `)
-
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "
-        "
-      `)
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     })
 
@@ -107,16 +100,9 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       ctx.fixture('generator-only')
       const introspect = new DbPull()
       const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "There is no datasource in the schema.
+      await expect(result).rejects.toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
 
-        "
-      `)
-
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "
-        "
-      `)
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     })
 
