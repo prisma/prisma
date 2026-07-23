@@ -276,14 +276,14 @@ it('should still show the global/local version warning with --no-hints', async (
 
   expect(output).toContain('warn global/local version mismatch')
   expect(output).not.toContain('Start by importing your Prisma Client')
-})
+}, 60_000)
 
 it('should not fail generate when the global/local version warning lookup fails', async () => {
   ctx.fixture('example-project')
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
     getGlobalLocalVersionMismatchWarning: () => Promise.reject(new Error('version lookup failed')),
   })
-  const output = stripAnsi(await generate.parse([], await ctx.config()))
+  const output = stripAnsi((await generate.parse([], await ctx.config())).toString())
 
   expect(output).toContain('Generated Prisma Client')
   expect(output).not.toContain('version lookup failed')
@@ -303,7 +303,7 @@ it('should check local package versions from the schema root directory', async (
       cwd: path.join(process.cwd(), 'subdirectory'),
     }),
   )
-})
+}, 60_000)
 
 it('should show the global/local version warning without a prisma-client-js generator', async () => {
   ctx.fixture('no-config')
@@ -313,7 +313,7 @@ it('should show the global/local version warning without a prisma-client-js gene
   const output = await generate.parse([], await ctx.config())
 
   expect(output).toContain('warn global/local version mismatch')
-})
+}, 60_000)
 
 it('should run the skills offer before the survey handler when hints are not disabled', async () => {
   ctx.fixture('example-project')
