@@ -8,6 +8,10 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
+    // The suite runs against its own ephemeral database that the test harness
+    // resets and tears down, so the SET table only needs to be created, not
+    // dropped. A suite-level `afterAll` cannot touch `prisma` anyway: the
+    // harness deletes the `prisma` global in its own `afterAll` hook.
     beforeAll(async () => {
       await prisma.$executeRaw`
         CREATE TABLE IF NOT EXISTS VehicleSet (
@@ -15,10 +19,6 @@ testMatrix.setupTestSuite(
           type SET('car','truck','van') DEFAULT NULL
         )
       `
-    })
-
-    afterAll(async () => {
-      await prisma.$executeRaw`DROP TABLE IF EXISTS VehicleSet`
     })
 
     test('SET column with a single active value returns a plain string', async () => {
