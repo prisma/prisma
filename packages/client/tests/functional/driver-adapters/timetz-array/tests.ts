@@ -1,4 +1,5 @@
 import { Providers } from '../../_utils/providers'
+import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
@@ -7,6 +8,15 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
+    test('timetz[] column round-trips through the client API', async () => {
+      const times = [new Date('1970-01-01T12:00:00.000Z'), new Date('1970-01-01T08:30:00.000Z')]
+
+      await prisma.a.create({ data: { times } })
+
+      const record = await prisma.a.findFirstOrThrow()
+      expect(record.times).toEqual(times)
+    })
+
     test('timetz[] raw query does not throw P2010 (OID 1270 mapping)', async () => {
       const result = await prisma.$queryRaw<{ times: string[] }[]>`
         SELECT ARRAY['12:00:00+00'::timetz, '13:00:00-05'::timetz] AS times
@@ -29,16 +39,10 @@ testMatrix.setupTestSuite(
       `
       expect(result[0].times).toEqual(['08:30:00'])
     })
-
-    test('timetz[] model column round-trips via raw SQL', async () => {
-      await prisma.$executeRaw`INSERT INTO "A" ("times") VALUES (ARRAY['12:00:00+00'::timetz, '08:30:00+05:30'::timetz])`
-      const result = await prisma.$queryRaw<{ times: string[] }[]>`
-        SELECT "times" FROM "A" WHERE "times" IS NOT NULL LIMIT 1
-      `
-      expect(result[0].times).toEqual(['12:00:00', '08:30:00'])
-    })
   },
   {
+    ...defaultTestSuiteOptions,
+    skipDefaultClientInstance: false,
     optOut: {
       from: [
         Providers.COCKROACHDB,
@@ -52,7 +56,7 @@ testMatrix.setupTestSuite(
     },
     skipDriverAdapter: {
       from: ['js_neon'],
-      reason: 'testing OID 1270 (timetz[]) type mapping in the js_pg adapter',
+      reason: 'adapter-neon does not map the timetz[] OID (1270) yet',
     },
   },
 )
