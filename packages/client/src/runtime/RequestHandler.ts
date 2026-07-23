@@ -383,3 +383,5 @@ export function dataPathToGetPath(dataPath: string[]): string[] {
   }
   return getPath
 }
+
+// Transaction state guard on timeout rollback: reject query dispatch post-rollback
