@@ -935,10 +935,10 @@ test('execution timeout does not produce an unhandled rejection when rollback fa
     expect(driverAdapter.executeRawMock).toHaveBeenCalled()
     expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
 
-    // The timer callback's promise must settle without rejecting; otherwise it would surface as an
-    // unhandled rejection in production where its return value is discarded.
-    await expect(Promise.all(timerCallbackResults)).resolves.toBeDefined()
-    expect(timerCallbackResults.length).toBeGreaterThan(0)
+    // No timer callback promise may reject: in production nothing awaits it, so a rejection
+    // would surface as an unhandled rejection.
+    const settledResults = await Promise.allSettled(timerCallbackResults)
+    expect(settledResults.filter((result) => result.status === 'rejected')).toEqual([])
 
     // The transaction is still cleanly closed, so subsequent operations reject through the normal path.
     await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
