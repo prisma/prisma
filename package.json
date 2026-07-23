@@ -5,9 +5,9 @@
   "license": "Apache-2.0",
   "engines": {
     "node": "^20.19 || ^22.12 || >=24.0",
-    "pnpm": ">=10.15 <11"
+    "pnpm": ">=11 <12"
   },
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "pnpm@11.13.1",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
@@ -47,7 +47,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.14",
-    "@types/node": "~20.19.24",
+    "@types/node": "~20.19.37",
     "@types/resolve": "1.20.6",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
@@ -158,16 +158,5 @@
       "gzip": false,
       "brotli": false
     }
-  ],
-  "pnpm": {
-    "overrides": {
-      "form-data": ">=4.0.4",
-      "hono": ">=4.12.4",
-      "@hono/node-server": ">=1.19.10",
-      "jws": ">=4.0.1",
-      "tar-fs": ">=2.1.4",
-      "lodash": ">=4.17.23",
-      "@tootallnate/once": ">=3.0.1"
-    }
-  }
+  ]
 }

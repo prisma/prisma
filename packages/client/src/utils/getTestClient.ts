@@ -1,13 +1,6 @@
 import { dmmfToRuntimeDataModel, GetPrismaClientConfig } from '@prisma/client-common'
 import { getDMMF } from '@prisma/client-generator-js'
-import {
-  BuiltInProvider,
-  extractPreviewFeatures,
-  getConfig,
-  getSchemaWithPath,
-  parseEnvValue,
-  printConfigWarnings,
-} from '@prisma/internals'
+import { BuiltInProvider, getConfig, getSchemaWithPath, parseEnvValue, printConfigWarnings } from '@prisma/internals'
 import { buildAndSerializeParamGraph } from '@prisma/param-graph-builder'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
@@ -36,13 +29,9 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   }
 
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === BuiltInProvider.PrismaClientJs)
-  const previewFeatures = extractPreviewFeatures(config.generators)
   ;(global as any).TARGET_BUILD_TYPE = 'client'
 
-  const document = await getDMMF({
-    datamodel,
-    previewFeatures,
-  })
+  const document = await getDMMF({ datamodel })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
