@@ -450,8 +450,8 @@ importers:
         version: 3.4.7
     devDependencies:
       '@bomb.sh/tab':
-        specifier: 0.0.19
-        version: 0.0.19(commander@13.1.0)
+        specifier: 0.0.21
+        version: 0.0.21(commander@13.1.0)
       '@clack/prompts':
         specifier: 1.7.0
         version: 1.7.0
@@ -2214,8 +2214,8 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@bomb.sh/tab@0.0.19':
-    resolution: {integrity: sha512-dTRfo9Q9B+lbLG3JCu8a/AGQSfD2XXcFcnakQzVjSOX+VvR/s9zpsH8TlqV3iHqazniRn1Ypwd1hcRlXcu/4BA==}
+  '@bomb.sh/tab@0.0.21':
+    resolution: {integrity: sha512-L9tqUOFS9GFJu+EWaoN6EvNAFKHtROJ3VmKP0AKGN4AnR/JXZbNPC9TXJhrNdTJISiUN7ZU0uJCq64fvyUVSvg==}
     hasBin: true
     peerDependencies:
       cac: ^6.7.14
@@ -9409,7 +9409,7 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@bomb.sh/tab@0.0.19(commander@13.1.0)':
+  '@bomb.sh/tab@0.0.21(commander@13.1.0)':
     optionalDependencies:
       commander: 13.1.0
 
