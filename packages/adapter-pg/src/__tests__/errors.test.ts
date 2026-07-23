@@ -43,6 +43,57 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should report the table for UniqueConstraintViolation (23505)', () => {
+    const error = {
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "users_email_key"',
+      severity: 'ERROR',
+      detail: 'Key (email)=(a@b.c) already exists.',
+      table: 'users',
+      constraint: 'users_email_key',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { fields: ['email'] },
+      table: 'users',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should derive the table from a default-named constraint when the error carries no table (CockroachDB)', () => {
+    const error = {
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "app_major_versions_appId_number_key"',
+      severity: 'ERROR',
+      detail: "Key (appId, number)=('x', 1) already exists.",
+      constraint: 'app_major_versions_appId_number_key',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { fields: ['appId', 'number'] },
+      table: 'app_major_versions',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should report no table for a custom-named constraint when the error carries no table', () => {
+    const error = {
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "my_custom_constraint"',
+      severity: 'ERROR',
+      detail: 'Key (email)=(a@b.c) already exists.',
+      constraint: 'my_custom_constraint',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { fields: ['email'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle NullConstraintViolation (23502)', () => {
     const error = { code: '23502', message: 'msg', severity: 'ERROR', detail: 'Key (foo)' }
     expect(convertDriverError(error)).toEqual({

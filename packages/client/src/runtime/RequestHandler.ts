@@ -233,7 +233,7 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
-      const meta = this.resolveErrorMeta(error.meta, modelName)
+      const meta = this.resolveErrorMeta(error.meta, error.code, modelName)
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
@@ -258,39 +258,53 @@ export class RequestHandler {
     throw error
   }
 
-  private resolveErrorMeta(errorMeta: Record<string, unknown> | undefined, topLevelModelName?: string) {
-    if (!errorMeta) {
-      return topLevelModelName ? { modelName: topLevelModelName } : errorMeta
+  /**
+   * Builds the `meta` object for a `PrismaClientKnownRequestError`.
+   *
+   * P2002 errors carry the physical name of the table the violated constraint
+   * belongs to (`meta.table`, extracted by the driver adapters). It is mapped
+   * back to the Prisma model name so that `meta.modelName` points at the model
+   * where the violation actually occurred — which for nested writes is not
+   * necessarily the model of the top-level operation — and the internal
+   * `table` key is dropped from the user-facing meta.
+   */
+  private resolveErrorMeta(
+    errorMeta: Record<string, unknown> | undefined,
+    errorCode: string,
+    topLevelModelName: string | undefined,
+  ): Record<string, unknown> | undefined {
+    if (errorCode !== 'P2002' || typeof errorMeta?.table !== 'string') {
+      return topLevelModelName ? { modelName: topLevelModelName, ...errorMeta } : errorMeta
     }
 
-    const { table, ...rest } = errorMeta as { table?: string; [key: string]: unknown }
-    let resolvedModelName = typeof rest.modelName === 'string' ? rest.modelName : topLevelModelName
+    const meta: Record<string, unknown> = { ...errorMeta }
+    delete meta.table
 
-    if (typeof table === 'string') {
-      // Some database drivers (e.g. CockroachDB's `pg`-based adapter) return
-      // the table name schema-qualified (e.g. `public.app_major_versions`)
-      // instead of bare (e.g. `app_major_versions`), so compare using only
-      // the last `.`-separated segment on both sides.
-      const unqualifiedTable = table.split('.').pop()
+    const modelName =
+      this.modelNameForTable(errorMeta.table) ??
+      (typeof meta.modelName === 'string' ? meta.modelName : topLevelModelName)
 
-      const models = Object.entries(this.client._runtimeDataModel.models)
+    return modelName !== undefined ? { ...meta, modelName } : meta
+  }
 
-      // Prefer an exact (schema-qualified) match first. Only fall back to matching
-      // on the unqualified table name if no exact match exists - otherwise, when two
-      // models in different schemas share the same bare table name, `find` could
-      // return the wrong model depending on iteration order, before ever reaching
-      // the correct exact match later in the list.
-      const exactMatch = models.find(([key, model]: [string, any]) => (model.dbName ?? key) === table)
-      const unqualifiedMatch = models.find(
-        ([key, model]: [string, any]) => (model.dbName ?? key).split('.').pop() === unqualifiedTable,
-      )
-      const match = exactMatch ?? unqualifiedMatch
-      if (match) {
-        resolvedModelName = match[0]
-      }
-    }
-
-    return resolvedModelName ? { ...rest, modelName: resolvedModelName } : rest
+  /**
+   * Maps a physical table name reported by a driver adapter back to the name
+   * of the Prisma model backed by that table, taking `@@map` into account.
+   * Returns `undefined` when no model, or more than one model, matches.
+   */
+  private modelNameForTable(table: string): string | undefined {
+    // `dbName` is always the bare table name, while a driver adapter may
+    // report the table schema-qualified (e.g. `public.users`), so compare
+    // only the last `.`-separated segment of the reported name.
+    const tableName = table.split('.').pop()
+    const matches = Object.entries(this.client._runtimeDataModel.models).filter(
+      ([name, model]) => (model.dbName ?? name) === tableName,
+    )
+    // With `@@schema`, models in different schemas can share a table name.
+    // The runtime data model carries no schema information, so an ambiguous
+    // match cannot be resolved — report no match instead of guessing, which
+    // makes the caller fall back to the top-level operation's model name.
+    return matches.length === 1 ? matches[0][0] : undefined
   }
 
   sanitizeMessage(message) {
