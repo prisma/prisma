@@ -45,9 +45,12 @@ describe('convertDriverError', () => {
 
   it('should handle UniqueConstraintViolation (23505) with constraint', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)', constraint: 'users_id_key' }
+    // No `table` on the error (as with CockroachDB), so it is derived from the
+    // default-named constraint `users_id_key` and the parsed field `id`.
     expect(convertDriverError(error)).toEqual({
       kind: 'UniqueConstraintViolation',
       constraint: { index: 'users_id_key' },
+      table: 'users',
       originalCode: error.code,
       originalMessage: error.message,
     })
