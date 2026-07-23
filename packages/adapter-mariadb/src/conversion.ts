@@ -129,7 +129,7 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
       case MariaDbColumnType.NEWDATE:
         return formatDate(arg)
       default:
-        return formatDateTime(arg)
+        return arg
     }
   }
 

@@ -1,7 +1,7 @@
 import * as mariadb from 'mariadb'
 import { describe, expect, it } from 'vitest'
 
-import { formatDateTime, mapRow } from './conversion'
+import { mapArg, mapRow } from './conversion'
 
 describe('mapRow', () => {
   it('maps datetime columns from object rows to ISO strings', () => {
@@ -37,37 +37,42 @@ describe('mapRow', () => {
   })
 })
 
-describe('formatDateTime with local time', () => {
-  it('preserves local time: uses local-time methods not UTC methods', () => {
-    // Create a date representing 2026-07-16T16:39:36.363+08:00
-    // formatDateTime now uses local-time getters (getFullYear, getMonth, etc.)
-    // so the result should reflect local time, not UTC
-    // UTC equivalent would be 08:39:36.363, local time varies by timezone
-    const date = new Date('2026-07-16T16:39:36.363+08:00')
+describe('mapArg returns Date for datetime to let driver handle timezone', () => {
+  it('returns the original Date object for DATETIME columns (lets driver handle timezone)', () => {
+    const inputDate = new Date('2026-07-16T16:39:36.363+08:00')
 
-    const result = formatDateTime(date)
+    // @ts-ignore - testing with a mock argType
+    const result = mapArg(inputDate, { dbType: 'DATETIME' })
 
-    // Verify format is correct
-    expect(result).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{3})?$/)
-
-    // Verify it uses the date components — the year, month, and day come from
-    // the local-time interpretation of the input (not UTC)
-    expect(result.startsWith('2026-07-16')).toBe(true)
-
-    // Critical: ensure NOT using UTC hours (which would be 08 for +08:00 offset)
-    expect(result).not.toBe('2026-07-16 08:39:36.363')
+    expect(result).toBe(inputDate)
   })
 
-  it('produces correct output for a UTC-zoned date', () => {
-    // When input is UTC, local-time and UTC methods produce the same result
-    // only in UTC timezone. Use a clearly different offset to verify local time.
-    const date = new Date('2026-07-16T16:39:36.363+05:00')
+  it('returns the original Date object for TIMESTAMP columns', () => {
+    const inputDate = new Date('2026-07-16T16:39:36.363+05:00')
 
-    const result = formatDateTime(date)
+    // @ts-ignore - testing with a mock argType
+    const result = mapArg(inputDate, { dbType: 'TIMESTAMP' })
 
-    // UTC would be 11:39:36.363, local should be 16:39:36.363 if in +05:00
-    // Since we can't know the test runner's timezone, verify the general format
-    // and that the function doesn't produce UTC output
-    expect(result).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{3})?$/)
+    expect(result).toBe(inputDate)
+  })
+
+  it('still formats TIME columns to string', () => {
+    const inputDate = new Date('1970-01-01T14:30:00.000Z')
+
+    // @ts-ignore - testing with a mock argType
+    const result = mapArg(inputDate, { dbType: 'TIME' })
+
+    expect(typeof result).toBe('string')
+    expect(result).toMatch(/^\d{2}:\d{2}:\d{2}(\.\d{3})?$/)
+  })
+
+  it('still formats DATE columns to string', () => {
+    const inputDate = new Date('2026-07-16T00:00:00.000Z')
+
+    // @ts-ignore - testing with a mock argType
+    const result = mapArg(inputDate, { dbType: 'DATE' })
+
+    expect(typeof result).toBe('string')
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })
