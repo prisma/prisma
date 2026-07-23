@@ -280,11 +280,13 @@ it('should still show the global/local version warning with --no-hints', async (
 
 it('should not fail generate when the global/local version warning lookup fails', async () => {
   ctx.fixture('example-project')
+  const getGlobalLocalVersionMismatchWarning = jest.fn().mockRejectedValue(new Error('version lookup failed'))
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
-    getGlobalLocalVersionMismatchWarning: () => Promise.reject(new Error('version lookup failed')),
+    getGlobalLocalVersionMismatchWarning,
   })
   const output = stripAnsi((await generate.parse([], await ctx.config())).toString())
 
+  expect(getGlobalLocalVersionMismatchWarning).toHaveBeenCalledTimes(1)
   expect(output).toContain('Generated Prisma Client')
   expect(output).not.toContain('version lookup failed')
 }, 60_000)
