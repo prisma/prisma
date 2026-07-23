@@ -20,13 +20,14 @@ testMatrix.setupTestSuite(
       expect(result.code).toEqual('P2002')
 
       switch (suiteConfig.provider) {
-        // Adapters for these providers resolve the violated field names.
-        case Providers.POSTGRESQL:
-        case Providers.COCKROACHDB:
+        // The SQLite adapters resolve the violated field names from the error message.
         case Providers.SQLITE:
           expect(result.meta.target).toEqual(['email'])
           break
-        // The MySQL adapters only know the name of the violated index.
+        // The PostgreSQL, CockroachDB, and MySQL adapters report the name of
+        // the violated unique index rather than the field names.
+        case Providers.POSTGRESQL:
+        case Providers.COCKROACHDB:
         case Providers.MYSQL:
           expect(result.meta.target).toEqual('User_email_key')
           break
