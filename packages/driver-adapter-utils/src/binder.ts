@@ -142,15 +142,15 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
   }
 
   if (transaction.createSavepoint) {
-    boundTransaction.createSavepoint = wrapAsync(errorRegistry, transaction.createSavepoint.bind(transaction))
+    boundTransaction.createSavepoint = wrapAsync(errorRegistry, checkClosed(transaction.createSavepoint.bind(transaction)))
   }
 
   if (transaction.rollbackToSavepoint) {
-    boundTransaction.rollbackToSavepoint = wrapAsync(errorRegistry, transaction.rollbackToSavepoint.bind(transaction))
+    boundTransaction.rollbackToSavepoint = wrapAsync(errorRegistry, checkClosed(transaction.rollbackToSavepoint.bind(transaction)))
   }
 
   if (transaction.releaseSavepoint) {
-    boundTransaction.releaseSavepoint = wrapAsync(errorRegistry, transaction.releaseSavepoint.bind(transaction))
+    boundTransaction.releaseSavepoint = wrapAsync(errorRegistry, checkClosed(transaction.releaseSavepoint.bind(transaction)))
   }
 
   return boundTransaction
