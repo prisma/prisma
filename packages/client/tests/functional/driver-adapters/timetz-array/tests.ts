@@ -18,12 +18,13 @@ testMatrix.setupTestSuite(
     })
 
     test('timetz[] raw query does not throw P2010 (OID 1270 mapping)', async () => {
-      const result = await prisma.$queryRaw<{ times: string[] }[]>`
+      const result = await prisma.$queryRaw<{ times: Date[] }[]>`
         SELECT ARRAY['12:00:00+00'::timetz, '13:00:00-05'::timetz] AS times
       `
-      // Values are returned as strings with the timezone offset stripped,
+      // Raw time-array elements deserialize to Date objects anchored at
+      // 1970-01-01 with the timezone offset stripped (UTC assumed),
       // consistent with scalar timetz behaviour.
-      expect(result[0].times).toEqual(['12:00:00', '13:00:00'])
+      expect(result[0].times).toEqual([new Date('1970-01-01T12:00:00.000Z'), new Date('1970-01-01T13:00:00.000Z')])
     })
 
     test('timetz[] NULL value returns null', async () => {
@@ -34,10 +35,10 @@ testMatrix.setupTestSuite(
     })
 
     test('timetz[] single-element array is returned as an array', async () => {
-      const result = await prisma.$queryRaw<{ times: string[] }[]>`
+      const result = await prisma.$queryRaw<{ times: Date[] }[]>`
         SELECT ARRAY['08:30:00+05:30'::timetz] AS times
       `
-      expect(result[0].times).toEqual(['08:30:00'])
+      expect(result[0].times).toEqual([new Date('1970-01-01T08:30:00.000Z')])
     })
   },
   {
