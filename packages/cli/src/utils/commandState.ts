@@ -19,9 +19,12 @@ function getCommandStatePath(): string {
  */
 export async function loadOrInitializeCommandState(): Promise<CommandState> {
   const filePath = getCommandStatePath()
-  const data = await fs.promises
-    .readFile(filePath, 'utf-8')
-    .catch((err) => (err.code === 'ENOENT' ? Promise.resolve(undefined) : Promise.reject(err)))
+  const data = await fs.promises.readFile(filePath, 'utf-8').catch((err) => {
+    if (err.code !== 'ENOENT') {
+      debug('Failed to read command state: %O', err)
+    }
+    return undefined
+  })
 
   let state: CommandState | undefined
   if (data !== undefined) {
@@ -30,8 +33,8 @@ export async function loadOrInitializeCommandState(): Promise<CommandState> {
       if (parsed && typeof parsed.firstCommandTimestamp === 'string') {
         state = parsed
       }
-    } catch {
-      // Gracefully ignore parsing errors and re-initialize
+    } catch (err) {
+      debug('Failed to parse command state: %O', err)
     }
   }
 

@@ -83,6 +83,35 @@ describe('command state', () => {
     expect(mockRename).toHaveBeenCalledWith(expect.stringContaining('.tmp'), expect.not.stringContaining('.tmp'))
   })
 
+  it('gracefully re-initializes when the state file cannot be read', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'EACCES' })
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockMkdir = jest.spyOn(fs.promises, 'mkdir').mockImplementation()
+    mockRename = jest.spyOn(fs.promises, 'rename').mockImplementation()
+
+    const state = await loadOrInitializeCommandState()
+
+    expect(state).toEqual({
+      firstCommandTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/),
+    })
+    expect(mockRead).toHaveBeenCalledTimes(1)
+    expect(mockWrite).toHaveBeenCalledWith(expect.stringContaining('.tmp'), JSON.stringify(state))
+  })
+
+  it('returns the in-memory state when persisting it fails', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockRejectedValue({ code: 'ENOSPC' })
+    mockMkdir = jest.spyOn(fs.promises, 'mkdir').mockImplementation()
+    mockRename = jest.spyOn(fs.promises, 'rename').mockImplementation()
+
+    const state = await loadOrInitializeCommandState()
+
+    expect(state).toEqual({
+      firstCommandTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/),
+    })
+    expect(mockRename).toHaveBeenCalledTimes(0)
+  })
+
   it('calculate the days since last command', () => {
     const start = new Date('2023-01-01T00:00:00Z')
     const end = new Date('2025-05-14T12:00:00Z')
