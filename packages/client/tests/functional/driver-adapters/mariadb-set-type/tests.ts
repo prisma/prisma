@@ -1,3 +1,4 @@
+import { AdapterProviders, Providers } from '../../_utils/providers'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -36,6 +37,14 @@ testMatrix.setupTestSuite(
       expect(rows[0].type).toBe('car,truck')
     })
 
+    test('SET column with no active values returns an empty string', async () => {
+      await prisma.$executeRaw`INSERT INTO VehicleSet (type) VALUES ('')`
+      const rows = await prisma.$queryRaw<{ id: number; type: string }[]>`
+        SELECT id, type FROM VehicleSet ORDER BY id DESC LIMIT 1
+      `
+      expect(rows[0].type).toBe('')
+    })
+
     test('SET column with NULL returns null', async () => {
       await prisma.$executeRaw`INSERT INTO VehicleSet (type) VALUES (NULL)`
       const rows = await prisma.$queryRaw<{ id: number; type: string | null }[]>`
@@ -46,9 +55,14 @@ testMatrix.setupTestSuite(
   },
   {
     ...defaultTestSuiteOptions,
+    skipDefaultClientInstance: false,
+    optOut: {
+      from: [Providers.SQLITE, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB],
+      reason: 'SET is a MySQL/MariaDB-specific column type',
+    },
     skipDriverAdapter: {
-      from: ['js_planetscale'],
-      reason: 'SET column type is a MariaDB/MySQL feature not supported by PlanetScale',
+      from: [AdapterProviders.JS_PLANETSCALE],
+      reason: 'the PlanetScale driver adapter does not support the SET column type',
     },
   },
 )
