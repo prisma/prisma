@@ -42,13 +42,11 @@ export async function getGlobalLocalVersionMismatchWarning(
     })),
   )
 
-  const mismatches = localVersions.reduce<LocalPackageVersionMismatch[]>((acc, { packageName, version }) => {
-    if (version && version !== globalVersion) {
-      acc.push({ packageName, globalVersion, localVersion: version })
-    }
-
-    return acc
-  }, [])
+  const mismatches = localVersions
+    .map(({ packageName, version }): LocalPackageVersionMismatch | null =>
+      version && version !== globalVersion ? { packageName, globalVersion, localVersion: version } : null,
+    )
+    .filter((mismatch): mismatch is LocalPackageVersionMismatch => mismatch !== null)
 
   return mismatches.length > 0 ? formatGlobalLocalVersionMismatchWarning(mismatches) : null
 }
