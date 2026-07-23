@@ -198,7 +198,7 @@ export function formatDateTime(date: Date): string {
 
 function formatDate(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
-  return pad(date.getFullYear(), 4) + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+  return pad(date.getUTCFullYear(), 4) + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
 }
 
 function formatTime(date: Date): string {
