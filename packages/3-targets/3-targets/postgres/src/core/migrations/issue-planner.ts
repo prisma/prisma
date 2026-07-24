@@ -291,7 +291,7 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
   return Object.keys(location).length > 0 ? (location as SqlPlannerConflictLocation) : undefined;
 }
 
-function conflictForDisallowedCall(
+export function conflictForDisallowedCall(
   call: PostgresOpFactoryCall,
   allowed: readonly string[],
 ): SqlPlannerConflict {

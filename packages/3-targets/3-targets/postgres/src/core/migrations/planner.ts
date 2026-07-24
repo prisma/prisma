@@ -42,7 +42,13 @@ import {
   resolvePostgresNodeIssueCreationFactoryName,
 } from './control-policy';
 import { buildPostgresPlanDiff } from './diff-database-schema';
-import { coalesceSubtreeIssues, issueNode, issueSchemaName, planIssues } from './issue-planner';
+import {
+  coalesceSubtreeIssues,
+  conflictForDisallowedCall,
+  issueNode,
+  issueSchemaName,
+  planIssues,
+} from './issue-planner';
 import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
   CreatePostgresRlsPolicyCall,
@@ -304,9 +310,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       resolveFactoryName: (call) => call.factoryName,
     });
 
-    const schemaDiffCalls = this.planPostgresSchemaDiff(options, policyDiffIssues);
+    const schemaDiff = this.planPostgresSchemaDiff(options, policyDiffIssues);
+    if (schemaDiff.conflicts.length > 0) {
+      return plannerFailure(schemaDiff.conflicts);
+    }
     const schemaDiffPartition = partitionCallsByControlPolicy({
-      calls: schemaDiffCalls,
+      calls: schemaDiff.calls,
       contract: options.contract,
       resolveControlPolicySubject: (call) =>
         resolvePostgresCallControlPolicySubject(call, options.contract),
@@ -488,9 +497,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   }
 
   /**
-   * Maps the RLS policy presence findings of the one combined tree diff
+   * Maps the RLS policy findings of the one combined tree diff
    * (`buildPostgresPlanDiff`, already ownership-filtered) into
-   * `CREATE POLICY` / `DROP POLICY` / `ALTER POLICY … RENAME TO` ops. It
+   * `CREATE POLICY` / `DROP POLICY` / `ALTER POLICY … RENAME TO` ops — a
+   * `not-equal` finding (an exact-named policy whose content drifted)
+   * becomes drop + create, or a disallowed-call conflict when the policy
+   * forbids the destructive drop. It
    * does not re-diff — it consumes exactly the policy-node subset of the
    * shared diff's issues. Enablement is NOT decided here: `ENABLE`/`DISABLE
    * ROW LEVEL SECURITY` derive from the table's marker-driven `rlsEnabled`
@@ -513,7 +525,10 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   private planPostgresSchemaDiff(
     options: PlannerOptionsWithComponents,
     filteredDiffIssues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
-  ): readonly PostgresOpFactoryCall[] {
+  ): {
+    readonly calls: readonly PostgresOpFactoryCall[];
+    readonly conflicts: readonly SqlPlannerConflict[];
+  } {
     const allowsDestructive = options.policy.allowedOperationClasses.includes('destructive');
     const allowsWidening = options.policy.allowedOperationClasses.includes('widening');
 
@@ -523,12 +538,25 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     const missing: PolicyFinding[] = [];
     const extra: PolicyFinding[] = [];
+    const changed: PolicyFinding[] = [];
 
     for (const issue of filteredDiffIssues) {
-      // 'not-equal' is unreachable for content-addressed policies: the wire name
-      // encodes the body hash, so two policies sharing a local key (same name)
-      // are always equal and isEqualTo never returns false.
-      if (issueOutcome(issue) === 'not-found') {
+      // 'not-equal' is reachable for exact-named (prefix-absent) policies:
+      // their isEqualTo compares content, so a same-named live policy with a
+      // drifted body pairs by name and fails equality. Managed policies never
+      // produce it — the wire name encodes the body hash, so name-equality is
+      // body-equality.
+      if (issueOutcome(issue) === 'not-equal') {
+        const expected = issue.expected;
+        PostgresPolicySchemaNode.assert(expected);
+        changed.push({
+          node: expected,
+          schemaForTable: resolveDdlSchemaForNamespaceStorage(
+            options.contract.storage,
+            expected.namespaceId,
+          ),
+        });
+      } else if (issueOutcome(issue) === 'not-found') {
         const expected = issue.expected;
         PostgresPolicySchemaNode.assert(expected);
         // expected.namespaceId is the DDL schema name (resolved during projection);
@@ -554,6 +582,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
 
     const calls: PostgresOpFactoryCall[] = [];
+    const conflicts: SqlPlannerConflict[] = [];
     const renamedExtras = new Set<PolicyFinding>();
     const renamedMissing = new Set<PolicyFinding>();
     const pairingKey = (finding: PolicyFinding, hash: string): string =>
@@ -597,6 +626,30 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       }
     }
 
+    // A changed (not-equal) policy is replaced under its own name: the drop
+    // must precede the create (CREATE POLICY collides on the live name) and
+    // is destructive-class, so without that allowance the whole replacement
+    // surfaces as a disallowed-call conflict instead of a half-applied plan.
+    for (const finding of changed) {
+      const drop = new DropPostgresRlsPolicyCall(
+        finding.schemaForTable,
+        finding.node.tableName,
+        finding.node.name,
+      );
+      if (!allowsDestructive) {
+        conflicts.push(conflictForDisallowedCall(drop, options.policy.allowedOperationClasses));
+        continue;
+      }
+      calls.push(drop);
+      calls.push(
+        new CreatePostgresRlsPolicyCall(
+          finding.schemaForTable,
+          finding.node.tableName,
+          policyNodeToContractPolicy(finding.node),
+        ),
+      );
+    }
+
     for (const finding of missing) {
       if (renamedMissing.has(finding)) continue;
       calls.push(
@@ -620,7 +673,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       }
     }
 
-    return calls;
+    return { calls, conflicts };
   }
 
   private ensureAdditivePolicy(policy: MigrationOperationPolicy) {
@@ -723,7 +776,7 @@ function relationalNamespaceNode(
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     name: node.name,
-    prefix: node.prefix,
+    ...ifDefined('prefix', node.prefix),
     tableName: node.tableName,
     namespaceId: node.namespaceId,
     operation: node.operation,
