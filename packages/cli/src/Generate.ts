@@ -274,7 +274,8 @@ Please run \`prisma generate\` manually.`
 
       let globalWarnings = ''
       if (jsClient) {
-        const breakingChangesStr = printBreakingChangesMessage ? `\n\n${breakingChangesMessage}` : ''
+        const breakingChangesStr =
+          printBreakingChangesMessage && logger.should.warn() ? `\n\n${breakingChangesMessage}` : ''
 
         const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
