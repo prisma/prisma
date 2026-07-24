@@ -18,6 +18,7 @@ describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {
     roles: ['app_user'],
     using: "owner_id = current_setting('app.uid')::int",
     permissive: true,
+    withCheck: undefined,
   });
 
   it('has no id property', () => {
@@ -54,10 +55,13 @@ describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {
 
   describe('prefix invariant (managed vs exact)', () => {
     const base = {
+      prefix: undefined,
       tableName: 'profiles',
       namespaceId: 'public',
       operation: 'select' as const,
       roles: ['app_user'],
+      using: undefined,
+      withCheck: undefined,
       permissive: true,
     };
 

@@ -60,13 +60,13 @@ function columnDependsOn(
 function toPolicyNode(policy: PostgresRlsPolicy, namespaceId: string): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: policy.name,
-    ...ifDefined('prefix', policy.prefix),
+    prefix: policy.prefix,
     tableName: policy.tableName,
     namespaceId,
     operation: policy.operation,
     roles: [...policy.roles],
-    ...ifDefined('using', policy.using),
-    ...ifDefined('withCheck', policy.withCheck),
+    using: policy.using,
+    withCheck: policy.withCheck,
     permissive: policy.permissive,
     dependsOn: [tableDependsOn(namespaceId, policy.tableName), ...policy.roles.map(roleDependsOn)],
   });

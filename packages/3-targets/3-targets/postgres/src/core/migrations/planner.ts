@@ -512,7 +512,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * pairs a `not-found` and a `not-expected` policy on the SAME table whose
    * wire-name content hashes match but prefixes differ (prefix-only rename);
    * phase 2 pairs remaining managed-missing policies against remaining
-   * extras of any name shape by verbatim content (`policyContentEqual` —
+   * extras of any name shape by verbatim content (the node-owned `contentEquals` —
    * exact→managed adoption). Multi-candidate groups pair deterministically
    * by sorted name; leftovers proceed as create/drop; an exact-named
    * missing policy never content-pairs.
@@ -630,7 +630,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       // Phase 2 — content pairing (exact→managed convergence, D7 policy
       // half): a remaining managed-missing policy pairs with a remaining
       // extra of ANY name shape when the content matches verbatim
-      // (`policyContentEqual` — not the normalized hash tuple). This is how
+      // (the node-owned `contentEquals` — not the normalized hash tuple). This is how
       // replacing `@@map` with the plain head converges as one
       // `ALTER POLICY … RENAME`. Deterministic like the index pass: missing
       // already iterates sorted by name, candidates consume sorted by name.
@@ -645,7 +645,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
             !renamedExtras.has(extraFinding) &&
             extraFinding.schemaForTable === missingFinding.schemaForTable &&
             extraFinding.node.tableName === missingFinding.node.tableName &&
-            policyContentEqual(missingFinding.node, extraFinding.node),
+            missingFinding.node.contentEquals(extraFinding.node),
         );
         if (candidate === undefined) continue;
         renamedExtras.add(candidate);
@@ -811,29 +811,13 @@ function relationalNamespaceNode(
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     name: node.name,
-    ...ifDefined('prefix', node.prefix),
+    prefix: node.prefix,
     tableName: node.tableName,
     namespaceId: node.namespaceId,
     operation: node.operation,
     roles: [...node.roles],
-    ...ifDefined('using', node.using),
-    ...ifDefined('withCheck', node.withCheck),
+    using: node.using,
+    withCheck: node.withCheck,
     permissive: node.permissive,
   });
-}
-
-/**
- * Content equality for the policy rename phase 2: `operation` and
- * `permissive` strict, `roles` compared sorted, `using`/`withCheck` VERBATIM
- * byte-for-byte with absent ≡ empty — the same relation the exact-mode
- * `isEqualTo` uses, deliberately NOT the normalized wire-hash tuple.
- */
-function policyContentEqual(a: PostgresPolicySchemaNode, b: PostgresPolicySchemaNode): boolean {
-  return (
-    a.operation === b.operation &&
-    a.permissive === b.permissive &&
-    isArrayEqual([...a.roles].sort(), [...b.roles].sort()) &&
-    (a.using ?? '') === (b.using ?? '') &&
-    (a.withCheck ?? '') === (b.withCheck ?? '')
-  );
 }

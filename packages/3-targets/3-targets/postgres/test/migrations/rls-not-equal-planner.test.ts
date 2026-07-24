@@ -44,6 +44,8 @@ function exactPolicy(using: string): PostgresRlsPolicy {
     roles: ['app_user'],
     using,
     permissive: true,
+    prefix: undefined,
+    withCheck: undefined,
   });
 }
 
@@ -109,7 +111,7 @@ function actualSchema(livePolicy: PostgresRlsPolicy): PostgresDatabaseSchemaNode
                 namespaceId: 'public',
                 operation: livePolicy.operation,
                 roles: [...livePolicy.roles],
-                ...(livePolicy.using !== undefined ? { using: livePolicy.using } : {}),
+                using: livePolicy.using,
                 permissive: livePolicy.permissive,
               }),
             ],

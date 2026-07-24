@@ -1275,19 +1275,18 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       ].sort();
       const permissive = row.permissive.toUpperCase() === 'PERMISSIVE';
       // Rename-pass grouping only, like index introspection: undefined when
-      // the live name does not follow the wire-name shape. Slice-4 infer
-      // reintroduces a `?? policyname` derivation, but as the SOURCE HEAD
+      // the live name does not follow the wire-name shape. Contract infer
+      // derives a `?? policyname` fallback, but as the SOURCE HEAD
       // identifier of the emitted policy block — never as this prefix.
-      const prefix = parseWireName(row.policyname)?.prefix;
       const policy = new PostgresPolicySchemaNode({
         name: row.policyname,
-        ...(prefix !== undefined ? { prefix } : {}),
+        prefix: parseWireName(row.policyname)?.prefix,
         tableName: row.tablename,
         namespaceId: row.schemaname,
         operation,
         roles: policyRoles,
-        ...(row.qual !== null ? { using: row.qual } : {}),
-        ...(row.with_check !== null ? { withCheck: row.with_check } : {}),
+        using: row.qual ?? undefined,
+        withCheck: row.with_check ?? undefined,
         permissive,
         dependsOn: [
           postgresTableDependsOn(row.schemaname, row.tablename),

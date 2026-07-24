@@ -60,6 +60,7 @@ function makePolicy(
     roles: ['authenticated'],
     using,
     permissive: true,
+    withCheck: undefined,
   });
 }
 
@@ -137,13 +138,13 @@ function buildContractWith(
 function policyNode(policy: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: policy.name,
-    ...(policy.prefix !== undefined ? { prefix: policy.prefix } : {}),
+    prefix: policy.prefix,
     tableName: policy.tableName,
     namespaceId: policy.namespaceId,
     operation: policy.operation,
     roles: [...policy.roles],
-    ...(policy.using !== undefined ? { using: policy.using } : {}),
-    ...(policy.withCheck !== undefined ? { withCheck: policy.withCheck } : {}),
+    using: policy.using,
+    withCheck: policy.withCheck,
     permissive: policy.permissive,
   });
 }

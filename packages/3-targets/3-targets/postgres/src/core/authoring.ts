@@ -172,8 +172,8 @@ function buildRlsPolicyEntity(input: {
     namespaceId: input.namespaceId,
     operation: input.operation,
     roles: input.roles,
-    ...ifDefined('using', input.using),
-    ...ifDefined('withCheck', input.withCheck),
+    using: input.using,
+    withCheck: input.withCheck,
     permissive: true,
   });
 }
@@ -237,17 +237,18 @@ function lowerRlsPolicyFromBlock(
       });
       return undefined;
     }
-    // Every policy has a SQL body, so every `@@map` policy gets the D9
+    // Every policy has a SQL body, so every `@@map` policy gets the
     // exact-name body-comparison warning (batched once per build).
     ctx.warnings?.push(exactNameBodyWarningEntry({ subject: 'policy', exactName }));
     return new PostgresRlsPolicy({
       name: exactName,
+      prefix: undefined,
       tableName,
       namespaceId: block.namespaceId,
       operation,
       roles,
-      ...ifDefined('using', using),
-      ...ifDefined('withCheck', withCheck),
+      using,
+      withCheck,
       permissive: true,
     });
   }

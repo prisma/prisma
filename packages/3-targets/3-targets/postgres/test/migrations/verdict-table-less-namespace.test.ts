@@ -163,6 +163,8 @@ describe('verdict: table-less contract namespaces (Postgres tree)', () => {
       roles: ['authenticated'],
       using: 'true',
       permissive: true,
+      withCheck: undefined,
+      dependsOn: undefined,
     });
     const actual = rootOf({
       public: publicNamespace(),

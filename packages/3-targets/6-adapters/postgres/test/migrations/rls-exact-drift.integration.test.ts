@@ -72,12 +72,13 @@ function buildContract(policyName: string, prefix?: string): Contract<SqlStorage
             policy: {
               [policyName]: new PostgresRlsPolicy({
                 name: policyName,
-                ...(prefix !== undefined ? { prefix } : {}),
+                prefix,
                 tableName: 'user',
                 namespaceId: 'public',
                 operation: 'select',
                 roles: ['app_user'],
                 using: BODY,
+                withCheck: undefined,
                 permissive: true,
               }),
             },

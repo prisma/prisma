@@ -1721,7 +1721,10 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     const p = this.policy;
-    const input: PostgresRlsPolicyInput = {
+    const input = blindCast<
+      PostgresRlsPolicyInput,
+      'ifDefined keeps absent keys out of the rendered TypeScript source'
+    >({
       name: p.name,
       ...ifDefined('prefix', p.prefix),
       tableName: p.tableName,
@@ -1731,7 +1734,7 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
       ...ifDefined('using', p.using),
       ...ifDefined('withCheck', p.withCheck),
       permissive: p.permissive,
-    };
+    });
     return `this.createRlsPolicy({ schema: ${jsonToTsSource(this.schemaName)}, table: ${jsonToTsSource(this.tableName)}, policy: ${jsonToTsSource(input)} })`;
   }
 

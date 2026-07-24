@@ -921,6 +921,7 @@ function makePolicy(): PostgresRlsPolicy {
     roles: ['authenticated'],
     using: 'author_id = current_user_id()',
     permissive: true,
+    withCheck: undefined,
   });
 }
 

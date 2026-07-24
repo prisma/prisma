@@ -11,6 +11,8 @@ const basePolicyInput = {
   operation: 'select' as const,
   roles: ['app_user'],
   using: "owner_id = current_setting('app.uid')::int",
+  withCheck: undefined,
+  dependsOn: undefined,
   permissive: true,
 };
 
@@ -64,9 +66,9 @@ describe('PostgresPolicySchemaNode', () => {
   });
 
   it('using is absent when not provided', () => {
-    const { using: _dropped, ...rest } = basePolicyInput;
     const node = new PostgresPolicySchemaNode({
-      ...rest,
+      ...basePolicyInput,
+      using: undefined,
       withCheck: 'true',
     });
     expect(Object.hasOwn(node, 'using')).toBe(false);
@@ -79,8 +81,11 @@ describe('PostgresPolicySchemaNode', () => {
 
   describe('prefix invariant (managed vs exact)', () => {
     it('an exact node carries no prefix — the property is absent', () => {
-      const { prefix: _dropped, ...rest } = basePolicyInput;
-      const exact = new PostgresPolicySchemaNode({ ...rest, name: 'Tenant members can read' });
+      const exact = new PostgresPolicySchemaNode({
+        ...basePolicyInput,
+        prefix: undefined,
+        name: 'Tenant members can read',
+      });
       expect(exact.prefix).toBeUndefined();
       expect(Object.hasOwn(exact, 'prefix')).toBe(false);
     });
@@ -101,8 +106,11 @@ describe('PostgresPolicySchemaNode', () => {
   });
 
   describe('isEqualTo — exact mode (prefix absent) compares content', () => {
-    const { prefix: _dropped, ...managedless } = basePolicyInput;
-    const exactInput = { ...managedless, name: 'Tenant members can read' };
+    const exactInput = {
+      ...basePolicyInput,
+      prefix: undefined,
+      name: 'Tenant members can read',
+    };
 
     it('equal when every compared field matches', () => {
       const a = new PostgresPolicySchemaNode(exactInput);

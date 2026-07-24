@@ -42,12 +42,13 @@ function policyNamed(name: string, overrides?: { readonly using?: string }): Pos
   const prefix = /_[0-9a-f]{8}$/.test(name) ? name.replace(/_[0-9a-f]{8}$/, '') : undefined;
   return new PostgresRlsPolicy({
     name,
-    ...(prefix !== undefined ? { prefix } : {}),
+    prefix,
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
     roles: ['authenticated'],
     using: overrides?.using ?? '(auth.uid() = user_id)',
+    withCheck: undefined,
     permissive: true,
   });
 }
@@ -119,12 +120,12 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
               (policy) =>
                 new PostgresPolicySchemaNode({
                   name: policy.name,
-                  ...(policy.prefix !== undefined ? { prefix: policy.prefix } : {}),
+                  prefix: policy.prefix,
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,
                   roles: [...policy.roles],
-                  ...(policy.using !== undefined ? { using: policy.using } : {}),
+                  using: policy.using,
                   permissive: policy.permissive,
                 }),
             ),
@@ -258,7 +259,9 @@ describe('phase 2 — content pairing (exact→managed convergence)', () => {
       operation: 'select',
       roles: ['authenticated'],
       using: overrides?.using ?? '(auth.uid() = user_id)',
+      withCheck: undefined,
       permissive: true,
+      prefix: undefined,
     });
   }
 

@@ -5,28 +5,36 @@ import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
+/**
+ * Every field is a required key. Values that may legitimately be absent
+ * (an exact-named policy's prefix, a missing predicate) are typed
+ * `| undefined` instead of optional, so each construction site states the
+ * absence explicitly rather than omitting the key silently.
+ */
 export interface PostgresRlsPolicyInput {
   /**
-   * Full physical name. Managed: `<prefix>_<8hex>`. Exact: the verbatim
-   * adopted name. Stored as-is; hashing is not this class's job.
+   * Full physical name. Stored as-is; hashing is not this class's job.
    */
   readonly name: string;
   /**
-   * Wire-name prefix (the part before the `_<8hex>` suffix). Present ⇔
-   * managed; absent ⇔ exact-named.
+   * The managed-mode name prefix — its PRESENCE is the naming-mode
+   * discriminator (there is no stored enum). Present ⇔ managed: the
+   * toolchain owns the physical name and `name === formatWireName(prefix,
+   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
+   * physical name whose identity the author owns entirely.
    */
-  readonly prefix?: string;
+  readonly prefix: string | undefined;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). Policies are schema-scoped. */
   readonly namespaceId: string;
   readonly operation: RlsPolicyOperation;
-  /** Sorted role names rendered in `TO <roles>`. Plain strings in this slice. */
+  /** Sorted role names rendered in `TO <roles>`. Plain strings for now. */
   readonly roles: readonly string[];
   /** USING predicate SQL string, if present. */
-  readonly using?: string;
+  readonly using: string | undefined;
   /** WITH CHECK predicate SQL string, if present. */
-  readonly withCheck?: string;
+  readonly withCheck: string | undefined;
   /** `true` = `AS PERMISSIVE`, `false` = `AS RESTRICTIVE`. */
   readonly permissive: boolean;
 }

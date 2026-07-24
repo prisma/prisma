@@ -29,6 +29,7 @@ function makePolicy(name: string): PostgresRlsPolicy {
     roles: ['authenticated'],
     using: '(auth.uid() = user_id)',
     permissive: true,
+    withCheck: undefined,
   });
 }
 
@@ -270,6 +271,8 @@ describe('contractToPostgresDatabaseSchemaNode', () => {
       operation: 'select',
       roles: ['authenticated'],
       permissive: true,
+      using: undefined,
+      withCheck: undefined,
     });
     expect(() =>
       contractToPostgresDatabaseSchemaNode(makeContract({ policies: [orphan] }), projectionOptions),

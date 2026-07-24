@@ -14,7 +14,6 @@ import {
   PostgresTableSchemaNode,
 } from '@prisma-next/target-postgres/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
 import { describe, expect, it } from 'vitest';
 
 const SCHEMA_NAME = 'public';
@@ -38,6 +37,7 @@ function managedPolicy(): PostgresRlsPolicy {
     operation: 'select',
     roles: ['app_user'],
     using: USING,
+    withCheck: undefined,
     permissive: true,
   });
 }
@@ -45,11 +45,13 @@ function managedPolicy(): PostgresRlsPolicy {
 function externalPolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     name: 'legacy_admin_policy',
+    prefix: undefined,
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
     roles: ['app_user'],
     using: USING,
+    withCheck: undefined,
     permissive: true,
   });
 }
@@ -57,14 +59,15 @@ function externalPolicy(): PostgresRlsPolicy {
 function toPolicyNode(p: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: p.name,
-    ...ifDefined('prefix', p.prefix),
+    prefix: p.prefix,
     tableName: p.tableName,
     namespaceId: p.namespaceId,
     operation: p.operation,
     roles: [...p.roles],
-    ...ifDefined('using', p.using),
-    ...ifDefined('withCheck', p.withCheck),
+    using: p.using,
+    withCheck: p.withCheck,
     permissive: p.permissive,
+    dependsOn: undefined,
   });
 }
 

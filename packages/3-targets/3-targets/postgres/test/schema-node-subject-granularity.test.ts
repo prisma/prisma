@@ -87,6 +87,9 @@ describe('Postgres schema nodes carry no role/granularity of their own', () => {
         operation: 'select',
         roles: ['authenticated'],
         permissive: true,
+        using: undefined,
+        withCheck: undefined,
+        dependsOn: undefined,
       }),
     ],
     [

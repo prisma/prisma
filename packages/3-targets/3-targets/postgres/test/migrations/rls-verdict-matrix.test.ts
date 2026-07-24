@@ -35,6 +35,7 @@ function policyNamed(name: string): PostgresRlsPolicy {
     roles: ['authenticated'],
     using: '(auth.uid() = user_id)',
     permissive: true,
+    withCheck: undefined,
   });
 }
 
@@ -114,12 +115,12 @@ function actualSchema(options: {
               (policy) =>
                 new PostgresPolicySchemaNode({
                   name: policy.name,
-                  ...(policy.prefix !== undefined ? { prefix: policy.prefix } : {}),
+                  prefix: policy.prefix,
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,
                   roles: [...policy.roles],
-                  ...(policy.using !== undefined ? { using: policy.using } : {}),
+                  using: policy.using,
                   permissive: policy.permissive,
                 }),
             ),

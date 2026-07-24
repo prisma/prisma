@@ -8,14 +8,23 @@ import { InternalError } from '@prisma-next/utils/internal-error';
 import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
+/**
+ * Every field is a required key. Values that may legitimately be absent
+ * (an exact-named policy's prefix, a missing predicate) are typed
+ * `| undefined` instead of optional, so each construction site states the
+ * absence explicitly rather than omitting the key silently.
+ */
 export interface PostgresPolicySchemaNodeInput {
-  /** Full physical name. Managed: `<prefix>_<8hex>`. Exact: verbatim. */
+  /** Full physical name — the node's identity. */
   readonly name: string;
   /**
-   * Wire-name prefix (the part before the `_<8hex>` suffix). Present ⇔
-   * managed; absent ⇔ exact-named.
+   * The managed-mode name prefix — its PRESENCE is the naming-mode
+   * discriminator (there is no stored enum). Present ⇔ managed: the
+   * toolchain owns the physical name and `name === formatWireName(prefix,
+   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
+   * physical name whose identity the author owns entirely.
    */
-  readonly prefix?: string;
+  readonly prefix: string | undefined;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). */
@@ -24,9 +33,9 @@ export interface PostgresPolicySchemaNodeInput {
   /** Sorted role names rendered in `TO <roles>`. */
   readonly roles: readonly string[];
   /** USING predicate SQL string, if present. */
-  readonly using?: string;
+  readonly using: string | undefined;
   /** WITH CHECK predicate SQL string, if present. */
-  readonly withCheck?: string;
+  readonly withCheck: string | undefined;
   /** `true` = `AS PERMISSIVE`, `false` = `AS RESTRICTIVE`. */
   readonly permissive: boolean;
   /**
@@ -35,7 +44,7 @@ export interface PostgresPolicySchemaNodeInput {
    * the derivation, which holds the parent (database/namespace) context.
    * Never compared by `isEqualTo`.
    */
-  readonly dependsOn?: readonly SchemaNodeRef[];
+  readonly dependsOn: readonly SchemaNodeRef[] | undefined;
 }
 
 /**
@@ -109,12 +118,24 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
     if (this.prefix !== undefined) {
       return this.id === node.id;
     }
+    return this.contentEquals(node);
+  }
+
+  /**
+   * The single policy content-equality relation — the exact-mode
+   * {@link isEqualTo} and the planner's rename content-pairing both call
+   * this rather than growing a parallel relation: `operation` and
+   * `permissive` strict, `roles` compared sorted, `using`/`withCheck`
+   * VERBATIM byte-for-byte with absent ≡ empty — deliberately NOT the
+   * normalized wire-hash tuple.
+   */
+  contentEquals(other: PostgresPolicySchemaNode): boolean {
     return (
-      this.operation === node.operation &&
-      this.permissive === node.permissive &&
-      isArrayEqual([...this.roles].sort(), [...node.roles].sort()) &&
-      (this.using ?? '') === (node.using ?? '') &&
-      (this.withCheck ?? '') === (node.withCheck ?? '')
+      this.operation === other.operation &&
+      this.permissive === other.permissive &&
+      isArrayEqual([...this.roles].sort(), [...other.roles].sort()) &&
+      (this.using ?? '') === (other.using ?? '') &&
+      (this.withCheck ?? '') === (other.withCheck ?? '')
     );
   }
 
