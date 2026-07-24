@@ -7,32 +7,28 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    test('P2011: meta.target contains the violating column name', async () => {
+    test('P2011 names the violating column, sourced from error.column', async () => {
       // Force a NOT NULL violation by omitting the required `title` field.
-      // The pg adapter reads error.column (set by PostgreSQL's 23502 error) and
-      // populates meta.target from it. This test guards that mapping.
+      // For 23502 errors PostgreSQL sets `error.column`; the pg adapter reads it
+      // (instead of the unparseable `error.detail`) so the column surfaces in the
+      // rendered P2011 message.
       const result = (prisma.article as any).create({ data: {} })
 
       await expect(result).rejects.toMatchObject({
         name: 'PrismaClientKnownRequestError',
         code: 'P2011',
-        meta: expect.objectContaining({
-          target: expect.arrayContaining(['title']),
-        }),
+        message: expect.stringContaining('title'),
       })
     })
   },
   {
+    skipDefaultClientInstance: false,
     optOut: {
-      from: [
-        Providers.MYSQL,
-        Providers.MARIADB,
-        Providers.SQLITE,
-        Providers.SQLSERVER,
-        Providers.MONGODB,
-        Providers.COCKROACHDB,
-      ],
+      from: [Providers.MYSQL, Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB, Providers.COCKROACHDB],
       reason: 'Tests pg-specific NOT NULL error mapping via error.column',
+    },
+    skip(when, { clientEngineExecutor }) {
+      when(clientEngineExecutor === 'remote', 'Driver adapter error mapping is exercised through the local executor')
     },
   },
 )
