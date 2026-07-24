@@ -128,6 +128,13 @@ describe('Studio URL validation', () => {
 
     expect(result).toBe('')
     expect(createPoolMock).toHaveBeenCalledTimes(1)
+    // Verify the URL was forwarded to the mysql2 pool, preserving
+    // the protocol, host, and path. We compare URL components rather
+    // than raw strings because normaliseMySQLConnectionString may
+    // round-trip the connection URL through new URL().
+    expect(new URL(createPoolMock.mock.calls[0][0]).protocol).toBe('mysql:')
+    expect(new URL(createPoolMock.mock.calls[0][0]).hostname).toBe('aws.connect.psdb.cloud')
+    expect(new URL(createPoolMock.mock.calls[0][0]).pathname).toBe('/db')
   })
 })
 
