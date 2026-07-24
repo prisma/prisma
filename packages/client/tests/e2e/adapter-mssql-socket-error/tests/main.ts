@@ -20,6 +20,10 @@ beforeAll(() => {
   prisma = new PrismaClient({ adapter, errorFormat: 'minimal' })
 })
 
+// Port 1 deterministically yields ECONNREFUSED without a running SQL Server.
+// ENOTFOUND/ECONNRESET/ETIMEDOUT are covered by unit tests in
+// packages/adapter-mssql/src/errors.test.ts, as they are hard to trigger
+// reliably from an E2E test.
 test('maps ECONNREFUSED to P1001 DatabaseNotReachable', async () => {
   await expect(prisma.user.findMany()).rejects.toMatchObject({
     name: 'PrismaClientKnownRequestError',
@@ -28,5 +32,5 @@ test('maps ECONNREFUSED to P1001 DatabaseNotReachable', async () => {
 })
 
 afterAll(async () => {
-  await prisma.$disconnect()
+  await prisma?.$disconnect()
 })

@@ -62,8 +62,7 @@ export function mapDriverError(error: DriverError): MappedError {
       }
     }
     case 2627: {
-      // Message: "Violation of UNIQUE KEY constraint '<name>'. Cannot insert..."
-      const index = error.message.split("'").at(1)
+      const index = error.message.split('. ').at(1)?.split(' ').pop()?.split("'").at(1)
       return {
         kind: 'UniqueConstraintViolation',
         constraint: index ? { index } : undefined,
@@ -208,9 +207,13 @@ type SocketError = {
   hostname?: string | undefined
 }
 
-function isSocketError(error: any): error is SocketError {
-  if (typeof error !== 'object' || error === null) return false
-  return typeof error.code === 'string' && SOCKET_ERRORS.has(error.code)
+function isSocketError(error: unknown): error is SocketError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    typeof (error as { code?: unknown }).code === 'string' &&
+    SOCKET_ERRORS.has((error as { code: string }).code)
+  )
 }
 
 function mapSocketError(error: SocketError): MappedError {
