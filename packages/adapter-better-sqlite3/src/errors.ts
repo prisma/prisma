@@ -20,14 +20,15 @@ function mapDriverError(error: DriverError): DriverAdapterErrorObject {
       }
     case 'SQLITE_CONSTRAINT_UNIQUE':
     case 'SQLITE_CONSTRAINT_PRIMARYKEY': {
-      const fields = error.message
-        .split('constraint failed: ')
-        .at(1)
-        ?.split(', ')
-        .map((field) => field.split('.').pop()!)
+      const columns = error.message.split('constraint failed: ').at(1)?.split(', ')
+      const fields = columns?.map((field) => field.split('.').pop()!)
+      // SQLite reports the violated columns as `<table>.<column>`; when the
+      // first entry has no table prefix, no table name can be derived.
+      const table = columns?.at(0)?.split('.').slice(0, -1).join('.') || undefined
       return {
         kind: 'UniqueConstraintViolation',
         constraint: fields !== undefined ? { fields } : undefined,
+        table,
       }
     }
     case 'SQLITE_CONSTRAINT_NOTNULL': {
