@@ -202,13 +202,11 @@ test('rethrowAsUserFacing forwards the violated table for unique constraint viol
     table: 'app_major_versions',
   })
 
-  try {
-    rethrowAsUserFacing(error)
-    throw new Error('expected rethrowAsUserFacing to throw')
-  } catch (e) {
-    expect(e).toBeInstanceOf(UserFacingError)
-    const userFacing = e as UserFacingError
-    expect(userFacing.code).toBe('P2002')
-    expect(userFacing.meta).toMatchObject({ table: 'app_major_versions', driverAdapterError: error })
-  }
+  expect(() => rethrowAsUserFacing(error)).toThrow(UserFacingError)
+  expect(() => rethrowAsUserFacing(error)).toThrow(
+    expect.objectContaining({
+      code: 'P2002',
+      meta: expect.objectContaining({ table: 'app_major_versions', driverAdapterError: error }),
+    }),
+  )
 })

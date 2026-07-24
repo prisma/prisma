@@ -34,6 +34,7 @@ import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
 import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
+import { modelNameForTable } from './utils/modelNameForTable'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -281,30 +282,10 @@ export class RequestHandler {
     delete meta.table
 
     const modelName =
-      this.modelNameForTable(errorMeta.table) ??
+      modelNameForTable(this.client._runtimeDataModel, errorMeta.table) ??
       (typeof meta.modelName === 'string' ? meta.modelName : topLevelModelName)
 
     return modelName !== undefined ? { ...meta, modelName } : meta
-  }
-
-  /**
-   * Maps a physical table name reported by a driver adapter back to the name
-   * of the Prisma model backed by that table, taking `@@map` into account.
-   * Returns `undefined` when no model, or more than one model, matches.
-   */
-  private modelNameForTable(table: string): string | undefined {
-    // `dbName` is always the bare table name, while a driver adapter may
-    // report the table schema-qualified (e.g. `public.users`), so compare
-    // only the last `.`-separated segment of the reported name.
-    const tableName = table.split('.').pop()
-    const matches = Object.entries(this.client._runtimeDataModel.models).filter(
-      ([name, model]) => (model.dbName ?? name) === tableName,
-    )
-    // With `@@schema`, models in different schemas can share a table name.
-    // The runtime data model carries no schema information, so an ambiguous
-    // match cannot be resolved — report no match instead of guessing, which
-    // makes the caller fall back to the top-level operation's model name.
-    return matches.length === 1 ? matches[0][0] : undefined
   }
 
   sanitizeMessage(message) {
