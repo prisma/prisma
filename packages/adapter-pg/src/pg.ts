@@ -304,11 +304,20 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     this.externalPool = null
     this.config = typeof poolOrConfig === 'string' ? { connectionString: poolOrConfig } : { ...poolOrConfig }
 
-    const schema = this.options?.schema ?? schemaFromConnectionUrl(this.config.connectionString)
+    const parsedUrl = parseConnectionUrl(this.config.connectionString)
+    const schema = this.options?.schema ?? parsedUrl.schema
 
     if (schema) {
       this.options = { ...options, schema }
-      this.config.options = [this.config.options, `-csearch_path=${schema}`].filter(Boolean).join(' ')
+
+      // `pg` merges a connection string's query parameters over the config object at
+      // connect time, so an `options` embedded in the URL would override `config.options`
+      // and drop the injected `search_path`. Fold the URL's `options` (which take
+      // precedence over `config.options` in `pg`) into the effective value and drop them
+      // from the connection string so the injected `search_path` survives.
+      const baseOptions = parsedUrl.options ?? this.config.options
+      this.config.connectionString = parsedUrl.connectionString
+      this.config.options = [baseOptions, `-csearch_path=${schema}`].filter(Boolean).join(' ')
     }
   }
 
@@ -349,21 +358,37 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
 }
 
 /**
- * Extracts the `schema` search parameter from a connection URL. `pg` also accepts libpq
- * connection strings (e.g. `host=localhost dbname=test`) that are not parseable as URLs;
- * those carry no `schema` parameter, so parsing failures yield `undefined`.
+ * Extracts the `schema` and libpq `options` parameters from a connection URL and returns
+ * the connection string with the `options` parameter removed.
+ *
+ * `pg` also accepts libpq connection strings (e.g. `host=localhost dbname=test`) that are
+ * not parseable as URLs; those carry no such parameters, so parsing failures yield an empty
+ * result and the original connection string.
+ *
+ * The `options` parameter is stripped because `pg` merges a connection string's query
+ * parameters over the config object at connect time: an `options` left in the URL would
+ * override the `search_path` injected for the configured schema.
  */
-function schemaFromConnectionUrl(connectionString: string | undefined): string | undefined {
+function parseConnectionUrl(connectionString: string | undefined): {
+  schema: string | undefined
+  options: string | undefined
+  connectionString: string | undefined
+} {
   if (connectionString === undefined) {
-    return undefined
+    return { schema: undefined, options: undefined, connectionString }
   }
 
   let url: URL
   try {
     url = new URL(connectionString)
   } catch {
-    return undefined
+    return { schema: undefined, options: undefined, connectionString }
   }
 
-  return url.searchParams.get('schema') ?? undefined
+  const schema = url.searchParams.get('schema') ?? undefined
+  const options = url.searchParams.get('options') ?? undefined
+
+  url.searchParams.delete('options')
+
+  return { schema, options, connectionString: url.toString() }
 }

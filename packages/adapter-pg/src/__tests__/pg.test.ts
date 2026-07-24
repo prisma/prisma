@@ -156,6 +156,23 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 
+  it('should keep URL-level options and search_path in the effective startup options', async () => {
+    const factory = new PrismaPgAdapterFactory({
+      connectionString:
+        'postgresql://test:test@localhost:5432/test?schema=url_schema&options=-cstatement_timeout%3D5000',
+    })
+    const adapter = await factory.connect()
+
+    // `Pool.options.options` alone is not enough: `pg` re-parses `connectionString`
+    // at connect time, so we assert the options the client would actually send.
+    const { connectionParameters } = new pg.Client(adapter.underlyingDriver().options) as unknown as {
+      connectionParameters: { options?: string }
+    }
+    expect(connectionParameters.options).toBe('-cstatement_timeout=5000 -csearch_path=url_schema')
+
+    await adapter.dispose()
+  })
+
   it('should set search_path from URL schema parameter', async () => {
     const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test?schema=url_schema')
     const adapter = await factory.connect()
