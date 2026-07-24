@@ -45,7 +45,6 @@ function managedPolicy(): PostgresRlsPolicy {
 function externalPolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     name: 'legacy_admin_policy',
-    prefix: 'legacy_admin_policy',
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
@@ -58,7 +57,7 @@ function externalPolicy(): PostgresRlsPolicy {
 function toPolicyNode(p: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: p.name,
-    prefix: p.prefix,
+    ...ifDefined('prefix', p.prefix),
     tableName: p.tableName,
     namespaceId: p.namespaceId,
     operation: p.operation,

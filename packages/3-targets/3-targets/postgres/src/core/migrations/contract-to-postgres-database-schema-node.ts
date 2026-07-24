@@ -60,7 +60,7 @@ function columnDependsOn(
 function toPolicyNode(policy: PostgresRlsPolicy, namespaceId: string): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: policy.name,
-    prefix: policy.prefix,
+    ...ifDefined('prefix', policy.prefix),
     tableName: policy.tableName,
     namespaceId,
     operation: policy.operation,
@@ -251,7 +251,7 @@ export function contractToPostgresDatabaseSchemaNode(
         );
       }
       if (!Object.hasOwn(ns.rls, tableName)) {
-        const policyPrefix = tablePolicies[0]?.prefix ?? '(unknown)';
+        const policyPrefix = tablePolicies[0]?.prefix ?? tablePolicies[0]?.name ?? '(unknown)';
         throw postgresError(
           'CONTRACT.POLICY_INVALID',
           `contract-to-postgres-database-schema-node: policy "${policyPrefix}" targets table "${tableName}" in namespace "${ddlSchema}", which is not RLS-controlled. Mark the model with @@rls (entries.rls["${tableName}"]) or remove the policy.`,

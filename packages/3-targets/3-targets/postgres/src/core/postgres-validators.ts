@@ -10,7 +10,7 @@ export const PostgresRoleSchema = type({
 export const PostgresRlsPolicySchema = type({
   kind: "'policy'",
   name: 'string',
-  prefix: 'string',
+  'prefix?': 'string',
   tableName: 'string',
   namespaceId: 'string',
   operation: "'select' | 'insert' | 'update' | 'delete' | 'all'",

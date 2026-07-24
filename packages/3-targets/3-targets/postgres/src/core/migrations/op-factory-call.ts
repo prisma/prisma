@@ -1723,7 +1723,7 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
     const p = this.policy;
     const input: PostgresRlsPolicyInput = {
       name: p.name,
-      prefix: p.prefix,
+      ...ifDefined('prefix', p.prefix),
       tableName: p.tableName,
       namespaceId: p.namespaceId,
       operation: p.operation,

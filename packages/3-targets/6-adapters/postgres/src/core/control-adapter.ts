@@ -1274,10 +1274,14 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         ...new Set(parsePgNameArray(row.roles).map((r) => r.toLowerCase())),
       ].sort();
       const permissive = row.permissive.toUpperCase() === 'PERMISSIVE';
-      const prefix = parseWireName(row.policyname)?.prefix ?? row.policyname;
+      // Rename-pass grouping only, like index introspection: undefined when
+      // the live name does not follow the wire-name shape. Slice-4 infer
+      // reintroduces a `?? policyname` derivation, but as the SOURCE HEAD
+      // identifier of the emitted policy block — never as this prefix.
+      const prefix = parseWireName(row.policyname)?.prefix;
       const policy = new PostgresPolicySchemaNode({
         name: row.policyname,
-        prefix,
+        ...(prefix !== undefined ? { prefix } : {}),
         tableName: row.tablename,
         namespaceId: row.schemaname,
         operation,

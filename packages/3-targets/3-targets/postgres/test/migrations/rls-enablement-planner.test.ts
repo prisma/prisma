@@ -127,7 +127,7 @@ function actualSchema(options: {
               (policy) =>
                 new PostgresPolicySchemaNode({
                   name: policy.name,
-                  prefix: policy.prefix,
+                  ...(policy.prefix !== undefined ? { prefix: policy.prefix } : {}),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,

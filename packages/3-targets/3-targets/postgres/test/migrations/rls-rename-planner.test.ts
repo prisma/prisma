@@ -39,9 +39,10 @@ const NO_DESTRUCTIVE_POLICY = { allowedOperationClasses: ['additive', 'widening'
 const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 
 function policyNamed(name: string): PostgresRlsPolicy {
+  const prefix = /_[0-9a-f]{8}$/.test(name) ? name.replace(/_[0-9a-f]{8}$/, '') : undefined;
   return new PostgresRlsPolicy({
     name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    ...(prefix !== undefined ? { prefix } : {}),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -118,7 +119,7 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
               (policy) =>
                 new PostgresPolicySchemaNode({
                   name: policy.name,
-                  prefix: policy.prefix,
+                  ...(policy.prefix !== undefined ? { prefix: policy.prefix } : {}),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,

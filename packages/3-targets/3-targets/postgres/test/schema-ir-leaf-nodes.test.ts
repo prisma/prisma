@@ -77,6 +77,90 @@ describe('PostgresPolicySchemaNode', () => {
     expect(Object.isFrozen(node)).toBe(true);
   });
 
+  describe('prefix invariant (managed vs exact)', () => {
+    it('an exact node carries no prefix — the property is absent', () => {
+      const { prefix: _dropped, ...rest } = basePolicyInput;
+      const exact = new PostgresPolicySchemaNode({ ...rest, name: 'Tenant members can read' });
+      expect(exact.prefix).toBeUndefined();
+      expect(Object.hasOwn(exact, 'prefix')).toBe(false);
+    });
+
+    it('a declared prefix must match the wire name', () => {
+      expect(() => new PostgresPolicySchemaNode({ ...basePolicyInput, prefix: 'other' })).toThrow(
+        /prefix "other" does not match the wire name/,
+      );
+      expect(
+        () =>
+          new PostgresPolicySchemaNode({
+            ...basePolicyInput,
+            name: 'not_wire_shaped',
+            prefix: 'not_wire_shaped',
+          }),
+      ).toThrow(/does not match the wire name/);
+    });
+  });
+
+  describe('isEqualTo — exact mode (prefix absent) compares content', () => {
+    const { prefix: _dropped, ...managedless } = basePolicyInput;
+    const exactInput = { ...managedless, name: 'Tenant members can read' };
+
+    it('equal when every compared field matches', () => {
+      const a = new PostgresPolicySchemaNode(exactInput);
+      const b = new PostgresPolicySchemaNode({ ...exactInput });
+      expect(a.isEqualTo(b)).toBe(true);
+    });
+
+    it('operation drift breaks equality', () => {
+      const a = new PostgresPolicySchemaNode(exactInput);
+      const b = new PostgresPolicySchemaNode({ ...exactInput, operation: 'update' });
+      expect(a.isEqualTo(b)).toBe(false);
+    });
+
+    it('permissive drift breaks equality', () => {
+      const a = new PostgresPolicySchemaNode(exactInput);
+      const b = new PostgresPolicySchemaNode({ ...exactInput, permissive: false });
+      expect(a.isEqualTo(b)).toBe(false);
+    });
+
+    it('roles compare sorted — order does not matter, membership does', () => {
+      const a = new PostgresPolicySchemaNode({ ...exactInput, roles: ['b_role', 'a_role'] });
+      const sameSet = new PostgresPolicySchemaNode({ ...exactInput, roles: ['a_role', 'b_role'] });
+      const differentSet = new PostgresPolicySchemaNode({ ...exactInput, roles: ['a_role'] });
+      expect(a.isEqualTo(sameSet)).toBe(true);
+      expect(a.isEqualTo(differentSet)).toBe(false);
+    });
+
+    it('using compares verbatim byte-for-byte — whitespace variants are unequal', () => {
+      const a = new PostgresPolicySchemaNode({ ...exactInput, using: '(user_id = 1)' });
+      const drifted = new PostgresPolicySchemaNode({ ...exactInput, using: '(user_id = 2)' });
+      const whitespace = new PostgresPolicySchemaNode({ ...exactInput, using: '( user_id = 1 )' });
+      expect(a.isEqualTo(drifted)).toBe(false);
+      expect(a.isEqualTo(whitespace)).toBe(false);
+    });
+
+    it('withCheck compares verbatim; absent equals empty', () => {
+      const a = new PostgresPolicySchemaNode({ ...exactInput, withCheck: 'true' });
+      const b = new PostgresPolicySchemaNode({ ...exactInput, withCheck: 'false' });
+      expect(a.isEqualTo(b)).toBe(false);
+
+      const absent = new PostgresPolicySchemaNode(exactInput);
+      const empty = new PostgresPolicySchemaNode({ ...exactInput, withCheck: '' });
+      expect(absent.isEqualTo(empty)).toBe(true);
+    });
+  });
+
+  describe('isEqualTo — managed mode stays id-driven', () => {
+    it('same wire name is equal even when bodies differ (hash identity covers content)', () => {
+      const a = new PostgresPolicySchemaNode(basePolicyInput);
+      const b = new PostgresPolicySchemaNode({
+        ...basePolicyInput,
+        using: 'a completely different predicate',
+        operation: 'select',
+      });
+      expect(a.isEqualTo(b)).toBe(true);
+    });
+  });
+
   describe('PostgresPolicySchemaNode.is', () => {
     it('returns true for a PostgresPolicySchemaNode', () => {
       const node = new PostgresPolicySchemaNode(basePolicyInput);

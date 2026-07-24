@@ -1,13 +1,21 @@
+import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { freezeNode } from '@prisma-next/framework-components/ir';
 import { SqlNode } from '@prisma-next/sql-contract/types';
+import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
 export interface PostgresRlsPolicyInput {
-  /** Full wire name: `<prefix>_<8hex>`. Stored as-is; hashing is not this class's job. */
+  /**
+   * Full physical name. Managed: `<prefix>_<8hex>`. Exact: the verbatim
+   * adopted name. Stored as-is; hashing is not this class's job.
+   */
   readonly name: string;
-  /** User-supplied prefix (the part before the `_<8hex>` suffix). */
-  readonly prefix: string;
+  /**
+   * Wire-name prefix (the part before the `_<8hex>` suffix). Present ⇔
+   * managed; absent ⇔ exact-named.
+   */
+  readonly prefix?: string;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). Policies are schema-scoped. */
@@ -39,7 +47,7 @@ export interface PostgresRlsPolicyInput {
 export class PostgresRlsPolicy extends SqlNode {
   override readonly kind = 'policy' as const;
   readonly name: string;
-  readonly prefix: string;
+  declare readonly prefix?: string;
   readonly tableName: string;
   readonly namespaceId: string;
   readonly operation: RlsPolicyOperation;
@@ -50,8 +58,17 @@ export class PostgresRlsPolicy extends SqlNode {
 
   constructor(input: PostgresRlsPolicyInput) {
     super();
+    if (input.prefix !== undefined) {
+      const parsed = parseWireName(input.name);
+      if (parsed === undefined || parsed.prefix !== input.prefix) {
+        throw new ContractValidationError(
+          `Policy "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
+          'storage',
+        );
+      }
+    }
     this.name = input.name;
-    this.prefix = input.prefix;
+    if (input.prefix !== undefined) this.prefix = input.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;

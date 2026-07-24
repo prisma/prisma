@@ -137,7 +137,7 @@ function buildContractWith(
 function policyNode(policy: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: policy.name,
-    prefix: policy.prefix,
+    ...(policy.prefix !== undefined ? { prefix: policy.prefix } : {}),
     tableName: policy.tableName,
     namespaceId: policy.namespaceId,
     operation: policy.operation,
