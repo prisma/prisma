@@ -7,10 +7,12 @@ RUN npm -v
 # zx is pinned to v7 because v8 fails with:
 # [esbuild Error]: Top-level await is currently not supported with the "cjs" output format
 # at /usr/local/lib/node_modules/zx/build/vendor.js:2:17
-# pnpm is pinned (and matches the repo's `packageManager`): leaving it unpinned
-# pulls the latest pnpm, which fails `pnpm install` here with
-# ERR_PNPM_IGNORED_BUILDS because the standalone e2e projects don't carry the
-# repo's `onlyBuiltDependencies` config for `prisma`/`@prisma/engines`.
+# pnpm is pinned to 10.x here, deliberately behind the repo's pnpm 11
+# `packageManager`: the standalone e2e projects rely on per-test `pnpm.overrides`
+# in their own `package.json`, which pnpm 11 does not read (it takes overrides
+# only from `pnpm-workspace.yaml`). Pinning also avoids `ERR_PNPM_IGNORED_BUILDS`
+# from an unpinned pnpm, since these projects don't carry the repo's
+# `onlyBuiltDependencies` config for `prisma`/`@prisma/engines`.
 RUN npm i -g \
   zx@7 \
   pnpm@10.15.1 \

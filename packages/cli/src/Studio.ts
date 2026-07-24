@@ -48,6 +48,14 @@ const PRISMA_LOGO_SVG_DATA_URL = `data:image/svg+xml,${encodeURIComponent(PRISMA
 const ACCELERATE_UNSUPPORTED_MESSAGE =
   'Prisma Studio no longer supports Accelerate URLs (`prisma://` or `prisma+postgres://`). Use a direct database connection string instead.'
 
+/**
+ * Protocols whose connection strings are not valid WHATWG URLs.
+ * URL.canParse would reject them, so we skip that validation.
+ *
+ * https://github.com/prisma/prisma/issues/29620
+ */
+const PROTOCOLS_SKIPPING_URL_VALIDATION = new Set(['sqlserver'])
+
 interface StudioStuff {
   adapter: StudioAdapterType
   createExecutor(connectionString: string, relativeTo: string): Promise<Executor>
@@ -278,11 +286,11 @@ ${bold('Examples')}
       )
     }
 
-    if (!URL.canParse(connectionString)) {
+    const protocol = connectionString.split('://')[0].toLowerCase()
+
+    if (!PROTOCOLS_SKIPPING_URL_VALIDATION.has(protocol) && !URL.canParse(connectionString)) {
       return new UserFacingError('The provided database URL is not valid.')
     }
-
-    const protocol = new URL(connectionString).protocol.replace(':', '')
 
     if (isAccelerateProtocol(protocol)) {
       return new UserFacingError(ACCELERATE_UNSUPPORTED_MESSAGE)
@@ -606,6 +614,10 @@ async function handleStudioBffRequest(payload: unknown, executor: Executor): Pro
     }
 
     return jsonResponse([null, result])
+  }
+
+  if (procedure === 'query-insights') {
+    return jsonResponse([serializeError(new Error('Executor does not support query insights'))])
   }
 
   procedure satisfies undefined

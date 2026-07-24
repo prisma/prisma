@@ -82,6 +82,62 @@ vi.mock('@prisma/studio-core/data/postgresjs', () => {
   }
 })
 
+describe('Studio URL validation', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    createPoolMock.mockClear()
+    createPostgresJSExecutorMock.mockClear()
+    readFileMock.mockClear()
+    startStudioServerMock.mockClear()
+    serializeErrorMock.mockClear()
+  })
+
+  test('accepts sqlserver:// URLs (semicolon-delimited, not valid WHATWG URLs)', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      ['--browser', 'none', '--port', '5555', '--url', 'sqlserver://localhost;database=mydb;user=sa;password=secret'],
+      defaultTestConfig(),
+    )
+
+    expect(result).toBeInstanceOf(Error)
+    expect((result as Error).name).toBe('UserFacingError')
+    expect((result as Error).message).toContain('Prisma Studio is not supported for the "sqlserver" protocol.')
+  })
+
+  test('rejects invalid non-sqlserver URLs', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      ['--browser', 'none', '--port', '5555', '--url', 'not a valid url'],
+      defaultTestConfig(),
+    )
+
+    expect(result).toBeInstanceOf(Error)
+    expect((result as Error).name).toBe('UserFacingError')
+    expect((result as Error).message).toContain('The provided database URL is not valid.')
+  })
+
+  test('passes valid mysql:// URLs through unchanged', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      ['--browser', 'none', '--port', '5555', '--url', 'mysql://user:password@aws.connect.psdb.cloud/db'],
+      defaultTestConfig(),
+    )
+
+    expect(result).toBe('')
+    expect(createPoolMock).toHaveBeenCalledTimes(1)
+    // Verify the URL was forwarded to the mysql2 pool, preserving
+    // the protocol, host, and path. We compare URL components rather
+    // than raw strings because normaliseMySQLConnectionString may
+    // round-trip the connection URL through new URL().
+    expect(new URL(createPoolMock.mock.calls[0][0]).protocol).toBe('mysql:')
+    expect(new URL(createPoolMock.mock.calls[0][0]).hostname).toBe('aws.connect.psdb.cloud')
+    expect(new URL(createPoolMock.mock.calls[0][0]).pathname).toBe('/db')
+  })
+})
+
 describe('Studio MySQL URL compatibility', () => {
   beforeEach(() => {
     vi.resetModules()
@@ -343,6 +399,24 @@ describe('Studio BFF', () => {
 
     expect(executeTransactionMock).toHaveBeenCalledWith(queries)
     expect(await response.json()).toEqual([null, [[{ id: 1 }], [{ id: 2 }]]])
+  })
+
+  test('returns an explicit error when query insights are unsupported', async () => {
+    await startStudioBff({
+      execute: vi.fn(),
+    })
+
+    const response = await getBffResponse({
+      procedure: 'query-insights',
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual([
+      {
+        message: 'Executor does not support query insights',
+        name: 'Error',
+      },
+    ])
   })
 
   test('serves the Prisma logo as the favicon', async () => {
