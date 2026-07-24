@@ -25,7 +25,7 @@ contract infer → emit → db verify: zero issues → db update --dry-run: zero
 
 ### 2. The duplicate-guard carry-over
 
-`validateStorageSemantics` (`validators.ts:532–556`): the duplicate-index rejection keys by content signature, which would reject a legally-twinned database (two content-identical indexes under different names — the Supabase reference carries one). For **exact-mode** entries (no `prefix`) the guard keys by `name`; managed entries keep the content key (two managed twins would collide on wire name anyway — same hash — so the content key is already equivalent there; state that in a comment). A signed twin-carrying database validates.
+`validateStorageSemantics` (`validators.ts:532–556`): the duplicate-index rejection keys by content signature, which would reject a legally-twinned database (two content-identical indexes under different names — legal in Postgres; the Supabase reference's same-tuple pair differs in `unique`, so it exercises scenario J rather than this guard, which is proven by unit tests). For **exact-mode** entries (no `prefix`) the guard keys by `name`; managed entries keep the content key (two managed twins would collide on wire name anyway — same hash — so the content key is already equivalent there; state that in a comment). A signed twin-carrying database validates.
 
 ### 3. Policy block emission (D8 policy half)
 
