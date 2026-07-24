@@ -1,8 +1,7 @@
 import t from '@bomb.sh/tab'
 import type { PrismaConfigInternal } from '@prisma/config'
-import { HelpError } from '@prisma/internals/src/cli/Help'
-import type { Command, CommandCompletion, CompletionOption } from '@prisma/internals/src/cli/types'
-import { arg, isError } from '@prisma/internals/src/cli/utils'
+import type { Command, CommandCompletion, CompletionOption } from '@prisma/internals'
+import { arg, HelpError, isError } from '@prisma/internals'
 
 import { ALL_COMPLETIONS, SUPPORTED_SHELLS } from './completion-definitions'
 
