@@ -352,6 +352,29 @@ changes:
         - "CodecDescriptorImpl<"
         - "readonly AnyCodecDescriptor[]"
       anyMatch: true
+  - id: rls-policies-gain-exact-names
+    summary: |
+      RLS policies adopt the same managed/exact identity split as indexes. `prefix` is
+      optional on `PostgresRlsPolicyInput` / `PostgresPolicySchemaNodeInput` and in the
+      policy contract schema — present means managed (wire-named), absent means exact-named
+      (a verbatim adopted physical name). Both constructors now ENFORCE that a declared
+      `prefix` matches the wire name's parsed prefix: pack code or test fixtures building a
+      `PostgresRlsPolicy` / `PostgresPolicySchemaNode` whose `name` is not
+      `<prefix>_<8hex>`-shaped while still passing a `prefix` (e.g. `prefix: name` for a
+      hand-written legacy name) now throw — omit `prefix` for such names; that is the
+      exact-named spelling. Exact-named policy nodes compare by content (`operation` /
+      `permissive` strict, `roles` sorted, `using` / `withCheck` byte-for-byte), so a
+      body-drifted same-named exact policy now surfaces as a `not-equal` verify issue and a
+      drop + create plan instead of being invisible. PSL policy blocks newly accept
+      `@@map("physical name")` to author the exact mode (additive — managed lowering is
+      byte-unchanged).
+    detection:
+      glob: "**/*.{ts,mts,cts,prisma}"
+      contains:
+        - "PostgresRlsPolicy"
+        - "PostgresPolicySchemaNode"
+        - "policy_select"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
