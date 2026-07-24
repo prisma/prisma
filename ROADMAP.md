@@ -2,7 +2,7 @@
 
 Prisma Next — the contract-first rewrite of Prisma — ships as **Prisma 8**. On **July 31** we publish **`prisma@8.0.0-rc.1`** from the `prisma/prisma` repository: the same repository and the same npm package Prisma users already know. The release candidate is published under a pre-release tag, so `npm install prisma` keeps installing Prisma 7 until 8.0.0 final ships. Prisma 8 carries **PostgreSQL to general availability** — and that is all: **MongoDB ships in early access**, and **SQLite is a proof of concept** at this stage. A release candidate freezes the public API; it does not promise Prisma 7 feature parity. Its promise is different: **everything it ships works and is proven by a test**, everything experimental is labeled, and everything absent is named rather than silently missing.
 
-**Updated July 23 · Health: on track · Ships July 31 · Tasks: 6 done / 11 in flight / 17 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
+**Updated July 24 · Health: on track · Ships July 31 · Tasks: 7 done / 11 in flight / 17 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
 
 ## What needs to happen to release v8-RC1
 
@@ -178,6 +178,11 @@ Prisma 8 leans heavily on advanced TypeScript types, which is exactly the patter
 Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port has started — a first pass accounting for 488 scenarios from the `prisma` and `prisma-engines` corpus landed ([#1035](https://github.com/prisma/prisma-next/pull/1035)). This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.
 </details>
 
+<details><summary>✅ <b>Expression, partial, and unique indexes — authorable, name-identified, adoptable</b> · landed</summary>
+
+Prisma 8 can now author the indexes real Postgres databases actually carry: expression indexes (`@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")` — the exact shape Cipherstash's encrypted-search EQL extension needs), partial (`where:`) and unique variants, access methods, and storage options — in PSL and the TypeScript authoring path alike. Indexes and row-level-security policies became name-identified entities: a managed object's physical name ends in a content hash, so a body edit converges as create + drop while a pure rename converges as a single `ALTER INDEX … RENAME`; `map:` adopts an existing physical name verbatim. `contract infer` emits every live index and policy at full fidelity, so an existing database can be adopted and signed exactly as it stands — and converted to managed naming later by nothing but renames. ([#1047](https://github.com/prisma/prisma-next/pull/1047), [#1048](https://github.com/prisma/prisma-next/pull/1048), [#1050](https://github.com/prisma/prisma-next/pull/1050), [#1052](https://github.com/prisma/prisma-next/pull/1052))
+</details>
+
 <details><summary>✅ <b>Adopting an existing database round-trips cleanly</b> · landed</summary>
 
 The adoption path had a credibility problem: deriving a schema from a live database produced output that Prisma 8's own tooling then rejected or flagged as drifted — a user had independently written a 260-line repair script to fix our output, and it matched the workaround script in our own repository. Seven distinct defects were fixed, and the whole loop (read the database → derive the schema → emit the contract → verify the database matches) now runs as an automated test against live databases. This is the foundation the side-by-side proof builds on.
@@ -302,6 +307,7 @@ Support statements that end up in the announcement get checked first: Windows, B
 
 ## Recently landed
 
+- **Expression, partial, and unique indexes landed end-to-end** — authorable in PSL and TypeScript, name-identified with content-hashed physical names, and emitted at full fidelity by `contract infer` so existing databases adopt cleanly (section 4).
 - **One error-code scheme, delivered end-to-end** — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (section 3).
 - **Contract snapshots deduplicated into one content-addressed store** — migration folders stopped carrying full contract copies, ref-paired snapshots folded in too, closing the migrations-folder layout ahead of the freeze (section 3).
 - **Hashes lost their `sha256:` prefix** — the textual form of every content hash froze without the redundant algorithm tag (section 3).
