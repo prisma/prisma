@@ -147,8 +147,8 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle TransactionWriteConflict (40001)', () => {
-    const error = { code: '40001', message: 'msg', severity: 'ERROR' }
+  it.each(['40001', '40P01'])('should handle TransactionWriteConflict (%s)', (code) => {
+    const error = { code, message: 'msg', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'TransactionWriteConflict',
       originalCode: error.code,
