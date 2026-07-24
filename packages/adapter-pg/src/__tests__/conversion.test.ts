@@ -70,6 +70,15 @@ describe('mapArg', () => {
     })
     expect(result).toBe('2026-06-26 18:20:07+00:00')
   })
+
+  it('converts a TIMESTAMPTZ string input with a non-UTC offset to the shifted UTC datetime string', () => {
+    const result = mapArg('2026-06-26T18:20:07.000+05:30', {
+      dbType: 'TIMESTAMPTZ',
+      scalarType: 'datetime',
+      arity: 'scalar',
+    })
+    expect(result).toBe('2026-06-26 12:50:07+00:00')
+  })
 })
 
 describe('normalize_timestamptz (read path)', () => {
@@ -89,5 +98,18 @@ describe('normalize_timestamptz (read path)', () => {
 
   it('preserves fractional seconds with offset', () => {
     expect(parse('2024-01-15 08:30:00.123456-08:00')).toBe('2024-01-15T08:30:00.123456-08:00')
+  })
+
+  it('preserves the instant (shift, not relabel) when read from a non-UTC PostgreSQL session', () => {
+    // Regression for prisma/prisma#26786: reading a TIMESTAMPTZ from a session
+    // whose timezone is not UTC (here Asia/Tokyo, +09:00) must keep the original
+    // offset so that the instant is preserved. Relabeling the offset to +00:00
+    // instead would shift the instant by the offset amount.
+    const normalized = parse('2025-01-01 09:00:00+09:00')
+    expect(normalized).toBe('2025-01-01T09:00:00+09:00')
+    expect(new Date(normalized).toISOString()).toBe('2025-01-01T00:00:00.000Z')
+
+    // The previous relabeling behavior would have produced the wrong instant.
+    expect(new Date('2025-01-01T09:00:00+00:00').toISOString()).not.toBe('2025-01-01T00:00:00.000Z')
   })
 })
