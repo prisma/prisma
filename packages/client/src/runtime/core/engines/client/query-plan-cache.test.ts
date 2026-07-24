@@ -120,21 +120,142 @@ describe('QueryPlanCache', () => {
       expect(cache.batchCacheSize).toBe(1)
     })
 
-    it('evicts oldest batch entry when at capacity', () => {
-      const cache = new QueryPlanCache(2)
-      const makeResponse = (id: number) => ({
+    it('evicts oldest batch entry when at capacity (tracking total queries)', () => {
+      const cache = new QueryPlanCache(4) // Max 4 queries total
+
+      const makeResponse = (id: number, count: number) => ({
         type: 'multi' as const,
-        plans: [{ type: 'value' as const, args: id }],
+        plans: Array(count).fill({ type: 'value' as const, args: id }),
       })
 
-      cache.setBatch('key1', makeResponse(1))
-      cache.setBatch('key2', makeResponse(2))
-      cache.setBatch('key3', makeResponse(3))
+      cache.setBatch('key1', makeResponse(1, 2)) // Total: 2
+      cache.setBatch('key2', makeResponse(2, 1)) // Total: 3
+      cache.setBatch('key3', makeResponse(3, 2)) // Total: 5 (exceeds 4, evicts key1 -> Total: 3)
 
       expect(cache.getBatch('key1')).toBeUndefined()
       expect(cache.getBatch('key2')).toBeDefined()
       expect(cache.getBatch('key3')).toBeDefined()
       expect(cache.batchCacheSize).toBe(2)
+    })
+
+    it('triggers eviction when replacing an existing batch exceeds max total queries', () => {
+      // Regression test: replacing an existing batch entry runs the eviction loop.
+      //
+      // Old code bug: early return after delete+set skips the while loop, allowing
+      // total queries to far exceed maxSize.
+      //
+      // Scenario with maxSize=4:
+      //   setBatch(key1, 2 plans) → {key1:2} total=2
+      //   setBatch(key2, 1 plan)  → {key1:2, key2:1} total=3  (still ≤ max)
+      //   replace key2 with 4 plans
+      //     queryCount=4 > maxSize=4? No (4 is allowed)
+      //     delete old key2 (1 plan), set new key2 (4 plans) → total = 3 + (4-1) = 6
+      //     Old code: returns here, 2 entries with 6 total plans (BUG!)
+      //     New code: while(6>4) evicts key1 (LRU), total=4, exits → {key2:4} ✓
+      //
+      const cache = new QueryPlanCache(4)
+
+      cache.setBatch('key1', {
+        type: 'multi' as const,
+        plans: [
+          { type: 'value' as const, args: 1 },
+          { type: 'value' as const, args: 2 },
+        ],
+      }) // Total: 2
+      cache.setBatch('key2', {
+        type: 'multi' as const,
+        plans: [{ type: 'value' as const, args: 3 }],
+      }) // Total: 3
+
+      // key1 is LRU (added first), key2 is MRU. Cache has {key1:2, key2:1} total=3.
+      expect(cache.getBatch('key2')).toBeDefined() // key2 still in cache
+      expect(cache.getBatch('key1')).toBeDefined() // key1 still in cache
+
+      // Replace LRU key2 with 4 plans. total=6, while loop evicts key1 (LRU).
+      cache.setBatch('key2', {
+        type: 'multi' as const,
+        plans: [
+          { type: 'value' as const, args: 4 },
+          { type: 'value' as const, args: 5 },
+          { type: 'value' as const, args: 6 },
+          { type: 'value' as const, args: 7 },
+        ],
+      }) // total=6, evicts key1 → total=4 (4≤4, stop)
+
+      // Old code: both key1 and key2 remain in cache (BUG!), with 6 total plans
+      // New code: key1 evicted (LRU was first inserted), only key2 remains
+      expect(cache.getBatch('key1')).toBeUndefined() // evicted (LRU)
+      expect(cache.getBatch('key2')).toBeDefined() // still in cache
+      expect(cache.batchCacheSize).toBe(1)
+    })
+
+    it('does not cache a batch if its queries exceed maxSize', () => {
+      const cache = new QueryPlanCache(2)
+
+      const response = {
+        type: 'multi' as const,
+        plans: [
+          { type: 'value' as const, args: null },
+          { type: 'value' as const, args: null },
+          { type: 'value' as const, args: null },
+        ],
+      }
+      cache.setBatch('massiveKey', response)
+
+      expect(cache.getBatch('massiveKey')).toBeUndefined()
+      expect(cache.batchCacheSize).toBe(0)
+    })
+
+    it('empty multi batches count as at least 1 toward eviction', () => {
+      // Regression test: Math.max(plans.length, 1) ensures an empty multi batch
+      // still triggers eviction when the budget is exhausted. Without the floor, an
+      // entry with { type:"multi", plans:[] } contributed 0 to totalQueries and
+      // could bypass eviction indefinitely.
+      const cache = new QueryPlanCache(2) // 2-query budget
+
+      cache.setBatch('empty1', { type: 'multi' as const, plans: [] }) // counts as 1 (floor)
+      cache.setBatch('empty2', { type: 'multi' as const, plans: [] }) // counts as 1 (floor), total=2
+
+      // Adding a 2-plan batch exceeds budget of 2 → evicts empty1
+      cache.setBatch('twoPlans', {
+        type: 'multi' as const,
+        plans: [
+          { type: 'value' as const, args: 1 },
+          { type: 'value' as const, args: 2 },
+        ],
+      }) // counts as 2, total=4 → evicts empty1 → total=3 → evicts empty2 → total=2
+
+      expect(cache.getBatch('empty1')).toBeUndefined()
+      expect(cache.getBatch('empty2')).toBeUndefined()
+      expect(cache.getBatch('twoPlans')).toBeDefined()
+      expect(cache.batchCacheSize).toBe(1)
+    })
+
+    it('compacted batch counts via arguments.length not 1', () => {
+      // For CompactedBatchResponse the query count is arguments.length (one
+      // execution per argument set). Previously all non-multi types counted as 1,
+      // so a compacted entry with 100 argument sets only counted as 1 toward the
+      // budget, allowing massive memory bloat.
+      const cache = new QueryPlanCache(4)
+
+      cache.setBatch('compacted4', {
+        type: 'compacted' as const,
+        plan: { type: 'value' as const, args: null },
+        arguments: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }], // 4 executions
+        nestedSelection: ['id'],
+        keys: ['id'],
+        expectNonEmpty: false,
+      }) // counts as 4 (arguments.length), total=4 ≤ max → no eviction yet
+
+      // Now add another entry which would push total over the limit
+      cache.setBatch('multi1', {
+        type: 'multi' as const,
+        plans: [{ type: 'value' as const, args: null }], // counts as 1
+      }) // total=5 → evicts compacted4 (LRU) → total=1
+
+      expect(cache.getBatch('compacted4')).toBeUndefined()
+      expect(cache.getBatch('multi1')).toBeDefined()
+      expect(cache.batchCacheSize).toBe(1)
     })
 
     it('refreshes batch entry on get (LRU behavior)', () => {
