@@ -294,11 +294,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([], await ctx.config(), ctx.configDir())
       } catch (e) {
-        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
-          "There is no datasource in the schema.
-
-          "
-        `)
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
       }
     })
 
