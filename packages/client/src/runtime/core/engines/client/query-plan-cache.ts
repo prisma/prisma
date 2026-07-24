@@ -56,7 +56,7 @@ export class QueryPlanCache {
   }
 
   setBatch(key: string, response: BatchResponse): void {
-    const queryCount = response.type === 'multi' ? response.plans.length : 1
+    const queryCount = this.#getBatchQueryCount(response)
 
     // Do not cache a single batch if it exceeds the maximum size by itself
     if (queryCount > this.#maxSize) {
@@ -65,7 +65,7 @@ export class QueryPlanCache {
 
     if (this.#batchCache.has(key)) {
       const oldResponse = this.#batchCache.get(key)!
-      this.#batchCacheTotalQueries -= oldResponse.type === 'multi' ? oldResponse.plans.length : 1
+      this.#batchCacheTotalQueries -= this.#getBatchQueryCount(oldResponse)
       this.#batchCache.delete(key)
     }
 
@@ -77,12 +77,21 @@ export class QueryPlanCache {
       const firstKey = this.#batchCache.keys().next().value
       if (firstKey !== undefined) {
         const evicted = this.#batchCache.get(firstKey)!
-        this.#batchCacheTotalQueries -= evicted.type === 'multi' ? evicted.plans.length : 1
+        this.#batchCacheTotalQueries -= this.#getBatchQueryCount(evicted)
         this.#batchCache.delete(firstKey)
       } else {
         break
       }
     }
+  }
+
+  #getBatchQueryCount(response: BatchResponse): number {
+    if (response.type === 'multi') {
+      // Floor at 1 so empty multi batches still contribute to eviction
+      return Math.max(response.plans.length, 1)
+    }
+    // compacted batches execute one query per argument set
+    return response.arguments.length
   }
 
   clear(): void {

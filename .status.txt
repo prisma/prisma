@@ -1,2 +1,0 @@
-working: starting investigation of query compiler memory leak
-done: Fixed QueryPlanCache unbounded memory growth (PR #29784) - batch cache now tracks total queries and replacement entries trigger eviction
