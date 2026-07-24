@@ -11,7 +11,7 @@ export class PrismaClientInitializationError extends Error {
 
     this.clientVersion = clientVersion
     this.errorCode = errorCode
-    Error.captureStackTrace(PrismaClientInitializationError)
+    Error.captureStackTrace(this, PrismaClientInitializationError)
   }
   get [Symbol.toStringTag]() {
     return 'PrismaClientInitializationError'
