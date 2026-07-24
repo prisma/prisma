@@ -43,15 +43,50 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle UniqueConstraintViolation (23505) with constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)', constraint: 'users_id_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_id_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with only constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', constraint: 'users_email_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_email_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle NullConstraintViolation (23502) using error.column', () => {
-    // PostgreSQL sets error.column for NOT NULL violations.
-    // error.detail contains "Failing row contains (...)" — not the "Key (...)" format
-    // used by unique-violation errors — so it cannot be parsed for the field name.
+    // PostgreSQL sets `error.column` for NOT NULL violations. Its `error.detail`
+    // holds "Failing row contains (...)" rather than the "Key (...)" format of
+    // unique-violation (23505) errors, so it cannot be parsed for the field name.
     const error = {
       code: '23502',
       message: 'null value in column "foo" of relation "User" violates not-null constraint',
       severity: 'ERROR',
       detail: 'Failing row contains (null, null, null)',
+      column: 'foo',
+    }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'NullConstraintViolation',
+      constraint: { fields: ['foo'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle NullConstraintViolation (23502) with error.column and no detail', () => {
+    const error = {
+      code: '23502',
+      message: 'null value in column "foo" violates not-null constraint',
+      severity: 'ERROR',
       column: 'foo',
     }
     expect(convertDriverError(error)).toEqual({
@@ -96,6 +131,26 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle RestrictViolation (23001) with column', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', column: 'bar' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
+      constraint: { fields: ['bar'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle RestrictViolation (23001) with constraint', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', constraint: 'baz' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
+      constraint: { index: 'baz' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle DatabaseDoesNotExist (3D000)', () => {
     const error = { code: '3D000', message: 'database "mydb" does not exist', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
@@ -130,8 +185,8 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle TransactionWriteConflict (40001)', () => {
-    const error = { code: '40001', message: 'msg', severity: 'ERROR' }
+  it.each(['40001', '40P01'])('should handle TransactionWriteConflict (%s)', (code) => {
+    const error = { code, message: 'msg', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'TransactionWriteConflict',
       originalCode: error.code,

@@ -13,6 +13,7 @@ export interface StudioServer {
 type StartStudioServerOptions = {
   handler: StudioRequestHandler
   onListen(): void
+  onNodeRequestSettled?(): void
   port: number
 }
 
@@ -29,13 +30,22 @@ export function startStudioServer(options: StartStudioServerOptions): StudioServ
   }
 }
 
-function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOptions): StudioServer {
+function startNodeStudioServer({
+  handler,
+  onListen,
+  onNodeRequestSettled,
+  port,
+}: StartStudioServerOptions): StudioServer {
   const server = createServer(async (nodeRequest, nodeResponse) => {
     try {
-      const request = createNodeRequest(nodeRequest, port)
+      const request = createNodeRequest(nodeRequest, nodeResponse, port)
       const response = await handler(request)
       await writeNodeResponse(nodeResponse, response, nodeRequest.method)
     } catch (error) {
+      if (nodeResponse.destroyed) {
+        return
+      }
+
       console.error('[Prisma Studio]', error)
 
       if (nodeResponse.headersSent || nodeResponse.writableEnded) {
@@ -46,6 +56,8 @@ function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOpt
       nodeResponse.statusCode = 500
       nodeResponse.setHeader('Access-Control-Allow-Origin', '*')
       nodeResponse.end(error instanceof Error ? error.message : 'Internal Server Error')
+    } finally {
+      onNodeRequestSettled?.()
     }
   })
 
@@ -58,10 +70,17 @@ function startNodeStudioServer({ handler, onListen, port }: StartStudioServerOpt
   }
 }
 
-function createNodeRequest(nodeRequest: IncomingMessage, port: number): Request {
+function createNodeRequest(nodeRequest: IncomingMessage, nodeResponse: ServerResponse, port: number): Request {
   const origin = `http://${nodeRequest.headers.host ?? `localhost:${port}`}`
   const url = new URL(nodeRequest.url ?? '/', origin)
   const headers = new Headers()
+  const abortController = new AbortController()
+
+  nodeResponse.once('close', () => {
+    if (!nodeResponse.writableEnded) {
+      abortController.abort()
+    }
+  })
 
   for (const [key, value] of Object.entries(nodeRequest.headers)) {
     if (Array.isArray(value)) {
@@ -76,6 +95,7 @@ function createNodeRequest(nodeRequest: IncomingMessage, port: number): Request 
   const requestInit: RequestInit & { duplex?: 'half' } = {
     headers,
     method: nodeRequest.method,
+    signal: abortController.signal,
   }
 
   if (methodHasRequestBody(nodeRequest.method)) {
