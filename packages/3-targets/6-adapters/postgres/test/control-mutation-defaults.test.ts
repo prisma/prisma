@@ -309,7 +309,7 @@ describe('postgresScalarAuthoringTypes', () => {
 });
 
 describe('postgresNativeAuthoringTypes', () => {
-  it('contributes all eleven native types as bare-eligible top-level constructors', () => {
+  it('contributes all native types as bare-eligible top-level constructors', () => {
     const derived = collectScalarTypeConstructors(postgresNativeAuthoringTypes);
 
     expect(Object.fromEntries(derived)).toEqual({
@@ -321,6 +321,7 @@ describe('postgresNativeAuthoringTypes', () => {
       Time: { codecId: 'pg/time@1', nativeType: 'time' },
       Timetz: { codecId: 'pg/timetz@1', nativeType: 'timetz' },
       Uuid: { codecId: 'pg/uuid@1', nativeType: 'uuid' },
+      Inet: { codecId: 'pg/inet@1', nativeType: 'inet' },
       SmallInt: { codecId: 'pg/int2@1', nativeType: 'int2' },
       Real: { codecId: 'pg/float4@1', nativeType: 'float4' },
       Date: { codecId: 'pg/date@1', nativeType: 'date' },

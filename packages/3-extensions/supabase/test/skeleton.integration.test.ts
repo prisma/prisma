@@ -873,9 +873,7 @@ describe('supabase RLS behavioral e2e — filtering + drift-fails-verify', () =>
           // the marker check is skipped below because this test verifies the
           // schema (the missing role), not migration-marker identity.
           storageHash: coreHash('supabase-missing-role'),
-          // Carry the base storage's named types (e.g. `Uuid`) forward — the
-          // profile columns reference them.
-          ...(base.storage.types !== undefined ? { types: base.storage.types } : {}),
+
           namespaces: { ...base.storage.namespaces, public: publicWithRole },
         }),
       };

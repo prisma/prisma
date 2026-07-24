@@ -115,13 +115,8 @@ withTempDir(({ createTempDir }) => {
     }, timeouts.spinUpPpgDev);
 
     it(
-      '"amount Decimal" with no @db.Numeric attribute emits cleanly and builds an ExecutionContext',
+      '"amount Decimal" emits cleanly and builds an ExecutionContext',
       async () => {
-        // Hand-authored, not inferred: `control-mutation-defaults.ts` maps
-        // the bare `Decimal` scalar straight to `pg/numeric@1` with no
-        // `typeParams`, independent of any `@db.Numeric` attribute — the same
-        // base-scalar path the unbounded-numeric scenario above reaches
-        // indirectly, exercised here without infer in the loop.
         const ctx: JourneyContext = setupJourney({
           connectionString: database.connectionString,
           createTempDir,
@@ -221,8 +216,6 @@ withTempDir(({ createTempDir }) => {
             const records = new Collection({ runtime, context }, 'Record', {
               namespaceId: 'public',
             });
-            // `pg/date@1` canonicalizes a date column as a `Date` at UTC
-            // midnight, independent of the process timezone.
             const rows = await records.select('id', 'notedOn').all();
             expect(rows).toEqual([{ id: 1, notedOn: new Date(Date.UTC(2024, 0, 15)) }]);
 

@@ -18,7 +18,7 @@ Four slices in a single stack — substrate unification → new surface → cons
    - **Focus:** Pure substrate unification across framework-components, config, both family providers, three adapters, and the LSP wiring. No authoring-syntax or semantic change; native types deliberately deferred to slice 2.
 
 2. **Slice `native-types-as-scalars`** — Linear: [TML-2986](https://linear.app/prisma-company/issue/TML-2986) — `projects/remove-db-attributes/slices/native-types-as-scalars/`
-   - **Outcome:** The eleven former `@db.*` native types are authorable as bare types in both named-type and field position (`Uuid`, `VarChar(191)`, `Numeric(10,2)`, …), contributed by the postgres target as top-level constructor descriptors; `Date` pins `{ codecId: 'pg/timestamptz@1', nativeType: 'date' }`; `Json` re-binds to `pg/json@1` and new `Jsonb` carries `pg/jsonb@1`. Contract-emission parity vs the `@db.*` equivalents proven by tests.
+   - **Outcome:** The twelve non-JSON former `@db.*` native types, including `Inet`, are authorable as bare types in both named-type and field position (`Uuid`, `Inet`, `VarChar(191)`, `Numeric(10,2)`, …), contributed by the postgres target as top-level constructor descriptors; `Date` pins `{ codecId: 'pg/date@1', nativeType: 'date' }`; `Json` re-binds to `pg/json@1` and new `Jsonb` carries `pg/jsonb@1`. Contract-emission parity vs the `@db.*` equivalents proven by tests.
    - **Builds on:** Slice 1's unified namespace.
    - **Hands to:** The new syntax fully available and parity-proven, with `@db.*` still recognized — the coexistence window slice 3 migrates consumers inside.
    - **Focus:** Postgres target contributions + parity tests only. No consumer migration, no printing changes, no `@db.*` removal.

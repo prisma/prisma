@@ -280,7 +280,7 @@ describe('buildSymbolTable() — resolved field shape', () => {
     const result = build(
       [
         'model User {',
-        '  id Int @id @db.VarChar(255)',
+        '  id Int @id @extension.VarChar(255)',
         '  name String @map("full_name")',
         '}',
       ].join('\n'),
@@ -288,9 +288,9 @@ describe('buildSymbolTable() — resolved field shape', () => {
     const id = result.table.topLevel.models['User']?.fields['id'];
     const name = result.table.topLevel.models['User']?.fields['name'];
 
-    expect(id?.attributes.map((a) => a.name)).toEqual(['id', 'db.VarChar']);
-    const dbAttr = id?.attributes.find((a) => a.name === 'db.VarChar');
-    expect(dbAttr?.args.map((a) => ({ kind: a.kind, value: a.value }))).toEqual([
+    expect(id?.attributes.map((a) => a.name)).toEqual(['id', 'extension.VarChar']);
+    const extensionAttr = id?.attributes.find((a) => a.name === 'extension.VarChar');
+    expect(extensionAttr?.args.map((a) => ({ kind: a.kind, value: a.value }))).toEqual([
       { kind: 'positional', value: '255' },
     ]);
     const mapAttr = name?.attributes.find((a) => a.name === 'map');

@@ -1,4 +1,4 @@
 types {
   Email = String //the address
-    @db.Text
+    @extension.Text
 }

@@ -2,15 +2,15 @@
 // Contract inferred from the live database schema. Edit as needed, then run `prisma-next contract emit`.
 
 types {
-  CreatedAt = DateTime @db.Timestamp
-  EmailChangeConfirmStatus = Int @db.SmallInt
-  Hash = String @db.VarChar(40)
-  Id = String @db.Uuid
-  IpAddress = String @db.Inet
-  IpAddress2 = String @db.VarChar(64)
-  Name = String @db.VarChar(100)
-  Parent = String @db.VarChar(255)
-  Payload = Json @db.Json
+  CreatedAt = Timestamp
+  EmailChangeConfirmStatus = SmallInt
+  Hash = VarChar(40)
+  Id = Uuid
+  IpAddress = Inet
+  IpAddress2 = VarChar(64)
+  Name = VarChar(100)
+  Parent = VarChar(255)
+  Payload = Json
 }
 
 namespace auth {

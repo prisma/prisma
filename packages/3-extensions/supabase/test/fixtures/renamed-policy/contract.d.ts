@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'96c43c55e8675492327c06a4bff2f87b88976d796914f416b5a10d9e4e5cdddb'>;
+  StorageHashBase<'4b6d11ec43d0f3a4d4d6c509a2ad96d7b22fa8fd3aa6b0426b7ffdaa97686e8f'>;
 export type ExecutionHash =
   ExecutionHashBase<'5079bd5e0c8e64383c627062a19a0c2299f3729197bfa1d49761e26d082fe72b'>;
 export type ProfileHash =
@@ -102,7 +102,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly typeRef: 'Uuid';
                 };
                 readonly username: {
                   readonly nativeType: 'text';
@@ -113,7 +112,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly typeRef: 'Uuid';
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
@@ -136,14 +134,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly Uuid: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/uuid@1';
-        readonly nativeType: 'uuid';
-        readonly typeParams: Record<string, never>;
       };
     };
     readonly storageHash: StorageHash;

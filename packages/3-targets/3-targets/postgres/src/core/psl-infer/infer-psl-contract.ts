@@ -3,7 +3,6 @@ import type { SqlDescribedContractSpace } from '@prisma-next/family-sql/control'
 import type {
   DefaultMappingOptions,
   EnumInfo,
-  PslNativeTypeAttribute,
   PslPrinterOptions,
   PslTypeMap,
   RelationField,
@@ -18,7 +17,6 @@ import {
   toEnumName,
   toFieldName,
   toModelName,
-  toNamedTypeName,
 } from '@prisma-next/family-sql/psl-infer';
 import { coordinateKey, elementCoordinates } from '@prisma-next/framework-components/ir';
 import type {
@@ -31,10 +29,8 @@ import type {
   PslFieldAttribute,
   PslModel,
   PslModelAttribute,
-  PslNamedTypeDeclaration,
   PslSpan,
   PslTypeConstructorCall,
-  PslTypesBlock,
 } from '@prisma-next/framework-components/psl-ast';
 import {
   makePslNamespace,
@@ -46,7 +42,6 @@ import type { SqlColumnIR, SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/ty
 import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
 import { postgresError } from '../errors';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { createPostgresDefaultMapping } from './postgres-default-mapping';
@@ -75,17 +70,6 @@ type ResolvedColumnFieldName = {
 };
 
 type TableColumnFieldNameMap = ReadonlyMap<string, ResolvedColumnFieldName>;
-
-type NamedTypeRegistryEntry = {
-  readonly name: string;
-  readonly baseType: string;
-  readonly nativeTypeAttribute: PslNativeTypeAttribute;
-};
-
-type NamedTypeRegistry = {
-  readonly entriesByKey: Map<string, NamedTypeRegistryEntry>;
-  readonly usedNames: Set<string>;
-};
 
 type TopLevelNameResult = {
   readonly name: string;
@@ -521,8 +505,6 @@ export function buildPslDocumentAst(
     }
   }
 
-  const reservedNamedTypeNames = createReservedNamedTypeNames(modelNames, enumNameMap);
-
   // Cross-space entries are seeded first so a real local table of the same
   // bare name (an existing single-namespace-flat-bucket limitation, not new
   // here) always wins the merge, matching `resolveForeignKeys`'s own
@@ -532,7 +514,6 @@ export function buildPslDocumentAst(
     ...buildFieldNamesByTable(schemaIR.tables),
   ]);
   const { relationsByTable } = inferRelations(schemaIR.tables, modelNameMap);
-  const namedTypes = seedNamedTypeRegistry(schemaIR, typeMap, enumNameMap, reservedNamedTypeNames);
 
   const models: PslModel[] = [];
   for (const table of Object.values(schemaIR.tables)) {
@@ -542,7 +523,6 @@ export function buildPslDocumentAst(
         typeMap,
         enumNameMap,
         fieldNamesByTable,
-        namedTypes,
         defaultMapping,
         rawDefaultParser,
         [
@@ -555,18 +535,6 @@ export function buildPslDocumentAst(
   }
 
   const sortedModels = topologicalSort(models, schemaIR.tables, modelNameMap);
-
-  const namedTypeEntries = [...namedTypes.entriesByKey.values()].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-  const types: PslTypesBlock | undefined =
-    namedTypeEntries.length > 0
-      ? {
-          kind: 'types',
-          declarations: namedTypeEntries.map(buildNamedTypeDeclaration),
-          span: SYNTHETIC_SPAN,
-        }
-      : undefined;
 
   // Inferred PSL nodes will eventually be routed into per-namespace buckets
   // matching the source storage; for now everything lands in a single bucket.
@@ -586,7 +554,6 @@ export function buildPslDocumentAst(
         span: SYNTHETIC_SPAN,
       }),
     ],
-    ...(types ? { types } : {}),
     span: SYNTHETIC_SPAN,
   };
 
@@ -680,7 +647,6 @@ function buildModel(
   typeMap: PslTypeMap,
   enumNameMap: ReadonlyMap<string, string>,
   fieldNamesByTable: ReadonlyMap<string, TableColumnFieldNameMap>,
-  namedTypes: NamedTypeRegistry,
   defaultMapping: DefaultMappingOptions | undefined,
   rawDefaultParser: PslPrinterOptions['parseRawDefault'],
   relationFields: readonly RelationField[],
@@ -713,7 +679,6 @@ function buildModel(
         typeMap,
         enumNameMap,
         fieldNameMap,
-        namedTypes,
         defaultMapping,
         rawDefaultParser,
         pkColumns,
@@ -832,7 +797,6 @@ function buildScalarField(
   typeMap: PslTypeMap,
   enumNameMap: ReadonlyMap<string, string>,
   fieldNameMap: TableColumnFieldNameMap | undefined,
-  namedTypes: NamedTypeRegistry,
   defaultMapping: DefaultMappingOptions | undefined,
   rawDefaultParser: PslPrinterOptions['parseRawDefault'],
   pkColumns: ReadonlySet<string>,
@@ -866,8 +830,15 @@ function buildScalarField(
   // the Phase-1 authoring form a `native_enum` ref field takes — not a bare
   // name substitution. The printer renders `typeConstructor` when present and
   // composes `?`/`[]` exactly like any other field type.
-  let typeName = resolution.pslType;
-  let typeConstructor: PslTypeConstructorCall | undefined;
+  let typeName = resolution.pslType.name;
+  let typeConstructor: PslTypeConstructorCall | undefined = resolution.pslType.args
+    ? {
+        kind: 'typeConstructor',
+        path: [resolution.pslType.name],
+        args: resolution.pslType.args.map(positionalArg),
+        span: SYNTHETIC_SPAN,
+      }
+    : undefined;
   const enumPslName = enumNameMap.get(column.nativeType);
   if (enumPslName) {
     typeName = enumPslName;
@@ -877,9 +848,6 @@ function buildScalarField(
       args: [positionalArg(enumPslName)],
       span: SYNTHETIC_SPAN,
     };
-  }
-  if (resolution.nativeTypeAttribute && !enumPslName) {
-    typeName = resolveNamedTypeName(namedTypes, resolution);
   }
 
   const attributes: PslFieldAttribute[] = [];
@@ -1080,21 +1048,6 @@ function namedArg(name: string, value: string): PslAttributeArgument {
   return { kind: 'named', name, value, span: SYNTHETIC_SPAN };
 }
 
-function buildNamedTypeDeclaration(entry: NamedTypeRegistryEntry): PslNamedTypeDeclaration {
-  const attribute = buildAttribute(
-    'namedType',
-    entry.nativeTypeAttribute.name,
-    (entry.nativeTypeAttribute.args ?? []).map(positionalArg),
-  );
-  return {
-    kind: 'namedType',
-    name: entry.name,
-    baseType: entry.baseType,
-    attributes: [attribute],
-    span: SYNTHETIC_SPAN,
-  };
-}
-
 function escapePslString(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
@@ -1247,131 +1200,6 @@ function buildTopLevelNameMap(
   }
 
   return results;
-}
-
-function createReservedNamedTypeNames(
-  modelNames: ReadonlyMap<string, TopLevelNameResult>,
-  enumNameMap: ReadonlyMap<string, string>,
-): Set<string> {
-  const reservedNames = new Set<string>(PSL_SCALAR_TYPE_NAMES);
-
-  for (const result of modelNames.values()) {
-    reservedNames.add(result.name);
-  }
-  for (const enumPslName of enumNameMap.values()) {
-    reservedNames.add(enumPslName);
-  }
-
-  return reservedNames;
-}
-
-function seedNamedTypeRegistry(
-  schemaIR: SqlSchemaIR,
-  typeMap: PslTypeMap,
-  enumNameMap: ReadonlyMap<string, string>,
-  reservedNames: ReadonlySet<string>,
-): NamedTypeRegistry {
-  type Seed = {
-    readonly baseType: string;
-    readonly desiredName: string;
-    readonly nativeTypeAttribute: PslNativeTypeAttribute;
-  };
-
-  const seeds = new Map<string, Seed>();
-
-  for (const tableName of Object.keys(schemaIR.tables).sort()) {
-    const table = schemaIR.tables[tableName];
-    if (!table) {
-      continue;
-    }
-
-    for (const columnName of Object.keys(table.columns).sort()) {
-      const column = table.columns[columnName];
-      if (!column) {
-        continue;
-      }
-
-      const resolution = typeMap.resolve(column.nativeType, table.annotations);
-      if (
-        'unsupported' in resolution ||
-        enumNameMap.has(column.nativeType) ||
-        !resolution.nativeTypeAttribute
-      ) {
-        continue;
-      }
-
-      const signatureKey = createNamedTypeSignatureKey(resolution);
-      if (!seeds.has(signatureKey)) {
-        seeds.set(signatureKey, {
-          baseType: resolution.pslType,
-          desiredName: toNamedTypeName(column.name),
-          nativeTypeAttribute: resolution.nativeTypeAttribute,
-        });
-      }
-    }
-  }
-
-  const registry: NamedTypeRegistry = {
-    entriesByKey: new Map<string, NamedTypeRegistryEntry>(),
-    usedNames: new Set<string>(reservedNames),
-  };
-
-  const sortedSeeds = [...seeds.entries()].sort((left, right) => {
-    const desiredNameComparison = left[1].desiredName.localeCompare(right[1].desiredName);
-    if (desiredNameComparison !== 0) {
-      return desiredNameComparison;
-    }
-    return left[0].localeCompare(right[0]);
-  });
-
-  for (const [signatureKey, seed] of sortedSeeds) {
-    const name = createUniqueFieldName(seed.desiredName, registry.usedNames);
-    registry.entriesByKey.set(signatureKey, {
-      name,
-      baseType: seed.baseType,
-      nativeTypeAttribute: seed.nativeTypeAttribute,
-    });
-    registry.usedNames.add(name);
-  }
-
-  return registry;
-}
-
-function resolveNamedTypeName(
-  registry: NamedTypeRegistry,
-  resolution: {
-    readonly pslType: string;
-    readonly nativeType: string;
-    readonly typeParams?: Record<string, unknown>;
-    readonly nativeTypeAttribute?: PslNativeTypeAttribute;
-  },
-): string {
-  const key = createNamedTypeSignatureKey(resolution);
-  const existing = registry.entriesByKey.get(key);
-  if (existing) {
-    return existing.name;
-  }
-
-  throw new InternalError(
-    `Named type registry was not seeded for native type "${resolution.nativeType}"`,
-  );
-}
-
-function createNamedTypeSignatureKey(resolution: {
-  readonly pslType: string;
-  readonly nativeType: string;
-  readonly typeParams?: Record<string, unknown>;
-  readonly nativeTypeAttribute?: PslNativeTypeAttribute;
-}): string {
-  return JSON.stringify({
-    baseType: resolution.pslType,
-    nativeTypeAttribute: resolution.nativeTypeAttribute
-      ? {
-          name: resolution.nativeTypeAttribute.name,
-          args: resolution.nativeTypeAttribute.args ?? null,
-        }
-      : null,
-  });
 }
 
 function topologicalSort(

@@ -2,7 +2,6 @@
 
 types {
   Embedding1536 = pgvector.Vector(1536)
-  Uuid          = String @db.Uuid
 }
 
 type Address {

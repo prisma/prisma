@@ -81,7 +81,7 @@ Eof            """
 
 exports[`Tokenizer > PSL fragments > snapshot: namespaced attribute with dot 1`] = `
 "At             "@"
-Ident          "db"
+Ident          "extension"
 Dot            "."
 Ident          "VarChar"
 LParen         "("

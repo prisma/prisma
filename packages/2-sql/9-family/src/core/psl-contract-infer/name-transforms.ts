@@ -169,15 +169,3 @@ export function deriveBackRelationFieldName(childModelName: string, isOneToOne: 
   const base = childModelName.charAt(0).toLowerCase() + childModelName.slice(1);
   return isOneToOne ? base : pluralize(base);
 }
-
-export function toNamedTypeName(columnName: string): string {
-  let name: string;
-
-  if (hasSeparators(columnName)) {
-    name = snakeToPascalCase(columnName);
-  } else {
-    name = columnName.charAt(0).toUpperCase() + columnName.slice(1);
-  }
-
-  return escapeIfNeeded(name);
-}

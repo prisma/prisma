@@ -6,8 +6,9 @@ import {
 } from '../src/interpreter';
 import {
   createBuiltinLikeControlMutationDefaults,
-  documentScopedTypes,
   modelsOf,
+  postgresNativeScalarTypeDescriptors,
+  postgresScalarAuthoringTypes,
   postgresScalarTypeDescriptors,
   postgresTarget,
   sqliteScalarColumnDescriptors,
@@ -18,7 +19,8 @@ import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contr
 
 const baseInput = {
   target: postgresTarget,
-  scalarColumnDescriptors: postgresScalarTypeDescriptors,
+  scalarColumnDescriptors: postgresNativeScalarTypeDescriptors,
+  authoringContributions: { type: postgresScalarAuthoringTypes },
   composedExtensionContracts: new Map(),
   createNamespace: createTestSqlNamespace,
   capabilities: { sql: { scalarList: true } },
@@ -103,7 +105,7 @@ describe('interpretPslDocumentToSqlContract diagnostics', () => {
   it('returns diagnostics for unsupported named types, field lists, missing keys, and invalid relation targets', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  DisplayName = String @db.VarChar(191)
+  DisplayName = VarChar(191)
   Weird = Unsupported
 }
 
@@ -334,12 +336,12 @@ model User {
     );
   });
 
-  it('returns diagnostics for invalid Postgres native type attribute usage', () => {
+  it('returns diagnostics for invalid Postgres native type constructor usage', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  BadChar = Int @db.Char(10)
-  BadReal = Float @db.Real(1)
-  BadTimestamp = DateTime @db.Timestamp(-1)
+  BadChar = Char(0)
+  BadReal = Real(1)
+  BadTimestamp = Timestamp(-1)
 }
 
 model InvalidNativeTypes {
@@ -362,19 +364,19 @@ model InvalidNativeTypes {
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadChar" uses @db.Char on unsupported base type "Int". Expected "String"',
+            'Named type "BadChar" constructor "Char" Authoring helper argument at Char[0] must be >= 1, received 0',
           ),
         }),
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadReal" @db.Real does not accept arguments',
+            'Named type "BadReal" constructor "Real" accepts at most 0 argument(s), received 1.',
           ),
         }),
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadTimestamp" @db.Timestamp requires a non-negative integer precision',
+            'Named type "BadTimestamp" constructor "Timestamp" Authoring helper argument at Timestamp[0] must be >= 0, received -1',
           ),
         }),
       ]),
@@ -574,39 +576,6 @@ model User {
     );
   });
 
-  it('rejects named types that declare multiple @db.* attributes', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `types {
-  Email = String @db.VarChar(10) @db.Char(2)
-}
-
-model User {
-  id Int @id
-  email Email
-}
-`,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: [],
-      controlMutationDefaults: builtinControlMutationDefaults,
-    });
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-          message: expect.stringContaining('at most one @db.* attribute'),
-        }),
-      ]),
-    );
-  });
-
   it('does not report family/target namespaces as uncomposed attribute namespaces', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `model User {
@@ -636,32 +605,6 @@ model User {
         'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
       ]),
     );
-  });
-
-  it('does not report db.* constructors as uncomposed namespace', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `types {
-  Short = String @db.VarChar(35)
-}
-
-model User {
-  id Int @id
-  short Short
-}
-`,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: [],
-      controlMutationDefaults: builtinControlMutationDefaults,
-    });
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(documentScopedTypes(result.value)).toMatchObject({ Short: expect.any(Object) });
   });
 
   it('surfaces value-object field errors through the diagnostics gate', () => {

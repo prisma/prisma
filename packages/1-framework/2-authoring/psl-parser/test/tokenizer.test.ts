@@ -52,7 +52,7 @@ describe('Tokenizer', () => {
       ['block attribute @@index', '@@index([userId])'],
       ['comment followed by model', '// config\nmodel C {}'],
       ['string default value', '@default("unknown")'],
-      ['namespaced attribute with dot', '@db.VarChar(191)'],
+      ['namespaced attribute with dot', '@extension.VarChar(191)'],
       ['types block with equals', 'Email = String'],
       ['hyphenated attribute namespace', '@my-pack.column'],
       ['unicode identifiers', 'café Ñame 名前'],

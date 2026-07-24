@@ -1,17 +1,16 @@
 import type { ColumnDefault } from '@prisma-next/contract/types';
 import type { DefaultMappingOptions } from './default-mapping';
 
-export type PslNativeTypeAttribute = {
+export type PslTypeReference = {
   readonly name: string;
   readonly args?: readonly string[];
 };
 
 export type PslTypeResolution =
   | {
-      readonly pslType: string;
+      readonly pslType: PslTypeReference;
       readonly nativeType: string;
       readonly typeParams?: Record<string, unknown>;
-      readonly nativeTypeAttribute?: PslNativeTypeAttribute;
     }
   | {
       readonly unsupported: true;

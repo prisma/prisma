@@ -53,11 +53,11 @@ describe('printPsl', () => {
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
       model Post {
-        id          Int      @id @default(autoincrement())
-        title       String   @default("Untitled")
-        isPublished Boolean  @default(false) @map("is_published")
-        viewCount   Int      @default(0) @map("view_count")
-        createdAt   DateTime @default(now()) @map("created_at")
+        id          Int         @id @default(autoincrement())
+        title       String      @default("Untitled")
+        isPublished Boolean     @default(false) @map("is_published")
+        viewCount   Int         @default(0) @map("view_count")
+        createdAt   Timestamptz @default(now()) @map("created_at")
 
         @@map("post")
       }
@@ -65,7 +65,7 @@ describe('printPsl', () => {
     `);
   });
 
-  it('parameterized types generate types block entries', () => {
+  it('prints parameterized native constructors in field position', () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         contact: {
@@ -95,15 +95,10 @@ describe('printPsl', () => {
       "// use prisma-next
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
-      types {
-        Email = String @db.VarChar(255)
-        Phone = String @db.Char(20)
-      }
-
       model Contact {
-        id    Int    @id
-        email Email  @unique
-        phone Phone?
+        id    Int          @id
+        email VarChar(255) @unique
+        phone Char(20)?
 
         @@map("contact")
       }
@@ -111,7 +106,7 @@ describe('printPsl', () => {
     `);
   });
 
-  it('creates distinct named types for colliding column aliases with different resolutions', () => {
+  it('prints each native constructor independently of column-name collisions', () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         price: {
@@ -151,21 +146,16 @@ describe('printPsl', () => {
       "// use prisma-next
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
-      types {
-        Value = Decimal @db.Numeric(10, 2)
-        Value2 = String @db.VarChar(255)
-      }
-
       model Price {
-        id    Int   @id
-        value Value
+        id    Int            @id
+        value Numeric(10, 2)
 
         @@map("price")
       }
 
       model Setting {
-        id    Int    @id
-        value Value2
+        id    Int          @id
+        value VarChar(255)
 
         @@map("setting")
       }
@@ -173,7 +163,7 @@ describe('printPsl', () => {
     `);
   });
 
-  it('reuses named types when the same alias resolves to the same storage type', () => {
+  it('prints repeated native constructors directly on each field', () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         account: {
@@ -214,20 +204,16 @@ describe('printPsl', () => {
       "// use prisma-next
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
-      types {
-        Email = String @db.VarChar(255)
-      }
-
       model Account {
-        id    Int   @id
-        email Email
+        id    Int          @id
+        email VarChar(255)
 
         @@map("account")
       }
 
       model Profile {
-        id    Int   @id
-        email Email
+        id    Int          @id
+        email VarChar(255)
 
         @@map("profile")
       }
@@ -235,7 +221,7 @@ describe('printPsl', () => {
     `);
   });
 
-  it('disambiguates named types from scalar and model identifiers', () => {
+  it('does not alias native constructors that share scalar or model names', () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         user: {
@@ -266,15 +252,10 @@ describe('printPsl', () => {
       "// use prisma-next
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
-      types {
-        String2 = String @db.VarChar(64)
-        User2 = String @db.VarChar(255)
-      }
-
       model User {
-        id     Int     @id
-        user   User2
-        string String2
+        id     Int          @id
+        user   VarChar(255)
+        string VarChar(64)
 
         @@map("user")
       }
@@ -348,12 +329,8 @@ describe('printPsl', () => {
       "// use prisma-next
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
-      types {
-        Id = String @db.Uuid
-      }
-
       model Item {
-        id Id @id @default(dbgenerated("gen_random_uuid()"))
+        id Uuid @id @default(dbgenerated("gen_random_uuid()"))
 
         @@map("item")
       }
@@ -361,7 +338,7 @@ describe('printPsl', () => {
     `);
   });
 
-  it('preserves non-default native types through named type attributes', () => {
+  it('preserves non-default native types in field position', () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         schedule: {
@@ -402,20 +379,12 @@ describe('printPsl', () => {
       "// use prisma-next
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
-      types {
-        BookedOn = DateTime @db.Date
-        Id = String @db.Uuid
-        Payload = Json @db.Json
-        Rating = Int @db.SmallInt
-        Slot = DateTime @db.Time(3)
-      }
-
       model Schedule {
-        id       Id       @id
-        bookedOn BookedOn @map("booked_on")
-        slot     Slot
-        rating   Rating
-        payload  Payload
+        id       Uuid     @id
+        bookedOn Date     @map("booked_on")
+        slot     Time(3)
+        rating   SmallInt
+        payload  Json
 
         @@map("schedule")
       }
@@ -462,10 +431,10 @@ describe('printPsl', () => {
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
 
       model Data {
-        id        Int      @id
-        computed  String   @default(dbgenerated("my_custom_func()"))
-        payload   Jsonb    @default(dbgenerated("'{}'::jsonb"))
-        touchedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("touched_at")
+        id        Int         @id
+        computed  String      @default(dbgenerated("my_custom_func()"))
+        payload   Jsonb       @default(dbgenerated("'{}'::jsonb"))
+        touchedAt Timestamptz @default(dbgenerated("clock_timestamp()")) @map("touched_at")
 
         @@map("data")
       }

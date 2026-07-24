@@ -171,6 +171,14 @@ changes:
         - "scalarTypeDescriptors"
         - "assembleScalarTypeDescriptors"
       anyMatch: true
+  - id: postgres-native-types-move-to-type-position
+    summary: |
+      PostgreSQL native storage types are now authored directly in PSL type position instead of with `@db.*` attributes. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in extension schemas and test fixtures, then re-run contract emission. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves codec ids, native types, and supplied type parameters. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
+    detection:
+      glob: "**/*.prisma"
+      contains:
+        - "@db."
+      anyMatch: true
   - id: postgres-json-rebound-to-native-json
     summary: |
       On the postgres target the PSL `Json` scalar re-binds from `pg/jsonb@1` / `jsonb` to

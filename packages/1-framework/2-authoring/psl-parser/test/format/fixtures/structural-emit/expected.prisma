@@ -6,7 +6,7 @@ enum B {
 model User {
   id    Int    @id @default(autoincrement())
   name  String @map(name: "user_name", length: 255)
-  token String @db.Uuid
+  token Uuid
 }
 
 type Address {

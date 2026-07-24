@@ -382,9 +382,8 @@ function namedTypeSignature(declaration: PslNamedTypeDeclaration): string {
 
 /**
  * `auth` and `storage` are inferred independently, so each seeds its own
- * named-type registry from its own columns — the same underlying
- * `String @db.Uuid` can come out as `Id` in one schema and `Owner` in the
- * other. Groups every declaration by structural signature (ignoring name),
+ * named-type registry from its own columns — the same underlying `Uuid`
+ * storage type can come out as `Id` in one schema and `Owner` in the other. Groups every declaration by structural signature (ignoring name),
  * keeps one canonical declaration per signature (the first-seen — `auth`'s
  * declarations are passed first), and returns the old-name -> canonical-name
  * map for every non-canonical name so callers fold it into the global

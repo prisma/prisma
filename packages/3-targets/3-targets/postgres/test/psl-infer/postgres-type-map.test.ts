@@ -5,41 +5,51 @@ describe('createPostgresTypeMap', () => {
   const typeMap = createPostgresTypeMap();
 
   it('maps basic scalar types', () => {
-    expect(typeMap.resolve('text')).toEqual({ pslType: 'String', nativeType: 'text' });
-    expect(typeMap.resolve('int4')).toEqual({ pslType: 'Int', nativeType: 'int4' });
-    expect(typeMap.resolve('bool')).toEqual({ pslType: 'Boolean', nativeType: 'bool' });
-    expect(typeMap.resolve('float8')).toEqual({ pslType: 'Float', nativeType: 'float8' });
-    expect(typeMap.resolve('numeric')).toEqual({ pslType: 'Decimal', nativeType: 'numeric' });
+    expect(typeMap.resolve('text')).toEqual({ pslType: { name: 'String' }, nativeType: 'text' });
+    expect(typeMap.resolve('int4')).toEqual({ pslType: { name: 'Int' }, nativeType: 'int4' });
+    expect(typeMap.resolve('bool')).toEqual({ pslType: { name: 'Boolean' }, nativeType: 'bool' });
+    expect(typeMap.resolve('float8')).toEqual({ pslType: { name: 'Float' }, nativeType: 'float8' });
+    expect(typeMap.resolve('numeric')).toEqual({
+      pslType: { name: 'Numeric' },
+      nativeType: 'numeric',
+    });
     expect(typeMap.resolve('timestamptz')).toEqual({
-      pslType: 'DateTime',
+      pslType: { name: 'Timestamptz' },
       nativeType: 'timestamptz',
     });
-    expect(typeMap.resolve('jsonb')).toEqual({ pslType: 'Jsonb', nativeType: 'jsonb' });
-    expect(typeMap.resolve('bytea')).toEqual({ pslType: 'Bytes', nativeType: 'bytea' });
-    expect(typeMap.resolve('int8')).toEqual({ pslType: 'BigInt', nativeType: 'int8' });
+    expect(typeMap.resolve('timestamp with time zone')).toEqual({
+      pslType: { name: 'Timestamptz' },
+      nativeType: 'timestamp with time zone',
+    });
+    expect(typeMap.resolve('jsonb')).toEqual({ pslType: { name: 'Jsonb' }, nativeType: 'jsonb' });
+    expect(typeMap.resolve('bytea')).toEqual({ pslType: { name: 'Bytes' }, nativeType: 'bytea' });
+    expect(typeMap.resolve('int8')).toEqual({ pslType: { name: 'BigInt' }, nativeType: 'int8' });
     expect(typeMap.resolve('uuid')).toEqual({
-      pslType: 'String',
+      pslType: { name: 'Uuid' },
       nativeType: 'uuid',
-      nativeTypeAttribute: { name: 'db.Uuid' },
     });
     expect(typeMap.resolve('inet')).toEqual({
-      pslType: 'String',
+      pslType: { name: 'Inet' },
       nativeType: 'inet',
-      nativeTypeAttribute: { name: 'db.Inet' },
     });
   });
 
   it('maps alias types', () => {
-    expect(typeMap.resolve('integer')).toEqual({ pslType: 'Int', nativeType: 'integer' });
-    expect(typeMap.resolve('boolean')).toEqual({ pslType: 'Boolean', nativeType: 'boolean' });
-    expect(typeMap.resolve('bigint')).toEqual({ pslType: 'BigInt', nativeType: 'bigint' });
+    expect(typeMap.resolve('integer')).toEqual({ pslType: { name: 'Int' }, nativeType: 'integer' });
+    expect(typeMap.resolve('boolean')).toEqual({
+      pslType: { name: 'Boolean' },
+      nativeType: 'boolean',
+    });
+    expect(typeMap.resolve('bigint')).toEqual({
+      pslType: { name: 'BigInt' },
+      nativeType: 'bigint',
+    });
     expect(typeMap.resolve('real')).toEqual({
-      pslType: 'Float',
+      pslType: { name: 'Real' },
       nativeType: 'real',
-      nativeTypeAttribute: { name: 'db.Real' },
     });
     expect(typeMap.resolve('double precision')).toEqual({
-      pslType: 'Float',
+      pslType: { name: 'Float' },
       nativeType: 'double precision',
     });
   });
@@ -47,57 +57,49 @@ describe('createPostgresTypeMap', () => {
   it('handles parameterized types', () => {
     const result = typeMap.resolve('character varying(255)');
     expect(result).toEqual({
-      pslType: 'String',
+      pslType: { name: 'VarChar', args: ['255'] },
       nativeType: 'character varying(255)',
       typeParams: { baseType: 'character varying', params: '255' },
-      nativeTypeAttribute: { name: 'db.VarChar', args: ['255'] },
     });
   });
 
   it('handles character type with parameter', () => {
     const result = typeMap.resolve('character(20)');
     expect(result).toEqual({
-      pslType: 'String',
+      pslType: { name: 'Char', args: ['20'] },
       nativeType: 'character(20)',
       typeParams: { baseType: 'character', params: '20' },
-      nativeTypeAttribute: { name: 'db.Char', args: ['20'] },
     });
   });
 
-  it('preserves bare varchar via a native type attribute', () => {
+  it('preserves bare varchar in type position', () => {
     expect(typeMap.resolve('varchar')).toEqual({
-      pslType: 'String',
+      pslType: { name: 'VarChar' },
       nativeType: 'varchar',
-      nativeTypeAttribute: { name: 'db.VarChar' },
     });
   });
 
   it('preserves non-default timestamp, date, time, json, and integer types', () => {
     expect(typeMap.resolve('timestamp')).toEqual({
-      pslType: 'DateTime',
+      pslType: { name: 'Timestamp' },
       nativeType: 'timestamp',
-      nativeTypeAttribute: { name: 'db.Timestamp' },
     });
     expect(typeMap.resolve('time(3)')).toEqual({
-      pslType: 'DateTime',
+      pslType: { name: 'Time', args: ['3'] },
       nativeType: 'time(3)',
       typeParams: { baseType: 'time', params: '3' },
-      nativeTypeAttribute: { name: 'db.Time', args: ['3'] },
     });
     expect(typeMap.resolve('date')).toEqual({
-      pslType: 'DateTime',
+      pslType: { name: 'Date' },
       nativeType: 'date',
-      nativeTypeAttribute: { name: 'db.Date' },
     });
     expect(typeMap.resolve('json')).toEqual({
-      pslType: 'Json',
+      pslType: { name: 'Json' },
       nativeType: 'json',
-      nativeTypeAttribute: { name: 'db.Json' },
     });
     expect(typeMap.resolve('int2')).toEqual({
-      pslType: 'Int',
+      pslType: { name: 'SmallInt' },
       nativeType: 'int2',
-      nativeTypeAttribute: { name: 'db.SmallInt' },
     });
   });
 
@@ -122,11 +124,16 @@ describe('createPostgresTypeMap', () => {
     const enumTypeMap = createPostgresTypeMap(enumTypes);
 
     expect(enumTypeMap.resolve('user_role')).toEqual({
-      pslType: 'user_role',
+      pslType: { name: 'user_role' },
       nativeType: 'user_role',
     });
-    expect(enumTypeMap.resolve('status')).toEqual({ pslType: 'status', nativeType: 'status' });
-    // Non-enum still resolves normally
-    expect(enumTypeMap.resolve('text')).toEqual({ pslType: 'String', nativeType: 'text' });
+    expect(enumTypeMap.resolve('status')).toEqual({
+      pslType: { name: 'status' },
+      nativeType: 'status',
+    });
+    expect(enumTypeMap.resolve('text')).toEqual({
+      pslType: { name: 'String' },
+      nativeType: 'text',
+    });
   });
 });

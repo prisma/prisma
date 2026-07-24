@@ -1,7 +1,3 @@
-types {
-  Uuid = String @db.Uuid
-}
-
 namespace public {
   model Profile {
     id       Uuid   @id @default(uuid())

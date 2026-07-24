@@ -491,7 +491,7 @@ describe('parse() representative multi-construct schema', () => {
     'namespace auth {',
     '  model Post {',
     '    id Int @id',
-    '    tags String[] @db.Array',
+    '    tags String[] @extension.Array',
     '  }',
     '  enum Visibility {',
     '    @@type("pg/text@1")',

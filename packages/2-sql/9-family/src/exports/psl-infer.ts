@@ -22,13 +22,12 @@ export {
   toEnumName,
   toFieldName,
   toModelName,
-  toNamedTypeName,
 } from '../core/psl-contract-infer/name-transforms';
 export type {
   EnumInfo,
-  PslNativeTypeAttribute,
   PslPrinterOptions,
   PslTypeMap,
+  PslTypeReference,
   PslTypeResolution,
   RelationField,
 } from '../core/psl-contract-infer/printer-config';

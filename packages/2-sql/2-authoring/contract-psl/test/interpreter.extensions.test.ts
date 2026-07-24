@@ -80,7 +80,7 @@ model Document {
   it('rejects attributes attached to constructor-based named types', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  Embedding1536 = pgvector.Vector(1536) @db.VarChar(191)
+  Embedding1536 = pgvector.Vector(1536) @pgvector.column
 }
 
 model Document {
@@ -104,7 +104,7 @@ model Document {
       expect.arrayContaining([
         expect.objectContaining({
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
-          message: expect.stringContaining('db.VarChar'),
+          message: expect.stringContaining('pgvector.column'),
         }),
       ]),
     );

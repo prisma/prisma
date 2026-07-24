@@ -179,7 +179,7 @@ describe('semantic token substrate', () => {
         '    customer User? @relation(name: "invoice_user", fields: [id])',
         '    amount Decimal @default(12.5)',
         '    active Boolean @default(true)',
-        '    metadata Json @db.Json',
+        '    metadata Json',
         '    shipping Address',
         '    @@map("invoices")',
         '  }',

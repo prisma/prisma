@@ -134,14 +134,12 @@
                 "id": {
                   "codecId": "pg/uuid@1",
                   "nativeType": "uuid",
-                  "nullable": false,
-                  "typeRef": "Uuid"
+                  "nullable": false
                 },
                 "userId": {
                   "codecId": "pg/uuid@1",
                   "nativeType": "uuid",
-                  "nullable": false,
-                  "typeRef": "Uuid"
+                  "nullable": false
                 },
                 "username": {
                   "codecId": "pg/text@1",
@@ -189,14 +187,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "96c43c55e8675492327c06a4bff2f87b88976d796914f416b5a10d9e4e5cdddb",
-    "types": {
-      "Uuid": {
-        "codecId": "pg/uuid@1",
-        "kind": "codec-instance",
-        "nativeType": "uuid"
-      }
-    }
+    "storageHash": "4b6d11ec43d0f3a4d4d6c509a2ad96d7b22fa8fd3aa6b0426b7ffdaa97686e8f"
   },
   "execution": {
     "executionHash": "5079bd5e0c8e64383c627062a19a0c2299f3729197bfa1d49761e26d082fe72b",

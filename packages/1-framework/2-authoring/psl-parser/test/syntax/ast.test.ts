@@ -335,13 +335,12 @@ describe('FieldAttributeAst', () => {
   });
 
   it('exposes namespaced attribute parts', () => {
-    // @db.VarChar
     const b = new GreenNodeBuilder();
     b.startNode('FieldAttribute');
     b.token('At', '@');
     b.startNode('QualifiedName');
     b.startNode('Identifier');
-    b.token('Ident', 'db');
+    b.token('Ident', 'extension');
     b.finishNode();
     b.token('Dot', '.');
     b.startNode('Identifier');
@@ -352,7 +351,7 @@ describe('FieldAttributeAst', () => {
     const attr = FieldAttributeAst.cast(root)!;
     const name = attr.name()!;
     expect(name.dot()?.text).toBe('.');
-    expect(name.namespace()?.token()?.text).toBe('db');
+    expect(name.namespace()?.token()?.text).toBe('extension');
     expect(name.identifier()?.token()?.text).toBe('VarChar');
   });
 
@@ -692,7 +691,7 @@ describe('DocumentAst', () => {
     b.token('Ident', 'datasource');
     b.token('Whitespace', ' ');
     b.startNode('Identifier');
-    b.token('Ident', 'db');
+    b.token('Ident', 'extension');
     b.finishNode();
     b.token('Whitespace', ' ');
     b.token('LBrace', '{');
@@ -771,7 +770,7 @@ describe('NamedTypeDeclarationAst', () => {
     b.token('At', '@');
     b.startNode('QualifiedName');
     b.startNode('Identifier');
-    b.token('Ident', 'db');
+    b.token('Ident', 'extension');
     b.finishNode();
     b.finishNode();
     b.finishNode();
@@ -786,7 +785,7 @@ describe('NamedTypeDeclarationAst', () => {
     expect(decl.typeAnnotation()?.name()?.identifier()?.token()?.text).toBe('Int');
     const attrs = Array.from(decl.attributes());
     expect(attrs).toHaveLength(1);
-    expect(attrs[0]!.name()?.identifier()?.token()?.text).toBe('db');
+    expect(attrs[0]!.name()?.identifier()?.token()?.text).toBe('extension');
   });
 });
 
@@ -797,7 +796,7 @@ describe('GenericBlockDeclarationAst', () => {
     b.token('Ident', 'datasource');
     b.token('Whitespace', ' ');
     b.startNode('Identifier');
-    b.token('Ident', 'db');
+    b.token('Ident', 'extension');
     b.finishNode();
     b.token('Whitespace', ' ');
     b.token('LBrace', '{');
@@ -823,7 +822,7 @@ describe('GenericBlockDeclarationAst', () => {
     const root = createSyntaxTree(buildBlock());
     const decl = GenericBlockDeclarationAst.cast(root)!;
     expect(decl.keyword()?.text).toBe('datasource');
-    expect(decl.name()?.token()?.text).toBe('db');
+    expect(decl.name()?.token()?.text).toBe('extension');
     expect(decl.lbrace()?.text).toBe('{');
     expect(decl.rbrace()?.text).toBe('}');
   });
@@ -980,7 +979,7 @@ describe('CompositeTypeDeclarationAst', () => {
 
 describe('NamespaceDeclarationAst', () => {
   function buildNamespace() {
-    // namespace auth { model User {} datasource db {} extend Something {} }
+    // namespace auth { model User {} datasource extension {} extend Something {} }
     const b = new GreenNodeBuilder();
     b.startNode('Document');
     b.startNode('Namespace');
@@ -1004,7 +1003,7 @@ describe('NamespaceDeclarationAst', () => {
     b.token('Ident', 'datasource');
     b.token('Whitespace', ' ');
     b.startNode('Identifier');
-    b.token('Ident', 'db');
+    b.token('Ident', 'extension');
     b.finishNode();
     b.token('LBrace', '{');
     b.token('RBrace', '}');
@@ -1285,11 +1284,11 @@ describe('QualifiedNameAst', () => {
   it('never matches a qualified name with isSimpleName', () => {
     const b = new GreenNodeBuilder();
     b.startNode('QualifiedName');
-    ident(b, 'db');
+    ident(b, 'extension');
     b.token('Dot', '.');
     ident(b, 'VarChar');
     const qn = QualifiedNameAst.cast(createSyntaxTree(b.finishNode()))!;
     expect(qn.isSimpleName('VarChar')).toBe(false);
-    expect(qn.isSimpleName('db.VarChar')).toBe(false);
+    expect(qn.isSimpleName('extension.VarChar')).toBe(false);
   });
 });

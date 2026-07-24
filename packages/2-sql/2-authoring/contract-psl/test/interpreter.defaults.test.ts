@@ -11,6 +11,7 @@ import {
 } from '../src/interpreter';
 import {
   createBuiltinLikeControlMutationDefaults,
+  postgresNativeScalarTypeDescriptors,
   postgresScalarAuthoringTypes,
   postgresScalarTypeDescriptors,
   postgresTarget,
@@ -34,16 +35,24 @@ describe('interpretPslDocumentToSqlContract default lowering', () => {
       | 'createNamespace'
       | 'capabilities'
     > &
-      Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
-  ) =>
-    interpretPslDocumentToSqlContractInternal({
+      Partial<
+        Pick<
+          InterpretPslDocumentToSqlContractInput,
+          'composedExtensionContracts' | 'scalarColumnDescriptors'
+        >
+      >,
+  ) => {
+    const { scalarColumnDescriptors = postgresNativeScalarTypeDescriptors, ...interpreterInput } =
+      input;
+    return interpretPslDocumentToSqlContractInternal({
       target: postgresTarget,
-      scalarColumnDescriptors: postgresScalarTypeDescriptors,
+      scalarColumnDescriptors,
       composedExtensionContracts: new Map(),
       createNamespace: createTestSqlNamespace,
       capabilities: { sql: { scalarList: true } },
-      ...input,
+      ...interpreterInput,
     });
+  };
   it('lowers supported default functions into execution and storage contract shapes', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `model Defaults {
@@ -140,10 +149,10 @@ describe('interpretPslDocumentToSqlContract default lowering', () => {
     });
   });
 
-  it('accepts uuid() and uuid(7) defaults on @db.Uuid columns, preserving native uuid storage type', () => {
+  it('accepts uuid() and uuid(7) defaults on bare Uuid columns, preserving native uuid storage type', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  UuidNativeId = String @db.Uuid
+  UuidNativeId = Uuid
 }
 
 model UuidNative {
@@ -191,7 +200,7 @@ model UuidNative {
   it('accepts uuid() default on a named Uuid type field (e.g. id Uuid @id @default(uuid())), preserving native uuid storage type', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  Uuid = String @db.Uuid
+  Uuid = Uuid
 }
 
 model Profile {
@@ -228,10 +237,10 @@ model Profile {
     });
   });
 
-  it('rejects non-uuid generators on @db.Uuid columns with PSL_INVALID_DEFAULT_APPLICABILITY', () => {
+  it('rejects non-uuid generators on bare Uuid columns with PSL_INVALID_DEFAULT_APPLICABILITY', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  UuidNativeId = String @db.Uuid
+  UuidNativeId = Uuid
 }
 
 model UuidNativeBad {
@@ -1007,6 +1016,7 @@ model UuidNativeBad {
       const document = symbolTableInputFromParseArgs({ schema, sourceId: 'schema.prisma' });
       return interpretPslDocumentToSqlContract({
         ...document,
+        scalarColumnDescriptors: postgresScalarTypeDescriptors,
         controlMutationDefaults: builtinControlMutationDefaults,
         authoringContributions: postgresTemporalContributions,
       });

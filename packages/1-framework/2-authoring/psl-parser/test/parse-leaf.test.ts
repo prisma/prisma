@@ -151,7 +151,7 @@ describe('parseAttribute well-formed', () => {
   });
 
   it('parses a namespaced field attribute', () => {
-    const source = '@db.VarChar';
+    const source = '@extension.VarChar';
     const { node, diagnostics } = parse(source, parseAttribute);
 
     expect(printTree(node)).toMatchInlineSnapshot(`
@@ -159,7 +159,7 @@ describe('parseAttribute well-formed', () => {
         At "@"
         QualifiedName
           Identifier
-            Ident "db"
+            Ident "extension"
           Dot "."
           Identifier
             Ident "VarChar""

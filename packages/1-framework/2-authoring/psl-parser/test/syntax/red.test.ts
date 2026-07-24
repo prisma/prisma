@@ -597,7 +597,7 @@ describe('zero-width node precondition', () => {
     'type T = Vector(',
     'enum E { A B',
     'model A { id Int @default(autoincrement()) @',
-    'model A { name String @db. }',
+    'model A { name String @extension. }',
   ];
 
   for (const source of sources) {

@@ -171,12 +171,8 @@ describe.sequential('PSL scalar-list end-to-end', () => {
     async () => {
       if (!database) throw new Error('database not initialised');
 
-      // `Decimal` is a parameterized codec (`pg/numeric@1`); a bare list element
-      // would carry no precision/scale, so the element type is pinned via a named
-      // type carrying `@db.Numeric(...)` — the same way scalar Decimal fields are
-      // authored when fidelity matters.
       const authored = await authorSqlContractFromPsl(`types {
-  Amount = Decimal @db.Numeric(30, 10)
+  Amount = Numeric(30, 10)
 }
 
 model Reading {

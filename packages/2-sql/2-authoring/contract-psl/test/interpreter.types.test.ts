@@ -5,7 +5,8 @@ import { interpretPslDocumentToSqlContract } from '../src/interpreter';
 import {
   createBuiltinLikeControlMutationDefaults,
   documentScopedTypes,
-  postgresScalarTypeDescriptors,
+  postgresNativeScalarTypeDescriptors,
+  postgresScalarAuthoringTypes,
   postgresTarget,
   symbolTableInputFromParseArgs,
   testEnumEntityContributions,
@@ -13,8 +14,12 @@ import {
 
 const baseInput = {
   target: postgresTarget,
-  scalarColumnDescriptors: postgresScalarTypeDescriptors,
-  authoringContributions: { entityTypes: testEnumEntityContributions, type: {}, field: {} },
+  scalarColumnDescriptors: postgresNativeScalarTypeDescriptors,
+  authoringContributions: {
+    entityTypes: testEnumEntityContributions,
+    type: postgresScalarAuthoringTypes,
+    field: {},
+  },
   composedExtensionContracts: new Map(),
   createNamespace: createTestSqlNamespace,
   capabilities: { sql: { scalarList: true } },
@@ -26,13 +31,13 @@ describe('interpretPslDocumentToSqlContract types', () => {
   it('lowers preserved native type named types into storage descriptors', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  Id = String @db.Uuid
-  Slug = String @db.VarChar(191)
-  Rating = Int @db.SmallInt
-  HappenedAt = DateTime @db.Time(3)
-  PublishDay = DateTime @db.Date
-  Payload = Json @db.Json
-  Amount = Decimal @db.Numeric(10, 2)
+  Id = Uuid
+  Slug = VarChar(191)
+  Rating = SmallInt
+  HappenedAt = Time(3)
+  PublishDay = Date
+  Payload = Json
+  Amount = Numeric(10, 2)
 }
 
 model Event {
@@ -136,12 +141,12 @@ model Event {
   it('lowers additional Postgres native type attributes on named types', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `types {
-  Code = String @db.Char(12)
-  Score = Float @db.Real
-  CreatedAt = DateTime @db.Timestamp(3)
-  PublishedAt = DateTime @db.Timestamptz(6)
-  ReminderAt = DateTime @db.Timetz(2)
-  Ip = String @db.Inet
+  Code = Char(12)
+  Score = Real
+  CreatedAt = Timestamp(3)
+  PublishedAt = Timestamptz(6)
+  ReminderAt = Timetz(2)
+  Ip = Inet
 }
 
 model Event {

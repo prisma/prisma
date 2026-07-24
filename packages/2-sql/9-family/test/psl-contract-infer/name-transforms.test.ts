@@ -7,7 +7,6 @@ import {
   toEnumName,
   toFieldName,
   toModelName,
-  toNamedTypeName,
 } from '../../src/core/psl-contract-infer/name-transforms';
 
 describe('toModelName', () => {
@@ -196,24 +195,6 @@ describe('deriveBackRelationFieldName', () => {
 
   it('does not double-pluralize an already-plural model name for 1:N', () => {
     expect(deriveBackRelationFieldName('Sessions', false)).toBe('sessions');
-  });
-});
-
-describe('toNamedTypeName', () => {
-  it('converts column name to PascalCase', () => {
-    expect(toNamedTypeName('email')).toBe('Email');
-    expect(toNamedTypeName('phone_number')).toBe('PhoneNumber');
-  });
-
-  it('sanitizes and escapes identifiers', () => {
-    expect(toNamedTypeName('foo$bar')).toBe('FooBar');
-    expect(toNamedTypeName('type')).toBe('_Type');
-    expect(toNamedTypeName('123value')).toBe('_123value');
-  });
-
-  it('synthesizes a deterministic identifier when no ASCII identifier characters remain', () => {
-    expect(toNamedTypeName('$$$')).toMatch(/^X[0-9a-f]+$/);
-    expect(toNamedTypeName('東京')).toBe(toNamedTypeName('東京'));
   });
 });
 

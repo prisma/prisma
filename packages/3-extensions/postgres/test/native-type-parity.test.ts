@@ -72,9 +72,9 @@ function storageOf(value: unknown) {
   ).storage;
 }
 
-function schemaFor(bare: string, legacy: string): string {
+function schemaFor(bare: string, alias: string): string {
   return `types {
-  Legacy = ${legacy}
+  Alias = ${alias}
   Named = ${bare}
 }
 
@@ -89,7 +89,7 @@ model sample {
 interface ParityCase {
   readonly title: string;
   readonly bare: string;
-  readonly legacy: string;
+  readonly alias: string;
   readonly expected: {
     readonly codecId: string;
     readonly nativeType: string;
@@ -105,67 +105,67 @@ const parityCases: readonly ParityCase[] = [
   {
     title: 'VarChar(191)',
     bare: 'VarChar(191)',
-    legacy: 'String @db.VarChar(191)',
+    alias: 'VarChar(191)',
     expected: { ...varcharOut, typeParams: { length: 191 } },
   },
   {
     title: 'VarChar() — arg omitted',
     bare: 'VarChar()',
-    legacy: 'String @db.VarChar',
+    alias: 'VarChar',
     expected: { ...varcharOut, typeParams: {} },
   },
   {
     title: 'VarChar — bare',
     bare: 'VarChar',
-    legacy: 'String @db.VarChar',
+    alias: 'VarChar',
     expected: { ...varcharOut, typeParams: {} },
   },
   {
     title: 'Char(12)',
     bare: 'Char(12)',
-    legacy: 'String @db.Char(12)',
+    alias: 'Char(12)',
     expected: { ...charOut, typeParams: { length: 12 } },
   },
   {
     title: 'Char — bare',
     bare: 'Char',
-    legacy: 'String @db.Char',
+    alias: 'Char',
     expected: { ...charOut, typeParams: {} },
   },
   {
     title: 'Numeric(10, 2)',
     bare: 'Numeric(10, 2)',
-    legacy: 'Decimal @db.Numeric(10, 2)',
+    alias: 'Numeric(10, 2)',
     expected: { ...numericOut, typeParams: { precision: 10, scale: 2 } },
   },
   {
     title: 'Numeric(10) — one arg',
     bare: 'Numeric(10)',
-    legacy: 'Decimal @db.Numeric(10)',
+    alias: 'Numeric(10)',
     expected: { ...numericOut, typeParams: { precision: 10 } },
   },
   {
     title: 'Numeric — bare',
     bare: 'Numeric',
-    legacy: 'Decimal @db.Numeric',
+    alias: 'Numeric',
     expected: { ...numericOut, typeParams: {} },
   },
   {
     title: 'Timestamp(3)',
     bare: 'Timestamp(3)',
-    legacy: 'DateTime @db.Timestamp(3)',
+    alias: 'Timestamp(3)',
     expected: { codecId: 'pg/timestamp@1', nativeType: 'timestamp', typeParams: { precision: 3 } },
   },
   {
     title: 'Timestamp — bare',
     bare: 'Timestamp',
-    legacy: 'DateTime @db.Timestamp',
+    alias: 'Timestamp',
     expected: { codecId: 'pg/timestamp@1', nativeType: 'timestamp', typeParams: {} },
   },
   {
     title: 'Timestamptz(6)',
     bare: 'Timestamptz(6)',
-    legacy: 'DateTime @db.Timestamptz(6)',
+    alias: 'Timestamptz(6)',
     expected: {
       codecId: 'pg/timestamptz@1',
       nativeType: 'timestamptz',
@@ -175,94 +175,96 @@ const parityCases: readonly ParityCase[] = [
   {
     title: 'Timestamptz — bare',
     bare: 'Timestamptz',
-    legacy: 'DateTime @db.Timestamptz',
+    alias: 'Timestamptz',
     expected: { codecId: 'pg/timestamptz@1', nativeType: 'timestamptz', typeParams: {} },
   },
   {
     title: 'Time(3)',
     bare: 'Time(3)',
-    legacy: 'DateTime @db.Time(3)',
+    alias: 'Time(3)',
     expected: { codecId: 'pg/time@1', nativeType: 'time', typeParams: { precision: 3 } },
   },
   {
     title: 'Time — bare',
     bare: 'Time',
-    legacy: 'DateTime @db.Time',
+    alias: 'Time',
     expected: { codecId: 'pg/time@1', nativeType: 'time', typeParams: {} },
   },
   {
     title: 'Timetz(2)',
     bare: 'Timetz(2)',
-    legacy: 'DateTime @db.Timetz(2)',
+    alias: 'Timetz(2)',
     expected: { codecId: 'pg/timetz@1', nativeType: 'timetz', typeParams: { precision: 2 } },
   },
   {
     title: 'Timetz — bare',
     bare: 'Timetz',
-    legacy: 'DateTime @db.Timetz',
+    alias: 'Timetz',
     expected: { codecId: 'pg/timetz@1', nativeType: 'timetz', typeParams: {} },
   },
   {
     title: 'Uuid() — called',
     bare: 'Uuid()',
-    legacy: 'String @db.Uuid',
+    alias: 'Uuid',
     expected: { codecId: 'pg/uuid@1', nativeType: 'uuid', typeParams: {} },
   },
   {
     title: 'Uuid — bare',
     bare: 'Uuid',
-    legacy: 'String @db.Uuid',
+    alias: 'Uuid',
     expected: { codecId: 'pg/uuid@1', nativeType: 'uuid', typeParams: {} },
+  },
+  {
+    title: 'Inet — bare',
+    bare: 'Inet',
+    alias: 'Inet',
+    expected: { codecId: 'pg/inet@1', nativeType: 'inet', typeParams: {} },
   },
   {
     title: 'SmallInt — bare',
     bare: 'SmallInt',
-    legacy: 'Int @db.SmallInt',
+    alias: 'SmallInt',
     expected: { codecId: 'pg/int2@1', nativeType: 'int2', typeParams: {} },
   },
   {
     title: 'Real — bare',
     bare: 'Real',
-    legacy: 'Float @db.Real',
+    alias: 'Real',
     expected: { codecId: 'pg/float4@1', nativeType: 'float4', typeParams: {} },
   },
   {
     title: 'Date — bare',
     bare: 'Date',
-    legacy: 'DateTime @db.Date',
+    alias: 'Date',
     expected: { codecId: 'pg/date@1', nativeType: 'date', typeParams: {} },
   },
 ];
 
-// Each case emits one document carrying both paths, so the comparison is
-// live-vs-live in the same run: the pinned literal guards the oracle side
-// (a drifting @db.* path fails assertion 1), and the deep-equals guard the
-// bare-type side (a drifting contribution fails assertions 2/3).
-describe('native types as bare scalar types — parity with the live @db.* path', () => {
-  it.each(parityCases)('$title', ({ bare, legacy, expected }) => {
-    const result = emit(schemaFor(bare, legacy));
+describe('native types as bare scalar types — parity with the live bare-type path', () => {
+  it.each(parityCases)('$title', ({ bare, alias, expected }) => {
+    const result = emit(schemaFor(bare, alias));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
     const storage = storageOf(result.value);
-    const legacyType = storage.types?.['Legacy'];
+    const aliasType = storage.types?.['Alias'];
     const namedType = storage.types?.['Named'];
 
-    expect(legacyType).toEqual({ kind: 'codec-instance', ...expected });
-    expect(namedType).toEqual(legacyType);
+    expect(aliasType).toEqual({ kind: 'codec-instance', ...expected });
+    expect(namedType).toEqual(aliasType);
 
     const columns = storage.namespaces['public']?.entries.table['sample']?.columns;
     const direct = columns?.['direct'];
     expect(direct).toBeDefined();
-    if (!direct || !legacyType) return;
+    if (!direct || !aliasType) return;
     expect({
       codecId: direct.codecId,
       nativeType: direct.nativeType,
       typeParams: direct.typeParams ?? {},
     }).toEqual({
-      codecId: legacyType.codecId,
-      nativeType: legacyType.nativeType,
-      typeParams: legacyType.typeParams,
+      codecId: aliasType.codecId,
+      nativeType: aliasType.nativeType,
+      typeParams: aliasType.typeParams,
     });
 
     expect(columns?.['viaNamed']).toMatchObject({
@@ -312,7 +314,7 @@ model sample {
     );
   });
 
-  it('rejects Numeric(0) in field position, matching @db.Numeric\u2019s positive-precision rule', () => {
+  it('rejects Numeric(0) in field position, matching Numeric\u2019s positive-precision rule', () => {
     const result = emit(`model sample {
   id Int @id
   amount Numeric(0)
@@ -330,7 +332,7 @@ model sample {
     );
   });
 
-  it('rejects Numeric(0) in named-type position, matching @db.Numeric\u2019s positive-precision rule', () => {
+  it('rejects Numeric(0) in named-type position, matching Numeric\u2019s positive-precision rule', () => {
     const result = emit(`types {
   Bad = Numeric(0)
 }

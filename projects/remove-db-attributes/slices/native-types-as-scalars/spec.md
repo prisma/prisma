@@ -17,7 +17,7 @@ The postgres target contributes the eleven `@db.*` native types as top-level typ
 | `Numeric` | 2 optional ints (`precision` ≥ 1, `scale`) | `pg/numeric@1`, `numeric` — minimum corrected 2026-07-14: legacy `@db.Numeric` rejects precision < 1; parity is the law |
 | `Timestamp` / `Timestamptz` / `Time` / `Timetz` | 1 optional int ≥ 0 (`precision`) | `pg/timestamp@1` / `pg/timestamptz@1` / `pg/time@1` / `pg/timetz@1` |
 | `Uuid` / `SmallInt` / `Real` | none | `pg/uuid@1` / `pg/int2@1` / `pg/float4@1` |
-| `Date` | none | **explicit** `{ codecId: 'pg/timestamptz@1', nativeType: 'date' }` (settled) |
+| `Date` | none | **explicit** `{ codecId: 'pg/date@1', nativeType: 'date' }` (updated by TML-3086) |
 | `Jsonb` | none | `pg/jsonb@1`, `jsonb` (new) |
 | `Json` (re-bind) | none | `pg/json@1`, `json` (was jsonb) |
 
