@@ -24,6 +24,7 @@ export type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringWarningSink,
   ScalarTypeConstructorOutput,
 } from '../shared/framework-authoring';
 export {

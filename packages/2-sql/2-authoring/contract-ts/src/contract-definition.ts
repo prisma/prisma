@@ -6,6 +6,7 @@ import type {
 import type { ForeignKeyDefaultsState } from '@prisma-next/contract-authoring';
 import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
+import type { ExactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
 import type {
   ReferentialAction,
   SqlNamespaceBase,
@@ -210,6 +211,13 @@ export interface ContractDefinition {
    * `SqlStorage.namespaces` together with `createNamespace`.
    */
   readonly namespaces?: readonly string[];
+  /**
+   * D9 exact-name-body warnings collected by the definition producer before
+   * the build runs (the PSL interpreter's entity factories lower policies
+   * ahead of `buildSqlContractFromDefinition`). Seeds the build's per-build
+   * batch so one flush covers indexes and policies together.
+   */
+  readonly exactNameBodyWarnings?: readonly ExactNameBodyWarning[];
   /** Target-supplied factory that materialises a `SqlNamespaceBase` concretion for a declared namespace coordinate. */
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
   readonly models: readonly ModelNode[];

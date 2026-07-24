@@ -185,6 +185,17 @@ export interface AuthoringDiagnosticSink {
   }): void;
 }
 
+/**
+ * A write-only sink for non-fatal authoring-time warnings a factory may
+ * emit. Entries are `{ code, message }`-shaped; a consumer may push richer
+ * structurally-compatible objects and the accumulating layer may narrow them
+ * back — the framework layer deliberately knows neither the codes nor the
+ * concrete shapes.
+ */
+export interface AuthoringWarningSink {
+  push(w: { readonly code: string; readonly message: string }): void;
+}
+
 export interface AuthoringEntityContext {
   readonly family: string;
   readonly target: string;
@@ -194,6 +205,8 @@ export interface AuthoringEntityContext {
   readonly sourceId?: string;
   /** Push channel for authoring-time diagnostics emitted by the factory. */
   readonly diagnostics?: AuthoringDiagnosticSink;
+  /** Push channel for non-fatal authoring-time warnings emitted by the factory. */
+  readonly warnings?: AuthoringWarningSink;
   /**
    * The target's default codec ids for an `enum` block that omits `@@type`.
    * `text` is used when every member is a bare name or a string value;

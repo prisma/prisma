@@ -21,6 +21,7 @@ import type {
   ResolvedEntityHandleRef,
   ResolvedPslModelRefs,
 } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
+import { exactNameBodyWarningEntry } from '@prisma-next/sql-contract/index-naming';
 import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
 import {
   assertWireNamePrefixLength,
@@ -217,6 +218,39 @@ function lowerRlsPolicyFromBlock(
 
   const using = usingRaw !== undefined ? unwrapQuotedString(usingRaw) : undefined;
   const withCheck = withCheckRaw !== undefined ? unwrapQuotedString(withCheckRaw) : undefined;
+
+  // `@@map("physical name")` adopts an EXACT-named policy: the lowered
+  // entity's name is the map value verbatim — no prefix, no content hash,
+  // and no wire-prefix length cap (exact names are verbatim physical names,
+  // same stance as index `map:`). The block head stays the source-level
+  // logical identifier, so head-keyed duplicate checking is unchanged.
+  const mapAttr = block.blockAttributes.find((a) => a.name === 'map');
+  if (mapAttr) {
+    const rawArg = mapAttr.args[0]?.value;
+    const exactName = rawArg !== undefined ? unwrapQuotedString(rawArg) : undefined;
+    if (exactName === undefined) {
+      ctx.diagnostics?.push({
+        code: 'PSL_POLICY_INVALID_MAP',
+        message: `\`${block.keyword}\` policy "${block.name}" @@map attribute must have a quoted policy-name argument`,
+        sourceId: ctx.sourceId ?? 'unknown',
+        span: mapAttr.span,
+      });
+      return undefined;
+    }
+    // Every policy has a SQL body, so every `@@map` policy gets the D9
+    // exact-name body-comparison warning (batched once per build).
+    ctx.warnings?.push(exactNameBodyWarningEntry({ subject: 'policy', exactName }));
+    return new PostgresRlsPolicy({
+      name: exactName,
+      tableName,
+      namespaceId: block.namespaceId,
+      operation,
+      roles,
+      ...ifDefined('using', using),
+      ...ifDefined('withCheck', withCheck),
+      permissive: true,
+    });
+  }
 
   return buildRlsPolicyEntity({
     prefix,

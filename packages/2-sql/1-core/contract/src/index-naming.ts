@@ -44,7 +44,42 @@ export interface ExactNameBodyWarning {
 const EXACT_NAME_BODY_GUIDANCE =
   "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer. For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.";
 
-const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
+export const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
+
+/**
+ * A D9 hit rendered as a generic `{ code, message }` warning entry (the
+ * shape the framework's `AuthoringWarningSink` accepts), still carrying its
+ * structured fields so an accumulating layer can narrow it back into the
+ * per-build {@link ExactNameBodyWarning} batch via
+ * {@link isExactNameBodyWarningEntry}.
+ */
+export interface ExactNameBodyWarningEntry extends ExactNameBodyWarning {
+  readonly code: typeof EXACT_NAME_BODY_WARNING_CODE;
+  readonly message: string;
+}
+
+export function exactNameBodyWarningEntry(
+  warning: ExactNameBodyWarning,
+): ExactNameBodyWarningEntry {
+  return {
+    code: EXACT_NAME_BODY_WARNING_CODE,
+    message: formatExactNameBodyWarning(warning),
+    subject: warning.subject,
+    exactName: warning.exactName,
+  };
+}
+
+export function isExactNameBodyWarningEntry(w: {
+  readonly code: string;
+  readonly message: string;
+}): w is ExactNameBodyWarningEntry {
+  if (w.code !== EXACT_NAME_BODY_WARNING_CODE) return false;
+  const candidate: Partial<ExactNameBodyWarning> & { readonly code: string } = w;
+  return (
+    (candidate.subject === 'index' || candidate.subject === 'policy') &&
+    typeof candidate.exactName === 'string'
+  );
+}
 
 const WARNING_BATCH_THRESHOLD = 5;
 

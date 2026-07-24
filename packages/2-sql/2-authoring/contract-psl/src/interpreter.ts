@@ -56,6 +56,8 @@ import {
   type SymbolTable,
 } from '@prisma-next/psl-parser';
 import type { SourceFile } from '@prisma-next/psl-parser/syntax';
+import type { ExactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
+import { isExactNameBodyWarningEntry } from '@prisma-next/sql-contract/index-naming';
 import type {
   SqlModelStorage,
   SqlNamespaceBase,
@@ -2150,6 +2152,11 @@ export function interpretPslDocumentToSqlContract(
   // threaded into `collectResolvedFields` below.
   const entityTypesByDiscriminator = buildEntityTypesByDiscriminator(input.authoringContributions);
   const modelAttributesByName = buildModelAttributesByName(input.authoringContributions);
+  // D9 exact-name-body warnings pushed by entity factories (e.g. an `@@map`
+  // policy). Collected here because the factories run ahead of
+  // `buildSqlContractFromDefinition`, then handed to the build via the
+  // definition so its one per-build flush covers indexes and policies.
+  const exactNameWarnings: ExactNameBodyWarning[] = [];
   const extensionEntityContext: AuthoringEntityContext = {
     family: input.target.familyId,
     target: input.target.targetId,
@@ -2161,6 +2168,13 @@ export function interpretPslDocumentToSqlContract(
         diagnostics.push(
           blindCast<ContractSourceDiagnostic, 'sink diagnostics are span-compatible'>(d),
         );
+      },
+    },
+    warnings: {
+      push: (w) => {
+        if (isExactNameBodyWarningEntry(w)) {
+          exactNameWarnings.push({ subject: w.subject, exactName: w.exactName });
+        }
       },
     },
   };
@@ -2528,6 +2542,7 @@ export function interpretPslDocumentToSqlContract(
   const contract = buildSqlContractFromDefinition(
     {
       target: input.target,
+      ...(exactNameWarnings.length > 0 ? { exactNameBodyWarnings: exactNameWarnings } : {}),
       ...ifDefined(
         'extensions',
         buildComposedExtensionPackRefs(
