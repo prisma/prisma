@@ -109,6 +109,7 @@ describe('command state', () => {
     expect(state).toEqual({
       firstCommandTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/),
     })
+    expect(mockWrite).toHaveBeenCalledWith(expect.stringContaining('.tmp'), JSON.stringify(state))
     expect(mockRename).toHaveBeenCalledTimes(0)
   })
 
