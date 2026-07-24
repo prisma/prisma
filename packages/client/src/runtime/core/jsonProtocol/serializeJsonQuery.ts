@@ -1,5 +1,5 @@
 import { RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
-import { isAnyNull, isDbNull, isJsonNull, ObjectEnumValue } from '@prisma/client-runtime-utils'
+import { isObjectEnumValue } from '@prisma/client-runtime-utils'
 import { assertNever } from '@prisma/internals'
 
 import { ErrorFormat } from '../../getPrismaClient'
@@ -324,11 +324,12 @@ function serializeArgumentsValue(
     return { $type: 'Decimal', value: jsValue.toFixed() }
   }
 
-  if (jsValue instanceof ObjectEnumValue) {
-    if (!isDbNull(jsValue) && !isJsonNull(jsValue) && !isAnyNull(jsValue)) {
-      throw new Error('Invalid ObjectEnumValue')
+  if (isObjectEnumValue(jsValue)) {
+    const name = jsValue._getName()
+    if (name !== 'DbNull' && name !== 'JsonNull' && name !== 'AnyNull') {
+      throw new Error(`Invalid ObjectEnumValue: expected DbNull, JsonNull, or AnyNull, got ${name}`)
     }
-    return { $type: 'Enum', value: jsValue._getName() }
+    return { $type: 'Enum', value: name }
   }
 
   if (isJSONConvertible(jsValue)) {

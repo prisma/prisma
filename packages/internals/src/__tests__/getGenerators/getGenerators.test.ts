@@ -1,21 +1,20 @@
+import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
-import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
+import { afterEach, describe, expect, it, test, vi } from 'vitest'
 
 import { loadSchemaContext } from '../../cli/schemaContext'
 import { GeneratorRegistry, getGenerators } from '../../get-generators/getGenerators'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
-if (process.env.CI) {
-  // 20s is often not enough on CI, especially on macOS.
-  jest.setTimeout(60_000)
-} else {
-  jest.setTimeout(20_000)
-}
+vi.setConfig({
+  testTimeout: process.env.CI ? 60_000 : 20_000,
+})
 
 let generatorPath = path.join(__dirname, 'generator')
 
@@ -659,7 +658,12 @@ describe('getGenerators', () => {
       expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
         "
         You don't have any models defined in your schema.prisma, so nothing will be generated.
-        You can define a model like this:
+
+        Prisma Client is typically generated from models defined in your schema. If you plan to use raw SQL queries only (e.g. $queryRaw), remove the --require-models flag to generate the client without models:
+
+          $ prisma generate
+
+        Otherwise, you can define a model like this:
 
         model User {
           id    Int     @id @default(autoincrement())
@@ -695,7 +699,12 @@ describe('getGenerators', () => {
       expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
         "
         You don't have any models defined in your schema.prisma, so nothing will be generated.
-        You can define a model like this:
+
+        Prisma Client is typically generated from models defined in your schema. If you plan to use raw queries only, remove the --require-models flag to generate the client without models:
+
+          $ prisma generate
+
+        Otherwise, you can define a model like this:
 
         model User {
           id    String  @id @default(auto()) @map("_id") @db.ObjectId
@@ -763,7 +772,9 @@ describe('getGenerators', () => {
       allowNoModels: true,
     })
 
-    generators.forEach((g) => g.stop())
+    for (const generator of generators) {
+      generator.stop()
+    }
 
     return expect(generators.length).toBeGreaterThanOrEqual(1)
   })

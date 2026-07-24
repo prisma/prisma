@@ -77,6 +77,24 @@ async function copyClientWasmRuntime() {
   }
 }
 
+async function buildStudioFrontend() {
+  const { build } = await import('esbuild')
+
+  await build({
+    bundle: true,
+    entryPoints: ['src/studio-entry.ts'],
+    format: 'esm',
+    logLevel: 'error',
+    minify: true,
+    outfile: 'build/studio.js',
+    platform: 'browser',
+    target: 'ES2022',
+    tsconfig: 'tsconfig.build.json',
+  })
+
+  await fs.promises.copyFile(require.resolve('@prisma/studio-core/ui/index.css'), './build/studio.css')
+}
+
 /**
  * Setup `import type { ... } from 'prisma'`.
  */
@@ -110,14 +128,32 @@ const cliConfigBuildConfig: BuildOptions = {
   minify: false,
 }
 
-// Setup build config for the cli
-const cliBuildConfig: BuildOptions = {
-  name: 'cli',
-  entryPoints: ['src/bin.ts'],
+const cliDispatcherBuildConfig: BuildOptions = {
+  name: 'cli-dispatcher',
+  entryPoints: ['src/bin-dispatcher.ts'],
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
+  external: ['./cli.js', './completion.js'],
+  emitTypes: false,
+  minify: true,
+}
+
+const cliBuildConfig: BuildOptions = {
+  name: 'cli',
+  entryPoints: ['src/cli-entry.ts'],
+  outfile: 'build/cli',
+  bundle: true,
   external: ['better-sqlite3', 'esbuild'],
+  emitTypes: false,
+  minify: true,
+}
+
+const cliCompletionBuildConfig: BuildOptions = {
+  name: 'cli-completion',
+  entryPoints: ['src/completions/completion-entry.ts'],
+  outfile: 'build/completion',
+  bundle: true,
   emitTypes: false,
   minify: true,
 }
@@ -134,10 +170,12 @@ const preinstallBuildConfig: BuildOptions = {
 
 const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
 
-build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig]).catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
+build([...optionalPlugins, cliDispatcherBuildConfig, cliBuildConfig, cliCompletionBuildConfig, preinstallBuildConfig])
+  .then(buildStudioFrontend)
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

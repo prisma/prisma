@@ -283,7 +283,6 @@ ${bold('Examples')}
         from: from!,
         to: to!,
         script: args['--script'] || false, // default is false
-        shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
         exitCode: args['--exit-code'] ?? null,
         filters: {
           externalTables: config.tables?.external ?? [],
