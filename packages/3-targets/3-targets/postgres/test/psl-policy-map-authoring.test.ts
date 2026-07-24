@@ -320,6 +320,98 @@ policy_select p_read {
   });
 });
 
+describe('permissive is an authorable block property', () => {
+  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  afterEach(() => {
+    emitWarning.mockClear();
+  });
+
+  it('permissive = false lowers a RESTRICTIVE policy', () => {
+    const result = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = false
+  }
+`),
+    );
+    const ns = publicNamespace(result);
+    const policy = ns.policy['p_read'];
+    expect(policy?.permissive).toBe(false);
+    expect(policy?.name).toMatch(/^p_read_[0-9a-f]{8}$/);
+  });
+
+  it('permissive participates in the wire hash — the RESTRICTIVE twin gets a different name', () => {
+    const restrictive = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = false
+  }
+`),
+    );
+    const permissive = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+  }
+`),
+    );
+    const restrictiveName = publicNamespace(restrictive).policy['p_read']?.name;
+    const permissiveName = publicNamespace(permissive).policy['p_read']?.name;
+    expect(restrictiveName).not.toBe(permissiveName);
+  });
+
+  it('omitted permissive defaults true — the managed wire name is byte-unchanged', () => {
+    const explicit = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = true
+  }
+`),
+    );
+    const omitted = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+  }
+`),
+    );
+    const explicitPolicy = publicNamespace(explicit).policy['p_read'];
+    const omittedPolicy = publicNamespace(omitted).policy['p_read'];
+    expect(explicitPolicy?.permissive).toBe(true);
+    expect(explicitPolicy?.name).toBe(omittedPolicy?.name);
+  });
+
+  it('an @@map policy carries permissive = false verbatim', () => {
+    const result = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = false
+    @@map("Restrictive tenant read")
+  }
+`),
+    );
+    const policy = publicNamespace(result).policy['p_read'];
+    expect(policy?.permissive).toBe(false);
+    expect(policy?.name).toBe('Restrictive tenant read');
+  });
+});
+
 describe('exact-name body-comparison warning for @@map policies — shared per-build batch with indexes', () => {
   const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
   afterEach(() => {
