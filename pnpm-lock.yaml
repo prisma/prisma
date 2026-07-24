@@ -434,8 +434,8 @@ importers:
         specifier: workspace:*
         version: link:../config
       '@prisma/dev':
-        specifier: 0.24.14
-        version: 0.24.14(typescript@5.4.5)
+        specifier: 0.24.16
+        version: 0.24.16(typescript@5.4.5)
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -3834,8 +3834,8 @@ packages:
   '@prisma/debug@7.2.0':
     resolution: {integrity: sha512-YSGTiSlBAVJPzX4ONZmMotL+ozJwQjRmZweQNIq/ER0tQJKJynNkRB3kyvt37eOfsbMCXk3gnLF6J9OJ4QWftw==}
 
-  '@prisma/dev@0.24.14':
-    resolution: {integrity: sha512-NhFO49O2JPTdzYiLHvceQn/HiwmcKF/iGV39ko3CpYsoGqS3rz3ko6gzuxFSIeHNwNJeuNcDexyyGeTO3DW80A==}
+  '@prisma/dev@0.24.16':
+    resolution: {integrity: sha512-5awBh7WvC74iYz8dKv03uHuPsCmaUHBkptQ4mEiV8qPwHBA8ia4rV5ABRAKct5hhYnwBmPZ1IrIK5WKNRUjcCg==}
 
   '@prisma/engines-version@7.10.0-1.6d040c802892de6d56c7e0061b7a10b3e6a0c7a0':
     resolution: {integrity: sha512-0a/QTIPSx2PIQR/39rD0jMsCo15F88RCJ3bvGQS1WlAlDyjtu6Swcxeoy1usU7G1cvGYX8c9ngGTiRpW86W/hQ==}
@@ -6051,8 +6051,8 @@ packages:
     resolution: {integrity: sha512-OuWNfjfP05JcpAP3JPgAKUhWefjMRfI5iAoSsvE24ANYWJaepAtlSgWECSVEuRgSXpyNEc9DJwG/TZpgcOqyig==}
     engines: {node: '>=16'}
 
-  find-my-way@9.6.0:
-    resolution: {integrity: sha512-Zf4Xve4RymLl7NgaavNebZ01joJ8MfVerOG43wy7SHLO+r+K0C6d/SE0BiR7AV5V1VOCFlOP7ecdo+I4qmiHrQ==}
+  find-my-way@9.7.0:
+    resolution: {integrity: sha512-f2JHn75x2JlwUwLenZypgczR7YWMb/uO9BvUXtus+JMgkbIkLADd38cI4EiV+OQqrGo1Zlq6V8wnqMJ8e62wUQ==}
     engines: {node: '>=20'}
 
   find-up-simple@1.0.1:
@@ -10816,7 +10816,7 @@ snapshots:
 
   '@prisma/debug@7.2.0': {}
 
-  '@prisma/dev@0.24.14(typescript@5.4.5)':
+  '@prisma/dev@0.24.16(typescript@5.4.5)':
     dependencies:
       '@electric-sql/pglite': 0.4.3
       '@electric-sql/pglite-socket': 0.1.3(@electric-sql/pglite@0.4.3)
@@ -10824,7 +10824,7 @@ snapshots:
       '@prisma/get-platform': 7.2.0
       '@prisma/query-plan-executor': 7.2.0
       '@prisma/streams-local': 0.1.11
-      find-my-way: 9.6.0
+      find-my-way: 9.7.0
       foreground-child: 3.3.1
       get-port-please: 3.2.0
       pathe: 2.0.3
@@ -13283,7 +13283,7 @@ snapshots:
       common-path-prefix: 3.0.0
       pkg-dir: 7.0.0
 
-  find-my-way@9.6.0:
+  find-my-way@9.7.0:
     dependencies:
       fast-deep-equal: 3.1.3
       fast-querystring: 1.1.2
