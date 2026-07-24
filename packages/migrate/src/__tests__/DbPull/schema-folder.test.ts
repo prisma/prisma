@@ -18,8 +18,7 @@ testIf(process.platform !== 'win32')('reintrospection - no changes', async () =>
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-    "Prisma schema loaded from prisma/schema
-    Datasource "my_db": SQLite database "dev.db" <location placeholder>
+    "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
     - Introspecting based on datasource defined in prisma/schema
     ✔ Introspected 2 models and wrote them into prisma/schema in XXXms

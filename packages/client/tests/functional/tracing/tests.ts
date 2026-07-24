@@ -27,51 +27,6 @@ type Tree = {
   children?: Tree[]
 }
 
-function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
-  const childrenSpans = spans
-    .sort((a, b) => {
-      const normalizeNameForComparison = (name: string) => {
-        // Replace client engine specific spans with their classic names as sort keys
-        // to ensure stable order regardless of the engine type.
-        if (
-          [
-            'prisma:client:db_query',
-            'prisma:client:start_transaction',
-            'prisma:client:commit_transaction',
-            'prisma:client:rollback_transaction',
-          ].includes(name)
-        ) {
-          return 'prisma:engine:' + name.slice('prisma:client:'.length)
-        }
-        return name
-      }
-      // Ensures fixed order of children spans regardless of the
-      // actual timings. Why use name instead of start time? Sometimes
-      // things happen in parallel/different order and startTime does not
-      // provide stable ordering guarantee.
-      return normalizeNameForComparison(a.name).localeCompare(normalizeNameForComparison(b.name))
-    })
-    .filter((span) => span.parentSpanContext?.spanId === rootSpan.spanContext().spanId)
-
-  const tree: Tree = {
-    name: rootSpan.name,
-  }
-
-  if (childrenSpans.length > 0) {
-    tree.children = childrenSpans.map((span) => buildTree(span, spans))
-  }
-
-  if (Object.keys(rootSpan.attributes).length > 0) {
-    tree.attributes = rootSpan.attributes
-  }
-
-  if (rootSpan.kind !== SpanKind.INTERNAL) {
-    tree.kind = SpanKind[rootSpan.kind]
-  }
-
-  return tree
-}
-
 declare let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
@@ -104,16 +59,73 @@ afterAll(() => {
   context.disable()
 })
 
+beforeEach(() => {
+  prisma = newPrismaClient()
+})
+
+afterEach(async () => {
+  await prisma.$disconnect()
+})
+
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter, relationMode, clientEngineExecutor }, _suiteMeta, clientMeta) => {
+    const executorSpanInfix = clientEngineExecutor === 'remote' ? 'accelerate' : 'client'
+
+    function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
+      const childrenSpans = spans
+        .sort((a, b) => {
+          const normalizeNameForComparison = (name: string) => {
+            // Replace client engine specific spans with their classic names as sort keys
+            // to ensure stable order regardless of the engine type.
+            const prefix = `prisma:${executorSpanInfix}`
+            if (
+              [
+                `${prefix}:db_query`,
+                `${prefix}:start_transaction`,
+                `${prefix}:commit_transaction`,
+                `${prefix}:rollback_transaction`,
+              ].includes(name)
+            ) {
+              return 'prisma:engine:' + name.slice(`${prefix}:`.length)
+            }
+            return name
+          }
+          // Ensures fixed order of children spans regardless of the
+          // actual timings. Why use name instead of start time? Sometimes
+          // things happen in parallel/different order and startTime does not
+          // provide stable ordering guarantee.
+          return normalizeNameForComparison(a.name).localeCompare(normalizeNameForComparison(b.name))
+        })
+        .filter((span) => span.parentSpanContext?.spanId === rootSpan.spanContext().spanId)
+
+      const tree: Tree = {
+        name: rootSpan.name,
+      }
+
+      if (childrenSpans.length > 0) {
+        tree.children = childrenSpans.map((span) => buildTree(span, spans))
+      }
+
+      if (Object.keys(rootSpan.attributes).length > 0) {
+        tree.attributes = rootSpan.attributes
+      }
+
+      if (rootSpan.kind !== SpanKind.INTERNAL) {
+        tree.kind = SpanKind[rootSpan.kind]
+      }
+
+      return tree
+    }
+
     const isMongoDb = provider === Providers.MONGODB
     const isMySql = provider === Providers.MYSQL
     const isSqlServer = provider === Providers.SQLSERVER
     const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
     const usesSyntheticTxQueries =
-      (driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)) ||
-      (clientEngineExecutor === 'remote' && provider === Providers.SQLSERVER)
+      (driverAdapter !== undefined &&
+        ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql', 'js_mariadb'].includes(driverAdapter)) ||
+      (clientEngineExecutor === 'remote' && [Providers.SQLSERVER, Providers.MYSQL].includes(provider))
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -137,16 +149,13 @@ testMatrix.setupTestSuite(
 
     function dbQuery(statement: string): Tree {
       const span = {
-        name: 'prisma:engine:db_query',
+        name: `prisma:${executorSpanInfix}:db_query`,
         kind: 'CLIENT',
         attributes: {
           'db.query.text': statement,
+          'db.system.name': dbSystemExpectation(),
         },
       }
-
-      span.name = 'prisma:client:db_query'
-      // Client engine implements a newer version of OTel Semantic Conventions
-      span.attributes['db.system.name'] = dbSystemExpectation()
 
       if (provider === Providers.MONGODB) {
         span.attributes['db.operation.name'] = expect.toBeString()
@@ -278,8 +287,7 @@ testMatrix.setupTestSuite(
     }
 
     function itxOperation(operation: 'start' | 'commit' | 'rollback'): Tree {
-      const prefix = 'prisma:client:'
-      const name = `${prefix}${operation}_transaction`
+      const name = `prisma:${executorSpanInfix}:${operation}_transaction`
 
       let children: Tree[] | undefined
 
@@ -644,11 +652,7 @@ testMatrix.setupTestSuite(
         // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
-          operation(undefined, 'queryRaw', [
-            ...clientCompile('queryRaw'),
-            clientSerialize(),
-            ...engine([dbQuery('SELECT 1 + 1;')]),
-          ]),
+          operation(undefined, 'queryRaw', [clientSerialize(), ...engine([dbQuery('SELECT 1 + 1;')])]),
         )
       })
 
@@ -662,11 +666,7 @@ testMatrix.setupTestSuite(
         await prisma.$executeRaw`SELECT 1 + 1;`
 
         await waitForSpanTree(
-          operation(undefined, 'executeRaw', [
-            ...clientCompile('executeRaw'),
-            clientSerialize(),
-            ...engine([dbQuery('SELECT 1 + 1;')]),
-          ]),
+          operation(undefined, 'executeRaw', [clientSerialize(), ...engine([dbQuery('SELECT 1 + 1;')])]),
         )
       })
     })
@@ -769,18 +769,6 @@ testMatrix.setupTestSuite(
       from: [AdapterProviders.JS_D1],
       reason:
         'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
-    },
-    skip(when, { clientEngineExecutor }) {
-      when(
-        clientEngineExecutor === 'remote',
-        `
-        We are not receiving the server spans in this test, although they do
-        seem to look fine from the manual look at the server response.
-        Either there's a bug in RemoteExecutor, or in the tracing setup for
-        QPE in tests.
-        Tracked in https://linear.app/prisma-company/issue/ORM-1395/fix-missing-spans-in-tracing-tests-with-qcaccelerate
-        `,
-      )
     },
   },
 )

@@ -18,7 +18,6 @@ import { buildPrismaConfig } from './config-builder'
 import type { NamedTestSuiteConfig, TestSuiteMeta } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
-  getTestSuitePreviewFeatures,
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
   testSuiteHasTypedSql,
@@ -59,8 +58,7 @@ export async function setupTestSuiteClient({
   const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
   const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
   const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
-  const previewFeatures = getTestSuitePreviewFeatures(schema)
-  const dmmf = await getDMMF({ datamodel: [[schemaPath, schema]], previewFeatures })
+  const dmmf = await getDMMF({ datamodel: [[schemaPath, schema]] })
   const schemaContext = await processSchemaResult({
     schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
   })
@@ -123,6 +121,7 @@ export async function setupTestSuiteClient({
     importFileExtension: '',
     moduleFormat: 'cjs',
     tsNoCheckPreamble: false,
+    compilerBuild: 'fast',
   }
 
   if (generatorType === 'prisma-client-ts') {
@@ -310,12 +309,13 @@ export function getPrismaClientInternalArgs({
   if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
-        getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),
+        getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_fast_bg.${provider}.js`))),
         getQueryCompilerWasmModule: () => {
-          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm-base64.js`)
+          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_fast_bg.${provider}.wasm-base64.js`)
           const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
           return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
         },
+        importName: './query_compiler_fast_bg.js',
       }
       return config
     }

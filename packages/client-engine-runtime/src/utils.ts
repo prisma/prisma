@@ -1,5 +1,21 @@
 import { Decimal } from '@prisma/client-runtime-utils'
 
+export type DeepReadonly<T> = T extends undefined | null | boolean | string | number | symbol | Function | Date
+  ? T
+  : T extends Array<infer U>
+    ? ReadonlyArray<DeepReadonly<U>>
+    : unknown extends T
+      ? unknown
+      : { readonly [K in keyof T]: DeepReadonly<T[K]> }
+
+export type DeepUnreadonly<T> = T extends undefined | null | boolean | string | number | symbol | Function | Date
+  ? T
+  : T extends ReadonlyArray<infer U>
+    ? Array<DeepUnreadonly<U>>
+    : unknown extends T
+      ? unknown
+      : { -readonly [K in keyof T]: DeepUnreadonly<T[K]> }
+
 // Copied over to avoid the heavy dependency on `@prisma/internals` with its
 // transitive dependencies that are not needed for other query plan executor
 // implementations outside of Prisma Client (e.g. test executor for query
@@ -125,4 +141,24 @@ export function safeJsonStringify(obj: unknown): string {
     }
     return val
   })
+}
+
+// Stays well below the engine's maximum argument count (~65K in V8) so that
+// `push(...)` remains safe even when the call stack is already deep, while a
+// single spread stays the fast path for typical sizes.
+// See https://github.com/prisma/prisma/issues/29746.
+const MAX_PUSH_SPREAD_ARGS = 8192
+
+/**
+ * Appends all elements of `source` to `target` without spreading the whole
+ * array as call arguments, which overflows the stack for large arrays.
+ */
+export function appendToArray<T>(target: T[], source: readonly T[]): void {
+  if (source.length <= MAX_PUSH_SPREAD_ARGS) {
+    target.push(...source)
+    return
+  }
+  for (let i = 0; i < source.length; i += MAX_PUSH_SPREAD_ARGS) {
+    target.push(...source.slice(i, i + MAX_PUSH_SPREAD_ARGS))
+  }
 }

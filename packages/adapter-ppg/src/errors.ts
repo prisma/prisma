@@ -25,6 +25,11 @@ function mapDriverError(error: DatabaseError): MappedError {
         kind: 'ValueOutOfRange',
         cause: error.message,
       }
+    case '22P02':
+      return {
+        kind: 'InvalidInputValue',
+        message: error.message,
+      }
     case '23505': {
       const fields = error.details.detail
         ?.match(/Key \(([^)]+)\)/)
@@ -59,6 +64,20 @@ function mapDriverError(error: DatabaseError): MappedError {
         constraint,
       }
     }
+    case '23001': {
+      let constraint: { fields: string[] } | { index: string } | undefined
+
+      if (error.details.column) {
+        constraint = { fields: [error.details.column] }
+      } else if (error.details.constraint) {
+        constraint = { index: error.details.constraint }
+      }
+
+      return {
+        kind: 'RestrictViolation',
+        constraint,
+      }
+    }
     case '3D000':
       return {
         kind: 'DatabaseDoesNotExist',
@@ -79,6 +98,7 @@ function mapDriverError(error: DatabaseError): MappedError {
         user: error.message.split(' ').pop()?.split('"').at(1),
       }
     case '40001':
+    case '40P01':
       return {
         kind: 'TransactionWriteConflict',
       }
@@ -87,11 +107,13 @@ function mapDriverError(error: DatabaseError): MappedError {
         kind: 'TableDoesNotExist',
         table: error.message.split(' ').at(1)?.split('"').at(1),
       }
-    case '42703':
+    case '42703': {
+      const rawColumn = error.message.match(/^column (.+) does not exist$/)?.at(1)
       return {
         kind: 'ColumnNotFound',
-        column: error.message.split(' ').at(1)?.split('"').at(1),
+        column: rawColumn?.replace(/"((?:""|[^"])*)"/g, (_, id) => id.replaceAll('""', '"')),
       }
+    }
     case '42P04':
       return {
         kind: 'DatabaseAlreadyExists',

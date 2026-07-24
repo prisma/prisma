@@ -16,6 +16,7 @@ export type BuildWasmModuleOptions = {
   target: RuntimeTargetInternal
   activeProvider: ActiveConnectorType
   moduleFormat: ModuleFormat
+  compilerBuild: 'fast' | 'small'
 }
 
 const debug = Debug('prisma:client-generator-ts:wasm')
@@ -24,7 +25,13 @@ function usesEdgeWasmRuntime(runtimeName: RuntimeName) {
   return runtimeName === 'wasm-compiler-edge'
 }
 
-export function buildGetWasmModule({ runtimeName, runtimeBase, activeProvider, moduleFormat }: BuildWasmModuleOptions) {
+export function buildGetWasmModule({
+  runtimeName,
+  runtimeBase,
+  activeProvider,
+  moduleFormat,
+  compilerBuild,
+}: BuildWasmModuleOptions) {
   const extension = match(moduleFormat)
     .with('esm', () => 'mjs')
     .with('cjs', () => 'js')
@@ -32,6 +39,7 @@ export function buildGetWasmModule({ runtimeName, runtimeBase, activeProvider, m
 
   const buildNonEdgeLoader = runtimeName === 'client'
   const buildEdgeLoader = !buildNonEdgeLoader
+  const artifactName = `query_compiler_${compilerBuild}_bg`
 
   let wasmPathBase: string
   let wasmBindingsPath: string
@@ -54,11 +62,11 @@ export function buildGetWasmModule({ runtimeName, runtimeBase, activeProvider, m
   // don't apply in this case because we are not *importing* them, we're just
   // reading a file on disk.
   if (buildEdgeLoader) {
-    wasmPathBase = `./query_compiler_bg`
+    wasmPathBase = `./${artifactName}`
     wasmBindingsPath = `${wasmPathBase}.js`
     wasmModulePath = `${wasmPathBase}.wasm`
   } else {
-    wasmPathBase = `${runtimeBase}/query_compiler_bg.${activeProvider}`
+    wasmPathBase = `${runtimeBase}/${artifactName}.${activeProvider}`
     wasmBindingsPath = `${wasmPathBase}.mjs`
     wasmModulePath = `${wasmPathBase}.wasm`
   }
@@ -79,7 +87,9 @@ config.compilerWasm = {
   getQueryCompilerWasmModule: async () => {
     const { wasm } = await import(${JSON.stringify(wasmModulePath)})
     return await decodeBase64AsWasm(wasm)
-  }
+  },
+
+  importName: ${JSON.stringify(`./${artifactName}.js`)}
 }`
   }
 
@@ -90,7 +100,9 @@ config.compilerWasm = {
   getQueryCompilerWasmModule: async () => {
     const { default: module } = await import(${JSON.stringify(`${wasmModulePath}?module`)})
     return module
-  }
+  },
+
+  importName: ${JSON.stringify(`./${artifactName}.js`)}
 }`
   }
 
@@ -100,6 +112,7 @@ config.compilerWasm = {
 export type BuildWasmFileMapOptions = {
   activeProvider: ActiveConnectorType
   runtimeName: RuntimeName
+  compilerBuild: 'fast' | 'small'
 }
 
 function readSourceFile(sourceFile: string): Buffer {
@@ -119,7 +132,7 @@ function readSourceFile(sourceFile: string): Buffer {
   }
 }
 
-export function buildWasmFileMap({ activeProvider, runtimeName }: BuildWasmFileMapOptions): FileMap {
+export function buildWasmFileMap({ activeProvider, runtimeName, compilerBuild }: BuildWasmFileMapOptions): FileMap {
   const fileMap: FileMap = {}
   debug('buildWasmFileMap with', { runtimeName })
 
@@ -128,11 +141,12 @@ export function buildWasmFileMap({ activeProvider, runtimeName }: BuildWasmFileM
     return fileMap
   }
 
-  const fileNameBase = `query_compiler_bg.${activeProvider}` as const
+  const artifactName = `query_compiler_${compilerBuild}_bg`
+  const fileNameBase = `${artifactName}.${activeProvider}` as const
 
   const files = {
-    [`query_compiler_bg.wasm`]: `${fileNameBase}.wasm`,
-    [`query_compiler_bg.js`]: `${fileNameBase}.mjs`,
+    [`${artifactName}.wasm`]: `${fileNameBase}.wasm`,
+    [`${artifactName}.js`]: `${fileNameBase}.mjs`,
   }
 
   for (const [targetFile, sourceFile] of Object.entries(files)) {

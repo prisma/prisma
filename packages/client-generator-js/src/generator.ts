@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { enginesVersion } from '@prisma/engines-version'
 import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
-import { parseEnvValue } from '@prisma/internals'
+import { BuiltInProvider, parseEnvValue } from '@prisma/internals'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
@@ -20,7 +20,7 @@ type PrismaClientJsGeneratorOptions = {
 // visit https://pris.ly/cli/output-path`
 
 export class PrismaClientJsGenerator implements Generator {
-  readonly name = 'prisma-client-js'
+  readonly name = BuiltInProvider.PrismaClientJs
 
   #shouldResolvePrismaClient: boolean
   #runtimePath?: string
@@ -85,6 +85,7 @@ export class PrismaClientJsGenerator implements Generator {
       clientVersion,
       activeProvider: options.datasources[0]?.activeProvider,
       typedSql: options.typedSql,
+      compilerBuild: parseCompilerBuildFromUnknown(options.generator.config.compilerBuild),
     })
   }
 
@@ -105,4 +106,14 @@ export class PrismaClientJsGenerator implements Generator {
     this.#runtimePath = path.join(await this.#getPrismaClientPath(config), 'runtime')
     return this.#runtimePath
   }
+}
+
+function parseCompilerBuildFromUnknown(value: unknown): 'fast' | 'small' {
+  if (value === undefined) {
+    return 'fast'
+  }
+  if (value === 'small' || value === 'fast') {
+    return value
+  }
+  throw new Error(`Invalid compiler build: ${JSON.stringify(value)}, expected one of: "fast", "small"`)
 }

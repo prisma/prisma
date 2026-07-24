@@ -222,6 +222,28 @@ describe('generator', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
+  test('schema without models', async () => {
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
+    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+    await fsPromises.cp(path.join(__dirname, '../../client/runtime'), path.join(prismaClientTarget, 'runtime'), {
+      recursive: true,
+    })
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'no-models.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    await generator.generate()
+    generator.stop()
+
+    const declarations = await fsPromises.readFile(path.join(__dirname, 'generated-no-models', 'index.d.ts'), 'utf8')
+    expect(declarations).not.toMatch(/^\s*undefined\s*$/m)
+  })
+
   test('denylist from engine validation', async () => {
     expect.assertions(1)
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
@@ -402,8 +424,8 @@ describe('generator', () => {
     await generator.generate()
     const photonDir = path.join(__dirname, 'node_modules/.prisma/client')
     expect(fs.existsSync(photonDir)).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'query_compiler_bg.wasm'))).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'query_compiler_bg.js'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'query_compiler_fast_bg.wasm'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'query_compiler_fast_bg.js'))).toBe(true)
     generator.stop()
   })
 })

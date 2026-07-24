@@ -17,19 +17,6 @@ test('datamodelEnumToSchemaEnum', () => {
 
   expect(dmmfEnum).toEqual({
     name: 'Color',
-    data: [
-      {
-        key: 'Red',
-        value: 'red',
-      },
-      {
-        key: 'Green',
-        value: 'Green',
-      },
-      {
-        key: 'Blue',
-        value: 'Blue',
-      },
-    ],
+    values: ['Red', 'Green', 'Blue'],
   })
 })

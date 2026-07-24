@@ -349,25 +349,4 @@ describe('generator', () => {
         .some((f) => /adapter.*runtime\.SqlDriverAdapterFactory/g.test(fs.readFileSync(f, 'utf8'))),
     ).toBe(true)
   })
-
-  test('enum generation', async () => {
-    const generator = await getGenerator({
-      schemaPath: path.join(__dirname, 'enum-test.prisma'),
-      printDownloadProgress: false,
-      skipDownload: true,
-      registry,
-    })
-
-    await generator.generate()
-    const clientDir = path.join(__dirname, 'generated')
-    expect(fs.existsSync(clientDir)).toBe(true)
-
-    const enumsFile = path.join(clientDir, 'enums.ts')
-    expect(fs.existsSync(enumsFile)).toBe(true)
-
-    const enumsContent = fs.readFileSync(enumsFile, 'utf8')
-    expect(enumsContent).toMatchSnapshot()
-
-    generator.stop()
-  })
 })

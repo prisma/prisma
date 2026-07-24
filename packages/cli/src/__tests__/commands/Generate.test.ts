@@ -1,10 +1,19 @@
 import path from 'node:path'
 
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import stripAnsi from 'strip-ansi'
 
 import { Generate } from '../../Generate'
-import { promotions, renderPromotion } from '../../utils/handlePromotions'
 import { configContextContributor } from '../_utils/config-context'
+
+// The real Watcher watches the filesystem forever; an immediately-ending
+// iterator lets watch-mode parse() return so tests can assert on it.
+jest.mock('../../generate/Watcher', () => ({
+  Watcher: class {
+    add() {}
+    async *[Symbol.asyncIterator]() {}
+  },
+}))
 
 const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
@@ -21,116 +30,122 @@ describe('prisma.config.ts', () => {
 
     const result = Generate.new().parse(['--sql'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"The datasource property is required in your Prisma config file when using prisma generate --sql."`,
+      `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
     )
   })
 })
 
 describe('using cli', () => {
-  // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
-  function sanitiseStdout(stdout: string): string {
-    return Object.values(promotions)
-      .map((promotion) => renderPromotion(promotion))
-      .reduce((acc, curr) => {
-        return acc.replace(curr, 'Tip: MOCKED RANDOM TIP')
-      }, stdout)
-      .trimEnd()
-  }
-
   it('should work with a custom output dir', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate')
 
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   }, 60_000) // timeout
 
   it('should work with prisma schema folder', async () => {
     ctx.fixture('multi-schema-files/valid-custom-output')
     const data = await ctx.cli('generate', '--schema=./prisma/schema')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
     `)
+    expect(data.stderr).toMatchInlineSnapshot(`"Prisma schema loaded from prisma/schema."`)
   })
 
   it('should display the right yarn command for custom outputs', async () => {
     ctx.fixture('custom-output-yarn')
     const data = await ctx.cli('generate')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
   it('should display the right npm command for custom outputs', async () => {
     ctx.fixture('custom-output-npm')
     const data = await ctx.cli('generate')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
   it('should display the right pnpm command for custom outputs', async () => {
     ctx.fixture('custom-output-pnpm')
     const data = await ctx.cli('generate')
-    const stdout = sanitiseStdout(data.stdout)
+    const stdout = data.stdout
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 
@@ -144,17 +159,21 @@ describe('using cli', () => {
 
     // use regex to extract the output location below with a dummy location
     const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
-    let stdout = sanitiseStdout(data.stdout)
+    let stdout = data.stdout
     stdout = stdout.replace(outputLocation!, '<output>')
 
     expect(stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
+      "
       ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: MOCKED RANDOM TIP"
+      "
+    `)
+    expect(data.stderr).toMatchInlineSnapshot(`
+      "Loaded Prisma config from prisma.config.ts.
+
+      Prisma schema loaded from prisma/schema.prisma."
     `)
   })
 })
@@ -237,27 +256,111 @@ it('should hide hints with --no-hints', async () => {
   }
 
   expect(data.stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
+    "
+    ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+    "
+  `)
+  expect(data.stderr).toMatchInlineSnapshot(`
+    "Loaded Prisma config from prisma.config.ts.
 
-      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-      "
-    `)
+    Prisma schema loaded from prisma/schema.prisma."
+  `)
 })
 
-it('should call the survey handler when hints are not disabled', async () => {
+it('should still show the global/local version warning with --no-hints', async () => {
   ctx.fixture('example-project')
-  const handler = jest.fn()
-  const generate = new Generate(handler)
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    getGlobalLocalVersionMismatchWarning: () => Promise.resolve('warn global/local version mismatch'),
+  })
+  const output = await generate.parse(['--no-hints'], await ctx.config())
+
+  expect(output).toContain('warn global/local version mismatch')
+  expect(output).not.toContain('Start by importing your Prisma Client')
+}, 60_000)
+
+it('should not fail generate when the global/local version warning lookup fails', async () => {
+  ctx.fixture('example-project')
+  const getGlobalLocalVersionMismatchWarning = jest.fn().mockRejectedValue(new Error('version lookup failed'))
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    getGlobalLocalVersionMismatchWarning,
+  })
+  const output = stripAnsi((await generate.parse([], await ctx.config())).toString())
+
+  expect(getGlobalLocalVersionMismatchWarning).toHaveBeenCalledTimes(1)
+  expect(output).toContain('Generated Prisma Client')
+  expect(output).not.toContain('version lookup failed')
+}, 60_000)
+
+it('should check local package versions from the schema root directory', async () => {
+  ctx.fixture('generate-from-parent-dir')
+  const getGlobalLocalVersionMismatchWarning = jest.fn().mockResolvedValue(null)
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    getGlobalLocalVersionMismatchWarning,
+  })
+
+  await generate.parse(['--schema=./subdirectory/schema.prisma'], await ctx.config())
+
+  expect(getGlobalLocalVersionMismatchWarning).toHaveBeenCalledWith(
+    expect.objectContaining({
+      cwd: path.join(process.cwd(), 'subdirectory'),
+    }),
+  )
+}, 60_000)
+
+it('should show the global/local version warning without a prisma-client-js generator', async () => {
+  ctx.fixture('no-config')
+  const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    getGlobalLocalVersionMismatchWarning: () => Promise.resolve('warn global/local version mismatch'),
+  })
+  const output = await generate.parse([], await ctx.config())
+
+  expect(output).toContain('warn global/local version mismatch')
+}, 60_000)
+
+it('should run the skills offer before the survey handler when hints are not disabled', async () => {
+  ctx.fixture('example-project')
+  const calls: string[] = []
+  const surveyHandler = jest.fn(() => {
+    calls.push('survey')
+    return Promise.resolve()
+  })
+  const offerHandler = jest.fn(() => {
+    calls.push('offer')
+    return Promise.resolve({ prompted: false })
+  })
+  const generate = new Generate(surveyHandler, offerHandler)
   await generate.parse([], await ctx.config())
-  expect(handler).toHaveBeenCalledTimes(1)
+  expect(calls).toEqual(['offer', 'survey'])
 })
 
-it('should not call the survey handler when hints are disabled', async () => {
+it('should skip the survey handler when the skills offer prompted', async () => {
   ctx.fixture('example-project')
-  const handler = jest.fn()
-  const generate = new Generate(handler)
+  const surveyHandler = jest.fn()
+  const offerHandler = jest.fn().mockResolvedValue({ prompted: true })
+  const generate = new Generate(surveyHandler, offerHandler)
+  await generate.parse([], await ctx.config())
+  expect(offerHandler).toHaveBeenCalledTimes(1)
+  expect(surveyHandler).not.toHaveBeenCalled()
+})
+
+it('should call neither the skills offer nor the survey handler when hints are disabled', async () => {
+  ctx.fixture('example-project')
+  const surveyHandler = jest.fn()
+  const offerHandler = jest.fn()
+  const generate = new Generate(surveyHandler, offerHandler)
   await generate.parse(['--no-hints'], await ctx.config())
-  expect(handler).not.toHaveBeenCalled()
+  expect(offerHandler).not.toHaveBeenCalled()
+  expect(surveyHandler).not.toHaveBeenCalled()
+})
+
+it('should call neither the skills offer nor the survey handler in watch mode', async () => {
+  ctx.fixture('example-project')
+  const surveyHandler = jest.fn()
+  const offerHandler = jest.fn()
+  const generate = new Generate(surveyHandler, offerHandler)
+  await generate.parse(['--watch'], await ctx.config())
+  expect(offerHandler).not.toHaveBeenCalled()
+  expect(surveyHandler).not.toHaveBeenCalled()
 })
 
 it('should error with exit code 1 with incorrect schema', async () => {
@@ -275,6 +378,32 @@ it('should work with a custom generator', async () => {
 
   expect(data.stdout).toContain(`I am a minimal generator`)
 }, 75_000) // timeout
+
+describe('prisma-client-ts validation', () => {
+  it('should throw errors for an unknown compilerBuild', async () => {
+    ctx.fixture('invalid-compiler-build')
+    const output = Generate.new().parse([], await ctx.config())
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid compiler build: "invalid", expected one of: "fast", "small"
+
+      "
+    `)
+  })
+})
+
+describe('prisma-client-js validation', () => {
+  it('should throw errors for an unknown compilerBuild', async () => {
+    ctx.fixture('invalid-compiler-build-client-js')
+    const output = Generate.new().parse([], await ctx.config())
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid compiler build: "invalid", expected one of: "fast", "small"
+
+      "
+    `)
+  })
+})
 
 describe('--schema from project directory', () => {
   beforeEach(() => {
@@ -296,7 +425,6 @@ describe('--schema from project directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -320,7 +448,6 @@ describe('--schema from project directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -373,7 +500,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -399,7 +525,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -429,7 +554,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })
@@ -449,7 +573,6 @@ describe('--schema from parent directory', () => {
 
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
       "
     `)
   })

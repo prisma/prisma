@@ -1,4 +1,5 @@
 import { Debug } from '@prisma/debug'
+import { MultipleSchemaTuple } from '@prisma/get-dmmf'
 import type {
   GetSchemaResult,
   LookupResult,
@@ -10,8 +11,6 @@ import fs from 'fs'
 import { dim, green } from 'kleur/colors'
 import path from 'path'
 import { promisify } from 'util'
-
-import type { MultipleSchemaTuple } from '../utils/schemaFileInput'
 
 const readFile = promisify(fs.readFile)
 const stat = promisify(fs.stat)
@@ -109,8 +108,7 @@ export async function getSchemaWithPathOptional({
 }
 
 export function printSchemaLoadedMessage(schemaPath: string) {
-  // TODO: this causes https://github.com/prisma/prisma/issues/27005
-  process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
+  process.stderr.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}.`) + '\n')
 }
 
 async function readSchemaFromSingleFile(schemaPath: string): Promise<LookupResult> {

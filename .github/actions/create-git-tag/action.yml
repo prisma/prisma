@@ -20,7 +20,7 @@ runs:
   using: composite
   steps:
     - name: Create tag
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         INPUT_REPOSITORY: ${{ inputs.repository }}
         TAG_NAME: ${{ inputs.tag-name }}

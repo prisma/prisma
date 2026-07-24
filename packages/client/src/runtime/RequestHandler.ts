@@ -1,5 +1,5 @@
 import { Context } from '@opentelemetry/api'
-import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
+import { deserializeJsonObject } from '@prisma/client-engine-runtime'
 import { hasBatchIndex } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
@@ -119,6 +119,15 @@ export class RequestHandler {
       },
 
       batchBy: (request) => {
+        // If the request is part of an interactive transaction, we want to group all requests with the same
+        // protocolQuery together to take advantage of automatic batching in the engine.
+        // Note that we only do this for interactive transactions, not for batch transactions, as it can lead to queries
+        // being executed out of order in batch transactions.
+        if (request.transaction?.kind === 'itx') {
+          const batchId = getBatchId(request.protocolQuery)
+          return `itx-${request.transaction.id}${batchId ? `-${batchId}` : ''}`
+        }
+
         if (request.transaction?.id) {
           return `transaction-${request.transaction.id}`
         }
@@ -269,12 +278,12 @@ export class RequestHandler {
     }
     const operation = Object.keys(data)[0]
     const response = Object.values(data)[0]
-    const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
+    const pathForGet = dataPathToGetPath(dataPath)
     const extractedResponse = deepGet(response, pathForGet)
     const deserializedResponse =
       operation === 'queryRaw'
         ? deserializeRawResult(extractedResponse as RawResponse)
-        : (deserializeJsonResponse(extractedResponse) as unknown)
+        : (deserializeJsonObject(extractedResponse) as unknown)
 
     return unpacker ? unpacker(deserializedResponse) : deserializedResponse
   }
@@ -296,6 +305,8 @@ function getTransactionOptions<PayloadType>(
       kind: 'batch',
       options: {
         isolationLevel: transaction.isolationLevel,
+        maxWait: transaction.maxWait,
+        timeout: transaction.timeout,
       },
     }
   }
@@ -355,4 +366,20 @@ function convertValidationError(error: EngineValidationError): EngineValidationE
   }
 
   return error
+}
+
+/**
+ * Converts a fluent-API dataPath into the path used to read the result out of
+ * the response. dataPath is a sequence of [selector, relationField] pairs where
+ * the selector is always 'select' or 'include'. The relation field names (the
+ * odd positions) form the path. Filtering by the literal values 'select' or
+ * 'include' would also drop a relation field that happens to be named that way,
+ * so the path is derived positionally instead.
+ */
+export function dataPathToGetPath(dataPath: string[]): string[] {
+  const getPath: string[] = []
+  for (let index = 1; index < dataPath.length; index += 2) {
+    getPath.push(dataPath[index])
+  }
+  return getPath
 }

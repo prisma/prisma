@@ -13,25 +13,27 @@ const RUNTIME_BASE = '.' satisfies Options['runtimeBase']
 
 type MakeTypeScriptFilesInput = {
   output: string
+  compilerBuild: Options['compilerBuild']
 }
 
-function makeTypeScriptFiles({ output }: MakeTypeScriptFilesInput) {
+function makeTypeScriptFiles({ output, compilerBuild }: MakeTypeScriptFilesInput) {
   const CONFIG_BANNER = `let config = { compilerWasm: undefined } as
     {
       compilerWasm?: {
         getRuntime: () => Promise<unknown>
         getQueryCompilerWasmModule: () => Promise<WebAssembly.Module>
+        importName: string
       }
     }
     `
 
   return {
     './buildGetWasmModule.ts': `${CONFIG_BANNER}${output}`,
-    [`./query_compiler_bg.postgresql.mjs`]: 'export const runtime = ``',
-    [`./query_compiler_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
-    [`./query_compiler_bg.js`]: 'export const runtime = ``',
-    [`./query_compiler_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
-    [`./query_compiler_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
+    [`./query_compiler_${compilerBuild}_bg.postgresql.mjs`]: 'export const runtime = ``',
+    [`./query_compiler_${compilerBuild}_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
+    [`./query_compiler_${compilerBuild}_bg.js`]: 'export const runtime = ``',
+    [`./query_compiler_${compilerBuild}_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
+    [`./query_compiler_${compilerBuild}_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
   } as const
 }
 
@@ -42,8 +44,10 @@ function makeTypeScriptFiles({ output }: MakeTypeScriptFilesInput) {
 const runtimeNames = ['client', 'wasm-compiler-edge'] as const satisfies Array<Options['runtimeName']>
 const targets = supportedInternalRuntimes
 const moduleFormats = ['cjs', 'esm'] as const satisfies Array<Options['moduleFormat']>
+const builds = ['fast', 'small'] as const satisfies Array<Options['compilerBuild']>
 
-type CombinationName = `compiler-${Options['runtimeName']}-${Options['target']}-${Options['moduleFormat']}`
+type CombinationName =
+  `compiler-${Options['compilerBuild']}-${Options['runtimeName']}-${Options['target']}-${Options['moduleFormat']}`
 
 function makeTestCombinations() {
   const combinations: Array<Omit<Options, 'runtimeBase' | 'activeProvider'> & { testName: CombinationName }> = []
@@ -56,13 +60,16 @@ function makeTestCombinations() {
       }
 
       for (const moduleFormat of moduleFormats) {
-        const testName = `compiler-${runtimeName}-${target}-${moduleFormat}` as const
-        combinations.push({
-          testName,
-          runtimeName,
-          target,
-          moduleFormat,
-        })
+        for (const compilerBuild of builds) {
+          const testName = `compiler-${compilerBuild}-${runtimeName}-${target}-${moduleFormat}` as const
+          combinations.push({
+            testName,
+            runtimeName,
+            target,
+            moduleFormat,
+            compilerBuild,
+          })
+        }
       }
     }
   }
@@ -75,20 +82,21 @@ const allCombinations = makeTestCombinations()
 describe('buildGetWasmModule', () => {
   it.concurrent.each(allCombinations)(
     'generates valid TypeScript',
-    ({ testName, moduleFormat, runtimeName, target }) => {
+    ({ testName, moduleFormat, runtimeName, target, compilerBuild }) => {
       const output = buildGetWasmModule({
         runtimeName,
         runtimeBase: RUNTIME_BASE,
         target,
         activeProvider: ACTIVE_CONNECTOR_TYPE,
         moduleFormat,
+        compilerBuild,
       })
 
       expect(output).toMatchSnapshot(`${testName}.ts`)
 
       assertTypeScriptIsValid({
         moduleFormat,
-        files: makeTypeScriptFiles({ output }),
+        files: makeTypeScriptFiles({ output, compilerBuild }),
       })
     },
   )

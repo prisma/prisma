@@ -60,8 +60,7 @@ describeMatrix({ providers: { d1: true } }, 'D1', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite" <location placeholder>
+      "Datasource "db": SQLite database "5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
@@ -234,6 +233,99 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         "
       `)
     })
+
+    test('--url overrides config datasource URL when datasource exists in config', async () => {
+      ctx.fixture('introspection/sqlite')
+      ctx.setDatasource({
+        url: 'file:./other.db',
+      })
+
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+      await expect(result).resolves.toBe('')
+
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "sqlite"
+        }
+
+        model Post {
+          authorId  Int
+          content   String?
+          createdAt DateTime @default(now())
+          id        Int      @id @default(autoincrement())
+          published Boolean  @default(false)
+          title     String
+          author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+        }
+
+        model Profile {
+          bio    String?
+          id     Int     @id @default(autoincrement())
+          userId Int     @unique(map: "Profile.userId")
+          user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+        }
+
+        model User {
+          email   String   @unique(map: "User.email")
+          id      Int      @id @default(autoincrement())
+          name    String?
+          posts   Post[]
+          profile Profile?
+        }
+
+        "
+      `)
+    })
+
+    test('--url works when no datasource exists in config', async () => {
+      ctx.fixture('introspection/sqlite')
+
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
+      await expect(result).resolves.toBe('')
+
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "sqlite"
+        }
+
+        model Post {
+          authorId  Int
+          content   String?
+          createdAt DateTime @default(now())
+          id        Int      @id @default(autoincrement())
+          published Boolean  @default(false)
+          title     String
+          author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+        }
+
+        model Profile {
+          bio    String?
+          id     Int     @id @default(autoincrement())
+          userId Int     @unique(map: "Profile.userId")
+          user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+        }
+
+        model User {
+          email   String   @unique(map: "User.email")
+          id      Int      @id @default(autoincrement())
+          name    String?
+          posts   Post[]
+          profile Profile?
+        }
+
+        "
+      `)
+    })
   })
 
   it('should succeed when schema and db do match', async () => {
@@ -243,8 +335,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
@@ -260,8 +351,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/reintrospection.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/reintrospection.prisma
       ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
@@ -394,8 +484,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
@@ -424,8 +513,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✖ Introspecting based on datasource defined in prisma/schema.prisma
@@ -453,8 +541,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+      "Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✖ Introspecting based on datasource defined in prisma/schema.prisma
@@ -497,8 +584,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     `)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/invalid.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/invalid.prisma
       ✖ Introspecting based on datasource defined in prisma/invalid.prisma
@@ -518,8 +604,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/invalid.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      "Datasource "db": SQLite database "dev.db" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/invalid.prisma
       ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms

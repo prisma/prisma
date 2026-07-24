@@ -55,6 +55,7 @@ const prisma = new PrismaClient({
 
 - [`@prisma/sqlcommenter-query-tags`](https://www.npmjs.com/package/@prisma/sqlcommenter-query-tags): appends arbitrary tags to all queries within an async context.
 - [`@prisma/sqlcommenter-trace-context`](https://www.npmjs.com/package/@prisma/sqlcommenter-trace-context): appends `traceparent` comments to SQL queries for distributed tracing.
+- [`@prisma/sqlcommenter-query-insights`](https://www.npmjs.com/package/@prisma/sqlcommenter-query-insights): enables query insights for [Prisma Postgres](https://www.prisma.io/postgres).
 
 ### Query Context
 

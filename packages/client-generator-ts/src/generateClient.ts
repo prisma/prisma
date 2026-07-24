@@ -54,6 +54,7 @@ export interface GenerateClientOptions {
   moduleFormat: ModuleFormat
   /** Include a "@ts-nocheck" comment at the top of all generated TS files */
   tsNoCheckPreamble: Boolean
+  compilerBuild: 'fast' | 'small'
 }
 
 export interface FileMap {
@@ -83,6 +84,7 @@ export function buildClient({
   importFileExtension,
   moduleFormat,
   tsNoCheckPreamble,
+  compilerBuild,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const runtimeName = getRuntimeNameForTarget(target)
@@ -109,6 +111,7 @@ export function buildClient({
     importFileExtension,
     moduleFormat,
     tsNoCheckPreamble,
+    compilerBuild,
   }
 
   const client = new TSClient(clientOptions)
@@ -136,6 +139,7 @@ export function buildClient({
       ...buildWasmFileMap({
         runtimeName,
         activeProvider,
+        compilerBuild,
       }),
     },
   }
@@ -181,6 +185,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     importFileExtension,
     moduleFormat,
     tsNoCheckPreamble,
+    compilerBuild,
   } = options
 
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
@@ -203,6 +208,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     importFileExtension,
     moduleFormat,
     tsNoCheckPreamble,
+    compilerBuild,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
