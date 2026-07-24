@@ -127,6 +127,8 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
                   roles: [...policy.roles],
                   using: policy.using,
                   permissive: policy.permissive,
+                  withCheck: undefined,
+                  dependsOn: undefined,
                 }),
             ),
           }),

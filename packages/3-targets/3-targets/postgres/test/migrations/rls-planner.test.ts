@@ -146,6 +146,7 @@ function policyNode(policy: PostgresRlsPolicy): PostgresPolicySchemaNode {
     using: policy.using,
     withCheck: policy.withCheck,
     permissive: policy.permissive,
+    dependsOn: undefined,
   });
 }
 
