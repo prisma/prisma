@@ -1,14 +1,13 @@
 /**
- * Project DoD-2 and DoD-3 — the emitted contract is the database's
- * signature.
+ * The emitted contract is the database's signature.
  *
- * DoD-2: a database created "by another tool" carries an expression index, a
+ * First half: a database created "by another tool" carries an expression index, a
  * partial index, a unique expression index, and two RLS policies (one
  * PERMISSIVE, one RESTRICTIVE) on an RLS-enabled table. `contract infer` →
  * emit → `db verify` reports ZERO issues → `db update --dry-run` plans ZERO
  * operations.
  *
- * DoD-3: from that signed contract, one index and one policy transition
+ * Second half: from that signed contract, one index and one policy transition
  * from `map:` to the managed spelling (bodies verbatim) → the widening plan
  * contains EXACTLY two ops, both renames (byte-asserted) → apply → verify
  * clean under the wire names.
@@ -85,7 +84,7 @@ function readPlannedOps(ctx: JourneyContext): readonly PlannedOp[] {
 }
 
 withTempDir(({ createTempDir }) => {
-  describe('DoD-2/3: sign a database this toolchain has never seen, then transition to managed', () => {
+  describe('sign a database this toolchain has never seen, then transition to managed', () => {
     const db = useDevDatabase({
       onReady: (cs) => withClient(cs, (client) => client.query(FOREIGN_TOOL_SCHEMA)),
     });
@@ -99,7 +98,7 @@ withTempDir(({ createTempDir }) => {
           contractMode: 'psl',
         });
 
-        // DoD-2.1: infer captures the full surface.
+        // Infer captures the full surface.
         const infer = await runContractInfer(ctx);
         expect(infer.exitCode, `2.1: contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
         const inferredPsl = readFileSync(join(ctx.testDir, 'contract.prisma'), 'utf-8');
@@ -118,7 +117,7 @@ withTempDir(({ createTempDir }) => {
         expect(inferredPsl).toContain('permissive = false');
         expect(inferredPsl).toContain('@@rls');
 
-        // DoD-2.2: emit → verify ZERO issues.
+        // Emit → verify ZERO issues.
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, `2.2: contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
         const schemaVerify = await runDbVerify(ctx, ['--schema-only', '--json']);
@@ -128,7 +127,7 @@ withTempDir(({ createTempDir }) => {
           schema: { issues: [] },
         });
 
-        // DoD-2.3: sign; a dry-run update plans ZERO operations.
+        // Sign; a dry-run update plans ZERO operations.
         const sign = await runDbSign(ctx);
         expect(sign.exitCode, `2.3: db sign\n${stripAnsi(sign.stderr)}`).toBe(0);
         const verify = await runDbVerify(ctx);
@@ -140,7 +139,7 @@ withTempDir(({ createTempDir }) => {
           plan: { operations: [] },
         });
 
-        // DoD-3.1: baseline migration so migration plan diffs from the
+        // Baseline migration so migration plan diffs from the
         // adopted contract; a fresh migrate is a no-op against the live DB.
         const planBaseline = await runMigrationPlanAndEmit(ctx, ['--name', 'baseline']);
         expect(planBaseline.exitCode, `3.1: plan baseline\n${stripAnsi(planBaseline.stderr)}`).toBe(
@@ -155,7 +154,7 @@ withTempDir(({ createTempDir }) => {
           migrationsApplied: 0,
         });
 
-        // DoD-3.2: transition ONE index and ONE policy to managed spellings,
+        // Transition ONE index and ONE policy to managed spellings,
         // bodies verbatim.
         const transitioned = inferredPsl
           .replace(
@@ -168,7 +167,7 @@ withTempDir(({ createTempDir }) => {
         const emitManaged = await runContractEmit(ctx);
         expect(emitManaged.exitCode, `3.2: emit managed\n${stripAnsi(emitManaged.stderr)}`).toBe(0);
 
-        // DoD-3.3: the widening plan is EXACTLY the two renames.
+        // The widening plan is EXACTLY the two renames.
         const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-managed-names']);
         expect(plan.exitCode, `3.3: migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
         const ops = readPlannedOps(ctx);
@@ -194,7 +193,7 @@ withTempDir(({ createTempDir }) => {
           },
         ]);
 
-        // DoD-3.4: apply; verify clean under the wire names.
+        // Apply; verify clean under the wire names.
         const apply = await runMigrate(ctx);
         expect(apply.exitCode, `3.4: migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
         const verifyManaged = await runDbVerify(ctx);
