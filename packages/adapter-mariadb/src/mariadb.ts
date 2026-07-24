@@ -103,7 +103,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
       this.onError(err)
     } finally {
       this.cleanup?.()
-      await this.client.end()
+      await releaseConnection(this.client)
     }
   }
 
@@ -116,7 +116,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
       this.onError(err)
     } finally {
       this.cleanup?.()
-      await this.client.end()
+      await releaseConnection(this.client)
     }
   }
 
@@ -140,6 +140,11 @@ export type PrismaMariadbOptions = {
   useTextProtocol?: boolean
   /** Callback attached to transaction connection `error` events. */
   onConnectionError?: (err: mariadb.SqlError) => void
+  /**
+   * Whether to call `pool.end()` on an externally provided pool when the adapter is disposed.
+   * Defaults to `false`.
+   */
+  disposeExternalPool?: boolean
 }
 
 export type Capabilities = {
@@ -151,6 +156,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     client: mariadb.Pool,
     private readonly capabilities: Capabilities,
     protected readonly mariadbOptions?: PrismaMariadbOptions,
+    private readonly release?: () => Promise<void>,
   ) {
     super(client, mariadbOptions)
   }
@@ -182,7 +188,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     conn.on('error', onError)
 
     const cleanup = () => {
-      conn.removeListener('error', onError)
+      conn.off('error', onError)
     }
 
     try {
@@ -198,14 +204,20 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
       await tx.conn.query({ sql: 'BEGIN' }).catch(this.onError.bind(this))
       return tx
     } catch (error) {
-      await conn.end()
-      cleanup()
+      // Detach the error listener before releasing the connection so it is not
+      // reused by the pool with our handler still attached. The release is
+      // wrapped in try/finally so the connection always returns to the pool.
+      try {
+        cleanup()
+      } finally {
+        await releaseConnection(conn)
+      }
       this.onError(error)
     }
   }
 
   async dispose(): Promise<void> {
-    await this.client.end()
+    return this.release?.()
   }
 
   underlyingDriver(): mariadb.Pool {
@@ -218,56 +230,110 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   readonly adapterName = packageName
 
   #capabilities?: Capabilities
-  #config: mariadb.PoolConfig | string
+  #poolOrConfig: { type: 'pool'; pool: mariadb.Pool } | { type: 'config'; config: mariadb.PoolConfig | string }
   #options?: PrismaMariadbOptions
+  #externalPoolClaimed = false
 
-  constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
-    if (typeof config === 'string') {
-      try {
-        const url = new URL(config)
-        if (!url.searchParams.has('prepareCacheLength')) {
-          url.searchParams.set('prepareCacheLength', '0')
-        }
-        // Always enforce UTC so TIMESTAMP strings returned with dateStrings:true are in UTC,
-        // which mapRow requires (it appends 'Z' to treat the string as UTC).
-        // See: https://github.com/prisma/prisma/issues/29096
-        url.searchParams.set('timezone', '+00:00')
-        this.#config = rewriteConnectionString(url).toString()
-      } catch (error) {
-        debug('Error parsing connection string: %O', error)
-        // If we can't parse the connection string, use it as-is and let the driver fail with
-        // its own error.
-        this.#config = config
-      }
-    } else {
-      // Always enforce UTC so TIMESTAMP strings returned with dateStrings:true are in UTC,
-      // which mapRow requires. Placed after the spread so it cannot be overridden by config.
-      // See: https://github.com/prisma/prisma/issues/29096
-      this.#config = { ...config, timezone: 'UTC', prepareCacheLength: config.prepareCacheLength ?? 0 }
-    }
+  /**
+   * Accepts either connection settings for a pool the adapter creates and owns, or an existing
+   * pool. Settings the adapter would normally apply to its own pool (such as defaulting
+   * `prepareCacheLength` to 0 and forcing `timezone` to UTC) are not applied to an externally
+   * created pool.
+   */
+  constructor(poolOrConfig: mariadb.Pool | mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
+    this.#poolOrConfig = isPool(poolOrConfig)
+      ? { type: 'pool', pool: poolOrConfig }
+      : { type: 'config', config: normalizeConfig(poolOrConfig) }
     this.#options = options
   }
 
   async connect(): Promise<PrismaMariaDbAdapter> {
-    let pool: mariadb.Pool
-    try {
-      pool = mariadb.createPool(this.#config)
-    } catch (error) {
-      // We match on an error which is known to leak the connection string and replace it with
-      // a custom error message.
-      // The error might change in a future version of the driver, but this is covered in a
-      // test, which checks for credential leakage regardless of the exact error message.
-      if (error instanceof Error && error.message.startsWith('error parsing connection string')) {
+    const poolOrConfig = this.#poolOrConfig
+    const ownsPool = poolOrConfig.type === 'config' || this.#options?.disposeExternalPool === true
+
+    // The adapter ends a pool it owns, and cannot build a replacement from an external pool, so
+    // at most one adapter may own a given external pool. The claim is staked before any `await`
+    // so that a second `connect()` is rejected while the first adapter is still alive, and while
+    // its `dispose()` is in flight or has failed.
+    if (poolOrConfig.type === 'pool' && ownsPool) {
+      if (this.#externalPoolClaimed) {
         throw new Error(
-          "error parsing connection string, format must be 'mariadb://[<user>[:<password>]@]<host>[:<port>]/[<db>[?<opt1>=<value1>[&<opt2>=<value2>]]]'",
+          'connect() can only be called once when `disposeExternalPool` is true, because the adapter ' +
+            'ends the pool it was given and cannot create a replacement from it. Either pass connection ' +
+            'settings instead of a pool, or set `disposeExternalPool: false` and end the pool yourself ' +
+            'once you no longer need the adapter.',
         )
       }
-      throw error
+      this.#externalPoolClaimed = true
     }
+
+    const pool = poolOrConfig.type === 'pool' ? poolOrConfig.pool : createPool(poolOrConfig.config)
+
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
     }
-    return new PrismaMariaDbAdapter(pool, this.#capabilities, this.#options)
+
+    return new PrismaMariaDbAdapter(pool, this.#capabilities, this.#options, async () => {
+      if (ownsPool) {
+        await pool.end()
+      }
+    })
+  }
+}
+
+/**
+ * Checks whether the value is an existing pool rather than connection settings. The driver
+ * doesn't export its pool class, so the check is structural; a `PoolConfig` has no methods.
+ */
+function isPool(poolOrConfig: mariadb.Pool | mariadb.PoolConfig | string): poolOrConfig is mariadb.Pool {
+  return typeof poolOrConfig === 'object' && typeof (poolOrConfig as mariadb.Pool).getConnection === 'function'
+}
+
+function normalizeConfig(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
+  if (typeof config === 'string') {
+    try {
+      const url = new URL(config)
+      if (!url.searchParams.has('prepareCacheLength')) {
+        url.searchParams.set('prepareCacheLength', '0')
+      }
+      // Force UTC so TIMESTAMP strings the driver returns with `dateStrings: true` are in UTC,
+      // which `mapRow` relies on when it appends 'Z' to treat them as UTC. A user-supplied
+      // value is overridden, since a non-UTC session would silently corrupt those reads.
+      // See: https://github.com/prisma/prisma/issues/29096
+      url.searchParams.set('timezone', 'UTC')
+      return rewriteConnectionString(url).toString()
+    } catch {
+      // The error is deliberately not logged: `ERR_INVALID_URL` carries the rejected string in
+      // `error.input`, which would put the connection string's credentials into the debug
+      // history, and `getLogs()` surfaces that history in user-facing error reports.
+      debug('Failed to parse the connection string, passing it to the driver as-is')
+      // If we can't parse the connection string, use it as-is and let the driver fail with
+      // its own error.
+      return config
+    }
+  }
+
+  // `timezone` is placed after the spread so it always wins: `mapRow` treats TIMESTAMP strings
+  // as UTC, so a non-UTC session would silently corrupt those reads. `prepareCacheLength`
+  // defaults to 0 but keeps any user-supplied value.
+  // See: https://github.com/prisma/prisma/issues/29096
+  return { ...config, prepareCacheLength: config.prepareCacheLength ?? 0, timezone: 'UTC' }
+}
+
+function createPool(config: mariadb.PoolConfig | string): mariadb.Pool {
+  try {
+    return mariadb.createPool(config)
+  } catch (error) {
+    // We match on an error which is known to leak the connection string and replace it with
+    // a custom error message.
+    // The error might change in a future version of the driver, but this is covered in a
+    // test, which checks for credential leakage regardless of the exact error message.
+    if (error instanceof Error && error.message.startsWith('error parsing connection string')) {
+      throw new Error(
+        "error parsing connection string, format must be 'mariadb://[<user>[:<password>]@]<host>[:<port>]/[<db>[?<opt1>=<value1>[&<opt2>=<value2>]]]'",
+      )
+    }
+    throw error
   }
 }
 
@@ -309,14 +375,41 @@ export function inferCapabilities(version: unknown): Capabilities {
 }
 
 /**
- * Rewrites mysql:// connection strings to mariadb:// format.
- * This allows users to use mysql:// connection strings with the MariaDB adapter.
+ * Rewrites a connection string into the form the mariadb driver's own parser accepts:
+ *
+ * - `mysql://` is rewritten to `mariadb://`, so that users can point the MariaDB adapter
+ *   at a `mysql://` connection string.
+ * - The colons of a bracketed IPv6 host are percent-encoded. The driver's connection
+ *   string grammar forbids colons in the host, so `[::1]` never matches and the whole
+ *   string is rejected; it does run the host through `decodeURIComponent`, so an encoded
+ *   host round-trips to the correct address.
  */
 export function rewriteConnectionString(url: URL): URL {
   if (url.protocol === 'mysql:') {
     url.protocol = 'mariadb:'
   }
+
+  if (url.hostname.startsWith('[') && url.hostname.endsWith(']')) {
+    url.hostname = encodeURIComponent(url.hostname.slice(1, -1))
+  }
+
   return url
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
+
+/**
+ * Returns a pool connection back to its pool via `PoolConnection#release()`.
+ * Using `end()` instead would permanently close a plain `mariadb.Connection`,
+ * which breaks pool reuse and the `idleTimeout` / `minimumIdle` lifecycle.
+ * Falls back to `end()` when `release` is not available (e.g. unit tests with
+ * a non-pool connection).
+ */
+async function releaseConnection(conn: mariadb.Connection): Promise<void> {
+  const poolConn = conn as mariadb.PoolConnection
+  if (typeof poolConn.release === 'function') {
+    await poolConn.release()
+  } else {
+    await conn.end()
+  }
+}

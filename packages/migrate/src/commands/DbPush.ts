@@ -111,6 +111,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd, validatedConfig })
 
+    const datasourceProvider = getSchemaDatasourceProvider(schemaContext)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
@@ -129,11 +130,7 @@ ${bold('Examples')}
 
     try {
       // Automatically create the database if it doesn't exist
-      const successMessage = await ensureDatabaseExists(
-        baseDir,
-        getSchemaDatasourceProvider(schemaContext),
-        validatedConfig,
-      )
+      const successMessage = await ensureDatabaseExists(baseDir, datasourceProvider, validatedConfig)
       if (successMessage) {
         process.stdout.write('\n' + successMessage + '\n')
       }
@@ -183,6 +180,10 @@ ${bold('Examples')}
     const before = Math.round(performance.now())
     let migration: EngineResults.SchemaPush
     try {
+      if (args['--accept-data-loss']) {
+        aiAgentConfirmationCheckpoint()
+      }
+
       migration = await migrate.push({
         force: args['--accept-data-loss'],
       })

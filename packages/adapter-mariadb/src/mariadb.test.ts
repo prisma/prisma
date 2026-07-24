@@ -1,5 +1,5 @@
 import * as mariadb from 'mariadb'
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import {
   inferCapabilities,
@@ -8,17 +8,11 @@ import {
   rewriteConnectionString,
 } from './mariadb'
 
+vi.mock('mariadb', () => ({
+  createPool: vi.fn(),
+}))
+
 describe('PrismaMariaDbAdapterFactory constructor', () => {
-  beforeAll(() => {
-    vi.mock('mariadb', () => ({
-      createPool: vi.fn(),
-    }))
-  })
-
-  afterAll(() => {
-    vi.doUnmock('mariadb')
-  })
-
   test.each([
     {
       config: {},
@@ -150,6 +144,18 @@ describe('rewriteConnectionString', () => {
     const input = 'mariadb://user:pass@localhost:3306/db'
     expect(rewriteConnectionString(new URL(input)).toString()).toBe(input)
   })
+
+  test.each([
+    ['mariadb://user:pass@[::1]:3306/db', 'mariadb://user:pass@%3A%3A1:3306/db'],
+    ['mariadb://user:pass@[::1]/db', 'mariadb://user:pass@%3A%3A1/db'],
+    ['mysql://user:pass@[::1]:3306/db', 'mariadb://user:pass@%3A%3A1:3306/db'],
+    [
+      'mariadb://user:pass@[2001:db8::1]:3306/db?connectionLimit=10&ssl=true',
+      'mariadb://user:pass@2001%3Adb8%3A%3A1:3306/db?connectionLimit=10&ssl=true',
+    ],
+  ])('should percent-encode the IPv6 host of %s', (input, expected) => {
+    expect(rewriteConnectionString(new URL(input)).toString()).toBe(expected)
+  })
 })
 
 describe('useTextProtocol option', () => {
@@ -173,4 +179,327 @@ describe('useTextProtocol option', () => {
       expect(mockClient[flagToMethod[String(!flag)]]).not.toHaveBeenCalled()
     },
   )
+})
+
+describe('PrismaMariaDbAdapterFactory', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test('should accept a pool instance directly', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool)
+    const adapter = await factory.connect()
+
+    expect(adapter).toBeDefined()
+    expect(mockPool.query).toHaveBeenCalledWith({
+      sql: 'SELECT VERSION()',
+      rowsAsArray: true,
+    })
+  })
+
+  test('should accept config object', () => {
+    const config = {
+      host: 'localhost',
+      port: 3306,
+      user: 'user',
+      password: 'pass',
+      database: 'db',
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(config)
+    expect(factory).toBeDefined()
+  })
+
+  test('should accept mysql:// connection string', () => {
+    const connectionString = 'mysql://user:pass@localhost:3306/db'
+    const factory = new PrismaMariaDbAdapterFactory(connectionString)
+    expect(factory).toBeDefined()
+  })
+
+  test('should accept mariadb:// connection string', () => {
+    const connectionString = 'mariadb://user:pass@localhost:3306/db'
+    const factory = new PrismaMariaDbAdapterFactory(connectionString)
+    expect(factory).toBeDefined()
+  })
+
+  test('should not dispose external pool by default', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool)
+    const adapter = await factory.connect()
+    await adapter.dispose()
+
+    expect(mockPool.end).not.toHaveBeenCalled()
+  })
+
+  test('should dispose external pool when disposeExternalPool is true', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    const adapter = await factory.connect()
+    await adapter.dispose()
+
+    expect(mockPool.end).toHaveBeenCalled()
+  })
+
+  test('should throw when calling connect() again after disposing an external pool', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    const adapter = await factory.connect()
+    await adapter.dispose()
+
+    // Should throw when trying to connect again
+    await expect(factory.connect()).rejects.toThrow(
+      'connect() can only be called once when `disposeExternalPool` is true',
+    )
+  })
+
+  test('should throw on a second connect() with disposeExternalPool before the first is disposed', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    await factory.connect()
+
+    // The pool is still live here: a second adapter would end a pool the first one is using.
+    await expect(factory.connect()).rejects.toThrow(
+      'connect() can only be called once when `disposeExternalPool` is true',
+    )
+    expect(mockPool.end).not.toHaveBeenCalled()
+  })
+
+  test('should throw on a second connect() when disposing an external pool failed', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn().mockRejectedValue(new Error('pool shutdown failed')),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: true })
+    const adapter = await factory.connect()
+    await expect(adapter.dispose()).rejects.toThrow('pool shutdown failed')
+
+    // The pool is in an indeterminate state, so it must not be handed to another adapter.
+    await expect(factory.connect()).rejects.toThrow(
+      'connect() can only be called once when `disposeExternalPool` is true',
+    )
+  })
+
+  test('should allow multiple connect() calls when disposeExternalPool is false', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(mockPool as unknown as mariadb.Pool, { disposeExternalPool: false })
+
+    const adapter1 = await factory.connect()
+    await adapter1.dispose()
+
+    // Should not throw when connecting again
+    const adapter2 = await factory.connect()
+    expect(adapter2).toBeDefined()
+
+    // Both adapters should use the same pool
+    expect(adapter1.underlyingDriver()).toBe(adapter2.underlyingDriver())
+
+    // Pool should not be disposed
+    expect(mockPool.end).not.toHaveBeenCalled()
+  })
+
+  test('should allow multiple connect() calls with config', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    // Mock createPool to return our mock pool
+    vi.mocked(mariadb.createPool).mockReturnValue(mockPool as unknown as mariadb.Pool)
+
+    const config = {
+      host: 'localhost',
+      port: 3306,
+      user: 'user',
+      password: 'pass',
+      database: 'db',
+    }
+
+    const factory = new PrismaMariaDbAdapterFactory(config)
+
+    const adapter1 = await factory.connect()
+    expect(adapter1).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(1)
+    expect(mariadb.createPool).toHaveBeenCalledWith({ ...config, prepareCacheLength: 0, timezone: 'UTC' })
+
+    await adapter1.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(1)
+
+    // Should create a new pool for the second connect
+    const adapter2 = await factory.connect()
+    expect(adapter2).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(2)
+
+    await adapter2.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(2)
+  })
+
+  test('should allow multiple connect() calls with connection string', async () => {
+    const mockPool = {
+      getConnection: vi.fn(),
+      end: vi.fn(),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    }
+
+    // Mock createPool to return our mock pool
+    vi.mocked(mariadb.createPool).mockReturnValue(mockPool as unknown as mariadb.Pool)
+
+    const connectionString = 'mysql://user:pass@localhost:3306/db'
+    const factory = new PrismaMariaDbAdapterFactory(connectionString)
+
+    const adapter1 = await factory.connect()
+    expect(adapter1).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(1)
+    // Should have converted mysql:// to mariadb://
+    expect(mariadb.createPool).toHaveBeenCalledWith(
+      'mariadb://user:pass@localhost:3306/db?prepareCacheLength=0&timezone=UTC',
+    )
+
+    await adapter1.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(1)
+
+    // Should create a new pool for the second connect
+    const adapter2 = await factory.connect()
+    expect(adapter2).toBeDefined()
+    expect(mariadb.createPool).toHaveBeenCalledTimes(2)
+
+    await adapter2.dispose()
+    expect(mockPool.end).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('transaction connection management', () => {
+  function makePoolConn() {
+    const listeners = new Map<string, Set<(...args: unknown[]) => void>>()
+    const conn = {
+      query: vi.fn().mockResolvedValue([]),
+      execute: vi.fn().mockResolvedValue({ meta: [], affectedRows: 1 }),
+      release: vi.fn().mockResolvedValue(undefined),
+      end: vi.fn().mockResolvedValue(undefined),
+      on(event: string, cb: (...args: unknown[]) => void) {
+        if (!listeners.has(event)) listeners.set(event, new Set())
+        listeners.get(event)!.add(cb)
+        return this
+      },
+      off(event: string, cb: (...args: unknown[]) => void) {
+        listeners.get(event)?.delete(cb)
+        return this
+      },
+      listenerCount(event: string) {
+        return listeners.get(event)?.size ?? 0
+      },
+    }
+    return conn
+  }
+
+  test('commit returns connection to the pool via release() (not end())', async () => {
+    const conn = makePoolConn()
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    await tx.commit()
+
+    expect(conn.release).toHaveBeenCalledTimes(1)
+    expect(conn.end).not.toHaveBeenCalled()
+  })
+
+  test('rollback returns connection to the pool via release() (not end())', async () => {
+    const conn = makePoolConn()
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    await tx.rollback()
+
+    expect(conn.release).toHaveBeenCalledTimes(1)
+    expect(conn.end).not.toHaveBeenCalled()
+  })
+
+  test('error listener is removed after commit so it does not leak to the next user of the pooled connection', async () => {
+    const conn = makePoolConn()
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    expect(conn.listenerCount('error')).toBe(1)
+    await tx.commit()
+    expect(conn.listenerCount('error')).toBe(0)
+  })
+
+  test('startTransaction releases the connection AND removes the listener when BEGIN fails', async () => {
+    const conn = makePoolConn()
+    conn.query.mockImplementation(({ sql }: { sql: string }) => {
+      if (sql === 'BEGIN') return Promise.reject(new Error('boom'))
+      return Promise.resolve([])
+    })
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(conn),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    await expect(adapter.startTransaction()).rejects.toBeDefined()
+
+    expect(conn.release).toHaveBeenCalledTimes(1)
+    expect(conn.end).not.toHaveBeenCalled()
+    expect(conn.listenerCount('error')).toBe(0)
+  })
+
+  test('falls back to end() for non-pool connections (no release method)', async () => {
+    const conn = makePoolConn()
+    const connNoRelease = { ...conn, release: undefined as unknown as typeof conn.release }
+    const pool = {
+      getConnection: vi.fn().mockResolvedValue(connNoRelease),
+      query: vi.fn().mockResolvedValue([['8.0.13']]),
+    } as unknown as mariadb.Pool
+
+    const adapter = new PrismaMariaDbAdapter(pool, { supportsRelationJoins: false })
+    const tx = await adapter.startTransaction()
+    await tx.commit()
+
+    expect(connNoRelease.end).toHaveBeenCalledTimes(1)
+  })
 })
