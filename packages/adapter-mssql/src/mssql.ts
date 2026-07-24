@@ -53,7 +53,16 @@ class MssqlQueryable implements SqlQueryable {
       req.arrayRowMode = true
 
       for (let i = 0; i < query.args.length; i++) {
-        req.input(`P${i + 1}`, mapArg(query.args[i], query.argTypes[i]))
+        const argType = query.argTypes[i]
+        // When the value is null, mssql cannot infer that the parameter should
+        // be VARBINARY and defaults to nvarchar, causing an implicit conversion
+        // error. We therefore provide sql.VarBinary explicitly.
+        // See: https://github.com/prisma/prisma/issues/29557
+        if (query.args[i] === null && argType.scalarType === 'bytes') {
+          req.input(`P${i + 1}`, sql.VarBinary, null)
+        } else {
+          req.input(`P${i + 1}`, mapArg(query.args[i], argType))
+        }
       }
       const res = (await req.query(query.sql)) as unknown as ArrayModeResult
       return res
@@ -116,6 +125,14 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
     } finally {
       release()
     }
+  }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVE TRANSACTION ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TRANSACTION ${name}`, args: [], argTypes: [] })
   }
 }
 

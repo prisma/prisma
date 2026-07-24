@@ -130,6 +130,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
     ${bold('Commands')}
 
                 init   Set up Prisma for your app
+           bootstrap   Bootstrap a Prisma Postgres project
                  dev   Start a local Prisma Postgres server for development
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
@@ -139,7 +140,10 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
               format   Format your Prisma schema
              version   Displays Prisma version info
                debug   Displays Prisma debug info
+            platform   Prisma Data Platform commands
+            postgres   Manage Prisma Postgres databases
                  mcp   Starts an MCP server to use with AI development tools
+            complete   Generate shell completion scripts
 
     ${bold('Flags')}
 

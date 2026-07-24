@@ -158,6 +158,18 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
     this.cleanup?.()
     this.client.release()
   }
+
+  async createSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async rollbackToSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `ROLLBACK TO SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
+
+  async releaseSavepoint(name: string): Promise<void> {
+    await this.executeRaw({ sql: `RELEASE SAVEPOINT ${name}`, args: [], argTypes: [] })
+  }
 }
 
 export type PrismaNeonOptions = {
@@ -276,7 +288,8 @@ export class PrismaNeonHttpAdapter extends NeonQueryable implements SqlDriverAda
   }
 
   override async performIO(query: SqlQuery): Promise<PerformIOResult> {
-    const { sql, args: values } = query
+    const { sql, args } = query
+    const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
     return await this.client(sql, values, {
       arrayMode: true,
       fullResults: true,

@@ -43,6 +43,26 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle UniqueConstraintViolation (23505) with constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)', constraint: 'users_id_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_id_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle UniqueConstraintViolation (23505) with only constraint', () => {
+    const error = { code: '23505', message: 'msg', severity: 'ERROR', constraint: 'users_email_key' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { index: 'users_email_key' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle NullConstraintViolation (23502)', () => {
     const error = { code: '23502', message: 'msg', severity: 'ERROR', detail: 'Key (foo)' }
     expect(convertDriverError(error)).toEqual({
@@ -67,6 +87,26 @@ describe('convertDriverError', () => {
     const error = { code: '23503', message: 'msg', severity: 'ERROR', constraint: 'baz' }
     expect(convertDriverError(error)).toEqual({
       kind: 'ForeignKeyConstraintViolation',
+      constraint: { index: 'baz' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle RestrictViolation (23001) with column', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', column: 'bar' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
+      constraint: { fields: ['bar'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle RestrictViolation (23001) with constraint', () => {
+    const error = { code: '23001', message: 'msg', severity: 'ERROR', constraint: 'baz' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'RestrictViolation',
       constraint: { index: 'baz' },
       originalCode: error.code,
       originalMessage: error.message,
@@ -107,8 +147,8 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle TransactionWriteConflict (40001)', () => {
-    const error = { code: '40001', message: 'msg', severity: 'ERROR' }
+  it.each(['40001', '40P01'])('should handle TransactionWriteConflict (%s)', (code) => {
+    const error = { code, message: 'msg', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'TransactionWriteConflict',
       originalCode: error.code,
@@ -126,11 +166,22 @@ describe('convertDriverError', () => {
     })
   })
 
-  it('should handle ColumnNotFound (42703)', () => {
-    const error = { code: '42703', message: 'column "foo" does not exist', severity: 'ERROR' }
+  it.each([
+    ['unquoted column name', 'column foo does not exist', 'foo'],
+    ['quoted column name', 'column "foo" does not exist', 'foo'],
+    ['unquoted qualified column name', 'column users.first_name does not exist', 'users.first_name'],
+    ['quoted qualified column name', 'column "users"."first name" does not exist', 'users.first name'],
+    ['partially quoted qualified column name (1)', 'column users."first name" does not exist', 'users.first name'],
+    ['partially quoted qualified column name (2)', 'column "users".first_name does not exist', 'users.first_name'],
+    ['quoted column name containing spaces', 'column "first name" does not exist', 'first name'],
+    ['quoted column name containing dots', 'column "first.name" does not exist', 'first.name'],
+    ['quoted qualified column name containing dots', 'column "users"."first.name" does not exist', 'users.first.name'],
+    ['quoted column name containing escaped quotes', 'column "a""b" does not exist', 'a"b'],
+  ])('should handle ColumnNotFound (42703) with %s', (description, message, expectedColumn) => {
+    const error = { code: '42703', message, severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
       kind: 'ColumnNotFound',
-      column: 'foo',
+      column: expectedColumn,
       originalCode: error.code,
       originalMessage: error.message,
     })
