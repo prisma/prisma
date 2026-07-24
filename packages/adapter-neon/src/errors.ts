@@ -64,6 +64,20 @@ function mapDriverError(error: DatabaseError): MappedError {
         constraint,
       }
     }
+    case '23001': {
+      let constraint: { fields: string[] } | { index: string } | undefined
+
+      if (error.column) {
+        constraint = { fields: [error.column] }
+      } else if (error.constraint) {
+        constraint = { index: error.constraint }
+      }
+
+      return {
+        kind: 'RestrictViolation',
+        constraint,
+      }
+    }
     case '3D000':
       return {
         kind: 'DatabaseDoesNotExist',
@@ -84,6 +98,7 @@ function mapDriverError(error: DatabaseError): MappedError {
         user: error.message.split(' ').pop()?.split('"').at(1),
       }
     case '40001':
+    case '40P01':
       return {
         kind: 'TransactionWriteConflict',
       }

@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import {
@@ -78,6 +80,7 @@ export class Version implements Command {
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
+    const prismaCliPath = path.dirname(require.resolve('../package.json'))
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -92,6 +95,7 @@ export class Version implements Command {
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.dependencies['@prisma/studio-core']],
+      ['Prisma CLI Path', prismaCliPath],
     ]
 
     /**

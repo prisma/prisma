@@ -8,25 +8,9 @@ import { createGunzip } from 'node:zlib'
 import { select } from '@inquirer/prompts'
 import { dim } from 'kleur/colors'
 
+import { CURATED_TEMPLATES } from './template-definitions'
+
 const PRISMA_EXAMPLES_TARBALL_URL = 'https://api.github.com/repos/prisma/prisma-examples/tarball/latest'
-
-interface TemplateEntry {
-  name: string
-  label: string
-}
-
-const CURATED_TEMPLATES: TemplateEntry[] = [
-  { name: 'nextjs', label: 'Next.js' },
-  { name: 'express', label: 'Express' },
-  { name: 'hono', label: 'Hono' },
-  { name: 'fastify', label: 'Fastify' },
-  { name: 'nuxt', label: 'Nuxt' },
-  { name: 'sveltekit', label: 'SvelteKit' },
-  { name: 'remix', label: 'Remix' },
-  { name: 'react-router-7', label: 'React Router 7' },
-  { name: 'astro', label: 'Astro' },
-  { name: 'nest', label: 'NestJS' },
-]
 
 export async function promptTemplateSelection(): Promise<string> {
   return select({

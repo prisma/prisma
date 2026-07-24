@@ -1,5 +1,30 @@
 export { BuiltInProvider } from './built-in-provider'
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
+export {
+  completionApiKeyHint,
+  completionClientOutputPaths,
+  completionCompositeTypeDepths,
+  completionConfigPaths,
+  completionDatabaseIdHint,
+  completionDatabaseSchemas,
+  completionDatasourceProviders,
+  completionDatasourceUrls,
+  completionDevDbPorts,
+  completionDevHttpPorts,
+  completionDevServerNames,
+  completionDevShadowDbPorts,
+  completionDiffOutputPaths,
+  completionGeneratorNames,
+  completionGeneratorProviders,
+  completionMigrationIds,
+  completionMigrationNames,
+  completionMigrationsDirPaths,
+  completionPreviewFeatures,
+  completionSchemaPaths,
+  completionSqlScriptPaths,
+  completionStudioBrowsers,
+  completionStudioPorts,
+} from './cli/completion-values'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
@@ -22,8 +47,11 @@ export {
 } from './cli/schemaContext'
 export type {
   Command,
+  CommandCompletion,
   Commands,
   CompiledGeneratorDefinition,
+  CompletionOption,
+  CompletionValue,
   Dictionary,
   GeneratorConfig,
   GeneratorDefinition,
